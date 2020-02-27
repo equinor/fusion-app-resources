@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(p => p.Mail, f => f.Person.Email)
                 .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
                 .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
-                .RuleFor(p => p.HasCV, f => f.PickRandom<bool>())
+                .RuleFor(p => p.HasCV, f => f.Random.Bool())
                 .RuleFor(p => p.AzureAdStatus, f => f.PickRandom<ApiContractPersonnel.ApiAccountStatus>())
                 .FinishWith((f, p) =>
                 {
