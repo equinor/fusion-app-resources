@@ -74,8 +74,8 @@ stages:
           deploy:
             steps:
             - task: AzurePowerShell@4
-                displayName: 'Get secrets'
-                inputs:
+              displayName: 'Get secrets'
+              inputs:
                 azureSubscription: $(subscriptionService)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
