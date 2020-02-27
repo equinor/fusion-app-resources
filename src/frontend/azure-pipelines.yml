@@ -10,8 +10,6 @@ trigger:
     - azure-pipeline.yml
     - Dockerfile
 
-pr: none
-
 resources:
   repositories:
     - repository: commonTemplates
@@ -97,3 +95,31 @@ stages:
             inputs:
               action: deploy
               manifests: $(deploymentManifest)    
+
+- stage: DeployPR
+  displayName: 'Deploy to PR'
+  dependsOn: BuildDockerImage
+  condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+  variables: 
+    envName: 'pr'
+    clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment.template.pr.yml'
+
+
+  jobs:
+  - deployment: DeployPR
+    pool: Private Docker
+    environment: fusion-pullrequests.fusion-resources-app-pr
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/replace-tokens.yml@commonTemplates
+            parameters:
+              targetFiles: '$(deploymentManifest)'
+
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: deploy
+              manifests: $(deploymentManifest)                  
