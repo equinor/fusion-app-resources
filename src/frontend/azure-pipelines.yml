@@ -54,16 +54,16 @@ stages:
 
     - template: templates/replace-tokens.yml@commonTemplates
       parameters:
-        targetFiles: 'k8s/deployment.template.yml'
+        targetFiles: 'src/frontend/k8s/deployment.template.yml'
         
     - template: templates/replace-tokens.yml@commonTemplates
       parameters:
-        targetFiles: 'k8s/deployment.template.pr.yml'        
+        targetFiles: 'src/frontend/k8s/deployment.template.pr.yml'        
 
     - task: CopyFiles@2
       displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
       inputs:
-        SourceFolder: 'k8s'
+        SourceFolder: 'src/frontend/k8s'
         Contents: |
             deployment.template.yml
             deployment.template.pr.yml
