@@ -56,18 +56,18 @@ spec:
             cpu: "200m"
         args:
         - /server
-        livenessProbe:
-          httpGet:
-            path: /_health/live
-            port: 80
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /_health/ready
-            port: 80
-          initialDelaySeconds: 30
-          periodSeconds: 30
+#        livenessProbe:
+#          httpGet:
+#            path: /_health/live
+#            port: 80
+#          initialDelaySeconds: 30
+#          periodSeconds: 10
+#        readinessProbe:
+#          httpGet:
+#            path: /_health/ready
+#            port: 80
+#          initialDelaySeconds: 30
+#          periodSeconds: 30
 ---
 kind: Service
 apiVersion: v1
