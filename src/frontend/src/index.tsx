@@ -2,15 +2,16 @@ import * as React from 'react';
 import { registerApp, ContextTypes, Context } from '@equinor/fusion';
 import { Switch, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-import ContractsOverviewPage from './pages/ContractsOverviewPage';
-import ContractDetailsPage from './pages/ContractDetailsPage';
+// import ContractsOverviewPage from './pages/ContractsOverviewPage';
+// import ContractDetailsPage from './pages/ContractDetailsPage';
+import ProjectPage from './pages/ProjectPage';
 
 const App: React.FC = () => {
     return (
         <Switch>
             <Route path="/" exact component={LandingPage} />
-            <Route path="/:projectId" exact component={ContractsOverviewPage} />
-            <Route path="/:projectId/:contractId" exact component={ContractDetailsPage} />
+            <Route path="/:projectId" component={ProjectPage} />
+            {/* <Route path="/:projectId/:contractId" exact component={ContractDetailsPage} /> */}
         </Switch>
     );
 };
