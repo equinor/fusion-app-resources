@@ -8,6 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
 COPY ["api/Fusion.Resources.Api/Fusion.Resources.Api.csproj", "api/Fusion.Resources.Api/"]
+COPY ["nuget.config", "./"]
 RUN dotnet restore "api/Fusion.Resources.Api/Fusion.Resources.Api.csproj"
 COPY . .
 WORKDIR "/src/api/Fusion.Resources.Api"
