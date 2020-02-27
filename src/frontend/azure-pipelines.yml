@@ -42,7 +42,7 @@ stages:
         includeSourceTags: true
         includeLatestTag: false
         useDefaultContext: false
-        buildContext: .
+        buildContext: ./src/frontend
 
     - task: Docker@1
       displayName: 'Push an image'
