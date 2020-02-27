@@ -15,12 +15,12 @@
         "shortName": "Resources"
     },
     "dependencies": {
-        "@equinor/fusion": "^1.0.26",
-        "@equinor/fusion-components": "^1.1.34",
+        "@equinor/fusion": "^1.0.34",
+        "@equinor/fusion-components": "^1.1.50",
         "react": "^16.9.0"
     },
     "devDependencies": {
-        "@equinor/fusion-cli": "^1.0.14",
+        "@equinor/fusion-cli": "^1.0.15",
         "@types/history": "^4.7.2",
         "@types/react": "^16.9.2",
         "@types/react-router-dom": "^5.1.3",
