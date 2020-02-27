@@ -1,17 +1,31 @@
 import * as React from 'react';
-import { registerApp } from '@equinor/fusion';
+import { registerApp, ContextTypes, Context } from '@equinor/fusion';
+import { Switch, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import ContractsOverviewPage from './pages/ContractsOverviewPage';
+import ContractDetailsPage from './pages/ContractDetailsPage';
 
 const App: React.FC = () => {
-    
     return (
-        <div>
-            Resources
-        </div>
+        <Switch>
+            <Route path="/" exact component={LandingPage} />
+            <Route path="/:projectId" exact component={ContractsOverviewPage} />
+            <Route path="/:projectId/:contractId" exact component={ContractDetailsPage} />
+        </Switch>
     );
 };
 
 registerApp('resources', {
     AppComponent: App,
+    context: {
+        types: [ContextTypes.OrgChart],
+        buildUrl: (context: Context | null) => {
+            return context?.id || '';
+        },
+        getContextFromUrl: (url: string) => {
+            return url.split('/')[0];
+        },
+    },
 });
 
 if (module.hot) {
