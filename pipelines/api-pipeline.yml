@@ -13,7 +13,7 @@ variables:
     fusionAcr: 'fusioncr.azurecr.io'
     imageName: resources/fusion-resouces-api:$(imageTag)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
-    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment.template.yml'
+    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
   
 stages:
   - stage: BuildDockerImage
@@ -44,14 +44,14 @@ stages:
   
       - template: templates/replace-tokens.yml@commonTemplates
         parameters:
-          targetFiles: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s/deployment.template.yml'
+          targetFiles: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s/deployment-test-env.yml'
   
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
           SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
           Contents: |
-              deployment.template.yml              
+            deployment-test-env.yml
           TargetFolder: '$(Build.ArtifactStagingDirectory)'        
   
       - publish: $(Build.ArtifactStagingDirectory)
