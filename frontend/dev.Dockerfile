@@ -1,11 +1,13 @@
-FROM node:alpine as base
+FROM node:alpine
 
-COPY .devcontainer.json ./
+RUN apk add --no-cache \
+  git \
+  openssh
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --no-progress --no-optional
+RUN npm install
 
 COPY . .
 

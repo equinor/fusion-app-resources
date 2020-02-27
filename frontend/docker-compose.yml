@@ -1,11 +1,12 @@
 version: "3.7"
 services:
-  frontend:
-    image: fusion-tasks-dev
+  resources:
+    image: fusion-resources-dev
     build:
       context: ./
       dockerfile: dev.Dockerfile
     ports:
       - 8080:3000
     volumes:
-      - ./src:/app/src:rw
+      - .:/app:rw
+      - /app/node_modules
