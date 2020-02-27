@@ -1,0 +1,95 @@
+name: $(date:yyyyMMdd)$(rev:.r)
+trigger: none
+pr: none
+
+resources:
+    repositories:
+      - repository: commonTemplates
+        type: git
+        name: 'ProView Portal/fusion-pipeline-templates'
+  
+  variables:
+    imageTag: $(Build.BuildNumber)
+    fusionAcr: 'fusioncr.azurecr.io'
+    imageName: resources/fusion-resouces-api:$(imageTag)
+    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment.template.yml'
+  
+  stages:
+  - stage: BuildDockerImage
+    displayName: 'Build docker image'
+    jobs:
+    - job: BuildImage
+      pool: Private Docker
+      steps:
+      - task: Docker@1
+        displayName: 'Build an image'
+        inputs:
+          azureSubscriptionEndpoint: $(subscriptionService)
+          azureContainerRegistry: '$(fusionAcr)'
+          dockerFile: 'src/backend/api/Fusion.Resources.Api/Dockerfile'
+          imageName: '$(imageName)'
+          includeSourceTags: true
+          includeLatestTag: false
+          useDefaultContext: false
+          buildContext: ./src/backend
+  
+      - task: Docker@1
+        displayName: 'Push an image'
+        inputs:
+          azureSubscriptionEndpoint: $(subscriptionService)
+          azureContainerRegistry: '$(fusionAcr)'
+          command: 'Push an image'
+          imageName: '$(imageName)'
+  
+      - template: templates/replace-tokens.yml@commonTemplates
+        parameters:
+          targetFiles: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s/deployment.template.yml'
+  
+      - task: CopyFiles@2
+        displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+        inputs:
+          SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
+          Contents: |
+              deployment.template.yml              
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
+  
+      - publish: $(Build.ArtifactStagingDirectory)
+        artifact: 'k8s-deployment'
+  
+  - stage: DeployCI
+    displayName: 'Deploy to CI'
+    dependsOn: BuildDockerImage
+    condition: succeeded()
+    variables: 
+      envName: 'ci'
+      clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+  
+    jobs:
+    - deployment: DeployCI
+      pool: Private Docker
+      environment: fusion-ci.fusion-resources-app-ci
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - task: AzurePowerShell@4
+                displayName: 'Get secrets'
+                inputs:
+                azureSubscription: $(subscriptionService)
+                ScriptType: 'InlineScript'
+                FailOnStandardError: true
+                azurePowerShellVersion: 'LatestVersion'
+                Inline: |
+                    $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
+                    Write-Output "##vso[task.setvariable variable=clientSecret]$($secret.SecretValueText)"
+
+            - template: templates/replace-tokens.yml@commonTemplates
+              parameters:
+                targetFiles: '$(deploymentManifest)'
+  
+            - task: KubernetesManifest@0
+              displayName: Deploy to Kubernetes cluster
+              inputs:
+                action: deploy
+                manifests: $(deploymentManifest) 
