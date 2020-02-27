@@ -82,7 +82,7 @@ stages:
                 azurePowerShellVersion: 'LatestVersion'
                 Inline: |
                     $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
-                    Write-Output "##vso[task.setvariable variable=clientSecret]$($secret.SecretValueText)"
+                    Write-Output "##vso[task.setvariable variable=clientSecret,issecret=true]$($secret.SecretValueText)"
 
             - template: templates/replace-tokens.yml@commonTemplates
               parameters:

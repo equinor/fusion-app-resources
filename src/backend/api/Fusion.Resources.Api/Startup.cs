@@ -32,7 +32,7 @@ namespace Fusion.Resources.Api
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Audience = "421881f3-fa22-4ed2-b14e-6ec4a449323d";
+                    options.Audience = Configuration["AzureAd:ClientId"];
                     options.Authority = "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0";
                     options.SaveToken = true;
                 });
