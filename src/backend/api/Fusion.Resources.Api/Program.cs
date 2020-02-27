@@ -18,9 +18,14 @@ namespace Fusion.Resources.Api
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((ctx, configBuilder) =>
+                {
+                    configBuilder.AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true);
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
     }
 }
