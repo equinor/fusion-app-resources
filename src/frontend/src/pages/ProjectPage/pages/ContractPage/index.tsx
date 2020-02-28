@@ -41,7 +41,6 @@ const createNavItem = (history: History, contractId: string, title: string, path
 });
 
 const getNavigationStructure = (history: History, contractId: string): NavigationStructure[] => {
-    console.log(contractId, createContractPath(history, contractId, ""));
     return [
         createNavItem(history, contractId, "General", ""),
         createNavItem(history, contractId, "Manage personnel", "personnel"),
@@ -65,7 +64,7 @@ const useNavigationStructure = (contractId: string) => {
 
     React.useEffect(() => {
         setStructure(getNavigationStructure(history, contractId));
-    }, [contractId, history]);
+    }, [contractId, history.location.pathname]);
 
     return { structure, setStructure };
 };
