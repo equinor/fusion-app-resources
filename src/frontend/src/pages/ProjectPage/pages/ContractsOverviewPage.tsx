@@ -1,16 +1,24 @@
 import * as React from 'react';
 import { useCurrentContext } from '@equinor/fusion';
+import { DataTable } from '@equinor/fusion-components';
+import * as styles from './styles.less';
+import useContracts from './hooks/useContracts';
+import createColumns from './Columns';
 
 const ContractsOverviewPage = () => {
     const currentProject = useCurrentContext();
+    const { contracts, isFetchingContracts, contractsError } = useContracts(currentProject?.id);
 
-    if (!currentProject) {
-        return null;
-    }
+    const columns = React.useMemo(() => createColumns(), []);
 
     return (
-        <div>
-            <h1>{currentProject.title}</h1>
+        <div className={styles.container}>
+            <DataTable
+                rowIdentifier="contractNumber"
+                data={contracts}
+                isFetching={isFetchingContracts}
+                columns={columns}
+            />
         </div>
     );
 };
