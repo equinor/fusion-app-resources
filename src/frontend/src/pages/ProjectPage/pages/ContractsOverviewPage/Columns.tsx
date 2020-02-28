@@ -26,13 +26,13 @@ const createColumns = (): DataTableColumn<Contract>[] => [
     {
         accessor: 'companyRepPositionId',
         key: 'companyRepPositionId',
-        label: 'Eqinor company rep',
+        label: 'Equinor company rep',
         component: ({ item }) => <PositionColumn positionId={item.companyRepPositionId} />,
     },
     {
         accessor: 'contractResponsiblePositionId',
         key: 'contractResponsiblePositionId',
-        label: 'Eqinor contract rep',
+        label: 'Equinor contract rep',
         component: ({ item }) => <PositionColumn positionId={item.contractResponsiblePositionId} />,
     },
     {
