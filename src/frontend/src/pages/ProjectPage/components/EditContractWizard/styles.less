@@ -1,0 +1,23 @@
+.stepContainer {
+    padding: calc(var(--grid-unit) * 3px) 0;
+}
+
+.row {
+    display: flex;
+    margin-bottom: calc(var(--grid-unit) * 4px);
+    max-width: calc(var(--grid-unit) * 100px);
+}
+
+.field {
+    margin-right: calc(var(--grid-unit) * 3px);
+    flex-grow: 1;
+
+    &:last-child {
+        margin-right: 0;
+    }
+
+    &.big {
+        width: 100%;
+        margin: 0;
+    }
+}

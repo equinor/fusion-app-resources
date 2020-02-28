@@ -1,18 +1,31 @@
 import * as React from 'react';
-import { registerApp, ContextTypes, Context } from '@equinor/fusion';
+import { registerApp, ContextTypes, Context, useFusionContext } from '@equinor/fusion';
 import { Switch, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-// import ContractsOverviewPage from './pages/ContractsOverviewPage';
-// import ContractDetailsPage from './pages/ContractDetailsPage';
 import ProjectPage from './pages/ProjectPage';
+import ApiClient from './api/ApiClient';
+import AppContext from './appContext';
 
 const App: React.FC = () => {
+    const fusionContext = useFusionContext();
+    const apiClient = new ApiClient(
+        fusionContext.http.client,
+        'https://resources-api.ci.fusion-dev.net'
+    );
+
+    React.useEffect(() => {
+        fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
+            'https://resources-api.ci.fusion-dev.net',
+        ]);
+    }, []);
+
     return (
-        <Switch>
-            <Route path="/" exact component={LandingPage} />
-            <Route path="/:projectId" component={ProjectPage} />
-            {/* <Route path="/:projectId/:contractId" exact component={ContractDetailsPage} /> */}
-        </Switch>
+        <AppContext.Provider value={{ apiClient }}>
+            <Switch>
+                <Route path="/" exact component={LandingPage} />
+                <Route path="/:projectId" component={ProjectPage} />
+            </Switch>
+        </AppContext.Provider>
     );
 };
 

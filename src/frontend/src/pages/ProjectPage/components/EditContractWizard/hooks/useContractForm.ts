@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import Contract from '../../../../models/contract';
-import useForm from '../../../../hooks/useForm';
+import Contract from '../../../../../models/contract';
+import useForm from '../../../../../hooks/useForm';
 
 const createDefaultState = (): Contract => ({
     id: null,
