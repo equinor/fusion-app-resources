@@ -1,11 +1,9 @@
 ﻿using Bogus;
-using Fusion.Integration.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
@@ -94,96 +92,5 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok();
         }
-    }
-
-    public class ContractPositionRequest
-    {
-        public IdEntity BasePosition { get; set; }
-        public string Name { get; set; }
-        public DateTime AppliesFrom { get; set; }
-        public DateTime AppliesTo { get; set; }
-        public PersonRequest AssignedPerson { get; set; }
-    }
-
-    public class PersonRequest
-    {
-        public Guid? AzureUniquePersonId { get; set; }
-        public string Mail { get; set; }
-    }
-
-    public class IdEntity
-    {
-        public Guid Id { get; set; }
-    }
-
-    public class ApiContract
-    {
-        public Guid Id { get; set; }
-        public string ContractNumber { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-
-        public ApiCompany Company { get; set; }
-        
-        public Guid? ContractResponsiblePositionId { get; set; }
-        public Guid? CompanyRepPositionId { get; set; }
-        public Guid? ExternalContractResponsiblePositionId { get; set; }
-        public Guid? ExternalCompanyRepPositionId { get; set; }
-    }
-
-    public class ApiCompany
-    {
-        public Guid Id { get; set; }
-        public string Identifier { get; set; }
-        public string Name { get; set; }
-    }
-
-
-    public class ApiPerson
-    {
-        public ApiPerson() { }
-        public ApiPerson(FusionFullPersonProfile profile)
-        {
-            AzureUniquePersonId = profile.AzureUniqueId;
-            Mail = profile.Mail;
-            Name = profile.Name;
-            PhoneNumber = profile.MobilePhone;
-            JobTitle = profile.JobTitle;
-            AccountType = profile.AccountType;
-        }
-
-        public Guid? AzureUniquePersonId { get; set; }
-        public string Mail { get; set; } = null!;
-        public string Name { get; set; } = null!;
-        public string PhoneNumber { get; set; } = null!;
-        public string JobTitle { get; set; } = null!;
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public FusionAccountType AccountType { get; set; }
-    }
-
-    public class ContractRequest
-    {
-        public Guid? Id { get; set; }
-        public string ContractNumber { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-
-        public CompanyRequest Company { get; set; }
-
-        public Guid? ContractResponsiblePositionId { get; set; }
-        public Guid? CompanyRepPositionId { get; set; }
-        public Guid? ExternalContractResponsiblePositionId { get; set; }
-        public Guid? ExternalCompanyRepPositionId { get; set; }
-    }
-
-    public class CompanyRequest
-    {
-        public Guid Id { get; set; }
-        public string Identifier { get; set; }
     }
 }

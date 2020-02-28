@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Bogus;
 using Microsoft.AspNetCore.Authorization;
@@ -118,30 +117,6 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
     
-    }
-
-
-    public class ApiBatchResponse<T> : List<ApiBatchItemResponse<T>>
-    {
-        public ApiBatchResponse(IEnumerable<ApiBatchItemResponse<T>> items) : base(items)
-        {
-        }
-    }
-
-
-    public class ApiBatchItemResponse<T>
-    {
-        public ApiBatchItemResponse(T item, HttpStatusCode code, string message = null)
-        {
-            Value = item;
-            Code = code;
-            Message = message;
-        }
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public HttpStatusCode Code { get; set; }
-        public string Message { get; set; }
-        public T Value { get; set; }
     }
 
 

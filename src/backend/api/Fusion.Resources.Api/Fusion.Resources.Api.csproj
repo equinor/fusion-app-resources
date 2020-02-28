@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\ApiModels\Requests\" />
     <Folder Include="DataMock\" />
   </ItemGroup>
 
