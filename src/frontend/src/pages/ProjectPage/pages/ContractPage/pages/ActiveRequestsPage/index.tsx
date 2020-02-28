@@ -1,8 +1,40 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { Button, IconButton, DeleteIcon, EditIcon } from '@equinor/fusion-components';
+import { Button, IconButton, DeleteIcon, EditIcon, Spinner, ErrorMessage } from '@equinor/fusion-components';
+import PersonnelRequest from '../../../../../../models/PersonnelRequest';
+import { useAppContext } from '../../../../../../appContext';
+import SortableTable from '../components/SortableTable';
+import columns from './columns';
 
 const ActiveRequestsPage: React.FC = () => {
+    const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[]>([]);
+    const [isFetching, setIsFetching] = React.useState<boolean>(false);
+    const [error, setError] = React.useState(null);
+    const { apiClient } = useAppContext();
+    const getRequestsAsync = async () => {
+        setIsFetching(true);
+        setError(null);
+        try {
+            const response = await apiClient.getPersonnelRequestsAsync("123", "123") //TESTING VALUES
+            const activeRequests = response.data.value.filter(request => request.state !== "Approved");
+            setActiveRequests(activeRequests);
+        } catch (e) {
+            setError(e);
+
+        } finally {
+            setIsFetching(false)
+        }
+    };
+
+    React.useEffect(() => {
+        getRequestsAsync();
+    }, []);
+
+
+    if (error) {
+        return <ErrorMessage hasError message="An error occurred while trying to fetch active requests" />
+    }
+
     return (
         <div className={styles.activeRequestsContainer}>
             <div className={styles.toolbar}>
@@ -16,6 +48,7 @@ const ActiveRequestsPage: React.FC = () => {
                     </IconButton>
                 </div>
             </div>
+            <SortableTable data={activeRequests} columns={columns} rowIdentifier="id" isFetching={isFetching} />
         </div>
     );
 };
