@@ -1,35 +1,18 @@
 import * as React from 'react';
-import {
-    useFusionContext,
-    combineUrls,
-    FusionApiErrorMessage,
-} from '@equinor/fusion';
 import Contract from '../../../../../models/contract';
-
-type ContractResponse = {
-    value: Contract[];
-};
+import { useAppContext } from '../../../../../appContext';
 
 const useContracts = (projectId?: string) => {
     const [contracts, setContracts] = React.useState<Contract[]>([]);
     const [isFetchingContracts, setIsFetchingContracts] = React.useState(false);
     const [contractsError, setContractsError] = React.useState<Error | null>(null);
 
-    const fusionContext = useFusionContext();
-    React.useEffect(() => {
-        fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
-            'https://resources-api.ci.fusion-dev.net/',
-        ]);
-    }, []);
-
+    const { apiClient } = useAppContext();
     const fetchContracts = async (id: string) => {
         setIsFetchingContracts(true);
         try {
             // fetch and set contracts
-            const response = await fusionContext.http.client.getAsync<
-                ContractResponse,
-                FusionApiErrorMessage
-            >(combineUrls('https://resources-api.ci.fusion-dev.net', 'projects', id, 'contracts'));
+            const response = await apiClient.getContractsAsync(id);
             setContracts(response.data.value);
         } catch (e) {
             setContractsError(e);
