@@ -6,12 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fusion.Integration;
 
 namespace Fusion.Resources.Api.Controllers
 {
     [Authorize]
     [ApiController]
-    public class RequestsController : ControllerBase
+    public class RequestsController : ResourceControllerBase
     {
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
@@ -102,8 +103,121 @@ namespace Fusion.Resources.Api.Controllers
         }
 
 
+        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
+        public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest(string projectIdentifier, string contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
+        {
+
+            var profile = UserFusionProfile;
+            if (profile is null)
+                return BadRequest(new { message = "Cannot find profile for current user" });
+
+            var personnel = new Faker<ApiContractPersonnel>()
+                .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
+                .RuleFor(p => p.Name, f => f.Person.FullName)
+                .RuleFor(p => p.Mail, f => f.Person.Email)
+                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
+                .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
+                .RuleFor(p => p.HasCV, f => f.Random.Bool())
+                .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
+                .FinishWith((f, p) =>
+                {
+                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
+                })
+                .Generate();
+            var faker = new Faker();
+            var contract = new ApiContractReference
+            {
+                Company = new ApiCompany { Id = Guid.NewGuid(), Name = faker.Company.CompanyName(), Identifier = faker.Commerce.Department().ToLower() },
+                ContractNumber = faker.Finance.Account(10),
+                Id = Guid.NewGuid(),
+                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10))
+            };
+            var project = new ApiProjectReference
+            {
+                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10)),
+                Id = Guid.NewGuid(),
+                ProjectMasterId = Guid.NewGuid()
+            };
+
+
+            var createdItem = new ApiContractPersonnelRequest
+            {
+                Id = Guid.NewGuid(),
+                State = ApiContractPersonnelRequest.ApiRequestState.Created,
+                Description = request.Description,
+                Created = DateTime.UtcNow,
+                CreatedBy = new ApiPerson(profile),
+                Position = new ApiRequestPosition()
+                {
+                    AppliesFrom = request.Position.AppliesFrom,
+                    AppliesTo = request.Position.AppliesTo,
+                    BasePosition = new ApiRequestBasePosition() { Id = request.Position.BasePosition.Id, Name = "Test position" },
+                    Name = request.Position.Name,
+                    ExternalId = "123",
+                    TaskOwner = request.Position.TaskOwner != null ? new ApiRequestTaskOwner { PositionId = request.Position.TaskOwner.PositionId } : null,
+                    Id = request.Position.Id,
+                },
+                Person = personnel,
+                Comments = new List<ApiRequestComment>(),
+                Contract = contract,
+                Project = project
+            };
+
+            return createdItem;
+        }
+
     }
 
+
+    public class ContractPersonnelRequestRequest
+    {
+        public Guid? Id { get; set; }
+        public string Description { get; set; }
+
+        public RequestPosition Position { get; set; }
+        public RequestPerson Person { get; set; }
+    
+
+        public class RequestPosition
+        {
+            /// <summary>
+            /// Existing org chart position id.
+            /// </summary>
+            public Guid? Id { get; set; }
+
+            public BasePosition BasePosition { get; set; }
+            public string Name { get; set; }
+            public DateTime AppliesFrom { get; set; }
+            public DateTime AppliesTo { get; set; }
+            public string Obs { get; set; }
+            
+            public TaskOwner TaskOwner { get; set; }
+        }
+
+        public class TaskOwner
+        {
+            /// <summary>
+            /// The position id is nullable, as at a later date other ways of referencing an un-provisioned request will be made available.
+            /// </summary>
+            public Guid? PositionId { get; set; }
+        }
+
+        public class BasePosition
+        {
+            public Guid Id { get; set; }
+        }
+    
+        public class RequestPerson
+        {
+            public Guid? AzureUniquePersonId { get; set; }
+            public string Mail { get; set; }
+
+        }
+    }
+
+    
+
+    
 
     public class ApiContractPersonnelRequest
     {
@@ -126,4 +240,5 @@ namespace Fusion.Resources.Api.Controllers
 
         public enum ApiRequestState { Created, Submitted, Approved, Rejected, Provisioned }
     }
+
 }
