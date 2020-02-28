@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel(string projectIdentifier, string contractIdentifier) 
         {
             var personnel = new Faker<ApiContractPersonnel>()
-                .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid() }))
+                .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }))
                 .RuleFor(p => p.Name, f => f.Person.FullName)
                 .RuleFor(p => p.Mail, f => f.Person.Email)
                 .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
@@ -33,6 +33,8 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         p.AzureAdStatus = ApiContractPersonnel.ApiAccountStatus.NoAccount;
                     }
+
+                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
                 })
                 .Generate(new Random().Next(50, 200));
 

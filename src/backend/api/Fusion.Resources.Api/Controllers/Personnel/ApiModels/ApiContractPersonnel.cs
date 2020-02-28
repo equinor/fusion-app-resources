@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
     public class PersonnelDiscipline
     {
         public string Name { get; set; }
-        public bool IsVerifiedByCompany { get; set; }
+        //public bool IsVerifiedByCompany { get; set; }
     }
 
 
