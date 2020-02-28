@@ -1,8 +1,3 @@
-export enum ApiAccountStatus {
-  Available ="Available",
-  Invited = "Invited",
-  NoAccount = "NoAccount"
-}
 
 export type PersonnelDiscipline = {
   name : string
@@ -14,10 +9,9 @@ type Personnel = {
   JobTitle:string,
   PhoneNumber:string,
   Mail:string,
-  AzureAdStatus: ApiAccountStatus,
+  AzureAdStatus: "Available"|"Invited"|"NoAccount",
   HasCV : boolean,
   Disciplines : PersonnelDiscipline[],
-
 };
 
 export default Personnel;
