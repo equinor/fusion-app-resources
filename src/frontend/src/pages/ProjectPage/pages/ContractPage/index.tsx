@@ -8,6 +8,7 @@ import ContractDetailsPage from './pages/ContractDetailsPage';
 import ManagePersonellPage from './pages/ManagePersonnelPage';
 import useContractPageNavigationStructure from "./useContractPageNavigationStructure";
 import ActualMppPage from './pages/ActualMppPage';
+import ActiveRequestsPage from './pages/ActiveRequestsPage';
 
 type ContractPageMatch = {
     contractId: string;
@@ -55,6 +56,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                     <Route path="/" exact component={ContractDetailsPage} />
                     <Route path="/personnel" component={ManagePersonellPage} />
                     <Route path="/actual-mpp" component={ActualMppPage} />
+                    <Route path="/active-requests" component={ActiveRequestsPage} />
                 </ScopedSwitch>
             </div>
         </ContractContext.Provider>
