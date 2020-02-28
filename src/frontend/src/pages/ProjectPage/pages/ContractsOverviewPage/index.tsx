@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useCurrentContext } from '@equinor/fusion';
-import { DataTable } from '@equinor/fusion-components';
+import { useCurrentContext, combineUrls } from '@equinor/fusion';
+import { DataTable, Button } from '@equinor/fusion-components';
 import * as styles from './styles.less';
 import createColumns from './Columns';
 import useContracts from './hooks/useContracts';
@@ -13,6 +13,9 @@ const ContractsOverviewPage = () => {
 
     return (
         <div className={styles.container}>
+            <Button relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
+                Allocate contract
+            </Button>
             <DataTable
                 rowIdentifier="contractNumber"
                 data={contracts}

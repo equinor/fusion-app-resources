@@ -7,6 +7,7 @@ import ScopedSwitch from '../../../../components/ScopedSwitch';
 import ContractDetailsPage from './pages/ContractDetailsPage';
 import ManagePersonellPage from './pages/ManagePersonnelPage'
 import useContractPageNavigationStructure from "./useContractPageNavigationStructure";
+import ActualMppPage from './pages/ActualMppPage';
 
 type ContractPageMatch = {
     contractId: string;
@@ -35,8 +36,8 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     const contractContext = React.useMemo(() => {
         return contract
             ? {
-                  contract,
-              }
+                contract,
+            }
             : null;
     }, [contract]);
 
@@ -50,12 +51,11 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                         onChangeStructure={setStructure}
                     />
                 </div>
-                <div>
-                    <ScopedSwitch>
-                        <Route path="/" exact component={ContractDetailsPage} />
-                        <Route path="/personnel" component={ManagePersonellPage} />
-                    </ScopedSwitch>
-                </div>
+                <ScopedSwitch>
+                    <Route path="/" exact component={ContractDetailsPage} />
+                    <Route path="/personnel" component={ManagePersonellPage} />
+                    <Route path="/actual-mpp" component={ActualMppPage} />
+                </ScopedSwitch>
             </div>
         </ContractContext.Provider>
     );
