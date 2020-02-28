@@ -1,26 +1,16 @@
 import * as React from 'react';
-import { useCurrentContext } from '@equinor/fusion';
-import { DataTable } from '@equinor/fusion-components';
-import * as styles from './styles.less';
-import useContracts from './hooks/useContracts';
-import createColumns from './Columns';
+import { Route } from 'react-router-dom';
+import ContractsTablePage from "./pages/ContractsTablePage";
+import AllocateContractPage from "./pages/AllocateContractPage";
+import ScopedSwitch from '../../../../components/ScopedSwitch';
 
-const ContractsOverviewPage = () => {
-    const currentProject = useCurrentContext();
-    const { contracts, isFetchingContracts, contractsError } = useContracts(currentProject?.id);
-
-    const columns = React.useMemo(() => createColumns(), []);
-
+const ProjectPage = () => {
     return (
-        <div className={styles.container}>
-            <DataTable
-                rowIdentifier="contractNumber"
-                data={contracts}
-                isFetching={isFetchingContracts}
-                columns={columns}
-            />
-        </div>
+        <ScopedSwitch>
+            <Route path="/allocate" exact component={AllocateContractPage} />
+            <Route path="/" component={ContractsTablePage} />
+        </ScopedSwitch>
     );
-};
+}
 
-export default ContractsOverviewPage;
+export default ProjectPage;
