@@ -39,6 +39,7 @@ namespace Fusion.Resources.Api
 
 
             services.AddHttpContextAccessor();
+            services.AddSwagger(Configuration);
 
             // Configure fusion integration
             services.AddFusionIntegration(options =>
@@ -72,6 +73,8 @@ namespace Fusion.Resources.Api
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseResourcesApiSwagger(Configuration);
 
             app.UseAuthentication();
             app.UseAuthorization();
