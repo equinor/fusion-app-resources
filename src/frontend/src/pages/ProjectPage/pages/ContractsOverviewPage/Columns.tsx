@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { DataTableColumn } from "@equinor/fusion-components";
-import Contract from '../../../models/contract';
-import ContractLinkColumn from './components/ContractLinkColumn';
 import PositionColumn from './components/PositionColumn';
+import Contract from '../../../../models/contract';
+import ContractLinkColumn from './components/ContractLinkColumn';
 
 const createColumns = (): DataTableColumn<Contract>[] => [
     {

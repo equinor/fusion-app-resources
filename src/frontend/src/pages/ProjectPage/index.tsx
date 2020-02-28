@@ -5,7 +5,6 @@ import ContractPage from './pages/ContractPage';
 import ScopedSwitch from '../../components/ScopedSwitch';
 
 const ProjectPage = () => {
-
     return (
         <ScopedSwitch>
             <Route path="/" exact component={ContractsOverviewPage} />

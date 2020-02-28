@@ -1,9 +1,6 @@
 import * as React from 'react';
-import {
-    useCurrentContext,
-    combineUrls,
-} from '@equinor/fusion';
 import { Button } from '@equinor/fusion-components';
+import { useCurrentContext, combineUrls } from '@equinor/fusion';
 
 type ContractLinkColumnProps = { contractId: string | null };
 const ContractLinkColumn: React.FC<ContractLinkColumnProps> = ({ contractId, children }) => {
