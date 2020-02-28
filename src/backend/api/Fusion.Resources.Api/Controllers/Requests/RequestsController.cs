@@ -80,7 +80,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(p => p.Contract, contract)
                 .RuleFor(p => p.Project, project)
                 .RuleFor(p => p.Person, f => f.PickRandom(personnel))
-                .RuleFor(p => p.Comments, f => f.PickRandom(comments, f.Random.Number(0, 10)))
+                .RuleFor(p => p.Comments, f => f.PickRandom(comments, f.Random.Number(0, 10)).ToList())
                 .FinishWith((f, c) =>
                 {
                     if (c.Updated.HasValue)
