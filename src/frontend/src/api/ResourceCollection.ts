@@ -6,8 +6,7 @@ export default class ResourceCollection {
     this.baseUrl = baseUrl;
   }
 
-  getPersonnel(contractId:string): string {
-    return combineUrls(this.baseUrl,`api/${contractId}`);
+  getPersonnel(projectId:string,contractId:string): string {
+    return combineUrls(this.baseUrl,`projects/${projectId}/contracts/${contractId}/resources/personnel`);
   }
-
 }

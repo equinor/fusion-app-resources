@@ -12,8 +12,9 @@ export default class ApiClient  {
     this.resourceCollection = new ResourceCollection(baseUrl);
   }
 
-  async personnel(contractId:string) {
-    const url = this.resourceCollection.getPersonnel(contractId);
+  async personnel(projectId:string,contractId:string) {
+    const url = this.resourceCollection.getPersonnel(projectId,contractId);
+    console.log(url)
     return await this.httpClient.getAsync<Personnel[], FusionApiHttpErrorResponse>(url);
   }
 }

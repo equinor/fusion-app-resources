@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DataTableColumn } from '@equinor/fusion-components';
-import Personnel from '../../models/Personnel';
+import Personnel from '../../../../../../models/Personnel';
 
 export type DataItemProps = {
   item: Personnel;
@@ -12,7 +12,7 @@ const AzureAdStatus : React.FC<DataItemProps> = ({ item }) => (
 )
 
 
-const PersonnelColumn: DataTableColumn<Personnel>[] = [
+const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
   {
     key: 'Name',
     accessor: 'Name',
@@ -51,5 +51,4 @@ const PersonnelColumn: DataTableColumn<Personnel>[] = [
   },
 ]
 
-
-export default PersonnelColumn
+export default PersonnelColumns

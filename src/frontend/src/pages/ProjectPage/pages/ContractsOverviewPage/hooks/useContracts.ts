@@ -4,7 +4,7 @@ import {
     combineUrls,
     FusionApiErrorMessage,
 } from '@equinor/fusion';
-import Contract from '../../../../models/contract';
+import Contract from '../../../../../models/contract';
 
 type ContractResponse = {
     value: Contract[];

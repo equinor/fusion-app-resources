@@ -5,7 +5,7 @@ import { Contract } from '@equinor/fusion';
 import { NavigationDrawer } from '@equinor/fusion-components';
 import ScopedSwitch from '../../../../components/ScopedSwitch';
 import ContractDetailsPage from './pages/ContractDetailsPage';
-import ManagePersonellPage from './pages/ManagePersonnelPage';
+import ManagePersonellPage from './pages/ManagePersonnelPage'
 import useContractPageNavigationStructure from "./useContractPageNavigationStructure";
 
 type ContractPageMatch = {
