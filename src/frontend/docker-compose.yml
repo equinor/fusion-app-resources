@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   resources:
-    image: fusion-resources-dev
+    image: fusion-app-resources-dev
     build:
       context: ./
       dockerfile: dev.Dockerfile
