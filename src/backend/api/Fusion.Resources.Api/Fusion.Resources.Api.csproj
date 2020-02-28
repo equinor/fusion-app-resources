@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>474454c7-2021-4f46-bfd4-02b221fc3fa0</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
+
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="29.0.1" />
+    <PackageReference Include="Fusion.Integration" Version="3.1.0-preview-3" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="3.1.0-preview-3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
+
+    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="5.0.0" />
+    <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="5.0.0" />
+    <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="5.0.0" />
+    <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\ApiModels\Requests\" />
+    <Folder Include="DataMock\" />
+  </ItemGroup>
+
+
+</Project>
