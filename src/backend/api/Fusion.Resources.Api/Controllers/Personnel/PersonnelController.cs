@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
                 .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
                 .RuleFor(p => p.HasCV, f => f.Random.Bool())
-                .RuleFor(p => p.AzureAdStatus, f => f.PickRandom<ApiContractPersonnel.ApiAccountStatus>())
+                .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
                 .FinishWith((f, p) =>
                 {
                     if (p.AzureUniquePersonId == null)
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
                 .Generate(new Random().Next(50, 200));
 
             var collection = new ApiCollection<ApiContractPersonnel>(personnel);
-            return Ok(personnel);
+            return collection;
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
@@ -109,7 +109,7 @@ namespace Fusion.Resources.Api.Controllers
                 invalidItem.Message = "The specified person cannot be added to ";
             }
 
-            return Ok(new ApiBatchResponse<ApiContractPersonnel>(returnItems));
+            return new ApiBatchResponse<ApiContractPersonnel>(returnItems);
         }
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
