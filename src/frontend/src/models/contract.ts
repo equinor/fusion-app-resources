@@ -1,13 +1,16 @@
-import Company from "./company";
+import Company from './company';
 
-type Contract = {
+export type ContractReference = {
     id: string | null;
     contractNumber: string | null;
     name: string | null;
+    company: Company | null;
+};
+
+type Contract = ContractReference & {
     description: string | null;
     startDate: Date | null;
     endDate: Date | null;
-    company: Company | null;
     contractResponsiblePositionId: string | null;
     companyRepPositionId: string | null;
     externalContractResponsiblePositionId: string | null;
