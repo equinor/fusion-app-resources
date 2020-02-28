@@ -6,8 +6,7 @@ import * as styles from "./styles.less";
 const AllocateContractPage = () => {
     return (
         <div className={styles.container}>
-            <h2><IconButton><ArrowBackIcon /></IconButton> Allocate a Contract</h2>
-            <EditContractWizard />
+            <EditContractWizard title="Allocate a Contract" />
         </div>
     );
 };

@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-    Stepper,
-    Step,
-    Button,
-    TextInput,
-    DatePicker,
-} from '@equinor/fusion-components';
+import { Stepper, Step, Button, TextInput, DatePicker, ArrowBackIcon, IconButton } from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
 import ContractNumberSelector from './components/ContractNumberSelector';
@@ -14,14 +8,15 @@ import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
 
 type EditContractWizardProps = {
+    title: string;
     existingContract?: Contract;
 };
 
-const EditContractWizard: React.FC<EditContractWizardProps> = ({ existingContract }) => {
+const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existingContract }) => {
     const isEdit = React.useMemo(() => {
         return existingContract && existingContract.contractNumber !== null;
     }, [existingContract]);
-    const { formState, formFieldSetter } = useContractForm(existingContract);
+    const { formState, formFieldSetter, isFormValid } = useContractForm(existingContract);
 
     const conContinue = React.useMemo(() => {
         return formState.contractNumber !== null;
@@ -43,6 +38,12 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ existingContrac
 
     return (
         <div>
+            <header className={styles.header}>
+                <IconButton><ArrowBackIcon /></IconButton>
+                <h2>{title}</h2>
+                <Button outlined>Cancel</Button>
+                <Button outlined disabled={!isFormValid}>Save</Button>
+            </header>
             <Stepper activeStepKey={activeStepKey}>
                 <Step
                     title="Select contract"
@@ -122,6 +123,9 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ existingContrac
                         <div className={styles.actions}>
                             <Button outlined onClick={gotoContractDetails}>
                                 Previous
+                            </Button>
+                            <Button onClick={gotoExteral} disabled={!isFormValid}>
+                                Submit
                             </Button>
                         </div>
                     </div>
