@@ -22,8 +22,8 @@ const ActiveRequestsPage: React.FC = () => {
         setIsFetching(true);
         setError(null);
         try {
-            const response = await apiClient.getPersonnelRequestsAsync('123', '123', "RequestState eq 0 or RequestState eq 1"); //TESTING VALUES
-            setActiveRequests(response.data.value);
+            const response = await apiClient.getPersonnelRequestsAsync('123', '123', true); //TESTING VALUES
+            setActiveRequests(response.value);
         } catch (e) {
             setError(e);
         } finally {

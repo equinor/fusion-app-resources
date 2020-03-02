@@ -33,11 +33,17 @@ export default class ApiClient {
         return this.httpClient.getAsync<ApiCollection<Personnel>, FusionApiHttpErrorResponse>(url);
     }
 
-    async getPersonnelRequestsAsync(projectId: string, contractId: string, filter?: string) {
+    async getPersonnelRequestsAsync(
+        projectId: string,
+        contractId: string,
+        filterOnActive?: boolean
+    ) {
+        const filter = filterOnActive ? 'isActive eq true' : undefined;
         const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
-        return this.httpClient.getAsync<
+        const response =  this.httpClient.getAsync<
             ApiCollection<PersonnelRequest>,
             FusionApiHttpErrorResponse
         >(url);
+        return (await response).data
     }
 }
