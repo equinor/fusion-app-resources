@@ -4,14 +4,14 @@ export type PersonnelDiscipline = {
 }
 
 type Personnel = {
-  AzureUniquePersonId : string,
-  Name:string,
-  JobTitle:string,
-  PhoneNumber:string,
-  Mail:string,
-  AzureAdStatus: "Available"|"Invited"|"NoAccount",
-  HasCV : boolean,
-  Disciplines : PersonnelDiscipline[],
+  azureUniquePersonId? : string,
+  name:string,
+  jobTitle:string,
+  phoneNumber:string,
+  mail:string,
+  azureAdStatus: "Available"|"Invited"|"NoAccount",
+  hasCV : boolean,
+  disciplines : PersonnelDiscipline[],
 };
 
 export default Personnel;

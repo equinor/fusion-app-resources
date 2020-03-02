@@ -4,25 +4,18 @@ import { useSorting, useCurrentContext } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import usePersonnel from './hooks/usePersonnel';
 import Personnel from '../../../../../../models/Personnel';
-import { RouteComponentProps } from 'react-router-dom';
 import * as styles from './styles.less'
 import { useContractContext } from '../../../../../../contractContex';
+import AddPersonnelSideSheet from './AddPersonnelSideSheet'
 
-
-type ManagePersonnelPageMatch = {
-    contractId: string;
-};
-
-type ManagePersonnelProps = RouteComponentProps<ManagePersonnelPageMatch>;
-
-
-const ManagePersonnelPage: React.FC<ManagePersonnelProps> = () => {
+const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext()
     const currentContract = useContractContext()
-    console.log("contexts:",currentContract?.contract.id,currentContext?.id)
     const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(currentContract?.contract.id,currentContext?.id);
-        
-    const { setSortBy, sortBy, direction } = useSorting<Personnel>([], null, null);
+    const {sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(personnel, "name", "asc");
+    const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
+    const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
+
     const onSortChange = React.useCallback(
         (column: DataTableColumn<Personnel>) => {
             setSortBy(column.accessor, null);
@@ -31,22 +24,26 @@ const ManagePersonnelPage: React.FC<ManagePersonnelProps> = () => {
     );
 
     const personnelColumns = React.useMemo(() => PersonnelColumns(), []);
-    const sortedByColumn = personnelColumns.find(c => c.accessor === sortBy) || null;
+    const sortedByColumn = React.useMemo(() => personnelColumns.find(c => c.accessor === sortBy) || null, []);
 
     return (
         <div className= {styles.container}>
-            <Button outlined> + Add Person </Button>
+            <Button outlined onClick = {()=> setIsAddPersonOpen(true)} > + Add Person </Button>
             <DataTable 
                 columns={personnelColumns}
-                data={personnel}
+                data={sortedData}
                 isFetching={isFetchingPersonnel}
-                rowIdentifier={'AzureUniquePersonId'}
+                rowIdentifier={'name'}
                 onSortChange={onSortChange}
                 sortedBy={{
                     column: sortedByColumn,
                     direction,
                 }}
+                isSelectable
+                onSelectionChange={setSelectedItems}
+                selectedItems={selectedItems}
             />
+            <AddPersonnelSideSheet isOpen={isAddPersonOpen} setIsOpen={setIsAddPersonOpen} selectedPersonnel={selectedItems} />
         </div>
     );
 }

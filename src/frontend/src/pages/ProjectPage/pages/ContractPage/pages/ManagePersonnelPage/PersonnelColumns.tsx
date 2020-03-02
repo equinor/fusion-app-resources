@@ -8,28 +8,29 @@ export type DataItemProps = {
 };
 
 const AzureAdStatus : React.FC<DataItemProps> = ({ item }) => (
-  <div>{item.AzureAdStatus}</div>
+  //TODO: Add icon instead of text, depending on status
+  <div>{item.azureAdStatus}</div> 
 )
 
 
 const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
   {
     key: 'Name',
-    accessor: 'Name',
+    accessor: 'name',
     label: 'Person',
     priority: 1,
     sortable: true,
   },
   {
     key: 'Mail',
-    accessor: 'Mail',
+    accessor: 'mail',
     label: 'E-Mail',
     priority: 5,
     sortable: true,
   },
   {
-    key: 'AzureAdStatus',
-    accessor: 'AzureAdStatus',
+    key: 'azureAdStatus',
+    accessor: 'azureAdStatus',
     label: 'AD',
     priority: 10,
     component : AzureAdStatus,
@@ -37,18 +38,25 @@ const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
   },
   {
     key: 'Phone',
-    accessor: 'PhoneNumber',
+    accessor: 'phoneNumber',
     label: 'Phone Number',
     priority: 15,
     sortable: true,
   },
   {
-    key: 'Disciplines',
-    accessor: 'Disciplines',
-    label: 'Disciplines',
-    priority: 20,
+    key: 'Workload',
+    accessor:"hasCV",
+    label: 'Workload',
+    priority: 15,
     sortable: true,
   },
+  {
+    key: 'positions',
+    accessor: 'hasCV',
+    label: 'Positions',
+    priority: 15,
+    sortable: true,
+  }      
 ]
 
 export default PersonnelColumns
