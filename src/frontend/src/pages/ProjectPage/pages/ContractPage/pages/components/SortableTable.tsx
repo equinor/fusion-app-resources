@@ -8,10 +8,13 @@ type SortableTableProps<T> = {
     columns: DataTableColumn<T>[],
     rowIdentifier: keyof T | ((item: T) => string),
     expandedComponent?: React.FC<DataItemComponentProps<T>>,
+    isSelectable?: boolean,
+    selectedItems?: T[],
+    onSelectionChange?: (selectedItems: T[]) => void,
     isFetching?: boolean
 };
 
-function SortableTable<T>({ data, columns, rowIdentifier, expandedComponent, isFetching }: SortableTableProps<T>) {
+function SortableTable<T>({ data, columns, rowIdentifier, expandedComponent, isFetching, isSelectable, onSelectionChange, selectedItems }: SortableTableProps<T>) {
     const { sortedData, setSortBy, sortBy, direction } = useSorting<T>(data, null, null);
 
     const { pagination, pagedData, setCurrentPage } = usePagination<T>(sortedData, 20);
@@ -49,6 +52,9 @@ function SortableTable<T>({ data, columns, rowIdentifier, expandedComponent, isF
                 column: sortedByColumn,
                 direction,
             }}
+            isSelectable={isSelectable}
+            onSelectionChange={onSelectionChange}
+            selectedItems={selectedItems}
         />
 
     );

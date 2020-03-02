@@ -10,13 +10,14 @@ const ActiveRequestsPage: React.FC = () => {
     const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[]>([]);
     const [isFetching, setIsFetching] = React.useState<boolean>(false);
     const [error, setError] = React.useState(null);
+    const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
     const { apiClient } = useAppContext();
     const getRequestsAsync = async () => {
         setIsFetching(true);
         setError(null);
         try {
             const response = await apiClient.getPersonnelRequestsAsync("123", "123") //TESTING VALUES
-            const activeRequests = response.data.value.filter(request => request.state !== "Approved");
+            const activeRequests = response.data.value.filter(request => +request.state === 0 || +request.state === 1);
             setActiveRequests(activeRequests);
         } catch (e) {
             setError(e);
@@ -48,7 +49,9 @@ const ActiveRequestsPage: React.FC = () => {
                     </IconButton>
                 </div>
             </div>
-            <SortableTable data={activeRequests} columns={columns} rowIdentifier="id" isFetching={isFetching} />
+            <SortableTable data={activeRequests} columns={columns}
+                rowIdentifier="id" isFetching={isFetching} isSelectable
+                selectedItems={selectedRequests} onSelectionChange={setSelectedRequests} />
         </div>
     );
 };

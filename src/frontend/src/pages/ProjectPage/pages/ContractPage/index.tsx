@@ -52,12 +52,14 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                         onChangeStructure={setStructure}
                     />
                 </div>
+
                 <ScopedSwitch>
                     <Route path="/" exact component={ContractDetailsPage} />
                     <Route path="/personnel" component={ManagePersonellPage} />
                     <Route path="/actual-mpp" component={ActualMppPage} />
                     <Route path="/active-requests" component={ActiveRequestsPage} />
                 </ScopedSwitch>
+
             </div>
         </ContractContext.Provider>
     );

@@ -5,7 +5,13 @@ import Position from './Position';
 import Project from './Project';
 import Comment from './Comment';
 
-export type RequestState = 'Created' | 'Submitted' | 'Approved' | 'Rejected' | 'Provisioned';
+export enum RequestState {
+    Created,
+    Submitted,
+    Approved,
+    Rejected,
+    Provisioned,
+}
 
 type PersonnelRequest = {
     id: string;
@@ -21,6 +27,5 @@ type PersonnelRequest = {
     project: Project | null;
     comments: Comment[];
 };
-
 
 export default PersonnelRequest;
