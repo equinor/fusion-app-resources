@@ -1,9 +1,10 @@
-import { IHttpClient, FusionApiHttpErrorResponse } from '@equinor/fusion';
+import { IHttpClient, FusionApiHttpErrorResponse, combineUrls, Position } from '@equinor/fusion';
 import ResourceCollection from './ResourceCollection';
 import Personnel from '../models/Personnel';
 import Contract from '../models/contract';
 import ApiCollection from '../models/apiCollection';
 import AvailableContract from '../models/availableContract';
+import CreatePositionRequest from '../models/createPositionRequest';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -21,11 +22,64 @@ export default class ApiClient {
 
     async getAvailableContractsAsync(projectId: string) {
         const url = this.resourceCollection.contracts(projectId);
-        return this.httpClient.getAsync<ApiCollection<AvailableContract>, FusionApiHttpErrorResponse>(url);
+        return this.httpClient.getAsync<
+            ApiCollection<AvailableContract>,
+            FusionApiHttpErrorResponse
+        >(url);
     }
 
     async getPersonnelAsync(projectId: string, contractId: string) {
         const url = this.resourceCollection.personnel(projectId, contractId);
         return this.httpClient.getAsync<ApiCollection<Personnel>, FusionApiHttpErrorResponse>(url);
+    }
+
+    async createContractAsync(projectId: string, contract: Contract) {
+        const url = this.resourceCollection.contracts(projectId);
+        return this.httpClient.postAsync<Contract, Contract, FusionApiHttpErrorResponse>(
+            url,
+            contract
+        );
+    }
+
+    async updateContractAsync(projectId: string, contractId: string, contract: Contract) {
+        const url = this.resourceCollection.contract(projectId, contractId);
+        return this.httpClient.putAsync<Contract, Contract, FusionApiHttpErrorResponse>(
+            url,
+            contract
+        );
+    }
+
+    async createExternalCompanyReprasentiveAsync(
+        projectId: string,
+        contractId: string,
+        request: CreatePositionRequest
+    ) {
+        const url = combineUrls(
+            this.resourceCollection.contract(projectId, contractId),
+            'external-company-representative'
+        );
+
+        return this.httpClient.postAsync<
+            CreatePositionRequest,
+            Position,
+            FusionApiHttpErrorResponse
+        >(url, request);
+    }
+
+    async createExternalContractResponsibleAsync(
+        projectId: string,
+        contractId: string,
+        request: CreatePositionRequest
+    ) {
+        const url = combineUrls(
+            this.resourceCollection.contract(projectId, contractId),
+            'external-contract-responsible'
+        );
+
+        return this.httpClient.postAsync<
+            CreatePositionRequest,
+            Position,
+            FusionApiHttpErrorResponse
+        >(url, request);
     }
 }

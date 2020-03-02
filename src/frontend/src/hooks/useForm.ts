@@ -1,11 +1,18 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+const deepEqual = require('deep-equal');
 
 const useForm = <T>(createDefaultState: () => T, validateForm: (formState: T) => boolean, defaultState?: T | null) => {
     const [formState, setState] = useState<T>(defaultState || createDefaultState());
 
+    const [initialState, setInitialState] = useState<T>(formState);
+    const isFormDirty = useMemo(() => {
+        return !deepEqual(formState, initialState);
+    }, [formState, initialState]);
+
     useEffect(() => {
         if(defaultState) {
             setState(defaultState);
+            setInitialState(defaultState);
         }
     }, [defaultState]);
 
@@ -37,7 +44,7 @@ const useForm = <T>(createDefaultState: () => T, validateForm: (formState: T) =>
         setState(createDefaultState());
     }, [createDefaultState]);
 
-    return { formState, isFormValid, setFormField, formFieldSetter, resetForm };
+    return { formState, isFormValid, setFormField, formFieldSetter, resetForm, isFormDirty };
 };
 
 export default useForm;

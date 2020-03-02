@@ -1,11 +1,23 @@
 import * as React from 'react';
-import { Stepper, Step, Button, TextInput, DatePicker, ArrowBackIcon, IconButton } from '@equinor/fusion-components';
+import {
+    Stepper,
+    Step,
+    Button,
+    TextInput,
+    DatePicker,
+    ArrowBackIcon,
+    IconButton,
+} from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
 import ContractNumberSelector from './components/ContractNumberSelector';
 import classNames from 'classnames';
 import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
+import NewPositionSidesheet from './components/NewPositionSidesheet';
+import { useAppContext } from '../../../../appContext';
+import { useCurrentContext } from '@equinor/fusion';
+import CompanyPicker from './components/CompanyPicker';
 
 type EditContractWizardProps = {
     title: string;
@@ -16,7 +28,9 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
     const isEdit = React.useMemo(() => {
         return existingContract && existingContract.contractNumber !== null;
     }, [existingContract]);
-    const { formState, formFieldSetter, isFormValid } = useContractForm(existingContract);
+    const { formState, formFieldSetter, setFormField, isFormValid, isFormDirty } = useContractForm(
+        existingContract
+    );
 
     const conContinue = React.useMemo(() => {
         return formState.contractNumber !== null;
@@ -28,7 +42,18 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
 
     const gotoContract = React.useCallback(() => setActiveStepKey('select-contract'), []);
     const gotoContractDetails = React.useCallback(() => setActiveStepKey('contract-details'), []);
-    const gotoExteral = React.useCallback(() => setActiveStepKey('external'), []);
+
+    const { apiClient } = useAppContext();
+    const project = useCurrentContext() as any;
+    const gotoExteral = React.useCallback(async () => {
+        if (!formState.id) {
+            const response = await apiClient.createContractAsync(project.externalId, formState);
+            const createdContract = response.data;
+            setFormField('id', createdContract.id);
+        }
+
+        setActiveStepKey('external');
+    }, [formState]);
 
     React.useEffect(() => {
         if (formState.contractNumber) {
@@ -39,10 +64,14 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
     return (
         <div>
             <header className={styles.header}>
-                <IconButton><ArrowBackIcon /></IconButton>
+                <IconButton>
+                    <ArrowBackIcon />
+                </IconButton>
                 <h2>{title}</h2>
                 <Button outlined>Cancel</Button>
-                <Button outlined disabled={!isFormValid}>Save</Button>
+                <Button outlined disabled={!isFormValid || !isFormDirty}>
+                    Save
+                </Button>
             </header>
             <Stepper activeStepKey={activeStepKey}>
                 <Step
@@ -77,6 +106,15 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                         </div>
 
                         <div className={styles.row}>
+                            <div className={classNames(styles.field, styles.big)}>
+                                <CompanyPicker
+                                    selectedCompanyId={formState.company?.id || null}
+                                    onSelect={formFieldSetter('company')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className={styles.row}>
                             <div className={styles.field}>
                                 <DatePicker
                                     label="From Date"
@@ -96,14 +134,14 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                         <div className={styles.row}>
                             <div className={styles.field}>
                                 <ContractPositionPicker
-                                    label="Equinor contract responsible"
+                                    label="Equinor Contract responsible"
                                     selectedPositionId={formState.contractResponsiblePositionId}
                                     onSelect={formFieldSetter('contractResponsiblePositionId')}
                                 />
                             </div>
                             <div className={styles.field}>
                                 <ContractPositionPicker
-                                    label="Equinor company rep"
+                                    label="Equinor Company rep"
                                     selectedPositionId={formState.companyRepPositionId}
                                     onSelect={formFieldSetter('companyRepPositionId')}
                                 />
@@ -114,12 +152,56 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                             <Button outlined onClick={gotoContract}>
                                 Previous
                             </Button>
-                            <Button onClick={gotoExteral}>Next</Button>
+                            <Button onClick={gotoExteral} disabled={!isFormValid}>
+                                Next
+                            </Button>
                         </div>
                     </div>
                 </Step>
                 <Step title="External" stepKey="external" disabled={!conContinue}>
                     <div className={styles.stepContainer}>
+                        <div className={styles.row}>
+                            <div className={styles.field}>
+                                <ContractPositionPicker
+                                    label="External Company rep"
+                                    selectedPositionId={formState.externalCompanyRepPositionId}
+                                    onSelect={formFieldSetter('externalCompanyRepPositionId')}
+                                />
+                                <NewPositionSidesheet
+                                    repType="company-rep"
+                                    contract={formState}
+                                    setCompanyRepPosition={formFieldSetter(
+                                        'externalCompanyRepPositionId'
+                                    )}
+                                    setContractResponsiblePosition={formFieldSetter(
+                                        'externalContractResponsiblePositionId'
+                                    )}
+                                />
+                            </div>
+                        </div>
+                        <div className={styles.row}>
+                            <div className={styles.field}>
+                                <ContractPositionPicker
+                                    label="External Contract responsible"
+                                    selectedPositionId={
+                                        formState.externalContractResponsiblePositionId
+                                    }
+                                    onSelect={formFieldSetter(
+                                        'externalContractResponsiblePositionId'
+                                    )}
+                                />
+                                <NewPositionSidesheet
+                                    repType="contract-responsible"
+                                    contract={formState}
+                                    setCompanyRepPosition={formFieldSetter(
+                                        'externalCompanyRepPositionId'
+                                    )}
+                                    setContractResponsiblePosition={formFieldSetter(
+                                        'externalContractResponsiblePositionId'
+                                    )}
+                                />
+                            </div>
+                        </div>
                         <div className={styles.actions}>
                             <Button outlined onClick={gotoContractDetails}>
                                 Previous
