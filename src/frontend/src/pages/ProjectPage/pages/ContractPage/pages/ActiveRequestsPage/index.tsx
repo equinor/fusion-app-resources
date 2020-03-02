@@ -1,6 +1,13 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { Button, IconButton, DeleteIcon, EditIcon, Spinner, ErrorMessage } from '@equinor/fusion-components';
+import {
+    Button,
+    IconButton,
+    DeleteIcon,
+    EditIcon,
+    Spinner,
+    ErrorMessage,
+} from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../components/SortableTable';
@@ -16,14 +23,15 @@ const ActiveRequestsPage: React.FC = () => {
         setIsFetching(true);
         setError(null);
         try {
-            const response = await apiClient.getPersonnelRequestsAsync("123", "123") //TESTING VALUES
-            const activeRequests = response.data.value.filter(request => +request.state === 0 || +request.state === 1);
+            const response = await apiClient.getPersonnelRequestsAsync('123', '123'); //TESTING VALUES
+            const activeRequests = response.data.value.filter(
+                request => +request.state === 0 || +request.state === 1
+            );
             setActiveRequests(activeRequests);
         } catch (e) {
             setError(e);
-
         } finally {
-            setIsFetching(false)
+            setIsFetching(false);
         }
     };
 
@@ -31,9 +39,13 @@ const ActiveRequestsPage: React.FC = () => {
         getRequestsAsync();
     }, []);
 
-
     if (error) {
-        return <ErrorMessage hasError message="An error occurred while trying to fetch active requests" />
+        return (
+            <ErrorMessage
+                hasError
+                message="An error occurred while trying to fetch active requests"
+            />
+        );
     }
 
     return (
@@ -49,9 +61,15 @@ const ActiveRequestsPage: React.FC = () => {
                     </IconButton>
                 </div>
             </div>
-            <SortableTable data={activeRequests} columns={columns}
-                rowIdentifier="id" isFetching={isFetching} isSelectable
-                selectedItems={selectedRequests} onSelectionChange={setSelectedRequests} />
+            <SortableTable
+                data={activeRequests}
+                columns={columns}
+                rowIdentifier="id"
+                isFetching={isFetching}
+                isSelectable
+                selectedItems={selectedRequests}
+                onSelectionChange={setSelectedRequests}
+            />
         </div>
     );
 };
