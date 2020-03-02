@@ -22,7 +22,10 @@ export default class ApiClient {
 
     async getAvailableContractsAsync(projectId: string) {
         const url = this.resourceCollection.contracts(projectId);
-        return this.httpClient.getAsync<ApiCollection<AvailableContract>, FusionApiHttpErrorResponse>(url);
+        return this.httpClient.getAsync<
+            ApiCollection<AvailableContract>,
+            FusionApiHttpErrorResponse
+        >(url);
     }
 
     async getPersonnelAsync(projectId: string, contractId: string) {
@@ -30,8 +33,11 @@ export default class ApiClient {
         return this.httpClient.getAsync<ApiCollection<Personnel>, FusionApiHttpErrorResponse>(url);
     }
 
-    async getPersonnelRequestsAsync(projectId: string, contractId: string){
-        const url = this.resourceCollection.personnelRequests(projectId, contractId);
-        return this.httpClient.getAsync<ApiCollection<PersonnelRequest>, FusionApiHttpErrorResponse>(url);
+    async getPersonnelRequestsAsync(projectId: string, contractId: string, filter?: string) {
+        const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
+        return this.httpClient.getAsync<
+            ApiCollection<PersonnelRequest>,
+            FusionApiHttpErrorResponse
+        >(url);
     }
 }

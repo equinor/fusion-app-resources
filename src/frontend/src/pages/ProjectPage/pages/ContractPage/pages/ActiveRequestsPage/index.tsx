@@ -5,7 +5,6 @@ import {
     IconButton,
     DeleteIcon,
     EditIcon,
-    Spinner,
     ErrorMessage,
 } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
@@ -23,11 +22,8 @@ const ActiveRequestsPage: React.FC = () => {
         setIsFetching(true);
         setError(null);
         try {
-            const response = await apiClient.getPersonnelRequestsAsync('123', '123'); //TESTING VALUES
-            const activeRequests = response.data.value.filter(
-                request => +request.state === 0 || +request.state === 1
-            );
-            setActiveRequests(activeRequests);
+            const response = await apiClient.getPersonnelRequestsAsync('123', '123', "RequestState eq 0 or RequestState eq 1"); //TESTING VALUES
+            setActiveRequests(response.data.value);
         } catch (e) {
             setError(e);
         } finally {
