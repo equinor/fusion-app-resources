@@ -29,7 +29,7 @@ const getRequestStates = (request: PersonnelRequest): RequestItemState[] => {
 
     switch (+state) {
         case 0:
-            return ["approved", "pending"];
+            return ["approved", "pending", "pending"];
         case 1:
             return ["approved", "approved", "pending"];
         case 2:
