@@ -1,9 +1,9 @@
 import Personnel from './Personnel';
 import Person from './Person';
 import { ContractReference } from './contract';
-import Position from './Position';
 import Project from './Project';
 import Comment from './Comment';
+import { Position } from '@equinor/fusion';
 
 export type RequestState = 'Created' | 'Submitted' | 'Approved' | 'Rejected' | 'Provisioned';
 
@@ -21,6 +21,5 @@ type PersonnelRequest = {
     project: Project | null;
     comments: Comment[];
 };
-
 
 export default PersonnelRequest;

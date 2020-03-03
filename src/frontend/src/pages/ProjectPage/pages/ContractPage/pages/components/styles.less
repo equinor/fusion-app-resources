@@ -1,0 +1,43 @@
+.requestStateFlow {
+    display: flex;
+
+    .step {
+        position: relative;
+        width: calc(var(--grid-unit) * 2px);
+        height: calc(var(--grid-unit) * 2px);
+        border-radius: 50%;
+        margin-right: calc(var(--grid-unit) * 1px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+
+        &::after {
+            display: block;
+            position: absolute;
+            left: calc(100% + (var(--grid-unit) * .25px));
+            top: calc(50% - 1px);
+            content: "";
+            height: 2px;
+            width: calc(var(--grid-unit) * .5px);
+            background-color: var(--color-black-alt3);
+        }
+
+        &:last-child::after {
+            display: none;
+        }
+
+        &.approved {
+            background-color: var(--color-green);
+        }
+
+
+        &.pending{
+            background-color: var(--color-black-alt3);
+        }
+
+        &.rejected {
+            background-color: var(--color-red);
+        }
+    }
+}

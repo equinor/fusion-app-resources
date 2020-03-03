@@ -11,6 +11,7 @@ import Contract from '../models/contract';
 import ApiCollection from '../models/apiCollection';
 import AvailableContract from '../models/availableContract';
 import CreatePositionRequest from '../models/createPositionRequest';
+import PersonnelRequest from '../models/PersonnelRequest';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -126,6 +127,20 @@ export default class ApiClient {
             })
         );
 
+        return response.data;
+    }
+
+    async getPersonnelRequestsAsync(
+        projectId: string,
+        contractId: string,
+        filterOnActive?: boolean
+    ) {
+        const filter = filterOnActive ? 'isActive eq true' : undefined;
+        const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
+        const response = await this.httpClient.getAsync<
+            ApiCollection<PersonnelRequest>,
+            FusionApiHttpErrorResponse
+        >(url);
         return response.data;
     }
 }
