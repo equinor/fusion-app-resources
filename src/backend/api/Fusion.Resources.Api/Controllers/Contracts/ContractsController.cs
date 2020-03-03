@@ -48,6 +48,15 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(collection);
         }
 
+        [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
+        public async Task<ActionResult<ApiContract>> GetProjectContracts([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
+        {
+            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractId);
+
+            return new ApiContract(orgContract);
+        }
+
         [HttpGet("/projects/{projectIdentifier}/available-contracts")]
         public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts([FromRoute]ProjectIdentifier projectIdentifier)
         {
