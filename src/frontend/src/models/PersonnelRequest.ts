@@ -5,13 +5,7 @@ import Project from './Project';
 import Comment from './Comment';
 import { Position } from '@equinor/fusion';
 
-export enum RequestState {
-    Created,
-    Submitted,
-    Approved,
-    Rejected,
-    Provisioned,
-}
+export type RequestState = 'Created' | 'Submitted' | 'Approved' | 'Rejected' | 'Provisioned';
 
 type PersonnelRequest = {
     id: string;
