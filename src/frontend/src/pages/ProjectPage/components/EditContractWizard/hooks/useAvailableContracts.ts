@@ -17,8 +17,8 @@ const useAvailableContracts = () => {
         setIsFetchingAvailableContracts(true);
 
         try {
-            const response = await apiClient.getAvailableContractsAsync(currentContext.id);
-            setAvailableContracts(response.data.value);
+            const availableContract = await apiClient.getAvailableContractsAsync(currentContext.id);
+            setAvailableContracts(availableContract);
         } catch (e) {
             console.error(e);
         }

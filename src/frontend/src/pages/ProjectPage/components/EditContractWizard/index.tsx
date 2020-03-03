@@ -48,15 +48,14 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
     const project = useCurrentContext() as any;
     const saveAsync = React.useCallback(async () => {
         if (formState.id) {
-            const response = await apiClient.updateContractAsync(
+            const updatedContract = await apiClient.updateContractAsync(
                 project.externalId,
                 formState.id,
                 formState
             );
-            resetForm(response.data);
+            resetForm(updatedContract);
         } else {
-            const response = await apiClient.createContractAsync(project.externalId, formState);
-            const createdContract = response.data;
+            const createdContract = await apiClient.createContractAsync(project.externalId, formState);
             setFormField('id', createdContract.id);
         }
     }, [formState]);

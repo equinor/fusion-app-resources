@@ -1,4 +1,10 @@
-import { IHttpClient, FusionApiHttpErrorResponse, combineUrls, Position, BasePosition } from '@equinor/fusion';
+import {
+    IHttpClient,
+    FusionApiHttpErrorResponse,
+    combineUrls,
+    Position,
+    BasePosition,
+} from '@equinor/fusion';
 import ResourceCollection from './ResourceCollection';
 import Personnel from '../models/Personnel';
 import Contract from '../models/contract';
@@ -17,15 +23,20 @@ export default class ApiClient {
 
     async getContractsAsync(projectId: string) {
         const url = this.resourceCollection.contracts(projectId);
-        return this.httpClient.getAsync<ApiCollection<Contract>, FusionApiHttpErrorResponse>(url);
+        const response = await this.httpClient.getAsync<
+            ApiCollection<Contract>,
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data.value;
     }
 
     async getAvailableContractsAsync(projectId: string) {
         const url = this.resourceCollection.contracts(projectId);
-        return this.httpClient.getAsync<
+        const response = await this.httpClient.getAsync<
             ApiCollection<AvailableContract>,
             FusionApiHttpErrorResponse
         >(url);
+        return response.data.value;
     }
 
     async getPersonnelAsync(projectId: string, contractId: string) {
@@ -35,18 +46,23 @@ export default class ApiClient {
 
     async createContractAsync(projectId: string, contract: Contract) {
         const url = this.resourceCollection.contracts(projectId);
-        return this.httpClient.postAsync<Contract, Contract, FusionApiHttpErrorResponse>(
-            url,
-            contract
-        );
+        const response = await this.httpClient.postAsync<
+            Contract,
+            Contract,
+            FusionApiHttpErrorResponse
+        >(url, contract);
+        return response.data;
     }
 
     async updateContractAsync(projectId: string, contractId: string, contract: Contract) {
         const url = this.resourceCollection.contract(projectId, contractId);
-        return this.httpClient.putAsync<Contract, Contract, FusionApiHttpErrorResponse>(
-            url,
-            contract
-        );
+        const response = await this.httpClient.putAsync<
+            Contract,
+            Contract,
+            FusionApiHttpErrorResponse
+        >(url, contract);
+
+        return response.data;
     }
 
     async createExternalCompanyReprasentiveAsync(
@@ -59,22 +75,26 @@ export default class ApiClient {
             'external-company-representative'
         );
 
-        return this.httpClient.postAsync<
+        const response = await this.httpClient.postAsync<
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request, null, () => Promise.resolve({
-            id: new Date().getTime().toString(),
-            basePosition: request.basePosition as BasePosition,
-            contractId,
-            directChildCount: 0,
-            externalId: new Date().getTime().toString(),
-            instances: [],
-            name: request.name,
-            projectId,
-            properties: {},
-            totalChildCount: 0,
-        }));
+        >(url, request, null, () =>
+            Promise.resolve({
+                id: new Date().getTime().toString(),
+                basePosition: request.basePosition as BasePosition,
+                contractId,
+                directChildCount: 0,
+                externalId: new Date().getTime().toString(),
+                instances: [],
+                name: request.name,
+                projectId,
+                properties: {},
+                totalChildCount: 0,
+            })
+        );
+
+        return response.data;
     }
 
     async createExternalContractResponsibleAsync(
@@ -87,21 +107,25 @@ export default class ApiClient {
             'external-contract-responsible'
         );
 
-        return this.httpClient.postAsync<
+        const response = await this.httpClient.postAsync<
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request, null, () => Promise.resolve({
-            id: new Date().getTime().toString(),
-            basePosition: request.basePosition as BasePosition,
-            contractId,
-            directChildCount: 0,
-            externalId: new Date().getTime().toString(),
-            instances: [],
-            name: request.name,
-            projectId,
-            properties: {},
-            totalChildCount: 0,
-        }));
+        >(url, request, null, () =>
+            Promise.resolve({
+                id: new Date().getTime().toString(),
+                basePosition: request.basePosition as BasePosition,
+                contractId,
+                directChildCount: 0,
+                externalId: new Date().getTime().toString(),
+                instances: [],
+                name: request.name,
+                projectId,
+                properties: {},
+                totalChildCount: 0,
+            })
+        );
+
+        return response.data;
     }
 }

@@ -68,13 +68,11 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     const currentContext = useCurrentContext();
     const createExternalCompanyRepAsync = React.useCallback(
         async (request: CreatePositionRequest) => {
-            const response = await apiClient.createExternalCompanyReprasentiveAsync(
+            const position = await apiClient.createExternalCompanyReprasentiveAsync(
                 currentContext?.id || '',
                 contract.id || '',
                 request
             );
-
-            const position = response.data;
 
             setCompanyRepPosition(position.id);
 
@@ -90,13 +88,11 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
 
     const createExternalContractResponsibleAsync = React.useCallback(
         async (request: CreatePositionRequest) => {
-            const response = await apiClient.createExternalContractResponsibleAsync(
+            const position = await apiClient.createExternalContractResponsibleAsync(
                 currentContext?.id || '',
                 contract.id || '',
                 request
             );
-
-            const position = response.data;
 
             setContractResponsiblePosition(position.id);
 
