@@ -1,9 +1,9 @@
 import Personnel from './Personnel';
 import Person from './Person';
 import { ContractReference } from './contract';
-import Position from './Position';
 import Project from './Project';
 import Comment from './Comment';
+import { Position } from '@equinor/fusion';
 
 export enum RequestState {
     Created,

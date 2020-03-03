@@ -40,10 +40,10 @@ export default class ApiClient {
     ) {
         const filter = filterOnActive ? 'isActive eq true' : undefined;
         const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
-        const response =  this.httpClient.getAsync<
+        const response = await this.httpClient.getAsync<
             ApiCollection<PersonnelRequest>,
             FusionApiHttpErrorResponse
         >(url);
-        return (await response).data
+        return response.data;
     }
 }

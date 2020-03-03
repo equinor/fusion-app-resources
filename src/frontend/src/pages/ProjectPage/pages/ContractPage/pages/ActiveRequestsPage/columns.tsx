@@ -1,10 +1,13 @@
 import { DataTableColumn } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import RequestStateFlow from '../components/RequestStateFlow';
+import * as React from 'react';
+import PositionColumn from '../../../../components/PositionColumn';
+
 
 const columns: DataTableColumn<PersonnelRequest>[] = [
     {
-        accessor: request => request.position?.basePosition?.name || '',
+        accessor: request => request.position?.basePosition?.name || 'TBN',
         key: 'basePosition',
         label: 'Base position',
         sortable: true,
@@ -28,12 +31,18 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         key: 'position',
         label: 'Position',
         sortable: true,
+        component: ({ item }) => <PositionColumn positionId={item.position?.id || null} />
     },
     {
-        accessor: request => request.position?.taskOwner?.positionId || '',
+        accessor: request => request.position?.instances.find(i => i.parentPositionId)?.parentPositionId || "",
         key: 'taskOwnerId',
-        label: 'Taskowner id',
+        label: 'Taskowner',
         sortable: true,
+        component: ({ item }) => {
+            const taskOwnerId = item.position?.instances.find(i => i.parentPositionId)?.parentPositionId || null;
+            return <PositionColumn positionId={taskOwnerId} />
+
+        }
     },
 ];
 
