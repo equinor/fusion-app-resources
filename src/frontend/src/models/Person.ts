@@ -1,5 +1,6 @@
 
 type Person = {
+    personnelId:string,
     azureUniquePersonId?: string;
     mail: string;
     name: string;
