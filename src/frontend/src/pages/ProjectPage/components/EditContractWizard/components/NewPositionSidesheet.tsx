@@ -68,9 +68,15 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     const currentContext = useCurrentContext();
     const createExternalCompanyRepAsync = React.useCallback(
         async (request: CreatePositionRequest) => {
+            if (!currentContext?.id) {
+                throw new Error('No context selected');
+            } else if (!contract.id) {
+                throw new Error("Can't create position on non existing contract");
+            }
+
             const position = await apiClient.createExternalCompanyReprasentiveAsync(
-                currentContext?.id || '',
-                contract.id || '',
+                currentContext.id,
+                contract.id,
                 request
             );
 
@@ -88,9 +94,15 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
 
     const createExternalContractResponsibleAsync = React.useCallback(
         async (request: CreatePositionRequest) => {
+            if (!currentContext?.id) {
+                throw new Error('No context selected');
+            } else if (!contract.id) {
+                throw new Error("Can't create position on non existing contract");
+            }
+
             const position = await apiClient.createExternalContractResponsibleAsync(
-                currentContext?.id || '',
-                contract.id || '',
+                currentContext.id,
+                contract.id,
                 request
             );
 
@@ -107,21 +119,34 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     );
 
     const onSave = React.useCallback(async () => {
-        const promises: Promise<string>[] = [];
+        try {
+            const promises: Promise<string>[] = [];
 
-        const position = { ...formState };
-        if (repType === 'company-rep' || alsoUseForOther) {
-            promises.push(createExternalCompanyRepAsync(position));
+            const position = { ...formState };
+            if (repType === 'company-rep' || alsoUseForOther) {
+                promises.push(createExternalCompanyRepAsync(position));
+            }
+
+            if (repType === 'contract-responsible' || alsoUseForOther) {
+                promises.push(createExternalContractResponsibleAsync(position));
+            }
+
+            await Promise.all(promises);
+
+            onClose();
+        } catch (e) {
+            sendNotification({
+                level: 'medium',
+                title: e.message,
+            });
         }
-
-        if (repType === 'contract-responsible' || alsoUseForOther) {
-            promises.push(createExternalContractResponsibleAsync(position));
-        }
-
-        await Promise.all(promises);
-
-        onClose();
-    }, [repType, formState, alsoUseForOther]);
+    }, [
+        repType,
+        formState,
+        alsoUseForOther,
+        createExternalCompanyRepAsync,
+        createExternalContractResponsibleAsync,
+    ]);
 
     return (
         <>

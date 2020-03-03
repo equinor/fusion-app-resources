@@ -16,9 +16,11 @@ import classNames from 'classnames';
 import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
 import NewPositionSidesheet from './components/NewPositionSidesheet';
-import { useAppContext } from '../../../../appContext';
-import { useCurrentContext, formatDate } from '@equinor/fusion';
+import { formatDate } from '@equinor/fusion';
 import CompanyPicker from './components/CompanyPicker';
+import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFocus';
+import useActiveStepKey from './hooks/useActiveStepKey';
+import useContractPersister from './hooks/useContractPersister';
 
 type EditContractWizardProps = {
     title: string;
@@ -28,8 +30,6 @@ type EditContractWizardProps = {
     onGoBack: () => void;
 };
 
-type StepKey = 'select-contract' | 'contract-details' | 'external';
-
 const EditContractWizard: React.FC<EditContractWizardProps> = ({
     title,
     existingContract,
@@ -38,7 +38,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
     onGoBack,
 }) => {
     const isEdit = React.useMemo(() => {
-        return existingContract && existingContract.contractNumber !== null;
+        return Boolean(existingContract && existingContract.contractNumber !== null);
     }, [existingContract]);
 
     const {
@@ -50,72 +50,29 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         isFormDirty,
     } = useContractForm(existingContract);
 
-    const [activeStepKey, setActiveStepKey] = React.useState<StepKey>(
-        isEdit ? 'contract-details' : 'select-contract'
+    const onSave = React.useCallback(
+        (contract: Contract) => {
+            if (formState.id) {
+                resetForm(contract);
+            } else {
+                setFormField('id', contract.id);
+            }
+        },
+        [formState, resetForm, setFormField]
+    );
+    const saveAsync = useContractPersister(formState, onSave);
+
+    const { activeStepKey, gotoContract, gotoContractDetails, gotoExteral } = useActiveStepKey(
+        isEdit,
+        formState,
+        saveAsync
     );
 
-    const { apiClient } = useAppContext();
-    const project = useCurrentContext() as any;
-    const saveAsync = React.useCallback(async () => {
-        if (formState.id) {
-            const updatedContract = await apiClient.updateContractAsync(
-                project.externalId,
-                formState.id,
-                formState
-            );
-            resetForm(updatedContract);
-        } else {
-            const createdContract = await apiClient.createContractAsync(
-                project.externalId,
-                formState
-            );
-            setFormField('id', createdContract.id);
-        }
-    }, [formState]);
-
-    const gotoContract = React.useCallback(() => setActiveStepKey('select-contract'), []);
-    const gotoContractDetails = React.useCallback(() => setActiveStepKey('contract-details'), []);
-
-    const gotoExteral = React.useCallback(async () => {
-        if (!formState.id) {
-            await saveAsync();
-        }
-
-        setActiveStepKey('external');
-    }, [formState]);
-
-    const contractNumberRef = React.useRef<HTMLDivElement>(null);
-    const nameInputRef = React.useRef<HTMLInputElement>(null);
-    const externalCompanyRepRef = React.useRef<HTMLDivElement>(null);
-    React.useEffect(() => {
-        const focusTimer = setTimeout(() => {
-            if (
-                activeStepKey === 'select-contract' &&
-                contractNumberRef.current &&
-                !formState.contractNumber
-            ) {
-                contractNumberRef.current.querySelector('input')?.click();
-            } else if (activeStepKey === 'contract-details' && nameInputRef.current) {
-                nameInputRef.current?.focus();
-            } else if (activeStepKey === 'external' && externalCompanyRepRef.current) {
-                externalCompanyRepRef.current.querySelector('input')?.click();
-            }
-        }, 0);
-
-        return () => clearTimeout(focusTimer);
-    }, [
-        activeStepKey,
-        contractNumberRef.current,
-        nameInputRef.current,
-        externalCompanyRepRef.current,
-        formState.contractNumber,
-    ]);
-
-    React.useEffect(() => {
-        if (formState.contractNumber) {
-            gotoContractDetails();
-        }
-    }, [formState.contractNumber]);
+    const {
+        contractNumberRef,
+        nameInputRef,
+        externalCompanyRepRef,
+    } = useContractAllocationAutoFocus(activeStepKey, formState);
 
     const contractDetailsDescription = React.useMemo(() => {
         const dateOrNa = (date: Date | null) => (date ? formatDate(date) : 'N/A');
