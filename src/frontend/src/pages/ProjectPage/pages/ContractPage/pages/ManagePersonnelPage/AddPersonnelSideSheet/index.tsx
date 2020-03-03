@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ModalSideSheet, Button } from '@equinor/fusion-components';
+import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
 import AddPersonnelFormColumns from './AddPersonnelFormColumns';
 import Personnel from '../../../../../../../models/Personnel';
 import Person from '../../../../../../../models/Person';
@@ -26,7 +26,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,s
         setIsOpen(false);
       }}
       safeClose
-      safeCloseTitle={"Cancel and close edit personnel?"}
+      safeCloseTitle={`Close Add Person? Unsaved changes will be lost.
+                      `}
       isResizable
       minWidth={640}
     >
@@ -41,6 +42,7 @@ type AddPersonnelFormProps = {
 
 
 const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({personnelForEdit}) => {
+  const [saveInProgress,setSaveInProgress] = React.useState<Boolean>(false);
   const [personnel,setPersonnel] = React.useState<Person[]>(   
     personnelForEdit?.length 
       ? personnelForEdit.map(p => ({...p,personnelId:uuid()})) //TODO: Remove UUID when it has been added to the API.
@@ -51,6 +53,13 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({personnelForEdit}) =
   const rowTemplate = generateRowTemplate(headers);
   const columnTemplate = generateColumnTemplate(headers);
   const containerClassNames = classNames(styles.container, useComponentDisplayClassNames(styles));
+  const  savePersonnelChangesAsync = async () =>{
+    setSaveInProgress(true);
+    
+  }
+
+  if(saveInProgress)
+    return(<Spinner title={"they se me spinning they hatin"}> SPINNIN ! </Spinner>)
 
   return(
     <>
@@ -64,7 +73,7 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({personnelForEdit}) =
       }}
       >
         <Button outlined onClick = {()=> {setPersonnel([...personnel,{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}])}} > + Add Person </Button>
-        <Button outlined onClick = {()=> {alert("saving the things")} }> Create </Button>
+        <Button outlined onClick = {()=> {savePersonnelChangesAsync()} }> Create </Button>
       </div>
       <div className={containerClassNames}>
         <div className={styles.table}
