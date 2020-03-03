@@ -1,4 +1,4 @@
-import { IHttpClient, FusionApiHttpErrorResponse, combineUrls, Position } from '@equinor/fusion';
+import { IHttpClient, FusionApiHttpErrorResponse, combineUrls, Position, BasePosition } from '@equinor/fusion';
 import ResourceCollection from './ResourceCollection';
 import Personnel from '../models/Personnel';
 import Contract from '../models/contract';
@@ -63,7 +63,18 @@ export default class ApiClient {
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request);
+        >(url, request, null, () => Promise.resolve({
+            id: new Date().getTime().toString(),
+            basePosition: request.basePosition as BasePosition,
+            contractId,
+            directChildCount: 0,
+            externalId: new Date().getTime().toString(),
+            instances: [],
+            name: request.name,
+            projectId,
+            properties: {},
+            totalChildCount: 0,
+        }));
     }
 
     async createExternalContractResponsibleAsync(
@@ -80,6 +91,17 @@ export default class ApiClient {
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request);
+        >(url, request, null, () => Promise.resolve({
+            id: new Date().getTime().toString(),
+            basePosition: request.basePosition as BasePosition,
+            contractId,
+            directChildCount: 0,
+            externalId: new Date().getTime().toString(),
+            instances: [],
+            name: request.name,
+            projectId,
+            properties: {},
+            totalChildCount: 0,
+        }));
     }
 }

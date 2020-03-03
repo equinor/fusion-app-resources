@@ -16,7 +16,7 @@ import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
 import NewPositionSidesheet from './components/NewPositionSidesheet';
 import { useAppContext } from '../../../../appContext';
-import { useCurrentContext } from '@equinor/fusion';
+import { useCurrentContext, useHistory, formatDate } from '@equinor/fusion';
 import CompanyPicker from './components/CompanyPicker';
 
 type EditContractWizardProps = {
@@ -24,36 +24,64 @@ type EditContractWizardProps = {
     existingContract?: Contract;
 };
 
+type StepKey = 'select-contract' | 'contract-details' | 'external';
+
 const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existingContract }) => {
     const isEdit = React.useMemo(() => {
         return existingContract && existingContract.contractNumber !== null;
     }, [existingContract]);
-    const { formState, formFieldSetter, setFormField, isFormValid, isFormDirty } = useContractForm(
-        existingContract
-    );
 
-    const conContinue = React.useMemo(() => {
-        return formState.contractNumber !== null;
-    }, [formState]);
+    const {
+        formState,
+        resetForm,
+        formFieldSetter,
+        setFormField,
+        isFormValid,
+        isFormDirty,
+    } = useContractForm(existingContract);
 
-    const [activeStepKey, setActiveStepKey] = React.useState(
+    const [activeStepKey, setActiveStepKey] = React.useState<StepKey>(
         isEdit ? 'contract-details' : 'select-contract'
     );
 
-    const gotoContract = React.useCallback(() => setActiveStepKey('select-contract'), []);
-    const gotoContractDetails = React.useCallback(() => setActiveStepKey('contract-details'), []);
-
     const { apiClient } = useAppContext();
     const project = useCurrentContext() as any;
-    const gotoExteral = React.useCallback(async () => {
-        if (!formState.id) {
+    const saveAsync = React.useCallback(async () => {
+        if (formState.id) {
+            const response = await apiClient.updateContractAsync(
+                project.externalId,
+                formState.id,
+                formState
+            );
+            resetForm(response.data);
+        } else {
             const response = await apiClient.createContractAsync(project.externalId, formState);
             const createdContract = response.data;
             setFormField('id', createdContract.id);
         }
+    }, [formState]);
+
+    const gotoContract = React.useCallback(() => setActiveStepKey('select-contract'), []);
+    const gotoContractDetails = React.useCallback(() => setActiveStepKey('contract-details'), []);
+
+    const gotoExteral = React.useCallback(async () => {
+        if (!formState.id) {
+            await saveAsync();
+        }
 
         setActiveStepKey('external');
     }, [formState]);
+
+    const nameInputRef = React.useRef<HTMLInputElement>(null);
+    React.useEffect(() => {
+        const focusTimer = setTimeout(() => {
+            if (activeStepKey === 'contract-details' && !formState.name && nameInputRef.current) {
+                nameInputRef.current?.focus();
+            }
+        }, 0);
+
+        return () => clearTimeout(focusTimer);
+    }, [activeStepKey, nameInputRef.current]);
 
     React.useEffect(() => {
         if (formState.contractNumber) {
@@ -61,15 +89,29 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
         }
     }, [formState.contractNumber]);
 
+    const history = useHistory();
+    const onCancel = React.useCallback(() => {
+        history.goBack();
+    }, [history]);
+
+    const contractDetailsDescription = React.useMemo(() => {
+        const dateOrNa = (date: Date | null) => (date ? formatDate(date) : 'N/A');
+        return `${formState.company ? formState.company.name + ' - ' : ''} ${dateOrNa(
+            formState.startDate
+        )} - ${dateOrNa(formState.endDate)}`;
+    }, [formState]);
+
     return (
         <div>
             <header className={styles.header}>
-                <IconButton>
+                <IconButton onClick={onCancel}>
                     <ArrowBackIcon />
                 </IconButton>
                 <h2>{title}</h2>
-                <Button outlined>Cancel</Button>
-                <Button outlined disabled={!isFormValid || !isFormDirty}>
+                <Button outlined onClick={onCancel}>
+                    Cancel
+                </Button>
+                <Button outlined disabled={!isFormValid || !isFormDirty} onClick={saveAsync}>
                     Save
                 </Button>
             </header>
@@ -81,23 +123,25 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                     description={formState.contractNumber || ''}
                 >
                     <div className={styles.stepContainer}>
-                        <ContractNumberSelector
-                            selectedContractNumber={formState.contractNumber}
-                            onSelect={formFieldSetter('contractNumber')}
-                        />
-
-                        <div className={styles.actions}>
-                            <Button disabled={!conContinue} onClick={gotoContractDetails}>
-                                Next
-                            </Button>
+                        <div className={styles.row}>
+                            <ContractNumberSelector
+                                selectedContractNumber={formState.contractNumber}
+                                onSelect={formFieldSetter('contractNumber')}
+                            />
                         </div>
                     </div>
                 </Step>
-                <Step title="Contract details" stepKey="contract-details" disabled={!conContinue}>
+                <Step
+                    title="Contract details"
+                    stepKey="contract-details"
+                    disabled={formState.contractNumber === null}
+                    description={contractDetailsDescription}
+                >
                     <div className={styles.stepContainer}>
                         <div className={styles.row}>
                             <div className={classNames(styles.field, styles.big)}>
                                 <TextInput
+                                    ref={nameInputRef}
                                     label="Contract name"
                                     value={formState.name || ''}
                                     onChange={formFieldSetter('name')}
@@ -153,12 +197,12 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                                 Previous
                             </Button>
                             <Button onClick={gotoExteral} disabled={!isFormValid}>
-                                Next
+                                {formState.id ? 'Next' : 'Save and next'}
                             </Button>
                         </div>
                     </div>
                 </Step>
-                <Step title="External" stepKey="external" disabled={!conContinue}>
+                <Step title="External" stepKey="external" disabled={formState.id === null}>
                     <div className={styles.stepContainer}>
                         <div className={styles.row}>
                             <div className={styles.field}>
@@ -206,7 +250,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                             <Button outlined onClick={gotoContractDetails}>
                                 Previous
                             </Button>
-                            <Button onClick={gotoExteral} disabled={!isFormValid}>
+                            <Button disabled={!isFormValid} onClick={saveAsync}>
                                 Submit
                             </Button>
                         </div>

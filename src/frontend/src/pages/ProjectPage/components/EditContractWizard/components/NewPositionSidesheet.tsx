@@ -66,43 +66,49 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     const { apiClient } = useAppContext();
     const sendNotification = useNotificationCenter();
     const currentContext = useCurrentContext();
-    const createExternalCompanyRepAsync = React.useCallback(async (request: CreatePositionRequest) => {
-        const response = await apiClient.createExternalCompanyReprasentiveAsync(
-            currentContext?.id || '',
-            contract.id || '',
-            request
-        );
+    const createExternalCompanyRepAsync = React.useCallback(
+        async (request: CreatePositionRequest) => {
+            const response = await apiClient.createExternalCompanyReprasentiveAsync(
+                currentContext?.id || '',
+                contract.id || '',
+                request
+            );
 
-        const position = response.data;
+            const position = response.data;
 
-        setCompanyRepPosition(position.id);
+            setCompanyRepPosition(position.id);
 
-        sendNotification({
-            level: 'low',
-            title: 'External company rep created',
-        });
+            sendNotification({
+                level: 'low',
+                title: 'External company rep created',
+            });
 
-        return position.id;
-    }, [apiClient, formState]);
+            return position.id;
+        },
+        [apiClient, formState]
+    );
 
-    const createExternalContractResponsibleAsync = React.useCallback(async (request: CreatePositionRequest) => {
-        const response = await apiClient.createExternalContractResponsibleAsync(
-            currentContext?.id || '',
-            contract.id || '',
-            request
-        );
+    const createExternalContractResponsibleAsync = React.useCallback(
+        async (request: CreatePositionRequest) => {
+            const response = await apiClient.createExternalContractResponsibleAsync(
+                currentContext?.id || '',
+                contract.id || '',
+                request
+            );
 
-        const position = response.data;
+            const position = response.data;
 
-        setContractResponsiblePosition(position.id);
+            setContractResponsiblePosition(position.id);
 
-        sendNotification({
-            level: 'low',
-            title: 'External contract responsible created',
-        });
+            sendNotification({
+                level: 'low',
+                title: 'External contract responsible created',
+            });
 
-        return position.id;
-    }, []);
+            return position.id;
+        },
+        []
+    );
 
     const onSave = React.useCallback(async () => {
         const promises: Promise<string>[] = [];
@@ -124,7 +130,7 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     return (
         <>
             <div className={styles.row}>
-                <span>If you can't find your position, try to{' '}</span>
+                <span>If you can't find your position, try to </span>
                 <Button frameless onClick={show}>
                     <AddIcon /> Add new position
                 </Button>
@@ -135,7 +141,11 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
                 size="large"
                 header="Add new position to contract"
                 headerIcons={[
-                    <Button onClick={onSave} disabled={!isFormValid || !isFormDirty}>
+                    <Button
+                        key="save-button"
+                        onClick={onSave}
+                        disabled={!isFormValid || !isFormDirty}
+                    >
                         Save
                     </Button>,
                 ]}
@@ -193,7 +203,12 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
 
                     <label className={styles.row}>
                         <CheckBox selected={alsoUseForOther} onChange={toggleAlsoUseForOther} />{' '}
-                        Also use for other position
+                        Also use for{' '}
+                        <strong>
+                            {repType === 'company-rep'
+                                ? 'external contract responsible'
+                                : 'external company rep'}
+                        </strong>
                     </label>
                 </div>
             </ModalSideSheet>
