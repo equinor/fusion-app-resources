@@ -21,7 +21,7 @@ const ActiveRequestsPage: React.FC = () => {
         setIsFetching(true);
         setError(null);
         try {
-            const response = await apiClient.getPersonnelRequestsAsync(projectId, contractId, true); //TESTING VALUES
+            const response = await apiClient.getPersonnelRequestsAsync(projectId, contractId, true);
             setActiveRequests(response.value);
         } catch (e) {
             setError(e);
@@ -36,7 +36,7 @@ const ActiveRequestsPage: React.FC = () => {
         if (contractId && projectId) {
             getRequestsAsync(projectId, contractId);
         }
-    }, [currentContext, currentContext]);
+    }, [contractContext, currentContext]);
 
     if (error) {
         return (

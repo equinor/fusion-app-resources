@@ -35,9 +35,10 @@ const columns: DataTableColumn<Position>[] = [
         }
     },
     {
-        accessor: request => request.instances.find(i => i.workload)?.workload.toString() || '',
-        key: 'position',
-        label: 'Position',
+        accessor: request =>
+            request.instances.find(i => i.workload)?.workload.toString() + '%' || '',
+        key: 'workload',
+        label: 'Workload',
         sortable: true,
     },
 ];
