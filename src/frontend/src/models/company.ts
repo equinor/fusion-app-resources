@@ -1,5 +1,5 @@
 type Company = {
-    id: string | null;
+    id: string;
     identifier: string | null;
     name: string | null;
 };

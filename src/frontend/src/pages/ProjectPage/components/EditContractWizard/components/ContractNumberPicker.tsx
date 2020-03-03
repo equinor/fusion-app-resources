@@ -7,7 +7,7 @@ type ContractNumberSelectorProps = {
     onSelect: (contractNumber: string) => void;
 };
 
-const ContractNumberSelector: React.FC<ContractNumberSelectorProps> = ({
+const ContractNumberPicker: React.FC<ContractNumberSelectorProps> = ({
     selectedContractNumber,
     onSelect,
 }) => {
@@ -33,4 +33,4 @@ const ContractNumberSelector: React.FC<ContractNumberSelectorProps> = ({
     );
 };
 
-export default ContractNumberSelector;
+export default ContractNumberPicker;
