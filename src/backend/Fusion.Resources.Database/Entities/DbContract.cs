@@ -11,6 +11,10 @@ namespace Fusion.Resources.Database.Entities
         
         public DbProject Project { get; set; }
         public Guid ProjectId { get; set; }
+
+        public DateTimeOffset Allocated { get; set; }
+        public DbPerson AllocatedBy { get; set; }
+        public Guid AllocatedById { get; set; }
     }
 
 }

@@ -14,6 +14,9 @@ namespace Fusion.Resources.Domain
         /// <param name="azureUniqueId"></param>
         /// <returns></returns>
         Task<DbPerson> EnsurePersonAsync(Guid azureUniqueId);
+
+        Task<DbPerson> EnsureApplicationAsync(Guid azureUniqueId);
+
         Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(PersonId personId);
         /// <summary>
         /// Resolves the fusion profile. Returns null if not found.

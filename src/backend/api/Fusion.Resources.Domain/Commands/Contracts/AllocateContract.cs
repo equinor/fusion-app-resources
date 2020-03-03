@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class AllocateContract : IRequest<QueryContract>
+    public class AllocateContract : TrackableRequest<QueryContract>
     {
         public AllocateContract(Guid orgChartId, string contractNumber)
         {
@@ -59,7 +59,7 @@ namespace Fusion.Resources.Domain.Commands
                 }
 
                 var dbProject = await EnsureDbProjectAsync(project);
-                var dbContract = await EnsureDbContract(dbProject, orgChartContract);
+                var dbContract = await EnsureDbContract(request, dbProject, orgChartContract);
 
 
                 await resourcesDb.SaveChangesAsync();
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Domain.Commands
                 return dbProject;
             }
 
-            private async Task<DbContract> EnsureDbContract(DbProject dbProject, ApiProjectContractV2 contract)
+            private async Task<DbContract> EnsureDbContract(AllocateContract command, DbProject dbProject, ApiProjectContractV2 contract)
             {
                 var dbContract = await resourcesDb.Contracts.FirstOrDefaultAsync(c => c.OrgContractId == contract.Id);
 
@@ -96,7 +96,9 @@ namespace Fusion.Resources.Domain.Commands
                         ContractNumber = contract.ContractNumber,
                         Name = contract.Name,
                         OrgContractId = contract.Id,
-                        ProjectId = dbProject.Id
+                        ProjectId = dbProject.Id,
+                        Allocated = DateTimeOffset.UtcNow,
+                        AllocatedBy = command.Editor.Person
                     };
                     await resourcesDb.Contracts.AddAsync(dbContract);
                 }

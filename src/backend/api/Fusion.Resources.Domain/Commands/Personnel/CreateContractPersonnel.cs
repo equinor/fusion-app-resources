@@ -12,7 +12,9 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class CreateContractPersonnel : IRequest<QueryContractPersonnel>
+
+
+    public class CreateContractPersonnel : TrackableRequest<QueryContractPersonnel>
     {
         public CreateContractPersonnel(Guid projectId, Guid contractIdentifier, string mail)
         {
@@ -31,10 +33,6 @@ namespace Fusion.Resources.Domain.Commands
         public string JobTitle { get; set; }
         public string Phone { get; set; }
         public List<string> Disciplines { get; set; } = new List<string>();
-
-
-        public Guid EditorAzureUniqueId { get; set; }
-
 
         public class Handler : IRequestHandler<CreateContractPersonnel, QueryContractPersonnel>
         {
@@ -70,17 +68,13 @@ namespace Fusion.Resources.Domain.Commands
                 if (existingItem != null)
                     throw new InvalidOperationException($"The specified person is already added to the current contract. Added @ {existingItem.Created} by {existingItem.CreatedBy.Mail}");
 
-                var editor = await profileService.EnsurePersonAsync(request.EditorAzureUniqueId);
-                if (editor == null)
-                    throw new InvalidOperationException("Cannot locate the editor user... hmmm...");
-
                 var newItem = new DbContractPersonnel
                 {
                     Project = project,
                     Contract = contract,
                     Person = personnel,
                     Created = DateTimeOffset.UtcNow,
-                    CreatedBy = editor
+                    CreatedBy = request.Editor.Person
                 };
                 await resourcesDb.ContractPersonnel.AddAsync(newItem);
 

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+#nullable enable
 namespace Fusion.Resources.Domain.Services
 {
     internal class ProfileServices : IProfileServices
@@ -90,11 +91,47 @@ namespace Fusion.Resources.Domain.Services
                 person = new DbPerson
                 {
                     AccountType = profile.AccountType.ToString(),
-                    AzureUniqueId = profile.AzureUniqueId.Value,
+                    AzureUniqueId = azureUniqueId,
                     JobTitle = profile.JobTitle,
                     Mail = profile.Mail,
                     Name = profile.Name,
                     Phone = profile.MobilePhone
+                };
+
+                await resourcesDb.Persons.AddAsync(person);
+                await resourcesDb.SaveChangesAsync();
+
+                return person;
+            }
+            finally
+            {
+                locker.Release();
+            }
+        }
+
+        public async Task<DbPerson> EnsureApplicationAsync(Guid azureUniqueId)
+        {
+            await locker.WaitAsync();
+
+            try
+            {
+                var person = await resourcesDb.Persons.FirstOrDefaultAsync(p => p.AzureUniqueId == azureUniqueId);
+                if (person != null)
+                    return person;
+
+                var profile = await ResolveApplicationAsync(azureUniqueId);
+
+                if (profile == null)
+                    return null;
+
+                person = new DbPerson
+                {
+                    AccountType = $"{FusionAccountType.Application}",
+                    AzureUniqueId = azureUniqueId,
+                    JobTitle = "Azure AD Application",
+                    Mail = $"{profile.ServicePrincipalId}@{profile.ApplicationId}",
+                    Name = profile.DisplayName,
+                    Phone = string.Empty
                 };
 
                 await resourcesDb.Persons.AddAsync(person);
@@ -113,6 +150,18 @@ namespace Fusion.Resources.Domain.Services
             try
             {
                 return await profileResolver.ResolvePersonBasicProfileAsync(person.OriginalIdentifier);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<FusionApplicationProfile?> ResolveApplicationAsync(Guid servicePrincipalUniqueId)
+        {
+            try
+            {
+                return await profileResolver.ResolveServicePrincipalAsync(servicePrincipalUniqueId);
             }
             catch (Exception)
             {

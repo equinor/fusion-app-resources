@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class UpdateContractPersonnel : IRequest<QueryContractPersonnel>
+    public class UpdateContractPersonnel : TrackableRequest<QueryContractPersonnel>
     {
         public UpdateContractPersonnel(Guid projectId, Guid contractIdentifier, PersonnelId personnelId)
         {
@@ -51,13 +51,18 @@ namespace Fusion.Resources.Domain.Commands
                     _ => resourcesDb.ContractPersonnel.Where(c => c.Person.Mail == request.PersonnelId.Mail)
                 };
 
-                var dbPersonnel = await query.Select(cp => cp.Person).FirstOrDefaultAsync();
+                var contractPersonnel = await query.Include(cp => cp.Person).ThenInclude(p => p.Disciplines).FirstOrDefaultAsync();
 
-                if (dbPersonnel is null)
+                if (contractPersonnel is null)
                     throw new ArgumentException($"Cannot locate person using personnel identifier '{request.PersonnelId.OriginalIdentifier}'");
 
 
-                UpdatePerson(dbPersonnel, request);
+                UpdatePerson(contractPersonnel.Person, request);
+
+                contractPersonnel.Updated = DateTimeOffset.UtcNow;
+                contractPersonnel.UpdatedBy = request.Editor.Person;
+                
+
                 await resourcesDb.SaveChangesAsync();
 
 
