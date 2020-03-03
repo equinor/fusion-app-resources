@@ -12,8 +12,8 @@ const useContracts = (projectId?: string) => {
         setIsFetchingContracts(true);
         try {
             // fetch and set contracts
-            const response = await apiClient.getContractsAsync(id);
-            setContracts(response.data.value);
+            const contractResult = await apiClient.getContractsAsync(id);
+            setContracts(contractResult);
         } catch (e) {
             setContractsError(e);
         }

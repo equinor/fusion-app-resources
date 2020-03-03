@@ -1,11 +1,22 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect } from 'react';
+const deepEqual = require('deep-equal');
 
-const useForm = <T>(createDefaultState: () => T, validateForm: (formState: T) => boolean, defaultState?: T | null) => {
-    const [formState, setState] = useState<T>(defaultState || createDefaultState());
+const useForm = <T>(
+    createDefaultState: () => T,
+    validateForm: (formState: T) => boolean,
+    defaultState?: T | null
+) => {
+    const [formState, setFormState] = useState<T>(defaultState || createDefaultState());
+
+    const [initialState, setInitialState] = useState<T>(formState);
+    const isFormDirty = useMemo(() => {
+        return !deepEqual(formState, initialState);
+    }, [formState, initialState]);
 
     useEffect(() => {
-        if(defaultState) {
-            setState(defaultState);
+        if (defaultState) {
+            setFormState(defaultState);
+            setInitialState(defaultState);
         }
     }, [defaultState]);
 
@@ -13,19 +24,16 @@ const useForm = <T>(createDefaultState: () => T, validateForm: (formState: T) =>
         return validateForm(formState);
     }, [formState, validateForm]);
 
-    const setFormField = useCallback(
-        <TKey extends keyof T>(key: TKey, value: T[TKey]) => {
-            setState(previousState => ({
-                ...previousState,
-                [key]: value,
-            }));
-        },
-        []
-    );
+    const setFormField = useCallback(<TKey extends keyof T>(key: TKey, value: T[TKey]) => {
+        setFormState(previousState => ({
+            ...previousState,
+            [key]: value,
+        }));
+    }, []);
 
     const formFieldSetter = useCallback(
         <TKey extends keyof T>(key: TKey) => (value: T[TKey]) => {
-            setState(previousState => ({
+            setFormState(previousState => ({
                 ...previousState,
                 [key]: value,
             }));
@@ -33,11 +41,19 @@ const useForm = <T>(createDefaultState: () => T, validateForm: (formState: T) =>
         []
     );
 
-    const resetForm = useCallback(() => {
-        setState(createDefaultState());
+    const resetForm = useCallback((state?: T) => {
+        setFormState(state || createDefaultState());
     }, [createDefaultState]);
 
-    return { formState, isFormValid, setFormField, formFieldSetter, resetForm };
+    return {
+        formState,
+        setFormState,
+        isFormValid,
+        setFormField,
+        formFieldSetter,
+        resetForm,
+        isFormDirty,
+    };
 };
 
 export default useForm;

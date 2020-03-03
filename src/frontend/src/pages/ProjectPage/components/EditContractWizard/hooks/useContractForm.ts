@@ -13,7 +13,7 @@ const createDefaultState = (): Contract => ({
     endDate: null,
     externalCompanyRepPositionId: null,
     externalContractResponsiblePositionId: null,
-    startDate: null,
+    startDate: new Date(),
 });
 
 const useContractForm = (defaultState?: Contract | null) => {
