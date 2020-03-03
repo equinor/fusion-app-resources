@@ -18,7 +18,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     [Authorize]
     [ApiController]
-    public class ContractsController : ControllerBase
+    public class ContractsController : ResourceControllerBase
     {
         private readonly IMediator mediator;
         private readonly IOrgApiClientFactory orgApiClientFactory;
@@ -88,6 +88,18 @@ namespace Fusion.Resources.Api.Controllers
                 Description = request.Description
             });
 
+            await DispatchAsync(new UpdateContractReps(projectIdentifier.ProjectId, allocatedContract.OrgContractId)
+            {
+                CompanyRepPositionId = request.CompanyRepPositionId,
+                ContractResponsiblePositionId = request.ContractResponsiblePositionId
+            });
+
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, allocatedContract.OrgContractId)
+            {
+                CompanyRepPositionId = request.ExternalCompanyRepPositionId,
+                ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
+            });
+
             var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, allocatedContract.OrgContractId);
 
@@ -97,7 +109,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}")]
         public async Task<ActionResult<ApiContract>> UpdateProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractRequest request)
         {
-            await mediator.Send(new UpdateContract(projectIdentifier.ProjectId, contractIdentifier)
+            await DispatchAsync(new UpdateContract(projectIdentifier.ProjectId, contractIdentifier)
             {
                 Name = request.Name,
                 StartDate = request.StartDate,
@@ -105,6 +117,19 @@ namespace Fusion.Resources.Api.Controllers
                 CompanyId = request.Company?.Id,
                 Description = request.Description
             });
+
+            await DispatchAsync(new UpdateContractReps(projectIdentifier.ProjectId, contractIdentifier)
+            {
+                CompanyRepPositionId = request.CompanyRepPositionId,
+                ContractResponsiblePositionId = request.ContractResponsiblePositionId
+            });
+
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier)
+            {
+                CompanyRepPositionId = request.ExternalCompanyRepPositionId,
+                ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
+            });
+
            
             var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractIdentifier);
