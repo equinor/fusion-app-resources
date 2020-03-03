@@ -10,6 +10,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTime AppliesTo { get; set; }
         public PersonReference AssignedPerson { get; set; }
 
+        public double Workload { get; set; }
 
 
     }

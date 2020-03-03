@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -7,11 +8,14 @@ namespace Fusion.Resources.Api.Controllers
     {
         public Guid Id { get; set; }
 
-        public DateTime Created { get; set; }
-        public DateTime? Updated { get; set; }
+        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Updated { get; set; }
         public ApiPerson CreatedBy { get; set; }
         public ApiPerson UpdatedBy { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiRequestState State { get; set; }
+
         public string Description { get; set; }
 
         public ApiRequestPosition Position { get; set; }

@@ -1,23 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Bogus;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Api.Controllers
 {
+
+    
+    [ModelBinder(BinderType = typeof(ProjectResolver))]
+    public class ProjectIdentifier
+    {
+        public ProjectIdentifier(string originalIdentifier, Guid projectId, string name)
+        {
+            OriginalIdentifier = originalIdentifier;
+            ProjectId = projectId;
+            Name = name;
+        }
+
+        [JsonIgnore]
+        public string OriginalIdentifier { get; set; }
+
+        [JsonIgnore]
+        public string Name { get; set; }
+
+        [JsonIgnore]
+        public Guid? ContextId { get; set; }
+        [JsonIgnore]
+        public Guid ProjectId { get; set; }
+
+        [JsonIgnore]
+        public Guid? LocalEntityId { get; set; }
+
+    }
+
     [Authorize]
     [ApiController]
     public class PersonnelController : ControllerBase
     {
         
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel(string projectIdentifier, string contractIdentifier) 
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, string contractIdentifier) 
         {
+
+
+
+
             var personnel = new Faker<ApiContractPersonnel>()
                 .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }))
                 .RuleFor(p => p.Name, f => f.Person.FullName)
