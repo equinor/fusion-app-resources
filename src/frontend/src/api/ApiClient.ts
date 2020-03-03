@@ -66,7 +66,7 @@ export default class ApiClient {
         return response.data;
     }
 
-    async createExternalCompanyReprasentativeAsync(
+    async createExternalCompanyRepresentativeAsync(
         projectId: string,
         contractId: string,
         request: CreatePositionRequest
