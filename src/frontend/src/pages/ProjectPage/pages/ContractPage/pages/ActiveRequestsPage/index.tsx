@@ -1,16 +1,12 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import {
-    Button,
-    IconButton,
-    DeleteIcon,
-    EditIcon,
-    ErrorMessage,
-} from '@equinor/fusion-components';
+import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../components/SortableTable';
 import columns from './columns';
+import { useContractContext } from '../../../../../../contractContex';
+import { useCurrentContext } from '@equinor/fusion';
 
 const ActiveRequestsPage: React.FC = () => {
     const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[]>([]);
@@ -18,11 +14,14 @@ const ActiveRequestsPage: React.FC = () => {
     const [error, setError] = React.useState(null);
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
     const { apiClient } = useAppContext();
-    const getRequestsAsync = async () => {
+    const contractContext = useContractContext();
+    const currentContext = useCurrentContext();
+
+    const getRequestsAsync = async (projectId: string, contractId: string) => {
         setIsFetching(true);
         setError(null);
         try {
-            const response = await apiClient.getPersonnelRequestsAsync('123', '123', true); //TESTING VALUES
+            const response = await apiClient.getPersonnelRequestsAsync(projectId, contractId, true); //TESTING VALUES
             setActiveRequests(response.value);
         } catch (e) {
             setError(e);
@@ -32,8 +31,12 @@ const ActiveRequestsPage: React.FC = () => {
     };
 
     React.useEffect(() => {
-        getRequestsAsync();
-    }, []);
+        const contractId = contractContext?.contract.id;
+        const projectId = currentContext?.id;
+        if (contractId && projectId) {
+            getRequestsAsync(projectId, contractId);
+        }
+    }, [currentContext, currentContext]);
 
     if (error) {
         return (

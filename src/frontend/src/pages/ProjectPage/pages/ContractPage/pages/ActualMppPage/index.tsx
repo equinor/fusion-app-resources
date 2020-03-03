@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as styles from './styles.less';
 import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage } from '@equinor/fusion-components';
-import { Position, useApiClients } from '@equinor/fusion';
+import { Position, useApiClients, useCurrentContext } from '@equinor/fusion';
 import SortableTable from '../components/SortableTable';
 import columns from './columns';
 import { useContractContext } from '../../../../../../contractContex';
@@ -13,12 +13,13 @@ const ActualMppPage: React.FC = () => {
     const [selectedRequests, setSelectedRequests] = React.useState<Position[]>([]);
     const apiClients = useApiClients();
     const contractContext = useContractContext();
+    const currentContext = useCurrentContext();
 
-    const getContractPositions = async (contractId: string) => {
+    const getContractPositions = async (projectId: string, contractId: string) => {
         setIsFetching(true);
         setError(null);
         try {
-            const response = await apiClients.org.getContractPositionsAsync("123test", contractId);
+            const response = await apiClients.org.getContractPositionsAsync(projectId, contractId);
             setContractPositions(response.data);
         } catch (e) {
             setError(e);
@@ -29,8 +30,9 @@ const ActualMppPage: React.FC = () => {
 
     React.useEffect(() => {
         const contractId = contractContext?.contract.id;
-        if (contractId) {
-            getContractPositions(contractId)
+        const projectId = currentContext?.id;
+        if (contractId && projectId) {
+            getContractPositions(projectId, contractId)
         }
     }, [contractContext]);
 
