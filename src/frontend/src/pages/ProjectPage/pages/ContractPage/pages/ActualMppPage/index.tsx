@@ -19,7 +19,7 @@ const ActualMppPage: React.FC = () => {
         setIsFetching(true);
         setError(null);
         try {
-            const response = await apiClients.org.getContractPositionsAsync("01302859-f803-42a8-b6fa-4973bce5bc6b", "de1ba6df-6201-4dac-b15a-bb91aa2f34ea");
+            const response = await apiClients.org.getContractPositionsAsync(projectId, contractId);
             setContractPositions(response.data);
         } catch (e) {
             setError(e);
@@ -37,7 +37,7 @@ const ActualMppPage: React.FC = () => {
     }, [contractContext, currentContext]);
 
     if (error) {
-        return <ErrorMessage hasError message="An error occured while trying to fetch contract personnel data" />
+        return <ErrorMessage hasError message="An error occurred while trying to fetch contract personnel data" />
     };
 
     return (
