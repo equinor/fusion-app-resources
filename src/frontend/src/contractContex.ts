@@ -1,11 +1,12 @@
 import { createContext, useContext } from "react";
-import { Contract } from '@equinor/fusion';
+import Contract from './models/contract';
 
 export interface IContractContext {
-    contract: Contract;
+    contract: Contract | null;
+    isFetchingContract: boolean;
 };
 
-const ContractContext = createContext<IContractContext | null>(null);
+const ContractContext = createContext<IContractContext>({} as IContractContext);
 
 export const useContractContext = () => useContext(ContractContext);
 
