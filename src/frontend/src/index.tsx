@@ -8,9 +8,9 @@ import AppContext from './appContext';
 
 const App: React.FC = () => {
     const fusionContext = useFusionContext();
-    const apiClient = new ApiClient(
-        fusionContext.http.client,
-        'https://resources-api.ci.fusion-dev.net'
+    const apiClient = React.useMemo(
+        () => new ApiClient(fusionContext.http.client, 'https://resources-api.ci.fusion-dev.net'),
+        [fusionContext.http.client]
     );
 
     React.useEffect(() => {

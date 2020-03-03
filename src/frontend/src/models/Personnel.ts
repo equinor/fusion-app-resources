@@ -4,8 +4,12 @@ export type PersonnelDiscipline = {
 }
 
 type Personnel = {
+<<<<<<< HEAD
   personnelId:string,
   azureUniquePersonId? : string,
+=======
+  azureUniquePersonId : string,
+>>>>>>> master
   name:string,
   jobTitle:string,
   phoneNumber:string,
