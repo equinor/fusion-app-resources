@@ -33,7 +33,7 @@ const usePositionPersister = (
         }
 
         if (repType === 'company-rep') {
-            const position = await apiClient.createExternalCompanyReprasentiveAsync(
+            const position = await apiClient.createExternalCompanyReprasentativeAsync(
                 currentContext.id,
                 contract.id,
                 request
