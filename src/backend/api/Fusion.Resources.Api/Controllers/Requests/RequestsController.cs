@@ -38,7 +38,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
                 .FinishWith((f, p) =>
                 {
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
+                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new ApiPersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
                 })
                 .Generate(30);
 
@@ -121,7 +121,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
                 .FinishWith((f, p) =>
                 {
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
+                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new ApiPersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
                 })
                 .Generate();
             var faker = new Faker();
@@ -194,7 +194,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
                 .FinishWith((f, p) =>
                 {
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
+                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new ApiPersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
                 })
                 .Generate();
             var faker = new Faker();

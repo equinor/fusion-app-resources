@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Bogus;
 using Microsoft.AspNetCore.Authorization;
@@ -15,33 +14,6 @@ using Microsoft.Extensions.Logging;
 namespace Fusion.Resources.Api.Controllers
 {
 
-    
-    [ModelBinder(BinderType = typeof(ProjectResolver))]
-    public class ProjectIdentifier
-    {
-        public ProjectIdentifier(string originalIdentifier, Guid projectId, string name)
-        {
-            OriginalIdentifier = originalIdentifier;
-            ProjectId = projectId;
-            Name = name;
-        }
-
-        [JsonIgnore]
-        public string OriginalIdentifier { get; set; }
-
-        [JsonIgnore]
-        public string Name { get; set; }
-
-        [JsonIgnore]
-        public Guid? ContextId { get; set; }
-        [JsonIgnore]
-        public Guid ProjectId { get; set; }
-
-        [JsonIgnore]
-        public Guid? LocalEntityId { get; set; }
-
-    }
-
     [Authorize]
     [ApiController]
     public class PersonnelController : ControllerBase
@@ -51,10 +23,8 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, string contractIdentifier) 
         {
 
-
-
-
             var personnel = new Faker<ApiContractPersonnel>()
+                .RuleFor(p => p.PersonnelId, f => Guid.NewGuid())
                 .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }))
                 .RuleFor(p => p.Name, f => f.Person.FullName)
                 .RuleFor(p => p.Mail, f => f.Person.Email)
@@ -69,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
                         p.AzureAdStatus = ApiContractPersonnel.ApiAccountStatus.NoAccount;
                     }
 
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
+                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new ApiPersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
                 })
                 .Generate(new Random().Next(50, 200));
 
@@ -82,6 +52,7 @@ namespace Fusion.Resources.Api.Controllers
         {
 
             var person = new Faker<ApiContractPersonnel>()
+                .RuleFor(p => p.PersonnelId, f => Guid.NewGuid())
                 .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid() }))
                 .RuleFor(p => p.AzureAdStatus, f => f.PickRandom<ApiContractPersonnel.ApiAccountStatus>())
                 .FinishWith((f, p) => p.AzureAdStatus = p.AzureUniquePersonId == null ? ApiContractPersonnel.ApiAccountStatus.NoAccount : p.AzureAdStatus)

@@ -11,10 +11,10 @@
 
   <ItemGroup>
     <PackageReference Include="Bogus" Version="29.0.1" />
-    <PackageReference Include="Fusion.Integration" Version="3.1.0-preview-3.2" />
-    <PackageReference Include="Fusion.Integration.Authorization" Version="3.1.0-preview-3.2" />
-    <PackageReference Include="Fusion.Integration.Org" Version="3.1.0-preview-3.2" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.0-preview-3" />
+    <PackageReference Include="Fusion.Integration" Version="3.1.0-preview-4" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="3.1.0-preview-4" />
+    <PackageReference Include="Fusion.Integration.Org" Version="3.1.0-preview-4" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.0-rc-1" />
 
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />

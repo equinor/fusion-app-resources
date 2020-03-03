@@ -6,6 +6,9 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiContractPersonnel
     {
+        public Guid PersonnelId { get; set; }
+
+
         public Guid? AzureUniquePersonId { get; set; }
         public string Name { get; set; }
         public string JobTitle { get; set; }
@@ -17,15 +20,9 @@ namespace Fusion.Resources.Api.Controllers
         
         public bool HasCV { get; set; }
 
-        public List<PersonnelDiscipline> Disciplines { get; set; }
+        public List<ApiPersonnelDiscipline> Disciplines { get; set; }
 
         public enum ApiAccountStatus { Available, Invited, NoAccount }
-    }
-
-    public class PersonnelDiscipline
-    {
-        public string Name { get; set; }
-        //public bool IsVerifiedByCompany { get; set; }
     }
 
 
