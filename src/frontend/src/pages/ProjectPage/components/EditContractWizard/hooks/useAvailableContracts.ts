@@ -6,6 +6,7 @@ import { useAppContext } from '../../../../../appContext';
 const useAvailableContracts = () => {
     const [availableContracts, setAvailableContracts] = useState<AvailableContract[]>([]);
     const [isFetchingAvailableContracts, setIsFetchingAvailableContracts] = useState(false);
+    const [availableContractsError, setAvailableContractsError] = useState<Error | null>(null);
 
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
@@ -14,13 +15,14 @@ const useAvailableContracts = () => {
             return;
         }
 
+        setAvailableContractsError(null);
         setIsFetchingAvailableContracts(true);
 
         try {
             const availableContract = await apiClient.getAvailableContractsAsync(currentContext.id);
             setAvailableContracts(availableContract);
         } catch (e) {
-            console.error(e);
+            setAvailableContractsError(e);
         }
 
         setIsFetchingAvailableContracts(false);
@@ -33,6 +35,7 @@ const useAvailableContracts = () => {
     return {
         availableContracts,
         isFetchingAvailableContracts,
+        availableContractsError,
     };
 };
 

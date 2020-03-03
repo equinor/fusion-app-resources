@@ -5,17 +5,18 @@ import { useApiClients } from '@equinor/fusion';
 const useCompanies = () => {
     const [companies, setCompanies] = useState<Company[]>([]);
     const [isFetchingCompanies, setIsFetchingCompanies] = useState(false);
+    const [companiesError, setCompaniesError] = useState<Error | null>(null);
 
     const apiClients = useApiClients();
     const fetchAvailableContracts = async () => {
-
         setIsFetchingCompanies(true);
+        setCompaniesError(null);
 
         try {
             const response = await apiClients.people.getAsync<Company[]>('companies');
             setCompanies(response.data.map(c => ({ ...c, identifier: c.id })));
         } catch (e) {
-            console.error(e);
+            setCompaniesError(e);
         }
 
         setIsFetchingCompanies(false);
@@ -28,6 +29,7 @@ const useCompanies = () => {
     return {
         companies,
         isFetchingCompanies,
+        companiesError,
     };
 };
 
