@@ -1,0 +1,45 @@
+import { DataTableColumn } from '@equinor/fusion-components';
+import * as React from 'react';
+import PositionColumn from '../../../../components/PositionColumn';
+import { Position } from '@equinor/fusion';
+
+
+const columns: DataTableColumn<Position>[] = [
+    {
+        accessor: request => request.basePosition?.name || 'TBN',
+        key: 'basePosition',
+        label: 'Base position',
+        sortable: true,
+    },
+    {
+        accessor: request => request.instances.find(i => i.assignedPerson?.name)?.assignedPerson?.name || '',
+        key: 'person',
+        label: 'Person',
+        sortable: true,
+    },
+    {
+        accessor: request => request.name || 'TBN',
+        key: 'position',
+        label: 'Position',
+        sortable: true,
+    },
+    {
+        accessor: request => request.instances.find(i => i.parentPositionId)?.parentPositionId || "",
+        key: 'taskOwnerId',
+        label: 'Taskowner',
+        sortable: true,
+        component: ({ item }) => {
+            const taskOwnerId = item.instances.find(i => i.parentPositionId)?.parentPositionId || null;
+            return <PositionColumn positionId={taskOwnerId} />
+
+        }
+    },
+    {
+        accessor: request => request.instances.find(i => i.workload)?.workload.toString() || '',
+        key: 'position',
+        label: 'Position',
+        sortable: true,
+    },
+];
+
+export default columns;
