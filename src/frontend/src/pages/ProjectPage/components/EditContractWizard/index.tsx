@@ -191,6 +191,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                             <div className={styles.field} ref={externalCompanyRepRef}>
                                 <ContractPositionPicker
                                     label="External Company rep"
+                                    contractId={formState.id || undefined}
                                     selectedPositionId={formState.externalCompanyRepPositionId}
                                     onSelect={formFieldSetter('externalCompanyRepPositionId')}
                                 />
@@ -207,6 +208,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                             <div className={styles.field}>
                                 <ContractPositionPicker
                                     label="External Contract responsible"
+                                    contractId={formState.id || undefined}
                                     selectedPositionId={
                                         formState.externalContractResponsiblePositionId
                                     }

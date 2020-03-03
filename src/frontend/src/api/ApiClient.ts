@@ -32,7 +32,7 @@ export default class ApiClient {
     }
 
     async getAvailableContractsAsync(projectId: string) {
-        const url = this.resourceCollection.contracts(projectId);
+        const url = this.resourceCollection.availableContracts(projectId);
         const response = await this.httpClient.getAsync<
             ApiCollection<AvailableContract>,
             FusionApiHttpErrorResponse
@@ -80,20 +80,7 @@ export default class ApiClient {
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request, null, () =>
-            Promise.resolve({
-                id: new Date().getTime().toString(),
-                basePosition: request.basePosition as BasePosition,
-                contractId,
-                directChildCount: 0,
-                externalId: new Date().getTime().toString(),
-                instances: [],
-                name: request.name,
-                projectId,
-                properties: {},
-                totalChildCount: 0,
-            })
-        );
+        >(url, request);
 
         return response.data;
     }
@@ -112,20 +99,7 @@ export default class ApiClient {
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request, null, () =>
-            Promise.resolve({
-                id: new Date().getTime().toString(),
-                basePosition: request.basePosition as BasePosition,
-                contractId,
-                directChildCount: 0,
-                externalId: new Date().getTime().toString(),
-                instances: [],
-                name: request.name,
-                projectId,
-                properties: {},
-                totalChildCount: 0,
-            })
-        );
+        >(url, request);
 
         return response.data;
     }
