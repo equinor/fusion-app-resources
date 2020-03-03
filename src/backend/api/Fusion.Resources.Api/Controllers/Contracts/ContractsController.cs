@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -137,9 +138,9 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                return BadRequest(JsonConvert.DeserializeObject<object>(responseContent));
+                return BadRequest(JsonDocument.Parse(responseContent));
 
-            return new ObjectResult(JsonConvert.DeserializeObject<object>(responseContent))
+            return new ObjectResult(JsonDocument.Parse(responseContent))
             {
                 StatusCode = (int)resp.StatusCode
             };
@@ -181,9 +182,9 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                return BadRequest(JsonConvert.DeserializeObject(responseContent));
+                return BadRequest(JsonDocument.Parse(responseContent));
 
-            return new ObjectResult(JsonConvert.DeserializeObject(responseContent))
+            return new ObjectResult(JsonDocument.Parse(responseContent))
             {
                 StatusCode = (int)resp.StatusCode
             };
