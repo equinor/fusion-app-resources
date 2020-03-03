@@ -1,5 +1,9 @@
 ﻿using Fusion.Integration.Profile;
+using Fusion.Resources.Database;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +29,23 @@ namespace Fusion.Resources.Api.Controllers
 
                 return null;
             }
+        }
+
+        protected Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            var scope = HttpContext.RequestServices.GetRequiredService<ITransactionScope>();
+            return scope.BeginTransactionAsync();
+        }
+
+        protected Task DispatchAsync(IRequest command)
+        {
+            var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
+            return mediator.Send(command);
+        }
+        protected Task<TResult> DispatchAsync<TResult>(IRequest<TResult> command)
+        {
+            var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
+            return mediator.Send(command);
         }
     }
 }

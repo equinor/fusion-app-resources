@@ -1,5 +1,8 @@
 ﻿using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +44,7 @@ namespace Fusion.Resources.Database
                 var entityEntries = trackables.ToList();
                 foreach (var item in entityEntries.Where(t => t.State == EntityState.Added))
                 {
-                    if (item.Entity.Created == DateTime.MinValue)
+                    if (item.Entity.Created == DateTimeOffset.MinValue)
                         item.Entity.Created = DateTimeOffset.UtcNow;
 
                     //if (userAccessor != null)
@@ -93,6 +96,31 @@ namespace Fusion.Resources.Database
             DbExternalPersonnelPerson.OnModelCreating(modelBuilder);
             DbContractorRequest.OnModelCreating(modelBuilder);
 
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            base.OnConfiguring(optionsBuilder);
+        }
+    }
+
+    public interface ITransactionScope
+    {
+        Task<IDbContextTransaction> BeginTransactionAsync();
+    }
+
+    public class EFTransactionScope : ITransactionScope
+    {
+        private readonly ResourcesDbContext db;
+
+        public EFTransactionScope(ResourcesDbContext db)
+        {
+            this.db = db;
+        }
+        public Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadUncommitted);
         }
     }
 }

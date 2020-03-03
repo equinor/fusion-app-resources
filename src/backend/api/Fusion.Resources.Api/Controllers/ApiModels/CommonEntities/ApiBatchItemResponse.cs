@@ -5,7 +5,13 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiBatchItemResponse<T>
     {
-        public ApiBatchItemResponse(T item, HttpStatusCode code, string message = null)
+        public ApiBatchItemResponse(HttpStatusCode code, string? message = null)
+        {
+            Value = default(T)!;
+            Code = code;
+            Message = message;
+        }
+        public ApiBatchItemResponse(T item, HttpStatusCode code, string? message = null)
         {
             Value = item;
             Code = code;
@@ -14,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public HttpStatusCode Code { get; set; }
-        public string Message { get; set; }
+        public string? Message { get; set; }
         public T Value { get; set; }
     }
 

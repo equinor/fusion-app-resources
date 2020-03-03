@@ -4,24 +4,22 @@ using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class CreateContractPersonnelRequest
+    public class UpdateContractPersonnelRequest
     {
-        public string Mail { get; set; } = null!;
-
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
 
-        public string? JobTitle { get; set; } = null!;
-        public string? PhoneNumber { get; set; } = null!;
+        public string JobTitle { get; set; } = null!;
+        public string PhoneNumber { get; set; } = null!;
 
         public List<ApiPersonnelDiscipline>? Disciplines { get; set; }
 
-        public void LoadCommand(CreateContractPersonnel command)
+        public void LoadCommand(UpdateContractPersonnel command)
         {
             command.FirstName = FirstName;
             command.LastName = LastName;
-            command.Phone = PhoneNumber;
             command.JobTitle = JobTitle;
+            command.Phone = PhoneNumber;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
     }

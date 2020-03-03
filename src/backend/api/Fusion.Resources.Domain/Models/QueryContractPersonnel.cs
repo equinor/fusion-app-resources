@@ -7,10 +7,19 @@ namespace Fusion.Resources.Domain
 {
     public class QueryContractPersonnel
     {
+        [Obsolete("Mock only")]
+        public QueryContractPersonnel()
+        {
+        }
+
         public QueryContractPersonnel(DbContractPersonnel item)
         {
+            PersonnelId = item.Id;
+
             AzureUniqueId = item.Person.AzureUniqueId;
             Name = item.Person.Name;
+            FirstName = item.Person.FirstName;
+            LastName = item.Person.LastName;
             Mail = item.Person.Mail;
             PhoneNumber = item.Person.Phone;
             JobTitle = item.Person.JobTitle;
@@ -23,8 +32,11 @@ namespace Fusion.Resources.Domain
 
             Disciplines = item.Person.Disciplines.Select(d => new QueryPersonnelDiscipline(d)).ToList();
         }
+        public Guid PersonnelId { get; set; }
         public Guid? AzureUniqueId { get; set; }
         public string Name { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }

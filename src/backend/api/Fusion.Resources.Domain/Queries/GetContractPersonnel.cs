@@ -12,6 +12,12 @@ namespace Fusion.Resources.Domain
 {
     public class GetContractPersonnel : IRequest<IEnumerable<QueryContractPersonnel>>
     {
+        public GetContractPersonnel(Guid contractId, ODataQueryParams query = null)
+        {
+            ContractId = contractId;
+            Query = query;
+        }
+
         public Guid ContractId { get; set; }
         public ODataQueryParams Query { get; set; }
 
@@ -27,15 +33,15 @@ namespace Fusion.Resources.Domain
 
             public async Task<IEnumerable<QueryContractPersonnel>> Handle(GetContractPersonnel request, CancellationToken cancellationToken)
             {
-                var itemQuery = db.ContractPersonnel.Where(p => p.ContractId == request.ContractId)                    
+                var itemQuery = db.ContractPersonnel.Where(p => p.Contract.OrgContractId == request.ContractId)                    
                     .AsQueryable();
 
                 if (request.Query.HasFilter)
                     itemQuery = itemQuery.ApplyODataFilters(request.Query, m =>
                     {
-                        m.MapField("accountStatus", p => p.Person.AccountStatus);
+                        m.MapField("azureAdStatus", p => p.Person.AccountStatus);
                         m.MapField("name", p => p.Person.Name);
-                        m.MapField("phone", p => p.Person.Phone);
+                        m.MapField("phoneNumber", p => p.Person.Phone);
                         m.MapField("created", p => p.Created);
                     });
 

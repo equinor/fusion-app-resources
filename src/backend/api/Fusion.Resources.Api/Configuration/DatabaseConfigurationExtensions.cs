@@ -22,6 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.UseInMemoryDatabase("TestDb");
             });
 
+            services.AddScoped<ITransactionScope, EFTransactionScope>();
             return services;
         }
 
@@ -30,6 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var scopeFactory = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
             using (var scope = scopeFactory.CreateScope())
             {
+
                 var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
 
                 SeedProjectAndContract(db);

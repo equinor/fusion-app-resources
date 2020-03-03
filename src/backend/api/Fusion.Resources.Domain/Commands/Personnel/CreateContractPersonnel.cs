@@ -1,0 +1,104 @@
+﻿using Fusion.Integration;
+using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Fusion.Resources.Domain.Commands
+{
+    public class CreateContractPersonnel : IRequest<QueryContractPersonnel>
+    {
+        public CreateContractPersonnel(Guid projectId, Guid contractIdentifier, string mail)
+        {
+            OrgProjectId = projectId;
+            OrgContractId = contractIdentifier;
+            Person = mail;
+        }
+
+        public Guid OrgContractId { get; set; }
+        public Guid OrgProjectId { get; set; }
+
+        public PersonId Person { get; set; }
+
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string JobTitle { get; set; }
+        public string Phone { get; set; }
+        public List<string> Disciplines { get; set; } = new List<string>();
+
+
+        public Guid EditorAzureUniqueId { get; set; }
+
+
+        public class Handler : IRequestHandler<CreateContractPersonnel, QueryContractPersonnel>
+        {
+            private readonly IProfileServices profileService;
+            private readonly ResourcesDbContext resourcesDb;
+
+            public Handler(IProfileServices profileService, ResourcesDbContext resourcesDb)
+            {
+                this.profileService = profileService;
+                this.resourcesDb = resourcesDb;
+            }
+
+            public async Task<QueryContractPersonnel> Handle(CreateContractPersonnel request, CancellationToken cancellationToken)
+            {
+
+                var personnel = await profileService.EnsureExternalPersonnelAsync(request.Person);
+
+                // Even if the personnel is fetch from existing. Update to new values, as things might change, like phone number.
+                UpdatePerson(personnel, request);
+                
+                // Validate references.
+                var project = await resourcesDb.Projects.FirstOrDefaultAsync(p => p.OrgProjectId == request.OrgProjectId);
+                var contract = await resourcesDb.Contracts.FirstOrDefaultAsync(c => c.OrgContractId == request.OrgContractId);
+
+                if (project is null)
+                    throw new InvalidOperationException("Could not locate the project, does it have any contracts allocated?");
+
+                if (contract is null)
+                    throw new InvalidOperationException($"Cannot create personnel to unallocated contracts. Could not locate any contracts with id {request.OrgContractId}.");
+
+                // Check for existing personnel entries for the contract
+                var existingItem = await resourcesDb.ContractPersonnel.Include(c => c.CreatedBy).FirstOrDefaultAsync(c => c.PersonId == personnel.Id && c.ProjectId == project.Id && c.ContractId == contract.Id);
+                if (existingItem != null)
+                    throw new InvalidOperationException($"The specified person is already added to the current contract. Added @ {existingItem.Created} by {existingItem.CreatedBy.Mail}");
+
+                var editor = await profileService.EnsurePersonAsync(request.EditorAzureUniqueId);
+                if (editor == null)
+                    throw new InvalidOperationException("Cannot locate the editor user... hmmm...");
+
+                var newItem = new DbContractPersonnel
+                {
+                    Project = project,
+                    Contract = contract,
+                    Person = personnel,
+                    Created = DateTimeOffset.UtcNow,
+                    CreatedBy = editor
+                };
+                await resourcesDb.ContractPersonnel.AddAsync(newItem);
+
+                await resourcesDb.SaveChangesAsync();
+
+                return new QueryContractPersonnel(newItem);
+            }
+
+            private void UpdatePerson(DbExternalPersonnelPerson dbPersonnel, CreateContractPersonnel request)
+            {
+                dbPersonnel.Name = $"{request.FirstName} {request.LastName}";
+                dbPersonnel.FirstName = request.FirstName;
+                dbPersonnel.LastName = request.LastName;
+                dbPersonnel.JobTitle = request.JobTitle;
+                dbPersonnel.Phone = request.Phone;
+                dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
+            }
+
+        }
+    }
+}
