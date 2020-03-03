@@ -12,7 +12,6 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         label: 'Base position',
         sortable: true,
     },
-
     {
         accessor: request => request.person?.name || '',
         key: 'person',
@@ -31,7 +30,6 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         key: 'position',
         label: 'Position',
         sortable: true,
-        component: ({ item }) => <PositionColumn positionId={item.position?.id || null} />
     },
     {
         accessor: request => request.position?.instances.find(i => i.parentPositionId)?.parentPositionId || "",
