@@ -26,6 +26,10 @@ export default class ResourceCollection {
         return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel');
     }
 
+    personnelCollection(projectId: string, contractId: string): string {
+        return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel-collection');
+    }
+
     personnelRequests(projectId: string, contractId: string, filter?: string): string {
         const personnelRequestsFilter = filter ? `?$filter=${filter}` : '';
         return combineUrls(

@@ -6,7 +6,7 @@ type HeaderProps = {
   headers: string[];
 }
 
-const Header : React.FC<HeaderProps> = ({headers}) => {
+const AddPersonnelFormHeader : React.FC<HeaderProps> = ({headers}) => {
 
   const cellClassName = classNames(styles.cell, styles.header);
   return (
@@ -25,4 +25,4 @@ const Header : React.FC<HeaderProps> = ({headers}) => {
   );
 }
 
-export default Header
+export default AddPersonnelFormHeader

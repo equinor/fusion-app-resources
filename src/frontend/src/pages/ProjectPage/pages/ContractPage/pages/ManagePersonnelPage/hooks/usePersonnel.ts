@@ -7,14 +7,11 @@ const usePersonnel = (contractId?: string,projectId?:string) => {
     const [isFetchingPersonnel, setIsFetchingPersonnel] = React.useState(false);
     const [personnelError, setPersonnelError] = React.useState<Error | null>(null);
     const { apiClient } = useAppContext();
-    
-   
+       
     const fetchPersonnel = async (contract: string,project:string) => {
         setIsFetchingPersonnel(true);
         try {
-            console.log("fetch personnel")
             const response = await apiClient.getPersonnelAsync(project,contract)
-            console.log("response:", response)
             setPersonnel(response.data.value);
         } catch (e) {
             setPersonnelError(e);

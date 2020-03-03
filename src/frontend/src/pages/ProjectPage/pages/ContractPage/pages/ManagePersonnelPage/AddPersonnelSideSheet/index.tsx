@@ -1,14 +1,16 @@
 import * as React from 'react';
 import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
-import AddPersonnelFormColumns from './AddPersonnelFormColumns';
 import Personnel from '../../../../../../../models/Personnel';
 import Person from '../../../../../../../models/Person';
 import * as uuid from "uuid/v1";
 import * as classNames from 'classnames'
 import * as styles from './styles.less'
-import { useComponentDisplayClassNames } from '@equinor/fusion';
+import { useComponentDisplayClassNames, useCurrentContext } from '@equinor/fusion';
 import { generateRowTemplate, generateColumnTemplate } from './utils';
-import Header from './Header';
+import Header from './AddPersonnelFormHeader';
+import { useAppContext } from '../../../../../../../appContext';
+import { useContractContext } from '../../../../../../../contractContex';
+import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
 
 type AddPersonnelToSideSheetProps = {
   isOpen: boolean;
@@ -18,6 +20,47 @@ type AddPersonnelToSideSheetProps = {
 
 
 const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,setIsOpen,selectedPersonnel}) => {
+  const currentContext = useCurrentContext()
+  const currentContract = useContractContext()
+  const { apiClient } = useAppContext();
+  
+  const [saveInProgress,setSaveInProgress] = React.useState<Boolean>(false);
+  const [personnel,setPersonnel] = React.useState<Person[]>([])
+
+  React.useEffect(()=> {
+    if(!isOpen)
+      return
+
+    setPersonnel( selectedPersonnel?.length 
+      ? selectedPersonnel.map(p => ({...p,personnelId:uuid()})) //TODO: Remove UUID when it has been added to the API.
+      : [{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}] )
+
+  },[selectedPersonnel,isOpen])
+
+  const  savePersonnelChangesAsync = async () => {
+    if(!currentContext?.id || !currentContract?.contract.id)
+      return  
+    
+    setSaveInProgress(true);
+    await Promise.all(personnel
+      .map(async person => await apiClient.updatePersonnelAsync(currentContext?.id,currentContract?.contract.id,person)))
+      .then(() => {
+        setSaveInProgress(false)
+        setIsOpen(false);
+      })
+      .catch(() => setSaveInProgress(false))  
+  }
+
+  const onChange = React.useCallback((changedPerson: Person)=>{
+    const updatedPersons = personnel.map((p) => p.personnelId === changedPerson.personnelId ? changedPerson:p);
+    setPersonnel(updatedPersons);
+  },[personnel,setPersonnel])
+
+  const headers = ["Name","Mail","Phone"]
+  const rowTemplate = generateRowTemplate(headers);
+  const columnTemplate = generateColumnTemplate(headers);
+  const containerClassNames = classNames(styles.container, useComponentDisplayClassNames(styles));
+  
   return(
     <ModalSideSheet
       header="Add Person"
@@ -26,66 +69,37 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,s
         setIsOpen(false);
       }}
       safeClose
-      safeCloseTitle={`Close Add Person? Unsaved changes will be lost.
-                      `}
+      safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
+      headerIcons={[
+        <Button key={"AddPerson"} outlined onClick = {()=> {setPersonnel([...personnel,{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}])}} > + Add Person </Button>,
+        <Button key={"save"} outlined onClick = {()=> {savePersonnelChangesAsync()} }> Create </Button>
+      ]}
       isResizable
       minWidth={640}
     >
-      <AddPersonnelForm personnelForEdit={selectedPersonnel} />
-    </ModalSideSheet>
-  )
-}
-
-type AddPersonnelFormProps = {
-  personnelForEdit?:Personnel[]
-}
-
-
-const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({personnelForEdit}) => {
-  const [saveInProgress,setSaveInProgress] = React.useState<Boolean>(false);
-  const [personnel,setPersonnel] = React.useState<Person[]>(   
-    personnelForEdit?.length 
-      ? personnelForEdit.map(p => ({...p,personnelId:uuid()})) //TODO: Remove UUID when it has been added to the API.
-      : [{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}] 
-  )
-
-  const headers = ["Name","Mail","Phone"]
-  const rowTemplate = generateRowTemplate(headers);
-  const columnTemplate = generateColumnTemplate(headers);
-  const containerClassNames = classNames(styles.container, useComponentDisplayClassNames(styles));
-  const  savePersonnelChangesAsync = async () =>{
-    setSaveInProgress(true);
-    
-  }
-
-  if(saveInProgress)
-    return(<Spinner title={"they se me spinning they hatin"}> SPINNIN ! </Spinner>)
-
-  return(
-    <>
-      <div
-      style={{
-        display: "inline",
-        position: "absolute",
-        top: "0%",
-        right: "16px",
-        padding: "8px",
-      }}
-      >
-        <Button outlined onClick = {()=> {setPersonnel([...personnel,{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}])}} > + Add Person </Button>
-        <Button outlined onClick = {()=> {savePersonnelChangesAsync()} }> Create </Button>
-      </div>
-      <div className={containerClassNames}>
+      {saveInProgress && <Spinner centered  size={100} title={"Saving Personnel"} />  }
+      {!saveInProgress && isOpen &&  <div className={containerClassNames}>
         <div className={styles.table}
             style={{ gridTemplateColumns: columnTemplate, gridTemplateRows: rowTemplate }}
         >
           <Header headers={headers} />
-          <table >
-            <AddPersonnelFormColumns personnel={personnel} setPersonnel={setPersonnel} />
+          <table>
+            <tbody>
+              {
+                personnel.map((person) => (
+                  <tr key={`person${person.personnelId}`} style={{display:"flex"}}>
+                    <td style={{flexGrow:1}}><AddPersonnelFormTextInput key={`name${person.personnelId}`} item={person} onChange={onChange} field={"name"}/></td>
+                    <td style={{flexGrow:1}}><AddPersonnelFormTextInput key={`mail${person.personnelId}`} item={person} onChange={onChange} field={"mail"}/></td>
+                    <td style={{flexGrow:1}}><AddPersonnelFormTextInput key={`phoneNumber${person.personnelId}`} item={person} onChange={onChange} field={"phoneNumber"}/></td>
+                  </tr>
+                ))
+              }
+            </tbody>
           </table>
         </div>
-      </div>
-    </>
+      </div>}
+      
+    </ModalSideSheet>
   )
 }
 
