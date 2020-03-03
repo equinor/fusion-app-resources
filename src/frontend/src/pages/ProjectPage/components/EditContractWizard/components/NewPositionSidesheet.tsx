@@ -10,24 +10,21 @@ import {
 } from '@equinor/fusion-components';
 import useCreatePositionForm from '../hooks/useCreatePositionForm';
 import * as styles from '../styles.less';
-import { PersonDetails, useNotificationCenter, useCurrentContext } from '@equinor/fusion';
+import { PersonDetails } from '@equinor/fusion';
 import BasePositionPicker from './BasePositionPicker';
 import Contract from '../../../../../models/contract';
-import { useAppContext } from '../../../../../appContext';
-import CreatePositionRequest from '../../../../../models/createPositionRequest';
+import usePositionPersister from '../hooks/usePositionPersister';
 
 type NewPositionSidesheetProps = {
     contract: Contract;
-    setCompanyRepPosition: (positionId: string) => void;
-    setContractResponsiblePosition: (positionId: string) => void;
+    onComplete: (positionId: string) => void;
     repType: 'company-rep' | 'contract-responsible';
 };
 
 const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     repType,
     contract,
-    setCompanyRepPosition,
-    setContractResponsiblePosition,
+    onComplete,
 }) => {
     const [isShowing, setIsShowing] = React.useState(false);
 
@@ -52,101 +49,13 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
         [setFormField]
     );
 
-    const [alsoUseForOther, setAlsoUseForOther] = React.useState(false);
-    const toggleAlsoUseForOther = React.useCallback(() => {
-        setAlsoUseForOther(prev => !prev);
-    }, []);
-
     const show = React.useCallback(() => setIsShowing(true), []);
     const onClose = React.useCallback(() => {
         setIsShowing(false);
         resetForm();
     }, []);
 
-    const { apiClient } = useAppContext();
-    const sendNotification = useNotificationCenter();
-    const currentContext = useCurrentContext();
-    const createExternalCompanyRepAsync = React.useCallback(
-        async (request: CreatePositionRequest) => {
-            if (!currentContext?.id) {
-                throw new Error('No context selected');
-            } else if (!contract.id) {
-                throw new Error("Can't create position on non existing contract");
-            }
-
-            const position = await apiClient.createExternalCompanyReprasentiveAsync(
-                currentContext.id,
-                contract.id,
-                request
-            );
-
-            setCompanyRepPosition(position.id);
-
-            sendNotification({
-                level: 'low',
-                title: 'External company rep created',
-            });
-
-            return position.id;
-        },
-        [apiClient, formState]
-    );
-
-    const createExternalContractResponsibleAsync = React.useCallback(
-        async (request: CreatePositionRequest) => {
-            if (!currentContext?.id) {
-                throw new Error('No context selected');
-            } else if (!contract.id) {
-                throw new Error("Can't create position on non existing contract");
-            }
-
-            const position = await apiClient.createExternalContractResponsibleAsync(
-                currentContext.id,
-                contract.id,
-                request
-            );
-
-            setContractResponsiblePosition(position.id);
-
-            sendNotification({
-                level: 'low',
-                title: 'External contract responsible created',
-            });
-
-            return position.id;
-        },
-        []
-    );
-
-    const onSave = React.useCallback(async () => {
-        try {
-            const promises: Promise<string>[] = [];
-
-            const position = { ...formState };
-            if (repType === 'company-rep' || alsoUseForOther) {
-                promises.push(createExternalCompanyRepAsync(position));
-            }
-
-            if (repType === 'contract-responsible' || alsoUseForOther) {
-                promises.push(createExternalContractResponsibleAsync(position));
-            }
-
-            await Promise.all(promises);
-
-            onClose();
-        } catch (e) {
-            sendNotification({
-                level: 'medium',
-                title: e.message,
-            });
-        }
-    }, [
-        repType,
-        formState,
-        alsoUseForOther,
-        createExternalCompanyRepAsync,
-        createExternalContractResponsibleAsync,
-    ]);
+    const onSave = usePositionPersister(formState, contract, repType, onComplete, onClose);
 
     return (
         <>
@@ -221,16 +130,6 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
                             />
                         </div>
                     </div>
-
-                    <label className={styles.row}>
-                        <CheckBox selected={alsoUseForOther} onChange={toggleAlsoUseForOther} />{' '}
-                        Also use for{' '}
-                        <strong>
-                            {repType === 'company-rep'
-                                ? 'external contract responsible'
-                                : 'external company rep'}
-                        </strong>
-                    </label>
                 </div>
             </ModalSideSheet>
         </>

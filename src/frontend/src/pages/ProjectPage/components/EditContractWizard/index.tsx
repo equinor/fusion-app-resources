@@ -197,11 +197,8 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <NewPositionSidesheet
                                     repType="company-rep"
                                     contract={formState}
-                                    setCompanyRepPosition={formFieldSetter(
+                                    onComplete={formFieldSetter(
                                         'externalCompanyRepPositionId'
-                                    )}
-                                    setContractResponsiblePosition={formFieldSetter(
-                                        'externalContractResponsiblePositionId'
                                     )}
                                 />
                             </div>
@@ -220,10 +217,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <NewPositionSidesheet
                                     repType="contract-responsible"
                                     contract={formState}
-                                    setCompanyRepPosition={formFieldSetter(
-                                        'externalCompanyRepPositionId'
-                                    )}
-                                    setContractResponsiblePosition={formFieldSetter(
+                                    onComplete={formFieldSetter(
                                         'externalContractResponsiblePositionId'
                                     )}
                                 />
