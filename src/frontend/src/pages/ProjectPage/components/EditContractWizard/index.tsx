@@ -7,26 +7,36 @@ import {
     DatePicker,
     ArrowBackIcon,
     IconButton,
+    useTooltipRef,
 } from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
-import ContractNumberSelector from './components/ContractNumberSelector';
+import ContractNumberPicker from './components/ContractNumberPicker';
 import classNames from 'classnames';
 import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
 import NewPositionSidesheet from './components/NewPositionSidesheet';
 import { useAppContext } from '../../../../appContext';
-import { useCurrentContext, useHistory, formatDate } from '@equinor/fusion';
+import { useCurrentContext, formatDate } from '@equinor/fusion';
 import CompanyPicker from './components/CompanyPicker';
 
 type EditContractWizardProps = {
     title: string;
     existingContract?: Contract;
+    onCancel: () => void;
+    goBackTo: string;
+    onGoBack: () => void;
 };
 
 type StepKey = 'select-contract' | 'contract-details' | 'external';
 
-const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existingContract }) => {
+const EditContractWizard: React.FC<EditContractWizardProps> = ({
+    title,
+    existingContract,
+    onCancel,
+    goBackTo,
+    onGoBack,
+}) => {
     const isEdit = React.useMemo(() => {
         return existingContract && existingContract.contractNumber !== null;
     }, [existingContract]);
@@ -55,7 +65,10 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
             );
             resetForm(updatedContract);
         } else {
-            const createdContract = await apiClient.createContractAsync(project.externalId, formState);
+            const createdContract = await apiClient.createContractAsync(
+                project.externalId,
+                formState
+            );
             setFormField('id', createdContract.id);
         }
     }, [formState]);
@@ -71,27 +84,38 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
         setActiveStepKey('external');
     }, [formState]);
 
+    const contractNumberRef = React.useRef<HTMLDivElement>(null);
     const nameInputRef = React.useRef<HTMLInputElement>(null);
+    const externalCompanyRepRef = React.useRef<HTMLDivElement>(null);
     React.useEffect(() => {
         const focusTimer = setTimeout(() => {
-            if (activeStepKey === 'contract-details' && !formState.name && nameInputRef.current) {
+            if (
+                activeStepKey === 'select-contract' &&
+                contractNumberRef.current &&
+                !formState.contractNumber
+            ) {
+                contractNumberRef.current.querySelector('input')?.click();
+            } else if (activeStepKey === 'contract-details' && nameInputRef.current) {
                 nameInputRef.current?.focus();
+            } else if (activeStepKey === 'external' && externalCompanyRepRef.current) {
+                externalCompanyRepRef.current.querySelector('input')?.click();
             }
         }, 0);
 
         return () => clearTimeout(focusTimer);
-    }, [activeStepKey, nameInputRef.current]);
+    }, [
+        activeStepKey,
+        contractNumberRef.current,
+        nameInputRef.current,
+        externalCompanyRepRef.current,
+        formState.contractNumber,
+    ]);
 
     React.useEffect(() => {
         if (formState.contractNumber) {
             gotoContractDetails();
         }
     }, [formState.contractNumber]);
-
-    const history = useHistory();
-    const onCancel = React.useCallback(() => {
-        history.goBack();
-    }, [history]);
 
     const contractDetailsDescription = React.useMemo(() => {
         const dateOrNa = (date: Date | null) => (date ? formatDate(date) : 'N/A');
@@ -100,10 +124,12 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
         )} - ${dateOrNa(formState.endDate)}`;
     }, [formState]);
 
+    const backButtonTooltipRef = useTooltipRef('Go back to ' + goBackTo, 'right');
+
     return (
         <div>
             <header className={styles.header}>
-                <IconButton onClick={onCancel}>
+                <IconButton onClick={onGoBack} ref={backButtonTooltipRef}>
                     <ArrowBackIcon />
                 </IconButton>
                 <h2>{title}</h2>
@@ -122,8 +148,9 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                     description={formState.contractNumber || ''}
                 >
                     <div className={styles.stepContainer}>
-                        <div className={styles.row}>
-                            <ContractNumberSelector
+                        <h2>Select a contract to continue</h2>
+                        <div className={styles.row} ref={contractNumberRef}>
+                            <ContractNumberPicker
                                 selectedContractNumber={formState.contractNumber}
                                 onSelect={formFieldSetter('contractNumber')}
                             />
@@ -204,7 +231,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({ title, existing
                 <Step title="External" stepKey="external" disabled={formState.id === null}>
                     <div className={styles.stepContainer}>
                         <div className={styles.row}>
-                            <div className={styles.field}>
+                            <div className={styles.field} ref={externalCompanyRepRef}>
                                 <ContractPositionPicker
                                     label="External Company rep"
                                     selectedPositionId={formState.externalCompanyRepPositionId}
