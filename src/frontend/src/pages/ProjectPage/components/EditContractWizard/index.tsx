@@ -22,6 +22,8 @@ import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFoc
 import useActiveStepKey from './hooks/useActiveStepKey';
 import useContractPersister from './hooks/useContractPersister';
 
+export {default as ContractWizardSkeleton} from './components/ContractWizardSkeleton';
+
 type EditContractWizardProps = {
     title: string;
     existingContract?: Contract;

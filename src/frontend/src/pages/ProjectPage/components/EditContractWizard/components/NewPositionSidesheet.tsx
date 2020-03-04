@@ -7,6 +7,7 @@ import {
     PersonPicker,
     CheckBox,
     AddIcon,
+    EditIcon,
 } from '@equinor/fusion-components';
 import useCreatePositionForm from '../hooks/useCreatePositionForm';
 import * as styles from '../styles.less';
@@ -24,7 +25,7 @@ type NewPositionSidesheetProps = {
 };
 
 const createRequestFromPosition = (position: Position | null) => {
-    if(!position) {
+    if (!position || ['ext-comp-rep', 'ext-contr-resp'].indexOf(position.externalId) === -1) {
         return null;
     }
 
@@ -41,15 +42,19 @@ const createRequestFromPosition = (position: Position | null) => {
     };
 
     return request;
-}
+};
 
 const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     repType,
     contract,
     onComplete,
-    existingPosition
+    existingPosition,
 }) => {
     const [isShowing, setIsShowing] = React.useState(false);
+
+    const editPosition = React.useMemo(() => createRequestFromPosition(existingPosition), [
+        existingPosition,
+    ]);
 
     const {
         formState,
@@ -58,7 +63,7 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
         resetForm,
         isFormValid,
         isFormDirty,
-    } = useCreatePositionForm(createRequestFromPosition(existingPosition));
+    } = useCreatePositionForm(editPosition);
 
     const [selectedPerson, setSelectedPerson] = React.useState<PersonDetails | null>(null);
     const onPersonSelect = React.useCallback(
@@ -82,12 +87,20 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
 
     return (
         <>
-            <div className={styles.row}>
-                <span>If you can't find your position, try to </span>
-                <Button frameless onClick={show}>
-                    <AddIcon /> Add new position
-                </Button>
-            </div>
+            {editPosition ? (
+                <div className={styles.row}>
+                    <Button frameless onClick={show}>
+                        <EditIcon /> Edit {editPosition.name}
+                    </Button>
+                </div>
+            ) : (
+                <div className={styles.row}>
+                    <span>If you can't find your position, try to </span>
+                    <Button frameless onClick={show}>
+                        <AddIcon /> Add new position
+                    </Button>
+                </div>
+            )}
             <ModalSideSheet
                 show={isShowing}
                 onClose={onClose}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import EditContractWizard from '../../../components/EditContractWizard';
+import EditContractWizard, { ContractWizardSkeleton } from '../../../components/EditContractWizard';
 import { useHistory } from '@equinor/fusion';
 import useContractFromId from '../hooks/useContractFromId';
 import { RouteComponentProps } from 'react-router-dom';
@@ -17,7 +17,7 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ match }) => {
     const goBack = React.useCallback(() => history.goBack(), [history]);
 
     if (isFetchingContract) {
-        return null;
+        return <ContractWizardSkeleton isEdit />;
     }
 
     return (
