@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Fusion.ApiClients.Org;
+using System;
 
+#nullable enable
 namespace Fusion.Resources.Domain
 {
     public struct PersonId
@@ -45,6 +47,29 @@ namespace Fusion.Resources.Domain
         public static implicit operator PersonId(Guid uniqueId)
         {
             return new PersonId(uniqueId);
+        }
+
+        public static implicit operator PersonId(ApiPersonV2 assignedPerson)
+        {
+            if (assignedPerson is null)
+                throw new ArgumentNullException(nameof(assignedPerson), "Assigned persin is null. Must provide value when implicitly converting");
+
+            return new PersonId(assignedPerson.AzureUniqueId.HasValue switch {
+                true => $"{assignedPerson.AzureUniqueId}",
+                _ => assignedPerson.Mail
+            });
+        }
+
+        public static implicit operator ApiPersonV2?(PersonId? personId)
+        {
+            if (personId == null)
+                return null;
+
+            return personId.Value.Type switch
+            {
+                PersonId.IdentifierType.UniqueId => new ApiPersonV2 { AzureUniqueId = personId.Value.UniqueId },
+                _ => new ApiPersonV2 { Mail = personId.Value.OriginalIdentifier }
+            };
         }
     }
 }

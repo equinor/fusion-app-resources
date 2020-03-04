@@ -4,9 +4,7 @@ using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -113,7 +111,7 @@ namespace Fusion.Resources.Domain.Commands
             //        throw new CommandValidationError($"Could not locate any org chart project with id '{request.OrgChartId}'");
 
             //    var contracts = await orgClient.GetContractsV2Async(request.OrgChartId);
-                
+
             //    if (contracts.Any(c => c.ContractNumber == request.ContractNumber))
             //    {
 

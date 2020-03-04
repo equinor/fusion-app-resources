@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain.Commands
         public MonitorableProperty<Guid?> CompanyRepPositionId { get; set; } = new MonitorableProperty<Guid?>();
         public MonitorableProperty<Guid?> ContractResponsiblePositionId { get; set; } = new MonitorableProperty<Guid?>();
 
-        public class Handler : AsyncRequestHandler<UpdateContractExternalReps>
+        public class Handler : AsyncRequestHandler<UpdateContractReps>
         {
             private readonly IOrgApiClient orgClient;
             private readonly ResourcesDbContext resourcesDb;
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.resourcesDb = resourcesDb;
             }
 
-            protected override async Task Handle(UpdateContractExternalReps request, CancellationToken cancellationToken)
+            protected override async Task Handle(UpdateContractReps request, CancellationToken cancellationToken)
             {
                 if (!request.CompanyRepPositionId.HasBeenSet && !request.ContractResponsiblePositionId.HasBeenSet)
                     throw new ArgumentException("Either company rep or contract responsible must be set.");

@@ -140,88 +140,155 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
         public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> CreateContractExternalCompanyRep([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            var externalId = "ext-comp-rep";
+            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
 
-            var createPositionMessage = new HttpRequestMessage(HttpMethod.Post, $"/projects/{projectIdentifier.ProjectId}/contracts/{contractIdentifier}/positions");
-            createPositionMessage.Content = new StringContent(JsonConvert.SerializeObject(new ApiClients.Org.ApiPositionV2
+            if (existingPosition != null)
             {
-                BasePosition = new ApiClients.Org.ApiBasePositionV2 { Id = request.BasePosition.Id },
-                Name = request.Name,
-                ExternalId = "external-comp-rep",
-                Instances = new List<ApiClients.Org.ApiPositionInstanceV2>
+                return new BadRequestObjectResult(new
                 {
-                    new ApiClients.Org.ApiPositionInstanceV2
+                    error = new
                     {
-                        AppliesFrom = request.AppliesFrom,
-                        AppliesTo = request.AppliesTo,
-                        Workload = request.Workload,
-                        AssignedPerson = request.AssignedPerson == null ? null : new ApiClients.Org.ApiPersonV2 { AzureUniqueId = request.AssignedPerson.AzureUniquePersonId, Mail = request.AssignedPerson.Mail }
+                        code = "PositionWithExternalIdExists",
+                        message = "Position with external id already exists",
+                        position = existingPosition
                     }
-                }
-            }), Encoding.UTF8, "application/json");
-            var resp = await client.SendAsync(createPositionMessage);
-            var responseContent = await resp.Content.ReadAsStringAsync();
-            if (resp.IsSuccessStatusCode)
-            {
-                var newPosition = JsonConvert.DeserializeObject<ApiClients.Org.ApiPositionV2>(responseContent);
-
-                // Update the rep
-                await mediator.Send(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = newPosition.Id });
-                
-                return newPosition;
+                });
             }
 
-            if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                return BadRequest(JsonDocument.Parse(responseContent));
-
-            return new ObjectResult(JsonDocument.Parse(responseContent))
+            var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
             {
-                StatusCode = (int)resp.StatusCode
+                BasePositionId = request.BasePosition.Id,
+                PositionName = request.Name,
+                AppliesFrom = request.AppliesFrom,
+                AppliesTo = request.AppliesTo,
+                Workload = request.Workload,
+                AssignedPerson = request.AssignedPerson.AzureUniquePersonId.HasValue ? new PersonId(request.AssignedPerson.AzureUniquePersonId.Value) : new PersonId(request.AssignedPerson.Mail),
+                ExternalId = externalId
             };
+
+            var newPosition = await DispatchAsync(createNewPositionCommand);
+
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = newPosition.Id });
+
+            return newPosition;
+        }
+
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
+        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalCompanyRep([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
+        {
+            var externalId = "ext-comp-rep";
+            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
+
+            ApiClients.Org.ApiPositionV2 position;
+
+            if (existingPosition != null)
+            {
+                position = await DispatchAsync(new UpdateContractPosition(existingPosition)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson
+                });
+            }
+            else
+            {
+                var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson,
+                    ExternalId = externalId
+                };
+
+                position = await DispatchAsync(createNewPositionCommand);
+            }
+            
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
+
+            return position;
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
         public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> CreateContractExternalContractResp([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
+            var externalId = "ext-contr-resp";
+            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
 
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-
-            var createPositionMessage = new HttpRequestMessage(HttpMethod.Post, $"/projects/{projectIdentifier.ProjectId}/contracts/{contractIdentifier}/positions");
-            createPositionMessage.Content = new StringContent(JsonConvert.SerializeObject(new ApiClients.Org.ApiPositionV2
+            if (existingPosition != null)
             {
-                BasePosition = new ApiClients.Org.ApiBasePositionV2 { Id = request.BasePosition.Id },
-                Name = request.Name,
-                ExternalId = "external-contract-resp",
-                Instances = new List<ApiClients.Org.ApiPositionInstanceV2>
+                return new BadRequestObjectResult(new
                 {
-                    new ApiClients.Org.ApiPositionInstanceV2
+                    error = new
                     {
-                        AppliesFrom = request.AppliesFrom,
-                        AppliesTo = request.AppliesTo,
-                        Workload = request.Workload,
-                        AssignedPerson = request.AssignedPerson == null ? null : new ApiClients.Org.ApiPersonV2 { AzureUniqueId = request.AssignedPerson.AzureUniquePersonId, Mail = request.AssignedPerson.Mail }
+                        code = "PositionWithExternalIdExists",
+                        message = "Position with external id already exists",
+                        position = existingPosition
                     }
-                }
-            }), Encoding.UTF8, "application/json");
-            var resp = await client.SendAsync(createPositionMessage);
-            var responseContent = await resp.Content.ReadAsStringAsync();
-            if (resp.IsSuccessStatusCode)
-            {
-                var newPosition = JsonConvert.DeserializeObject<ApiClients.Org.ApiPositionV2>(responseContent);
-
-                // Update the rep
-                await mediator.Send(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { ContractResponsiblePositionId = newPosition.Id });
-
-                return newPosition;
+                });
             }
 
-            if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                return BadRequest(JsonDocument.Parse(responseContent));
-
-            return new ObjectResult(JsonDocument.Parse(responseContent))
+            var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
             {
-                StatusCode = (int)resp.StatusCode
+                BasePositionId = request.BasePosition.Id,
+                PositionName = request.Name,
+                AppliesFrom = request.AppliesFrom,
+                AppliesTo = request.AppliesTo,
+                Workload = request.Workload,
+                AssignedPerson = request.AssignedPerson.AzureUniquePersonId.HasValue ? new PersonId(request.AssignedPerson.AzureUniquePersonId.Value) : new PersonId(request.AssignedPerson.Mail),
+                ExternalId = externalId
             };
+            
+            var newPosition = await DispatchAsync(createNewPositionCommand);
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { ContractResponsiblePositionId = newPosition.Id });
+            return newPosition;
+        }
+
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
+        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalContractResp([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
+        {
+            var externalId = "ext-contr-resp";
+            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
+
+            ApiClients.Org.ApiPositionV2 position;
+
+            if (existingPosition != null)
+            {
+                position = await DispatchAsync(new UpdateContractPosition(existingPosition)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson
+                });
+            }
+            else
+            {
+                var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson,
+                    ExternalId = externalId
+                };
+
+                position = await DispatchAsync(createNewPositionCommand);
+            }
+
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
+
+            return position;
         }
     }
 }

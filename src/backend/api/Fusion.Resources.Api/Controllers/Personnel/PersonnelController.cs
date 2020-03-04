@@ -79,7 +79,6 @@ namespace Fusion.Resources.Api.Controllers
         {
 
             var createCommand = new CreateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, request.Mail);
-            createCommand.EditorAzureUniqueId = User.GetAzureUniqueIdOrThrow();
             request.LoadCommand(createCommand);
 
             using (var scope = await BeginTransactionAsync())
@@ -104,7 +103,6 @@ namespace Fusion.Resources.Api.Controllers
             foreach (var request in requests)
             {
                 var createCommand = new CreateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, request.Mail);
-                createCommand.EditorAzureUniqueId = editor;
                 request.LoadCommand(createCommand);
 
                 using (var scope = await BeginTransactionAsync())
