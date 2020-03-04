@@ -9,7 +9,7 @@ import { useContractContext } from '../../../../../../contractContex';
 import { useCurrentContext } from '@equinor/fusion';
 
 const ActiveRequestsPage: React.FC = () => {
-    const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[]>([]);
+    const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[] | null>(null);
     const [isFetching, setIsFetching] = React.useState<boolean>(false);
     const [error, setError] = React.useState(null);
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
@@ -31,7 +31,7 @@ const ActiveRequestsPage: React.FC = () => {
     };
 
     React.useEffect(() => {
-        const contractId = contractContext?.contract.id;
+        const contractId = contractContext.contract?.id;
         const projectId = currentContext?.id;
         if (contractId && projectId) {
             getRequestsAsync(projectId, contractId);
@@ -60,15 +60,23 @@ const ActiveRequestsPage: React.FC = () => {
                     </IconButton>
                 </div>
             </div>
-            <SortableTable
-                data={activeRequests}
-                columns={columns}
-                rowIdentifier="id"
-                isFetching={isFetching}
-                isSelectable
-                selectedItems={selectedRequests}
-                onSelectionChange={setSelectedRequests}
-            />
+            {activeRequests && activeRequests?.length <= 0 ? (
+                <ErrorMessage
+                    hasError
+                    errorType="noData"
+                    message="No active requests found for selected contract"
+                />
+            ) : (
+                <SortableTable
+                    data={activeRequests || []}
+                    columns={columns}
+                    rowIdentifier="id"
+                    isFetching={isFetching}
+                    isSelectable
+                    selectedItems={selectedRequests}
+                    onSelectionChange={setSelectedRequests}
+                />
+            )}
         </div>
     );
 };

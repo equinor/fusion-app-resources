@@ -1,23 +1,34 @@
-import * as React from "react";
-import { DataTableColumn, DataTable } from "@equinor/fusion-components";
-import { useSorting, usePagination, Page } from "@equinor/fusion";
+import * as React from 'react';
+import { DataTableColumn, DataTable } from '@equinor/fusion-components';
+import { useSorting, usePagination, Page } from '@equinor/fusion';
 import { DataItemComponentProps } from '@equinor/fusion-components/dist/components/data/DataTable/dataTableTypes';
+import { useContractContext } from '../../../../../../contractContex';
 
 type SortableTableProps<T> = {
-    data: T[],
-    columns: DataTableColumn<T>[],
-    rowIdentifier: keyof T | ((item: T) => string),
-    expandedComponent?: React.FC<DataItemComponentProps<T>>,
-    isSelectable?: boolean,
-    selectedItems?: T[],
-    onSelectionChange?: (selectedItems: T[]) => void,
-    isFetching?: boolean
+    data: T[];
+    columns: DataTableColumn<T>[];
+    rowIdentifier: keyof T | ((item: T) => string);
+    expandedComponent?: React.FC<DataItemComponentProps<T>>;
+    isSelectable?: boolean;
+    selectedItems?: T[];
+    onSelectionChange?: (selectedItems: T[]) => void;
+    isFetching?: boolean;
 };
 
-function SortableTable<T>({ data, columns, rowIdentifier, expandedComponent, isFetching, isSelectable, onSelectionChange, selectedItems }: SortableTableProps<T>) {
+function SortableTable<T>({
+    data,
+    columns,
+    rowIdentifier,
+    expandedComponent,
+    isFetching,
+    isSelectable,
+    onSelectionChange,
+    selectedItems,
+}: SortableTableProps<T>) {
+    const { isFetchingContract } = useContractContext();
     const { sortedData, setSortBy, sortBy, direction } = useSorting<T>(data, null, null);
 
-    const { pagination, pagedData, setCurrentPage } = usePagination<T>(sortedData, 20);
+    const { pagination, pagedData, setCurrentPage } = usePagination<T>(sortedData, 15);
 
     const onSortChange = React.useCallback(
         (column: DataTableColumn<T>) => {
@@ -45,7 +56,7 @@ function SortableTable<T>({ data, columns, rowIdentifier, expandedComponent, isF
             pagination={pagination}
             expandedComponent={expandedComponent}
             onPaginationChange={onPaginationChange}
-            isFetching={!!isFetching}
+            isFetching={!!isFetching || isFetchingContract}
             onSortChange={onSortChange}
             rowIdentifier={rowIdentifier}
             sortedBy={{
@@ -56,7 +67,6 @@ function SortableTable<T>({ data, columns, rowIdentifier, expandedComponent, isF
             onSelectionChange={onSelectionChange}
             selectedItems={selectedItems}
         />
-
     );
 }
 
