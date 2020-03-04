@@ -8,6 +8,7 @@ import {
     ArrowBackIcon,
     IconButton,
     useTooltipRef,
+    Spinner,
 } from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
@@ -22,7 +23,7 @@ import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFoc
 import useActiveStepKey from './hooks/useActiveStepKey';
 import useContractPersister from './hooks/useContractPersister';
 
-export {default as ContractWizardSkeleton} from './components/ContractWizardSkeleton';
+export { default as ContractWizardSkeleton } from './components/ContractWizardSkeleton';
 
 type EditContractWizardProps = {
     title: string;
@@ -62,7 +63,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         },
         [formState, resetForm, setFormField]
     );
-    const saveAsync = useContractPersister(formState, onSave);
+    const { saveAsync, isSaving } = useContractPersister(formState, onSave);
 
     const { activeStepKey, gotoContract, gotoContractDetails, gotoExteral } = useActiveStepKey(
         isEdit,
@@ -95,8 +96,18 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                 <Button outlined onClick={onCancel}>
                     Cancel
                 </Button>
-                <Button outlined disabled={!isFormValid || !isFormDirty} onClick={saveAsync}>
-                    Save
+                <Button
+                    outlined
+                    disabled={!isFormValid || !isFormDirty || isSaving}
+                    onClick={saveAsync}
+                >
+                    {isSaving ? (
+                        <>
+                            <Spinner inline size={16} /> Saving
+                        </>
+                    ) : (
+                        'Save'
+                    )}
                 </Button>
             </header>
             <Stepper activeStepKey={activeStepKey}>
@@ -183,9 +194,15 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     Previous
                                 </Button>
                             )}
-                            <Button onClick={gotoExteral} disabled={!isFormValid}>
-                                {formState.id ? 'Next' : 'Save and next'}
-                            </Button>
+                            {isSaving ? (
+                                <Button disabled>
+                                    <Spinner inline size={16} /> Saving
+                                </Button>
+                            ) : (
+                                <Button onClick={gotoExteral} disabled={!isFormValid}>
+                                    {formState.id ? 'Next' : 'Save and next'}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Step>
