@@ -3,9 +3,13 @@ import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import Person from '../../../../../../../models/Person';
 import { v1 as uuid } from 'uuid';
-import * as classNames from 'classnames'
-import * as styles from './styles.less'
-import { useComponentDisplayClassNames, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
+import * as classNames from 'classnames';
+import * as styles from './styles.less';
+import {
+    useComponentDisplayClassNames,
+    useCurrentContext,
+    useNotificationCenter,
+} from '@equinor/fusion';
 import { generateRowTemplate, generateColumnTemplate } from './utils';
 import Header from './AddPersonnelFormHeader';
 import { useAppContext } from '../../../../../../../appContext';
@@ -13,118 +17,162 @@ import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
 import useAddPersonnelForm from '../hooks/useAddPersonnelForm';
 
-
 type AddPersonnelToSideSheetProps = {
-  isOpen: boolean;
-  selectedPersonnel: Personnel[] | null
-  setIsOpen: (state: boolean) => void;
-}
+    isOpen: boolean;
+    selectedPersonnel: Personnel[] | null;
+    setIsOpen: (state: boolean) => void;
+};
 
+const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
+    isOpen,
+    setIsOpen,
+    selectedPersonnel,
+}) => {
+    const currentContext = useCurrentContext();
+    const currentContract = useContractContext();
+    const notification = useNotificationCenter();
+    const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
+        selectedPersonnel
+    );
+    const { apiClient } = useAppContext();
 
-const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({ isOpen, setIsOpen, selectedPersonnel }) => {
-  const currentContext = useCurrentContext()
-  const currentContract = useContractContext()
-  const notification = useNotificationCenter()
-  const {
-    formState,
-    setFormState,
-    isFormValid,
-    isFormDirty,
-  } = useAddPersonnelForm(selectedPersonnel)
-  const { apiClient } = useAppContext();
+    const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
 
-  const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
+    const savePersonnelChangesAsync = async () => {
+        const contractId = currentContract.contract?.id;
 
-  const savePersonnelChangesAsync = async () => {
-    const contractId = currentContract.contract?.id;
+        if (!currentContext?.id || !contractId) return;
 
+        setSaveInProgress(true);
+        await Promise.all(
+            formState.map(
+                async person =>
+                    await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+            )
+        )
+            .then(() => {
+                setSaveInProgress(false);
+                setIsOpen(false);
+                notification({
+                    level: 'low',
+                    title: 'Personnel changes saved',
+                    cancelLabel: 'dismiss',
+                });
+            })
+            .catch(e => {
+                //TODO: This could probably be more helpfull.
+                notification({
+                    level: 'high',
+                    title:
+                        'Something went wrong while saving. Please try again or contact administrator',
+                });
+                setSaveInProgress(false);
+            });
+    };
 
-    if (!currentContext?.id || !contractId)
-      return
+    const onChange = React.useCallback(
+        (changedPerson: Person) => {
+            const updatedPersons = formState.map(p =>
+                p.personnelId === changedPerson.personnelId ? changedPerson : p
+            );
+            setFormState(updatedPersons);
+        },
+        [formState]
+    );
 
-    setSaveInProgress(true);
-    await Promise.all(formState
-      .map(async person => await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)))
-      .then(() => {
-        setSaveInProgress(false)
-        setIsOpen(false);
-        notification({
-          level: 'low',
-          title: 'Personnel changes saved',
-          cancelLabel: 'dismiss'
-        })
-      })
-      .catch((e) => {
-        //TODO: This could probably be more helpfull. 
-        console.log(e)
-        notification({
-          level: 'high',
-          title: 'Something went wrong while saving. Please try again or contact administrator',
-        })
-        setSaveInProgress(false)
-      })
-  }
+    const onAddPerson = React.useCallback(() => {
+        setFormState([
+            ...formState,
+            { personnelId: uuid(), name: '', phoneNumber: '', mail: '', jobTitle: '' },
+        ]);
+    }, [formState]);
 
-  const onChange = React.useCallback((changedPerson: Person) => {
-    const updatedPersons = formState.map((p) => p.personnelId === changedPerson.personnelId ? changedPerson : p);
-    setFormState(updatedPersons);
-  }, [formState])
+    const headers = ['Name', 'Mail', 'Phone'];
+    const rowTemplate = generateRowTemplate(headers);
+    const columnTemplate = generateColumnTemplate(headers);
+    const containerClassNames = classNames(styles.container, useComponentDisplayClassNames(styles));
 
-  const onAddPerson = React.useCallback(() => {
-    setFormState([...formState, { personnelId: uuid(), name: "", phoneNumber: "", mail: "", jobTitle: "" }])
-  }, [formState])
-
-  const headers = ["Name", "Mail", "Phone"]
-  const rowTemplate = generateRowTemplate(headers);
-  const columnTemplate = generateColumnTemplate(headers);
-  const containerClassNames = classNames(styles.container, useComponentDisplayClassNames(styles));
-
-  return (
-    <ModalSideSheet
-      header="Add Person"
-      show={isOpen}
-      onClose={() => {
-        setIsOpen(false);
-      }}
-      safeClose
-      safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
-      safeCloseCancelLabel={"Continue editing"}
-      safeCloseConfirmLabel={"Discard changes"}
-      headerIcons={[
-        <Button disabled={saveInProgress} key={"AddPerson"} outlined onClick={onAddPerson} > + Add Person </Button>,
-        <Button disabled={!(isFormDirty && isFormValid) || saveInProgress} key={"save"} outlined onClick={savePersonnelChangesAsync}>
-          {saveInProgress ? <Spinner inline /> : "Create"}
-        </Button>
-      ]}
-      isResizable
-      minWidth={640}
-    >
-      {isOpen && <div className={containerClassNames}>
-        <div className={styles.table}
-          style={{ gridTemplateColumns: columnTemplate, gridTemplateRows: rowTemplate }}
+    return (
+        <ModalSideSheet
+            header="Add Person"
+            show={isOpen}
+            onClose={() => {
+                setIsOpen(false);
+            }}
+            safeClose
+            safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
+            safeCloseCancelLabel={'Continue editing'}
+            safeCloseConfirmLabel={'Discard changes'}
+            headerIcons={[
+                <Button disabled={saveInProgress} key={'AddPerson'} outlined onClick={onAddPerson}>
+                    {' '}
+                    + Add Person{' '}
+                </Button>,
+                <Button
+                    disabled={!(isFormDirty && isFormValid) || saveInProgress}
+                    key={'save'}
+                    outlined
+                    onClick={savePersonnelChangesAsync}
+                >
+                    {saveInProgress ? <Spinner inline /> : 'Create'}
+                </Button>,
+            ]}
+            isResizable
+            minWidth={640}
         >
-          <Header headers={headers} />
-          <table>
-            <tbody>
-              {
-                formState.map((person) => (
-                  <tr key={`person${person.personnelId}`} className={styles.tableRow}>
-                    <td style={{ flexGrow: 1 }}><AddPersonnelFormTextInput key={`name${person.personnelId}`} disabled={saveInProgress} item={person} onChange={onChange} field={"name"} /></td>
-                    <td style={{ flexGrow: 1 }}><AddPersonnelFormTextInput key={`mail${person.personnelId}`} disabled={saveInProgress} item={person} onChange={onChange} field={"mail"} /></td>
-                    <td style={{ flexGrow: 1 }}><AddPersonnelFormTextInput key={`phoneNumber${person.personnelId}`} disabled={saveInProgress} item={person} onChange={onChange} field={"phoneNumber"} /></td>
-                  </tr>
-                ))
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>}
+            {isOpen && (
+                <div className={containerClassNames}>
+                    <div
+                        className={styles.table}
+                        style={{
+                            gridTemplateColumns: columnTemplate,
+                            gridTemplateRows: rowTemplate,
+                        }}
+                    >
+                        <Header headers={headers} />
+                        <table>
+                            <tbody>
+                                {formState.map(person => (
+                                    <tr
+                                        key={`person${person.personnelId}`}
+                                        className={styles.tableRow}
+                                    >
+                                        <td style={{ flexGrow: 1 }}>
+                                            <AddPersonnelFormTextInput
+                                                key={`name${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'name'}
+                                            />
+                                        </td>
+                                        <td style={{ flexGrow: 1 }}>
+                                            <AddPersonnelFormTextInput
+                                                key={`mail${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'mail'}
+                                            />
+                                        </td>
+                                        <td style={{ flexGrow: 1 }}>
+                                            <AddPersonnelFormTextInput
+                                                key={`phoneNumber${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'phoneNumber'}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </ModalSideSheet>
+    );
+};
 
-    </ModalSideSheet>
-  )
-}
-
-export default AddPersonnelSideSheet
-
-
-
+export default AddPersonnelSideSheet;
