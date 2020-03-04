@@ -87,7 +87,7 @@ spec:
   tls:
   - hosts:
     - resources-app.{{ENVNAME}}.fusion-dev.net
-    secretName: {{ENVNAME}}.fusion-dev.net-tls
+    secretName: {{ENVNAME}}-frontend-dev.fusion-dev.net-tls
   rules:
     - host: resources-app.{{ENVNAME}}.fusion-dev.net
       http:
