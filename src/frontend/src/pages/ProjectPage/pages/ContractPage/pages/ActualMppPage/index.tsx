@@ -7,7 +7,7 @@ import columns from './columns';
 import { useContractContext } from '../../../../../../contractContex';
 
 const ActualMppPage: React.FC = () => {
-    const [contractPositions, setContractPositions] = React.useState<Position[]>([])
+    const [contractPositions, setContractPositions] = React.useState<Position[] | null>(null);
     const [isFetching, setIsFetching] = React.useState<boolean>(false);
     const [error, setError] = React.useState(null);
     const [selectedRequests, setSelectedRequests] = React.useState<Position[]>([]);
@@ -29,16 +29,21 @@ const ActualMppPage: React.FC = () => {
     };
 
     React.useEffect(() => {
-        const contractId = contractContext?.contract.id;
+        const contractId = contractContext.contract?.id;
         const projectId = currentContext?.id;
         if (contractId && projectId) {
-            getContractPositions(projectId, contractId)
+            getContractPositions(projectId, contractId);
         }
     }, [contractContext, currentContext]);
 
     if (error) {
-        return <ErrorMessage hasError message="An error occurred while trying to fetch contract personnel data" />
-    };
+        return (
+            <ErrorMessage
+                hasError
+                message="An error occurred while trying to fetch contract personnel data"
+            />
+        );
+    }
 
     return (
         <div className={styles.actualMppContainer}>
@@ -53,15 +58,23 @@ const ActualMppPage: React.FC = () => {
                     </IconButton>
                 </div>
             </div>
-            <SortableTable
-                data={contractPositions}
-                columns={columns}
-                rowIdentifier="id"
-                isFetching={isFetching}
-                isSelectable
-                selectedItems={selectedRequests}
-                onSelectionChange={setSelectedRequests}
-            />
+            {contractPositions && contractPositions?.length <= 0 ? (
+                <ErrorMessage
+                    hasError
+                    errorType="noData"
+                    message="No positions found on selected contract"
+                />
+            ) : (
+                <SortableTable
+                    data={contractPositions || []}
+                    columns={columns}
+                    rowIdentifier="id"
+                    isFetching={isFetching}
+                    isSelectable
+                    selectedItems={selectedRequests}
+                    onSelectionChange={setSelectedRequests}
+                />
+            )}
         </div>
     );
 };
