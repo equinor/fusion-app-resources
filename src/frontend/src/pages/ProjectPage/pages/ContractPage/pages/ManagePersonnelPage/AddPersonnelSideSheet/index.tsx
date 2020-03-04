@@ -11,10 +11,12 @@ import Header from './AddPersonnelFormHeader';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
+import useAddPersonnelForm from '../hooks/useAddPersonnelForm';
+
 
 type AddPersonnelToSideSheetProps = {
   isOpen: boolean;
-  selectedPersonnel:Personnel[]
+  selectedPersonnel:Personnel[] | null
   setIsOpen: (state:boolean) => void;
 }
 
@@ -22,27 +24,23 @@ type AddPersonnelToSideSheetProps = {
 const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,setIsOpen,selectedPersonnel}) => {
   const currentContext = useCurrentContext()
   const currentContract = useContractContext()
+  const {
+    formState,
+    setFormState,
+    resetForm,
+    isFormValid,
+    isFormDirty,
+  } =  useAddPersonnelForm(selectedPersonnel)
   const { apiClient } = useAppContext();
   
   const [saveInProgress,setSaveInProgress] = React.useState<Boolean>(false);
-  const [personnel,setPersonnel] = React.useState<Person[]>([])
-
-  React.useEffect(()=> {
-    if(!isOpen)
-      return
-
-    setPersonnel( selectedPersonnel?.length 
-      ? selectedPersonnel.map(p => ({...p,personnelId:uuid()})) //TODO: Remove UUID when it has been added to the API.
-      : [{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}] )
-
-  },[selectedPersonnel,isOpen])
-
+  
   const  savePersonnelChangesAsync = async () => {
     if(!currentContext?.id || !currentContract?.contract.id)
       return  
     
     setSaveInProgress(true);
-    await Promise.all(personnel
+    await Promise.all(formState
       .map(async person => await apiClient.updatePersonnelAsync(currentContext?.id,currentContract?.contract.id,person)))
       .then(() => {
         setSaveInProgress(false)
@@ -52,9 +50,9 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,s
   }
 
   const onChange = React.useCallback((changedPerson: Person)=>{
-    const updatedPersons = personnel.map((p) => p.personnelId === changedPerson.personnelId ? changedPerson:p);
-    setPersonnel(updatedPersons);
-  },[personnel,setPersonnel])
+    const updatedPersons = formState.map((p) => p.personnelId === changedPerson.personnelId ? changedPerson:p);
+    setFormState(updatedPersons);
+  },[formState,setFormState])
 
   const headers = ["Name","Mail","Phone"]
   const rowTemplate = generateRowTemplate(headers);
@@ -71,8 +69,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,s
       safeClose
       safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
       headerIcons={[
-        <Button key={"AddPerson"} outlined onClick = {()=> {setPersonnel([...personnel,{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}])}} > + Add Person </Button>,
-        <Button key={"save"} outlined onClick = {()=> {savePersonnelChangesAsync()} }> Create </Button>
+        <Button key={"AddPerson"} outlined onClick = {()=> {setFormState([...formState,{personnelId:uuid(), name:"",phoneNumber:"",mail:"",jobTitle:""}])}} > + Add Person </Button>,
+        <Button disabled={!(isFormDirty && isFormValid)} key={"save"} outlined onClick = {()=> {savePersonnelChangesAsync()} }> Create </Button>
       ]}
       isResizable
       minWidth={640}
@@ -80,14 +78,14 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,s
       {saveInProgress && <Spinner centered  size={100} title={"Saving Personnel"} />  }
       {!saveInProgress && isOpen &&  <div className={containerClassNames}>
         <div className={styles.table}
-            style={{ gridTemplateColumns: columnTemplate, gridTemplateRows: rowTemplate }}
+            style={{ gridTemplateColumns: columnTemplate, gridTemplateRows: rowTemplate}}
         >
           <Header headers={headers} />
           <table>
             <tbody>
               {
-                personnel.map((person) => (
-                  <tr key={`person${person.personnelId}`} style={{display:"flex"}}>
+                formState.map((person) => (
+                  <tr key={`person${person.personnelId}`} style={{marginBottom:"16px", display:"flex"}}>
                     <td style={{flexGrow:1}}><AddPersonnelFormTextInput key={`name${person.personnelId}`} item={person} onChange={onChange} field={"name"}/></td>
                     <td style={{flexGrow:1}}><AddPersonnelFormTextInput key={`mail${person.personnelId}`} item={person} onChange={onChange} field={"mail"}/></td>
                     <td style={{flexGrow:1}}><AddPersonnelFormTextInput key={`phoneNumber${person.personnelId}`} item={person} onChange={onChange} field={"phoneNumber"}/></td>

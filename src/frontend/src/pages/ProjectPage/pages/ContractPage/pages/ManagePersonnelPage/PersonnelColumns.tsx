@@ -1,17 +1,22 @@
 import * as React from 'react';
-import { DataTableColumn } from '@equinor/fusion-components';
+import { DataTableColumn, useTooltipRef, DoneIcon, WarningIcon, CloseIcon } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 
 export type DataItemProps = {
   item: Personnel;
-  rowIndex: number;
 };
 
-const AzureAdStatus : React.FC<DataItemProps> = ({ item }) => (
-  //TODO: Add icon instead of text, depending on status
-  <div>{item.azureAdStatus}</div> 
-)
+// TODO: Get proper icons
+const AdStatus = {
+  Available : {text: "Azure AD Approved",icon:<DoneIcon color={"green"}/>},
+  Invited : {text:"Azure AD pending approval",icon:<WarningIcon outline color={"orange"}/>},
+  NoAccount : {text:"No Azure Access",icon: <CloseIcon color={"red"}/>}
+}
 
+const AzureAdStatus : React.FC<DataItemProps> = ({ item }) => {
+  const {text,icon} = AdStatus[item.azureAdStatus];
+  return (<div ref={useTooltipRef(text)}>{icon}</div>)
+} 
 
 const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
   {
@@ -45,16 +50,16 @@ const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
   },
   {
     key: 'Workload',
-    accessor:"hasCV",
+    accessor:r => "???",
     label: 'Workload',
-    priority: 15,
+    priority: 20,
     sortable: true,
   },
   {
     key: 'positions',
-    accessor: 'hasCV',
+    accessor: r => "???",
     label: 'Positions',
-    priority: 15,
+    priority: 25,
     sortable: true,
   }      
 ]

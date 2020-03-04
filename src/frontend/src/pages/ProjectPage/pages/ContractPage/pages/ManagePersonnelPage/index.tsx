@@ -7,6 +7,7 @@ import Personnel from '../../../../../../models/Personnel';
 import * as styles from './styles.less'
 import { useContractContext } from '../../../../../../contractContex';
 import AddPersonnelSideSheet from './AddPersonnelSideSheet'
+import * as uuid from "uuid/v1";
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext()
@@ -24,11 +25,11 @@ const ManagePersonnelPage: React.FC = () => {
     );
 
     const personnelColumns = React.useMemo(() => PersonnelColumns(), []);
-    const sortedByColumn = React.useMemo(() => personnelColumns.find(c => c.accessor === sortBy) || null, []);
+    const sortedByColumn = React.useMemo(() => personnelColumns.find(c => c.accessor === sortBy) || null, [sortBy]);
 
     return (
         <div className= {styles.container}>
-            <Button outlined onClick = {()=> setIsAddPersonOpen(true)} > + Add Person </Button>
+            <div className={styles.button}><Button outlined onClick = {()=> setIsAddPersonOpen(true)} > + Add Person </Button></div>
             <DataTable 
                 columns={personnelColumns}
                 data={sortedData}
@@ -43,7 +44,7 @@ const ManagePersonnelPage: React.FC = () => {
                 onSelectionChange={setSelectedItems}
                 selectedItems={selectedItems}
             />
-            <AddPersonnelSideSheet isOpen={isAddPersonOpen} setIsOpen={setIsAddPersonOpen} selectedPersonnel={selectedItems} />
+           {isAddPersonOpen && <AddPersonnelSideSheet isOpen={isAddPersonOpen} setIsOpen={setIsAddPersonOpen} selectedPersonnel={selectedItems.length ? selectedItems.map(p => ({...p,personnelId:uuid()})) : null} />}
         </div>
     );
 }

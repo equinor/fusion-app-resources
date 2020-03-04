@@ -4,6 +4,8 @@ type Person = {
     azureUniquePersonId?: string;
     mail: string;
     name: string;
+    firstName?: string;
+    lastName?: string;
     phoneNumber: string;
     jobTitle: string;
 };
