@@ -14,9 +14,9 @@ namespace Fusion.Resources.Domain.Behaviours
     public class TrackableRequestBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {
         private readonly IHttpContextAccessor httpContext;
-        private readonly IProfileServices profileServices;
+        private readonly IProfileService profileServices;
 
-        public TrackableRequestBehaviour(IHttpContextAccessor httpContext, IProfileServices profileServices)
+        public TrackableRequestBehaviour(IHttpContextAccessor httpContext, IProfileService profileServices)
         {
             this.httpContext = httpContext;
             this.profileServices = profileServices;

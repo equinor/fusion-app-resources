@@ -16,7 +16,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddMediatR(typeof(DomainConfigExtensions));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TrackableRequestBehaviour<,>));
 
-            services.AddScoped<IProfileServices, ProfileServices>();
+            services.AddScoped<IProfileService, ProfileServices>();
+
+            services.AddScoped<IProjectOrgResolver, ProjectOrgResolver>();
 
             return services;
         }

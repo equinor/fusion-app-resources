@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Builder;
 using Bogus;
 using Fusion.Resources.Database.Entities;
 using Fusion.Integration.Profile;
+using Fusion;
+using Fusion.Resources.Domain;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -31,13 +33,71 @@ namespace Microsoft.Extensions.DependencyInjection
             var scopeFactory = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
             using (var scope = scopeFactory.CreateScope())
             {
-
                 var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+                var api = scope.ServiceProvider.GetRequiredService<IOrgApiClientFactory>();
+                var profileService = scope.ServiceProvider.GetRequiredService<IProfileService>();
 
-                SeedProjectAndContract(db);
-                SeedPersons(db);
+                profileService.EnsureExternalPersonnelAsync("hans.dahle@bouvet.no").Wait();
+                profileService.EnsureExternalPersonnelAsync("martin.forre@bouvet.no").Wait();
+
                 SeedPersonnel(db);
-                SeedContractPersonnel(db);
+
+                LoadOrgChartInfoAsync(db, api).Wait();
+
+                //SeedProjectAndContract(db);
+                //SeedPersons(db);
+                
+                //SeedContractPersonnel(db);
+            }
+        }
+
+        private static async Task LoadOrgChartInfoAsync(ResourcesDbContext db, IOrgApiClientFactory orgApiClientFactory)
+        {
+
+            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            var project = await client.GetProjectOrDefaultV2Async("query");
+            var contracts = await client.GetContractsV2Async("query");
+
+            var systemSeeder = new DbPerson
+            {
+                AzureUniqueId = Guid.Empty,
+                AccountType = "Application",
+                JobTitle = "System Seeder",
+                Mail = "resources@fusion.equinor.com",
+                Name = "Resource System Account"
+            };
+
+            var dbProject = new DbProject
+            {
+                DomainId = project.DomainId,
+                Id = Guid.NewGuid(),
+                Name = project.Name,
+                OrgProjectId = project.ProjectId
+            };
+
+            var dbContracts = contracts.Select(c => new DbContract
+            {
+                AllocatedBy = systemSeeder,
+                Allocated = DateTime.UtcNow,
+                ContractNumber = c.ContractNumber,
+                Name = c.Name,
+                OrgContractId = c.Id,
+                Project = dbProject
+            });
+
+            db.Persons.Add(systemSeeder);
+            db.Projects.Add(dbProject);
+            db.Contracts.AddRange(dbContracts);
+
+            db.SaveChanges();
+
+            var faker = new Faker();
+
+            foreach (var contract in db.Contracts)
+            {
+                var persons = faker.PickRandom(db.ExternalPersonnel, faker.Random.Number(5, 10));
+
+                SeedContractPersonnel(systemSeeder, contract, dbProject, db);
             }
         }
 
@@ -62,37 +122,39 @@ namespace Microsoft.Extensions.DependencyInjection
                .Generate(new Random().Next(50, 200));
 
             db.AddRange(personnel);
-
+            
             db.SaveChanges();
         }
 
-        public static void SeedContractPersonnel(ResourcesDbContext db)
+        public static void SeedContractPersonnel(DbPerson seeder, DbContract contract, DbProject project, ResourcesDbContext db)
         {
-            var contract = db.Contracts.First();
-            var project = db.Projects.First();
             var personnel = db.ExternalPersonnel.ToList();
             var persons = db.Persons.ToList();
 
-            var contractPersonnel = new Faker<DbContractPersonnel>()
-                .RuleFor(x => x.ContractId, contract.Id)
-                .RuleFor(x => x.Created, f => f.Date.PastOffset())
-                .RuleFor(x => x.CreatedBy, f => f.PickRandom(persons))
-                .RuleFor(x => x.Updated, f => f.PickRandom(new[] { (DateTimeOffset?)null, f.Date.PastOffset() }))
-                .RuleFor(x => x.ProjectId, project.Id)
-                .FinishWith((f, x) =>
+            var faker = new Faker();
+            var a = faker.PickRandom(personnel, faker.Random.Number(4, 10))
+                .Select(p => new DbContractPersonnel
                 {
-                    if (x.Updated != null)
-                    {
-                        x.Created = f.Date.PastOffset(1, x.Updated);
-                        x.UpdatedBy = f.PickRandom(persons);
-                    }
-                })
-                .Generate(personnel.Count);
+                    ContractId = contract.Id,
+                    Project = project,
+                    Created = DateTimeOffset.Now,
+                    CreatedBy = seeder,
+                    Person = p
+                }).ToList();
 
-            int i = 0;
-            personnel.ForEach(p => contractPersonnel[i++].PersonId = p.Id);
+            if (!a.Any(p => p.Person.Mail == "hans.dahle@bouvet.no"))
+                a.Add(new DbContractPersonnel
+                {
+                    ContractId = contract.Id,
+                    Project = project,
+                    Created = DateTimeOffset.Now,
+                    CreatedBy = seeder,
+                    Person = db.ExternalPersonnel.FirstOrDefault(p => p.Mail == "hans.dahle@bouvet.no")
+                });
 
-            db.ContractPersonnel.AddRange(contractPersonnel);
+
+            db.ContractPersonnel.AddRange(a);
+
             db.SaveChanges();
         }
 

@@ -34,62 +34,6 @@ namespace Fusion.Resources.Database
                                                          || e.State == EntityState.Deleted);
         }
 
-        public async Task SaveChangesAsync()
-        {
-            var trackables = ChangeTracker.Entries<ITrackableEntity>();
-
-            if (trackables != null)
-            {
-                // added
-                var entityEntries = trackables.ToList();
-                foreach (var item in entityEntries.Where(t => t.State == EntityState.Added))
-                {
-                    if (item.Entity.Created == DateTimeOffset.MinValue)
-                        item.Entity.Created = DateTimeOffset.UtcNow;
-
-                    //if (userAccessor != null)
-                    //{
-                    //    item.Entity.CreatedBy = userAccessor.CurrentUser.AzureUniquePersonId;
-                    //}
-                }
-                // modified
-                foreach (var item in entityEntries.Where(t => t.State == EntityState.Modified))
-                {
-                    item.Entity.Updated = DateTimeOffset.UtcNow;
-                    //if (userAccessor != null)
-                    //{
-                    //    item.Entity.ModifiedBy = userAccessor.CurrentUser.AzureUniquePersonId;
-                    //}
-                }
-            }
-
-            try
-            {
-                if (HasUnsavedChanges())
-                    await base.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                //TODO: If we want to we can do more excessive logging and exception handling when concurrency errors occurs.
-                //Like:
-                foreach (var entry in ex.Entries)
-                {
-                    var proposedValues = entry.CurrentValues;
-                    var databaseValues = entry.GetDatabaseValues();
-
-                    foreach (var property in proposedValues.Properties)
-                    {
-                        var proposedValue = proposedValues[property];
-                        var databaseValue = databaseValues[property];
-                    }
-                }
-
-                //But for now:
-                throw;
-            }
-
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbContractPersonnel.OnModelCreating(modelBuilder);

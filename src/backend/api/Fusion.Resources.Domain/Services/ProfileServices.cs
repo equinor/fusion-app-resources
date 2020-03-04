@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 #nullable enable
 namespace Fusion.Resources.Domain.Services
 {
-    internal class ProfileServices : IProfileServices
+    internal class ProfileServices : IProfileService
     {
         private readonly IFusionProfileResolver profileResolver;
         private readonly ResourcesDbContext resourcesDb;
@@ -22,6 +22,18 @@ namespace Fusion.Resources.Domain.Services
         {
             this.profileResolver = profileResolver;
             this.resourcesDb = resourcesDb;
+        }
+
+        public async Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId)
+        {
+            var existingEntry = personId.Type switch
+            {
+                PersonId.IdentifierType.UniqueId => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.AzureUniqueId == personId.UniqueId),
+                PersonId.IdentifierType.Mail => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.Mail == personId.Mail),
+                _ => throw new InvalidOperationException("Unsupported person identifier type")
+            };
+
+            return existingEntry;
         }
 
         public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(PersonId personId)
@@ -45,16 +57,15 @@ namespace Fusion.Resources.Domain.Services
 
                 var newEntry = new DbExternalPersonnelPerson()
                 {
-                    Disciplines = new List<DbPersonnelDiscipline>()
+                    AccountStatus = DbAzureAccountStatus.NoAccount,
+                    Disciplines = new List<DbPersonnelDiscipline>(),
+                    Mail = personId.Mail,
+                    Name = personId.Mail
                 };
 
-                if (profile is null)
+                if (profile != null)
                 {
-                    newEntry.AccountStatus = DbAzureAccountStatus.NoAccount;
-                    newEntry.Mail = personId.Mail;
-                }
-                else
-                {
+
                     newEntry.AccountStatus = DbAzureAccountStatus.Available;
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
                     newEntry.JobTitle = profile.JobTitle;
@@ -71,7 +82,7 @@ namespace Fusion.Resources.Domain.Services
             {
                 locker.Release();
             }
-         }
+        }
 
         public async Task<DbPerson> EnsurePersonAsync(Guid azureUniqueId)
         {

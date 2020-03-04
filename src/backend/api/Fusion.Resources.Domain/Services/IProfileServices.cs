@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public interface IProfileServices
+    public interface IProfileService
     {
         /// <summary>
         /// The person entity is a user that can sign in and perform actions. 
@@ -18,6 +18,7 @@ namespace Fusion.Resources.Domain
         Task<DbPerson> EnsureApplicationAsync(Guid azureUniqueId);
 
         Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(PersonId personId);
+        Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId);
         /// <summary>
         /// Resolves the fusion profile. Returns null if not found.
         /// </summary>

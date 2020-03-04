@@ -19,5 +19,17 @@ namespace Fusion.Resources.Api.Controllers
 
             return new PersonId(personReference.Mail);
         }
+
+        public static implicit operator PersonId(PersonReference personReference)
+        {
+            if (personReference == null)
+                throw new ArgumentNullException("person", "Person cannot be null");
+
+
+            if (personReference.AzureUniquePersonId.HasValue)
+                return new PersonId(personReference.AzureUniquePersonId.Value);
+
+            return new PersonId(personReference.Mail);
+        }
     }
 }

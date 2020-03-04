@@ -28,10 +28,10 @@ namespace Fusion.Resources.Domain.Commands
 
         public class Handler : AsyncRequestHandler<DeleteContractPersonnel>
         {
-            private readonly IProfileServices profileService;
+            private readonly IProfileService profileService;
             private readonly ResourcesDbContext resourcesDb;
 
-            public Handler(IProfileServices profileService, ResourcesDbContext resourcesDb)
+            public Handler(IProfileService profileService, ResourcesDbContext resourcesDb)
             {
                 this.profileService = profileService;
                 this.resourcesDb = resourcesDb;

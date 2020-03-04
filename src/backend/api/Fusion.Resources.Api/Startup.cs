@@ -114,7 +114,7 @@ namespace Fusion.Resources.Api
 
             #endregion
 
-            //app.SeedDatabase();
+            app.SeedDatabase();
 
         }
     }

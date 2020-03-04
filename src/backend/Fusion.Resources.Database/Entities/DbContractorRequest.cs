@@ -16,7 +16,8 @@ namespace Fusion.Resources.Database.Entities
         public DbProject Project { get; set; }
         public Guid ProjectId { get; set; }
 
-        public DbExternalPersonnelPerson Person { get; set; }
+        public DbContractPersonnel Person { get; set; }
+        public Guid PersonId { get; set; }
 
         public RequestPosition Position { get; set; } = new RequestPosition();
 
@@ -57,14 +58,15 @@ namespace Fusion.Resources.Database.Entities
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
             public string Obs { get; set; }
+            public double Workload { get; set; }
 
             public PositionTaskOwner TaskOwner { get; set; } = new PositionTaskOwner();
+        }
 
-            public class PositionTaskOwner
-            {
-                public Guid? PositionId { get; set; }
-                public Guid? RequestId { get; set; }
-            }
+        public class PositionTaskOwner
+        {
+            public Guid? PositionId { get; set; }
+            public Guid? RequestId { get; set; }
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using Fusion.Integration.Profile;
+using Fusion.Resources.Domain;
 using System;
 using System.Text.Json.Serialization;
 
@@ -15,6 +16,23 @@ namespace Fusion.Resources.Api.Controllers
             PhoneNumber = profile.MobilePhone;
             JobTitle = profile.JobTitle;
             AccountType = profile.AccountType;
+        }
+
+        internal static ApiPerson? FromEntityOrDefault(QueryPerson person)
+        {
+            if (person != null)
+                return new ApiPerson(person);
+            return null;
+        }
+
+        public ApiPerson(QueryPerson person)
+        {
+            AzureUniquePersonId = person.AzureUniqueId;
+            Mail = person.Mail;
+            Name = person.Name;
+            PhoneNumber = person.Phone;
+            JobTitle = person.JobTitle;
+            AccountType = person.AccountType;
         }
 
         public Guid? AzureUniquePersonId { get; set; }
