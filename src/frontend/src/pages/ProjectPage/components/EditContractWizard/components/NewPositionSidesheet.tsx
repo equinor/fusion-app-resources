@@ -10,21 +10,44 @@ import {
 } from '@equinor/fusion-components';
 import useCreatePositionForm from '../hooks/useCreatePositionForm';
 import * as styles from '../styles.less';
-import { PersonDetails } from '@equinor/fusion';
+import { PersonDetails, Position } from '@equinor/fusion';
 import BasePositionPicker from './BasePositionPicker';
 import Contract from '../../../../../models/contract';
 import usePositionPersister from '../hooks/usePositionPersister';
+import CreatePositionRequest from '../../../../../models/createPositionRequest';
 
 type NewPositionSidesheetProps = {
     contract: Contract;
     onComplete: (positionId: string) => void;
     repType: 'company-rep' | 'contract-responsible';
+    existingPosition: Position | null;
 };
+
+const createRequestFromPosition = (position: Position | null) => {
+    if(!position) {
+        return null;
+    }
+
+    const now = new Date();
+    const instance = position.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
+
+    const request: CreatePositionRequest = {
+        basePosition: position.basePosition,
+        name: position.name,
+        appliesFrom: instance?.appliesFrom || null,
+        appliesTo: instance?.appliesTo || null,
+        assignedPerson: instance?.assignedPerson || null,
+        workload: instance?.workload || 0,
+    };
+
+    return request;
+}
 
 const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
     repType,
     contract,
     onComplete,
+    existingPosition
 }) => {
     const [isShowing, setIsShowing] = React.useState(false);
 
@@ -35,7 +58,7 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
         resetForm,
         isFormValid,
         isFormDirty,
-    } = useCreatePositionForm();
+    } = useCreatePositionForm(createRequestFromPosition(existingPosition));
 
     const [selectedPerson, setSelectedPerson] = React.useState<PersonDetails | null>(null);
     const onPersonSelect = React.useCallback(

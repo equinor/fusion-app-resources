@@ -22,11 +22,7 @@ const createDefaultState = (): Contract => ({
 
 const useContractForm = (defaultState?: Contract | null) => {
     const validateForm = useCallback((formState: Contract) => {
-        return Boolean(
-            formState.contractNumber &&
-                formState.startDate &&
-                formState.endDate
-        );
+        return Boolean(formState.contractNumber && formState.company);
     }, []);
 
     return useForm(createDefaultState, validateForm, defaultState);

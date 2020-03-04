@@ -1,11 +1,23 @@
+.container {
+    padding: calc(var(--grid-unit) * 3px);
+}
+
 .header {
     display: flex;
     align-items: center;
 
+    /* IconButton in fusion components should have flex-shrink: 0 */
+    :first-child {
+        flex-shrink: 0;
+    }
+
     h2 {
-        margin: 0;
+        margin: 0 calc(var(--grid-unit) * 2px);
         font-size: 20px;
         flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 

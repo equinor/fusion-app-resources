@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 import { SearchableDropdown, SearchableDropdownOption } from '@equinor/fusion-components';
 import { useApiClients, BasePosition, combineUrls } from '@equinor/fusion';
 
@@ -7,12 +7,17 @@ type BasePositionPickerProps = {
     onSelect: (basePosition: BasePosition) => void;
 };
 
-const BasePositionPicker: React.FC<BasePositionPickerProps> = ({ selectedBasePositionId, onSelect }) => {
+const BasePositionPicker: React.FC<BasePositionPickerProps> = ({
+    selectedBasePositionId,
+    onSelect,
+}) => {
     const apiClients = useApiClients();
 
     const [basePositions, setBasePositions] = React.useState<BasePosition[]>([]);
     const fetchBasePositions = async () => {
-        const response = await apiClients.org.getAsync<BasePosition[]>(combineUrls('positions', 'basepositions'));
+        const response = await apiClients.org.getAsync<BasePosition[]>(
+            combineUrls('positions', "basepositions?$filter=projectType eq 'PRD-Contracts'")
+        );
         setBasePositions(response.data);
     };
 
@@ -31,7 +36,7 @@ const BasePositionPicker: React.FC<BasePositionPickerProps> = ({ selectedBasePos
     const onDropdownSelect = React.useCallback(
         (option: SearchableDropdownOption) => {
             const basePosition = basePositions.find(ba => ba.id === option.key);
-            if(basePosition) {
+            if (basePosition) {
                 onSelect(basePosition);
             }
         },
@@ -39,11 +44,7 @@ const BasePositionPicker: React.FC<BasePositionPickerProps> = ({ selectedBasePos
     );
 
     return (
-        <SearchableDropdown
-            label="Base position"
-            options={options}
-            onSelect={onDropdownSelect}
-        />
+        <SearchableDropdown label="Base position" options={options} onSelect={onDropdownSelect} />
     );
 };
 

@@ -31,7 +31,7 @@ const ActiveRequestsPage: React.FC = () => {
     };
 
     React.useEffect(() => {
-        const contractId = contractContext?.contract.id;
+        const contractId = contractContext.contract?.id;
         const projectId = currentContext?.id;
         if (contractId && projectId) {
             getRequestsAsync(projectId, contractId);

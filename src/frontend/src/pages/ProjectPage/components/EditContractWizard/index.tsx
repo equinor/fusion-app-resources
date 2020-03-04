@@ -84,7 +84,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
     const backButtonTooltipRef = useTooltipRef('Go back to ' + goBackTo, 'right');
 
     return (
-        <div>
+        <div className={styles.container}>
             <header className={styles.header}>
                 <IconButton onClick={onGoBack} ref={backButtonTooltipRef}>
                     <ArrowBackIcon />
@@ -176,9 +176,11 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                         </div>
 
                         <div className={styles.actions}>
-                            <Button outlined onClick={gotoContract}>
-                                Previous
-                            </Button>
+                            {!isEdit && (
+                                <Button outlined onClick={gotoContract}>
+                                    Previous
+                                </Button>
+                            )}
                             <Button onClick={gotoExteral} disabled={!isFormValid}>
                                 {formState.id ? 'Next' : 'Save and next'}
                             </Button>
@@ -198,9 +200,8 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <NewPositionSidesheet
                                     repType="company-rep"
                                     contract={formState}
-                                    onComplete={formFieldSetter(
-                                        'externalCompanyRepPositionId'
-                                    )}
+                                    existingPosition={formState.externalCompanyRep}
+                                    onComplete={formFieldSetter('externalCompanyRepPositionId')}
                                 />
                             </div>
                         </div>
@@ -219,6 +220,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <NewPositionSidesheet
                                     repType="contract-responsible"
                                     contract={formState}
+                                    existingPosition={formState.externalContractResponsible}
                                     onComplete={formFieldSetter(
                                         'externalContractResponsiblePositionId'
                                     )}

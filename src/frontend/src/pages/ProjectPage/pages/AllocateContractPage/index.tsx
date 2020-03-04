@@ -1,6 +1,5 @@
 import * as React from 'react';
 import EditContractWizard from '../../components/EditContractWizard';
-import * as styles from './styles.less';
 import { useHistory, useCurrentContext } from '@equinor/fusion';
 
 const AllocateContractPage = () => {
@@ -16,14 +15,12 @@ const AllocateContractPage = () => {
     }, [history]);
 
     return (
-        <div className={styles.container}>
-            <EditContractWizard
-                title="Allocate a Contract"
-                onCancel={onCancel}
-                goBackTo='contracts'
-                onGoBack={onGoBack}
-            />
-        </div>
+        <EditContractWizard
+            title="Allocate a Contract"
+            onCancel={onCancel}
+            goBackTo='contracts'
+            onGoBack={onGoBack}
+        />
     );
 };
 

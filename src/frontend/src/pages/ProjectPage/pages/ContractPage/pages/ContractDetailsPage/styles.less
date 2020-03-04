@@ -1,4 +1,14 @@
 .container {
+    display: flex;
+
+    .contractDetails {
+        flex-grow: 1;
+    }
+
+    .aside {
+        flex-shrink: 0;
+    }
+
     .row {
         display: flex;
         margin-bottom: calc(var(--grid-unit) * 3px);
