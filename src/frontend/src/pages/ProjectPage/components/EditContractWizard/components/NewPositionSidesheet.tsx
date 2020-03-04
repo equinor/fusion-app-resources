@@ -5,9 +5,9 @@ import {
     TextInput,
     DatePicker,
     PersonPicker,
-    CheckBox,
     AddIcon,
     EditIcon,
+    Spinner,
 } from '@equinor/fusion-components';
 import useCreatePositionForm from '../hooks/useCreatePositionForm';
 import * as styles from '../styles.less';
@@ -83,14 +83,21 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
         resetForm();
     }, []);
 
-    const onSave = usePositionPersister(formState, contract, repType, onComplete, onClose);
+    const { saveAsync, isSaving } = usePositionPersister(
+        formState,
+        contract,
+        repType,
+        onComplete,
+        onClose
+    );
 
     return (
         <>
             {editPosition ? (
                 <div className={styles.row}>
-                    <Button frameless onClick={show }>
-                        <EditIcon /> <span className={styles.buttonPositionName}>Edit {editPosition.name}</span>
+                    <Button frameless onClick={show}>
+                        <EditIcon />{' '}
+                        <span className={styles.buttonPositionName}>Edit {editPosition.name}</span>
                     </Button>
                 </div>
             ) : (
@@ -109,10 +116,16 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
                 headerIcons={[
                     <Button
                         key="save-button"
-                        onClick={onSave}
-                        disabled={!isFormValid || !isFormDirty}
+                        onClick={saveAsync}
+                        disabled={!isFormValid || !isFormDirty || isSaving}
                     >
-                        Save
+                        {isSaving ? (
+                            <>
+                                <Spinner inline size={16} /> Saving
+                            </>
+                        ) : (
+                            'Save'
+                        )}
                     </Button>,
                 ]}
             >

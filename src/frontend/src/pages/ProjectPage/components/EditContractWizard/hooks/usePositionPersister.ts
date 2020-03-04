@@ -1,6 +1,6 @@
 import { useAppContext } from '../../../../../appContext';
 import { useNotificationCenter, useCurrentContext } from '@equinor/fusion';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import CreatePositionRequest from '../../../../../models/createPositionRequest';
 import Contract from '../../../../../models/contract';
 
@@ -14,8 +14,9 @@ const usePositionPersister = (
     const { apiClient } = useAppContext();
     const sendNotification = useNotificationCenter();
     const currentContext = useCurrentContext();
+    const [isSaving, setIsSaving] = useState(false);
 
-    const onSave = useCallback(async () => {
+    const saveAsync = useCallback(async () => {
         const request = { ...formState };
 
         if (!currentContext?.id) {
@@ -31,6 +32,8 @@ const usePositionPersister = (
             });
             return;
         }
+
+        setIsSaving(true);
 
         if (repType === 'company-rep') {
             const position = await apiClient.createExternalCompanyRepresentativeAsync(
@@ -50,10 +53,12 @@ const usePositionPersister = (
             onComplete(position.id);
         }
 
+        setIsSaving(false);
+
         onClose();
     }, [repType, formState, currentContext, sendNotification, apiClient]);
 
-    return onSave;
+    return { saveAsync, isSaving };
 };
 
 export default usePositionPersister;
