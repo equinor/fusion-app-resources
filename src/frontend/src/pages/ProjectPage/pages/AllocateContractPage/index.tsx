@@ -1,6 +1,7 @@
 import * as React from 'react';
 import EditContractWizard from '../../components/EditContractWizard';
 import { useHistory, useCurrentContext } from '@equinor/fusion';
+import Contract from '../../../../models/contract';
 
 const AllocateContractPage = () => {
     const history = useHistory();
@@ -14,12 +15,17 @@ const AllocateContractPage = () => {
         history.goBack();
     }, [history]);
 
+    const onSubmit = React.useCallback((contract: Contract) => {
+        history.push(`/${currentContext}/${contract.id}`);
+    }, [currentContext, history]);
+
     return (
         <EditContractWizard
             title="Allocate a Contract"
             onCancel={onCancel}
             goBackTo='contracts'
             onGoBack={onGoBack}
+            onSubmit={onSubmit}
         />
     );
 };

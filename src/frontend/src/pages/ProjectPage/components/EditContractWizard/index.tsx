@@ -31,6 +31,7 @@ type EditContractWizardProps = {
     onCancel: () => void;
     goBackTo: string;
     onGoBack: () => void;
+    onSubmit: (contract: Contract) => void;
 };
 
 const EditContractWizard: React.FC<EditContractWizardProps> = ({
@@ -39,6 +40,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
     onCancel,
     goBackTo,
     onGoBack,
+    onSubmit,
 }) => {
     const isEdit = React.useMemo(() => {
         return Boolean(existingContract && existingContract.contractNumber !== null);
@@ -53,22 +55,21 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         isFormDirty,
     } = useContractForm(existingContract);
 
-    const onSave = React.useCallback(
-        (contract: Contract) => {
-            if (formState.id) {
-                resetForm(contract);
-            } else {
-                setFormField('id', contract.id);
-            }
-        },
-        [formState, resetForm, setFormField]
-    );
-    const { saveAsync, isSaving } = useContractPersister(formState, onSave);
+    const { saveAsync, isSaving } = useContractPersister(formState);
+
+    const onSave = React.useCallback(async () => {
+        const savedContract = await saveAsync();
+        if (formState.id) {
+            resetForm(savedContract);
+        } else {
+            setFormField('id', savedContract.id);
+        }
+    }, [formState, resetForm, setFormField, saveAsync]);
 
     const { activeStepKey, gotoContract, gotoContractDetails, gotoExteral } = useActiveStepKey(
         isEdit,
         formState,
-        saveAsync
+        onSave
     );
 
     const {
@@ -86,6 +87,11 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
 
     const backButtonTooltipRef = useTooltipRef('Go back to ' + goBackTo, 'right');
 
+    const handleSubmit = React.useCallback(async () => {
+        const contract = await saveAsync();
+        onSubmit(contract);
+    }, [saveAsync, onSubmit]);
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
@@ -99,7 +105,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                 <Button
                     outlined
                     disabled={!isFormValid || !isFormDirty || isSaving}
-                    onClick={saveAsync}
+                    onClick={onSave}
                 >
                     {isSaving ? (
                         <>
@@ -250,8 +256,14 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                             <Button outlined onClick={gotoContractDetails}>
                                 Previous
                             </Button>
-                            <Button disabled={!isFormValid} onClick={saveAsync}>
-                                Submit
+                            <Button disabled={!isFormValid || !isFormDirty || isSaving} onClick={handleSubmit}>
+                                {isSaving ? (
+                                    <>
+                                        <Spinner inline size={16} /> Submitting
+                                    </>
+                                ) : (
+                                    'Submit'
+                                )}
                             </Button>
                         </div>
                     </div>

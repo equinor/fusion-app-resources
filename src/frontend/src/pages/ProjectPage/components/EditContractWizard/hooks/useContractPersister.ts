@@ -3,28 +3,31 @@ import { useAppContext } from '../../../../../appContext';
 import { useCurrentContext } from '@equinor/fusion';
 import { useCallback, useState } from 'react';
 
-const useContractPersister = (formState: Contract, onSave: (contract: Contract) => void) => {
+const useContractPersister = (formState: Contract) => {
     const { apiClient } = useAppContext();
     const project = useCurrentContext() as any;
     const [isSaving, setIsSaving] = useState(false);
 
     const saveAsync = useCallback(async () => {
         setIsSaving(true);
+
         if (formState.id) {
             const updatedContract = await apiClient.updateContractAsync(
                 project.externalId,
                 formState.id,
                 formState
             );
-            onSave(updatedContract);
-        } else {
-            const createdContract = await apiClient.createContractAsync(
-                project.externalId,
-                formState
-            );
-            onSave(createdContract);
+
+            setIsSaving(false);
+
+            return updatedContract;
         }
+
+        const createdContract = await apiClient.createContractAsync(project.externalId, formState);
+
         setIsSaving(false);
+
+        return createdContract;
     }, [formState]);
 
     return { saveAsync, isSaving };

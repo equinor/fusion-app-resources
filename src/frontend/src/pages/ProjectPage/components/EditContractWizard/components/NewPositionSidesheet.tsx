@@ -89,8 +89,8 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
         <>
             {editPosition ? (
                 <div className={styles.row}>
-                    <Button frameless onClick={show}>
-                        <EditIcon /> Edit {editPosition.name}
+                    <Button frameless onClick={show }>
+                        <EditIcon /> <span className={styles.buttonPositionName}>Edit {editPosition.name}</span>
                     </Button>
                 </div>
             ) : (
