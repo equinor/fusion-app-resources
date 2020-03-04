@@ -37,11 +37,13 @@
 }
 
 .field {
-    margin-right: calc(var(--grid-unit) * 3px);
+    width: 50%;
+    box-sizing: border-box;
+    padding-right: calc(var(--grid-unit) * 3px);
     flex-grow: 1;
 
     &:last-child {
-        margin-right: 0;
+        padding-right: 0;
     }
 
     &.big {

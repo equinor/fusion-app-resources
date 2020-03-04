@@ -200,15 +200,15 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                             <div className={styles.field}>
                                 <ContractPositionPicker
                                     label="Equinor Contract responsible"
-                                    selectedPositionId={formState.contractResponsiblePositionId}
-                                    onSelect={formFieldSetter('contractResponsiblePositionId')}
+                                    selectedPosition={formState.contractResponsible}
+                                    onSelect={formFieldSetter('contractResponsible')}
                                 />
                             </div>
                             <div className={styles.field}>
                                 <ContractPositionPicker
                                     label="Equinor Company rep"
-                                    selectedPositionId={formState.companyRepPositionId}
-                                    onSelect={formFieldSetter('companyRepPositionId')}
+                                    selectedPosition={formState.companyRep}
+                                    onSelect={formFieldSetter('companyRep')}
                                 />
                             </div>
                         </div>
@@ -238,8 +238,8 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <ContractPositionPicker
                                     label="External Company rep"
                                     contractId={formState.id || undefined}
-                                    selectedPositionId={formState.externalCompanyRepPositionId}
-                                    onSelect={formFieldSetter('externalCompanyRepPositionId')}
+                                    selectedPosition={formState.externalCompanyRep}
+                                    onSelect={formFieldSetter('externalCompanyRep')}
                                 />
                                 <CreateOrEditExternalPositionButton
                                     repType="company-rep"
@@ -254,11 +254,9 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <ContractPositionPicker
                                     label="External Contract responsible"
                                     contractId={formState.id || undefined}
-                                    selectedPositionId={
-                                        formState.externalContractResponsiblePositionId
-                                    }
+                                    selectedPosition={formState.externalContractResponsible}
                                     onSelect={formFieldSetter(
-                                        'externalContractResponsiblePositionId'
+                                        'externalContractResponsible'
                                     )}
                                 />
                                 <CreateOrEditExternalPositionButton
