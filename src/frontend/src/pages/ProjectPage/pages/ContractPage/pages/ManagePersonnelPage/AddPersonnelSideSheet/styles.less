@@ -49,6 +49,11 @@
           }
       }
 
+      .tableRow {
+          display:"flex";
+          margin-bottom: calc(var(--grid-unit) * 3px);
+      }
+
       .header, .header.isSelected {
           background: var(--color-black-alt5);
           position: sticky;
@@ -57,6 +62,10 @@
 
           &.isSortable {
               cursor: pointer;
+          }
+
+          .grow  {
+              flex-grow: 1;
           }
 
           .label {

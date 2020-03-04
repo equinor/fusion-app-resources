@@ -86,7 +86,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                     <div className={styles.details}>
                         <ScopedSwitch>
                             <Route path="/" exact component={ContractDetailsPage} />
-                            <Route path="/personnel" component={ManagePersonellPage} />
+                            <Route path="/managepersonnel" component={ManagePersonellPage} />
                             <Route path="/actual-mpp" component={ActualMppPage} />
                             <Route path="/active-requests" component={ActiveRequestsPage} />
                         </ScopedSwitch>

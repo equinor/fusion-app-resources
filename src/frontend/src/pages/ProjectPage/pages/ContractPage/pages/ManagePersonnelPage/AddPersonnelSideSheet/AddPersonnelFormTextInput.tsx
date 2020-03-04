@@ -3,24 +3,29 @@ import { TextInput } from '@equinor/fusion-components';
 import Person from '../../../../../../../models/Person';
 
 export type PersonnelFormTextInputProps = {
-  item: Person;
-  onChange: (changedPerson: Person) => void
-  field: keyof Person ;
+    item: Person;
+    onChange: (changedPerson: Person) => void;
+    field: keyof Person;
+    disabled: boolean;
 };
 
-const AddPersonnelFormTextInput : React.FC<PersonnelFormTextInputProps> = ({item,onChange,field}) => {
+const AddPersonnelFormTextInput: React.FC<PersonnelFormTextInputProps> = ({
+    item,
+    onChange,
+    field,
+    disabled,
+}) => {
     return (
-      <TextInput 
-        key = {field+item.personnelId}
-        onChange = {(newValue) => {
-          const changedPerson = {...item,[field]:newValue};
-          onChange(changedPerson);
-        }}
-        value={item[field]}
-      />
-  )
-}
+        <TextInput
+            disabled={disabled}
+            key={field + item.personnelId}
+            onChange={newValue => {
+                const changedPerson = { ...item, [field]: newValue };
+                onChange(changedPerson);
+            }}
+            value={item[field]}
+        />
+    );
+};
 
-
-
-export default AddPersonnelFormTextInput
+export default AddPersonnelFormTextInput;

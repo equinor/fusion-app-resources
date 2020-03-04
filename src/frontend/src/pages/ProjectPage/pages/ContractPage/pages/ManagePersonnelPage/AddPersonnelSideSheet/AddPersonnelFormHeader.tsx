@@ -7,19 +7,14 @@ type HeaderProps = {
 }
 
 const AddPersonnelFormHeader : React.FC<HeaderProps> = ({headers}) => {
-
-  const cellClassName = classNames(styles.cell, styles.header);
   return (
     <>
-      <div className={classNames(cellClassName, styles.expand)} >
+      <div className={classNames(styles.cell, styles.header, styles.expand)} >
         {headers.map((headerlabel) => (
-          <div style={{flexGrow:1}}
-                    key={headerlabel}
-                    className={classNames(styles.header)}
-                >
-                    <span className={styles.label}>{headerlabel}</span>
-                </div>
-            ))}
+          <div key={headerlabel} className={styles.label}>
+            <span className={styles.label}>{headerlabel}</span>
+          </div>
+        ))}
       </div>
     </>
   );

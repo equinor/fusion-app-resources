@@ -10,6 +10,7 @@ const usePersonnel = (contractId?: string,projectId?:string) => {
        
     const fetchPersonnel = async (contract: string,project:string) => {
         setIsFetchingPersonnel(true);
+        setPersonnelError(null);
         try {
             const response = await apiClient.getPersonnelAsync(project,contract)
             setPersonnel(response.data.value);

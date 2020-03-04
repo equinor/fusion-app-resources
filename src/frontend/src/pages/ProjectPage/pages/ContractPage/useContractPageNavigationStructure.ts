@@ -27,7 +27,7 @@ const createNavItem = (
 const getNavigationStructure = (history: History, contractId: string): NavigationStructure[] => {
     return [
         createNavItem(history, contractId, 'General', '', 'grouping'),
-        createNavItem(history, contractId, 'Manage personnel', 'personnel', 'grouping'),
+        createNavItem(history, contractId, 'Manage personnel', 'managepersonnel', 'grouping'),
         {
             id: 'manage-mpp',
             title: 'Manage MPP',

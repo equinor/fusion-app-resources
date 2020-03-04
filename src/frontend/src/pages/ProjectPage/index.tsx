@@ -12,9 +12,8 @@ const ProjectPage = () => {
             <Route path="/" exact component={ContractsOverviewPage} />
             <Route path="/allocate" exact component={AllocateContractPage} />
             <Route path="/:contractId" component={ContractPage} />
-            <Route path="/:contractId/managedpersonnel" component={ManagePersonellPage} />
         </ScopedSwitch>
     );
-}
+};
 
 export default ProjectPage;

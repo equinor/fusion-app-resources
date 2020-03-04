@@ -7,7 +7,8 @@ import Personnel from '../../../../../../models/Personnel';
 import * as styles from './styles.less'
 import { useContractContext } from '../../../../../../contractContex';
 import AddPersonnelSideSheet from './AddPersonnelSideSheet'
-import * as uuid from "uuid/v1";
+import { v1 as uuid } from 'uuid';
+
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext()
@@ -34,7 +35,7 @@ const ManagePersonnelPage: React.FC = () => {
                 columns={personnelColumns}
                 data={sortedData}
                 isFetching={isFetchingPersonnel}
-                rowIdentifier={'name'}
+                rowIdentifier={'personnelId'}
                 onSortChange={onSortChange}
                 sortedBy={{
                     column: sortedByColumn,

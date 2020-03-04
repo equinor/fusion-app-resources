@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import Person from '../../../../../../../models/Person';
 import useForm from '../../../../../../../hooks/useForm';
-import * as uuid from "uuid/v1";
+import { v1 as uuid } from 'uuid';
 
 const createDefaultState = (): Person[] => ([
   {
