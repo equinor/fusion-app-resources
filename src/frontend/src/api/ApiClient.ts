@@ -76,7 +76,7 @@ export default class ApiClient {
             'external-company-representative'
         );
 
-        const response = await this.httpClient.postAsync<
+        const response = await this.httpClient.putAsync<
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
@@ -95,7 +95,7 @@ export default class ApiClient {
             'external-contract-responsible'
         );
 
-        const response = await this.httpClient.postAsync<
+        const response = await this.httpClient.putAsync<
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
