@@ -31,6 +31,15 @@ export default class ApiClient {
         return response.data.value;
     }
 
+    async getContractAsync(projectId: string, contractId: string) {
+        const url = this.resourceCollection.contract(projectId, contractId);
+        const response = await this.httpClient.getAsync<
+            Contract,
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data;
+    }
+
     async getAvailableContractsAsync(projectId: string) {
         const url = this.resourceCollection.availableContracts(projectId);
         const response = await this.httpClient.getAsync<

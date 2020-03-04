@@ -4,7 +4,7 @@ import { useContractContext } from '../../../../../contractContex';
 const ManagePersonellPage = () => {
     const contractContext = useContractContext();
 
-    if (!contractContext) {
+    if (!contractContext.contract) {
         return null;
     }
 

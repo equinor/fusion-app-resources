@@ -1,0 +1,38 @@
+.container {
+    .row {
+        display: flex;
+        margin-bottom: calc(var(--grid-unit) * 3px);
+
+        .field {
+            flex-grow: 1;
+            margin-right: calc(var(--grid-unit) * 3px);
+            max-width: calc(var(--grid-unit) * 40px);
+
+            label {
+                font-size: 14px;
+                line-height: 16px;
+                margin-bottom: calc(var(--grid-unit) * 1px);
+                color: var(--color-black-alt3);
+            }
+
+            .value {
+                font-size: 16px;
+                line-height: 24px;
+                width: 100%;
+                min-height: calc(var(--grid-unit) * 2px);
+            }
+        }
+    }
+}
+
+.positionCardSkeleton {
+    display: flex;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-black-alt4);
+    border-radius: 4px;
+    padding: calc(var(--grid-unit) * 1px);
+    
+    .content {
+        flex-grow: 1;
+    }
+}
