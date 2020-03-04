@@ -17,7 +17,7 @@ import classNames from 'classnames';
 import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
 import NewPositionSidesheet from './components/NewPositionSidesheet';
-import { formatDate } from '@equinor/fusion';
+import { formatDate, useTelemetryLogger, useNotificationCenter } from '@equinor/fusion';
 import CompanyPicker from './components/CompanyPicker';
 import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFocus';
 import useActiveStepKey from './hooks/useActiveStepKey';
@@ -57,12 +57,23 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
 
     const { saveAsync, isSaving } = useContractPersister(formState);
 
+    const telemetryLogger = useTelemetryLogger();
+    const sendNotification = useNotificationCenter();
+
     const onSave = React.useCallback(async () => {
-        const savedContract = await saveAsync();
-        if (formState.id) {
-            resetForm(savedContract);
-        } else {
-            setFormField('id', savedContract.id);
+        try {
+            const savedContract = await saveAsync();
+            if (formState.id) {
+                resetForm(savedContract);
+            } else {
+                setFormField('id', savedContract.id);
+            }
+        } catch (e) {
+            telemetryLogger.trackException(e);
+            sendNotification({
+                level: 'medium',
+                title: 'Unable to save contract. Please try again',
+            });
         }
     }, [formState, resetForm, setFormField, saveAsync]);
 
@@ -88,8 +99,16 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
     const backButtonTooltipRef = useTooltipRef('Go back to ' + goBackTo, 'right');
 
     const handleSubmit = React.useCallback(async () => {
-        const contract = await saveAsync();
-        onSubmit(contract);
+        try {
+            const contract = await saveAsync();
+            onSubmit(contract);
+        } catch (e) {
+            telemetryLogger.trackException(e);
+            sendNotification({
+                level: 'medium',
+                title: 'Unable to save contract. Please try again',
+            });
+        }
     }, [saveAsync, onSubmit]);
 
     return (
@@ -256,7 +275,10 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                             <Button outlined onClick={gotoContractDetails}>
                                 Previous
                             </Button>
-                            <Button disabled={!isFormValid || !isFormDirty || isSaving} onClick={handleSubmit}>
+                            <Button
+                                disabled={!isFormValid || !isFormDirty || isSaving}
+                                onClick={handleSubmit}
+                            >
                                 {isSaving ? (
                                     <>
                                         <Spinner inline size={16} /> Submitting

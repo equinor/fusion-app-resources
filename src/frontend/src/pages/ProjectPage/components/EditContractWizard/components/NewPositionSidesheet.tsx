@@ -11,7 +11,7 @@ import {
 } from '@equinor/fusion-components';
 import useCreatePositionForm from '../hooks/useCreatePositionForm';
 import * as styles from '../styles.less';
-import { PersonDetails, Position, useApiClients } from '@equinor/fusion';
+import { PersonDetails, Position, useApiClients, useNotificationCenter } from '@equinor/fusion';
 import BasePositionPicker from './BasePositionPicker';
 import Contract from '../../../../../models/contract';
 import usePositionPersister from '../hooks/usePositionPersister';
@@ -77,11 +77,6 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
         [setFormField]
     );
 
-    const apiClients = useApiClients();
-    const fetchAndSetSelectedPersonAsync = async (azureUniqueId: string) => {
-        const response = await apiClients.people.getPersonDetailsAsync(azureUniqueId);
-        setSelectedPerson(response.data);
-    };
     React.useEffect(() => {
         if (
             formState.assignedPerson?.azureUniqueId &&

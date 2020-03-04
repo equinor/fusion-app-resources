@@ -1,5 +1,5 @@
 import { useAppContext } from '../../../../../appContext';
-import { useNotificationCenter, useCurrentContext } from '@equinor/fusion';
+import { useNotificationCenter, useCurrentContext, useTelemetryLogger } from '@equinor/fusion';
 import { useCallback, useState } from 'react';
 import CreatePositionRequest from '../../../../../models/createPositionRequest';
 import Contract from '../../../../../models/contract';
@@ -15,6 +15,7 @@ const usePositionPersister = (
     const sendNotification = useNotificationCenter();
     const currentContext = useCurrentContext();
     const [isSaving, setIsSaving] = useState(false);
+    const telemetryLogger = useTelemetryLogger();
 
     const saveAsync = useCallback(async () => {
         const request = { ...formState };
@@ -35,27 +36,35 @@ const usePositionPersister = (
 
         setIsSaving(true);
 
-        if (repType === 'company-rep') {
-            const position = await apiClient.createExternalCompanyRepresentativeAsync(
-                currentContext.id,
-                contract.id,
-                request
-            );
+        try {
+            if (repType === 'company-rep') {
+                const position = await apiClient.createExternalCompanyRepresentativeAsync(
+                    currentContext.id,
+                    contract.id,
+                    request
+                );
 
-            onComplete(position.id);
-        } else if (repType === 'contract-responsible') {
-            const position = await apiClient.createExternalContractResponsibleAsync(
-                currentContext.id,
-                contract.id,
-                request
-            );
+                onComplete(position.id);
+            } else if (repType === 'contract-responsible') {
+                const position = await apiClient.createExternalContractResponsibleAsync(
+                    currentContext.id,
+                    contract.id,
+                    request
+                );
 
-            onComplete(position.id);
+                onComplete(position.id);
+            }
+
+            onClose();
+        } catch (e) {
+            telemetryLogger.trackException(e);
+            sendNotification({
+                level: 'medium',
+                title: 'Unable to save position. Please try again',
+            });
         }
 
         setIsSaving(false);
-
-        onClose();
     }, [repType, formState, currentContext, sendNotification, apiClient]);
 
     return { saveAsync, isSaving };
