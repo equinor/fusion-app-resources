@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fusion.Integration;
+using Fusion.Resources.Domain.Queries;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -18,7 +19,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier)
         {
-
+            #region Bogus data
             var persons = new Faker<ApiPerson>()
                 .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
                 .RuleFor(p => p.Name, f => f.Person.FullName)
@@ -91,7 +92,12 @@ namespace Fusion.Resources.Api.Controllers
                 })
                 .Generate(faker.Random.Number(10, 40));
 
-            return new ApiCollection<ApiContractPersonnelRequest>(requests);
+            #endregion
+
+
+            var realRequests = await DispatchAsync(GetContractPersonnelRequests.QueryContract(projectIdentifier.ProjectId, contractIdentifier));
+
+            return new ApiCollection<ApiContractPersonnelRequest>(realRequests.Select(r => new ApiContractPersonnelRequest(r)).Union(requests));
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
@@ -107,24 +113,30 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
         {
-
-            var query = await DispatchAsync(new Domain.Commands.CreateContractPersonnelRequest(projectIdentifier.ProjectId, contractIdentifier)
+            using (var scope = await BeginTransactionAsync())
             {
-                Description = request.Description,
+                var query = await DispatchAsync(new Domain.Commands.CreateContractPersonnelRequest(projectIdentifier.ProjectId, contractIdentifier)
+                {
+                    Description = request.Description,
 
-                AppliesFrom = request.Position.AppliesFrom,
-                AppliesTo = request.Position.AppliesTo,
-                BasePositionId = request.Position.BasePosition.Id,
-                PositionName = request.Position.Name,
-                Workload = request.Position.Workload,
-                TaskOwnerPositionId = request.Position.TaskOwner?.PositionId,
+                    AppliesFrom = request.Position.AppliesFrom,
+                    AppliesTo = request.Position.AppliesTo,
+                    BasePositionId = request.Position.BasePosition.Id,
+                    PositionName = request.Position.Name,
+                    Workload = request.Position.Workload,
+                    TaskOwnerPositionId = request.Position.TaskOwner?.PositionId,
 
-                Person = request.Person
-            });
+                    Person = request.Person
+                });
 
-            return new ApiContractPersonnelRequest(query);
+                await scope.CommitAsync();
+
+                return new ApiContractPersonnelRequest(query);
+            }
         }
 
+
+        
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest(string projectIdentifier, string contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
@@ -144,6 +156,20 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult> RejectContractPersonnelRequest(string projectIdentifier, string contractIdentifier, Guid requestId)
         {
             return Ok();
+        }
+
+
+        [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
+        public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        {
+            using (var scope = await BeginTransactionAsync())
+            {
+                await DispatchAsync(new Domain.Commands.DeleteContractPersonnelRequest(projectIdentifier.ProjectId, contractIdentifier, requestId));
+
+                await scope.CommitAsync();
+
+                return NoContent();
+            }
         }
 
 

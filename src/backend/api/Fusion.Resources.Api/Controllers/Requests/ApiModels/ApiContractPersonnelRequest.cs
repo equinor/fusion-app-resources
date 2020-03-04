@@ -7,6 +7,10 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiContractPersonnelRequest
     {
+        public ApiContractPersonnelRequest()
+        {
+
+        }
         public ApiContractPersonnelRequest(QueryPersonnelRequest query)
         {
             Id = query.Id;
