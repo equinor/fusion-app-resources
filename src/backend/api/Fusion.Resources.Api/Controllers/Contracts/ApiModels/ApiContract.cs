@@ -14,6 +14,9 @@ namespace Fusion.Resources.Api.Controllers
             Name = orgContract.Name;
             Description = orgContract.Description;
 
+            StartDate = orgContract.StartDate;
+            EndDate = orgContract.EndDate;
+
             if (orgContract.Company != null)
                 Company = new ApiCompany { Id = orgContract.Company.Id, Name = orgContract.Company.Name };
 
@@ -33,8 +36,8 @@ namespace Fusion.Resources.Api.Controllers
         public string ContractNumber { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         public ApiCompany? Company { get; set; }
         
