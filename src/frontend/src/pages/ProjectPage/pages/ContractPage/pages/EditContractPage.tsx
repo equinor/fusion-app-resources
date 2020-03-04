@@ -14,16 +14,22 @@ type EditContractPageProps = RouteComponentProps<EditContractPageMatch>;
 const EditContractPage: React.FC<EditContractPageProps> = ({ match }) => {
     const { contract, isFetchingContract } = useContractFromId(match.params.contractId);
     const history = useHistory();
-
-    const goBack = React.useCallback(() => history.goBack(), [history]);
-
     const currentContext = useCurrentContext();
-    const onSubmit = React.useCallback((updatedContract: Contract) => {
-        history.push(`/${currentContext}/${updatedContract.id}`);
-    }, [history, currentContext]);
+
+    const goBack = React.useCallback(
+        () => history.replace(`/${currentContext?.id}/${match.params.contractId}`),
+        [history, currentContext]
+    );
+
+    const onSubmit = React.useCallback(
+        (updatedContract: Contract) => {
+            history.push(`/${currentContext?.id}/${updatedContract.id}`);
+        },
+        [history, currentContext]
+    );
 
     if (isFetchingContract) {
-        return <ContractWizardSkeleton isEdit />;
+        return <ContractWizardSkeleton isEdit onGoBack={goBack} />;
     }
 
     return (

@@ -14,13 +14,14 @@ import classNames from 'classnames';
 
 type ContractWizardSkeletonProps = {
     isEdit: boolean;
+    onGoBack: () => void;
 };
 
-const ContractWizardSkeleton: React.FC<ContractWizardSkeletonProps> = ({ isEdit }) => {
+const ContractWizardSkeleton: React.FC<ContractWizardSkeletonProps> = ({ isEdit, onGoBack }) => {
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <IconButton disabled>
+                <IconButton onClick={onGoBack}>
                     <ArrowBackIcon />
                 </IconButton>
                 <h2>

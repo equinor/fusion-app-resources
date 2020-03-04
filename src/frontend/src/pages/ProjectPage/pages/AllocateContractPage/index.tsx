@@ -8,7 +8,7 @@ const AllocateContractPage = () => {
     const currentContext = useCurrentContext();
 
     const onCancel = React.useCallback(() => {
-        history.push(currentContext?.id || '');
+        history.push('/' + (currentContext?.id || ''));
     }, [history, currentContext]);
 
     const onGoBack = React.useCallback(() => {

@@ -11,7 +11,7 @@ import {
 } from '@equinor/fusion-components';
 import useCreatePositionForm from '../hooks/useCreatePositionForm';
 import * as styles from '../styles.less';
-import { PersonDetails, Position } from '@equinor/fusion';
+import { PersonDetails, Position, useApiClients } from '@equinor/fusion';
 import BasePositionPicker from './BasePositionPicker';
 import Contract from '../../../../../models/contract';
 import usePositionPersister from '../hooks/usePositionPersister';
@@ -76,6 +76,20 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
         },
         [setFormField]
     );
+
+    const apiClients = useApiClients();
+    const fetchAndSetSelectedPersonAsync = async (azureUniqueId: string) => {
+        const response = await apiClients.people.getPersonDetailsAsync(azureUniqueId);
+        setSelectedPerson(response.data);
+    };
+    React.useEffect(() => {
+        if (
+            formState.assignedPerson?.azureUniqueId &&
+            formState.assignedPerson.azureUniqueId !== selectedPerson?.azureUniqueId
+        ) {
+            setSelectedPerson(formState.assignedPerson as PersonDetails);
+        }
+    }, [formState.assignedPerson]);
 
     const show = React.useCallback(() => setIsShowing(true), []);
     const onClose = React.useCallback(() => {
@@ -168,6 +182,7 @@ const NewPositionSidesheet: React.FC<NewPositionSidesheetProps> = ({
                             <PersonPicker
                                 label="Person"
                                 selectedPerson={selectedPerson}
+                                initialPerson={selectedPerson}
                                 onSelect={onPersonSelect}
                             />
                         </div>

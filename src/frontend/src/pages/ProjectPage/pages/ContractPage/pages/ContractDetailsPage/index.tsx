@@ -60,10 +60,16 @@ const PositionCardSkeleton = () => (
     </div>
 );
 
+const getCurrentInstance = (position: Position) => {
+    const now = new Date();
+    return position.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
+}
+
 const renderPosition = (position: Position | null) =>
     position ? (
         <PositionCard
             position={position}
+            instance={getCurrentInstance(position)}
             showDate
             showExternalId
             showLocation
