@@ -137,43 +137,6 @@ namespace Fusion.Resources.Api.Controllers
             return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract));
         }
 
-        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
-        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> CreateContractExternalCompanyRep([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
-        {
-            var externalId = "ext-comp-rep";
-            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
-
-            if (existingPosition != null)
-            {
-                return new BadRequestObjectResult(new
-                {
-                    error = new
-                    {
-                        code = "PositionWithExternalIdExists",
-                        message = "Position with external id already exists",
-                        position = existingPosition
-                    }
-                });
-            }
-
-            var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
-            {
-                BasePositionId = request.BasePosition.Id,
-                PositionName = request.Name,
-                AppliesFrom = request.AppliesFrom,
-                AppliesTo = request.AppliesTo,
-                Workload = request.Workload,
-                AssignedPerson = request.AssignedPerson.AzureUniquePersonId.HasValue ? new PersonId(request.AssignedPerson.AzureUniquePersonId.Value) : new PersonId(request.AssignedPerson.Mail),
-                ExternalId = externalId
-            };
-
-            var newPosition = await DispatchAsync(createNewPositionCommand);
-
-            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = newPosition.Id });
-
-            return newPosition;
-        }
-
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
         public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalCompanyRep([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
@@ -213,41 +176,6 @@ namespace Fusion.Resources.Api.Controllers
             await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
 
             return position;
-        }
-
-        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
-        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> CreateContractExternalContractResp([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
-        {
-            var externalId = "ext-contr-resp";
-            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
-
-            if (existingPosition != null)
-            {
-                return new BadRequestObjectResult(new
-                {
-                    error = new
-                    {
-                        code = "PositionWithExternalIdExists",
-                        message = "Position with external id already exists",
-                        position = existingPosition
-                    }
-                });
-            }
-
-            var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
-            {
-                BasePositionId = request.BasePosition.Id,
-                PositionName = request.Name,
-                AppliesFrom = request.AppliesFrom,
-                AppliesTo = request.AppliesTo,
-                Workload = request.Workload,
-                AssignedPerson = request.AssignedPerson.AzureUniquePersonId.HasValue ? new PersonId(request.AssignedPerson.AzureUniquePersonId.Value) : new PersonId(request.AssignedPerson.Mail),
-                ExternalId = externalId
-            };
-            
-            var newPosition = await DispatchAsync(createNewPositionCommand);
-            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { ContractResponsiblePositionId = newPosition.Id });
-            return newPosition;
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
