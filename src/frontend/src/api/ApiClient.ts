@@ -32,8 +32,17 @@ export default class ApiClient {
         return response.data.value;
     }
 
+    async getContractAsync(projectId: string, contractId: string) {
+        const url = this.resourceCollection.contract(projectId, contractId);
+        const response = await this.httpClient.getAsync<
+            Contract,
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data;
+    }
+
     async getAvailableContractsAsync(projectId: string) {
-        const url = this.resourceCollection.contracts(projectId);
+        const url = this.resourceCollection.availableContracts(projectId);
         const response = await this.httpClient.getAsync<
             ApiCollection<AvailableContract>,
             FusionApiHttpErrorResponse
@@ -91,24 +100,11 @@ export default class ApiClient {
             'external-company-representative'
         );
 
-        const response = await this.httpClient.postAsync<
+        const response = await this.httpClient.putAsync<
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request, null, () =>
-            Promise.resolve({
-                id: new Date().getTime().toString(),
-                basePosition: request.basePosition as BasePosition,
-                contractId,
-                directChildCount: 0,
-                externalId: new Date().getTime().toString(),
-                instances: [],
-                name: request.name,
-                projectId,
-                properties: {},
-                totalChildCount: 0,
-            })
-        );
+        >(url, request);
 
         return response.data;
     }
@@ -123,24 +119,11 @@ export default class ApiClient {
             'external-contract-responsible'
         );
 
-        const response = await this.httpClient.postAsync<
+        const response = await this.httpClient.putAsync<
             CreatePositionRequest,
             Position,
             FusionApiHttpErrorResponse
-        >(url, request, null, () =>
-            Promise.resolve({
-                id: new Date().getTime().toString(),
-                basePosition: request.basePosition as BasePosition,
-                contractId,
-                directChildCount: 0,
-                externalId: new Date().getTime().toString(),
-                instances: [],
-                name: request.name,
-                projectId,
-                properties: {},
-                totalChildCount: 0,
-            })
-        );
+        >(url, request);
 
         return response.data;
     }

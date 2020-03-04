@@ -12,7 +12,7 @@ import * as uuid from "uuid/v1";
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext()
     const currentContract = useContractContext()
-    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(currentContract?.contract.id,currentContext?.id);
+    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(currentContract?.contract?.id || undefined,currentContext?.id);
     const {sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(personnel, "name", "asc");
     const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);

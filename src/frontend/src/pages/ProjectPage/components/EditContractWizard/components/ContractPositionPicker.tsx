@@ -6,9 +6,10 @@ type ContractPositionPickerProps = {
     label: string;
     selectedPositionId: string | null;
     onSelect: (positionId: string) => void;
+    contractId?: string;
 };
 
-const ContractPositionPicker: React.FC<ContractPositionPickerProps> = ({ label, selectedPositionId, onSelect }) => {
+const ContractPositionPicker: React.FC<ContractPositionPickerProps> = ({ label, selectedPositionId, onSelect, contractId }) => {
     const currentContext = useCurrentContext();
     const currentOrgProject = currentContext as any;
 
@@ -43,6 +44,7 @@ const ContractPositionPicker: React.FC<ContractPositionPickerProps> = ({ label, 
             label={label}
             selectedPosition={selectedPosition}
             projectId={currentOrgProject.externalId}
+            contractId={contractId}
             onSelect={position => {
                 setSelectedPosition(position);
                 onSelect(position.id);

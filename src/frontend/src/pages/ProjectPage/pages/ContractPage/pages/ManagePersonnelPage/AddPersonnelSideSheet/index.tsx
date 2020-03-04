@@ -36,12 +36,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({isOpen,s
   const [saveInProgress,setSaveInProgress] = React.useState<Boolean>(false);
   
   const  savePersonnelChangesAsync = async () => {
-    if(!currentContext?.id || !currentContract?.contract.id)
+    if(!currentContext?.id || !currentContract.contract?.id )
       return  
     
     setSaveInProgress(true);
     await Promise.all(formState
-      .map(async person => await apiClient.updatePersonnelAsync(currentContext?.id,currentContract?.contract.id,person)))
+      .map(async person => await apiClient.updatePersonnelAsync(currentContext.id,currentContract.contract.id,person)))
       .then(() => {
         setSaveInProgress(false)
         setIsOpen(false);
