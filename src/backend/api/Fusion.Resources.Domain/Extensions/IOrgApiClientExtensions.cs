@@ -58,6 +58,18 @@ namespace Fusion.Resources.Domain
             return await RequestResponse<ApiPositionV2>.FromResponseAsync(response);
         }
 
+        public static async Task<RequestResponse<ApiPositionV2>> CreatePositionAsync(this IOrgApiClient client, Guid projectId, Guid contractId, ApiPositionV2 position)
+        {
+            var url = $"/projects/{position.Project.ProjectId}/contracts/{position.Contract.Id}/positions/{position.Id}";
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Content = new StringContent(JsonConvert.SerializeObject(position), Encoding.UTF8, "application/json");
+
+            var response = await client.SendAsync(request);
+
+            return await RequestResponse<ApiPositionV2>.FromResponseAsync(response);
+        }
+
         public static Task<RequestResponse<ApiPositionV2>> GetPositionV2Async(this IOrgApiClient client, Guid projectId, Guid contractId, Guid positionId) => 
             client.GetAsync<ApiPositionV2>($"/projects/{projectId}/contracts/{contractId}/positions/{positionId}?api-version=2.0");
 

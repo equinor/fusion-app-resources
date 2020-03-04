@@ -42,13 +42,22 @@ namespace Fusion.Resources.Domain.Commands
             public async Task<ApiPositionV2> Handle(CreateContractPosition request, CancellationToken cancellationToken)
             {
 
-                var createPositionMessage = new HttpRequestMessage(HttpMethod.Post, $"/projects/{request.OrgProjectId}/contracts/{request.OrgContractId}/positions");
-                createPositionMessage.Content = new StringContent(JsonConvert.SerializeObject(new ApiPositionV2
-                {
-                    BasePosition = new ApiBasePositionV2 { Id = request.BasePositionId },
-                    Name = request.PositionName,
-                    ExternalId = request.ExternalId,
-                    Instances = new List<ApiPositionInstanceV2>
+                var newPosition = GeneratePositionEntity(request);
+
+                var createResp = await orgClient.CreatePositionAsync(request.OrgProjectId, request.OrgContractId, newPosition);
+
+                if (createResp.IsSuccessStatusCode)
+                    return createResp.Value;
+
+                throw new OrgApiError(createResp.Response, createResp.Content);
+            }
+
+            private ApiPositionV2 GeneratePositionEntity(CreateContractPosition request) => new ApiPositionV2
+            {
+                BasePosition = new ApiBasePositionV2 { Id = request.BasePositionId },
+                Name = request.PositionName,
+                ExternalId = request.ExternalId,
+                Instances = new List<ApiPositionInstanceV2>
                     {
                         new ApiPositionInstanceV2
                         {
@@ -58,19 +67,7 @@ namespace Fusion.Resources.Domain.Commands
                             AssignedPerson =  request.AssignedPerson
                         }
                     }
-                }), Encoding.UTF8, "application/json");
-
-
-                var resp = await orgClient.SendAsync(createPositionMessage);
-                var responseContent = await resp.Content.ReadAsStringAsync();
-                if (resp.IsSuccessStatusCode)
-                {
-                    var newPosition = JsonConvert.DeserializeObject<ApiPositionV2>(responseContent);
-                    return newPosition;
-                }
-
-                throw new OrgApiError(resp, responseContent);
-            }
+            };
         }
 
     }
