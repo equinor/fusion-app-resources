@@ -1,8 +1,14 @@
 .activeRequestsContainer {
     display: flex;
-    flex-direction: column;
     width: 100%;
+    height: 100%;
 
+    .activeRequests{
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: calc(var(--grid-unit) * 3px);
+    }
     .toolbar{
         display: flex;
         justify-content: space-between;

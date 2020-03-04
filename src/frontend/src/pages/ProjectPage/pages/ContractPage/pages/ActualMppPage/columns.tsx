@@ -4,21 +4,21 @@ import PositionColumn from '../../../../components/PositionColumn';
 import { Position } from '@equinor/fusion';
 
 type AssignedPersonProps = {
-    item: Position,
+    item: Position;
 };
 const AssignedPersonComponent: React.FC<AssignedPersonProps> = ({ item }) => {
-    const person = item.instances.find(i => i.assignedPerson)?.assignedPerson || undefined
+    const person = item.instances.find(i => i.assignedPerson)?.assignedPerson || undefined;
     return <PersonCard person={person} photoSize="medium" inline />;
 };
 
-
 const columns: DataTableColumn<Position>[] = [
     {
-        accessor: request => request.instances.find(i => i.assignedPerson?.name)?.assignedPerson?.name || '',
+        accessor: request =>
+            request.instances.find(i => i.assignedPerson?.name)?.assignedPerson?.name || '',
         key: 'person',
         label: 'Person',
         sortable: true,
-        component: AssignedPersonComponent
+        component: AssignedPersonComponent,
     },
     {
         accessor: request => request.basePosition?.name || 'TBN',
@@ -33,15 +33,16 @@ const columns: DataTableColumn<Position>[] = [
         sortable: true,
     },
     {
-        accessor: request => request.instances.find(i => i.parentPositionId)?.parentPositionId || "",
+        accessor: request =>
+            request.instances.find(i => i.parentPositionId)?.parentPositionId || '',
         key: 'taskOwnerId',
         label: 'Taskowner',
         sortable: true,
         component: ({ item }) => {
-            const taskOwnerId = item.instances.find(i => i.parentPositionId)?.parentPositionId || null;
-            return <PositionColumn positionId={taskOwnerId} />
-
-        }
+            const taskOwnerId =
+                item.instances.find(i => i.parentPositionId)?.parentPositionId || null;
+            return <PositionColumn positionId={taskOwnerId} />;
+        },
     },
     {
         accessor: request =>
