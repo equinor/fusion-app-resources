@@ -5,7 +5,7 @@ import Person from '../../../../../../../models/Person';
 import { v1 as uuid } from 'uuid';
 import * as classNames from 'classnames'
 import * as styles from './styles.less'
-import { useComponentDisplayClassNames, useCurrentContext } from '@equinor/fusion';
+import { useComponentDisplayClassNames, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { generateRowTemplate, generateColumnTemplate } from './utils';
 import Header from './AddPersonnelFormHeader';
 import { useAppContext } from '../../../../../../../appContext';
@@ -24,6 +24,7 @@ type AddPersonnelToSideSheetProps = {
 const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({ isOpen, setIsOpen, selectedPersonnel }) => {
   const currentContext = useCurrentContext()
   const currentContract = useContractContext()
+  const notification = useNotificationCenter()
   const {
     formState,
     setFormState,
@@ -47,8 +48,21 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({ isOpen,
       .then(() => {
         setSaveInProgress(false)
         setIsOpen(false);
+        notification({
+          level: 'low',
+          title: 'Personnel changes saved',
+          cancelLabel: 'dismiss'
+        })
       })
-      .catch(() => setSaveInProgress(false))
+      .catch((e) => {
+        //TODO: This could probably be more helpfull. 
+        console.log(e)
+        notification({
+          level: 'high',
+          title: 'Something went wrong while saving. Please try again or contact administrator',
+        })
+        setSaveInProgress(false)
+      })
   }
 
   const onChange = React.useCallback((changedPerson: Person) => {
