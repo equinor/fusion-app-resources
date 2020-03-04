@@ -60,7 +60,7 @@ namespace Fusion.Resources.Domain
 
         public static async Task<RequestResponse<ApiPositionV2>> CreatePositionAsync(this IOrgApiClient client, Guid projectId, Guid contractId, ApiPositionV2 position)
         {
-            var url = $"/projects/{projectId}/contracts/{contractId}/positions/{position.Id}";
+            var url = $"/projects/{projectId}/contracts/{contractId}/positions";
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Content = new StringContent(JsonConvert.SerializeObject(position), Encoding.UTF8, "application/json");
