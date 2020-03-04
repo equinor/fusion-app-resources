@@ -16,7 +16,7 @@ import ContractNumberPicker from './components/ContractNumberPicker';
 import classNames from 'classnames';
 import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
-import NewPositionSidesheet from './components/NewPositionSidesheet';
+import CreateOrEditExternalPositionButton from './components/CreateOrEditExternalPositionButton';
 import { formatDate, useTelemetryLogger, useNotificationCenter } from '@equinor/fusion';
 import CompanyPicker from './components/CompanyPicker';
 import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFocus';
@@ -241,7 +241,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     selectedPositionId={formState.externalCompanyRepPositionId}
                                     onSelect={formFieldSetter('externalCompanyRepPositionId')}
                                 />
-                                <NewPositionSidesheet
+                                <CreateOrEditExternalPositionButton
                                     repType="company-rep"
                                     contract={formState}
                                     existingPosition={formState.externalCompanyRep}
@@ -261,7 +261,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                         'externalContractResponsiblePositionId'
                                     )}
                                 />
-                                <NewPositionSidesheet
+                                <CreateOrEditExternalPositionButton
                                     repType="contract-responsible"
                                     contract={formState}
                                     existingPosition={formState.externalContractResponsible}

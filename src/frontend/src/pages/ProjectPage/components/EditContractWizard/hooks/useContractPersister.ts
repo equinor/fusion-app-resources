@@ -11,23 +11,23 @@ const useContractPersister = (formState: Contract) => {
     const saveAsync = useCallback(async () => {
         setIsSaving(true);
 
-        if (formState.id) {
-            const updatedContract = await apiClient.updateContractAsync(
-                project.externalId,
-                formState.id,
-                formState
-            );
+        try {
+            if (formState.id) {
+                const updatedContract = await apiClient.updateContractAsync(
+                    project.externalId,
+                    formState.id,
+                    formState
+                );
 
+                return updatedContract;
+            }
+
+            return await apiClient.createContractAsync(project.externalId, formState);
+        } catch (e) {
+            throw e;
+        } finally {
             setIsSaving(false);
-
-            return updatedContract;
         }
-
-        const createdContract = await apiClient.createContractAsync(project.externalId, formState);
-
-        setIsSaving(false);
-
-        return createdContract;
     }, [formState]);
 
     return { saveAsync, isSaving };
