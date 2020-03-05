@@ -1,5 +1,14 @@
 .container {
-    padding: calc(var(--grid-unit) * 3px);
+    display: flex;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+
+    .tableContainer {
+        flex-grow: 1;
+        width: 1px;
+        padding: calc(var(--grid-unit) * 3px);
+    }
 }
 
 .linkInColumn {
