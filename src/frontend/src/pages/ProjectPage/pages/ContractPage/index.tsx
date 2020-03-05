@@ -68,10 +68,10 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                         {isFetchingContract ? (
                             <SkeletonBar />
                         ) : (
-                            <>
-                                {contract?.contractNumber} - {contract?.name}
-                            </>
-                        )}
+                                <>
+                                    {contract?.contractNumber} - {contract?.name}
+                                </>
+                            )}
                     </h2>
                 </header>
                 <div className={styles.content}>
@@ -86,7 +86,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                     <div className={styles.details}>
                         <ScopedSwitch>
                             <Route path="/" exact component={ContractDetailsPage} />
-                            <Route path="/managepersonnel" component={ManagePersonellPage} />
+                            <Route path="/manage-personnel" component={ManagePersonellPage} />
                             <Route path="/actual-mpp" component={ActualMppPage} />
                             <Route path="/active-requests" component={ActiveRequestsPage} />
                         </ScopedSwitch>
