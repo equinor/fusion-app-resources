@@ -1,21 +1,14 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import {
-    Button,
-    IconButton,
-    DeleteIcon,
-    EditIcon,
-    ErrorMessage,
-    FilterPane,
-} from '@equinor/fusion-components';
+import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
-import SortableTable from '../components/SortableTable';
+import SortableTable from '../../components/SortableTable';
 import columns from './columns';
 import { useContractContext } from '../../../../../../contractContex';
 import { useCurrentContext } from '@equinor/fusion';
 import getFilterSections from './getFilterSections';
-import GenericFilter from '../components/GenericFilter';
+import GenericFilter from '../../components/GenericFilter';
 
 const ActiveRequestsPage: React.FC = () => {
     const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[] | null>(null);
@@ -26,7 +19,7 @@ const ActiveRequestsPage: React.FC = () => {
     const [error, setError] = React.useState(null);
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
     const { apiClient } = useAppContext();
-    const contractContext = useContractContext();
+    const { contract, setEditRequests } = useContractContext();
     const currentContext = useCurrentContext();
 
     const getRequestsAsync = async (projectId: string, contractId: string) => {
@@ -43,16 +36,20 @@ const ActiveRequestsPage: React.FC = () => {
     };
 
     React.useEffect(() => {
-        const contractId = contractContext.contract?.id;
+        const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (contractId && projectId) {
             getRequestsAsync(projectId, contractId);
         }
-    }, [contractContext, currentContext]);
+    }, [contract, currentContext]);
 
     const filterSections = React.useMemo(() => {
         return getFilterSections(filteredActiveRequests);
     }, [filteredActiveRequests]);
+
+    const editRequest = React.useCallback((requests: PersonnelRequest[]) => {
+        setEditRequests(requests);
+    }, [setEditRequests]);
 
     if (error) {
         return (
@@ -67,12 +64,12 @@ const ActiveRequestsPage: React.FC = () => {
         <div className={styles.activeRequestsContainer}>
             <div className={styles.activeRequests}>
                 <div className={styles.toolbar}>
-                    <Button>Request personnel</Button>
+                    <Button onClick={() => editRequest([])}>Request personnel</Button>
                     <div>
-                        <IconButton>
+                        <IconButton disabled>
                             <DeleteIcon />
                         </IconButton>
-                        <IconButton>
+                        <IconButton onClick={() => editRequest(selectedRequests)}>
                             <EditIcon />
                         </IconButton>
                     </div>

@@ -9,7 +9,7 @@ import {
 import classNames from 'classnames';
 
 import * as styles from './styles.less';
-import PersonnelRequest from '../../../../../../models/PersonnelRequest';
+import PersonnelRequest from '../../../../../models/PersonnelRequest';
 
 type RequestStateProps = {
     item: PersonnelRequest;
