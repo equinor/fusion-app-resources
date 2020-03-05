@@ -103,10 +103,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            //var requests = await GetContractRequests(null, null);
 
-            //return requests.Value.Value.First();
-            return Ok();
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+            return new ApiContractPersonnelRequest(request);
         }
 
 
