@@ -139,12 +139,29 @@ namespace Fusion.Resources.Api.Controllers
         }
 
 
-        
-
-        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
+        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
         {
-            throw new NotImplementedException();
+            using (var scope = await BeginTransactionAsync())
+            {
+                var query = await DispatchAsync(new Domain.Commands.UpdateContractPersonnelRequest(requestId)
+                {
+                    Description = request.Description,
+
+                    AppliesFrom = request.Position.AppliesFrom,
+                    AppliesTo = request.Position.AppliesTo,
+                    BasePositionId = request.Position.BasePosition.Id,
+                    PositionName = request.Position.Name,
+                    Workload = request.Position.Workload,
+                    TaskOwnerPositionId = request.Position.TaskOwner?.PositionId,
+
+                    Person = (PersonId)request.Person
+                });
+
+                await scope.CommitAsync();
+
+                return new ApiContractPersonnelRequest(query);
+            }
         }
 
 
