@@ -2,8 +2,8 @@ import { FilterSection, FilterTypes } from '@equinor/fusion-components';
 import { Position } from '@equinor/fusion';
 
 const getFilterSections = (positions: Position[]): FilterSection<Position>[] => {
-    const uniqueBasePositions = positions
-        .map(position => position.basePosition.name)
+    const uniqueDisciplines = positions
+        .map(position => position.basePosition.discipline)
         .filter((d, i, l) => l.indexOf(d) === i);
 
     return [
@@ -37,9 +37,9 @@ const getFilterSections = (positions: Position[]): FilterSection<Position>[] => 
                     getValue: position => position.basePosition.name,
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
-                    options: uniqueBasePositions.map(basePosition => ({
-                        key: basePosition,
-                        label: basePosition || '(none)',
+                    options: uniqueDisciplines.map(discipline => ({
+                        key: discipline,
+                        label: discipline || '(none)',
                     })),
                 },
             ],

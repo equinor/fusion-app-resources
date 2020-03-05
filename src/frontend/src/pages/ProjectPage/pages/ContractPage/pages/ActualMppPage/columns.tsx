@@ -21,17 +21,24 @@ const columns: DataTableColumn<Position>[] = [
         component: AssignedPersonComponent,
     },
     {
+        accessor: request => request.name || 'TBN',
+        key: 'position',
+        label: 'Position',
+        sortable: true,
+    },
+    {
         accessor: request => request.basePosition?.name || 'TBN',
         key: 'basePosition',
         label: 'Base position',
         sortable: true,
     },
     {
-        accessor: request => request.name || 'TBN',
-        key: 'position',
-        label: 'Position',
+        accessor: request => request.basePosition?.discipline || 'TBN',
+        key: 'discipline',
+        label: 'Discipline',
         sortable: true,
     },
+
     {
         accessor: request =>
             request.instances.find(i => i.parentPositionId)?.parentPositionId || '',

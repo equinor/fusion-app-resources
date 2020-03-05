@@ -2,8 +2,8 @@ import { FilterSection, FilterTypes } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 
 const getFilterSections = (requests: PersonnelRequest[]): FilterSection<PersonnelRequest>[] => {
-    const uniqueBasePositions = requests
-        .map(request => request.position?.basePosition.name || 'TBN')
+    const uniqueDisciplines = requests
+        .map(request => request.position?.basePosition.discipline || '')
         .filter((d, i, l) => l.indexOf(d) === i);
 
     const uniqueStatus = requests
@@ -45,15 +45,15 @@ const getFilterSections = (requests: PersonnelRequest[]): FilterSection<Personne
                     })),
                 },
                 {
-                    key: 'base-positions',
-                    title: 'Base positions',
+                    key: 'disciplines',
+                    title: 'Disciplines',
                     type: FilterTypes.Checkbox,
-                    getValue: request => request.position?.basePosition.name || 'TBN',
+                    getValue: request => request.position?.basePosition.discipline || '',
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
-                    options: uniqueBasePositions.map(basePosition => ({
-                        key: basePosition,
-                        label: basePosition,
+                    options: uniqueDisciplines.map(discipline => ({
+                        key: discipline,
+                        label: discipline || '(none)',
                     })),
                 },
             ],
