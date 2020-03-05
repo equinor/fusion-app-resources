@@ -23,6 +23,8 @@ namespace Fusion.Resources.Database.Entities
 
         public DbRequestState State { get; set; }
 
+        public ProvisionStatus ProvisioningStatus { get; set; } = new ProvisionStatus();
+
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public DbPerson CreatedBy { get; set; }
@@ -41,6 +43,11 @@ namespace Fusion.Resources.Database.Entities
                 entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.UpdatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
 
+
+                entity.OwnsOne(e => e.ProvisioningStatus, op =>
+                {
+                    op.Property(ps => ps.State).HasConversion(new EnumToStringConverter<DbContractorRequest.DbProvisionState>());
+                });
                 entity.OwnsOne(e => e.Position, op =>
                 {
                     op.OwnsOne(p => p.TaskOwner);
@@ -68,6 +75,17 @@ namespace Fusion.Resources.Database.Entities
             public Guid? PositionId { get; set; }
             public Guid? RequestId { get; set; }
         }
+    
+        public class ProvisionStatus
+        {
+            public DbProvisionState State { get; set; } = DbProvisionState.NotProvisioned;
+            public Guid? PositionId { get; set; }
+            public DateTimeOffset? Provisioned { get; set; }
+            public string ErrorMessage { get; set; }
+            public string ErrorPayload { get; set; }
+        }
+
+        public enum DbProvisionState { NotProvisioned, Provisioned, Error }
     }
 
 

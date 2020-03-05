@@ -18,8 +18,8 @@ namespace Fusion.Resources.Domain.Commands
             OrgContractId = contractIdentifier;
         }
 
-        public Guid OrgProjectId { get; set; }
-        public Guid OrgContractId { get; set; }
+        public Guid OrgProjectId { get; }
+        public Guid OrgContractId { get; }
 
         public Guid BasePositionId { get; set; }
         public string PositionName { get; set; }

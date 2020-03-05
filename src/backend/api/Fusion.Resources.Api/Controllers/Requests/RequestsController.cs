@@ -8,6 +8,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fusion.Integration;
 using Fusion.Resources.Domain.Queries;
+using Fusion.Resources.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using MediatR;
+using Fusion.Resources.Domain.Commands;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -138,7 +142,7 @@ namespace Fusion.Resources.Api.Controllers
         
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest(string projectIdentifier, string contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
         {
             throw new NotImplementedException();
         }
@@ -146,15 +150,65 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult> ApproveContractPersonnelRequest(string projectIdentifier, string contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> ApproveContractPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            return Ok();
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+
+            QueryPersonnelRequest item;
+
+            switch (request.State)
+            {
+                case Database.Entities.DbRequestState.Created:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.SubmittedToCompany);
+                    break;
+
+                case Database.Entities.DbRequestState.SubmittedToCompany:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.ApprovedByCompany);
+
+
+                    var scopeFactory = HttpContext.RequestServices.GetRequiredService<IServiceScopeFactory>();
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(20000);
+
+                        using (var scope = scopeFactory.CreateScope())
+                        {
+                            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                            await mediator.Send(new ProvisionContractPersonnelRequest(requestId));
+                        }
+                    });
+
+                    break;
+
+                default:
+                    return FusionApiError.InvalidOperation("IllegalWorkflowOperation", "The request is not in a state that can be approved.");
+            }
+
+            return new ApiContractPersonnelRequest(item);
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/reject")]
-        public async Task<ActionResult> RejectContractPersonnelRequest(string projectIdentifier, string contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            return Ok();
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+
+            QueryPersonnelRequest item;
+
+            switch (request.State)
+            {
+                case Database.Entities.DbRequestState.Created:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.RejectedByContractor);
+                    break;
+
+                case Database.Entities.DbRequestState.SubmittedToCompany:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.RejectedByCompany);
+                    break;
+
+                default:
+                    return FusionApiError.InvalidOperation("IllegalWorkflowOperation", "The request is not in a state that can be approved.");
+            }
+
+            return new ApiContractPersonnelRequest(item);
         }
 
 
@@ -214,6 +268,8 @@ namespace Fusion.Resources.Api.Controllers
         }
         #endregion
 
+
+        
     }
 
 }

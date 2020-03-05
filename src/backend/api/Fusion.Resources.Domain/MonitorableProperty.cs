@@ -1,4 +1,6 @@
-﻿namespace Fusion.Resources.Domain.Commands
+﻿using System;
+
+namespace Fusion.Resources.Domain.Commands
 {
     public class MonitorableProperty<T>
     {
@@ -25,6 +27,22 @@
         public static implicit operator MonitorableProperty<T>(T value)
         {
             return new MonitorableProperty<T>(value);
+        }
+    }
+
+    public static class MonitorablePropertyExtensions
+    {
+        public static bool IfSet<TValue>(this MonitorableProperty<TValue> property, Action<TValue> action)
+        {
+            bool hasChanges = false;
+
+            if (property.HasBeenSet)
+            {
+                action(property.Value);
+                hasChanges = true;
+            }
+
+            return hasChanges;
         }
     }
 }

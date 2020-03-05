@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -48,7 +49,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public List<ApiRequestComment>? Comments { get; set; }
 
-        public enum ApiRequestState { Created, Submitted, Approved, Rejected, Provisioned }
+        public enum ApiRequestState { Created, SubmittedToCompany, RejectedByContractor, ApprovedByCompany, RejectedByCompany }
     }
 
 }

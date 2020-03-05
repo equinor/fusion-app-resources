@@ -26,16 +26,19 @@ namespace Fusion.Resources.Domain.Behaviours
         {
             if (request is ITrackableRequest trackableRequest)
             {
-                var user = httpContext.HttpContext.User;
-                var uniqueId = user.GetAzureUniqueIdOrThrow();
-
-                var editor = user.IsApplicationUser() switch
+                if (httpContext.HttpContext != null)
                 {
-                    true => await profileServices.EnsureApplicationAsync(uniqueId),
-                    _ => await profileServices.EnsurePersonAsync(uniqueId)
-                };
-                
-                trackableRequest.SetEditor(uniqueId, editor);
+                    var user = httpContext.HttpContext.User;
+                    var uniqueId = user.GetAzureUniqueIdOrThrow();
+
+                    var editor = user.IsApplicationUser() switch
+                    {
+                        true => await profileServices.EnsureApplicationAsync(uniqueId),
+                        _ => await profileServices.EnsurePersonAsync(uniqueId)
+                    };
+
+                    trackableRequest.SetEditor(uniqueId, editor);
+                }
             }
 
             return await next();

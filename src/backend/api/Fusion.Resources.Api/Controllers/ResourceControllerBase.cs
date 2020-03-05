@@ -1,5 +1,7 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -31,6 +33,22 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        private CommandDispatcher? dispatcher = null;
+
+        public CommandDispatcher Commands
+        {
+            get
+            {
+                if (dispatcher is null)
+                {
+                    var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
+                    dispatcher = new CommandDispatcher(mediator);
+                }
+
+                return dispatcher;
+            }
+        }
+
         protected Task<IDbContextTransaction> BeginTransactionAsync()
         {
             var scope = HttpContext.RequestServices.GetRequiredService<ITransactionScope>();
@@ -46,6 +64,35 @@ namespace Fusion.Resources.Api.Controllers
         {
             var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
             return mediator.Send(command);
+        }
+    }
+
+    public class CommandDispatcher
+    {
+        public readonly IMediator mediator;
+        
+        public CommandDispatcher(IMediator mediator)
+        {
+            this.mediator = mediator;
+        }
+
+        public Task DispatchAsync(IRequest command)
+        {
+            return mediator.Send(command);
+        }
+
+        public Task<TResult> DispatchAsync<TResult>(IRequest<TResult> command)
+        {
+            return mediator.Send(command);
+        }
+    }
+
+    public static class CommandDispatcherExtensions
+    {
+        public static async Task<QueryPersonnelRequest> UpdateState(this CommandDispatcher dispatcher, Guid requestId, DbRequestState state)
+        {
+            var item = await dispatcher.DispatchAsync(new Domain.Commands.UpdateContractPersonnelRequest(requestId) { State = state });
+            return item;
         }
     }
 }
