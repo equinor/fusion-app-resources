@@ -5,7 +5,7 @@ import Project from './Project';
 import Comment from './Comment';
 import { Position } from '@equinor/fusion';
 
-export type RequestState = 'Created' | 'Submitted' | 'Approved' | 'Rejected' | 'Provisioned';
+export type RequestState = 'Created' | 'SubmittedToCompany' | 'RejectedByContractor' | 'ApprovedByCompany' | 'RejectedByCompany';
 
 type PersonnelRequest = {
     id: string;

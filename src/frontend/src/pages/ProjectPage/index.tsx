@@ -15,6 +15,6 @@ const ProjectPage = () => {
             <Route path="/:contractId" component={ContractPage} />
         </ScopedSwitch>
     );
-}
+};
 
 export default ProjectPage;

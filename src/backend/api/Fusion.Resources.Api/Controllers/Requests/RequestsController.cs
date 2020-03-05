@@ -7,6 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fusion.Integration;
+using Fusion.Resources.Domain.Queries;
+using Fusion.Resources.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using MediatR;
+using Fusion.Resources.Domain.Commands;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -16,9 +21,9 @@ namespace Fusion.Resources.Api.Controllers
     {
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests(string projectIdentifier, string contractIdentifier)
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier)
         {
-
+            #region Bogus data
             var persons = new Faker<ApiPerson>()
                 .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
                 .RuleFor(p => p.Name, f => f.Person.FullName)
@@ -38,7 +43,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
                 .FinishWith((f, p) =>
                 {
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
+                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new ApiPersonnelDiscipline(f.Hacker.Adjective())).ToList();
                 })
                 .Generate(30);
 
@@ -91,168 +96,150 @@ namespace Fusion.Resources.Api.Controllers
                 })
                 .Generate(faker.Random.Number(10, 40));
 
-            return new ApiCollection<ApiContractPersonnelRequest>(requests);
+            #endregion
+
+
+            var realRequests = await DispatchAsync(GetContractPersonnelRequests.QueryContract(projectIdentifier.ProjectId, contractIdentifier));
+
+            return new ApiCollection<ApiContractPersonnelRequest>(realRequests.Select(r => new ApiContractPersonnelRequest(r)).Union(requests));
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById(string projectIdentifier, string contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            var requests = await GetContractRequests(null, null);
 
-            return requests.Value.Value.First();
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+            return new ApiContractPersonnelRequest(request);
         }
 
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest(string projectIdentifier, string contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
         {
-
-            var profile = UserFusionProfile;
-            if (profile is null)
-                return BadRequest(new { message = "Cannot find profile for current user" });
-
-            var personnel = new Faker<ApiContractPersonnel>()
-                .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
-                .RuleFor(p => p.Name, f => f.Person.FullName)
-                .RuleFor(p => p.Mail, f => f.Person.Email)
-                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
-                .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
-                .RuleFor(p => p.HasCV, f => f.Random.Bool())
-                .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
-                .FinishWith((f, p) =>
+            using (var scope = await BeginTransactionAsync())
+            {
+                var query = await DispatchAsync(new Domain.Commands.CreateContractPersonnelRequest(projectIdentifier.ProjectId, contractIdentifier)
                 {
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
-                })
-                .Generate();
-            var faker = new Faker();
-            var contract = new ApiContractReference
-            {
-                Company = new ApiCompany { Id = Guid.NewGuid(), Name = faker.Company.CompanyName(), Identifier = faker.Commerce.Department().ToLower() },
-                ContractNumber = faker.Finance.Account(10),
-                Id = Guid.NewGuid(),
-                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10))
-            };
-            var project = new ApiProjectReference
-            {
-                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10)),
-                Id = Guid.NewGuid(),
-                ProjectMasterId = Guid.NewGuid()
-            };
+                    Description = request.Description,
 
-
-            var createdItem = new ApiContractPersonnelRequest
-            {
-                Id = Guid.NewGuid(),
-                State = ApiContractPersonnelRequest.ApiRequestState.Created,
-                Description = request.Description,
-                Created = DateTime.UtcNow,
-                CreatedBy = new ApiPerson(profile),
-                Position = new ApiRequestPosition()
-                {
                     AppliesFrom = request.Position.AppliesFrom,
                     AppliesTo = request.Position.AppliesTo,
-                    BasePosition = new ApiRequestBasePosition() { Id = request.Position.BasePosition.Id, Name = "Test position" },
-                    Name = request.Position.Name,
-                    ExternalId = "123",
-                    TaskOwner = request.Position.TaskOwner != null ? new ApiRequestTaskOwner { PositionId = request.Position.TaskOwner.PositionId } : null,
-                    Id = request.Position.Id,
-                },
-                Person = personnel,
-                Comments = new List<ApiRequestComment>(),
-                Contract = contract,
-                Project = project
-            };
+                    BasePositionId = request.Position.BasePosition.Id,
+                    PositionName = request.Position.Name,
+                    Workload = request.Position.Workload,
+                    TaskOwnerPositionId = request.Position.TaskOwner?.PositionId,
 
-            return createdItem;
+                    Person = request.Person
+                });
+
+                await scope.CommitAsync();
+
+                return new ApiContractPersonnelRequest(query);
+            }
         }
 
 
-        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest(string projectIdentifier, string contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
+        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
         {
-
-            var profile = UserFusionProfile;
-            if (profile is null)
-                return BadRequest(new { message = "Cannot find profile for current user" });
-
-            var persons = new Faker<ApiPerson>()
-                .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
-                .RuleFor(p => p.Name, f => f.Person.FullName)
-                .RuleFor(p => p.Mail, f => f.Person.Email)
-                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
-                .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
-                .RuleFor(p => p.AccountType, f => f.PickRandomWithout<FusionAccountType>(FusionAccountType.Application))
-                .Generate();
-
-            var personnel = new Faker<ApiContractPersonnel>()
-                .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
-                .RuleFor(p => p.Name, f => f.Person.FullName)
-                .RuleFor(p => p.Mail, f => f.Person.Email)
-                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
-                .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
-                .RuleFor(p => p.HasCV, f => f.Random.Bool())
-                .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
-                .FinishWith((f, p) =>
+            using (var scope = await BeginTransactionAsync())
+            {
+                var query = await DispatchAsync(new Domain.Commands.UpdateContractPersonnelRequest(requestId)
                 {
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
-                })
-                .Generate();
-            var faker = new Faker();
-            var contract = new ApiContractReference
-            {
-                Company = new ApiCompany { Id = Guid.NewGuid(), Name = faker.Company.CompanyName(), Identifier = faker.Commerce.Department().ToLower() },
-                ContractNumber = faker.Finance.Account(10),
-                Id = Guid.NewGuid(),
-                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10))
-            };
-            var project = new ApiProjectReference
-            {
-                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10)),
-                Id = Guid.NewGuid(),
-                ProjectMasterId = Guid.NewGuid()
-            };
+                    Description = request.Description,
 
-
-            var createdItem = new ApiContractPersonnelRequest
-            {
-                Id = Guid.NewGuid(),
-                State = ApiContractPersonnelRequest.ApiRequestState.Created,
-                Description = request.Description,
-                Created = faker.Date.Past().ToUniversalTime(),
-                CreatedBy = persons,
-                Updated = DateTime.UtcNow,
-                UpdatedBy = new ApiPerson(profile),
-                Position = new ApiRequestPosition()
-                {
                     AppliesFrom = request.Position.AppliesFrom,
                     AppliesTo = request.Position.AppliesTo,
-                    BasePosition = new ApiRequestBasePosition() { Id = request.Position.BasePosition.Id, Name = "Test position" },
-                    Name = request.Position.Name,
-                    ExternalId = "123",
-                    TaskOwner = request.Position.TaskOwner != null ? new ApiRequestTaskOwner { PositionId = request.Position.TaskOwner.PositionId } : null,
-                    Id = request.Position.Id,
-                },
-                Person = personnel,
-                Comments = new List<ApiRequestComment>(),
-                Contract = contract,
-                Project = project
-            };
+                    BasePositionId = request.Position.BasePosition.Id,
+                    PositionName = request.Position.Name,
+                    Workload = request.Position.Workload,
+                    TaskOwnerPositionId = request.Position.TaskOwner?.PositionId,
 
-            return createdItem;
+                    Person = (PersonId)request.Person
+                });
+
+                await scope.CommitAsync();
+
+                return new ApiContractPersonnelRequest(query);
+            }
         }
 
 
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult> ApproveContractPersonnelRequest(string projectIdentifier, string contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> ApproveContractPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            return Ok();
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+
+            QueryPersonnelRequest item;
+
+            switch (request.State)
+            {
+                case Database.Entities.DbRequestState.Created:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.SubmittedToCompany);
+                    break;
+
+                case Database.Entities.DbRequestState.SubmittedToCompany:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.ApprovedByCompany);
+
+
+                    var scopeFactory = HttpContext.RequestServices.GetRequiredService<IServiceScopeFactory>();
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(20000);
+
+                        using (var scope = scopeFactory.CreateScope())
+                        {
+                            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                            await mediator.Send(new ProvisionContractPersonnelRequest(requestId));
+                        }
+                    });
+
+                    break;
+
+                default:
+                    return FusionApiError.InvalidOperation("IllegalWorkflowOperation", "The request is not in a state that can be approved.");
+            }
+
+            return new ApiContractPersonnelRequest(item);
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/reject")]
-        public async Task<ActionResult> RejectContractPersonnelRequest(string projectIdentifier, string contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            return Ok();
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+
+            QueryPersonnelRequest item;
+
+            switch (request.State)
+            {
+                case Database.Entities.DbRequestState.Created:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.RejectedByContractor);
+                    break;
+
+                case Database.Entities.DbRequestState.SubmittedToCompany:
+                    item = await Commands.UpdateState(requestId, Database.Entities.DbRequestState.RejectedByCompany);
+                    break;
+
+                default:
+                    return FusionApiError.InvalidOperation("IllegalWorkflowOperation", "The request is not in a state that can be approved.");
+            }
+
+            return new ApiContractPersonnelRequest(item);
+        }
+
+
+        [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
+        public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        {
+            using (var scope = await BeginTransactionAsync())
+            {
+                await DispatchAsync(new Domain.Commands.DeleteContractPersonnelRequest(projectIdentifier.ProjectId, contractIdentifier, requestId));
+
+                await scope.CommitAsync();
+
+                return NoContent();
+            }
         }
 
 
@@ -298,79 +285,8 @@ namespace Fusion.Resources.Api.Controllers
         }
         #endregion
 
-    }
 
-
-    public class ContractPersonnelRequestRequest
-    {
-        public Guid? Id { get; set; }
-        public string Description { get; set; }
-
-        public RequestPosition Position { get; set; }
-        public RequestPerson Person { get; set; }
-    
-
-        public class RequestPosition
-        {
-            /// <summary>
-            /// Existing org chart position id.
-            /// </summary>
-            public Guid? Id { get; set; }
-
-            public BasePosition BasePosition { get; set; }
-            public string Name { get; set; }
-            public DateTime AppliesFrom { get; set; }
-            public DateTime AppliesTo { get; set; }
-            public string Obs { get; set; }
-            
-            public TaskOwner TaskOwner { get; set; }
-        }
-
-        public class TaskOwner
-        {
-            /// <summary>
-            /// The position id is nullable, as at a later date other ways of referencing an un-provisioned request will be made available.
-            /// </summary>
-            public Guid? PositionId { get; set; }
-        }
-
-        public class BasePosition
-        {
-            public Guid Id { get; set; }
-        }
-    
-        public class RequestPerson
-        {
-            public Guid? AzureUniquePersonId { get; set; }
-            public string Mail { get; set; }
-
-        }
-    }
-
-    
-
-    
-
-    public class ApiContractPersonnelRequest
-    {
-        public Guid Id { get; set; }
-
-        public DateTime Created { get; set; }
-        public DateTime? Updated { get; set; }
-        public ApiPerson CreatedBy { get; set; }
-        public ApiPerson UpdatedBy { get; set; }
-        public ApiRequestState State { get; set; }
-        public string Description { get; set; }
-
-        public ApiRequestPosition Position { get; set; }
-        public ApiContractPersonnel Person { get; set; }
-
-        public ApiContractReference Contract { get; set; }
-        public ApiProjectReference Project { get; set; }
-
-        public List<ApiRequestComment> Comments { get; set; }
-
-        public enum ApiRequestState { Created, Submitted, Approved, Rejected, Provisioned }
+        
     }
 
 }

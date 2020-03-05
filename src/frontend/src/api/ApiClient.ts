@@ -12,6 +12,7 @@ import ApiCollection from '../models/apiCollection';
 import AvailableContract from '../models/availableContract';
 import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
+import Person from '../models/Person';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -53,6 +54,20 @@ export default class ApiClient {
         const url = this.resourceCollection.personnel(projectId, contractId);
         return this.httpClient.getAsync<ApiCollection<Personnel>, FusionApiHttpErrorResponse>(url);
     }
+
+    async updatePersonnelAsync(projectId: string, contractId: string,personnel: Person) {
+        const url = this.resourceCollection.personnel(projectId, contractId);
+        const reponse = await this.httpClient.postAsync<Person,Person, FusionApiHttpErrorResponse>(url,personnel);
+        return reponse.data
+    }
+
+    async updatePersonnelCollectionAsync(projectId: string, contractId: string,personnel: Person[]) {
+        const url = this.resourceCollection.personnelCollection(projectId, contractId);
+        const reponse = await this.httpClient.postAsync<Person[],Person[], FusionApiHttpErrorResponse>(url,personnel);
+        return reponse.data
+    }
+
+
 
     async createContractAsync(projectId: string, contract: Contract) {
         const url = this.resourceCollection.contracts(projectId);
@@ -126,4 +141,7 @@ export default class ApiClient {
         >(url);
         return response.data;
     }
+
+
+
 }

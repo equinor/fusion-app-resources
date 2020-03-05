@@ -1,147 +1,123 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Bogus;
+using Fusion.AspNetCore.OData;
+using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Api.Controllers
 {
+
     [Authorize]
     [ApiController]
-    public class PersonnelController : ControllerBase
+    public class PersonnelController : ResourceControllerBase
     {
+
+        public PersonnelController()
+        {
+        }
         
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel(string projectIdentifier, string contractIdentifier) 
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query) 
         {
-            var personnel = new Faker<ApiContractPersonnel>()
-                .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }))
-                .RuleFor(p => p.Name, f => f.Person.FullName)
-                .RuleFor(p => p.Mail, f => f.Person.Email)
-                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
-                .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
-                .RuleFor(p => p.HasCV, f => f.Random.Bool())
-                .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
-                .FinishWith((f, p) =>
-                {
-                    if (p.AzureUniquePersonId == null)
-                    {
-                        p.AzureAdStatus = ApiContractPersonnel.ApiAccountStatus.NoAccount;
-                    }
+            var contractPersonnel = await DispatchAsync(new GetContractPersonnel(contractIdentifier, query));
 
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new PersonnelDiscipline { Name = f.Hacker.Adjective() }).ToList();
-                })
-                .Generate(new Random().Next(50, 200));
+            var returnItems = contractPersonnel.Select(p => new ApiContractPersonnel(p));
 
-            var collection = new ApiCollection<ApiContractPersonnel>(personnel);
+            var collection = new ApiCollection<ApiContractPersonnel>(returnItems);
             return collection;
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
-        public async Task<ActionResult<ApiContractPersonnel>> CreateContractPersonnel(string projectIdentifier, string contractIdentifier, [FromBody] CreateContractPersonnelRequest request)
+        public async Task<ActionResult<ApiContractPersonnel>> CreateContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateContractPersonnelRequest request)
         {
 
-            var person = new Faker<ApiContractPersonnel>()
-                .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid() }))
-                .RuleFor(p => p.AzureAdStatus, f => f.PickRandom<ApiContractPersonnel.ApiAccountStatus>())
-                .FinishWith((f, p) => p.AzureAdStatus = p.AzureUniquePersonId == null ? ApiContractPersonnel.ApiAccountStatus.NoAccount : p.AzureAdStatus)
-                .Generate();
+            var createCommand = new CreateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, request.Mail);
+            request.LoadCommand(createCommand);
 
-
-            var item = new ApiContractPersonnel()
+            using (var scope = await BeginTransactionAsync())
             {
-                AzureAdStatus = person.AzureAdStatus,
-                AzureUniquePersonId = person.AzureUniquePersonId,
-                Name = request.Name,
-                JobTitle = request.JobTitle,
-                Mail = request.Mail,
-                PhoneNumber = request.PhoneNumber
-            };
-            
-            return Created($"/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{item.Mail}", item);
+                var newPersonnel = await DispatchAsync(createCommand);
+                
+                await scope.CommitAsync();
+
+                var item = new ApiContractPersonnel(newPersonnel);
+                return Created($"/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{item.Mail}", item);
+            }
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel-collection")]
-        public async Task<ActionResult<ApiBatchResponse<ApiContractPersonnel>>> CreateContractPersonnelBatch(string projectIdentifier, string contractIdentifier, [FromBody] IEnumerable<CreateContractPersonnelRequest> requests)
+        public async Task<ActionResult<ApiBatchResponse<ApiContractPersonnel>>> CreateContractPersonnelBatch([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] IEnumerable<CreateContractPersonnelRequest> requests)
         {
-
+            var editor = User.GetAzureUniqueIdOrThrow();
             var itemsToCreate = requests.ToList();
 
+            var results = new List<ApiBatchItemResponse<ApiContractPersonnel>>();
 
-            var persons = new Faker<ApiContractPersonnel>()
-                .RuleFor(p => p.AzureUniquePersonId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid() }))
-                .RuleFor(p => p.AzureAdStatus, f => f.PickRandom<ApiContractPersonnel.ApiAccountStatus>())
-                .FinishWith((f, p) => p.AzureAdStatus = p.AzureUniquePersonId == null ? ApiContractPersonnel.ApiAccountStatus.NoAccount : p.AzureAdStatus)
-                .Generate(itemsToCreate.Count);
-
-
-            var createdItems = itemsToCreate.Select((i, idx) => new ApiContractPersonnel()
+            foreach (var request in requests)
             {
-                AzureAdStatus = persons[idx].AzureAdStatus,
-                AzureUniquePersonId = persons[idx].AzureUniquePersonId,
-                Name = i.Name,
-                JobTitle = i.JobTitle,
-                Mail = i.Mail,
-                PhoneNumber = i.PhoneNumber
-            });
+                var createCommand = new CreateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, request.Mail);
+                request.LoadCommand(createCommand);
 
-            var returnItems = createdItems.Select(i => new ApiBatchItemResponse<ApiContractPersonnel>(i, HttpStatusCode.Created)).ToList();
-
-            // Introduce randomness
-            if (itemsToCreate.Count >= 5)
-            {
-                var faker = new Faker();            
-                var invalidItem = faker.PickRandom(returnItems);
-                invalidItem.Code = HttpStatusCode.Conflict;
-                invalidItem.Message = "The person has already been added to the personnel collection for the contract";
-
-                var errorItem = faker.PickRandom(returnItems.Except(new[] { invalidItem }));
-                invalidItem.Code = HttpStatusCode.InternalServerError;
-                invalidItem.Message = "Unexpected error occured while trying to add the person";
-
-                var illegalItem = faker.PickRandom(returnItems.Except(new[] { invalidItem, errorItem }));
-                invalidItem.Code = HttpStatusCode.BadRequest;
-                invalidItem.Message = "The specified person cannot be added to ";
+                using (var scope = await BeginTransactionAsync())
+                {
+                    try
+                    {
+                        var newPersonnel = await DispatchAsync(createCommand);
+                        await scope.CommitAsync();
+                        results.Add(new ApiBatchItemResponse<ApiContractPersonnel>(new ApiContractPersonnel(newPersonnel), HttpStatusCode.Created));
+                    }
+                    catch (Exception ex)
+                    {
+                        results.Add(new ApiBatchItemResponse<ApiContractPersonnel>(HttpStatusCode.BadRequest, ex.Message));
+                        await scope.RollbackAsync();
+                    }
+                }
             }
 
-            return new ApiBatchResponse<ApiContractPersonnel>(returnItems);
+            return new ApiBatchResponse<ApiContractPersonnel>(results);
         }
 
-        [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
-        public async Task<ActionResult> DeleteContractPersonnel(string projectIdentifier, string contractIdentifier, string personIdentifier)
+
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
+        public async Task<ActionResult<ApiContractPersonnel>> UpdateContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier, [FromBody] UpdateContractPersonnelRequest request)
         {
+
+            var updateCommand = new UpdateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, personIdentifier);
+            request.LoadCommand(updateCommand);
+
+            using (var scope = await BeginTransactionAsync())
+            {
+                var updatedPersonnel = await DispatchAsync(updateCommand);
+
+                await scope.CommitAsync();
+
+                var item = new ApiContractPersonnel(updatedPersonnel);
+                return item;
+            }
+        }
+
+
+        [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
+        public async Task<ActionResult> DeleteContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
+        {
+            var personnelId = new PersonnelId(personIdentifier);
+
+            await DispatchAsync(new DeleteContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, personnelId));
+
             return NoContent();
         }
     
-    }
-
-
-    public class ApiBatchResponse<T> : List<ApiBatchItemResponse<T>>
-    {
-        public ApiBatchResponse(IEnumerable<ApiBatchItemResponse<T>> items) : base(items)
-        {
-        }
-    }
-
-
-    public class ApiBatchItemResponse<T>
-    {
-        public ApiBatchItemResponse(T item, HttpStatusCode code, string message = null)
-        {
-            Value = item;
-            Code = code;
-            Message = message;
-        }
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public HttpStatusCode Code { get; set; }
-        public string Message { get; set; }
-        public T Value { get; set; }
     }
 
 

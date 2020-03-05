@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiRequestComment
     {
-        public DateTime Created { get; set; }
-        public DateTime? Updated { get; set; }
+        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Updated { get; set; }
         public ApiPerson CreatedBy { get; set; }
         public ApiPerson UpdatedBy { get; set; }
 
         public string Content { get; set; }
 
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiCommentOrigin Origin { get; set; }
 
 

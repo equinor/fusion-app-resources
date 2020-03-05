@@ -1,23 +1,40 @@
 ﻿using Bogus;
-using Fusion.Integration.Profile;
+using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Fusion.Resources.Api.Controllers
 {
     [Authorize]
     [ApiController]
-    public class ContractsController : ControllerBase
+    public class ContractsController : ResourceControllerBase
     {
+        private readonly IMediator mediator;
+        private readonly IOrgApiClientFactory orgApiClientFactory;
+
+        public ContractsController(IMediator mediator, IOrgApiClientFactory orgApiClientFactory)
+        {
+            this.mediator = mediator;
+            this.orgApiClientFactory = orgApiClientFactory;
+        }
 
         [HttpGet("/projects/{projectIdentifier}/contracts")]
-        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectContracts(string projectIdentifier)
+        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectContracts([FromRoute]ProjectIdentifier projectIdentifier)
         {
+            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            var realContracts = await client.GetContractsV2Async(projectIdentifier.ProjectId);
+
             var contracts = new Faker<ApiContract>()
                 .RuleFor(c => c.ContractNumber, f => f.Finance.Account(10))
                 .RuleFor(c => c.Name, f => f.Lorem.Sentence(f.Random.Int(4, 10)))
@@ -27,163 +44,179 @@ namespace Fusion.Resources.Api.Controllers
                 .RuleFor(c => c.EndDate, f => f.Date.Future())
                 .Generate(new Random(Guid.NewGuid().GetHashCode()).Next(5, 10));
 
-            var collection = new ApiCollection<ApiContract>(contracts);
+            var collection = new ApiCollection<ApiContract>(realContracts.Select(c => new ApiContract(c)).Union(contracts));
             return Ok(collection);
         }
 
-        [HttpGet("/projects/{projectIdentifier}/available-contracts")]
-        public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts(string projectIdentifier)
+        [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
+        public async Task<ActionResult<ApiContract>> GetProjectContracts([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
         {
-            var contracts = new Faker<ApiUnallocatedContract>()
-                .RuleFor(c => c.ContractNumber, f => f.Finance.Account(10))
-                .Generate(new Random(Guid.NewGuid().GetHashCode()).Next(5, 10));
+            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractId);
+
+            return new ApiContract(orgContract);
+        }
+
+        [HttpGet("/projects/{projectIdentifier}/available-contracts")]
+        public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts([FromRoute]ProjectIdentifier projectIdentifier)
+        {
+            var contracts = new[]
+            {
+                new ApiUnallocatedContract { ContractNumber = "0000000001" },
+                new ApiUnallocatedContract { ContractNumber = "0000000002" },
+                new ApiUnallocatedContract { ContractNumber = "0000000003" },
+                new ApiUnallocatedContract { ContractNumber = "0000000004" },
+                new ApiUnallocatedContract { ContractNumber = "0000055555" },
+                new ApiUnallocatedContract { ContractNumber = "0000666666" },
+                new ApiUnallocatedContract { ContractNumber = "1000000000" },
+                new ApiUnallocatedContract { ContractNumber = "1111111111" }
+            };
 
             return Ok(new ApiCollection<ApiUnallocatedContract>(contracts));
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts")]
-        public async Task<ActionResult<ApiContract>> AllocateProjectContract(string projectIdentifier, [FromBody] ContractRequest request)
+        public async Task<ActionResult<ApiContract>> AllocateProjectContract([FromRoute]ProjectIdentifier projectIdentifier, [FromBody] ContractRequest request)
         {
-
-            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract
+            var allocatedContract = await mediator.Send(new AllocateContract(projectIdentifier.ProjectId, request.ContractNumber));
+            allocatedContract = await mediator.Send(new UpdateContract(projectIdentifier.ProjectId, allocatedContract.OrgContractId)
             {
-                Id = Guid.NewGuid(),
-                ContractNumber = request.ContractNumber,
                 Name = request.Name,
-                Description = request.Description,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
-                Company = request.Company != null ? new ApiCompany { Id = Guid.NewGuid(), Identifier = request.Company.Identifier, Name = new Faker().Company.CompanyName() } : null,
-                CompanyRepPositionId = request.CompanyRepPositionId,
-                ContractResponsiblePositionId = request.ContractResponsiblePositionId,
-                ExternalCompanyRepPositionId = request.ExternalCompanyRepPositionId,
-                ExternalContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
+                CompanyId = request.Company?.Id,
+                Description = request.Description
             });
+
+            await DispatchAsync(new UpdateContractReps(projectIdentifier.ProjectId, allocatedContract.OrgContractId)
+            {
+                CompanyRepPositionId = request.CompanyRepPositionId,
+                ContractResponsiblePositionId = request.ContractResponsiblePositionId
+            });
+
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, allocatedContract.OrgContractId)
+            {
+                CompanyRepPositionId = request.ExternalCompanyRepPositionId,
+                ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
+            });
+
+            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, allocatedContract.OrgContractId);
+
+            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract));
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}")]
-        public async Task<ActionResult<ApiContract>> UpdateProjectContract(string projectIdentifier, string contractIdentifier, [FromBody] ContractRequest request)
+        public async Task<ActionResult<ApiContract>> UpdateProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractRequest request)
         {
-
-            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract
+            await DispatchAsync(new UpdateContract(projectIdentifier.ProjectId, contractIdentifier)
             {
-                Id = request.Id.GetValueOrDefault(Guid.NewGuid()),
-                ContractNumber = request.ContractNumber,
                 Name = request.Name,
-                Description = request.Description,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
-                Company = request.Company != null ? new ApiCompany { Id = Guid.NewGuid(), Identifier = request.Company.Identifier, Name = new Faker().Company.CompanyName() } : null,
-                CompanyRepPositionId = request.CompanyRepPositionId,
-                ContractResponsiblePositionId = request.ContractResponsiblePositionId,
-                ExternalCompanyRepPositionId = request.ExternalCompanyRepPositionId,
-                ExternalContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
+                CompanyId = request.Company?.Id,
+                Description = request.Description
             });
+
+            await DispatchAsync(new UpdateContractReps(projectIdentifier.ProjectId, contractIdentifier)
+            {
+                CompanyRepPositionId = request.CompanyRepPositionId,
+                ContractResponsiblePositionId = request.ContractResponsiblePositionId
+            });
+
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier)
+            {
+                CompanyRepPositionId = request.ExternalCompanyRepPositionId,
+                ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
+            });
+
+           
+            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractIdentifier);
+
+            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract));
         }
 
-        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
-        public async Task<ActionResult> CreateContractExternalCompanyRep(string projectIdentifier, string contractIdentifier, [FromBody] ContractPositionRequest request)
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
+        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalCompanyRep([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
+            var externalId = "ext-comp-rep";
+            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
 
-            return Ok();
+            ApiClients.Org.ApiPositionV2 position;
+
+            if (existingPosition != null)
+            {
+                position = await DispatchAsync(new UpdateContractPosition(existingPosition)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson
+                });
+            }
+            else
+            {
+                var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson,
+                    ExternalId = externalId
+                };
+
+                position = await DispatchAsync(createNewPositionCommand);
+            }
+            
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
+
+            return position;
         }
 
-        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
-        public async Task<ActionResult> CreateContractExternalContractResp(string projectIdentifier, string contractIdentifier, [FromBody] ContractPositionRequest request)
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
+        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalContractResp([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
+            var externalId = "ext-contr-resp";
+            var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
 
-            return Ok();
+            ApiClients.Org.ApiPositionV2 position;
+
+            if (existingPosition != null)
+            {
+                position = await DispatchAsync(new UpdateContractPosition(existingPosition)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson
+                });
+            }
+            else
+            {
+                var createNewPositionCommand = new CreateContractPosition(projectIdentifier.ProjectId, contractIdentifier)
+                {
+                    BasePositionId = request.BasePosition.Id,
+                    PositionName = request.Name,
+                    AppliesFrom = request.AppliesFrom,
+                    AppliesTo = request.AppliesTo,
+                    Workload = request.Workload,
+                    AssignedPerson = request.AssignedPerson,
+                    ExternalId = externalId
+                };
+
+                position = await DispatchAsync(createNewPositionCommand);
+            }
+
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
+
+            return position;
         }
-    }
-
-    public class ContractPositionRequest
-    {
-        public IdEntity BasePosition { get; set; }
-        public string Name { get; set; }
-        public DateTime AppliesFrom { get; set; }
-        public DateTime AppliesTo { get; set; }
-        public PersonRequest AssignedPerson { get; set; }
-    }
-
-    public class PersonRequest
-    {
-        public Guid? AzureUniquePersonId { get; set; }
-        public string Mail { get; set; }
-    }
-
-    public class IdEntity
-    {
-        public Guid Id { get; set; }
-    }
-
-    public class ApiContract
-    {
-        public Guid Id { get; set; }
-        public string ContractNumber { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-
-        public ApiCompany Company { get; set; }
-        
-        public Guid? ContractResponsiblePositionId { get; set; }
-        public Guid? CompanyRepPositionId { get; set; }
-        public Guid? ExternalContractResponsiblePositionId { get; set; }
-        public Guid? ExternalCompanyRepPositionId { get; set; }
-    }
-
-    public class ApiCompany
-    {
-        public Guid Id { get; set; }
-        public string Identifier { get; set; }
-        public string Name { get; set; }
-    }
-
-
-    public class ApiPerson
-    {
-        public ApiPerson() { }
-        public ApiPerson(FusionFullPersonProfile profile)
-        {
-            AzureUniquePersonId = profile.AzureUniqueId;
-            Mail = profile.Mail;
-            Name = profile.Name;
-            PhoneNumber = profile.MobilePhone;
-            JobTitle = profile.JobTitle;
-            AccountType = profile.AccountType;
-        }
-
-        public Guid? AzureUniquePersonId { get; set; }
-        public string Mail { get; set; } = null!;
-        public string Name { get; set; } = null!;
-        public string PhoneNumber { get; set; } = null!;
-        public string JobTitle { get; set; } = null!;
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public FusionAccountType AccountType { get; set; }
-    }
-
-    public class ContractRequest
-    {
-        public Guid? Id { get; set; }
-        public string ContractNumber { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-
-        public CompanyRequest Company { get; set; }
-
-        public Guid? ContractResponsiblePositionId { get; set; }
-        public Guid? CompanyRepPositionId { get; set; }
-        public Guid? ExternalContractResponsiblePositionId { get; set; }
-        public Guid? ExternalCompanyRepPositionId { get; set; }
-    }
-
-    public class CompanyRequest
-    {
-        public Guid Id { get; set; }
-        public string Identifier { get; set; }
     }
 }
