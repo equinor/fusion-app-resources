@@ -17,7 +17,7 @@ type ExternalPositionSidesheetProps = {
 };
 
 const createRequestFromPosition = (position: Position | null) => {
-    if (!position || ['ext-comp-rep', 'ext-contr-resp'].indexOf(position.externalId) === -1) {
+    if (!position || !['ext-comp-rep', 'ext-contr-resp'].includes(position.externalId)) {
         return null;
     }
 
