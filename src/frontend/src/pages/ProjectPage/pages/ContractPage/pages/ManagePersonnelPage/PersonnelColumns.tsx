@@ -37,16 +37,18 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
     key: 'azureAdStatus',
     accessor: 'azureAdStatus',
     label: 'AD',
-    priority: 10,
+    priority: 15,
     component: AzureAdStatus,
     sortable: true,
+    width: "20px"
   },
   {
     key: 'Phone',
     accessor: 'phoneNumber',
     label: 'Phone Number',
-    priority: 15,
+    priority: 10,
     sortable: true,
+    width: "50px"
   },
   {
     key: 'Workload',
@@ -54,6 +56,7 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
     label: 'Workload',
     priority: 20,
     sortable: true,
+    width: "20px"
   },
   {
     key: 'positions',
@@ -61,6 +64,7 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
     label: 'Positions',
     priority: 25,
     sortable: true,
+    width: "20px"
   }
 ]
 
