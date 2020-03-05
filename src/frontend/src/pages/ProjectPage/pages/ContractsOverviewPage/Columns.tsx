@@ -37,7 +37,7 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         component: ({ item }) => <PositionColumn positionId={item.contractResponsiblePositionId} />,
     },
     {
-        accessor: contract => contract.company?.id || 'no company',
+        accessor: contract => contract.company?.name || 'no company',
         key: 'company',
         label: 'Company',
         sortable: true,
