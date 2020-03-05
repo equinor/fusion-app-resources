@@ -1,0 +1,89 @@
+trigger: 
+    branches:
+      include:
+      - master
+    paths:
+      include:
+      - src/backend/infrastructure/arm-templates/*
+  
+pr: none
+  
+stages:
+- stage: DeployCI
+  displayName: CI Azure Infra
+  pool: Private Docker
+  jobs:
+  - deployment: DeployInfra
+    environment: fusion-ci
+    variables:
+      environmentName: ci
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/arm-environments.yml
+            parameters:
+              environment: $(environmentName)
+              clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              sqlServer: Fusion-SQL-Test
+
+- stage: DeployPR
+  displayName: PR Azure Infra
+  pool: Private Docker  
+  dependsOn: DeployCI
+  condition: succeeded()
+  jobs:
+  - deployment: DeployInfra
+    environment: fusion-pullrequests
+    variables:
+      environmentName: pr
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/arm-environments.yml
+            parameters:
+              environment: $(environmentName)
+              clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              sqlServer: Fusion-SQL-Test
+
+- stage: DeployQA
+  displayName: QA Azure Infra
+  pool: Private Docker  
+  dependsOn: DeployCI
+  condition: succeeded()
+  jobs:
+  - deployment: DeployInfra
+    environment: fusion-fqa
+    variables:
+      environmentName: qa
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/arm-environments.yml
+            parameters:
+              environment: $(environmentName)
+              clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              sqlServer: Fusion-SQL-Test
+
+# - stage: DeployPROD
+#   displayName: PROD Azure Infra
+#   pool: Private Docker  
+#   dependsOn: DeployQA
+#   condition: succeeded()
+#   jobs:
+#   - deployment: DeployInfra
+#     environment: query-prod
+#     variables:
+#       environmentName: prod
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - template: templates/arm-environments.yml
+#             parameters:
+#               environment: $(environmentName)
+#               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+#              sqlServer: Fusion-SQL-Test
+                    
