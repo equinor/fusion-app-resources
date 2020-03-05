@@ -28,13 +28,13 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         accessor: 'companyRepPositionId',
         key: 'companyRepPositionId',
         label: 'Equinor company rep',
-        component: ({ item }) => <PositionColumn positionId={item.companyRepPositionId} />,
+        component: ({ item }) => <PositionColumn position={item.companyRep} />,
     },
     {
         accessor: 'contractResponsiblePositionId',
         key: 'contractResponsiblePositionId',
         label: 'Equinor contract rep',
-        component: ({ item }) => <PositionColumn positionId={item.contractResponsiblePositionId} />,
+        component: ({ item }) => <PositionColumn position={item.contractResponsible} />,
     },
     {
         accessor: contract => contract.company?.name || 'no company',
@@ -46,13 +46,13 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         accessor: 'externalContractResponsiblePositionId',
         key: 'externalContractResponsiblePositionId',
         label: 'External company rep',
-        component: ({ item }) => <PositionColumn positionId={item.externalContractResponsiblePositionId} />,
+        component: ({ item }) => <PositionColumn position={item.externalContractResponsible} />,
     },
     {
         accessor: 'externalCompanyRepPositionId',
         key: 'externalCompanyRepPositionId',
         label: 'External contract rep',
-        component: ({ item }) => <PositionColumn positionId={item.externalCompanyRepPositionId} />,
+        component: ({ item }) => <PositionColumn position={item.externalCompanyRep} />,
     },
 ];
 
