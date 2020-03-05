@@ -17,7 +17,11 @@ const useContractAllocationAutoFocus = (activeStepKey: StepKey, formState: Contr
                 contractNumberRef.current.querySelector('input')?.click();
             } else if (activeStepKey === 'contract-details' && nameInputRef.current) {
                 nameInputRef.current?.focus();
-            } else if (activeStepKey === 'external' && externalCompanyRepRef.current) {
+            } else if (
+                activeStepKey === 'external' &&
+                !formState.externalCompanyRepPositionId &&
+                externalCompanyRepRef.current
+            ) {
                 externalCompanyRepRef.current.querySelector('input')?.click();
             }
         }, 0);
@@ -29,6 +33,7 @@ const useContractAllocationAutoFocus = (activeStepKey: StepKey, formState: Contr
         nameInputRef.current,
         externalCompanyRepRef.current,
         formState.contractNumber,
+        formState.externalCompanyRepPositionId,
     ]);
 
     return {

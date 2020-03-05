@@ -1,5 +1,15 @@
 .container {
+    display: flex;
     padding: calc(var(--grid-unit) * 3px);
+
+    .contractDetails {
+        flex-grow: 1;
+    }
+
+    .aside {
+        flex-shrink: 0;
+    }
+
     .row {
         display: flex;
         margin-bottom: calc(var(--grid-unit) * 3px);

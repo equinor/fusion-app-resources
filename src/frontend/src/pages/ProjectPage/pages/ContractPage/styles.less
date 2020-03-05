@@ -10,11 +10,20 @@
         border-bottom: 1px solid var(--color-black-alt4);
         flex-shrink: 0;
 
+        /* IconButton in fusion components should have flex-shrink: 0 */
+        :first-child {
+            flex-shrink: 0;
+        }
+
         h2 {
             flex-grow: 1;
             font-size: 20px;
             line-height: 32px;
             margin: calc(var(--grid-unit) * 2px) 0 calc(var(--grid-unit) * 2px) calc(var(--grid-unit) * 1px);
+            max-width: 75%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 

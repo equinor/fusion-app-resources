@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DataTableColumn } from "@equinor/fusion-components";
+import { DataTableColumn, styling } from "@equinor/fusion-components";
 import Contract from '../../../../models/contract';
 import ContractLinkColumn from './components/ContractLinkColumn';
 import PositionColumn from '../../components/PositionColumn';
@@ -19,6 +19,7 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         key: 'name',
         label: 'Name',
         sortable: true,
+        width: styling.grid(20),
         component: ({ item }) => (
             <ContractLinkColumn contractId={item.id}>{item.name}</ContractLinkColumn>
         ),
