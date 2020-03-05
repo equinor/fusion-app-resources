@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{996B233A-1FC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Api", "api\Fusion.Resources.Api\Fusion.Resources.Api.csproj", "{405CA56F-B0F8-4515-B45D-AE143965A178}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Database", "Fusion.Resources.Database\Fusion.Resources.Database.csproj", "{5F2CDAAF-C625-46FC-AB82-EDE4F47DF69C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Database", "api\Fusion.Resources.Database\Fusion.Resources.Database.csproj", "{5F2CDAAF-C625-46FC-AB82-EDE4F47DF69C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Domain", "api\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj", "{EC425C33-9AE9-49F9-A3AD-4BECFE4CBD8B}"
 EndProject
