@@ -83,11 +83,19 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const onAddPerson = React.useCallback(() => {
         setFormState([
             ...formState,
-            { personnelId: uuid(), name: '', phoneNumber: '', mail: '', jobTitle: '' },
+            {
+                personnelId: uuid(),
+                name: "",
+                firstName: "",
+                lastName: "",
+                phoneNumber: "",
+                mail: "",
+                jobTitle: ""
+            },
         ]);
     }, [formState]);
 
-    const headers = ['Name', 'Mail', 'Phone'];
+    const headers = ['Firstname', 'Lastname', 'Mail', 'Phone'];
     const rowTemplate = generateRowTemplate(headers);
     const columnTemplate = generateColumnTemplate(headers);
     const containerClassNames = classNames(styles.container, useComponentDisplayClassNames(styles));
@@ -96,9 +104,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         <ModalSideSheet
             header="Add Person"
             show={isOpen}
-            onClose={() => {
-                setIsOpen(false);
-            }}
+            size={'fullscreen'}
+            onClose={() => { setIsOpen(false) }}
             safeClose
             safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
             safeCloseCancelLabel={'Continue editing'}
@@ -116,8 +123,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                     {saveInProgress ? <Spinner inline /> : 'Create'}
                 </Button>,
             ]}
-            isResizable
-            minWidth={640}
         >
             {isOpen && (
                 <div className={containerClassNames}>
@@ -134,15 +139,23 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                 {formState.map(person => (
                                     <tr
                                         key={`person${person.personnelId}`}
-                                        className={styles.tableRow}
                                     >
                                         <td className={styles.tableRowCell}>
                                             <AddPersonnelFormTextInput
-                                                key={`name${person.personnelId}`}
+                                                key={`firstname${person.personnelId}`}
                                                 disabled={saveInProgress}
                                                 item={person}
                                                 onChange={onChange}
-                                                field={'name'}
+                                                field={'firstName'}
+                                            />
+                                        </td>
+                                        <td className={styles.tableRowCell}>
+                                            <AddPersonnelFormTextInput
+                                                key={`lastname${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'lastName'}
                                             />
                                         </td>
                                         <td className={styles.tableRowCell}>

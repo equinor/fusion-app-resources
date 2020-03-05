@@ -20,13 +20,13 @@
     },
     "dependencies": {
         "@equinor/fusion": "^1.0.34",
-        "@equinor/fusion-components": "^1.1.51",
+        "@equinor/fusion-components": "^1.1.53",
         "@types/classnames": "^2.2.9",
         "@types/deep-equal": "^1.0.1",
         "classnames": "^2.2.6",
+        "deep-equal": "^2.0.1",
         "react": "^16.9.0",
-        "uuid": "^7.0.1",
-        "deep-equal": "^2.0.1"
+        "uuid": "^7.0.1"
     },
     "devDependencies": {
         "@equinor/fusion-cli": "^1.0.15",

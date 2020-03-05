@@ -27,25 +27,27 @@ const ManagePersonnelPage: React.FC = () => {
 
     const personnelColumns = React.useMemo(() => PersonnelColumns(), []);
     const sortedByColumn = React.useMemo(() => personnelColumns.find(c => c.accessor === sortBy) || null, [sortBy]);
-
+    console.log(personnelError)
     return (
         <div className={styles.container}>
-            <div className={styles.button}><Button outlined onClick={() => setIsAddPersonOpen(true)} >  <AddIcon />  Add Person </Button></div>
-            <DataTable
-                columns={personnelColumns}
-                data={sortedData}
-                isFetching={isFetchingPersonnel}
-                rowIdentifier={'personnelId'}
-                onSortChange={onSortChange}
-                sortedBy={{
-                    column: sortedByColumn,
-                    direction,
-                }}
-                isSelectable
-                onSelectionChange={setSelectedItems}
-                selectedItems={selectedItems}
-            />
-            {isAddPersonOpen && <AddPersonnelSideSheet isOpen={isAddPersonOpen} setIsOpen={setIsAddPersonOpen} selectedPersonnel={selectedItems.length ? selectedItems : null} />}
+            <div className={styles.managePersonnel}>
+                <div className={styles.toolbar}><Button outlined onClick={() => setIsAddPersonOpen(true)} >  <AddIcon />  Add Person </Button></div>
+                <DataTable
+                    columns={personnelColumns}
+                    data={sortedData}
+                    isFetching={isFetchingPersonnel}
+                    rowIdentifier={'personnelId'}
+                    onSortChange={onSortChange}
+                    sortedBy={{
+                        column: sortedByColumn,
+                        direction,
+                    }}
+                    isSelectable
+                    onSelectionChange={setSelectedItems}
+                    selectedItems={selectedItems}
+                />
+                {isAddPersonOpen && <AddPersonnelSideSheet isOpen={isAddPersonOpen} setIsOpen={setIsAddPersonOpen} selectedPersonnel={selectedItems.length ? selectedItems : null} />}
+            </div>
         </div>
     );
 }

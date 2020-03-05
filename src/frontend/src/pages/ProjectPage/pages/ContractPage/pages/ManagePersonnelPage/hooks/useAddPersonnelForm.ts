@@ -7,6 +7,8 @@ const createDefaultState = (): Person[] => ([
   {
     personnelId: uuid(),
     name: "",
+    firstName: "",
+    lastName: "",
     phoneNumber: "",
     mail: "",
     jobTitle: ""
@@ -17,7 +19,8 @@ const useAddPersonnelForm = (defaultState?: Person[] | null) => {
     return !formState
       .some(p =>
         !Boolean(
-          p.name &&
+          p.firstName &&
+          p.lastName &&
           p.phoneNumber &&
           p.mail))
   }, []);

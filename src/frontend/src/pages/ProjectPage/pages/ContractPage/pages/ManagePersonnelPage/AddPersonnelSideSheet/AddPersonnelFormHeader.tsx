@@ -6,10 +6,10 @@ type HeaderProps = {
   headers: string[];
 }
 
-const AddPersonnelFormHeader : React.FC<HeaderProps> = ({headers}) => {
+const AddPersonnelFormHeader: React.FC<HeaderProps> = ({ headers }) => {
   return (
     <>
-      <div className={classNames(styles.cell, styles.header, styles.expand)} >
+      <div className={classNames(styles.cell, styles.header)} >
         {headers.map((headerlabel) => (
           <div key={headerlabel} className={styles.label}>
             <span className={styles.label}>{headerlabel}</span>
