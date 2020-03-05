@@ -8,6 +8,7 @@ import {
     ArrowBackIcon,
     IconButton,
     useTooltipRef,
+    Spinner,
 } from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
@@ -15,12 +16,14 @@ import ContractNumberPicker from './components/ContractNumberPicker';
 import classNames from 'classnames';
 import * as styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
-import NewPositionSidesheet from './components/NewPositionSidesheet';
-import { formatDate } from '@equinor/fusion';
+import CreateOrEditExternalPositionButton from './components/CreateOrEditExternalPositionButton';
+import { formatDate, useTelemetryLogger, useNotificationCenter } from '@equinor/fusion';
 import CompanyPicker from './components/CompanyPicker';
 import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFocus';
 import useActiveStepKey from './hooks/useActiveStepKey';
 import useContractPersister from './hooks/useContractPersister';
+
+export { default as ContractWizardSkeleton } from './components/ContractWizardSkeleton';
 
 type EditContractWizardProps = {
     title: string;
@@ -28,6 +31,7 @@ type EditContractWizardProps = {
     onCancel: () => void;
     goBackTo: string;
     onGoBack: () => void;
+    onSubmit: (contract: Contract) => void;
 };
 
 const EditContractWizard: React.FC<EditContractWizardProps> = ({
@@ -36,6 +40,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
     onCancel,
     goBackTo,
     onGoBack,
+    onSubmit,
 }) => {
     const isEdit = React.useMemo(() => {
         return Boolean(existingContract && existingContract.contractNumber !== null);
@@ -50,22 +55,32 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         isFormDirty,
     } = useContractForm(existingContract);
 
-    const onSave = React.useCallback(
-        (contract: Contract) => {
+    const { saveAsync, isSaving } = useContractPersister(formState);
+
+    const telemetryLogger = useTelemetryLogger();
+    const sendNotification = useNotificationCenter();
+
+    const onSave = React.useCallback(async () => {
+        try {
+            const savedContract = await saveAsync();
             if (formState.id) {
-                resetForm(contract);
+                resetForm(savedContract);
             } else {
-                setFormField('id', contract.id);
+                setFormField('id', savedContract.id);
             }
-        },
-        [formState, resetForm, setFormField]
-    );
-    const saveAsync = useContractPersister(formState, onSave);
+        } catch (e) {
+            telemetryLogger.trackException(e);
+            sendNotification({
+                level: 'medium',
+                title: 'Unable to save contract. Please try again',
+            });
+        }
+    }, [formState, resetForm, setFormField, saveAsync]);
 
     const { activeStepKey, gotoContract, gotoContractDetails, gotoExteral } = useActiveStepKey(
         isEdit,
         formState,
-        saveAsync
+        onSave
     );
 
     const {
@@ -83,8 +98,21 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
 
     const backButtonTooltipRef = useTooltipRef('Go back to ' + goBackTo, 'right');
 
+    const handleSubmit = React.useCallback(async () => {
+        try {
+            const contract = await saveAsync();
+            onSubmit(contract);
+        } catch (e) {
+            telemetryLogger.trackException(e);
+            sendNotification({
+                level: 'medium',
+                title: 'Unable to save contract. Please try again',
+            });
+        }
+    }, [saveAsync, onSubmit]);
+
     return (
-        <div>
+        <div className={styles.container}>
             <header className={styles.header}>
                 <IconButton onClick={onGoBack} ref={backButtonTooltipRef}>
                     <ArrowBackIcon />
@@ -93,8 +121,18 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                 <Button outlined onClick={onCancel}>
                     Cancel
                 </Button>
-                <Button outlined disabled={!isFormValid || !isFormDirty} onClick={saveAsync}>
-                    Save
+                <Button
+                    outlined
+                    disabled={!isFormValid || !isFormDirty || isSaving}
+                    onClick={onSave}
+                >
+                    {isSaving ? (
+                        <>
+                            <Spinner inline size={16} /> Saving
+                        </>
+                    ) : (
+                        'Save'
+                    )}
                 </Button>
             </header>
             <Stepper activeStepKey={activeStepKey}>
@@ -162,26 +200,34 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                             <div className={styles.field}>
                                 <ContractPositionPicker
                                     label="Equinor Contract responsible"
-                                    selectedPositionId={formState.contractResponsiblePositionId}
-                                    onSelect={formFieldSetter('contractResponsiblePositionId')}
+                                    selectedPosition={formState.contractResponsible}
+                                    onSelect={formFieldSetter('contractResponsible')}
                                 />
                             </div>
                             <div className={styles.field}>
                                 <ContractPositionPicker
                                     label="Equinor Company rep"
-                                    selectedPositionId={formState.companyRepPositionId}
-                                    onSelect={formFieldSetter('companyRepPositionId')}
+                                    selectedPosition={formState.companyRep}
+                                    onSelect={formFieldSetter('companyRep')}
                                 />
                             </div>
                         </div>
 
                         <div className={styles.actions}>
-                            <Button outlined onClick={gotoContract}>
-                                Previous
-                            </Button>
-                            <Button onClick={gotoExteral} disabled={!isFormValid}>
-                                {formState.id ? 'Next' : 'Save and next'}
-                            </Button>
+                            {!isEdit && (
+                                <Button outlined onClick={gotoContract}>
+                                    Previous
+                                </Button>
+                            )}
+                            {isSaving ? (
+                                <Button disabled>
+                                    <Spinner inline size={16} /> Saving
+                                </Button>
+                            ) : (
+                                <Button onClick={gotoExteral} disabled={!isFormValid}>
+                                    {formState.id ? 'Next' : 'Save and next'}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Step>
@@ -192,15 +238,14 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <ContractPositionPicker
                                     label="External Company rep"
                                     contractId={formState.id || undefined}
-                                    selectedPositionId={formState.externalCompanyRepPositionId}
-                                    onSelect={formFieldSetter('externalCompanyRepPositionId')}
+                                    selectedPosition={formState.externalCompanyRep}
+                                    onSelect={formFieldSetter('externalCompanyRep')}
                                 />
-                                <NewPositionSidesheet
+                                <CreateOrEditExternalPositionButton
                                     repType="company-rep"
                                     contract={formState}
-                                    onComplete={formFieldSetter(
-                                        'externalCompanyRepPositionId'
-                                    )}
+                                    existingPosition={formState.externalCompanyRep}
+                                    onComplete={formFieldSetter('externalCompanyRepPositionId')}
                                 />
                             </div>
                         </div>
@@ -209,16 +254,15 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                 <ContractPositionPicker
                                     label="External Contract responsible"
                                     contractId={formState.id || undefined}
-                                    selectedPositionId={
-                                        formState.externalContractResponsiblePositionId
-                                    }
+                                    selectedPosition={formState.externalContractResponsible}
                                     onSelect={formFieldSetter(
-                                        'externalContractResponsiblePositionId'
+                                        'externalContractResponsible'
                                     )}
                                 />
-                                <NewPositionSidesheet
+                                <CreateOrEditExternalPositionButton
                                     repType="contract-responsible"
                                     contract={formState}
+                                    existingPosition={formState.externalContractResponsible}
                                     onComplete={formFieldSetter(
                                         'externalContractResponsiblePositionId'
                                     )}
@@ -229,8 +273,17 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                             <Button outlined onClick={gotoContractDetails}>
                                 Previous
                             </Button>
-                            <Button disabled={!isFormValid} onClick={saveAsync}>
-                                Submit
+                            <Button
+                                disabled={!isFormValid || !isFormDirty || isSaving}
+                                onClick={handleSubmit}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Spinner inline size={16} /> Submitting
+                                    </>
+                                ) : (
+                                    'Submit'
+                                )}
                             </Button>
                         </div>
                     </div>

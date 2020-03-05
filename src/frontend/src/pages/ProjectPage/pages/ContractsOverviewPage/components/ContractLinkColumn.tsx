@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Button } from '@equinor/fusion-components';
 import { useCurrentContext, combineUrls } from '@equinor/fusion';
+import * as styles from '../styles.less';
+import { Link } from 'react-router-dom';
 
 type ContractLinkColumnProps = { contractId: string | null };
 const ContractLinkColumn: React.FC<ContractLinkColumnProps> = ({ contractId, children }) => {
@@ -10,9 +11,9 @@ const ContractLinkColumn: React.FC<ContractLinkColumnProps> = ({ contractId, chi
     }
 
     return (
-        <Button frameless relativeUrl={combineUrls(currentContext.id, contractId)}>
+        <Link className={styles.linkInColumn} to={combineUrls(currentContext.id, contractId)}>
             {children}
-        </Button>
+        </Link>
     );
 };
 

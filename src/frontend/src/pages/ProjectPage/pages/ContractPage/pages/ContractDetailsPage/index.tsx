@@ -1,8 +1,15 @@
 import * as React from 'react';
 import { useContractContext } from '../../../../../../contractContex';
 import * as styles from './styles.less';
-import { SkeletonBar, PositionCard, SkeletonDisc } from '@equinor/fusion-components';
-import { formatDate, Position } from '@equinor/fusion';
+import {
+    SkeletonBar,
+    PositionCard,
+    SkeletonDisc,
+    IconButton,
+    EditIcon,
+    useTooltipRef,
+} from '@equinor/fusion-components';
+import { formatDate, Position, useHistory, useCurrentContext } from '@equinor/fusion';
 import Contract from '../../../../../../models/contract';
 
 const createFieldWithSkeleton = (
@@ -53,10 +60,16 @@ const PositionCardSkeleton = () => (
     </div>
 );
 
+const getCurrentInstance = (position: Position) => {
+    const now = new Date();
+    return position.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
+}
+
 const renderPosition = (position: Position | null) =>
     position ? (
         <PositionCard
             position={position}
+            instance={getCurrentInstance(position)}
             showDate
             showExternalId
             showLocation
@@ -94,23 +107,40 @@ const ExternalContractResponsible = () =>
     );
 
 const ContractDetailsPage = () => {
+    const editTooltipRef = useTooltipRef('Edit contract', 'left');
+    const history = useHistory();
+    const contractContext = useContractContext();
+    const currentContext = useCurrentContext();
+
     return (
         <div className={styles.container}>
-            <div className={styles.row}>
-                <ContractNumber />
-                <Contractor />
+            <div className={styles.contractDetails}>
+                <div className={styles.row}>
+                    <ContractNumber />
+                    <Contractor />
+                </div>
+                <div className={styles.row}>
+                    <FromDate />
+                    <ToDate />
+                </div>
+                <div className={styles.row}>
+                    <EquinorContractResponsible />
+                    <EquinorCompanyRep />
+                </div>
+                <div className={styles.row}>
+                    <ExternalCompanyRep />
+                    <ExternalContractResponsible />
+                </div>
             </div>
-            <div className={styles.row}>
-                <FromDate />
-                <ToDate />
-            </div>
-            <div className={styles.row}>
-                <EquinorContractResponsible />
-                <EquinorCompanyRep />
-            </div>
-            <div className={styles.row}>
-                <ExternalCompanyRep />
-                <ExternalContractResponsible />
+            <div className={styles.aside}>
+                <IconButton
+                    ref={editTooltipRef}
+                    onClick={() =>
+                        history.push(`/${currentContext?.id}/${contractContext.contract?.id}/edit`)
+                    }
+                >
+                    <EditIcon />
+                </IconButton>
             </div>
         </div>
     );

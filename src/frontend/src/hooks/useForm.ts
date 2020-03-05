@@ -42,7 +42,9 @@ const useForm = <T>(
     );
 
     const resetForm = useCallback((state?: T) => {
-        setFormState(state || createDefaultState());
+        const resetToState = state || createDefaultState();
+        setFormState(resetToState);
+        setInitialState(resetToState);
     }, [createDefaultState]);
 
     return {
