@@ -15,11 +15,11 @@ const createDefaultState = (): Person[] => ([
 const useAddPersonnelForm = (defaultState?: Person[] | null) => {
   const validateForm = useCallback((formState: Person[]) => {
     return !formState
-      .find(p =>
-        Boolean(
+      .some(p =>
+        !Boolean(
           p.name &&
           p.phoneNumber &&
-          p.mail) === false)
+          p.mail))
   }, []);
 
   return useForm(createDefaultState, validateForm, defaultState);
