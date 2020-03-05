@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DataTableColumn, useTooltipRef, DoneIcon, WarningIcon, CloseIcon } from '@equinor/fusion-components';
+import { DataTableColumn, useTooltipRef, DoneIcon, WarningIcon, CloseIcon, styling } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 
 export type DataItemProps = {
@@ -8,17 +8,17 @@ export type DataItemProps = {
 
 // TODO: Get proper icons
 const AdStatus = {
-  Available : {text: "Azure AD Approved",icon:<DoneIcon color={"green"}/>},
-  Invited : {text:"Azure AD pending approval",icon:<WarningIcon outline color={"orange"}/>},
-  NoAccount : {text:"No Azure Access",icon: <CloseIcon color={"red"}/>}
+  Available: { text: "Azure AD Approved", icon: <DoneIcon color={styling.colors.green} /> },
+  Invited: { text: "Azure AD pending approval", icon: <WarningIcon outline color={styling.colors.orange} /> },
+  NoAccount: { text: "No Azure Access", icon: <CloseIcon color={styling.colors.red} /> }
 }
 
-const AzureAdStatus : React.FC<DataItemProps> = ({ item }) => {
-  const {text,icon} = AdStatus[item.azureAdStatus];
+const AzureAdStatus: React.FC<DataItemProps> = ({ item }) => {
+  const { text, icon } = AdStatus[item.azureAdStatus];
   return (<div ref={useTooltipRef(text)}>{icon}</div>)
-} 
+}
 
-const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
+const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
   {
     key: 'Name',
     accessor: 'name',
@@ -38,7 +38,7 @@ const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
     accessor: 'azureAdStatus',
     label: 'AD',
     priority: 10,
-    component : AzureAdStatus,
+    component: AzureAdStatus,
     sortable: true,
   },
   {
@@ -50,7 +50,7 @@ const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
   },
   {
     key: 'Workload',
-    accessor:r => "???",
+    accessor: r => "???",
     label: 'Workload',
     priority: 20,
     sortable: true,
@@ -61,7 +61,7 @@ const PersonnelColumns = ():  DataTableColumn<Personnel>[] => [
     label: 'Positions',
     priority: 25,
     sortable: true,
-  }      
+  }
 ]
 
 export default PersonnelColumns

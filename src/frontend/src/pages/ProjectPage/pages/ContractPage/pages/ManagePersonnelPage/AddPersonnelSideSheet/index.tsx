@@ -137,7 +137,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                         key={`person${person.personnelId}`}
                                         className={styles.tableRow}
                                     >
-                                        <td style={{ flexGrow: 1 }}>
+                                        <td className={styles.tableRowCell}>
                                             <AddPersonnelFormTextInput
                                                 key={`name${person.personnelId}`}
                                                 disabled={saveInProgress}
@@ -146,7 +146,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                                 field={'name'}
                                             />
                                         </td>
-                                        <td style={{ flexGrow: 1 }}>
+                                        <td className={styles.tableRowCell}>
                                             <AddPersonnelFormTextInput
                                                 key={`mail${person.personnelId}`}
                                                 disabled={saveInProgress}
@@ -155,7 +155,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                                 field={'mail'}
                                             />
                                         </td>
-                                        <td style={{ flexGrow: 1 }}>
+                                        <td className={styles.tableRowCell}>
                                             <AddPersonnelFormTextInput
                                                 key={`phoneNumber${person.personnelId}`}
                                                 disabled={saveInProgress}
