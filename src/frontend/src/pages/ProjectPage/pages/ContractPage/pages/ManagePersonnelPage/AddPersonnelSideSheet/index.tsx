@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
+import { ModalSideSheet, Button, Spinner, AddIcon } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import Person from '../../../../../../../models/Person';
 import { v1 as uuid } from 'uuid';
@@ -105,8 +105,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             safeCloseConfirmLabel={'Discard changes'}
             headerIcons={[
                 <Button disabled={saveInProgress} key={'AddPerson'} outlined onClick={onAddPerson}>
-                    {' '}
-                    + Add Person{' '}
+                    <AddIcon /> Add Person
                 </Button>,
                 <Button
                     disabled={!(isFormDirty && isFormValid) || saveInProgress}

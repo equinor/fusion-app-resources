@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { DataTable, DataTableColumn, Button } from '@equinor/fusion-components';
+import { DataTable, DataTableColumn, Button, AddIcon } from '@equinor/fusion-components';
 import { useSorting, useCurrentContext } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import usePersonnel from './hooks/usePersonnel';
@@ -7,7 +7,7 @@ import Personnel from '../../../../../../models/Personnel';
 import * as styles from './styles.less'
 import { useContractContext } from '../../../../../../contractContex';
 import AddPersonnelSideSheet from './AddPersonnelSideSheet'
-import { v1 as uuid } from 'uuid';
+
 
 
 const ManagePersonnelPage: React.FC = () => {
@@ -30,7 +30,7 @@ const ManagePersonnelPage: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <div className={styles.button}><Button outlined onClick={() => setIsAddPersonOpen(true)} > + Add Person </Button></div>
+            <div className={styles.button}><Button outlined onClick={() => setIsAddPersonOpen(true)} >  <AddIcon />  Add Person </Button></div>
             <DataTable
                 columns={personnelColumns}
                 data={sortedData}
