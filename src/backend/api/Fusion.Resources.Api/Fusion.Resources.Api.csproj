@@ -28,10 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataMock\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
   </ItemGroup>

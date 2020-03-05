@@ -1,12 +1,9 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -65,34 +62,25 @@ namespace Fusion.Resources.Api.Controllers
             var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
             return mediator.Send(command);
         }
-    }
 
-    public class CommandDispatcher
-    {
-        public readonly IMediator mediator;
-        
-        public CommandDispatcher(IMediator mediator)
+        public class CommandDispatcher
         {
-            this.mediator = mediator;
-        }
+            public readonly IMediator mediator;
 
-        public Task DispatchAsync(IRequest command)
-        {
-            return mediator.Send(command);
-        }
+            public CommandDispatcher(IMediator mediator)
+            {
+                this.mediator = mediator;
+            }
 
-        public Task<TResult> DispatchAsync<TResult>(IRequest<TResult> command)
-        {
-            return mediator.Send(command);
-        }
-    }
+            public Task DispatchAsync(IRequest command)
+            {
+                return mediator.Send(command);
+            }
 
-    public static class CommandDispatcherExtensions
-    {
-        public static async Task<QueryPersonnelRequest> UpdateState(this CommandDispatcher dispatcher, Guid requestId, DbRequestState state)
-        {
-            var item = await dispatcher.DispatchAsync(new Domain.Commands.UpdateContractPersonnelRequest(requestId) { State = state });
-            return item;
+            public Task<TResult> DispatchAsync<TResult>(IRequest<TResult> command)
+            {
+                return mediator.Send(command);
+            }
         }
     }
 }
