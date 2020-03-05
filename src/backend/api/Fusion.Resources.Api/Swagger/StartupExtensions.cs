@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Fusion.Resources.Api.Controllers;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 c.SwaggerDoc("resources-api-v1", new OpenApiInfo { Title = "Fusion Resources API", Version = "1.0" });
                 c.OperationFilter<SecurityRequirementsOperationFilter>();
+                c.DocumentFilter<SwaggerComplexRouteShitfix>();
+                c.MapType<ProjectIdentifier>(() => new OpenApiSchema { Type = typeof(string).Name  });
                 c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme()
                 {
                     In = ParameterLocation.Header,
@@ -68,5 +72,37 @@ namespace Microsoft.Extensions.DependencyInjection
             return app;
         }
 
+    }
+
+
+
+    public class SwaggerComplexRouteShitfix : IDocumentFilter
+    {
+        public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
+        {
+            var projectIdentifier = typeof(ProjectIdentifier);
+            var props = projectIdentifier.GetProperties().Select(p => p.Name);
+
+            foreach (var path in swaggerDoc.Paths)
+            {
+                foreach (var op in path.Value.Operations)
+                {
+                    var @params = op.Value.Parameters.ToList();
+
+                    var pathParams = @params.Where(p => p.In == ParameterLocation.Path).ToList();
+                    
+
+                    if (props.All(p => pathParams.Any(pp => pp.Name == p)))
+                    {
+                        var paramsToRemove = pathParams.Where(pp => props.Contains(pp.Name)).ToList();
+
+                        foreach (var toRemove in paramsToRemove)
+                        {
+                            op.Value.Parameters.Remove(toRemove);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

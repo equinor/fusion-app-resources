@@ -1,0 +1,89 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Fusion.Resources.Database.Entities;
+
+namespace Fusion.Resources.Domain
+{
+    public class QueryExternalPersonnelPerson
+    {
+        public QueryExternalPersonnelPerson(DbExternalPersonnelPerson item)
+        {
+            PersonnelId = item.Id;
+
+            AzureUniqueId = item.AzureUniqueId;
+            Name = item.Name;
+            FirstName = item.FirstName;
+            LastName = item.LastName;
+            Mail = item.Mail;
+            PhoneNumber = item.Phone;
+            JobTitle = item.JobTitle;
+            AzureAdStatus = item.AccountStatus;
+
+            Disciplines = item.Disciplines.Select(d => new QueryPersonnelDiscipline(d)).ToList();
+        }
+        public Guid PersonnelId { get; set; }
+        public Guid? AzureUniqueId { get; set; }
+        public string Name { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string JobTitle { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Mail { get; set; }
+
+        public DbAzureAccountStatus AzureAdStatus { get; set; }
+
+        public List<QueryPersonnelDiscipline> Disciplines { get; set; }
+    }
+
+
+
+    public class QueryContractPersonnel
+    {
+        [Obsolete("Mock only")]
+        public QueryContractPersonnel()
+        {
+        }
+
+        public QueryContractPersonnel(DbContractPersonnel item)
+        {
+            PersonnelId = item.Id;
+
+            AzureUniqueId = item.Person.AzureUniqueId;
+            Name = item.Person.Name;
+            FirstName = item.Person.FirstName;
+            LastName = item.Person.LastName;
+            Mail = item.Person.Mail;
+            PhoneNumber = item.Person.Phone;
+            JobTitle = item.Person.JobTitle;
+            AzureAdStatus = item.Person.AccountStatus;
+
+            Created = item.Created;
+            Updated = item.Updated;
+            CreatedBy = new QueryPerson(item.CreatedBy);
+            UpdatedBy = QueryPerson.FromEntityOrDefault(item.UpdatedBy);
+
+            Disciplines = item.Person.Disciplines.Select(d => new QueryPersonnelDiscipline(d)).ToList();
+        }
+        public Guid PersonnelId { get; set; }
+        public Guid? AzureUniqueId { get; set; }
+        public string Name { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string JobTitle { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Mail { get; set; }
+
+        public DbAzureAccountStatus AzureAdStatus { get; set; }
+
+        public List<QueryPersonnelDiscipline> Disciplines { get; set; }
+
+        public QueryPerson CreatedBy { get; set; }
+        public QueryPerson UpdatedBy { get; set; }
+        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Updated { get; set; }
+
+        public QueryProject Project { get; set; }
+        public QueryContract Contract { get; set; }
+    }
+}

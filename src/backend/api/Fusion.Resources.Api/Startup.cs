@@ -45,6 +45,7 @@ namespace Fusion.Resources.Api
             services.AddFusionIntegration(options =>
             {
                 options.AddFusionAuthorization();
+                options.AddOrgIntegration();
 
                 options.UseDefaultEndpointResolver("ci");
                 options.UseDefaultTokenProvider(opts =>
@@ -56,7 +57,18 @@ namespace Fusion.Resources.Api
                 options.ApplicationMode = true;
             });
 
+            services.AddOrgApiClient(Integration.Org.OrgConstants.HttpClients.Application, Integration.Org.OrgConstants.HttpClients.Delegate);
+
+
+
             services.AddControllers();
+
+            #region Resource services
+
+            services.AddResourceDatabase(Configuration);
+            services.AddResourceDomain();
+
+            #endregion
 
             services.AddHealthChecks()
                 .AddCheck("liveness", () => HealthCheckResult.Healthy());
@@ -70,10 +82,10 @@ namespace Fusion.Resources.Api
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
-            if (env.IsDevelopment())
-            {
+            //if (env.IsDevelopment())
+            //{
                 app.UseDeveloperExceptionPage();
-            }
+            //}
 
             app.UseHttpsRedirection();
 
@@ -101,6 +113,9 @@ namespace Fusion.Resources.Api
             });
 
             #endregion
+
+            app.SeedDatabase();
+
         }
     }
 }
