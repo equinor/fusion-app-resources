@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useCurrentContext, combineUrls } from '@equinor/fusion';
 import { DataTable, Button } from '@equinor/fusion-components';
 import * as styles from './styles.less';
-import useContracts from './hooks/useContracts';
 import createColumns from './Columns';
+import useContracts from './hooks/useContracts';
 
 const ContractsOverviewPage = () => {
     const currentProject = useCurrentContext();

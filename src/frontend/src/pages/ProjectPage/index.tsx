@@ -4,6 +4,7 @@ import ContractsOverviewPage from './pages/ContractsOverviewPage';
 import AllocateContractPage from './pages/AllocateContractPage';
 import ContractPage from './pages/ContractPage';
 import ScopedSwitch from '../../components/ScopedSwitch';
+import ManagePersonellPage from './pages/ContractPage/pages/ManagePersonnelPage';
 
 const ProjectPage = () => {
     return (
@@ -13,6 +14,6 @@ const ProjectPage = () => {
             <Route path="/:contractId" component={ContractPage} />
         </ScopedSwitch>
     );
-}
+};
 
 export default ProjectPage;
