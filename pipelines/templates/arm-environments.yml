@@ -2,6 +2,7 @@ parameters:
     environment: ''
     clientId: ''
     sqlServer: ''
+    clientSecretName: 'ClientSecret-Resources-Test'
   
 steps:
   - checkout: self

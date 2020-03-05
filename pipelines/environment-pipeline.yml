@@ -67,23 +67,24 @@ stages:
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
               sqlServer: Fusion-SQL-Test
 
-# - stage: DeployPROD
-#   displayName: PROD Azure Infra
-#   pool: Private Docker  
-#   dependsOn: DeployQA
-#   condition: succeeded()
-#   jobs:
-#   - deployment: DeployInfra
-#     environment: query-prod
-#     variables:
-#       environmentName: prod
-#     strategy:
-#       runOnce:
-#         deploy:
-#           steps:
-#           - template: templates/arm-environments.yml
-#             parameters:
-#               environment: $(environmentName)
-#               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
-#              sqlServer: Fusion-SQL-Test
+- stage: DeployPROD
+  displayName: PROD Azure Infra
+  pool: Private Docker  
+  dependsOn: DeployQA
+  condition: succeeded()
+  jobs:
+  - deployment: DeployInfra
+    environment: fusion-prod
+    variables:
+      environmentName: prod
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/arm-environments.yml
+            parameters:
+              environment: $(environmentName)
+              clientId: 97978493-9777-4d48-b38a-67b0b9cd88d2
+              sqlServer: Fusion-SQL-Test
+              clientSecretName: ClientSecret-Resources-Prod
                     
