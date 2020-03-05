@@ -13,8 +13,8 @@ import { v1 as uuid } from 'uuid';
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext()
     const currentContract = useContractContext()
-    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(currentContract?.contract?.id || undefined,currentContext?.id);
-    const {sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(personnel, "name", "asc");
+    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(currentContract?.contract?.id || undefined, currentContext?.id);
+    const { sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(personnel, "name", "asc");
     const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
 
@@ -29,9 +29,9 @@ const ManagePersonnelPage: React.FC = () => {
     const sortedByColumn = React.useMemo(() => personnelColumns.find(c => c.accessor === sortBy) || null, [sortBy]);
 
     return (
-        <div className= {styles.container}>
-            <div className={styles.button}><Button outlined onClick = {()=> setIsAddPersonOpen(true)} > + Add Person </Button></div>
-            <DataTable 
+        <div className={styles.container}>
+            <div className={styles.button}><Button outlined onClick={() => setIsAddPersonOpen(true)} > + Add Person </Button></div>
+            <DataTable
                 columns={personnelColumns}
                 data={sortedData}
                 isFetching={isFetchingPersonnel}
@@ -45,7 +45,7 @@ const ManagePersonnelPage: React.FC = () => {
                 onSelectionChange={setSelectedItems}
                 selectedItems={selectedItems}
             />
-           {isAddPersonOpen && <AddPersonnelSideSheet isOpen={isAddPersonOpen} setIsOpen={setIsAddPersonOpen} selectedPersonnel={selectedItems.length ? selectedItems.map(p => ({...p,personnelId:uuid()})) : null} />}
+            {isAddPersonOpen && <AddPersonnelSideSheet isOpen={isAddPersonOpen} setIsOpen={setIsAddPersonOpen} selectedPersonnel={selectedItems.length ? selectedItems : null} />}
         </div>
     );
 }
