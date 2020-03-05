@@ -7,7 +7,7 @@ import ExternalPositionSidesheet from './ExternalPositionSidesheet';
 
 type CreateOrEditExternalPositionButtonProps = {
     contract: Contract;
-    onComplete: (positionId: string) => void;
+    onComplete: (position: Position) => void;
     repType: 'company-rep' | 'contract-responsible';
     existingPosition: Position | null;
 };

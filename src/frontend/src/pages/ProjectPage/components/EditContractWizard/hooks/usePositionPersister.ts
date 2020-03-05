@@ -1,5 +1,5 @@
 import { useAppContext } from '../../../../../appContext';
-import { useNotificationCenter, useCurrentContext, useTelemetryLogger } from '@equinor/fusion';
+import { useNotificationCenter, useCurrentContext, useTelemetryLogger, Position } from '@equinor/fusion';
 import { useCallback, useState } from 'react';
 import CreatePositionRequest from '../../../../../models/createPositionRequest';
 import Contract from '../../../../../models/contract';
@@ -8,7 +8,7 @@ const usePositionPersister = (
     formState: CreatePositionRequest,
     contract: Contract,
     repType: string,
-    onComplete: (positionId: string) => void,
+    onComplete: (position: Position) => void,
     onClose: () => void
 ) => {
     const { apiClient } = useAppContext();
@@ -44,7 +44,7 @@ const usePositionPersister = (
                     request
                 );
 
-                onComplete(position.id);
+                onComplete(position);
             } else if (repType === 'contract-responsible') {
                 const position = await apiClient.createExternalContractResponsibleAsync(
                     currentContext.id,
@@ -52,7 +52,7 @@ const usePositionPersister = (
                     request
                 );
 
-                onComplete(position.id);
+                onComplete(position);
             }
 
             onClose();
