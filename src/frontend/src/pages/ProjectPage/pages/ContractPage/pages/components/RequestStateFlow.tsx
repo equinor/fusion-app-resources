@@ -22,7 +22,7 @@ type RequestItemProps = {
     index: number;
 };
 
-const states = ['Created state', 'Sumbitted state', 'Approved state'];
+const states = ['Created state', 'Contractor state', 'Company state'];
 
 const getRequestStates = (request: PersonnelRequest): RequestItemState[] | null => {
     const state = request.state;
@@ -30,12 +30,14 @@ const getRequestStates = (request: PersonnelRequest): RequestItemState[] | null 
     switch (state) {
         case 'Created':
             return ['approved', 'pending', 'pending'];
-        case 'Submitted':
+        case 'SubmittedToCompany':
             return ['approved', 'approved', 'pending'];
-        case 'Approved':
-            return ['approved', 'approved', 'rejected'];
-        case 'Rejected':
+        case 'RejectedByContractor':
+            return ['approved', 'rejected', 'pending'];
+        case 'ApprovedByCompany':
             return ['approved', 'approved', 'approved'];
+        case 'RejectedByCompany':
+            return ['approved', 'approved', 'rejected'];
         default:
             return null;
     }

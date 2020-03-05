@@ -6,12 +6,6 @@ import PositionColumn from '../../../../components/PositionColumn';
 
 const columns: DataTableColumn<PersonnelRequest>[] = [
     {
-        accessor: request => request.position?.basePosition?.name || 'TBN',
-        key: 'basePosition',
-        label: 'Base position',
-        sortable: true,
-    },
-    {
         accessor: request => request.person?.name || '',
         key: 'person',
         label: 'Person',
@@ -30,6 +24,20 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         label: 'Position',
         sortable: true,
     },
+
+    {
+        accessor: request => request.position?.basePosition?.name || 'TBN',
+        key: 'basePosition',
+        label: 'Base position',
+        sortable: true,
+    },
+    {
+        accessor: request => request.position?.basePosition?.discipline || 'TBN',
+        key: 'discipline',
+        label: 'Discipline',
+        sortable: true,
+    },
+
     {
         accessor: request =>
             request.position?.instances.find(i => i.parentPositionId)?.parentPositionId || '',
