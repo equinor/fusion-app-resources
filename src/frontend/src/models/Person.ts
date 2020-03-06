@@ -1,11 +1,10 @@
-
 type Person = {
-    personnelId:string,
+    personnelId: string;
     azureUniquePersonId?: string;
     mail: string;
     name: string;
-    firstName?: string;
-    lastName?: string;
+    firstName: string | null;
+    lastName: string | null;
     phoneNumber: string;
     jobTitle: string;
 };

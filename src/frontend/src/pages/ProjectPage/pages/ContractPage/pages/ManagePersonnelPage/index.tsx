@@ -27,7 +27,7 @@ const ManagePersonnelPage: React.FC = () => {
 
     const personnelColumns = React.useMemo(() => PersonnelColumns(), []);
     const sortedByColumn = React.useMemo(() => personnelColumns.find(c => c.accessor === sortBy) || null, [sortBy]);
-    console.log(personnelError)
+
     return (
         <div className={styles.container}>
             <div className={styles.managePersonnel}>

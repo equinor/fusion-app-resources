@@ -31,14 +31,14 @@ const AzureAdStatus: React.FC<DataItemProps> = ({ item }) => {
 const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
     {
         key: 'FirstName',
-        accessor: 'firstName',
+        accessor: p => p.firstName ? p.firstName : p.name,
         label: 'First Name',
         priority: 1,
         sortable: true,
     },
     {
         key: 'LastName',
-        accessor: 'lastName',
+        accessor: p => p.lastName ? p.lastName : "",
         label: 'Last Name',
         priority: 2,
         sortable: true,
@@ -51,6 +51,13 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
         sortable: true,
     },
     {
+        key: 'Phone',
+        accessor: 'phoneNumber',
+        label: 'Phone Number',
+        priority: 10,
+        sortable: true,
+    },
+    {
         key: 'azureAdStatus',
         accessor: 'azureAdStatus',
         label: 'AD',
@@ -59,14 +66,7 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
         sortable: true,
         width: '20px',
     },
-    {
-        key: 'Phone',
-        accessor: 'phoneNumber',
-        label: 'Phone Number',
-        priority: 10,
-        sortable: true,
-        width: '50px',
-    },
+
     {
         key: 'Workload',
         accessor: r => '???',

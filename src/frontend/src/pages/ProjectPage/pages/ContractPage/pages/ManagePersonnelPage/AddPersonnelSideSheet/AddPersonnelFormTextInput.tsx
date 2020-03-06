@@ -23,7 +23,7 @@ const AddPersonnelFormTextInput: React.FC<PersonnelFormTextInputProps> = ({
                 const changedPerson = { ...item, [field]: newValue };
                 onChange(changedPerson);
             }}
-            value={item[field]}
+            value={item[field] || ""}
         />
     );
 };
