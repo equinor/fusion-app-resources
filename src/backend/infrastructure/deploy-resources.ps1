@@ -6,6 +6,7 @@ param(
 Write-Host "Starting deployment of general resources"
 
 $resourceGroup = "fusion-apps-resources-$environment"
+$envKeyVault = "kv-fap-resources-$environment"
 
 Write-Host "Using resource group $resourceGroup"      
 
@@ -22,8 +23,8 @@ New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-envi
 
 Write-Host "Setting service principal key vault access"
 $spName = (Get-AzContext).Account.Id
-Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ServicePrincipalName $spName -PermissionsToSecrets get,list,set
+Set-AzKeyVaultAccessPolicy -VaultName $envKeyVault -ServicePrincipalName $spName -PermissionsToSecrets get,list,set
 
 Write-Host "Setting ad app service principal key vault access"
 $appSpId = (Get-AzADServicePrincipal -ApplicationId $clientId).Id
-Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ObjectId $appSpId -PermissionsToSecrets get,list
+Set-AzKeyVaultAccessPolicy -VaultName $envKeyVault -ObjectId $appSpId -PermissionsToSecrets get,list
