@@ -35,7 +35,7 @@ const ActualMppPage: React.FC = () => {
 
     React.useEffect(() => {
         const contractId = contractContext.contract?.id;
-        const projectId = currentContext?.id;
+        const projectId = (currentContext as any)?.externalId;
         if (contractId && projectId) {
             getContractPositions(projectId, contractId);
         }

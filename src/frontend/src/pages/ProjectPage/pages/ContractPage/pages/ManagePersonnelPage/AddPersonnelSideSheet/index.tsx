@@ -99,7 +99,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             onClose={() => {
                 setIsOpen(false);
             }}
-            safeClose
+            safeClose={isFormDirty}
             safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
             safeCloseCancelLabel={'Continue editing'}
             safeCloseConfirmLabel={'Discard changes'}
