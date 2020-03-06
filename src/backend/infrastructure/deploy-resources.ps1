@@ -15,7 +15,7 @@ $adClientSecret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name $
 
 Write-Host "Deploying template"
 
-New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-environment" -ResourceGroupName $resourceGroup -TemplateFile  "$(Build.SourcesDirectory)/src/backend/infrastructure/arm-templates/environment.template.json" `
+New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-environment" -ResourceGroupName $resourceGroup -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/src/backend/infrastructure/arm-templates/environment.template.json" `
     -env-name $environment `
     -aad-client-secret $adClientSecret.SecretValue `
     -sql-connection-string $env:SQLCONNECTIONSTRING
