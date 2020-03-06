@@ -20,14 +20,15 @@ steps:
         $resourceGroup = "fusion-apps-resources-$environment"
 
         Get-AzResource -ResourceType "Microsoft.Sql/servers"
-        $server = Get-AzResource -ResourceType "Microsoft.Sql/servers" -Name $sqlServerName
+        
+        $server = Get-AzResource -ResourceType "Microsoft.Sql/servers" | where -Property Name -eq $sqlServerName | select -First 1
         if ($server.Length -gt 1) {
             Write-Host "Found multiple sql servers using name $sqlServerName"
             $server | ForEach-Object { Write-Host $_.ResourceId }
             throw "Found multiple sql servers..."
         }
         if ($server -eq $null) {
-          throw new "Could not locate any sql servers"
+          throw "Could not locate any sql servers"
         }
         
         $sqlServer = Get-AzSqlServer -ResourceGroupName $server.ResourceGroupName -ServerName $server.Name
