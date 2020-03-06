@@ -17,99 +17,96 @@ steps:
       ScriptPath: src/backend/infrastructure/ensure-resourcegroup.ps1
       ScriptArguments: -environment ${{ parameters.environment }}
 
+  - task: AzurePowerShell@4
+    displayName: 'Deploy sql database'
+    inputs:
+      azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptPath: src/backend/infrastructure/deploy-database.ps1
+      ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
+
+  - task: AzurePowerShell@4
+    displayName: 'Deploy ARM template'
+    inputs:
+      azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptPath: src/backend/infrastructure/deploy-resources.ps1
+      ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
+      
+      
   # - task: AzurePowerShell@4
-  #   displayName: 'Ensure environment resource group'
+  #   displayName: 'Deploy sql database'
   #   inputs:
   #     azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
   #     ScriptType: 'InlineScript'
   #     FailOnStandardError: true
   #     azurePowerShellVersion: 'LatestVersion'
   #     Inline: |
-  #       Write-Host "Ensuring resource group exists"
+  #       Write-Host "Starting deployment of sql server"
+
+  #       $environment = "${{ parameters.environment }}"
+  #       $sqlServerName = "${{ parameters.sqlServer }}"
+
+  #       Get-AzResource -ResourceType "Microsoft.Sql/servers"
+        
+  #       $server = Get-AzResource -ResourceType "Microsoft.Sql/servers" -Name $sqlServerName
+  #       if ($server.Length -gt 1) {
+  #           Write-Host "Found multiple sql servers using name $sqlServerName"
+  #           $server | ForEach-Object { Write-Host $_.ResourceId }
+  #           throw "Found multiple sql servers..."
+  #       }
+  #       if ($server -eq $null) {
+  #         throw "Could not locate any sql servers"
+  #       }
+        
+  #       $sqlServer = Get-AzSqlServer -ResourceGroupName $server.ResourceGroupName -ServerName $server.Name
+
+  #       $ePools = Get-AzSqlElasticPool -ServerName $sqlServer.ServerName -ResourceGroupName $sqlServer.ResourceGroupName
+  #       $pool = $ePools | Where-Object { $_.Tags["pool-type"] -eq "main" } | select -First 1
+
+  #       New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$(Build.SourcesDirectory)/src/backend/infrastructure/arm-templates/database.template.json" `
+  #           -env-name $environment `
+  #           -sqlserver_name $server.Name `
+  #           -sql-elastic-pool-id $pool.ResourceId
+        
+  #       $connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=Fusion-Apps-Resources-$environment-DB;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  #       Write-Host "##vso[task.setvariable variable=SqlConnectionString]$connectionString"
+
+
+  # - task: AzurePowerShell@4
+  #   displayName: 'Deploy ARM template'
+  #   inputs:
+  #     azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+  #     ScriptType: 'InlineScript'
+  #     FailOnStandardError: true
+  #     azurePowerShellVersion: 'LatestVersion'
+  #     Inline: |
+  #       Write-Host "Starting deployment of general resources"
 
   #       $environment = "${{ parameters.environment }}"
   #       $resourceGroup = "fusion-apps-resources-$environment"
   
   #       Write-Host "Using resource group $resourceGroup"      
   
-  #       ## ENSURE RESOURCE GROUP
-  #       $rg = Get-AzResourceGroup -Name $resourceGroup -ErrorAction SilentlyContinue
-  #       $rgTags = @{"fusion-app" = "resources"; "fusion-app-env" = $environment; "fusion-app-component" = "resources-rg-$environment" }
-  #       if ($rg -eq $null) {
-  #         Write-Host "Creating new resource group"
-  #         New-AzResourceGroup -Name $resourceGroup -Location northeurope
-  #       }
-  #       Set-AzResourceGroup -Name $resourceGroup -Tag $rgTags
 
-  - task: AzurePowerShell@4
-    displayName: 'Deploy sql database'
-    inputs:
-      azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
-      ScriptType: 'InlineScript'
-      FailOnStandardError: true
-      azurePowerShellVersion: 'LatestVersion'
-      Inline: |
-        Write-Host "Starting deployment of sql server"
-
-        $environment = "${{ parameters.environment }}"
-        $sqlServerName = "${{ parameters.sqlServer }}"
-
-        Get-AzResource -ResourceType "Microsoft.Sql/servers"
+  #       $clientSecretName = "ClientSecret-Resources-Test"
+  #       $adClientSecret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name $clientSecretName
+  
+  #       Write-Host "Deploying template"
+  
+  #       New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-environment" -ResourceGroupName $resourceGroup -TemplateFile  "$(Build.SourcesDirectory)/src/backend/infrastructure/arm-templates/environment.template.json" `
+  #           -env-name $environment `
+  #           -aad-client-secret $adClientSecret.SecretValue `
+  #           -sql-connection-string $env:SQLCONNECTIONSTRING
+  
+  #       Write-Host "Setting service principal key vault access"
+  #       $spName = (Get-AzContext).Account.Id
+  #       Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ServicePrincipalName $spName -PermissionsToSecrets get,list,set
         
-        $server = Get-AzResource -ResourceType "Microsoft.Sql/servers" -Name $sqlServerName
-        if ($server.Length -gt 1) {
-            Write-Host "Found multiple sql servers using name $sqlServerName"
-            $server | ForEach-Object { Write-Host $_.ResourceId }
-            throw "Found multiple sql servers..."
-        }
-        if ($server -eq $null) {
-          throw "Could not locate any sql servers"
-        }
-        
-        $sqlServer = Get-AzSqlServer -ResourceGroupName $server.ResourceGroupName -ServerName $server.Name
-
-        $ePools = Get-AzSqlElasticPool -ServerName $sqlServer.ServerName -ResourceGroupName $sqlServer.ResourceGroupName
-        $pool = $ePools | Where-Object { $_.Tags["pool-type"] -eq "main" } | select -First 1
-
-        New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$(Build.SourcesDirectory)/src/backend/infrastructure/arm-templates/database.template.json" `
-            -env-name $environment `
-            -sqlserver_name $server.Name `
-            -sql-elastic-pool-id $pool.ResourceId
-        
-        $connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=Fusion-Apps-Resources-$environment-DB;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-        Write-Host "##vso[task.setvariable variable=SqlConnectionString]$connectionString"
-
-
-  - task: AzurePowerShell@4
-    displayName: 'Deploy ARM template'
-    inputs:
-      azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
-      ScriptType: 'InlineScript'
-      FailOnStandardError: true
-      azurePowerShellVersion: 'LatestVersion'
-      Inline: |
-        Write-Host "Starting deployment of general resources"
-
-        $environment = "${{ parameters.environment }}"
-        $resourceGroup = "fusion-apps-resources-$environment"
-  
-        Write-Host "Using resource group $resourceGroup"      
-  
-
-        $clientSecretName = "ClientSecret-Resources-Test"
-        $adClientSecret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name $clientSecretName
-  
-        Write-Host "Deploying template"
-  
-        New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-environment" -ResourceGroupName $resourceGroup -TemplateFile  "$(Build.SourcesDirectory)/src/backend/infrastructure/arm-templates/environment.template.json" `
-            -env-name $environment `
-            -aad-client-secret $adClientSecret.SecretValue `
-            -sql-connection-string $env:SQLCONNECTIONSTRING
-  
-        Write-Host "Setting service principal key vault access"
-        $spName = (Get-AzContext).Account.Id
-        Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ServicePrincipalName $spName -PermissionsToSecrets get,list,set
-        
-        Write-Host "Setting ad app service principal key vault access"
-        Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ApplicationId "${{ parameters.clientId }}" -PermissionsToSecrets get,list
+  #       Write-Host "Setting ad app service principal key vault access"
+  #       Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ApplicationId "${{ parameters.clientId }}" -PermissionsToSecrets get,list
   
