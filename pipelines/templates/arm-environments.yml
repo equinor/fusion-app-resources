@@ -11,25 +11,35 @@ steps:
     displayName: 'Ensure environment resource group'
     inputs:
       azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
-      ScriptType: 'InlineScript'
+      ScriptType: FilePath
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
-      Inline: |
-        Write-Host "Ensuring resource group exists"
+      ScriptPath: src/backend/infrastructure/ensure-resourcegroup.ps1
+      ScriptArguments: -environment ${{ paramaeters.environment }}
 
-        $environment = "${{ parameters.environment }}"
-        $resourceGroup = "fusion-apps-resources-$environment"
+  # - task: AzurePowerShell@4
+  #   displayName: 'Ensure environment resource group'
+  #   inputs:
+  #     azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+  #     ScriptType: 'InlineScript'
+  #     FailOnStandardError: true
+  #     azurePowerShellVersion: 'LatestVersion'
+  #     Inline: |
+  #       Write-Host "Ensuring resource group exists"
+
+  #       $environment = "${{ parameters.environment }}"
+  #       $resourceGroup = "fusion-apps-resources-$environment"
   
-        Write-Host "Using resource group $resourceGroup"      
+  #       Write-Host "Using resource group $resourceGroup"      
   
-        ## ENSURE RESOURCE GROUP
-        $rg = Get-AzResourceGroup -Name $resourceGroup -ErrorAction SilentlyContinue
-        $rgTags = @{"fusion-app" = "resources"; "fusion-app-env" = $environment; "fusion-app-component" = "resources-rg-$environment" }
-        if ($rg -eq $null) {
-          Write-Host "Creating new resource group"
-          New-AzResourceGroup -Name $resourceGroup -Location northeurope
-        }
-        Set-AzResourceGroup -Name $resourceGroup -Tag $rgTags
+  #       ## ENSURE RESOURCE GROUP
+  #       $rg = Get-AzResourceGroup -Name $resourceGroup -ErrorAction SilentlyContinue
+  #       $rgTags = @{"fusion-app" = "resources"; "fusion-app-env" = $environment; "fusion-app-component" = "resources-rg-$environment" }
+  #       if ($rg -eq $null) {
+  #         Write-Host "Creating new resource group"
+  #         New-AzResourceGroup -Name $resourceGroup -Location northeurope
+  #       }
+  #       Set-AzResourceGroup -Name $resourceGroup -Tag $rgTags
 
   - task: AzurePowerShell@4
     displayName: 'Deploy sql database'
@@ -101,5 +111,5 @@ steps:
         Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ServicePrincipalName $spName -PermissionsToSecrets get,list,set
         
         Write-Host "Setting ad app service principal key vault access"
-        Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ApplicationId "${{ parameters.clientId }}"" -PermissionsToSecrets get,list
+        Set-AzKeyVaultAccessPolicy -VaultName "keys-fusion-resources-$environment" -ApplicationId "${{ parameters.clientId }}" -PermissionsToSecrets get,list
   
