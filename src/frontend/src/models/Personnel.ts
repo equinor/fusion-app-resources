@@ -6,8 +6,8 @@ type Personnel = {
     personnelId: string;
     azureUniquePersonId?: string;
     name: string;
-    firstName?: string;
-    lastName?: string;
+    firstName: string | null;
+    lastName: string | null;
     jobTitle: string;
     phoneNumber: string;
     mail: string;
