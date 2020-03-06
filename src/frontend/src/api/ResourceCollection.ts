@@ -22,17 +22,14 @@ export default class ResourceCollection {
         return combineUrls(this.contracts(projectId), contractId);
     }
 
-    personnel(projectId: string, contractId: string): string {
-        return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel');
+    personnel(projectId: string, contractId: string, personnelId?: string): string {
+        return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel', personnelId || '');
     }
 
     personnelCollection(projectId: string, contractId: string): string {
         return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel-collection');
     }
 
-    personnelUpdate(projectId: string, contractId: string, personnelId: string): string {
-        return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel', personnelId);
-    }
 
     personnelRequests(projectId: string, contractId: string, filter?: string): string {
         const personnelRequestsFilter = filter ? `?$filter=${filter}` : '';

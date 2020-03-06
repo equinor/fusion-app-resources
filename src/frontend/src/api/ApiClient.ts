@@ -68,7 +68,7 @@ export default class ApiClient {
     }
 
     async updatePersonnelAsync(projectId: string, contractId: string, personnel: Person) {
-        const url = this.resourceCollection.personnelUpdate(projectId, contractId, personnel.personnelId);
+        const url = this.resourceCollection.personnel(projectId, contractId, personnel.personnelId);
         const reponse = await this.httpClient.putAsync<Person, Person, FusionApiHttpErrorResponse>(url, personnel);
         return reponse.data
     }
