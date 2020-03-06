@@ -1,5 +1,5 @@
 param(
-    [stirng]$clientId,
+    [string]$clientId,
     [string]$sqlServerName,
     [string]$sqlDatabaseName
 )
