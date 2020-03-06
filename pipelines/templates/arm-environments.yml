@@ -8,6 +8,30 @@ steps:
   - checkout: self
 
   - task: AzurePowerShell@4
+    displayName: 'Ensure environment resource group'
+    inputs:
+      azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+      ScriptType: 'InlineScript'
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      Inline: |
+        Write-Host "Ensuring resource group exists"
+
+        $environment = "${{ parameters.environment }}"
+        $resourceGroup = "fusion-apps-resources-$environment"
+  
+        Write-Host "Using resource group $resourceGroup"      
+  
+        ## ENSURE RESOURCE GROUP
+        $rg = Get-AzResourceGroup -Name $resourceGroup -ErrorAction SilentlyContinue
+        $rgTags = @{"fusion-app" = "resources"; "fusion-app-env" = $environment; "fusion-app-component" = "resources-rg-$environment" }
+        if ($rg -eq $null) {
+          Write-Host "Creating new resource group"
+          New-AzResourceGroup -Name $resourceGroup -Location northeurope
+        }
+        Set-AzResourceGroup -Name $resourceGroup -Tag $rgTags
+
+  - task: AzurePowerShell@4
     displayName: 'Deploy sql database'
     inputs:
       azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
@@ -19,7 +43,6 @@ steps:
 
         $environment = "${{ parameters.environment }}"
         $sqlServerName = "${{ parameters.sqlServer }}"
-        $resourceGroup = "fusion-apps-resources-$environment"
 
         Get-AzResource -ResourceType "Microsoft.Sql/servers"
         
@@ -38,7 +61,7 @@ steps:
         $ePools = Get-AzSqlElasticPool -ServerName $sqlServer.ServerName -ResourceGroupName $sqlServer.ResourceGroupName
         $pool = $ePools | Where-Object { $_.Tags["pool-type"] -eq "main" } | select -First 1
 
-        New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database" -ResourceGroupName $resourceGroup -TemplateFile  "$(Build.SourcesDirectory)/src/backend/infrastructure/arm-templates/database.template.json" `
+        New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$(Build.SourcesDirectory)/src/backend/infrastructure/arm-templates/database.template.json" `
             -env-name $environment `
             -sqlserver_name $server.Name `
             -sql-elastic-pool-id $pool.ResourceId
@@ -62,16 +85,7 @@ steps:
   
         Write-Host "Using resource group $resourceGroup"      
   
-        ## ENSURE RESOURCE GROUP
-        $rg = Get-AzResourceGroup -Name $resourceGroup -ErrorAction SilentlyContinue
-        $rgTags = @{"fusion-app" = "resources"; "fusion-app-env" = $environment; "fusion-app-component" = "resources-rg-$environment" }
-        if ($rg -eq $null) {
-          Write-Host "Creating new resource group"
-          New-AzResourceGroup -Name $resourceGroup -Location northeurope
-        }
-        Set-AzResourceGroup -Name $resourceGroup -Tag $rgTags
-        ## END RESOURCE GROUP
-  
+
         $clientSecretName = "ClientSecret-Resources-Test"
         $adClientSecret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name $clientSecretName
   
