@@ -245,7 +245,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     repType="company-rep"
                                     contract={formState}
                                     existingPosition={formState.externalCompanyRep}
-                                    onComplete={formFieldSetter('externalCompanyRepPositionId')}
+                                    onComplete={formFieldSetter('externalCompanyRep')}
                                 />
                             </div>
                         </div>
@@ -264,7 +264,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     contract={formState}
                                     existingPosition={formState.externalContractResponsible}
                                     onComplete={formFieldSetter(
-                                        'externalContractResponsiblePositionId'
+                                        'externalContractResponsible'
                                     )}
                                 />
                             </div>

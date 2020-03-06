@@ -10,7 +10,7 @@ import { TextInput, DatePicker, PersonPicker, Button, Spinner } from '@equinor/f
 
 type ExternalPositionSidesheetProps = {
     contract: Contract;
-    onComplete: (positionId: string) => void;
+    onComplete: (position: Position) => void;
     repType: 'company-rep' | 'contract-responsible';
     existingPosition: Position | null;
     onClose: () => void;

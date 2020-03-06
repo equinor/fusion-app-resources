@@ -4,10 +4,7 @@ import Personnel from '../../../../../../../models/Personnel';
 import Person from '../../../../../../../models/Person';
 import { v1 as uuid } from 'uuid';
 import * as styles from './styles.less';
-import {
-    useCurrentContext,
-    useNotificationCenter,
-} from '@equinor/fusion';
+import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
@@ -81,12 +78,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             ...formState,
             {
                 personnelId: uuid(),
-                name: "",
-                firstName: "",
-                lastName: "",
-                phoneNumber: "",
-                mail: "",
-                jobTitle: ""
+                name: '',
+                firstName: '',
+                lastName: '',
+                phoneNumber: '',
+                mail: '',
+                jobTitle: '',
             },
         ]);
     }, [formState]);
@@ -96,8 +93,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             header="Add Person"
             show={isOpen}
             size={'fullscreen'}
-            onClose={() => { setIsOpen(false) }}
-            safeClose
+            onClose={() => {
+                setIsOpen(false);
+            }}
+            safeClose={isFormDirty}
             safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
             safeCloseCancelLabel={'Continue editing'}
             safeCloseConfirmLabel={'Discard changes'}
@@ -128,9 +127,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                         </thead>
                         <tbody>
                             {formState.map(person => (
-                                <tr
-                                    key={`person${person.personnelId}`}
-                                >
+                                <tr key={`person${person.personnelId}`}>
                                     <td className={styles.tableRowCell}>
                                         <AddPersonnelFormTextInput
                                             key={`firstname${person.personnelId}`}
@@ -172,9 +169,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                         </tbody>
                     </table>
                 </div>
-            )
-            }
-        </ModalSideSheet >
+            )}
+        </ModalSideSheet>
     );
 };
 

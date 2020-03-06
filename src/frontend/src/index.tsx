@@ -31,6 +31,7 @@ const App: React.FC = () => {
 
 registerApp('resources', {
     AppComponent: App,
+    name: 'Resources',
     context: {
         types: [ContextTypes.OrgChart],
         buildUrl: (context: Context | null) => {
@@ -40,7 +41,7 @@ registerApp('resources', {
             return url.split('/')[0];
         },
     },
-});
+} as any);
 
 if (module.hot) {
     module.hot.accept();
