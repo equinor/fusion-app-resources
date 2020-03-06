@@ -2,7 +2,7 @@ import * as React from 'react';
 import { DataTableColumn, DataTable } from '@equinor/fusion-components';
 import { useSorting, usePagination, Page } from '@equinor/fusion';
 import { DataItemComponentProps } from '@equinor/fusion-components/dist/components/data/DataTable/dataTableTypes';
-import { useContractContext } from '../../../../../../contractContex';
+import { useContractContext } from '../contractContex';
 
 type SortableTableProps<T> = {
     data: T[];

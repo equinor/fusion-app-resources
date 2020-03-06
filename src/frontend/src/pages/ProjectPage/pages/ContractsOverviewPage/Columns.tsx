@@ -25,16 +25,18 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         ),
     },
     {
-        accessor: 'companyRepPositionId',
+        accessor: contract => contract.companyRep?.name || '',
         key: 'companyRepPositionId',
         label: 'Equinor company rep',
         component: ({ item }) => <PositionColumn position={item.companyRep} />,
+        sortable: true,
     },
     {
-        accessor: 'contractResponsiblePositionId',
+        accessor: contract => contract.contractResponsible?.name || '',
         key: 'contractResponsiblePositionId',
         label: 'Equinor contract rep',
         component: ({ item }) => <PositionColumn position={item.contractResponsible} />,
+        sortable: true,
     },
     {
         accessor: contract => contract.company?.name || 'no company',
@@ -43,16 +45,18 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         sortable: true,
     },
     {
-        accessor: 'externalContractResponsiblePositionId',
+        accessor: contract => contract.externalContractResponsible?.name || '',
         key: 'externalContractResponsiblePositionId',
         label: 'External company rep',
         component: ({ item }) => <PositionColumn position={item.externalContractResponsible} />,
+        sortable: true,
     },
     {
-        accessor: 'externalCompanyRepPositionId',
+        accessor: contract => contract.externalCompanyRep?.name || '',
         key: 'externalCompanyRepPositionId',
         label: 'External contract rep',
         component: ({ item }) => <PositionColumn position={item.externalCompanyRep} />,
+        sortable: true,
     },
 ];
 

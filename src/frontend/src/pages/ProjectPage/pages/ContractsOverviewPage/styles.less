@@ -5,9 +5,19 @@
     max-width: 100%;
 
     .tableContainer {
+        display: flex;
+        flex-direction: column;
         flex-grow: 1;
         width: 1px;
         padding: calc(var(--grid-unit) * 3px);
+
+        .toolbar {
+            flex-shrink: 0;
+        }
+
+        .table {
+            flex-grow: 1;
+        }
     }
 }
 
