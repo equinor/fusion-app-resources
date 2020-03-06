@@ -37,8 +37,13 @@ $sqlpasswordSecret = Get-AzKeyVaultSecret -VaultName $sqlPasswordKeyVault -Name 
 $sqlServer = Get-SqlServer 
 $sp = Get-AzADApplication -ApplicationId $clientId
 $SID = ConvertTo-Sid -appId $clientId
-$sql = "CREATE USER [$($sp.DisplayName)] WITH DEFAULT_SCHEMA=[dbo], SID = $SID, TYPE = E;ALTER ROLE db_owner ADD MEMBER [$($sp.DisplayName)];"
 
+$sql = @"
+if not exists(select * from sys.sysusers where sid = $SID) BEGIN
+    CREATE USER [$($sp.DisplayName)] WITH DEFAULT_SCHEMA=[dbo], SID = $SID, TYPE = E;
+    ALTER ROLE db_owner ADD MEMBER [$($sp.DisplayName)];
+END
+"@
 
 Invoke-Sqlcmd -ServerInstance $sqlServer.FullyQualifiedDomainName `
         -Database $sqlDatabaseName `
