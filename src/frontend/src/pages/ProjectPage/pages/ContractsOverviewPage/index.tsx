@@ -39,7 +39,7 @@ const ContractsOverviewPage = () => {
                         <SortableTable
                             rowIdentifier="contractNumber"
                             data={filteredContracts}
-                            isFetching={isFetchingContracts}
+                            isFetching={isFetchingContracts && !contracts.length}
                             columns={columns}
                         />
                     </ErrorMessage>

@@ -65,7 +65,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                         <CloseIcon />
                     </IconButton>
                     <h2>
-                        {isFetchingContract ? (
+                        {isFetchingContract && !contract ? (
                             <SkeletonBar />
                         ) : (
                                 <>
