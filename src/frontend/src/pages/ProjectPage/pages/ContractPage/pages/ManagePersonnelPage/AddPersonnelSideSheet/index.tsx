@@ -38,9 +38,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
         setSaveInProgress(true);
         await Promise.all(
-            formState.map(
-                async person =>
-                    await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+            formState.map(async person =>
+                person.created
+                    ? await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+                    : await apiClient.createPersonnelAsync(currentContext.id, contractId, person)
             )
         )
             .then(() => {
@@ -149,7 +150,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                     <td className={styles.tableRowCell}>
                                         <AddPersonnelFormTextInput
                                             key={`mail${person.personnelId}`}
-                                            disabled={saveInProgress}
+                                            disabled={Boolean(person.created || saveInProgress)}
                                             item={person}
                                             onChange={onChange}
                                             field={'mail'}

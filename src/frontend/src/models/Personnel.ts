@@ -14,6 +14,8 @@ type Personnel = {
     azureAdStatus: 'Available' | 'InviteSent' | 'NoAccount';
     hasCV: boolean;
     disciplines: PersonnelDiscipline[];
+    created?: Date | null;
+    updated?: Date | null;
 };
 
 export default Personnel;
