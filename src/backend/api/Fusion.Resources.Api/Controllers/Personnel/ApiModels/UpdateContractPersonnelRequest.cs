@@ -12,7 +12,7 @@ namespace Fusion.Resources.Api.Controllers
         public string JobTitle { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
 
-        public List<ApiPersonnelDiscipline>? Disciplines { get; set; }
+        public List<PersonnelDisciplineEntity>? Disciplines { get; set; }
 
         public void LoadCommand(UpdateContractPersonnel command)
         {
