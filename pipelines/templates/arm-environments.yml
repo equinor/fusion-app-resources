@@ -28,6 +28,16 @@ steps:
       ScriptArguments: -environment ${{ parameters.environment }} -sqlServerName ${{ parameters.sqlServer }}
 
   - task: AzurePowerShell@4
+    displayName: 'Grant azure ad app sql database access'
+    inputs:
+      azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+      ScriptType: FilePath
+      FailOnStandardError: true
+      azurePowerShellVersion: 'LatestVersion'
+      ScriptPath: src/backend/infrastructure/grant-adapp-sql-access.ps1
+      ScriptArguments: -clientId ${{ parameters.clientId }} -sqlServerName ${{ parameters.sqlServer }} -sqlDatabaseName $(SqlDatabaseName)
+
+  - task: AzurePowerShell@4
     displayName: 'Deploy ARM template'
     inputs:
       azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'

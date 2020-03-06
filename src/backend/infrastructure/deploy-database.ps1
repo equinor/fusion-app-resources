@@ -33,3 +33,5 @@ New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-data
 
 $connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=Fusion-Apps-Resources-$environment-DB;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 Write-Host "##vso[task.setvariable variable=SqlConnectionString]$connectionString" 
+Write-Host "##vso[task.setvariable variable=SqlDatabaseName]Fusion-Apps-Resources-$environment-DB"
+
