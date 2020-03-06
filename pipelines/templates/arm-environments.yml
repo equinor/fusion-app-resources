@@ -15,7 +15,7 @@ steps:
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
       ScriptPath: src/backend/infrastructure/ensure-resourcegroup.ps1
-      ScriptArguments: -environment ${{ paramaeters.environment }}
+      ScriptArguments: -environment ${{ parameters.environment }}
 
   # - task: AzurePowerShell@4
   #   displayName: 'Ensure environment resource group'
