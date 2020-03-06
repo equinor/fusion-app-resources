@@ -7,6 +7,7 @@ type Person = {
     lastName: string | null;
     phoneNumber: string;
     jobTitle: string;
+    created?: Date | null;
 };
 
 export default Person;
