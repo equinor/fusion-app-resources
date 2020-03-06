@@ -9,10 +9,10 @@
     "variables": {
         "env-name": "[toLower(parameters('env-name'))]",
         "location": "[resourceGroup().location]",
-        "keyvault-name": "[concat('keys-fusion-resources-', variables('env-name'))]",
+        "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
         "storage-name": "[concat('safresources', variables('env-name'))]",
-        "ai-name": "[concat('ai-fusion-resources-', variables('env-name'))]",
-        "sb-name": "[concat('sb-fusion-resources-', variables('env-name'))]"
+        "ai-name": "[concat('ai-fap-resources-', variables('env-name'))]",
+        "sb-name": "[concat('sb-fap-resources-', variables('env-name'))]"
         // "id-rg-infra": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', 'plant-query-infra')]",
     },
     "resources": [   

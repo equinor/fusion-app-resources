@@ -84,6 +84,10 @@ stages:
                     $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
 
+            - template: templates/get-appinsights-key.yml
+              parameters:
+                environment: $(envName)
+                
             - template: templates/replace-tokens.yml@commonTemplates
               parameters:
                 targetFiles: '$(deploymentManifest)'
