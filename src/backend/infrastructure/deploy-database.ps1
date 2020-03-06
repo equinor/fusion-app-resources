@@ -20,7 +20,11 @@ if ($null -eq $server) {
 $sqlServer = Get-AzSqlServer -ResourceGroupName $server.ResourceGroupName -ServerName $server.Name
 
 $ePools = Get-AzSqlElasticPool -ServerName $sqlServer.ServerName -ResourceGroupName $sqlServer.ResourceGroupName
-$pool = $ePools | Where-Object { $_.Tags["pool-type"] -eq "main" } | select-object -First 1
+if ($ePools.Length -gt 1) {
+    $pool = $ePools | Where-Object { $_.Tags["pool-type"] -eq "main" } | select-object -First 1    
+} else {
+    $pool = $ePools | Select-Object -First 1
+}
 
 New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database-$environment" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/src/backend/infrastructure/arm-templates/database.template.json" `
     -env-name $environment `
@@ -28,4 +32,4 @@ New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-data
     -sql-elastic-pool-id $pool.ResourceId
 
 $connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=Fusion-Apps-Resources-$environment-DB;Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-Write-Host "##vso[task.setvariable variable=SqlConnectionString]$connectionString"
+Write-Host "##vso[task.setvariable variable=SqlConnectionString]$connectionString" 
