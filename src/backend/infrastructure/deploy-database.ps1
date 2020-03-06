@@ -22,7 +22,7 @@ $sqlServer = Get-AzSqlServer -ResourceGroupName $server.ResourceGroupName -Serve
 $ePools = Get-AzSqlElasticPool -ServerName $sqlServer.ServerName -ResourceGroupName $sqlServer.ResourceGroupName
 $pool = $ePools | Where-Object { $_.Tags["pool-type"] -eq "main" } | select-object -First 1
 
-New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/src/backend/infrastructure/arm-templates/database.template.json" `
+New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-database-$environment" -ResourceGroupName $server.ResourceGroupName -TemplateFile  "$($env:BUILD_SOURCESDIRECTORY)/src/backend/infrastructure/arm-templates/database.template.json" `
     -env-name $environment `
     -sqlserver_name $server.Name `
     -sql-elastic-pool-id $pool.ResourceId

@@ -4,7 +4,7 @@ trigger:
       - master
     paths:
       include:
-      - src/backend/infrastructure/arm-templates/*
+      - src/backend/infrastructure/*
   
 pr: none
   
