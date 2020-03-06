@@ -6,14 +6,16 @@ type Personnel = {
     personnelId: string;
     azureUniquePersonId?: string;
     name: string;
-    firstName?: string;
-    lastName?: string;
+    firstName: string | null;
+    lastName: string | null;
     jobTitle: string;
     phoneNumber: string;
     mail: string;
     azureAdStatus: 'Available' | 'InviteSent' | 'NoAccount';
     hasCV: boolean;
     disciplines: PersonnelDiscipline[];
+    created?: Date | null;
+    updated?: Date | null;
 };
 
 export default Personnel;
