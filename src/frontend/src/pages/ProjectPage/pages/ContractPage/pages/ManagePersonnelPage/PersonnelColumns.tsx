@@ -1,31 +1,13 @@
 import * as React from 'react';
 import {
     DataTableColumn,
-    useTooltipRef,
-    DoneIcon,
-    WarningIcon,
-    CloseIcon,
-    styling,
 } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
+import AzureAdStatusIcon from './components/AzureAdStatus';
+
 
 export type DataItemProps = {
     item: Personnel;
-};
-
-// TODO: Get proper icons
-const AdStatus = {
-    Available: { text: 'Azure AD Approved', icon: <DoneIcon color={styling.colors.green} /> },
-    InviteSent: {
-        text: 'Azure AD pending approval',
-        icon: <WarningIcon outline color={styling.colors.orange} />,
-    },
-    NoAccount: { text: 'No Azure Access', icon: <CloseIcon color={styling.colors.red} /> },
-};
-
-const AzureAdStatus: React.FC<DataItemProps> = ({ item }) => {
-    const { text, icon } = AdStatus[item.azureAdStatus];
-    return <div ref={useTooltipRef(text)}>{icon}</div>;
 };
 
 const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
@@ -62,7 +44,7 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
         accessor: 'azureAdStatus',
         label: 'AD',
         priority: 15,
-        component: AzureAdStatus,
+        component: (p) => AzureAdStatusIcon(p.item.azureAdStatus),
         sortable: true,
         width: '20px',
     },
