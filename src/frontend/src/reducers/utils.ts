@@ -4,6 +4,12 @@ export type ReadonlyCollection<T> = {
     error: Readonly<Error | null>;
 };
 
+export const createEmptyCollection = <T>(): ReadonlyCollection<T> => ({
+    data: [],
+    isFetching: false,
+    error: null,
+});
+
 export type ActionVerb = 'fetch' | 'error' | 'merge';
 
 export type ExtractCollectionType<C> = C extends ReadonlyCollection<infer T> ? T : never;

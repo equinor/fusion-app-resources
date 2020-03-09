@@ -1,11 +1,17 @@
 import * as React from 'react';
-import { registerApp, ContextTypes, Context, useFusionContext, useCurrentContext } from '@equinor/fusion';
+import {
+    registerApp,
+    ContextTypes,
+    Context,
+    useFusionContext,
+    useCurrentContext,
+} from '@equinor/fusion';
 import { Switch, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import ProjectPage from './pages/ProjectPage';
 import ApiClient from './api/ApiClient';
 import AppContext from './appContext';
-import { appReducer } from './reducers/appReducer';
+import { appReducer, createInitialState } from './reducers/appReducer';
 import useCollectionReducer from './hooks/useCollectionReducer';
 
 const App: React.FC = () => {
@@ -22,10 +28,11 @@ const App: React.FC = () => {
     }, []);
 
     const currentContext = useCurrentContext();
-    const [appState, dispatchAppAction] = useCollectionReducer(currentContext?.id || 'app', appReducer, {
-        contracts: { isFetching: false, data: [], error: null },
-        positions: { isFetching: false, data: [], error: null },
-    });
+    const [appState, dispatchAppAction] = useCollectionReducer(
+        currentContext?.id || 'app',
+        appReducer,
+        createInitialState()
+    );
 
     return (
         <AppContext.Provider value={{ apiClient, appState, dispatchAppAction }}>

@@ -5,6 +5,7 @@ import {
     CollectionAction,
     createCollectionRootReducer,
     createCollectionReducer,
+    createEmptyCollection,
 } from './utils';
 
 export type AppState = {
@@ -61,3 +62,8 @@ export const appReducer = createCollectionRootReducer(
         return state;
     }
 );
+
+export const createInitialState = (): AppState => ({
+    contracts: createEmptyCollection<Contract>(),
+    positions: createEmptyCollection<Position>(),
+});

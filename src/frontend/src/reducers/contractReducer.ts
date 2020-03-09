@@ -3,6 +3,7 @@ import {
     ReadonlyCollection,
     createCollectionRootReducer,
     createCollectionReducer,
+    createEmptyCollection,
 } from './utils';
 import Personnel from '../models/Personnel';
 import PersonnelRequest from '../models/PersonnelRequest';
@@ -54,3 +55,9 @@ export const contractReducer = createCollectionRootReducer(
         return state;
     }
 );
+
+export const createInitialState = (): ContractState => ({
+    personnel: createEmptyCollection<Personnel>(),
+    activeRequests: createEmptyCollection<PersonnelRequest>(),
+    actualMpp: createEmptyCollection<Position>(),
+});

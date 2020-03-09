@@ -18,7 +18,7 @@ import ActiveRequestsPage from './pages/ActiveRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
 import * as styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
-import { contractReducer } from '../../../../reducers/contractReducer';
+import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 
 type ContractPageMatch = {
@@ -29,17 +29,15 @@ type ContractPageProps = RouteComponentProps<ContractPageMatch>;
 
 const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     const currentContext = useCurrentContext();
-    const { contract, isFetchingContract, contractError } = useContractFromId(match.params.contractId);
+    const { contract, isFetchingContract, contractError } = useContractFromId(
+        match.params.contractId
+    );
     const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId);
 
     const [contractState, dispatchContractAction] = useCollectionReducer(
         match.params.contractId,
         contractReducer,
-        {
-            personnel: { isFetching: false, data: [], error: null },
-            activeRequests: { isFetching: false, data: [], error: null },
-            actualMpp: { isFetching: false, data: [], error: null },
-        }
+        createInitialState()
     );
 
     const contractContext = React.useMemo(() => {
