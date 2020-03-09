@@ -1,34 +1,32 @@
-import { CollectionAction, ReadonlyCollection, merge, createCollectionReducer } from './utils';
+import {
+    CollectionAction,
+    ReadonlyCollection,
+    createCollectionRootReducer,
+    createCollectionReducer,
+} from './utils';
 import Personnel from '../models/Personnel';
+import PersonnelRequest from '../models/PersonnelRequest';
+import { Position } from '@equinor/fusion';
 
 export type ContractState = {
     personnel: ReadonlyCollection<Personnel>;
+    activeRequests: ReadonlyCollection<PersonnelRequest>;
+    actualMpp: ReadonlyCollection<Position>;
 };
 
-const personnelReducer = (
-    state: ContractState,
-    action: CollectionAction<ContractState, 'personnel'>
-) => {
-    switch (action.verb) {
-        case 'merge':
-            return {
-                ...state,
-                personnel: {
-                    isFetching: false,
-                    error: null,
-                    data: merge(
-                        state.personnel.data,
-                        (x, y) => x.personnelId === y.personnelId,
-                        action.payload
-                    ),
-                },
-            };
-    }
-    
-    return state;
-};
+const personnelReducer = createCollectionReducer<ContractState, 'personnel'>(
+    (x, y) => x.personnelId === y.personnelId
+);
 
-export const contractReducer = createCollectionReducer(
+const activeRequestsReducer = createCollectionReducer<ContractState, 'activeRequests'>(
+    (x, y) => x.id === y.id
+);
+
+const actualMppReducer = createCollectionReducer<ContractState, 'actualMpp'>(
+    (x, y) => x.id === y.id
+);
+
+export const contractReducer = createCollectionRootReducer(
     <T extends keyof ContractState>(
         state: ContractState,
         action: CollectionAction<ContractState, T>
@@ -38,6 +36,18 @@ export const contractReducer = createCollectionReducer(
                 return personnelReducer(
                     state,
                     action as CollectionAction<ContractState, 'personnel'>
+                );
+
+            case 'activeRequests':
+                return activeRequestsReducer(
+                    state,
+                    action as CollectionAction<ContractState, 'activeRequests'>
+                );
+
+            case 'actualMpp':
+                return actualMppReducer(
+                    state,
+                    action as CollectionAction<ContractState, 'actualMpp'>
                 );
         }
 

@@ -146,7 +146,7 @@ export default class ApiClient {
             ApiCollection<PersonnelRequest>,
             FusionApiHttpErrorResponse
         >(url);
-        return response.data;
+        return response.data.value;
     }
 
 

@@ -1,6 +1,11 @@
 import Contract from '../models/contract';
 import { Position } from '@equinor/fusion';
-import { merge, ReadonlyCollection, CollectionAction, createCollectionReducer } from './utils';
+import {
+    ReadonlyCollection,
+    CollectionAction,
+    createCollectionRootReducer,
+    createCollectionReducer,
+} from './utils';
 
 export type AppState = {
     contracts: ReadonlyCollection<Contract>;
@@ -22,77 +27,29 @@ const extractPositionsFromContracts = (contracts: readonly Contract[]): Position
         .filter(p => p !== null);
 };
 
-const contractsReducer = (
-    state: AppState,
-    action: CollectionAction<AppState, 'contracts'>
-): AppState => {
-    switch (action.verb) {
-        case 'merge':
-            const stateWithMergedContracts = {
-                ...state,
-                contracts: {
-                    isFetching: false,
-                    error: null,
-                    data: merge(state.contracts.data, (x, y) => x.id === y.id, action.payload),
-                },
-            };
+const contractsReducer = createCollectionReducer<AppState, 'contracts'>(
+    (x, y) => x.id === y.id,
+    (state, action) => {
+        switch (action.verb) {
+            case 'merge':
+                return appReducer(state, {
+                    verb: 'merge',
+                    collection: 'positions',
+                    payload: extractPositionsFromContracts(state.contracts.data),
+                });
+        }
 
-            return appReducer(stateWithMergedContracts, {
-                verb: 'merge',
-                collection: 'positions',
-                payload: extractPositionsFromContracts(stateWithMergedContracts.contracts.data),
-            });
+        return state;
     }
+);
 
-    return state;
-};
+const positionsReducer = createCollectionReducer<AppState, 'positions'>((x, y) => x.id === y.id);
 
-const positionsReducer = (
-    state: AppState,
-    action: CollectionAction<AppState, 'positions'>
-): AppState => {
-    switch (action.verb) {
-        case 'merge':
-            return {
-                ...state,
-                positions: {
-                    isFetching: false,
-                    error: null,
-                    data: merge(state.positions.data, (x, y) => x.id === y.id, action.payload),
-                },
-            };
-    }
-
-    return state;
-};
-
-export const appReducer = createCollectionReducer(
+export const appReducer = createCollectionRootReducer(
     <T extends keyof AppState = keyof AppState>(
         state: AppState,
         action: CollectionAction<AppState, T>
     ): AppState => {
-        switch (action.verb) {
-            case 'fetch':
-                return {
-                    ...state,
-                    [action.collection]: {
-                        ...state[action.collection],
-                        error: null,
-                        isFetching: true,
-                    },
-                };
-
-            case 'error':
-                return {
-                    ...state,
-                    [action.collection]: {
-                        ...state[action.collection],
-                        isFetching: true,
-                        error: action.error,
-                    },
-                };
-        }
-
         switch (action.collection) {
             case 'contracts':
                 return contractsReducer(state, action as CollectionAction<AppState, 'contracts'>);

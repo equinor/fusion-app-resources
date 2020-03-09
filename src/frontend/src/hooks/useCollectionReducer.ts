@@ -1,8 +1,8 @@
 import { useReducer } from 'react';
 import JSON from '@equinor/fusion/lib/utils/JSON';
-import { Reducer } from "../reducers/utils";
+import { RootReducer } from "../reducers/utils";
 
-const useCollectionReducer = <TState>(key: string, reducer: Reducer<TState>, initialState: TState) => {
+const useCollectionReducer = <TState>(key: string, reducer: RootReducer<TState>, initialState: TState) => {
     const SESSION_STATE_KEY = 'FUSION_RESOURCES_STATE:' + key;
     const sessionState = sessionStorage.getItem(SESSION_STATE_KEY);
 

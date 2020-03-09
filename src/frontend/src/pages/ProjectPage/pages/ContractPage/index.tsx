@@ -29,7 +29,7 @@ type ContractPageProps = RouteComponentProps<ContractPageMatch>;
 
 const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     const currentContext = useCurrentContext();
-    const { contract, isFetchingContract } = useContractFromId(match.params.contractId);
+    const { contract, isFetchingContract, contractError } = useContractFromId(match.params.contractId);
     const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId);
 
     const [contractState, dispatchContractAction] = useCollectionReducer(
@@ -37,6 +37,8 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
         contractReducer,
         {
             personnel: { isFetching: false, data: [], error: null },
+            activeRequests: { isFetching: false, data: [], error: null },
+            actualMpp: { isFetching: false, data: [], error: null },
         }
     );
 
@@ -54,7 +56,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
         history.push('/' + currentContext?.id || '');
     }, [history, currentContext]);
 
-    if (!contract && !isFetchingContract) {
+    if (contractError) {
         return (
             <div className={styles.container}>
                 <header className={styles.header}>

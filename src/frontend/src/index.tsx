@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { registerApp, ContextTypes, Context, useFusionContext, useCurrentContext } from '@equinor/fusion';
-import JSON from '@equinor/fusion/lib/utils/JSON';
 import { Switch, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import ProjectPage from './pages/ProjectPage';
