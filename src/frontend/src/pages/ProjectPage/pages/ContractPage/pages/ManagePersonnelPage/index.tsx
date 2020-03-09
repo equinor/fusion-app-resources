@@ -17,9 +17,7 @@ const ManagePersonnelPage: React.FC = () => {
         currentContract?.contract?.id || undefined,
         currentContext?.id
     );
-    const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>(
-        []
-    );
+    const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
 
     const { sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(
         filteredPersonnel,
@@ -37,8 +35,8 @@ const ManagePersonnelPage: React.FC = () => {
     );
 
     const filterSections = React.useMemo(() => {
-        return getFilterSections(filteredPersonnel);
-    }, [filteredPersonnel]);
+        return getFilterSections(personnel);
+    }, [personnel]);
 
     const personnelColumns = React.useMemo(() => PersonnelColumns(), []);
     const sortedByColumn = React.useMemo(
@@ -47,13 +45,11 @@ const ManagePersonnelPage: React.FC = () => {
     );
 
     return (
-
         <div className={styles.container}>
             <div className={styles.managePersonnel}>
                 <div className={styles.toolbar}>
                     <Button outlined onClick={() => setIsAddPersonOpen(true)}>
-                        {' '}
-                        <AddIcon /> Add Person{' '}
+                        <AddIcon /> Add Person
                     </Button>
                 </div>
                 <DataTable
