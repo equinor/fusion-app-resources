@@ -23,21 +23,23 @@ steps:
             if (-not [string]::IsNullOrEmpty($overrideFileName)) {
                 $sqlFile = $overrideFileName
             }
-            
+                        
             ## Use access token to access database - the service principal should be located in the sql server admin group.
             $context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
             $token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, "https://database.windows.net/")
             
+            $dbResource = Get-AzResource -TagName fusion-app-component-id -TagValue resources-api-db-ci | select -First 1 
+            $db = Get-AzSqlDatabase -DatabaseName $dbResource.Name.Split("/")[1] -ResourceGroupName $dbResource.ResourceGroupName -ServerName $dbResource.Name.Split("/")[0]
+            $sqlServer = Get-AzSqlServer -ServerName $db.ServerName -ResourceGroupName $db.ResourceGroupName
+
             $conn = new-object System.Data.SqlClient.SqlConnection
-            $conn.ConnectionString = "Server=tcp:$($sqlServer.FullyQualifiedDomainName),1433;Initial Catalog=$($sqlDatabaseName);Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" 
+            $conn.ConnectionString = "Server=tcp:$($sqlServer.FullyQualifiedDomainName),1433;Initial Catalog=$($db.DatabaseName);Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" 
             $conn.AccessToken = $token.AccessToken
-            
-            $command = new-object system.data.sqlclient.sqlcommand($sql,$conn)
-            $conn.Open()
             
             $content = [IO.File]::ReadAllText($sqlFile)
             $batches = $content -split "GO"
             
+            $conn.Open()
             foreach($batch in $batches)
             {
                 if ($batch.Trim() -ne "") {
@@ -49,34 +51,3 @@ steps:
             }
             $SqlConnection.Close()
       
-
-        #   Write-Host "Importing the SqlServer module"        
-        #   Import-Module SqlServer
-  
-        #   $overrideFileName = "${{ parameters.sqlFile }}"
-  
-        #   $kv = Get-AzKeyVault -Tag @{ application = "query" } | Where-Object { $_.Tags["environment"] -eq "${{ parameters.envName }}" }
-        #   $secret = Get-AzKeyVaultSecret -VaultName $kv.VaultName -Name Connectionstrings--PlantQueryContext
-          
-        #   $secret.SecretValueText -match "tcp:(([^.]+)[^;]+).*Initial Catalog=([^;]+).*User ID=([^;]+);Password=([^;]+);"
-          
-        #   $sqlServerHost = $Matches[1]
-        #   $sqlServer = $Matches[2]
-        #   $databaseName = $Matches[3]
-        #   $sqlUser = "$($Matches[4])@$sqlServer"
-        #   $password = $Matches[5]
-  
-        #   Write-Host "Executing sql command on db '$databaseName' @ $sqlServer, using $sqlUser as user"
-  
-        #   $sqlFile = "$($env:PIPELINE_WORKSPACE)/${{ parameters.artifact }}/db-migration.sql"
-  
-        #   if (-not [string]::IsNullOrEmpty($overrideFileName)) {
-        #       $sqlFile = $overrideFileName
-        #   }
-  
-        #   Invoke-Sqlcmd -ServerInstance $sqlServerHost `
-        #         -Database $databaseName `
-        #         -Username $sqlUser `
-        #         -Password $password `
-        #         -InputFile $sqlFile `
-        #         -ConnectionTimeout 120
