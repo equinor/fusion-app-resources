@@ -47,6 +47,7 @@ const EditRequestSideSheet: React.FC = () => {
                         state.parentPosition &&
                         state.positionName &&
                         state.workload &&
+                        state.person &&
                         !Boolean(isNaN(+state.workload))
                 )
         );
@@ -65,6 +66,10 @@ const EditRequestSideSheet: React.FC = () => {
             show={showSideSheet}
             size="fullscreen"
             onClose={closeSideSheet}
+            safeClose={isFormDirty}
+            safeCloseTitle={`Close Edit/Request personnel? Unsaved changes will be lost.`}
+            safeCloseCancelLabel={'Continue editing'}
+            safeCloseConfirmLabel={'Discard changes'}
             headerIcons={[
                 <Button
                     disabled={!(isFormDirty && isFormValid) || isSubmitting}
@@ -81,7 +86,7 @@ const EditRequestSideSheet: React.FC = () => {
                 formState={formState}
                 setFormState={setFormState}
                 rowIdentifier="id"
-                isFetching={isFetchingPositions}
+                isFetching={isFetchingPositions || isFetchingContract}
             />
         </ModalSideSheet>
     );

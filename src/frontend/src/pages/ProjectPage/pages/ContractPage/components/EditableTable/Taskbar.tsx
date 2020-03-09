@@ -15,7 +15,7 @@ const Taskbar: React.FC<TaskbarProps> = ({onAddItem}) => {
             <IconButton onClick={onAddItem} ref={addItemTooltipRef}>
                 <AddIcon />
             </IconButton>
-            <IconButton ref={removeItemTooltipRef}>
+            <IconButton ref={removeItemTooltipRef} disabled>
                 <DeleteIcon />
             </IconButton>
         </div>

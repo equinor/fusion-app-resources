@@ -11,7 +11,7 @@ const columns: EditableTaleColumn<EditRequest>[] = [
     {
         accessor: item => item.person,
         accessKey: 'person',
-        label: 'Assigned Person',
+        label: 'Assigned person',
         item: 'PersonnelPicker',
     },
     {
@@ -29,7 +29,7 @@ const columns: EditableTaleColumn<EditRequest>[] = [
     {
         accessor: item => item.workload,
         accessKey: 'workload',
-        label: 'Workload',
+        label: 'Workload(%)',
         item: 'TextInput',
     },
     

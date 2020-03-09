@@ -9,6 +9,8 @@ import { DefaultTableType } from './TableTypes';
 import Personnel from '../../../../../../../models/Personnel';
 
 import usePersonnel from '../../../pages/ManagePersonnelPage/hooks/usePersonnel';
+import { useCurrentContext } from '@equinor/fusion';
+import { useContractContext } from '../../../../../../../contractContex';
 
 function TablePersonnelPicker<T>({
     item,
@@ -16,10 +18,17 @@ function TablePersonnelPicker<T>({
     accessKey,
     accessor,
     rowIdentifier,
+    columnLabel,
 }: DefaultTableType<T, Personnel | null>) {
+    const currentContext = useCurrentContext();
+    const currentOrgProject = currentContext as any;
+    const { contract } = useContractContext();
     const selectedPersonnel = React.useMemo(() => accessor(item), [accessor, item]);
 
-    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel();
+    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(
+        contract?.id || undefined,
+        currentOrgProject.externalId
+    );
 
     const options = React.useMemo((): SearchableDropdownOption[] => {
         return personnel.map(person => ({
@@ -47,7 +56,7 @@ function TablePersonnelPicker<T>({
 
     return (
         <SearchableDropdown
-            label="Personnel"
+            label={columnLabel}
             options={options}
             onSelect={onDropdownSelect}
             error={personnelError !== null}
