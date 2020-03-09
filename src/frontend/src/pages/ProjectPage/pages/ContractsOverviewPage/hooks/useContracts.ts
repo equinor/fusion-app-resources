@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useAppContext } from '../../../../../appContext';
-import { useReducerCollection } from '../../../../../appReducer';
+import useReducerCollection from '../../../../../hooks/useReducerCollection';
 
 const useContracts = (projectId?: string) => {
-    const { apiClient } = useAppContext();
+    const { apiClient, appState, dispatchAppAction } = useAppContext();
 
     const fetchContracts = React.useCallback(async () => {
         if (!projectId) {
@@ -13,7 +13,7 @@ const useContracts = (projectId?: string) => {
         return apiClient.getContractsAsync(projectId);
     }, [projectId]);
 
-    const contracts = useReducerCollection('contracts', fetchContracts);
+    const contracts = useReducerCollection(appState, dispatchAppAction, 'contracts', fetchContracts);
 
     return {
         contracts: contracts.data,

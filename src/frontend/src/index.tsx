@@ -1,12 +1,13 @@
 import * as React from 'react';
-import { registerApp, ContextTypes, Context, useFusionContext } from '@equinor/fusion';
+import { registerApp, ContextTypes, Context, useFusionContext, useCurrentContext } from '@equinor/fusion';
 import JSON from '@equinor/fusion/lib/utils/JSON';
 import { Switch, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import ProjectPage from './pages/ProjectPage';
 import ApiClient from './api/ApiClient';
 import AppContext from './appContext';
-import { appReducer } from './appReducer';
+import { appReducer } from './reducers/appReducer';
+import useCollectionReducer from './hooks/useCollectionReducer';
 
 const App: React.FC = () => {
     const fusionContext = useFusionContext();
@@ -21,14 +22,11 @@ const App: React.FC = () => {
         ]);
     }, []);
 
-    const SESSION_STATE_KEY = 'FUSION_CONTRACT_APP_STATE';
-    const sessionState = sessionStorage.getItem(SESSION_STATE_KEY);
-    const [appState, dispatchAppAction] = React.useReducer(appReducer, sessionState ? JSON.parse(sessionState) : {
+    const currentContext = useCurrentContext();
+    const [appState, dispatchAppAction] = useCollectionReducer(currentContext?.id || 'app', appReducer, {
         contracts: { isFetching: false, data: [], error: null },
         positions: { isFetching: false, data: [], error: null },
     });
-
-    sessionStorage.setItem(SESSION_STATE_KEY, JSON.stringify(appState));
 
     return (
         <AppContext.Provider value={{ apiClient, appState, dispatchAppAction }}>

@@ -18,6 +18,8 @@ import ActiveRequestsPage from './pages/ActiveRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
 import * as styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
+import { contractReducer } from '../../../../reducers/contractReducer';
+import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 
 type ContractPageMatch = {
     contractId: string;
@@ -30,12 +32,22 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     const { contract, isFetchingContract } = useContractFromId(match.params.contractId);
     const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId);
 
+    const [contractState, dispatchContractAction] = useCollectionReducer(
+        match.params.contractId,
+        contractReducer,
+        {
+            personnel: { isFetching: false, data: [], error: null },
+        }
+    );
+
     const contractContext = React.useMemo(() => {
         return {
             contract,
             isFetchingContract,
+            contractState,
+            dispatchContractAction,
         };
-    }, [contract, isFetchingContract]);
+    }, [contract, isFetchingContract, contractState, dispatchContractAction]);
 
     const history = useHistory();
     const onClose = React.useCallback(() => {
@@ -68,10 +80,10 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                         {isFetchingContract && !contract ? (
                             <SkeletonBar />
                         ) : (
-                                <>
-                                    {contract?.contractNumber} - {contract?.name}
-                                </>
-                            )}
+                            <>
+                                {contract?.contractNumber} - {contract?.name}
+                            </>
+                        )}
                     </h2>
                 </header>
                 <div className={styles.content}>

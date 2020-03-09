@@ -22,7 +22,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     selectedPersonnel,
 }) => {
     const currentContext = useCurrentContext();
-    const currentContract = useContractContext();
+    const { contract, dispatchContractAction } = useContractContext();
     const notification = useNotificationCenter();
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
@@ -31,38 +31,44 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
     const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
 
-    const savePersonnelChangesAsync = async () => {
-        const contractId = currentContract.contract?.id;
+    const savePersonnelChangesAsync = React.useCallback(async () => {
+        const contractId = contract?.id;
 
         if (!currentContext?.id || !contractId) return;
 
         setSaveInProgress(true);
-        await Promise.all(
-            formState.map(async person =>
-                person.created
-                    ? await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
-                    : await apiClient.createPersonnelAsync(currentContext.id, contractId, person)
-            )
-        )
-            .then(() => {
-                setSaveInProgress(false);
-                setIsOpen(false);
-                notification({
-                    level: 'low',
-                    title: 'Personnel changes saved',
-                    cancelLabel: 'dismiss',
-                });
-            })
-            .catch(e => {
-                //TODO: This could probably be more helpfull.
-                notification({
-                    level: 'high',
-                    title:
-                        'Something went wrong while saving. Please try again or contact administrator',
-                });
-                setSaveInProgress(false);
+        try {
+            const personnel = await Promise.all(
+                formState.map(async person =>
+                    person.created
+                        ? apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+                        : apiClient.createPersonnelAsync(currentContext.id, contractId, person)
+                )
+            );
+
+            setSaveInProgress(false);
+            setIsOpen(false);
+            notification({
+                level: 'low',
+                title: 'Personnel changes saved',
+                cancelLabel: 'dismiss',
             });
-    };
+
+            dispatchContractAction({
+                verb: 'merge',
+                collection: 'personnel',
+                payload: personnel,
+            })
+        } catch (e) {
+            //TODO: This could probably be more helpfull.
+            notification({
+                level: 'high',
+                title:
+                    'Something went wrong while saving. Please try again or contact administrator',
+            });
+            setSaveInProgress(false);
+        }
+    }, [contract, currentContext, formState]);
 
     const onChange = React.useCallback(
         (changedPerson: Person) => {
