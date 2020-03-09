@@ -38,9 +38,16 @@ namespace Fusion.Resources.Api
             var clientSecret = tempConfig["AzureAd:ClientSecret"];
             var keyVaultUrl = tempConfig["KEYVAULT_URL"];
 
-            Console.WriteLine($"Adding key vault using url: '{keyVaultUrl}', client id '{clientId}' and client secret {(string.IsNullOrEmpty(clientSecret) ? "*****" : "[empty]")}");
+            if (!string.IsNullOrEmpty(keyVaultUrl))
+            {
+                Console.WriteLine($"Adding key vault using url: '{keyVaultUrl}', client id '{clientId}' and client secret {(string.IsNullOrEmpty(clientSecret) ? "[empty]" : "*****")}");
 
-            configBuilder.AddAzureKeyVault(keyVaultUrl, clientId, clientSecret);
+                configBuilder.AddAzureKeyVault(keyVaultUrl, clientId, clientSecret);
+            }
+            else
+            {
+                Console.Write("Skipping key vault as url is empty.");
+            }
         }
 
     }
