@@ -3,7 +3,7 @@ parameters:
     sqlFile: ''
     artifact: 'drop'
   
-  steps:
+steps:
 #   - task: DownloadPipelineArtifact@2
 #     displayName: 'Download sql artifact'
 #     inputs:
