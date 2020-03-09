@@ -14,7 +14,7 @@ variables:
     imageName: resources/fusion-resouces-api:$(imageTag)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
-    fullImageName: $(acrName)/$(imageName)
+    fullImageName: $(fusionAcr)/$(imageName)
   
 stages:
   - stage: BuildDockerImage
