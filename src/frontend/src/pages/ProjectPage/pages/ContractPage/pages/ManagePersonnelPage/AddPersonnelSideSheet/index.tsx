@@ -3,15 +3,8 @@ import { ModalSideSheet, Button, Spinner, AddIcon } from '@equinor/fusion-compon
 import Personnel from '../../../../../../../models/Personnel';
 import Person from '../../../../../../../models/Person';
 import { v1 as uuid } from 'uuid';
-import * as classNames from 'classnames';
 import * as styles from './styles.less';
-import {
-    useComponentDisplayClassNames,
-    useCurrentContext,
-    useNotificationCenter,
-} from '@equinor/fusion';
-import { generateRowTemplate, generateColumnTemplate } from './utils';
-import Header from './AddPersonnelFormHeader';
+import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
@@ -45,9 +38,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
         setSaveInProgress(true);
         await Promise.all(
-            formState.map(
-                async person =>
-                    await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+            formState.map(async person =>
+                person.created
+                    ? await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+                    : await apiClient.createPersonnelAsync(currentContext.id, contractId, person)
             )
         )
             .then(() => {
@@ -83,23 +77,27 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const onAddPerson = React.useCallback(() => {
         setFormState([
             ...formState,
-            { personnelId: uuid(), name: '', phoneNumber: '', mail: '', jobTitle: '' },
+            {
+                personnelId: uuid(),
+                name: '',
+                firstName: '',
+                lastName: '',
+                phoneNumber: '',
+                mail: '',
+                jobTitle: '',
+            },
         ]);
     }, [formState]);
-
-    const headers = ['Name', 'Mail', 'Phone'];
-    const rowTemplate = generateRowTemplate(headers);
-    const columnTemplate = generateColumnTemplate(headers);
-    const containerClassNames = classNames(styles.container, useComponentDisplayClassNames(styles));
 
     return (
         <ModalSideSheet
             header="Add Person"
             show={isOpen}
+            size={'fullscreen'}
             onClose={() => {
                 setIsOpen(false);
             }}
-            safeClose
+            safeClose={isFormDirty}
             safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
             safeCloseCancelLabel={'Continue editing'}
             safeCloseConfirmLabel={'Discard changes'}
@@ -116,58 +114,61 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                     {saveInProgress ? <Spinner inline /> : 'Create'}
                 </Button>,
             ]}
-            isResizable
-            minWidth={640}
         >
             {isOpen && (
-                <div className={containerClassNames}>
-                    <div
-                        className={styles.table}
-                        style={{
-                            gridTemplateColumns: columnTemplate,
-                            gridTemplateRows: rowTemplate,
-                        }}
-                    >
-                        <Header headers={headers} />
-                        <table>
-                            <tbody>
-                                {formState.map(person => (
-                                    <tr
-                                        key={`person${person.personnelId}`}
-                                        className={styles.tableRow}
-                                    >
-                                        <td className={styles.tableRowCell}>
-                                            <AddPersonnelFormTextInput
-                                                key={`name${person.personnelId}`}
-                                                disabled={saveInProgress}
-                                                item={person}
-                                                onChange={onChange}
-                                                field={'name'}
-                                            />
-                                        </td>
-                                        <td className={styles.tableRowCell}>
-                                            <AddPersonnelFormTextInput
-                                                key={`mail${person.personnelId}`}
-                                                disabled={saveInProgress}
-                                                item={person}
-                                                onChange={onChange}
-                                                field={'mail'}
-                                            />
-                                        </td>
-                                        <td className={styles.tableRowCell}>
-                                            <AddPersonnelFormTextInput
-                                                key={`phoneNumber${person.personnelId}`}
-                                                disabled={saveInProgress}
-                                                item={person}
-                                                onChange={onChange}
-                                                field={'phoneNumber'}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className={styles.container}>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th className={styles.header}>First Name</th>
+                                <th className={styles.header}>Last Name</th>
+                                <th className={styles.header}>E-Mail</th>
+                                <th className={styles.header}>Phone Number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {formState.map(person => (
+                                <tr key={`person${person.personnelId}`}>
+                                    <td className={styles.tableRowCell}>
+                                        <AddPersonnelFormTextInput
+                                            key={`firstname${person.personnelId}`}
+                                            disabled={saveInProgress}
+                                            item={person}
+                                            onChange={onChange}
+                                            field={'firstName'}
+                                        />
+                                    </td>
+                                    <td className={styles.tableRowCell}>
+                                        <AddPersonnelFormTextInput
+                                            key={`lastname${person.personnelId}`}
+                                            disabled={saveInProgress}
+                                            item={person}
+                                            onChange={onChange}
+                                            field={'lastName'}
+                                        />
+                                    </td>
+                                    <td className={styles.tableRowCell}>
+                                        <AddPersonnelFormTextInput
+                                            key={`mail${person.personnelId}`}
+                                            disabled={Boolean(person.created || saveInProgress)}
+                                            item={person}
+                                            onChange={onChange}
+                                            field={'mail'}
+                                        />
+                                    </td>
+                                    <td className={styles.tableRowCell}>
+                                        <AddPersonnelFormTextInput
+                                            key={`phoneNumber${person.personnelId}`}
+                                            disabled={saveInProgress}
+                                            item={person}
+                                            onChange={onChange}
+                                            field={'phoneNumber'}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
         </ModalSideSheet>

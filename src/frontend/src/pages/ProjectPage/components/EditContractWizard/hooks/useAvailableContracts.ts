@@ -32,8 +32,12 @@ const useAvailableContracts = () => {
         fetchAvailableContracts();
     }, [currentContext]);
 
+    const mockContract: AvailableContract = {
+        contractNumber: new Date().getTime().toString(),
+    };
+
     return {
-        availableContracts,
+        availableContracts: [mockContract, ...availableContracts],
         isFetchingAvailableContracts,
         availableContractsError,
     };

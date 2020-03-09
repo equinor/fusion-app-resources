@@ -1,11 +1,15 @@
 import * as React from 'react';
 import { useCurrentContext, Position, useApiClients } from '@equinor/fusion';
 import { SkeletonBar, PersonPhoto, SkeletonDisc } from '@equinor/fusion-components';
-import * as styles from "./styles.less";
+import * as styles from './styles.less';
 
-type PositionColumnProps = { positionId: string | null };
-const PositionColumn: React.FC<PositionColumnProps> = ({ positionId }) => {
-    const [position, setPosition] = React.useState<Position | null>(null);
+type PositionColumnProps = {
+    position?: Position | null;
+    positionId?: string | null
+};
+
+const PositionColumn: React.FC<PositionColumnProps> = ({ position, positionId }) => {
+    const [internalPosition, setPosition] = React.useState<Position | null>(position || null);
     const [isFetching, setIsFetching] = React.useState(false);
     const currentProject = useCurrentContext();
 
@@ -30,22 +34,26 @@ const PositionColumn: React.FC<PositionColumnProps> = ({ positionId }) => {
 
     const instance = React.useMemo(() => {
         const now = new Date();
-        return position?.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
-    }, [position]);
+        return internalPosition?.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
+    }, [internalPosition]);
 
-    if(isFetching) {
-        return(
+    if (isFetching) {
+        return (
             <div className={styles.container}>
                 <SkeletonDisc size="medium" />
                 <div className={styles.details}>
-                    <div className={styles.positionName}><SkeletonBar /></div>
-                    <div className={styles.personName}><SkeletonBar height={8} /></div>
+                    <div className={styles.positionName}>
+                        <SkeletonBar />
+                    </div>
+                    <div className={styles.personName}>
+                        <SkeletonBar height={8} />
+                    </div>
                 </div>
             </div>
         );
     }
 
-    if(!position) {
+    if (!internalPosition) {
         return <>TBN</>;
     }
 
@@ -53,7 +61,7 @@ const PositionColumn: React.FC<PositionColumnProps> = ({ positionId }) => {
         <div className={styles.container}>
             <PersonPhoto person={instance?.assignedPerson || undefined} size="medium" />
             <div className={styles.details}>
-                <div className={styles.positionName}>{position.name}</div>
+                <div className={styles.positionName}>{internalPosition.name}</div>
                 <div className={styles.personName}>{instance?.assignedPerson?.name || 'TBN'}</div>
             </div>
         </div>

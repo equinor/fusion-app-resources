@@ -3,12 +3,12 @@ import * as styles from './styles.less';
 import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
-import SortableTable from '../../components/SortableTable';
+import SortableTable from '../../../../../../components/SortableTable';
 import columns from './columns';
 import { useContractContext } from '../../../../../../contractContex';
 import { useCurrentContext } from '@equinor/fusion';
 import getFilterSections from './getFilterSections';
-import GenericFilter from '../../components/GenericFilter';
+import GenericFilter from '../../../../../../components/GenericFilter';
 
 const ActiveRequestsPage: React.FC = () => {
     const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[] | null>(null);

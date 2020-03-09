@@ -2,10 +2,10 @@ import * as React from 'react';
 import * as styles from './styles.less';
 import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage } from '@equinor/fusion-components';
 import { Position, useApiClients, useCurrentContext } from '@equinor/fusion';
-import SortableTable from '../../components/SortableTable';
+import SortableTable from '../../../../../../components/SortableTable';
 import columns from './columns';
 import { useContractContext } from '../../../../../../contractContex';
-import GenericFilter from '../../components/GenericFilter';
+import GenericFilter from '../../../../../../components/GenericFilter';
 import getFilterSections from './getFilterSections';
 
 const ActualMppPage: React.FC = () => {
@@ -35,7 +35,7 @@ const ActualMppPage: React.FC = () => {
 
     React.useEffect(() => {
         const contractId = contractContext.contract?.id;
-        const projectId = currentContext?.id;
+        const projectId = (currentContext as any)?.externalId;
         if (contractId && projectId) {
             getContractPositions(projectId, contractId);
         }
