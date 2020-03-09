@@ -71,8 +71,8 @@ namespace Fusion.Resources.Api
             #endregion
 
             services.AddHealthChecks()
-                .AddCheck("liveness", () => HealthCheckResult.Healthy());
-                //.AddDbContextCheck<Database.ResourcesDbContext>("db", tags: new[] { "ready" });
+                .AddCheck("liveness", () => HealthCheckResult.Healthy())
+                .AddDbContextCheck<Database.ResourcesDbContext>("db", tags: new[] { "ready" });
 
             services.AddApplicationInsightsTelemetry();
         }
@@ -112,7 +112,7 @@ namespace Fusion.Resources.Api
             });
             app.UseHealthChecks("/_health/ready", new HealthCheckOptions
             {
-                Predicate = r => r.Name.Contains("liveness")
+                Predicate = r => r.Tags.Contains("ready")
             });
 
             #endregion
