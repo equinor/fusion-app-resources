@@ -1,9 +1,11 @@
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { EditRequest } from '.';
 import { v1 as uuid } from 'uuid';
+import { Position } from '@equinor/fusion';
 
 export const transFormRequest = (
-    personnelRequest: PersonnelRequest[] | null
+    personnelRequest: PersonnelRequest[] | null,
+    parentPositions: Position[] | null
 ): EditRequest[] | null => {
     if (personnelRequest === null) {
         return null;
@@ -20,6 +22,13 @@ export const transFormRequest = (
         positionName: req.position?.name || '',
         workload: req.position?.instances.find(i => i.workload)?.workload.toString() || '',
         person: req.person,
+        parentPositionId:
+            parentPositions?.find(
+                position =>
+                    position.id ===
+                        req.position?.instances.find(i => i.parentPositionId)?.parentPositionId ||
+                    ''
+            ) || null,
     }));
 };
 
@@ -35,5 +44,6 @@ export const createDefaultState = (): EditRequest[] => [
         workload: '',
         obs: '',
         person: null,
+        parentPositionId: null,
     },
 ];

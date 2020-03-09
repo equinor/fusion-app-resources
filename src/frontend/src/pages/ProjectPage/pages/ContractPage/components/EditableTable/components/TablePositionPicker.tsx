@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Position } from '@equinor/fusion';
+import { Position, useCurrentContext } from '@equinor/fusion';
 
-import ContractPositionPicker from '../../../../../components/EditContractWizard/components/ContractPositionPicker';
+import { PositionPicker } from '@equinor/fusion-components';
+import { useContractContext } from '../../../../../../../contractContex';
 
 export type TablePositionPickerProps<T> = {
     item: T;
@@ -20,17 +21,23 @@ function TablePositionPicker<T>({
     rowIdentifier,
     columnLabel,
 }: TablePositionPickerProps<T>) {
+    const currentContext = useCurrentContext();
+    const currentOrgProject = currentContext as any;
+    const { contract } = useContractContext();
     const onPositionChange = React.useCallback(
         (basePosition: Position) => {
             onChange(item[rowIdentifier], accessKey, basePosition);
         },
         [onChange, item, accessKey, rowIdentifier]
     );
+
     return (
-        <ContractPositionPicker
+        <PositionPicker
             label={columnLabel}
-            onSelect={onPositionChange}
             selectedPosition={accessor(item)}
+            projectId={currentOrgProject.externalId}
+            contractId={contract?.id || undefined}
+            onSelect={onPositionChange}
         />
     );
 }
