@@ -73,6 +73,8 @@ namespace Fusion.Resources.Api
             services.AddHealthChecks()
                 .AddCheck("liveness", () => HealthCheckResult.Healthy())
                 .AddDbContextCheck<Database.ResourcesDbContext>("db", tags: new[] { "ready" });
+
+            services.AddApplicationInsightsTelemetry();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
