@@ -1,15 +1,6 @@
 import * as React from 'react';
 import { TextInput } from '@equinor/fusion-components';
-
-export type TableTextInputProps<T> = {
-    item: T;
-    accessor: (item: T) => string;
-    onChange: (key: any, accessKey: keyof T, value: any) => void;
-    accessKey: keyof T;
-    rowIdentifier: keyof T;
-    disabled: boolean;
-    columnLabel: string;
-};
+import { DefaultTableType } from './TableTypes';
 
 function TableTextInput<T>({
     item,
@@ -17,9 +8,8 @@ function TableTextInput<T>({
     accessKey,
     accessor,
     rowIdentifier,
-    disabled,
     columnLabel,
-}: TableTextInputProps<T>) {
+}: DefaultTableType<T, string>) {
     const onInputChange = React.useCallback(
         (newValue: string) => {
             onChange(item[rowIdentifier], accessKey, newValue);
@@ -30,7 +20,6 @@ function TableTextInput<T>({
         <TextInput
             value={accessor(item)}
             onChange={onInputChange}
-            disabled={disabled}
             placeholder={accessor(item) || columnLabel}
             label={columnLabel}
         />

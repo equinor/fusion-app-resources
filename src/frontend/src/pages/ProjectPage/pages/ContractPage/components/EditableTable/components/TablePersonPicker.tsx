@@ -1,16 +1,7 @@
 import * as React from 'react';
 import { PersonPicker } from '@equinor/fusion-components';
 import { PersonDetails } from '@equinor/fusion';
-
-
-export type TablePersonPickerProps<T> = {
-    item: T;
-    accessor: (item: T) => PersonDetails | null;
-    onChange: (key: any, accessKey: keyof T, value: any) => void;
-    accessKey: keyof T;
-    rowIdentifier: keyof T;
-    columnLabel: string;
-};
+import { DefaultTableType } from './TableTypes';
 
 function TablePersonPicker<T>({
     item,
@@ -19,7 +10,7 @@ function TablePersonPicker<T>({
     accessor,
     rowIdentifier,
     columnLabel,
-}: TablePersonPickerProps<T>) {
+}: DefaultTableType<T, PersonDetails | null>) {
     const onPersonChange = React.useCallback(
         (person: PersonDetails) => {
             onChange(item[rowIdentifier], accessKey, person);

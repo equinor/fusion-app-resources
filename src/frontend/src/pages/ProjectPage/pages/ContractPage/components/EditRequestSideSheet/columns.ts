@@ -8,15 +8,15 @@ const columns: EditableTaleColumn<EditRequest>[] = [
         label: 'Base Position',
         item: 'BasePositionPicker',
     },
-    // {
-    //     accessor: item => item.person,
-    //     accessKey: 'person',
-    //     label: 'Assigned Person',
-    //     item: 'PersonPicker',
-    // },
     {
-        accessor: item => item.parentPositionId,
-        accessKey: 'parentPositionId',
+        accessor: item => item.person,
+        accessKey: 'person',
+        label: 'Assigned Person',
+        item: 'PersonnelPicker',
+    },
+    {
+        accessor: item => item.parentPosition,
+        accessKey: 'parentPosition',
         label: 'Task owner',
         item: 'PositionPicker',
     },

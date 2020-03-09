@@ -6,7 +6,8 @@ import { BasePosition, Position } from '@equinor/fusion';
 import Personnel from '../../../../../../models/Personnel';
 import { transFormRequest, createDefaultState } from './utils';
 import EditableTable from '../EditableTable';
-import usePositionsByIds from './usePositionsByIds';
+import useRequestsParentPosition from './useRequestsParentPosition';
+import useForm from '../../../../../../hooks/useForm';
 
 export type EditRequest = {
     id: string;
@@ -19,32 +20,43 @@ export type EditRequest = {
     workload: string;
     obs: string;
     person: Personnel | null;
-    parentPositionId: Position | null;
+    parentPosition: Position | null;
 };
 
 const EditRequestSideSheet: React.FC = () => {
     const { editRequests, setEditRequests, isFetchingContract } = useContractContext();
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
+    const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
     const closeSideSheet = React.useCallback(() => {
         setEditRequests(null);
     }, [setEditRequests]);
-    const parentPositionsIds = React.useMemo(() => {
-        if (!editRequests) {
-            return [];
-        }
-        return editRequests.reduce((positionIds: string[], request) => {
-            const parentPositionId = request.position?.instances.find(i => i.parentPositionId)
-                ?.parentPositionId;
-            if (parentPositionId) {
-                return [...positionIds, parentPositionId];
-            }
-            return positionIds;
-        }, []);
-    }, [editRequests]);
-    const {selectedPositions} = usePositionsByIds(parentPositionsIds);
 
-    const defaultState = React.useMemo(() => transFormRequest(editRequests, selectedPositions), [editRequests, selectedPositions]);
+    const { selectedPositions, isFetchingPositions } = useRequestsParentPosition(editRequests);
+
+    const defaultState = React.useMemo(() => transFormRequest(editRequests, selectedPositions), [
+        editRequests,
+        selectedPositions,
+    ]);
+
+    const validateForm = React.useCallback((formState: EditRequest[]) => {
+        return !formState.some(
+            state =>
+                !Boolean(
+                    state.basePosition &&
+                        state.parentPosition &&
+                        state.positionName &&
+                        state.workload &&
+                        !Boolean(isNaN(+state.workload))
+                )
+        );
+    }, []);
+
+    const { formState, setFormState, isFormDirty, isFormValid } = useForm(
+        createDefaultState,
+        validateForm,
+        defaultState
+    );
 
     return (
         <ModalSideSheet
@@ -54,7 +66,11 @@ const EditRequestSideSheet: React.FC = () => {
             size="fullscreen"
             onClose={closeSideSheet}
             headerIcons={[
-                <Button disabled={false} key={'save'} outlined>
+                <Button
+                    disabled={!(isFormDirty && isFormValid) || isSubmitting}
+                    key={'save'}
+                    outlined
+                >
                     {'Submit'}
                 </Button>,
             ]}
@@ -62,8 +78,10 @@ const EditRequestSideSheet: React.FC = () => {
             <EditableTable
                 columns={columns}
                 createDefaultState={createDefaultState}
-                defaultState={defaultState}
+                formState={formState}
+                setFormState={setFormState}
                 rowIdentifier="id"
+                isFetching={isFetchingPositions}
             />
         </ModalSideSheet>
     );

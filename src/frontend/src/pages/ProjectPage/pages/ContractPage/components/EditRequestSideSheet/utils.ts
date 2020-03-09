@@ -22,7 +22,7 @@ export const transFormRequest = (
         positionName: req.position?.name || '',
         workload: req.position?.instances.find(i => i.workload)?.workload.toString() || '',
         person: req.person,
-        parentPositionId:
+        parentPosition:
             parentPositions?.find(
                 position =>
                     position.id ===
@@ -44,6 +44,6 @@ export const createDefaultState = (): EditRequest[] => [
         workload: '',
         obs: '',
         person: null,
-        parentPositionId: null,
+        parentPosition: null,
     },
 ];

@@ -6,12 +6,14 @@ import TableTextInput from './components/TableTextInput';
 import TableBasePosition from './components/TableBasePositionPicker';
 import TablePositionPicker from './components/TablePositionPicker';
 import TablePersonPicker from './components/TablePersonPicker';
+import TablePersonnelPicker from './components/TablePersonnelPicker';
 
 export type EditableTaleColumnItem =
     | 'TextInput'
     | 'PersonPicker'
     | 'PositionPicker'
     | 'BasePositionPicker'
+    | 'PersonnelPicker'
     | 'static';
 
 export type EditableTaleColumn<T> = {
@@ -22,28 +24,22 @@ export type EditableTaleColumn<T> = {
 };
 
 type EditableTableProps<T> = {
-    defaultState: T[] | null;
+    formState: T[];
+    setFormState: (newState: T[]) => void;
     columns: EditableTaleColumn<T>[];
     createDefaultState: () => T[];
     rowIdentifier: keyof T;
+    isFetching?: boolean;
 };
 
 function EditableTable<T>({
-    defaultState,
+    formState,
+    setFormState,
     columns,
     createDefaultState,
     rowIdentifier,
+    isFetching,
 }: EditableTableProps<T>) {
-    const validateForm = React.useCallback((formState: T[]) => {
-        return !formState.some(state => !Boolean(Object.values(state).some(value => !!value)));
-    }, []);
-
-    const { formState, setFormState, isFormValid, isFormDirty } = useForm(
-        createDefaultState,
-        validateForm,
-        defaultState
-    );
-
     const onChange = (key: any, accessKey: keyof T, value: any) => {
         const updatedPersons = [...formState].map(stateItem =>
             stateItem[rowIdentifier] === key ? { ...stateItem, [accessKey]: value } : stateItem
@@ -57,10 +53,10 @@ function EditableTable<T>({
     }, [formState, createDefaultState]);
 
     React.useEffect(() => {
-        if (defaultState && defaultState.length <= 0) {
+        if (formState && formState.length <= 0) {
             onAddItem();
         }
-    }, [defaultState]);
+    }, [formState]);
 
     const getTableComponent = React.useCallback(
         (column: EditableTaleColumn<T>, item: T) => {
@@ -70,22 +66,20 @@ function EditableTable<T>({
                 accessor: column.accessor,
                 onChange,
                 rowIdentifier,
+                isFetching,
+                columnLabel: column.label,
             };
             switch (column.item) {
                 case 'TextInput':
-                    return (
-                        <TableTextInput
-                            {...defaultProps}
-                            disabled={false}
-                            columnLabel={column.label}
-                        />
-                    );
+                    return <TableTextInput {...defaultProps} />;
                 case 'BasePositionPicker':
                     return <TableBasePosition {...defaultProps} />;
                 case 'PositionPicker':
-                    return <TablePositionPicker {...defaultProps} columnLabel={column.label} />;
+                    return <TablePositionPicker {...defaultProps} />;
                 case 'PersonPicker':
-                    return <TablePersonPicker {...defaultProps} columnLabel={column.label} />;
+                    return <TablePersonPicker {...defaultProps} />;
+                case 'PersonnelPicker':
+                    return <TablePersonnelPicker {...defaultProps} />;
                 default:
                     return null;
             }

@@ -1,14 +1,7 @@
 import * as React from 'react';
 import BasePositionPicker from '../../../../../components/EditContractWizard/components/BasePositionPicker';
 import { BasePosition } from '@equinor/fusion';
-
-export type TableBasePositionProps<T> = {
-    item: T;
-    accessor: (item: T) => BasePosition | null;
-    onChange: (key: any, accessKey: keyof T, value: any) => void;
-    accessKey: keyof T;
-    rowIdentifier: keyof T;
-};
+import { DefaultTableType } from './TableTypes';
 
 function TableBasePosition<T>({
     item,
@@ -16,7 +9,7 @@ function TableBasePosition<T>({
     accessKey,
     accessor,
     rowIdentifier,
-}: TableBasePositionProps<T>) {
+}: DefaultTableType<T, BasePosition | null>) {
     const onBasePositionChange = React.useCallback(
         (basePosition: BasePosition) => {
             onChange(item[rowIdentifier], accessKey, basePosition);

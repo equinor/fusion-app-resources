@@ -3,15 +3,7 @@ import { Position, useCurrentContext } from '@equinor/fusion';
 
 import { PositionPicker } from '@equinor/fusion-components';
 import { useContractContext } from '../../../../../../../contractContex';
-
-export type TablePositionPickerProps<T> = {
-    item: T;
-    accessor: (item: T) => Position | null;
-    onChange: (key: any, accessKey: keyof T, value: any) => void;
-    accessKey: keyof T;
-    rowIdentifier: keyof T;
-    columnLabel: string;
-};
+import { DefaultTableType } from './TableTypes';
 
 function TablePositionPicker<T>({
     item,
@@ -20,7 +12,7 @@ function TablePositionPicker<T>({
     accessor,
     rowIdentifier,
     columnLabel,
-}: TablePositionPickerProps<T>) {
+}: DefaultTableType<T, Position | null>) {
     const currentContext = useCurrentContext();
     const currentOrgProject = currentContext as any;
     const { contract } = useContractContext();
