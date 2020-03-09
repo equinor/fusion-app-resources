@@ -23,6 +23,8 @@ ENV IS_DOCKER_BUILD=true
 
 RUN dotnet tool restore
 RUN dotnet publish "Fusion.Resources.Api.csproj" -c Release -o /app/publish
+
+WORKDIR "/src/api/Fusion.Resources.Database"
 RUN dotnet ef migrations script --idempotent --output "/migrations/migration.sql" --configuration Release --no-build
 
 FROM base AS final
