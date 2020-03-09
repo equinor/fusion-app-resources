@@ -27,12 +27,29 @@ const columns: EditableTaleColumn<EditRequest>[] = [
         item: 'TextInput',
     },
     {
+        accessor: item => item.appliesFrom,
+        accessKey: 'appliesFrom',
+        label: 'Applies from',
+        item: 'DatePicker',
+    },
+    {
+        accessor: item => item.appliesTo,
+        accessKey: 'appliesTo',
+        label: 'AppliesTo',
+        item: 'DatePicker',
+    },
+    {
         accessor: item => item.workload,
         accessKey: 'workload',
         label: 'Workload(%)',
         item: 'TextInput',
     },
-    
+    {
+        accessor: item => item.obs,
+        accessKey: 'obs',
+        label: 'OBS',
+        item: 'TextInput',
+    },
 ];
 
 export default columns;

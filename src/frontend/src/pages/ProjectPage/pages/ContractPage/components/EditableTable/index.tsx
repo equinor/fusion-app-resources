@@ -6,6 +6,7 @@ import TableBasePosition from './components/TableBasePositionPicker';
 import TablePositionPicker from './components/TablePositionPicker';
 import TablePersonPicker from './components/TablePersonPicker';
 import TablePersonnelPicker from './components/TablePersonnelPicker';
+import TableDatePicker from './components/TableDatePicker';
 
 export type EditableTaleColumnItem =
     | 'TextInput'
@@ -13,6 +14,7 @@ export type EditableTaleColumnItem =
     | 'PositionPicker'
     | 'BasePositionPicker'
     | 'PersonnelPicker'
+    | 'DatePicker'
     | 'static';
 
 export type EditableTaleColumn<T> = {
@@ -79,6 +81,8 @@ function EditableTable<T>({
                     return <TablePersonPicker {...defaultProps} />;
                 case 'PersonnelPicker':
                     return <TablePersonnelPicker {...defaultProps} />;
+                case 'DatePicker':
+                    return <TableDatePicker {...defaultProps} />;
                 default:
                     return null;
             }
