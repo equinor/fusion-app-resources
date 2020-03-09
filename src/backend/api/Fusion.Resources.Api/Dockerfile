@@ -30,4 +30,5 @@ RUN dotnet ef migrations script --idempotent --output "/migrations/migration.sql
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=publish /migrations .
 ENTRYPOINT ["dotnet", "Fusion.Resources.Api.dll"]
