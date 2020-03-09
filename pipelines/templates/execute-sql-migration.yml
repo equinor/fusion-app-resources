@@ -32,20 +32,20 @@ steps:
             $db = Get-AzSqlDatabase -DatabaseName $dbResource.Name.Split("/")[1] -ResourceGroupName $dbResource.ResourceGroupName -ServerName $dbResource.Name.Split("/")[0]
             $sqlServer = Get-AzSqlServer -ServerName $db.ServerName -ResourceGroupName $db.ResourceGroupName
 
-            $conn = new-object System.Data.SqlClient.SqlConnection
-            $conn.ConnectionString = "Server=tcp:$($sqlServer.FullyQualifiedDomainName),1433;Initial Catalog=$($db.DatabaseName);Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" 
-            $conn.AccessToken = $token.AccessToken
+            $SqlConnection = new-object System.Data.SqlClient.SqlConnection
+            $SqlConnection.ConnectionString = "Server=tcp:$($sqlServer.FullyQualifiedDomainName),1433;Initial Catalog=$($db.DatabaseName);Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" 
+            $SqlConnection.AccessToken = $token.AccessToken
             
             $content = [IO.File]::ReadAllText($sqlFile)
             $batches = $content -split "GO"
             
-            $conn.Open()
+            $SqlConnection.Open()
             foreach($batch in $batches)
             {
                 if ($batch.Trim() -ne "") {
                     $SqlCmd = New-Object System.Data.SqlClient.SqlCommand
                     $SqlCmd.CommandText = $batch
-                    $SqlCmd.Connection = $conn
+                    $SqlCmd.Connection = $SqlConnection
                     $SqlCmd.ExecuteNonQuery()
                 }
             }
