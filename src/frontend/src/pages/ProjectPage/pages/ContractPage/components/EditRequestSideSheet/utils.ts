@@ -1,6 +1,6 @@
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { EditRequest } from '.';
-import uuid = require('uuid');
+import { v1 as uuid } from 'uuid';
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null
@@ -22,3 +22,18 @@ export const transFormRequest = (
         person: req.person,
     }));
 };
+
+export const createDefaultState = (): EditRequest[] => [
+    {
+        id: uuid(),
+        description: '',
+        positionId: '',
+        basePosition: null,
+        positionName: '',
+        appliesFrom: null,
+        appliesTo: null,
+        workload: '',
+        obs: '',
+        person: null,
+    },
+];

@@ -1,14 +1,21 @@
 import * as React from 'react';
 import useForm from '../../../../../../hooks/useForm';
-import { DataTable, DataTableColumn } from '@equinor/fusion-components';
-import useTableColumns from './useTableColumns';
 import * as styles from './styles.less';
 import Taskbar from './Taskbar';
+import TableTextInput from './components/TableTextInput';
+import TableBasePosition from './components/TableBasePositionPicker';
+import TablePositionPicker from './components/TablePositionPicker';
+import TablePersonPicker from './components/TablePersonPicker';
 
-export type EditableTaleColumnItem = 'TextInput' | 'PersonPicker' | 'PeoplePicker' | 'static';
+export type EditableTaleColumnItem =
+    | 'TextInput'
+    | 'PersonPicker'
+    | 'PositionPicker'
+    | 'BasePositionPicker'
+    | 'static';
 
-export type EditableTaleColumns<T> = {
-    accessor: (item: T) => string;
+export type EditableTaleColumn<T> = {
+    accessor: (item: T) => any;
     item: EditableTaleColumnItem;
     label: string;
     accessKey: keyof T;
@@ -16,7 +23,7 @@ export type EditableTaleColumns<T> = {
 
 type EditableTableProps<T> = {
     defaultState: T[] | null;
-    columns: EditableTaleColumns<T>[];
+    columns: EditableTaleColumn<T>[];
     createDefaultState: () => T[];
     rowIdentifier: keyof T;
 };
@@ -27,30 +34,22 @@ function EditableTable<T>({
     createDefaultState,
     rowIdentifier,
 }: EditableTableProps<T>) {
-
     const validateForm = React.useCallback((formState: T[]) => {
-        return formState.some(state => Boolean(Object.values(state).some(value => !!value)));
+        return !formState.some(state => !Boolean(Object.values(state).some(value => !!value)));
     }, []);
 
-    const {
-        formState,
-        setFormState,
-        resetForm,
-        formFieldSetter,
-        setFormField,
-        isFormValid,
-        isFormDirty,
-    } = useForm(createDefaultState, validateForm, defaultState);
+    const { formState, setFormState, isFormValid, isFormDirty } = useForm(
+        createDefaultState,
+        validateForm,
+        defaultState
+    );
 
-    const onChange =(key: any, accessKey: keyof T, value: any) => {
- 
-            const updatedPersons = [...formState].map(stateItem =>
-                stateItem[rowIdentifier] === key ? {...stateItem, [accessKey]: value} : stateItem
-            );
-            setFormState(updatedPersons);
-            console.log(updatedPersons)
-        }
-    
+    const onChange = (key: any, accessKey: keyof T, value: any) => {
+        const updatedPersons = [...formState].map(stateItem =>
+            stateItem[rowIdentifier] === key ? { ...stateItem, [accessKey]: value } : stateItem
+        );
+        setFormState(updatedPersons);
+    };
 
     const onAddItem = React.useCallback(() => {
         const newStateItem = createDefaultState();
@@ -58,22 +57,81 @@ function EditableTable<T>({
     }, [formState, createDefaultState]);
 
     React.useEffect(() => {
-        if (defaultState === null) {
+        if (defaultState && defaultState.length <= 0) {
             onAddItem();
         }
     }, [defaultState]);
 
-    const tableColumns = useTableColumns(columns, onChange, rowIdentifier);
+    const getTableComponent = React.useCallback(
+        (column: EditableTaleColumn<T>, item: T) => {
+            const defaultProps = {
+                item,
+                accessKey: column.accessKey,
+                accessor: column.accessor,
+                onChange,
+                rowIdentifier,
+            };
+            switch (column.item) {
+                case 'TextInput':
+                    return (
+                        <TableTextInput
+                            {...defaultProps}
+                            disabled={false}
+                            columnLabel={column.label}
+                        />
+                    );
+                case 'BasePositionPicker':
+                    return <TableBasePosition {...defaultProps} />;
+                case 'PositionPicker':
+                    return <TablePositionPicker {...defaultProps} columnLabel={column.label} />;
+                case 'PersonPicker':
+                    return <TablePersonPicker {...defaultProps} columnLabel={column.label} />;
+                default:
+                    return null;
+            }
+        },
+        [onChange, rowIdentifier, onChange, rowIdentifier]
+    );
+
+    const tableHeader = React.useMemo(() => {
+        return (
+            <thead>
+                <tr>
+                    {columns.map(column => (
+                        <th className={styles.header} key={column.label + 'header'}>
+                            {column.label}
+                        </th>
+                    ))}
+                </tr>
+            </thead>
+        );
+    }, [columns]);
+
+    const tableBody = React.useMemo(() => {
+        return (
+            <tbody>
+                {formState.map((stateItem, index) => (
+                    <tr key={`item-${index}`}>
+                        {columns.map(column => (
+                            <td className={styles.tableRowCell}>
+                                {getTableComponent(column, stateItem)}
+                            </td>
+                        ))}
+                    </tr>
+                ))}
+            </tbody>
+        );
+    }, [columns, formState]);
 
     return (
         <div className={styles.editableTable}>
             <Taskbar onAddItem={onAddItem} />
-            <DataTable
-                columns={tableColumns}
-                data={formState}
-                isFetching={false}
-                rowIdentifier={rowIdentifier}
-            />
+            <div className={styles.container}>
+                <table>
+                    {tableHeader}
+                    {tableBody}
+                </table>
+            </div>
         </div>
     );
 }
