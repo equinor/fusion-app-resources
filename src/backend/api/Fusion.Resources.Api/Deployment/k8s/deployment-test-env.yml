@@ -47,6 +47,8 @@ spec:
         env:
         - name: APPINSIGHTS_INSTRUMENTATIONKEY
           value: "{{instrumentationKey}}"
+        - name: KEYVAULT_URL
+          value: "{{envKeyVaultUrl}}"
         resources:
           requests:
             memory: "250Mi"

@@ -21,11 +21,27 @@ namespace Fusion.Resources.Api
                 .ConfigureAppConfiguration((ctx, configBuilder) =>
                 {
                     configBuilder.AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true);
+
+                    AddKeyVault(ctx, configBuilder);
+                    
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
+
+        private static void AddKeyVault(HostBuilderContext hostBuilderContext, IConfigurationBuilder configBuilder)
+        {
+            var tempConfig = configBuilder.Build();
+            var clientId = tempConfig["AzureAd:ClientId"];
+            var clientSecret = tempConfig["AzureAd:ClientSecret"];
+            var keyVaultUrl = tempConfig["KEYVAULT_URL"];
+
+            Console.WriteLine($"Adding key vault using url: '{keyVaultUrl}', client id '{clientId}' and client secret {(string.IsNullOrEmpty(clientSecret) ? "*****" : "[empty]")}");
+
+            configBuilder.AddAzureKeyVault(keyVaultUrl, clientId, clientSecret);
+        }
 
     }
 }
