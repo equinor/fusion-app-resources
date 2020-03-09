@@ -51,8 +51,8 @@ const ActiveRequestsPage: React.FC = () => {
     }, [contractContext, currentContext]);
 
     const filterSections = React.useMemo(() => {
-        return getFilterSections(filteredActiveRequests);
-    }, [filteredActiveRequests]);
+        return getFilterSections(activeRequests || []);
+    }, [activeRequests]);
 
     if (error) {
         return (
@@ -84,16 +84,16 @@ const ActiveRequestsPage: React.FC = () => {
                         message="No active requests found for selected contract"
                     />
                 ) : (
-                    <SortableTable
-                        data={filteredActiveRequests || []}
-                        columns={columns}
-                        rowIdentifier="id"
-                        isFetching={isFetching}
-                        isSelectable
-                        selectedItems={selectedRequests}
-                        onSelectionChange={setSelectedRequests}
-                    />
-                )}
+                        <SortableTable
+                            data={filteredActiveRequests || []}
+                            columns={columns}
+                            rowIdentifier="id"
+                            isFetching={isFetching}
+                            isSelectable
+                            selectedItems={selectedRequests}
+                            onSelectionChange={setSelectedRequests}
+                        />
+                    )}
             </div>
             <GenericFilter
                 data={activeRequests}

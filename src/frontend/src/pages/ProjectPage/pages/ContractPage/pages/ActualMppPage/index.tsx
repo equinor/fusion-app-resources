@@ -42,8 +42,8 @@ const ActualMppPage: React.FC = () => {
     }, [contractContext, currentContext]);
 
     const filterSections = React.useMemo(() => {
-        return getFilterSections(filteredContractPositions);
-    }, [filteredContractPositions]);
+        return getFilterSections(contractPositions || []);
+    }, [contractPositions]);
 
     if (error) {
         return (
@@ -75,16 +75,16 @@ const ActualMppPage: React.FC = () => {
                         message="No positions found on selected contract"
                     />
                 ) : (
-                    <SortableTable
-                        data={filteredContractPositions || []}
-                        columns={columns}
-                        rowIdentifier="id"
-                        isFetching={isFetching}
-                        isSelectable
-                        selectedItems={selectedRequests}
-                        onSelectionChange={setSelectedRequests}
-                    />
-                )}
+                        <SortableTable
+                            data={filteredContractPositions || []}
+                            columns={columns}
+                            rowIdentifier="id"
+                            isFetching={isFetching}
+                            isSelectable
+                            selectedItems={selectedRequests}
+                            onSelectionChange={setSelectedRequests}
+                        />
+                    )}
             </div>
             <GenericFilter
                 data={contractPositions}
