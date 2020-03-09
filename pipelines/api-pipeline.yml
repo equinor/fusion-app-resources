@@ -14,6 +14,7 @@ variables:
     imageName: resources/fusion-resouces-api:$(imageTag)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
+    fullImageName: $(acrName)/$(imageName)
   
 stages:
   - stage: BuildDockerImage
@@ -48,7 +49,7 @@ stages:
       #     targetFiles: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s/deployment-test-env.yml'
   
       - script: |
-          docker run --rm --entrypoint cat $(imageName) /app/migration.sql > $(Build.ArtifactStagingDirectory)/db-migration.sql
+          docker run --rm --entrypoint cat $(fullImageName) /app/migration.sql > $(Build.ArtifactStagingDirectory)/db-migration.sql
         displayName: "Copy EF migration file from container"
 
       - task: CopyFiles@2
