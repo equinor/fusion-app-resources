@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api
             }
             else
             {
-                Console.Write("Skipping key vault as url is empty.");
+                Console.WriteLine("Skipping key vault as url is empty.");
             }
         }
 
