@@ -15,6 +15,7 @@
     <PackageReference Include="Fusion.Integration.Authorization" Version="3.1.0-preview-4" />
     <PackageReference Include="Fusion.Integration.Org" Version="3.1.0-preview-4" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.0-rc-1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
 
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.1" />
 
