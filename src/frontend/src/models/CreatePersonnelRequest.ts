@@ -16,7 +16,6 @@ type PersonnelRequestPosition = {
     appliesTo: Date | null;
     workload: number;
     obs: string;
-    taskOwner: PersonnelRequestPosition | null;
 };
 
 export default CreatePersonnelRequest;
