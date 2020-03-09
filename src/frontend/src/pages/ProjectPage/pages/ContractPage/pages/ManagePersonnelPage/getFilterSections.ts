@@ -15,7 +15,7 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                 {
                     key: 'search-filter',
                     type: FilterTypes.Search,
-                    title: 'Search',
+                    title: '',
                     getValue: p =>
                         p.name + (p.firstName || '') + (p.lastName || '') + p.mail + p.phoneNumber,
                 },
