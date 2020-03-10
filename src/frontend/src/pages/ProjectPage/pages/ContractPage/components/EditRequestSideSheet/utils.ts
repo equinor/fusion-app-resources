@@ -2,6 +2,7 @@ import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { EditRequest } from '.';
 import { v1 as uuid } from 'uuid';
 import { Position } from '@equinor/fusion';
+import CreatePersonnelRequest from '../../../../../../models/CreatePersonnelRequest';
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
@@ -33,12 +34,44 @@ export const transFormRequest = (
     }));
 };
 
+export const transformToCreatePersonnelRequest = (
+    editRequests: EditRequest[]
+): CreatePersonnelRequest[] => {
+    return editRequests.map(req => {
+        const personnel: CreatePersonnelRequest = {
+            description: req.description,
+            person: {
+                mail: req.person?.mail || '',
+            },
+            position: {
+                appliesFrom: req.appliesFrom,
+                appliesTo: req.appliesTo,
+                basePosition: req.basePosition?.id
+                    ? {
+                          id: req.basePosition.id,
+                      }
+                    : null,
+                id: req.positionId || null,
+                name: req.positionName,
+                obs: req.obs,
+                workload: +req.workload,
+                taskOwner: req.parentPosition?.id
+                    ? {
+                          id: req.parentPosition.id,
+                      }
+                    : null,
+            },
+        };
+        return personnel;
+    });
+};
+
 export const createDefaultState = (): EditRequest[] => [
     {
         id: uuid(),
         requestId: null,
         description: '',
-        positionId: '',
+        positionId: null,
         basePosition: null,
         positionName: '',
         appliesFrom: null,

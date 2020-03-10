@@ -1,19 +1,21 @@
 import * as React from 'react';
-import { ModalSideSheet, Button } from '@equinor/fusion-components';
+import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
 import { useContractContext } from '../../../../../../contractContex';
 import columns from './columns';
 import { BasePosition, Position } from '@equinor/fusion';
 import Personnel from '../../../../../../models/Personnel';
 import { transFormRequest, createDefaultState } from './utils';
 import EditableTable from '../EditableTable';
-import useRequestsParentPosition from './useRequestsParentPosition';
+import useRequestsParentPosition from './hooks/useRequestsParentPosition';
 import useForm from '../../../../../../hooks/useForm';
+
+import useSubmitChanges from './hooks/useSubmitChanges';
 
 export type EditRequest = {
     id: string;
     requestId: string | null;
     description: string;
-    positionId: string;
+    positionId: string | null;
     basePosition: BasePosition | null;
     positionName: string;
     appliesFrom: Date | null;
@@ -26,10 +28,8 @@ export type EditRequest = {
 
 const EditRequestSideSheet: React.FC = () => {
     const { editRequests, setEditRequests, isFetchingContract } = useContractContext();
-    const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
-    const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
-    const [newRequests, setNewRequests] = React.useState<EditRequest[]>([]);
 
+    const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
     const closeSideSheet = React.useCallback(() => {
         setEditRequests(null);
     }, [setEditRequests]);
@@ -41,17 +41,13 @@ const EditRequestSideSheet: React.FC = () => {
         selectedPositions,
     ]);
 
- 
-
     const validateForm = React.useCallback((formState: EditRequest[]) => {
         return !formState.some(
             state =>
                 !Boolean(
                     state.basePosition &&
-                        state.parentPosition &&
                         state.positionName &&
                         state.workload &&
-                        state.person &&
                         !Boolean(isNaN(+state.workload))
                 )
         );
@@ -63,9 +59,7 @@ const EditRequestSideSheet: React.FC = () => {
         defaultState
     );
 
-    const submitChangesAsync = React.useCallback(async () => {
-        
-    }, []);
+    const { submit, isSubmitting } = useSubmitChanges(formState);
 
     return (
         <ModalSideSheet
@@ -83,8 +77,9 @@ const EditRequestSideSheet: React.FC = () => {
                     disabled={!(isFormDirty && isFormValid) || isSubmitting}
                     key={'save'}
                     outlined
+                    onClick={submit}
                 >
-                    {'Submit'}
+                    {isSubmitting ?  <Spinner inline /> : 'Submit'}
                 </Button>,
             ]}
         >

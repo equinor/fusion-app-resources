@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { useApiClients, useTelemetryLogger, useCurrentContext, Position } from '@equinor/fusion';
-import PersonnelRequest from '../../../../../../models/PersonnelRequest';
+import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
 
 export default (personnelRequests: PersonnelRequest[] | null) => {
     const currentContext = useCurrentContext();

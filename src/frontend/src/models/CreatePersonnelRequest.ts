@@ -1,21 +1,26 @@
-import { BasePosition } from '@equinor/fusion';
-import { AssignedPerson } from './createPositionRequest';
 
 type CreatePersonnelRequest = {
-    id: string;
+    id?: string;
     description: string;
     position: PersonnelRequestPosition | null;
-    person: AssignedPerson | null;
+    person: {
+        mail: string;
+    };
 };
 
 type PersonnelRequestPosition = {
-    id: string;
-    basePosition: BasePosition | null;
+    id: string | null; 
+    basePosition: {
+        id: string
+    } | null;
     name: string;
     appliesFrom: Date | null;
     appliesTo: Date | null;
     workload: number;
     obs: string;
+    taskOwner: {
+        id: string
+    } | null
 };
 
 export default CreatePersonnelRequest;

@@ -58,7 +58,9 @@ const ActualMppPage: React.FC = () => {
         <div className={styles.actualMppContainer}>
             <div className={styles.actualMpp}>
                 <div className={styles.toolbar}>
-                    <Button>Request personnel</Button>
+                    <Button onClick={() => contractContext.setEditRequests([])}>
+                        Request personnel
+                    </Button>
                     <div>
                         <IconButton>
                             <DeleteIcon />
