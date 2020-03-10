@@ -10,7 +10,7 @@ stages:
       pool: 
         vmImage: 'windows-latest'
       variables:
-        projectPath: src/backend/functions/${{ parameters.project }}
+        projectPath: src/backend/function/${{ parameters.project }}
         projectName: ${{ parameters.project }}
   
       steps:
