@@ -34,6 +34,7 @@ const ActiveRequestsPage: React.FC = () => {
         setError(null);
         try {
             const response = await apiClient.getPersonnelRequestsAsync(projectId, contractId, true);
+            console.log(response.value)
             setActiveRequests(response.value);
         } catch (e) {
             setError(e);

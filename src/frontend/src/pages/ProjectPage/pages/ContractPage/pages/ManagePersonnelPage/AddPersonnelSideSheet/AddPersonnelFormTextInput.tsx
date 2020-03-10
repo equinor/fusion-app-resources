@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { TextInput } from '@equinor/fusion-components';
-import Person from '../../../../../../../models/Person';
+import Personnel from '../../../../../../../models/Personnel';
 
 export type PersonnelFormTextInputProps = {
-    item: Person;
-    onChange: (changedPerson: Person) => void;
-    field: keyof Person;
+    item: Personnel;
+    onChange: (changedPerson: Personnel) => void;
+    field: keyof Personnel;
     disabled: boolean;
 };
 

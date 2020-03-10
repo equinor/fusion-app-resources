@@ -4,7 +4,7 @@ import { AzureAdStatusTextFormat, AzureAdStatusColor } from './components/AzureA
 
 const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] => {
     const uniqueAdStatus = personnel
-        .map(p => p.azureAdStatus)
+        .map(p => p?.azureAdStatus || 'NoAccount')
         .filter((d, i, l) => l.indexOf(d) === i);
 
     return [
@@ -30,7 +30,7 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                     key: 'azureAdStatus',
                     title: 'Ad status',
                     type: FilterTypes.Checkbox,
-                    getValue: p => p.azureAdStatus,
+                    getValue: p => p?.azureAdStatus || 'NoAccount',
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
 

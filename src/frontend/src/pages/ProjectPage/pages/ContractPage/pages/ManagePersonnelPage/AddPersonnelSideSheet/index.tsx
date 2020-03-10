@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { ModalSideSheet, Button, Spinner, AddIcon } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
-import Person from '../../../../../../../models/Person';
 import { v1 as uuid } from 'uuid';
 import * as styles from './styles.less';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
@@ -9,6 +8,7 @@ import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
 import useAddPersonnelForm from '../hooks/useAddPersonnelForm';
+import AddPersonnelFormDisciplinesDropDown from './AddPersonnelFormDisciplinesDropDown';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -64,8 +64,17 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             });
     };
 
+    const disciplines: string[] = React.useMemo(() => {
+        return [
+            "Engineer",
+            "Developer",
+            "Mechanical Engineer"
+        ]
+    }, [])
+
+
     const onChange = React.useCallback(
-        (changedPerson: Person) => {
+        (changedPerson: Personnel) => {
             const updatedPersons = formState.map(p =>
                 p.personnelId === changedPerson.personnelId ? changedPerson : p
             );
@@ -79,12 +88,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             ...formState,
             {
                 personnelId: uuid(),
-                name: '',
-                firstName: '',
-                lastName: '',
-                phoneNumber: '',
-                mail: '',
-                jobTitle: '',
+                name: "",
+                firstName: "",
+                lastName: "",
+                phoneNumber: "",
+                mail: "",
+                jobTitle: "",
+                disciplines: [],
             },
         ]);
     }, [formState]);
@@ -123,6 +133,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                 <th className={styles.header}>First Name</th>
                                 <th className={styles.header}>Last Name</th>
                                 <th className={styles.header}>E-Mail</th>
+                                <th className={styles.header}>Disciplines</th>
                                 <th className={styles.header}>Phone Number</th>
                             </tr>
                         </thead>
@@ -154,6 +165,14 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                             item={person}
                                             onChange={onChange}
                                             field={'mail'}
+                                        />
+                                    </td>
+                                    <td className={styles.tableRowCell}>
+                                        <AddPersonnelFormDisciplinesDropDown
+                                            selection={disciplines}
+                                            onChange={onChange}
+                                            selectedField={person?.disciplines[0]?.name || ""}
+                                            item={person}
                                         />
                                     </td>
                                     <td className={styles.tableRowCell}>
