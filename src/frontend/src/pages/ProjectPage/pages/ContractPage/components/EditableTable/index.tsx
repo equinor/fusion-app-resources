@@ -14,8 +14,7 @@ export type EditableTaleColumnItem =
     | 'PositionPicker'
     | 'BasePositionPicker'
     | 'PersonnelPicker'
-    | 'DatePicker'
-    | 'static';
+    | 'DatePicker';
 
 export type EditableTaleColumn<T> = {
     accessor: (item: T) => any;
