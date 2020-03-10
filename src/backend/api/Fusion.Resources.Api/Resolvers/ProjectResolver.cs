@@ -118,10 +118,10 @@ namespace Fusion.Resources.Api.Controllers
 
                 bindingContext.Result = ModelBindingResult.Success(identifier);
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
                 var projectNames = results.Select(c => c.Title);
-                throw new ProjectBinderError($"Ambigous project identifier. Located multiple projects searching for domain id '{domain}'. Found projects: {string.Join(", ", projectNames)}");
+                throw new ProjectBinderError($"Ambigous project identifier. Located multiple projects searching for domain id '{domain}'. Found projects: {string.Join(", ", projectNames)}. {ex.Message}", ex);
             }
         }
 

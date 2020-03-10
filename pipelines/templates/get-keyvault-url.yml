@@ -1,0 +1,20 @@
+
+parameters:    
+  environment: ''
+  variableName: 'envKeyVaultUrl'
+
+steps:
+- task: AzurePowerShell@4
+  displayName: 'Get key vault url for environment ${{ parameters.environment }}'
+  inputs:
+    azureSubscription: $(subscriptionService)
+    ScriptType: 'InlineScript'
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    Inline: |        
+        $environment = "${{ parameters.environment }}"
+        $variableName = "${{ parameters.variableName }}"
+
+        $aiResource = Get-AzResource -TagName fusion-app-component-id -TagValue resources-kv-$environment | select -First 1
+        
+        Write-Host "##vso[task.setvariable variable=$variableName]https://$($aiResource.Name).vault.azure.net/" 

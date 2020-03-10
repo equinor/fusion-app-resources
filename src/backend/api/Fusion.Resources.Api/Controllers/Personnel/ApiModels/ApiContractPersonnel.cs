@@ -51,7 +51,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 
-        public enum ApiAccountStatus { Available, Invited, NoAccount }
+        public enum ApiAccountStatus { Available, InviteSent, NoAccount }
     }
 
     public class ApiExternalPersonnelPerson

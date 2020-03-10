@@ -1,0 +1,21 @@
+
+parameters:    
+  environment: ''
+  variableName: 'instrumentationKey'
+
+steps:
+- task: AzurePowerShell@4
+  displayName: 'Get Application Insights telemetry key for ${{ parameters.environment }}'
+  inputs:
+    azureSubscription: $(subscriptionService)
+    ScriptType: 'InlineScript'
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    Inline: |        
+        $environment = "${{ parameters.environment }}"
+        $variableName = "${{ parameters.variableName }}"
+
+        $aiResource = Get-AzResource -TagName fusion-app-component-id -TagValue resources-ai-$environment | select -First 1
+        $aiApp = Get-AzApplicationInsights -ResourceGroupName $aiResource.ResourceGroupName -Name $aiResource.Name
+        
+        Write-Host "##vso[task.setvariable variable=$variableName]$($aiApp.InstrumentationKey)" 

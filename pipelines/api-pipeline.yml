@@ -14,6 +14,7 @@ variables:
     imageName: resources/fusion-resouces-api:$(imageTag)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
+    fullImageName: $(fusionAcr)/$(imageName)
   
 stages:
   - stage: BuildDockerImage
@@ -42,10 +43,15 @@ stages:
           command: 'Push an image'
           imageName: '$(imageName)'
   
-      - template: templates/replace-tokens.yml@commonTemplates
-        parameters:
-          targetFiles: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s/deployment-test-env.yml'
+      ## Since using a multistage pipeline, there is no need to replace the build name etc at this stage.
+      # - template: templates/replace-tokens.yml@commonTemplates
+      #   parameters:
+      #     targetFiles: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s/deployment-test-env.yml'
   
+      - script: |
+          docker run --rm --entrypoint cat $(fullImageName) /app/migration.sql > $(Build.ArtifactStagingDirectory)/db-migration.sql
+        displayName: "Copy EF migration file from container"
+
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
@@ -84,9 +90,24 @@ stages:
                     $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
 
+            - template: templates/get-appinsights-key.yml
+              parameters:
+                environment: $(envName)
+
+            # Load the key vault url into variable, so it can be used when replacing tokens.
+            - template: templates/get-keyvault-url.yml
+              parameters:
+                environment: $(envName)
+                variableName: envKeyVaultUrl
+                
+
             - template: templates/replace-tokens.yml@commonTemplates
               parameters:
                 targetFiles: '$(deploymentManifest)'
+
+            - template: templates/execute-sql-migration.yml
+              parameters:
+                artifact: 'k8s-deployment'
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster

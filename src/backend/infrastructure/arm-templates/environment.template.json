@@ -1,0 +1,199 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "env-name": { "type": "string" },        
+        "aad-client-secret": { "type": "securestring" },
+        "sql-connection-string": { "type": "string", "metadata": { "description": "Conection string without username/password"} }
+    },
+    "variables": {
+        "env-name": "[toLower(parameters('env-name'))]",
+        "location": "[resourceGroup().location]",
+        "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
+        "storage-name": "[concat('safresources', variables('env-name'))]",
+        "ai-name": "[concat('ai-fap-resources-', variables('env-name'))]",
+        "sb-name": "[concat('sb-fap-resources-', variables('env-name'))]",
+        "function-name": "[concat('func-fap-resources-', variables('env-name'))]",
+        "function-hosting-plan-name": "[concat('fhplan-fap-resources-', variables('env-name'))]"
+        // "id-rg-infra": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', 'plant-query-infra')]",
+    },
+    "resources": [   
+        /* KEY VAULT */     
+        {
+            "apiVersion": "2018-02-14",
+            "name": "[variables('keyvault-name')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[variables('env-name')]",
+                "fusion-app-component-type": "kv",
+                "fusion-app-component-id": "[concat('resources-kv-', variables('env-name'))]"
+            },
+            "type": "Microsoft.KeyVault/vaults",
+            "properties": {
+                "enabledForDeployment": false,
+                "enabledForTemplateDeployment": false,
+                "enabledForDiskEncryption": false,
+                "enableRbacAuthorization": false,
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [
+    
+                ],
+                "sku": {
+                    "name": "Standard",
+                    "family": "A"
+                },
+                "networkAcls": {
+                    "defaultAction": "allow",
+                    "bypass": "AzureServices",
+                    "ipRules": [],
+                    "virtualNetworkRules": []
+                }
+            }
+        },
+
+        /* APP INSIGHTS */
+        {
+            "apiVersion": "2015-05-01",
+            "name": "[variables('ai-name')]",
+            "type": "microsoft.insights/components",
+            "location": "northeurope",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "ai",
+                "fusion-app-component-id": "[concat('resources-ai-', variables('env-name'))]"
+            },
+            "properties": {                
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+
+        /* STORAGE ACCOUNT */
+        {
+            "apiVersion": "2019-06-01",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storage-name')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "storage",
+                "fusion-app-component-id": "[concat('resources-storage-', variables('env-name'))]"
+            },
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {
+                "supportsHttpsTrafficOnly": true
+            }
+        },
+
+        /* FUNCTION APP */
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('function-hosting-plan-name')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic"
+            },
+            "properties": {
+                "name": "[variables('function-hosting-plan-name')]",
+                "computeMode": "Dynamic"
+            }
+        },
+        {
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('function-name')]",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "azFunc",
+                "fusion-app-component-id": "[concat('resources-func-', variables('env-name'))]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
+            }
+        },
+
+        /* SERVICE BUS */
+        {
+            "type": "Microsoft.ServiceBus/namespaces",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "sb",
+                "fusion-app-component-id": "[concat('resources-sb-', variables('env-name'))]"
+            },
+            "apiVersion": "2018-01-01-preview",
+            "name": "[variables('sb-name')]",
+            "location": "North Europe",
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard"
+            },
+            "properties": {
+                "zoneRedundant": false
+            }
+        },          
+
+        /* SECRETS */
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2015-06-01",
+            "name": "[concat(variables('keyvault-name'), '/', 'Connectionstrings--StorageAccount')]",
+            "properties": {
+                "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage-name'), ';AccountKey=', listKeys( concat('Microsoft.Storage/storageAccounts/', variables('storage-name')), '2016-01-01').keys[0].value)]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('storage-name'))]",
+                "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2015-06-01",
+            "name": "[concat(variables('keyvault-name'), '/', 'Connectionstrings--ServiceBus')]",
+            "properties": {
+                "value": "[listKeys(concat('Microsoft.ServiceBus/namespaces/', variables('sb-name'), '/AuthorizationRules/', 'RootManageSharedAccessKey'), '2015-08-01').primaryConnectionString]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('sb-name'))]",
+                "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2015-06-01",
+            "name": "[concat(variables('keyvault-name'), '/', 'Connectionstrings--ResourcesDbContext')]",
+            "properties": {
+                "value": "[parameters('sql-connection-string')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2015-06-01",
+            "name": "[concat(variables('keyvault-name'), '/', 'AzureAd--ClientSecret')]",
+            "properties": {
+                "value": "[parameters('aad-client-secret')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
+            ]
+        }
+    ]
+}
