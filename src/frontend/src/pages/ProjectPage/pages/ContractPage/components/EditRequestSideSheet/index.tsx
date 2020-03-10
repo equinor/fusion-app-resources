@@ -48,6 +48,7 @@ const EditRequestSideSheet: React.FC = () => {
                     state.basePosition &&
                         state.positionName &&
                         state.workload &&
+                        state.parentPosition &&
                         !Boolean(isNaN(+state.workload))
                 )
         );
