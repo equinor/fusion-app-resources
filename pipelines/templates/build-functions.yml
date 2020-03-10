@@ -1,0 +1,48 @@
+
+parameters:
+    project: ''
+  
+stages:
+  - stage: BuildFunction
+    displayName: Build Function Project
+    jobs:
+    - job: Build
+      pool: 
+        vmImage: 'windows-latest'
+      variables:
+        projectPath: src/backend/functions/${{ parameters.project }}
+        projectName: ${{ parameters.project }}
+  
+      steps:
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet restore'
+        inputs:
+          command: restore
+          projects: '$(projectPath)/*.csproj'
+  
+      - task: MSBuild@1
+        displayName: 'Build function app'
+        inputs:
+          solution: '$(projectPath)/*.csproj'
+          configuration: 'Release'
+          msbuildArguments: '/t:Publish /p:PublishDir="$(Build.BinariesDirectory)\\"'
+  
+      - task: ArchiveFiles@2
+        displayName: 'Compress published function to zip'
+        inputs:
+          includeRootFolder: false
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(projectName).zip'
+  
+      - task: DeleteFiles@1
+        displayName: 'Delete files from $(Build.BinariesDirectory)'
+        inputs:
+          SourceFolder: '$(Build.BinariesDirectory)'
+          Contents: '*'
+  
+      - task: PublishSymbols@2
+        displayName: 'Publish symbols '
+        inputs:
+          SymbolServerType: TeamServices
+  
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact'

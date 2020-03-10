@@ -1,0 +1,58 @@
+parameters:
+  envName: ''
+  clientId: ''
+  templateFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/function.template.json
+
+steps:
+- checkout: self
+- task: AzurePowerShell@4
+  displayName: 'Deploy Function ARM template'
+  inputs:
+    azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    ScriptType: 'InlineScript'
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    Inline: |
+      $environment = "${{ parameters.envName }}"
+      $functionAppName = "func-fap-resources-$environment"
+      $envVaultName = "kv-fap-resources-$environment"
+      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-ci" }
+
+      if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
+
+      $resourceGroup = $envResourceGroup.ResourceGroupName
+      Write-Host "Using resource group $resourceGroup"
+
+      function Get-SecretsId($secret) {
+          $value = (Get-AzKeyVaultSecret -VaultName $envVaultName -Name $secret).Id
+          if ($value -eq $null) { return "" } else { return $value }
+      }
+
+      #
+      # Generate the app settings      
+      #
+      $settings = @{
+          clientId = "${{ parameters.clientId }}"
+          secretIds = @{
+              clientSecret = Get-SecretsId -secret AzureAd--ClientSecret
+              serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
+          }
+          endpoints = @{
+              org = "https://pro-s-org-$environment.azurewebsites.net"
+              people = "https://pro-s-people-$environment.azurewebsites.net"
+              resources = "https://resources-api.$environment.fusion-dev.net/"
+          }
+          resources = @{
+              fusion = "5a842df8-3238-415d-b168-9f16a6a6031b"
+          }
+          queues = @{
+              provisionPosition = "provision-position"
+          }
+      }
+
+      New-AzResourceGroupDeployment -Mode Incremental -Name "resources-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
+          -env-name $environment `
+          -settings $settings
+
+      $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
+      Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get  

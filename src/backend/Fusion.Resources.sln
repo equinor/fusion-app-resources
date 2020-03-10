@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D12DC33D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Domain.Tests", "tests\Fusion.Resources.Domain.Tests\Fusion.Resources.Domain.Tests.csproj", "{2E8F0443-BE79-4722-87EA-25AC341581BF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "function", "function", "{286E3C76-C860-4661-9AEF-817458D1231B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Functions", "function\Fusion.Resources.Functions\Fusion.Resources.Functions.csproj", "{277742EC-1734-47FE-9A45-3B05355212A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +41,10 @@ Global
 		{2E8F0443-BE79-4722-87EA-25AC341581BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E8F0443-BE79-4722-87EA-25AC341581BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E8F0443-BE79-4722-87EA-25AC341581BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{277742EC-1734-47FE-9A45-3B05355212A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{277742EC-1734-47FE-9A45-3B05355212A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{277742EC-1734-47FE-9A45-3B05355212A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{277742EC-1734-47FE-9A45-3B05355212A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +54,7 @@ Global
 		{5F2CDAAF-C625-46FC-AB82-EDE4F47DF69C} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{EC425C33-9AE9-49F9-A3AD-4BECFE4CBD8B} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{2E8F0443-BE79-4722-87EA-25AC341581BF} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
+		{277742EC-1734-47FE-9A45-3B05355212A8} = {286E3C76-C860-4661-9AEF-817458D1231B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F47D8FDB-3919-45C8-8C08-486405ECEC01}

@@ -12,7 +12,9 @@
         "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
         "storage-name": "[concat('safresources', variables('env-name'))]",
         "ai-name": "[concat('ai-fap-resources-', variables('env-name'))]",
-        "sb-name": "[concat('sb-fap-resources-', variables('env-name'))]"
+        "sb-name": "[concat('sb-fap-resources-', variables('env-name'))]",
+        "function-name": "[concat('func-fap-resources-', variables('env-name'))]",
+        "function-hosting-plan-name": "[concat('fhplan-fap-resources-', variables('env-name'))]"
         // "id-rg-infra": "[concat('/subscriptions/', subscription().subscriptionId,'/resourcegroups/', 'plant-query-infra')]",
     },
     "resources": [   
@@ -84,6 +86,44 @@
             },
             "properties": {
                 "supportsHttpsTrafficOnly": true
+            }
+        },
+
+        /* FUNCTION APP */
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('function-hosting-plan-name')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Y1",
+                "tier": "Dynamic"
+            },
+            "properties": {
+                "name": "[variables('function-hosting-plan-name')]",
+                "computeMode": "Dynamic"
+            }
+        },
+        {
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('function-name')]",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "[toLower(parameters('env-name'))]",
+                "fusion-app-component-type": "azFunc",
+                "fusion-app-component-id": "[concat('resources-func-', variables('env-name'))]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
             }
         },
 

@@ -1,0 +1,114 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "env-name": { "type": "string" },
+    "settings": {
+        "type": "object",
+        "defaultValue": {
+            "clientId": "",
+            "secretIds": {
+                "clientSecret": "",
+                "serviceBus": ""
+            },
+            "endpoints": {
+                "org": "https://pro-s-org-ci.azurewebsites.net",
+                "people": "https://pro-s-people-ci.azurewebsites.net",
+                "resources": "[concat('https://query-api-', parameters('env-name'), '.azurewebsites.net')]"
+            },
+            "resources": {
+                "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
+            },
+            "queues": {
+                "provisionPosition": "task-resolved"
+            }
+        }
+    }
+  },
+  "variables": {
+    "function-name": "[concat('func-fap-resources-', parameters('env-name'))]",
+    "ai-name": "[concat('ai-fap-resources-', parameters('env-name'))]",
+    "storage-name": "[concat('safresources', parameters('env-name'))]",
+    "storage-id": "/subscriptions/63b791ae-b2bc-41a1-ac66-806c4e69bffe/resourceGroups/fusion-apps-resources-ci/providers/Microsoft.Storage/storageAccounts/safresourcesci"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('function-name')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "dependsOn": [],
+      "properties": {
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage-name'), ';AccountKey=', listKeys(variables('storage-id'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage-name'), ';AccountKey=', listKeys(variables('storage-id'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('function-name'))]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~3"
+            },
+            {
+              "name": "WEBSITE_NODE_DEFAULT_VERSION",
+              "value": "~10"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('microsoft.insights/components/', variables('ai-name')), '2015-05-01').InstrumentationKey]"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet"
+            },
+            {
+              "name": "AzureAd_ClientId",
+              "value": "[parameters('settings').clientId]"
+            },
+            {
+              "name": "AzureAd_Secret",
+              "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('settings').secretIds.clientSecret, ')')]"
+            },
+            {
+              "name": "AzureAd_TenantId",
+              "value": "[subscription().tenantId]"
+            },
+            {
+              "name": "AzureWebJobsServiceBus",
+              "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('settings').secretIds.serviceBus, ')')]"
+            },
+            {
+              "name": "Endpoints_org",
+              "value": "[parameters('settings').endpoints.org]"
+            },
+            {
+              "name": "Endpoints_people",
+              "value": "[parameters('settings').endpoints.people]"
+            },
+            {
+              "name": "Endpoints_resources",
+              "value": "[parameters('settings').endpoints.resources]"
+            },
+            {
+              "name": "Endpoints_Resources_Fusion",
+              "value": "[parameters('settings').resources.fusion]"
+            },
+            {
+              "name": "provision_position_queue",
+              "value": "[parameters('settings').queues.provisionPosition]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
