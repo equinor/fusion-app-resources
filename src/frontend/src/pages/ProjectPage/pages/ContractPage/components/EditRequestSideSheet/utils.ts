@@ -13,6 +13,7 @@ export const transFormRequest = (
 
     return personnelRequest.map(req => ({
         id: uuid(),
+        requestId: req.id,
         positionId: req.position?.id || '',
         appliesFrom: req.position?.instances.find(i => i.appliesFrom)?.appliesFrom || null,
         appliesTo: req.position?.instances.find(i => i.appliesTo)?.appliesTo || null,
@@ -35,6 +36,7 @@ export const transFormRequest = (
 export const createDefaultState = (): EditRequest[] => [
     {
         id: uuid(),
+        requestId: null,
         description: '',
         positionId: '',
         basePosition: null,

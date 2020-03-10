@@ -11,6 +11,7 @@ import useForm from '../../../../../../hooks/useForm';
 
 export type EditRequest = {
     id: string;
+    requestId: string | null;
     description: string;
     positionId: string;
     basePosition: BasePosition | null;
@@ -27,6 +28,7 @@ const EditRequestSideSheet: React.FC = () => {
     const { editRequests, setEditRequests, isFetchingContract } = useContractContext();
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
     const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+    const [newRequests, setNewRequests] = React.useState<EditRequest[]>([]);
 
     const closeSideSheet = React.useCallback(() => {
         setEditRequests(null);
@@ -38,6 +40,8 @@ const EditRequestSideSheet: React.FC = () => {
         editRequests,
         selectedPositions,
     ]);
+
+ 
 
     const validateForm = React.useCallback((formState: EditRequest[]) => {
         return !formState.some(
@@ -58,6 +62,10 @@ const EditRequestSideSheet: React.FC = () => {
         validateForm,
         defaultState
     );
+
+    const submitChangesAsync = React.useCallback(async () => {
+        
+    }, []);
 
     return (
         <ModalSideSheet
