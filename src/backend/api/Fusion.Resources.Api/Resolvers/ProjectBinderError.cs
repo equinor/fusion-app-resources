@@ -7,6 +7,9 @@ namespace Fusion.Resources.Api.Controllers
         public ProjectBinderError(string message) : base(message)
         {
         }
+        public ProjectBinderError(string message, Exception ex) : base(message, ex)
+        {
+        }
     }
 
 

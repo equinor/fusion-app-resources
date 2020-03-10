@@ -16,40 +16,33 @@ import { useContractContext } from '../../../../../../contractContex';
 import { useCurrentContext } from '@equinor/fusion';
 import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
+import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 
 const ActiveRequestsPage: React.FC = () => {
-    const [activeRequests, setActiveRequests] = React.useState<PersonnelRequest[] | null>(null);
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
         []
     );
-    const [isFetching, setIsFetching] = React.useState<boolean>(false);
-    const [error, setError] = React.useState(null);
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
     const { apiClient } = useAppContext();
-    const contractContext = useContractContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
 
-    const getRequestsAsync = async (projectId: string, contractId: string) => {
-        setIsFetching(true);
-        setError(null);
-        try {
-            const response = await apiClient.getPersonnelRequestsAsync(projectId, contractId, true);
-            console.log(response.value)
-            setActiveRequests(response.value);
-        } catch (e) {
-            setError(e);
-        } finally {
-            setIsFetching(false);
-        }
-    };
-
-    React.useEffect(() => {
-        const contractId = contractContext.contract?.id;
+    const fetchRequestsAsync = React.useCallback(async () => {
+        const contractId = contract?.id;
         const projectId = currentContext?.id;
-        if (contractId && projectId) {
-            getRequestsAsync(projectId, contractId);
+        if (!contractId || !projectId) {
+            return [];
         }
-    }, [contractContext, currentContext]);
+
+        return apiClient.getPersonnelRequestsAsync(projectId, contractId, true);
+    }, [contract, currentContext]);
+
+    const { data: activeRequests, isFetching, error } = useReducerCollection(
+        contractState,
+        dispatchContractAction,
+        'activeRequests',
+        fetchRequestsAsync
+    );
 
     const filterSections = React.useMemo(() => {
         return getFilterSections(activeRequests || []);
@@ -78,28 +71,20 @@ const ActiveRequestsPage: React.FC = () => {
                         </IconButton>
                     </div>
                 </div>
-                {activeRequests && activeRequests?.length <= 0 ? (
-                    <ErrorMessage
-                        hasError
-                        errorType="noData"
-                        message="No active requests found for selected contract"
-                    />
-                ) : (
-                        <SortableTable
-                            data={filteredActiveRequests || []}
-                            columns={columns}
-                            rowIdentifier="id"
-                            isFetching={isFetching}
-                            isSelectable
-                            selectedItems={selectedRequests}
-                            onSelectionChange={setSelectedRequests}
-                        />
-                    )}
+                <SortableTable
+                    data={filteredActiveRequests || []}
+                    columns={columns}
+                    rowIdentifier="id"
+                    isFetching={isFetching && !activeRequests.length}
+                    isSelectable
+                    selectedItems={selectedRequests}
+                    onSelectionChange={setSelectedRequests}
+                />
             </div>
             <GenericFilter
                 data={activeRequests}
                 filterSections={filterSections}
-                onFilter={filteredRequests => setFilteredActiveRequests(filteredRequests)}
+                onFilter={setFilteredActiveRequests}
             />
         </div>
     );

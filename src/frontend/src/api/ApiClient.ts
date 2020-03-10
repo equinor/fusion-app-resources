@@ -33,10 +33,7 @@ export default class ApiClient {
 
     async getContractAsync(projectId: string, contractId: string) {
         const url = this.resourceCollection.contract(projectId, contractId);
-        const response = await this.httpClient.getAsync<
-            Contract,
-            FusionApiHttpErrorResponse
-        >(url);
+        const response = await this.httpClient.getAsync<Contract, FusionApiHttpErrorResponse>(url);
         return response.data;
     }
 
@@ -51,28 +48,46 @@ export default class ApiClient {
 
     async getPersonnelAsync(projectId: string, contractId: string) {
         const url = this.resourceCollection.personnel(projectId, contractId);
-        return this.httpClient.getAsync<ApiCollection<Personnel>, FusionApiHttpErrorResponse>(url);
+        const response = await this.httpClient.getAsync<
+            ApiCollection<Personnel>,
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data.value;
     }
 
     async createPersonnelAsync(projectId: string, contractId: string, personnel: Personnel) {
         const url = this.resourceCollection.personnel(projectId, contractId);
-        const reponse = await this.httpClient.postAsync<Personnel, Personnel, FusionApiHttpErrorResponse>(url, personnel);
-        return reponse.data
+        const reponse = await this.httpClient.postAsync<
+            Personnel,
+            Personnel,
+            FusionApiHttpErrorResponse
+        >(url, personnel);
+        return reponse.data;
     }
 
-    async createPersonnelCollectionAsync(projectId: string, contractId: string, personnel: Personnel[]) {
+    async createPersonnelCollectionAsync(
+        projectId: string,
+        contractId: string,
+        personnel: Personnel[]
+    ) {
         const url = this.resourceCollection.personnelCollection(projectId, contractId);
-        const reponse = await this.httpClient.postAsync<Personnel[], Personnel[], FusionApiHttpErrorResponse>(url, personnel);
-        return reponse.data
+        const reponse = await this.httpClient.postAsync<
+            Personnel[],
+            Personnel[],
+            FusionApiHttpErrorResponse
+        >(url, personnel);
+        return reponse.data;
     }
 
     async updatePersonnelAsync(projectId: string, contractId: string, personnel: Personnel) {
         const url = this.resourceCollection.personnel(projectId, contractId, personnel.personnelId);
-        const reponse = await this.httpClient.putAsync<Personnel, Personnel, FusionApiHttpErrorResponse>(url, personnel);
-        return reponse.data
+        const reponse = await this.httpClient.putAsync<
+            Personnel,
+            Personnel,
+            FusionApiHttpErrorResponse
+        >(url, personnel);
+        return reponse.data;
     }
-
-
 
     async createContractAsync(projectId: string, contract: Contract) {
         const url = this.resourceCollection.contracts(projectId);
@@ -144,9 +159,6 @@ export default class ApiClient {
             ApiCollection<PersonnelRequest>,
             FusionApiHttpErrorResponse
         >(url);
-        return response.data;
+        return response.data.value;
     }
-
-
-
 }

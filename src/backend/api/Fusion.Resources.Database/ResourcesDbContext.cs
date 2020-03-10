@@ -1,20 +1,27 @@
 ﻿using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Fusion.Resources.Database
 {
     public class ResourcesDbContext : DbContext
     {
+        private readonly ISqlAuthenticationManager authManager;
+
         public ResourcesDbContext() { }
 
         public ResourcesDbContext(DbContextOptions<ResourcesDbContext> options) : base(options)
         {
+        }
+
+        public ResourcesDbContext(DbContextOptions<ResourcesDbContext> options, ISqlAuthenticationManager authManager) : base(options)
+        {
+            this.authManager = authManager;
         }
 
         public DbSet<DbContractPersonnel> ContractPersonnel { get; set; }
@@ -27,44 +34,24 @@ namespace Fusion.Resources.Database
         public DbSet<DbExternalPersonnelPerson> ExternalPersonnel { get; set; }
 
 
-        public bool HasUnsavedChanges()
-        {
-            return this.ChangeTracker.Entries().Any(e => e.State == EntityState.Added
-                                                         || e.State == EntityState.Modified
-                                                         || e.State == EntityState.Deleted);
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbContractPersonnel.OnModelCreating(modelBuilder);
             DbExternalPersonnelPerson.OnModelCreating(modelBuilder);
             DbContractorRequest.OnModelCreating(modelBuilder);
-
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            if (authManager != null)
+            {
+                var connection = authManager.GetSqlConnection();
+                optionsBuilder.UseSqlServer(connection);
+            }
+
             optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-            base.OnConfiguring(optionsBuilder);
         }
-    }
 
-    public interface ITransactionScope
-    {
-        Task<IDbContextTransaction> BeginTransactionAsync();
-    }
-
-    public class EFTransactionScope : ITransactionScope
-    {
-        private readonly ResourcesDbContext db;
-
-        public EFTransactionScope(ResourcesDbContext db)
-        {
-            this.db = db;
-        }
-        public Task<IDbContextTransaction> BeginTransactionAsync()
-        {
-            return db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadUncommitted);
-        }
+        
     }
 }

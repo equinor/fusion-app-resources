@@ -65,13 +65,16 @@ namespace Fusion.Resources.Api
 
             #region Resource services
 
-            services.AddResourceDatabase(Configuration);
+            services.AddResourceDatabase<Authentication.SqlTokenProvider>(Configuration);
             services.AddResourceDomain();
 
             #endregion
 
             services.AddHealthChecks()
-                .AddCheck("liveness", () => HealthCheckResult.Healthy());
+                .AddCheck("liveness", () => HealthCheckResult.Healthy())
+                .AddDbContextCheck<Database.ResourcesDbContext>("db", tags: new[] { "ready" });
+
+            services.AddApplicationInsightsTelemetry();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -109,13 +112,10 @@ namespace Fusion.Resources.Api
             });
             app.UseHealthChecks("/_health/ready", new HealthCheckOptions
             {
-                Predicate = r => r.Name.Contains("liveness")
+                Predicate = r => r.Tags.Contains("ready")
             });
 
             #endregion
-
-            app.SeedDatabase();
-
         }
     }
 }

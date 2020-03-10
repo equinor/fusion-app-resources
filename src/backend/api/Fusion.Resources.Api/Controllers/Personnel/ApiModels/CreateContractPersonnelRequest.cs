@@ -14,7 +14,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? JobTitle { get; set; } = null!;
         public string? PhoneNumber { get; set; } = null!;
 
-        public List<ApiPersonnelDiscipline>? Disciplines { get; set; }
+        public List<PersonnelDisciplineEntity>? Disciplines { get; set; }
 
         public void LoadCommand(CreateContractPersonnel command)
         {
@@ -24,5 +24,10 @@ namespace Fusion.Resources.Api.Controllers
             command.JobTitle = JobTitle;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
+    }
+
+    public class PersonnelDisciplineEntity
+    {
+        public string Name { get; set; }
     }
 }
