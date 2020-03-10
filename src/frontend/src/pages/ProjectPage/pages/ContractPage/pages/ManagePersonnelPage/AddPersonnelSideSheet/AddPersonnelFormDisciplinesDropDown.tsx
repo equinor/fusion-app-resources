@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SearchableDropdown } from '@equinor/fusion-components';
+import { SearchableDropdown, TextInput } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 
 export type PersonnelFormDisciplinesDropDown = {
@@ -7,13 +7,15 @@ export type PersonnelFormDisciplinesDropDown = {
     onChange: (changedPerson: Personnel) => void;
     selectedField: string;
     item: Personnel;
+    disabled: boolean;
 };
 
 const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDropDown> = ({
     selection,
     onChange,
     selectedField,
-    item
+    item,
+    disabled
 }) => {
     const options = React.useMemo(() => {
         if (!selection) return []
@@ -24,6 +26,14 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
             isSelected: s === selectedField,
         }));
     }, [selection, selectedField]);
+
+    if (disabled)
+        return <TextInput
+            key={`disciplines${item.personnelId}`}
+            disabled={true}
+            placeholder={item.disciplines?.map(d => d.name).join('/') || ""}
+            onChange={() => { }}
+        />
 
     return (
         <SearchableDropdown

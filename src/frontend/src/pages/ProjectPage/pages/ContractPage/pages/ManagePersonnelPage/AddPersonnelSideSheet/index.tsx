@@ -22,7 +22,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     selectedPersonnel,
 }) => {
     const currentContext = useCurrentContext();
-    const { contract, dispatchContractAction } = useContractContext();
+    const currentContract = useContractContext();
     const notification = useNotificationCenter();
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
@@ -31,53 +31,43 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
     const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
 
-    const savePersonnelChangesAsync = React.useCallback(async () => {
-        const contractId = contract?.id;
+    const savePersonnelChangesAsync = async () => {
+        const contractId = currentContract.contract?.id;
 
         if (!currentContext?.id || !contractId) return;
 
         setSaveInProgress(true);
-        try {
-            const personnel = await Promise.all(
-                formState.map(async person =>
-                    person.created
-                        ? apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
-                        : apiClient.createPersonnelAsync(currentContext.id, contractId, person)
-                )
-            );
-
-            setSaveInProgress(false);
-            setIsOpen(false);
-            notification({
-                level: 'low',
-                title: 'Personnel changes saved',
-                cancelLabel: 'dismiss',
-            });
-
-            dispatchContractAction({
-                verb: 'merge',
-                collection: 'personnel',
-                payload: personnel,
+        await Promise.all(
+            formState.map(async person =>
+                person.created
+                    ? await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+                    : await apiClient.createPersonnelAsync(currentContext.id, contractId, person)
+            )
+        )
+            .then(() => {
+                setSaveInProgress(false);
+                setIsOpen(false);
+                notification({
+                    level: 'low',
+                    title: 'Personnel changes saved',
+                    cancelLabel: 'dismiss',
+                });
             })
-        } catch (e) {
-            //TODO: This could probably be more helpfull.
-            notification({
-                level: 'high',
-                title:
-                    'Something went wrong while saving. Please try again or contact administrator',
+            .catch(e => {
+                //TODO: This could probably be more helpfull.
+                notification({
+                    level: 'high',
+                    title:
+                        'Something went wrong while saving. Please try again or contact administrator',
+                });
+                setSaveInProgress(false);
             });
-            setSaveInProgress(false);
-        }
-    }, [contract, currentContext, formState]);
+    };
 
     const disciplines: string[] = React.useMemo(() => {
-        return [
-            "Engineer",
-            "Developer",
-            "Mechanical Engineer"
-        ]
-    }, [])
-
+        //TODO: Get this from base positions
+        return ['Engineering', 'Developer', 'Mechanical Engineer'];
+    }, []);
 
     const onChange = React.useCallback(
         (changedPerson: Personnel) => {
@@ -94,12 +84,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             ...formState,
             {
                 personnelId: uuid(),
-                name: "",
-                firstName: "",
-                lastName: "",
-                phoneNumber: "",
-                mail: "",
-                jobTitle: "",
+                name: '',
+                firstName: '',
+                lastName: '',
+                phoneNumber: '',
+                mail: '',
+                jobTitle: '',
                 disciplines: [],
             },
         ]);
@@ -175,9 +165,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                     </td>
                                     <td className={styles.tableRowCell}>
                                         <AddPersonnelFormDisciplinesDropDown
+                                            disabled={saveInProgress}
                                             selection={disciplines}
                                             onChange={onChange}
-                                            selectedField={person?.disciplines[0]?.name || ""}
+                                            selectedField={person?.disciplines[0]?.name || ''}
                                             item={person}
                                         />
                                     </td>
