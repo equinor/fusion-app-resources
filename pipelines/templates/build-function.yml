@@ -14,19 +14,19 @@ stages:
         projectName: ${{ parameters.project }}
   
       steps:
+      - script: |
+          dotnet restore $(projectPath)/Fusion.Resources.Functions.csproj
+          dotnet build $(projectPath)/Fusion.Resources.Functions.csproj --configuration Release
+
       - task: DotNetCoreCLI@2
-        displayName: 'dotnet restore'
         inputs:
-          command: restore
+          command: publish
+          arguments: '--configuration Release --output $(Build.BinariesDirectory)'
           projects: '$(projectPath)/*.csproj'
-  
-      - task: MSBuild@1
-        displayName: 'Build function app'
-        inputs:
-          solution: '$(projectPath)/*.csproj'
-          configuration: 'Release'
-          msbuildArguments: '/t:Publish /p:PublishDir="$(Build.BinariesDirectory)\\"'
-  
+          publishWebProjects: false
+          modifyOutputPath: true
+          zipAfterPublish: false
+
       - task: ArchiveFiles@2
         displayName: 'Compress published function to zip'
         inputs:
@@ -38,11 +38,6 @@ stages:
         inputs:
           SourceFolder: '$(Build.BinariesDirectory)'
           Contents: '*'
-  
-      - task: PublishSymbols@2
-        displayName: 'Publish symbols '
-        inputs:
-          SymbolServerType: TeamServices
   
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact'
