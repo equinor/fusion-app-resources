@@ -52,20 +52,23 @@ const ManagePersonnelPage: React.FC = () => {
                         <AddIcon /> Add Person
                     </Button>
                 </div>
-                <DataTable
-                    columns={personnelColumns}
-                    data={sortedData}
-                    isFetching={isFetchingPersonnel}
-                    rowIdentifier={'personnelId'}
-                    onSortChange={onSortChange}
-                    sortedBy={{
-                        column: sortedByColumn,
-                        direction,
-                    }}
-                    isSelectable
-                    onSelectionChange={setSelectedItems}
-                    selectedItems={selectedItems}
-                />
+                <div className={styles.table}>
+                    <DataTable
+                        columns={personnelColumns}
+                        data={sortedData}
+                        isFetching={isFetchingPersonnel}
+                        rowIdentifier={'personnelId'}
+                        onSortChange={onSortChange}
+                        sortedBy={{
+                            column: sortedByColumn,
+                            direction,
+                        }}
+                        isSelectable
+                        onSelectionChange={setSelectedItems}
+                        selectedItems={selectedItems}
+                    />
+                </div>
+                >
                 {isAddPersonOpen && (
                     <AddPersonnelSideSheet
                         isOpen={isAddPersonOpen}
