@@ -3,7 +3,7 @@ import { ModalSideSheet, Button, Spinner, AddIcon } from '@equinor/fusion-compon
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
 import * as styles from './styles.less';
-import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
+import { useCurrentContext, useNotificationCenter, BasePosition } from '@equinor/fusion';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
@@ -27,8 +27,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
     );
-    const { apiClient } = useAppContext();
-
+    const { apiClient, useBasePositions } = useAppContext();
+    const { basePositions, basePositionsError, isFetchingBasePositions } = useBasePositions
     const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
 
     const savePersonnelChangesAsync = async () => {
@@ -64,10 +64,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             });
     };
 
-    const disciplines: string[] = React.useMemo(() => {
-        //TODO: Get this from base positions
-        return ['Engineering', 'Developer', 'Mechanical Engineer'];
-    }, []);
+    const disciplines: BasePosition[] = React.useMemo(() => {
+        if (isFetchingBasePositions || basePositionsError)
+            return []
+
+        return basePositions
+
+    }, [basePositions, basePositionsError, isFetchingBasePositions]);
 
     const onChange = React.useCallback(
         (changedPerson: Personnel) => {

@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { SearchableDropdown, TextInput } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
+import { BasePosition } from '@equinor/fusion';
 
 export type PersonnelFormDisciplinesDropDown = {
-    selection: string[];
+    selection: BasePosition[];
     onChange: (changedPerson: Personnel) => void;
     selectedField: string;
     item: Personnel;
@@ -21,9 +22,9 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
         if (!selection) return []
 
         return selection.map(s => ({
-            title: s,
-            key: s,
-            isSelected: s === selectedField,
+            title: s.name,
+            key: s.id,
+            isSelected: s.name === selectedField,
         }));
     }, [selection, selectedField]);
 
@@ -39,8 +40,9 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
         <SearchableDropdown
             options={options}
             onSelect={newValue => {
+                console.log(newValue)
                 const changedPerson = { ...item };
-                changedPerson.disciplines = [{ name: newValue.key }];
+                changedPerson.disciplines = [{ name: newValue.title }];
                 onChange(changedPerson);
             }}
         />

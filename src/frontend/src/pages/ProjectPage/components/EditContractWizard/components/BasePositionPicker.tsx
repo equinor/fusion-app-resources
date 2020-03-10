@@ -6,6 +6,7 @@ import {
     styling,
 } from '@equinor/fusion-components';
 import { useApiClients, BasePosition, combineUrls, useTelemetryLogger } from '@equinor/fusion';
+import { useAppContext } from '../../../../../appContext';
 
 type BasePositionPickerProps = {
     selectedBasePositionId?: string;
@@ -16,40 +17,18 @@ const BasePositionPicker: React.FC<BasePositionPickerProps> = ({
     selectedBasePositionId,
     onSelect,
 }) => {
-    const apiClients = useApiClients();
-    const telemetryLogger = useTelemetryLogger();
-
-    const [basePositions, setBasePositions] = React.useState<BasePosition[]>([]);
-    const [isFetchingBasePositions, setIsFetchingBasePositions] = React.useState(false);
-    const [basePositionsError, setBasePositionsError] = React.useState<Error | null>(null);
-    const fetchBasePositions = async () => {
-        setIsFetchingBasePositions(true);
-        setBasePositionsError(null);
-
-        try {
-            const response = await apiClients.org.getAsync<BasePosition[]>(
-                combineUrls('positions', "basepositions?$filter=projectType eq 'PRD-Contracts'")
-            );
-            setBasePositions(response.data);
-        } catch (e) {
-            telemetryLogger.trackException(e);
-            setBasePositionsError(e);
-        }
-
-        setIsFetchingBasePositions(false);
-    };
-
-    React.useEffect(() => {
-        fetchBasePositions();
-    }, []);
+    const { basePositions, basePositionsError, isFetchingBasePositions } = useAppContext().useBasePositions;
 
     const options = React.useMemo(() => {
+        if (basePositionsError || isFetchingBasePositions)
+            return []
+
         return basePositions.map(basePosition => ({
             title: basePosition.name,
             key: basePosition.id,
             isSelected: basePosition.id === selectedBasePositionId,
         }));
-    }, [basePositions, selectedBasePositionId]);
+    }, [basePositions, basePositionsError, isFetchingBasePositions, selectedBasePositionId]);
 
     const onDropdownSelect = React.useCallback(
         (option: SearchableDropdownOption) => {
