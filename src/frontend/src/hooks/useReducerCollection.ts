@@ -1,6 +1,6 @@
 import { CollectionAction, ReadonlyCollection, ExtractCollectionType } from '../reducers/utils';
 import { useCallback, useEffect } from 'react';
-import { useDebouncedAbortable } from '@equinor/fusion';
+import { useDebouncedAbortable, useTelemetryLogger } from '@equinor/fusion';
 
 const useReducerCollection = <TState, T extends keyof TState>(
     state: TState,
@@ -8,6 +8,8 @@ const useReducerCollection = <TState, T extends keyof TState>(
     collection: T,
     fetcher?: () => Promise<ReadonlyCollection<ExtractCollectionType<TState[T]>>['data']>
 ): TState[T] => {
+    const telemetryLogger = useTelemetryLogger();
+
     const fetch = useCallback(async () => {
         if (!fetcher) {
             return;
@@ -32,6 +34,8 @@ const useReducerCollection = <TState, T extends keyof TState>(
                 collection,
                 error,
             });
+
+            telemetryLogger.trackException(error);
         }
     }, [fetcher]);
 
