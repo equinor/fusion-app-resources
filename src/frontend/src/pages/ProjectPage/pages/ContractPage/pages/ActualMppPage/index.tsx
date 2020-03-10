@@ -15,7 +15,7 @@ const ActualMppPage: React.FC = () => {
     );
     const [selectedRequests, setSelectedRequests] = React.useState<Position[]>([]);
     const apiClients = useApiClients();
-    const { contract, contractState, dispatchContractAction } = useContractContext();
+    const { contract, contractState, dispatchContractAction, setEditRequests } = useContractContext();
     const currentContext = useCurrentContext();
 
     const fetchMppAsync = React.useCallback(async () => {
@@ -53,7 +53,7 @@ const ActualMppPage: React.FC = () => {
         <div className={styles.actualMppContainer}>
             <div className={styles.actualMpp}>
                 <div className={styles.toolbar}>
-                    <Button onClick={() => contractContext.setEditRequests([])}>
+                    <Button onClick={() => setEditRequests([])}>
                         Request personnel
                     </Button>
                     <div>
