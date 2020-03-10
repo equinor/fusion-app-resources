@@ -3,7 +3,7 @@ import Contract from '../../../../models/contract';
 
 const getFilterSections = (contracts: Contract[]): FilterSection<Contract>[] => {
     const uniqueCompanies = contracts
-        .map(request => request.company?.name || '')
+        .map(request => request.company?.name || 'No company')
         .filter((d, i, l) => l.indexOf(d) === i);
 
     return [
@@ -47,7 +47,7 @@ const getFilterSections = (contracts: Contract[]): FilterSection<Contract>[] => 
                     key: 'company',
                     title: 'Company',
                     type: FilterTypes.Checkbox,
-                    getValue: request => request.company?.name || '',
+                    getValue: request => request.company?.name || 'No company',
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
                     options: uniqueCompanies.map(company => ({

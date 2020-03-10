@@ -17,16 +17,16 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class DatabaseConfigurationExtensions
     {
 
-        public static IServiceCollection AddResourceDatabase(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddDbContext<ResourcesDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("TestDb");
-            });
+        //public static IServiceCollection AddResourceDatabase(this IServiceCollection services, IConfiguration configuration)
+        //{
+        //    services.AddDbContext<ResourcesDbContext>(options =>
+        //    {
+        //        options.UseInMemoryDatabase("TestDb");
+        //    });
 
-            services.AddScoped<ITransactionScope, EFTransactionScope>();
-            return services;
-        }
+        //    services.AddScoped<ITransactionScope, EFTransactionScope>();
+        //    return services;
+        //}
 
         public static void SeedDatabase(this IApplicationBuilder app)
         {
@@ -36,9 +36,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
                 var api = scope.ServiceProvider.GetRequiredService<IOrgApiClientFactory>();
                 var profileService = scope.ServiceProvider.GetRequiredService<IProfileService>();
-
-                profileService.EnsureExternalPersonnelAsync("hans.dahle@bouvet.no").Wait();
-                profileService.EnsureExternalPersonnelAsync("martin.forre@bouvet.no").Wait();
 
                 SeedPersonnel(db);
 
@@ -105,6 +102,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var personnel = new Faker<DbExternalPersonnelPerson>()
                .RuleFor(p => p.AzureUniqueId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }))
+               .RuleFor(p => p.FirstName, f => f.Person.FirstName)
+               .RuleFor(p => p.LastName, f => f.Person.LastName)
                .RuleFor(p => p.Name, f => f.Person.FullName)
                .RuleFor(p => p.Mail, f => f.Person.Email)
                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
@@ -141,17 +140,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     CreatedBy = seeder,
                     Person = p
                 }).ToList();
-
-            if (!a.Any(p => p.Person.Mail == "hans.dahle@bouvet.no"))
-                a.Add(new DbContractPersonnel
-                {
-                    ContractId = contract.Id,
-                    Project = project,
-                    Created = DateTimeOffset.Now,
-                    CreatedBy = seeder,
-                    Person = db.ExternalPersonnel.FirstOrDefault(p => p.Mail == "hans.dahle@bouvet.no")
-                });
-
 
             db.ContractPersonnel.AddRange(a);
 

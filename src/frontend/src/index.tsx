@@ -1,10 +1,18 @@
 import * as React from 'react';
-import { registerApp, ContextTypes, Context, useFusionContext } from '@equinor/fusion';
+import {
+    registerApp,
+    ContextTypes,
+    Context,
+    useFusionContext,
+    useCurrentContext,
+} from '@equinor/fusion';
 import { Switch, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import ProjectPage from './pages/ProjectPage';
 import ApiClient from './api/ApiClient';
 import AppContext from './appContext';
+import { appReducer, createInitialState } from './reducers/appReducer';
+import useCollectionReducer from './hooks/useCollectionReducer';
 
 const App: React.FC = () => {
     const fusionContext = useFusionContext();
@@ -19,8 +27,15 @@ const App: React.FC = () => {
         ]);
     }, []);
 
+    const currentContext = useCurrentContext();
+    const [appState, dispatchAppAction] = useCollectionReducer(
+        currentContext?.id || 'app',
+        appReducer,
+        createInitialState()
+    );
+
     return (
-        <AppContext.Provider value={{ apiClient }}>
+        <AppContext.Provider value={{ apiClient, appState, dispatchAppAction }}>
             <Switch>
                 <Route path="/" exact component={LandingPage} />
                 <Route path="/:projectId" component={ProjectPage} />

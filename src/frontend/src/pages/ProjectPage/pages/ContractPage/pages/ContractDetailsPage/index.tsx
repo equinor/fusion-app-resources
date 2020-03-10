@@ -17,20 +17,20 @@ const createFieldWithSkeleton = (
     render: (contract: Contract) => React.ReactNode,
     renderSkeleton?: () => React.ReactNode
 ) => {
-    const contractContext = useContractContext();
+    const { isFetchingContract, contract } = useContractContext();
 
     return (
         <div className={styles.field}>
             <label>{name}</label>
             <div className={styles.value}>
-                {contractContext.isFetchingContract ? (
+                {isFetchingContract && !contract ? (
                     renderSkeleton ? (
                         renderSkeleton()
                     ) : (
                         <SkeletonBar />
                     )
-                ) : contractContext.contract ? (
-                    render(contractContext.contract)
+                ) : contract ? (
+                    render(contract)
                 ) : null}
             </div>
         </div>
@@ -101,7 +101,7 @@ const ExternalCompanyRep = () =>
     );
 const ExternalContractResponsible = () =>
     createFieldWithSkeleton(
-        'EquinorContractRep',
+        'Equinor contract responsible',
         contract => renderPosition(contract.externalContractResponsible),
         () => <PositionCardSkeleton />
     );

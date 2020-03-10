@@ -4,7 +4,7 @@ import { useCurrentContext } from '@equinor/fusion';
 import { useCallback, useState } from 'react';
 
 const useContractPersister = (formState: Contract) => {
-    const { apiClient } = useAppContext();
+    const { apiClient, dispatchAppAction } = useAppContext();
     const project = useCurrentContext() as any;
     const [isSaving, setIsSaving] = useState(false);
 
@@ -12,17 +12,17 @@ const useContractPersister = (formState: Contract) => {
         setIsSaving(true);
 
         try {
-            if (formState.id) {
-                const updatedContract = await apiClient.updateContractAsync(
-                    project.externalId,
-                    formState.id,
-                    formState
-                );
+            const contract = formState.id
+                ? await apiClient.updateContractAsync(project.externalId, formState.id, formState)
+                : await apiClient.createContractAsync(project.externalId, formState);
 
-                return updatedContract;
-            }
+            dispatchAppAction({
+                verb: 'merge',
+                collection: 'contracts',
+                payload: [contract],
+            });
 
-            return await apiClient.createContractAsync(project.externalId, formState);
+            return contract;
         } catch (e) {
             throw e;
         } finally {

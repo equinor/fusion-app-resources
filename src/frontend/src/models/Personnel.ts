@@ -2,6 +2,8 @@ export type PersonnelDiscipline = {
     name: string;
 };
 
+export type azureAdStatus = 'Available' | 'InviteSent' | 'NoAccount';
+
 type Personnel = {
     personnelId: string;
     azureUniquePersonId?: string;
@@ -11,7 +13,7 @@ type Personnel = {
     jobTitle: string;
     phoneNumber: string;
     mail: string;
-    azureAdStatus: 'Available' | 'InviteSent' | 'NoAccount';
+    azureAdStatus: azureAdStatus
     hasCV: boolean;
     disciplines: PersonnelDiscipline[];
     created?: Date | null;

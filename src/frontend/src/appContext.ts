@@ -1,9 +1,13 @@
 import ApiClient from './api/ApiClient';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, Dispatch } from 'react';
+import { AppState } from './reducers/appReducer';
+import { CollectionAction } from './reducers/utils';
 
 export interface IAppContext {
-    apiClient: ApiClient
-};
+    apiClient: ApiClient;
+    appState: AppState;
+    dispatchAppAction: Dispatch<CollectionAction<AppState, keyof AppState>>;
+}
 
 const AppContext = createContext<IAppContext>({} as IAppContext);
 
