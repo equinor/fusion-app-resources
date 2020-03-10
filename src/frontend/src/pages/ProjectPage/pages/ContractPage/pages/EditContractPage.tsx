@@ -28,7 +28,7 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ match }) => {
         [history, currentContext]
     );
 
-    if (isFetchingContract) {
+    if (isFetchingContract && !contract) {
         return <ContractWizardSkeleton isEdit onGoBack={goBack} />;
     }
 

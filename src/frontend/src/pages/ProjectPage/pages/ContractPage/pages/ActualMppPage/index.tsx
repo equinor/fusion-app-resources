@@ -7,39 +7,34 @@ import columns from './columns';
 import { useContractContext } from '../../../../../../contractContex';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import getFilterSections from './getFilterSections';
+import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 
 const ActualMppPage: React.FC = () => {
-    const [contractPositions, setContractPositions] = React.useState<Position[] | null>(null);
     const [filteredContractPositions, setFilteredContractPositions] = React.useState<Position[]>(
         []
     );
-    const [isFetching, setIsFetching] = React.useState<boolean>(false);
-    const [error, setError] = React.useState(null);
     const [selectedRequests, setSelectedRequests] = React.useState<Position[]>([]);
     const apiClients = useApiClients();
-    const contractContext = useContractContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
 
-    const getContractPositions = async (projectId: string, contractId: string) => {
-        setIsFetching(true);
-        setError(null);
-        try {
-            const response = await apiClients.org.getContractPositionsAsync(projectId, contractId);
-            setContractPositions(response.data);
-        } catch (e) {
-            setError(e);
-        } finally {
-            setIsFetching(false);
-        }
-    };
-
-    React.useEffect(() => {
-        const contractId = contractContext.contract?.id;
+    const fetchMppAsync = React.useCallback(async () => {
+        const contractId = contract?.id;
         const projectId = (currentContext as any)?.externalId;
-        if (contractId && projectId) {
-            getContractPositions(projectId, contractId);
+        if (!contractId || !projectId) {
+            return [];
         }
-    }, [contractContext, currentContext]);
+
+        const response = await apiClients.org.getContractPositionsAsync(projectId, contractId);
+        return response.data;
+    }, [contract, currentContext]);
+
+    const { data: contractPositions, isFetching, error } = useReducerCollection(
+        contractState,
+        dispatchContractAction,
+        'actualMpp',
+        fetchMppAsync
+    );
 
     const filterSections = React.useMemo(() => {
         return getFilterSections(contractPositions || []);
@@ -68,23 +63,15 @@ const ActualMppPage: React.FC = () => {
                         </IconButton>
                     </div>
                 </div>
-                {contractPositions && contractPositions?.length <= 0 ? (
-                    <ErrorMessage
-                        hasError
-                        errorType="noData"
-                        message="No positions found on selected contract"
-                    />
-                ) : (
-                        <SortableTable
-                            data={filteredContractPositions || []}
-                            columns={columns}
-                            rowIdentifier="id"
-                            isFetching={isFetching}
-                            isSelectable
-                            selectedItems={selectedRequests}
-                            onSelectionChange={setSelectedRequests}
-                        />
-                    )}
+                <SortableTable
+                    data={filteredContractPositions || []}
+                    columns={columns}
+                    rowIdentifier="id"
+                    isFetching={isFetching && !contractPositions.length}
+                    isSelectable
+                    selectedItems={selectedRequests}
+                    onSelectionChange={setSelectedRequests}
+                />
             </div>
             <GenericFilter
                 data={contractPositions}

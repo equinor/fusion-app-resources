@@ -18,6 +18,8 @@ import ActiveRequestsPage from './pages/ActiveRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
 import * as styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
+import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
+import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 
 type ContractPageMatch = {
     contractId: string;
@@ -27,22 +29,32 @@ type ContractPageProps = RouteComponentProps<ContractPageMatch>;
 
 const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     const currentContext = useCurrentContext();
-    const { contract, isFetchingContract } = useContractFromId(match.params.contractId);
+    const { contract, isFetchingContract, contractError } = useContractFromId(
+        match.params.contractId
+    );
     const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId);
+
+    const [contractState, dispatchContractAction] = useCollectionReducer(
+        match.params.contractId,
+        contractReducer,
+        createInitialState()
+    );
 
     const contractContext = React.useMemo(() => {
         return {
             contract,
             isFetchingContract,
+            contractState,
+            dispatchContractAction,
         };
-    }, [contract, isFetchingContract]);
+    }, [contract, isFetchingContract, contractState, dispatchContractAction]);
 
     const history = useHistory();
     const onClose = React.useCallback(() => {
         history.push('/' + currentContext?.id || '');
     }, [history, currentContext]);
 
-    if (!contract && !isFetchingContract) {
+    if (contractError) {
         return (
             <div className={styles.container}>
                 <header className={styles.header}>
@@ -65,13 +77,13 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                         <CloseIcon />
                     </IconButton>
                     <h2>
-                        {isFetchingContract ? (
+                        {isFetchingContract && !contract ? (
                             <SkeletonBar />
                         ) : (
-                                <>
-                                    {contract?.contractNumber} - {contract?.name}
-                                </>
-                            )}
+                            <>
+                                {contract?.contractNumber} - {contract?.name}
+                            </>
+                        )}
                     </h2>
                 </header>
                 <div className={styles.content}>
