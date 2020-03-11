@@ -17,15 +17,9 @@ stages:
       - script: |
           dotnet restore $(projectPath)/Fusion.Resources.Functions.csproj
           dotnet build $(projectPath)/Fusion.Resources.Functions.csproj --configuration Release
+          dotnet publish src/backend/function/Fusion.Resources.Functions/Fusion.Resources.Functions.csproj --configuration Release --output $(Build.BinariesDirectory)
+        displayName: "Publish function project"
 
-      - task: DotNetCoreCLI@2
-        inputs:
-          command: publish
-          arguments: '--configuration Release --output $(Build.BinariesDirectory)'
-          projects: '$(projectPath)/*.csproj'
-          publishWebProjects: false
-          modifyOutputPath: true
-          zipAfterPublish: false
 
       - task: ArchiveFiles@2
         displayName: 'Compress published function to zip'
