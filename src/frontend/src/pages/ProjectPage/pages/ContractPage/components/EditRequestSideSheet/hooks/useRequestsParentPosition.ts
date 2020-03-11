@@ -2,16 +2,17 @@ import * as React from 'react';
 
 import { useApiClients, useTelemetryLogger, useCurrentContext, Position } from '@equinor/fusion';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
+import { useAppContext } from '../../../../../../../appContext';
 
 export default (personnelRequests: PersonnelRequest[] | null) => {
     const currentContext = useCurrentContext();
     const currentOrgProject = currentContext as any;
 
-    const [selectedPositions, setSelectedPositions] = React.useState<Position[] | null>(null);
     const [isFetchingPositions, setIsFetchingPositions] = React.useState<boolean>(false);
     const [positionsError, setPositionsError] = React.useState<Error | null>(null);
     const apiClients = useApiClients();
     const telemetryLogger = useTelemetryLogger();
+    const { dispatchAppAction, appState } = useAppContext();
 
     const parentPositionsIds = React.useMemo(() => {
         if (!personnelRequests) {
@@ -27,6 +28,16 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
         }, []);
     }, [personnelRequests]);
 
+    const cachedPositions = React.useMemo(
+        () =>
+            appState.positions.data.filter(position =>
+                parentPositionsIds.some(parentPositionId => parentPositionId === position.id)
+            ),
+        [appState, parentPositionsIds]
+    );
+
+    const [selectedPositions, setSelectedPositions] = React.useState<Position[]>(cachedPositions);
+
     const fetchAllPositions = React.useCallback(
         async (projectId: string) => {
             try {
@@ -37,6 +48,7 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
                 const positionsResponse = await Promise.all(positionsPromises);
                 const positions = positionsResponse.map(position => position.data);
                 setSelectedPositions(positions);
+                dispatchAppAction({ verb: 'merge', collection: 'positions', payload: positions });
             } catch (e) {
                 telemetryLogger.trackException(e);
                 setPositionsError(e);
