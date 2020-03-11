@@ -27,8 +27,7 @@ namespace Fusion.Resources.Domain.Behaviours
 
             var dependency = telemetryClient.StartOperation<DependencyTelemetry>($"{request.GetType().Name}");
             dependency.Telemetry.Data = JsonConvert.SerializeObject(request, Formatting.Indented);
-            dependency.Telemetry.Type = "CQRS Command";
-            dependency.Telemetry.Target = "Test target value";
+            dependency.Telemetry.Type = "CQRS";
 
             try
             {
