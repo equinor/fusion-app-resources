@@ -1,0 +1,47 @@
+.requestDetails {
+    padding: calc(var(--grid-unit) * 3px);
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    grid-template-rows: auto;
+    grid-template-areas: 
+        "description description description description"
+        "basePosition basePosition customPosition customPosition"
+        "taskManager taskManager taskManager taskManager"
+        "fromDate toDate";
+    grid-row: calc(var(--grid-unit) * 2px);
+    grid-column: calc(var(--grid-unit) * 3px);
+
+    .textField {
+        display: flex;
+
+        .title {
+            font-size: 12px;
+            line-height: calc(var(--grid-unit) * 2px);
+            color: var(--color-black-alt3);
+        }
+        .content {
+            font-size: 16px;
+            line-height: calc(var(--grid-unit) * 3px);
+            padding-top: calc(var(--grid-unit) * 0.5px);
+        }
+    }
+
+    .description {
+        grid-area: description;
+    }
+    .basePosition {
+        grid-area: basePosition;
+    }
+    .customPosition {
+        grid-area: customPosition;
+    }
+    .taskManager {
+        grid-area: taskManager;
+    }
+    .fromDate {
+        grid-area: fromDate;
+    }
+    .toDate {
+        grid-area: toDate;
+    }
+}
