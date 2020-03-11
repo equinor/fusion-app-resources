@@ -26,7 +26,7 @@ namespace Fusion.Resources.Functions
 
             if (payload.Type == ProvisionPositionMessageV1.RequestTypeV1.ContractorPersonnel)
             {
-                var provisionResponse = await resourcesClient.PostAsync($"/projects/{payload.ProjectOrgId}/contracts/{payload.ContractOrgId}/resources/requests/{payload.RequestId}", null);
+                var provisionResponse = await resourcesClient.PostAsync($"/projects/{payload.ProjectOrgId}/contracts/{payload.ContractOrgId}/resources/requests/{payload.RequestId}/provision", null);
 
                 var content = await provisionResponse.Content.ReadAsStringAsync();
 
