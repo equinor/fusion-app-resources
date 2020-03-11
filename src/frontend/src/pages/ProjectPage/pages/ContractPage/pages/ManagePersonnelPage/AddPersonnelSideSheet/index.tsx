@@ -9,7 +9,6 @@ import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
 import useAddPersonnelForm from '../hooks/useAddPersonnelForm';
 import AddPersonnelFormDisciplinesDropDown from './AddPersonnelFormDisciplinesDropDown';
-import useBasePositions from '../../../../../../../hooks/useBasePositions';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -31,7 +30,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         selectedPersonnel
     );
 
-    const { basePositions, isFetchingBasePositions, basePositionsError, } = useBasePositions();
     const savePersonnelChangesAsync = async () => {
         const contractId = contract?.id;
 
@@ -69,15 +67,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         }
         setSaveInProgress(false);
     };
-
-    const disciplines: BasePosition[] = React.useMemo(() => {
-        if (isFetchingBasePositions || basePositionsError)
-            return []
-
-        console.log(basePositions)
-        return basePositions
-
-    }, [basePositions, isFetchingBasePositions, basePositionsError]);
 
     const onChange = React.useCallback(
         (changedPerson: Personnel) => {
@@ -176,7 +165,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                     <td className={styles.tableRowCell}>
                                         <AddPersonnelFormDisciplinesDropDown
                                             disabled={saveInProgress}
-                                            selection={disciplines}
                                             onChange={onChange}
                                             selectedField={person?.disciplines[0]?.name || ''}
                                             item={person}

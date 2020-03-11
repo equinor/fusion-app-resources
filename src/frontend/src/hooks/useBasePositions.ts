@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useApiClients, BasePosition, combineUrls } from '@equinor/fusion';
 import useReducerCollection from './useReducerCollection';
-import { useContractContext } from '../contractContex';
+import { useAppContext } from '../appContext';
 
 export type useBasePositionsContext = {
     basePositions: BasePosition[];
@@ -10,20 +10,19 @@ export type useBasePositionsContext = {
 };
 
 const useBasePositions = (): useBasePositionsContext => {
-    const { contract, contractState, dispatchContractAction } = useContractContext();
     const apiClients = useApiClients();
+    const { appState, dispatchAppAction } = useAppContext()
     const fetchBasePositionsAsync = useCallback(async () => {
-        if (!contract?.id) return []
 
         const positions = await apiClients.org.getAsync<BasePosition[]>(
             combineUrls('positions', "basepositions?$filter=projectType eq 'PRD-Contracts'"))
 
         return positions.data
-    }, [contract]);
+    }, []);
 
     const { data: basePositions, isFetching: isFetchingBasePositions, error: basePositionsError } = useReducerCollection(
-        contractState,
-        dispatchContractAction,
+        appState,
+        dispatchAppAction,
         'basePositions',
         fetchBasePositionsAsync
     );
