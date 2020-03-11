@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
+
 [assembly: FunctionsStartup(typeof(Fusion.Resources.Functions.Startup))]
 
 namespace Fusion.Resources.Functions

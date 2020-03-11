@@ -1,7 +1,10 @@
 using System;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Fusion.Resources.Integration.Models.Queue;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
@@ -12,17 +15,26 @@ namespace Fusion.Resources.Functions
     {
         private readonly HttpClient resourcesClient;
 
+
         public ProvisionRequestQueueTrigger(IHttpClientFactory httpClientFactory)
         {
             this.resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
         }
 
         [FunctionName("provision-position-request")]
-        public async System.Threading.Tasks.Task RunAsync([ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")]string myQueueItem, ILogger log)
+        public async Task RunAsync(
+            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")]Message message,
+            ILogger log,
+            MessageReceiver messageReceiver,
+            [ServiceBus("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] MessageSender sender)
         {
-            log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
+            var processor = new QueueMessageProcessor(log, messageReceiver, sender);
+            await processor.ProcessWithRetriesAsync(message, ProcessMessageAsync);
+        }
 
-            var payload = JsonSerializer.Deserialize<ProvisionPositionMessageV1>(myQueueItem);
+        private async Task ProcessMessageAsync(string messageBody, ILogger log)
+        {
+            var payload = JsonSerializer.Deserialize<ProvisionPositionMessageV1>(messageBody);
 
             if (payload.Type == ProvisionPositionMessageV1.RequestTypeV1.ContractorPersonnel)
             {
@@ -44,9 +56,8 @@ namespace Fusion.Resources.Functions
                 }
             }
 
+
         }
     }
-
-    
     
 }
