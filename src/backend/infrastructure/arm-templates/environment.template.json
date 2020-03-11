@@ -160,7 +160,7 @@
                 "duplicateDetectionHistoryTimeWindow": "PT5M30S",
                 "defaultMessageTimeToLive": "P1D",
                 "deadLetteringOnMessageExpiration": true,
-                "maxDeliveryCount": 10
+                "maxDeliveryCount": 2
             }
         },
 
