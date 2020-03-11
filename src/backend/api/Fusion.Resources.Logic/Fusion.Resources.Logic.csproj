@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\integration\Fusion.Resources.Integration.Models\Fusion.Resources.Integration.Models.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
   </ItemGroup>

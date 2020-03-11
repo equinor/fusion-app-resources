@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "integration", "integration"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Integration.Models", "integration\Fusion.Resources.Integration.Models\Fusion.Resources.Integration.Models.csproj", "{9F8D9356-145A-44DE-93D8-2DCD0E58D16B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Application", "api\Fusion.Resources.Application\Fusion.Resources.Application.csproj", "{E6A6487B-B276-441B-A661-F202681400F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{9F8D9356-145A-44DE-93D8-2DCD0E58D16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F8D9356-145A-44DE-93D8-2DCD0E58D16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F8D9356-145A-44DE-93D8-2DCD0E58D16B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6A6487B-B276-441B-A661-F202681400F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6A6487B-B276-441B-A661-F202681400F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6A6487B-B276-441B-A661-F202681400F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6A6487B-B276-441B-A661-F202681400F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -71,6 +77,7 @@ Global
 		{277742EC-1734-47FE-9A45-3B05355212A8} = {286E3C76-C860-4661-9AEF-817458D1231B}
 		{EB05FA8C-DC27-4DBB-8963-B1692D1CE662} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 		{9F8D9356-145A-44DE-93D8-2DCD0E58D16B} = {0AA102F1-FA48-4A4A-9E47-1301C47048EB}
+		{E6A6487B-B276-441B-A661-F202681400F6} = {996B233A-1FC5-4CF5-97AD-B9C09F3E0A53}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F47D8FDB-3919-45C8-8C08-486405ECEC01}

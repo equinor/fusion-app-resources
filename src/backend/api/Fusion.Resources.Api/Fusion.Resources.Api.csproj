@@ -42,6 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fusion.Resources.Application\Fusion.Resources.Application.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Logic\Fusion.Resources.Logic.csproj" />

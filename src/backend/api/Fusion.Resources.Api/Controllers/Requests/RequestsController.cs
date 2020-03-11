@@ -212,7 +212,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             using (var scope = await BeginTransactionAsync())
             {
-                await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Delete(requestId));
+                await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Provision(requestId));
 
                 await scope.CommitAsync();
 

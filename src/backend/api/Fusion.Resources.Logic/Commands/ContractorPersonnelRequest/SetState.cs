@@ -26,15 +26,20 @@ namespace Fusion.Resources.Logic.Commands
             public class Handler : AsyncRequestHandler<SetState>
             {
                 private readonly ResourcesDbContext resourcesDb;
+                private readonly IMediator mediator;
 
-                public Handler(ResourcesDbContext resourcesDb)
+                public Handler(ResourcesDbContext resourcesDb, IMediator mediator)
                 {
                     this.resourcesDb = resourcesDb;
+                    this.mediator = mediator;
                 }
 
                 protected override async Task Handle(SetState request, CancellationToken cancellationToken)
                 {
-                    var dbItem = await resourcesDb.ContractorRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId);
+                    var dbItem = await resourcesDb.ContractorRequests
+                        .Include(r => r.Project)
+                        .Include(r => r.Contract)
+                        .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
                     if (dbItem == null)
                         throw new RequestNotFoundError(request.RequestId);
@@ -62,7 +67,8 @@ namespace Fusion.Resources.Logic.Commands
                             {
                                 case DbRequestState.ApprovedByCompany:
                                     // Send notifications
-                                    // Schedule provisioning
+                                    await mediator.Send(QueueRequestProvisioning.ContractorPersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId, dbItem.Contract.OrgContractId));
+                                     
                                     break;
                                 case DbRequestState.RejectedByCompany:
                                     // Send notifications
