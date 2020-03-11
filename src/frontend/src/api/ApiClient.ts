@@ -70,7 +70,7 @@ export default class ApiClient {
     async createPersonnelCollectionAsync(
         projectId: string,
         contractId: string,
-        personnel: Person[]
+        personnel: Personnel[]
     ) {
         const url = this.resourceCollection.personnelCollection(projectId, contractId);
         const reponse = await this.httpClient.postAsync<
