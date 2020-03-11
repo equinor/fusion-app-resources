@@ -13,8 +13,8 @@ type Personnel = {
     jobTitle: string;
     phoneNumber: string;
     mail: string;
-    azureAdStatus: azureAdStatus
-    hasCV: boolean;
+    azureAdStatus?: azureAdStatus
+    hasCV?: boolean;
     disciplines: PersonnelDiscipline[];
     created?: Date | null;
     updated?: Date | null;

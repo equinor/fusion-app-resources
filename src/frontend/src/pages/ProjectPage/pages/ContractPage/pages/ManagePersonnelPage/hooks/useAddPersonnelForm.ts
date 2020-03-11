@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import Person from '../../../../../../../models/Person';
 import useForm from '../../../../../../../hooks/useForm';
 import { v1 as uuid } from 'uuid';
+import Personnel from '../../../../../../../models/Personnel';
 
-const createDefaultState = (): Person[] => ([
+const createDefaultState = (): Personnel[] => ([
   {
     personnelId: uuid(),
     name: "",
@@ -11,11 +11,13 @@ const createDefaultState = (): Person[] => ([
     lastName: "",
     phoneNumber: "",
     mail: "",
-    jobTitle: ""
+    jobTitle: "",
+    disciplines: []
+
   }]);
 
-const useAddPersonnelForm = (defaultState?: Person[] | null) => {
-  const validateForm = useCallback((formState: Person[]) => {
+const useAddPersonnelForm = (defaultState?: Personnel[] | null) => {
+  const validateForm = useCallback((formState: Personnel[]) => {
     return !formState
       .some(p =>
         !Boolean(

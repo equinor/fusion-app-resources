@@ -6,13 +6,20 @@
   .managePersonnel{
     display: flex;
     flex-direction: column;
-    width: 100%;
+    flex-grow: 1;
+    width: 1px;
     padding: calc(var(--grid-unit) * 3px);
-  }
-  
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    padding-bottom: calc(var(--grid-unit) *2px);
+
+    .toolbar {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: calc(var(--grid-unit) *2px);
+    }
+
+    .table {
+      flex-grow: 1;
+    }
+
   }
 }

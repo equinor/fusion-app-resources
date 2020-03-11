@@ -8,7 +8,7 @@ const useCollectionReducer = <TState>(key: string, reducer: RootReducer<TState>,
 
     const state = sessionState ? JSON.parse(sessionState) as TState : initialState;
 
-    const result = useReducer(reducer, state);
+    const result = useReducer(reducer, { ...initialState, ...state });
 
     sessionStorage.setItem(SESSION_STATE_KEY, JSON.stringify(result[0]));
 

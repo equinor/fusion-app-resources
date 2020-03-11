@@ -1,5 +1,5 @@
 import Contract from '../models/contract';
-import { Position } from '@equinor/fusion';
+import { Position, BasePosition } from '@equinor/fusion';
 import {
     ReadonlyCollection,
     CollectionAction,
@@ -11,6 +11,7 @@ import {
 export type AppState = {
     contracts: ReadonlyCollection<Contract>;
     positions: ReadonlyCollection<Position>;
+    basePositions: ReadonlyCollection<BasePosition>;
 };
 
 const extractPositionsFromContracts = (contracts: readonly Contract[]): Position[] => {
@@ -44,6 +45,10 @@ const contractsReducer = createCollectionReducer<AppState, 'contracts'>(
     }
 );
 
+const basePositionsReducer = createCollectionReducer<AppState, 'basePositions'>(
+    (x, y) => x.id === y.id
+);
+
 const positionsReducer = createCollectionReducer<AppState, 'positions'>((x, y) => x.id === y.id);
 
 export const appReducer = createCollectionRootReducer(
@@ -57,8 +62,10 @@ export const appReducer = createCollectionRootReducer(
 
             case 'positions':
                 return positionsReducer(state, action as CollectionAction<AppState, 'positions'>);
-        }
 
+            case 'basePositions':
+                return basePositionsReducer(state, action as CollectionAction<AppState, 'basePositions'>);
+        }
         return state;
     }
 );
@@ -66,4 +73,5 @@ export const appReducer = createCollectionRootReducer(
 export const createInitialState = (): AppState => ({
     contracts: createEmptyCollection<Contract>(),
     positions: createEmptyCollection<Position>(),
+    basePositions: createEmptyCollection<BasePosition>(),
 });

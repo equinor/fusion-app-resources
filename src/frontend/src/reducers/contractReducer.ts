@@ -7,7 +7,7 @@ import {
 } from './utils';
 import Personnel from '../models/Personnel';
 import PersonnelRequest from '../models/PersonnelRequest';
-import { Position } from '@equinor/fusion';
+import { Position, BasePosition } from '@equinor/fusion';
 
 export type ContractState = {
     personnel: ReadonlyCollection<Personnel>;
