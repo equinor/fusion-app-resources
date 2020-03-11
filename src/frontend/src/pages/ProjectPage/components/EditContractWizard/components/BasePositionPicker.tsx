@@ -6,7 +6,7 @@ import {
     styling,
 } from '@equinor/fusion-components';
 import { useApiClients, BasePosition, combineUrls, useTelemetryLogger } from '@equinor/fusion';
-import { useAppContext } from '../../../../../appContext';
+import useBasePositions from '../../../../../hooks/useBasePositions';
 
 type BasePositionPickerProps = {
     selectedBasePositionId?: string;
@@ -17,7 +17,7 @@ const BasePositionPicker: React.FC<BasePositionPickerProps> = ({
     selectedBasePositionId,
     onSelect,
 }) => {
-    const { basePositions, basePositionsError, isFetchingBasePositions } = useAppContext().useBasePositions;
+    const { basePositions, basePositionsError, isFetchingBasePositions } = useBasePositions();
 
     const options = React.useMemo(() => {
         if (basePositionsError || isFetchingBasePositions)

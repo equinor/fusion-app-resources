@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SearchableDropdown, TextInput } from '@equinor/fusion-components';
+import { SearchableDropdown, TextInput, SearchableDropdownOption } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { BasePosition } from '@equinor/fusion';
 
@@ -28,6 +28,13 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
         }));
     }, [selection, selectedField]);
 
+
+    const onSelect = React.useCallback((newValue: SearchableDropdownOption) => {
+        const changedPerson = { ...item };
+        changedPerson.disciplines = [{ name: newValue.title }];
+        onChange(changedPerson);
+    }, [])
+
     if (disabled)
         return <TextInput
             key={`disciplines${item.personnelId}`}
@@ -39,12 +46,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
     return (
         <SearchableDropdown
             options={options}
-            onSelect={newValue => {
-                console.log(newValue)
-                const changedPerson = { ...item };
-                changedPerson.disciplines = [{ name: newValue.title }];
-                onChange(changedPerson);
-            }}
+            onSelect={onSelect}
         />
     );
 };

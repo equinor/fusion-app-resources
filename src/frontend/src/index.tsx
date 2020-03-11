@@ -13,7 +13,6 @@ import ApiClient from './api/ApiClient';
 import AppContext from './appContext';
 import { appReducer, createInitialState } from './reducers/appReducer';
 import useCollectionReducer from './hooks/useCollectionReducer';
-import useBasePositionsContext from './hooks/useBasePositionsContext';
 
 const App: React.FC = () => {
     const fusionContext = useFusionContext();
@@ -35,10 +34,8 @@ const App: React.FC = () => {
         createInitialState()
     );
 
-    const useBasePositions = useBasePositionsContext()
-
     return (
-        <AppContext.Provider value={{ apiClient, appState, useBasePositions, dispatchAppAction }}>
+        <AppContext.Provider value={{ apiClient, appState, dispatchAppAction }}>
             <Switch>
                 <Route path="/" exact component={LandingPage} />
                 <Route path="/:projectId" component={ProjectPage} />

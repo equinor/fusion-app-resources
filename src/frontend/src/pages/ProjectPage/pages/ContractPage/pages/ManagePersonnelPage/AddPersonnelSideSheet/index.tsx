@@ -9,6 +9,7 @@ import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
 import useAddPersonnelForm from '../hooks/useAddPersonnelForm';
 import AddPersonnelFormDisciplinesDropDown from './AddPersonnelFormDisciplinesDropDown';
+import useBasePositions from '../../../../../../../hooks/useBasePositions';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -27,8 +28,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
     );
-    const { apiClient, useBasePositions } = useAppContext();
-    const { basePositions, basePositionsError, isFetchingBasePositions } = useBasePositions
+    const { apiClient } = useAppContext();
+    const { basePositions, basePositionsError, isFetchingBasePositions } = useBasePositions()
     const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
 
     const savePersonnelChangesAsync = async () => {
