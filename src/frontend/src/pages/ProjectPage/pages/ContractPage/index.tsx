@@ -18,6 +18,7 @@ import ActiveRequestsPage from './pages/ActiveRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
 import * as styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
+import EditRequestSideSheet from './components/EditRequestSideSheet';
 import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 
@@ -46,8 +47,9 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
             isFetchingContract,
             contractState,
             dispatchContractAction,
+
         };
-    }, [contract, isFetchingContract, contractState, dispatchContractAction]);
+    }, [contract, isFetchingContract, contractState, dispatchContractAction ]);
 
     const history = useHistory();
     const onClose = React.useCallback(() => {

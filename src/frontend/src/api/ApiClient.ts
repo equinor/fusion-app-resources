@@ -12,6 +12,8 @@ import ApiCollection from '../models/apiCollection';
 import AvailableContract from '../models/availableContract';
 import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
+import Person from '../models/Person';
+import CreatePersonnelRequest from '../models/CreatePersonnelRequest';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -68,7 +70,7 @@ export default class ApiClient {
     async createPersonnelCollectionAsync(
         projectId: string,
         contractId: string,
-        personnel: Personnel[]
+        personnel: Person[]
     ) {
         const url = this.resourceCollection.personnelCollection(projectId, contractId);
         const reponse = await this.httpClient.postAsync<
@@ -160,5 +162,34 @@ export default class ApiClient {
             FusionApiHttpErrorResponse
         >(url);
         return response.data.value;
+    }
+
+    async createPersonnelRequestAsync(
+        projectId: string,
+        contractId: string,
+        request: CreatePersonnelRequest
+    ) {
+        const url = this.resourceCollection.personnelRequests(projectId, contractId);
+        const reponse = await this.httpClient.postAsync<
+            CreatePersonnelRequest,
+            ApiCollection<PersonnelRequest>,
+            FusionApiHttpErrorResponse
+        >(url, request);
+        return reponse.data;
+    }
+
+    async updatePersonnelRequestAsync(
+        projectId: string,
+        contractId: string,
+        requestId: string,
+        request: CreatePersonnelRequest
+    ) {
+        const url = this.resourceCollection.personnelRequest(projectId, contractId, requestId);
+        const response = await this.httpClient.putAsync<
+            CreatePersonnelRequest,
+            ApiCollection<PersonnelRequest>,
+            FusionApiHttpErrorResponse
+        >(url, request);
+        return response.data;
     }
 }

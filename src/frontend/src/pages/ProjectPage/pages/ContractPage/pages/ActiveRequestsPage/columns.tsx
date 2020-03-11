@@ -1,6 +1,6 @@
 import { DataTableColumn } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
-import RequestStateFlow from '../components/RequestStateFlow';
+import RequestStateFlow from '../../components/RequestStateFlow';
 import * as React from 'react';
 import PositionColumn from '../../../../components/PositionColumn';
 

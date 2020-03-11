@@ -2,7 +2,6 @@ import { createContext, useContext, Dispatch } from "react";
 import Contract from './models/contract';
 import { CollectionAction } from './reducers/utils';
 import { ContractState } from './reducers/contractReducer';
-
 export interface IContractContext {
     contract: Contract | null;
     isFetchingContract: boolean;

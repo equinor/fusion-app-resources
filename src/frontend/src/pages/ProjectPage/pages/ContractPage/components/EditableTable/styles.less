@@ -1,0 +1,28 @@
+.editableTable {
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--grid-unit) * 2px);
+    overflow: auto;
+
+    .container {
+        display: grid;
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        
+        .tableRowCell {
+            padding-bottom: calc(var(--grid-unit) * 1px);
+        }
+
+        .header {
+            text-align: left;
+            font-weight: normal;
+            background: var(--color-black-alt5);
+            padding: calc(var(--grid-unit) * 2px);
+            position: sticky;
+            top: 0;
+            z-index: 1 ;
+            min-width: calc(var(--grid-unit) * 21px);
+        }
+      }
+}
