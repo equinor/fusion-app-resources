@@ -10,6 +10,7 @@ import useRequestsParentPosition from './hooks/useRequestsParentPosition';
 import useForm from '../../../../../../hooks/useForm';
 
 import useSubmitChanges from './hooks/useSubmitChanges';
+import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 
 export type EditRequest = {
     id: string;
@@ -26,13 +27,23 @@ export type EditRequest = {
     parentPosition: Position | null;
 };
 
-const EditRequestSideSheet: React.FC = () => {
-    const { editRequests, setEditRequests, isFetchingContract } = useContractContext();
+type EditRequestSideSheetProps = {
+    initialRequests: PersonnelRequest[] | null;
+}
 
+const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialRequests}) => {
+    const { isFetchingContract } = useContractContext();
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
     const closeSideSheet = React.useCallback(() => {
         setEditRequests(null);
     }, [setEditRequests]);
+
+    React.useEffect(() => {
+        if(initialRequests) {
+            setEditRequests(initialRequests)
+        }
+    },[initialRequests])
 
     const { selectedPositions, isFetchingPositions } = useRequestsParentPosition(editRequests);
 
@@ -60,7 +71,7 @@ const EditRequestSideSheet: React.FC = () => {
         defaultState
     );
 
-    const { submit, isSubmitting } = useSubmitChanges(formState);
+    const { submit, isSubmitting } = useSubmitChanges(formState, setEditRequests);
 
     return (
         <ModalSideSheet

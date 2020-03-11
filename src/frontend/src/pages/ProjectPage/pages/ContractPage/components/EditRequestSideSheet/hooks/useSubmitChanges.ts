@@ -11,8 +11,11 @@ type SubmitError = {
     errorMessage: string;
 };
 
-export default (formState: EditRequest[]) => {
-    const { setEditRequests, contract } = useContractContext();
+export default (
+    formState: EditRequest[],
+    setEditRequests: React.Dispatch<React.SetStateAction<PersonnelRequest[] | null>>
+) => {
+    const { contract } = useContractContext();
     const currentContext = useCurrentContext();
 
     const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);

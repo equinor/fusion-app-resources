@@ -18,7 +18,6 @@ import ActiveRequestsPage from './pages/ActiveRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
 import * as styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
-import useEditRequests from './hooks/useEditRequests';
 import EditRequestSideSheet from './components/EditRequestSideSheet';
 import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';
@@ -35,7 +34,6 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
         match.params.contractId
     );
     const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId);
-    const { editRequests, setEditRequests} = useEditRequests();
 
     const [contractState, dispatchContractAction] = useCollectionReducer(
         match.params.contractId,
@@ -49,10 +47,9 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
             isFetchingContract,
             contractState,
             dispatchContractAction,
-            editRequests,
-            setEditRequests
+
         };
-    }, [contract, isFetchingContract, contractState, dispatchContractAction, editRequests, setEditRequests]);
+    }, [contract, isFetchingContract, contractState, dispatchContractAction ]);
 
     const history = useHistory();
     const onClose = React.useCallback(() => {
@@ -109,7 +106,6 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                         </ScopedSwitch>
                     </div>
                 </div>
-                <EditRequestSideSheet />
             </div>
         </ContractContext.Provider>
     );

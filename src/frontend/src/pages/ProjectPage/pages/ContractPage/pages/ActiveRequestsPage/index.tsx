@@ -10,14 +10,16 @@ import { useCurrentContext } from '@equinor/fusion';
 import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
+import EditRequestSideSheet from '../../components/EditRequestSideSheet';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
         []
     );
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
     const { apiClient } = useAppContext();
-    const { contract, contractState, dispatchContractAction, setEditRequests } = useContractContext();
+    const { contract, contractState, dispatchContractAction,  } = useContractContext();
     const currentContext = useCurrentContext();
 
     const fetchRequestsAsync = React.useCallback(async () => {
@@ -83,6 +85,7 @@ const ActiveRequestsPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={setFilteredActiveRequests}
             />
+            <EditRequestSideSheet initialRequests={editRequests}/>
         </div>
     );
 };

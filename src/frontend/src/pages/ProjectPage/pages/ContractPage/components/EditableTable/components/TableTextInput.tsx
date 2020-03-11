@@ -20,7 +20,7 @@ function TableTextInput<T>({
         <TextInput
             value={accessor(item)}
             onChange={onInputChange}
-            placeholder={accessor(item) || columnLabel}
+           
             label={columnLabel}
         />
     );
