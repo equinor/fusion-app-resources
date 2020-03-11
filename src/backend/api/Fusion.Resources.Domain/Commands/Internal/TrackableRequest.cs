@@ -17,4 +17,18 @@ namespace Fusion.Resources.Domain.Commands
             };
         }
     }
+
+    public class TrackableRequest : IRequest, ITrackableRequest
+    {
+        public CommandEditor Editor { get; private set; }
+
+        public void SetEditor(Guid azureUniqueId, DbPerson person)
+        {
+            Editor = new CommandEditor
+            {
+                AzureUniqueId = azureUniqueId,
+                Person = person
+            };
+        }
+    }
 }

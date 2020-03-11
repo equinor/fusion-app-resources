@@ -67,6 +67,7 @@ namespace Fusion.Resources.Api
 
             services.AddResourceDatabase<Authentication.SqlTokenProvider>(Configuration);
             services.AddResourceDomain();
+            services.AddResourceLogic();
 
             #endregion
 

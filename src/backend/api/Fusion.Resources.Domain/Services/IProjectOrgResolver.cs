@@ -9,5 +9,6 @@ namespace Fusion.Resources.Domain
     public interface IProjectOrgResolver
     {
         Task<ApiBasePositionV2?> ResolveBasePositionAsync(Guid basePositionId);
+        Task<ApiProjectContractV2?> ResolveContractAsync(Guid projectId, Guid contractId);
     }
 }

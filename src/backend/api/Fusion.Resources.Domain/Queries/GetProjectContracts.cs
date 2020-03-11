@@ -11,13 +11,26 @@ namespace Fusion.Resources.Domain
 {
     public class GetProjectContracts : IRequest<IEnumerable<QueryContract>>
     {
-
-        public GetProjectContracts(Guid projectId)
+        private GetProjectContracts(Guid identifier, QueryType type)
         {
-            ProjectId = projectId;
+            QueryIdentifier = identifier;
+            Type = type;
         }
-        public Guid ProjectId { get; set; }
 
+        public Guid QueryIdentifier { get; set; }
+
+        private QueryType Type { get; set; }
+
+        private enum QueryType { ByInternalId, ByOrgId }
+
+        public static GetProjectContracts ByInternalId(Guid projectId)
+        {
+            return new GetProjectContracts(projectId, QueryType.ByInternalId);
+        }
+        public static GetProjectContracts ByOrgProjectId(Guid projectOrgId)
+        {
+            return new GetProjectContracts(projectOrgId, QueryType.ByOrgId);
+        }
 
         public class Handler : IRequestHandler<GetProjectContracts, IEnumerable<QueryContract>>
         {
@@ -27,11 +40,19 @@ namespace Fusion.Resources.Domain
             {
                 this.db = db;
             }
+
             public async Task<IEnumerable<QueryContract>> Handle(GetProjectContracts request, CancellationToken cancellationToken)
             {
-                var contracts = await db.Contracts.Where(c => c.ProjectId == request.ProjectId).ToListAsync();
-
-                return contracts.Select(c => new QueryContract(c));
+                if (request.Type == QueryType.ByOrgId)
+                {
+                    var contracts = await db.Contracts.Where(c => c.Project.OrgProjectId == request.QueryIdentifier).ToListAsync();
+                    return contracts.Select(c => new QueryContract(c));
+                }
+                else
+                {
+                    var contracts = await db.Contracts.Where(c => c.ProjectId == request.QueryIdentifier).ToListAsync();
+                    return contracts.Select(c => new QueryContract(c));
+                }
             }
         }
     }

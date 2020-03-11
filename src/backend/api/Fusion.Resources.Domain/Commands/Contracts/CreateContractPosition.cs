@@ -28,6 +28,8 @@ namespace Fusion.Resources.Domain.Commands
         public DateTime AppliesTo { get; set; }
         public double Workload { get; set; }
 
+        public Guid? ParentPositionId { get; set; }
+
         public PersonId? AssignedPerson { get; set; }
 
         public class Handler : IRequestHandler<CreateContractPosition, ApiClients.Org.ApiPositionV2>
@@ -64,7 +66,8 @@ namespace Fusion.Resources.Domain.Commands
                             AppliesFrom = request.AppliesFrom,
                             AppliesTo = request.AppliesTo,
                             Workload = request.Workload,
-                            AssignedPerson =  request.AssignedPerson
+                            AssignedPerson =  request.AssignedPerson,
+                            ParentPositionId = request.ParentPositionId
                         }
                     }
             };
