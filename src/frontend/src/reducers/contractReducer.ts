@@ -7,12 +7,13 @@ import {
 } from './utils';
 import Personnel from '../models/Personnel';
 import PersonnelRequest from '../models/PersonnelRequest';
-import { Position } from '@equinor/fusion';
+import { Position, BasePosition } from '@equinor/fusion';
 
 export type ContractState = {
     personnel: ReadonlyCollection<Personnel>;
     activeRequests: ReadonlyCollection<PersonnelRequest>;
     actualMpp: ReadonlyCollection<Position>;
+    basePositions: ReadonlyCollection<BasePosition>;
 };
 
 const personnelReducer = createCollectionReducer<ContractState, 'personnel'>(
@@ -24,6 +25,10 @@ const activeRequestsReducer = createCollectionReducer<ContractState, 'activeRequ
 );
 
 const actualMppReducer = createCollectionReducer<ContractState, 'actualMpp'>(
+    (x, y) => x.id === y.id
+);
+
+const basePositionsReducer = createCollectionReducer<ContractState, 'basePositions'>(
     (x, y) => x.id === y.id
 );
 
@@ -50,6 +55,12 @@ export const contractReducer = createCollectionRootReducer(
                     state,
                     action as CollectionAction<ContractState, 'actualMpp'>
                 );
+
+            case 'basePositions':
+                return basePositionsReducer(
+                    state,
+                    action as CollectionAction<ContractState, 'basePositions'>
+                );
         }
 
         return state;
@@ -60,4 +71,5 @@ export const createInitialState = (): ContractState => ({
     personnel: createEmptyCollection<Personnel>(),
     activeRequests: createEmptyCollection<PersonnelRequest>(),
     actualMpp: createEmptyCollection<Position>(),
+    basePositions: createEmptyCollection<BasePosition>(),
 });

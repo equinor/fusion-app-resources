@@ -5,7 +5,7 @@ import {
     SkeletonBar,
     styling,
 } from '@equinor/fusion-components';
-import { useApiClients, BasePosition, combineUrls, useTelemetryLogger } from '@equinor/fusion';
+import { BasePosition } from '@equinor/fusion';
 import useBasePositions from '../../../../../hooks/useBasePositions';
 
 type BasePositionPickerProps = {

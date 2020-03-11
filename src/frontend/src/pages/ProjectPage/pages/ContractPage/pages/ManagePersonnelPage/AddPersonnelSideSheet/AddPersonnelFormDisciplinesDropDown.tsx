@@ -33,7 +33,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
         const changedPerson = { ...item };
         changedPerson.disciplines = [{ name: newValue.title }];
         onChange(changedPerson);
-    }, [])
+    }, [item])
 
     if (disabled)
         return <TextInput

@@ -2,30 +2,46 @@ import * as React from 'react';
 import { DataTable, DataTableColumn, Button, AddIcon } from '@equinor/fusion-components';
 import { useSorting, useCurrentContext } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
-import usePersonnel from './hooks/usePersonnel';
 import Personnel from '../../../../../../models/Personnel';
 import * as styles from './styles.less';
 import { useContractContext } from '../../../../../../contractContex';
 import AddPersonnelSideSheet from './AddPersonnelSideSheet';
 import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
+import { useAppContext } from '../../../../../../appContext';
+import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
-    const currentContract = useContractContext();
-    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(
-        currentContract?.contract?.id || undefined,
-        currentContext?.id
-    );
+    const { apiClient } = useAppContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
+    const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
+    const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
+
+    const fetchPersonnelAsync = React.useCallback(async () => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        if (!contractId || !projectId) {
+            return [];
+        }
+
+        return apiClient.getPersonnelAsync(projectId, contractId);
+    }, [contract, currentContext]);
+
+    const { data: personnel, isFetching, error } = useReducerCollection(
+        contractState,
+        dispatchContractAction,
+        'personnel',
+        fetchPersonnelAsync
+    );
+
 
     const { sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(
         filteredPersonnel,
         'name',
         'asc'
     );
-    const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
-    const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
 
     const onSortChange = React.useCallback(
         (column: DataTableColumn<Personnel>) => {
@@ -56,7 +72,7 @@ const ManagePersonnelPage: React.FC = () => {
                     <DataTable
                         columns={personnelColumns}
                         data={sortedData}
-                        isFetching={isFetchingPersonnel}
+                        isFetching={isFetching}
                         rowIdentifier={'personnelId'}
                         onSortChange={onSortChange}
                         sortedBy={{

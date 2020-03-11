@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useApiClients, BasePosition, combineUrls, useTelemetryLogger } from '@equinor/fusion';
+import { useCallback } from 'react';
+import { useApiClients, BasePosition, combineUrls } from '@equinor/fusion';
+import useReducerCollection from './useReducerCollection';
+import { useContractContext } from '../contractContex';
 
 export type useBasePositionsContext = {
     basePositions: BasePosition[];
@@ -8,33 +10,23 @@ export type useBasePositionsContext = {
 };
 
 const useBasePositions = (): useBasePositionsContext => {
-    const [basePositions, setBasePositions] = useState<BasePosition[]>([]);
-    const [isFetchingBasePositions, setIsFetchingBasePositions] = useState(false);
-    const [basePositionsError, setBasePositionsError] = useState<Error | null>(null);
-
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const apiClients = useApiClients();
-    const telemetryLogger = useTelemetryLogger();
+    const fetchBasePositionsAsync = useCallback(async () => {
+        if (!contract?.id) return []
 
-    const fetchBasePositions = async () => {
-        setIsFetchingBasePositions(true);
-        setBasePositionsError(null);
+        const positions = await apiClients.org.getAsync<BasePosition[]>(
+            combineUrls('positions', "basepositions?$filter=projectType eq 'PRD-Contracts'"))
 
-        try {
-            const response = await apiClients.org.getAsync<BasePosition[]>(
-                combineUrls('positions', "basepositions?$filter=projectType eq 'PRD-Contracts'")
-            );
-            setBasePositions(response.data);
-        } catch (e) {
-            telemetryLogger.trackException(e);
-            setBasePositionsError(e);
-        }
+        return positions.data
+    }, [contract]);
 
-        setIsFetchingBasePositions(false);
-    };
-
-    useEffect(() => {
-        fetchBasePositions();
-    }, []);
+    const { data: basePositions, isFetching: isFetchingBasePositions, error: basePositionsError } = useReducerCollection(
+        contractState,
+        dispatchContractAction,
+        'basePositions',
+        fetchBasePositionsAsync
+    );
 
     return {
         basePositions,

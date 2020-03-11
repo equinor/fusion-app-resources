@@ -22,56 +22,62 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     setIsOpen,
     selectedPersonnel,
 }) => {
+    const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
-    const currentContract = useContractContext();
+    const { contract, dispatchContractAction } = useContractContext();
     const notification = useNotificationCenter();
+    const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
     );
-    const { apiClient } = useAppContext();
-    const { basePositions, basePositionsError, isFetchingBasePositions } = useBasePositions()
-    const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
 
+    const { basePositions, isFetchingBasePositions, basePositionsError, } = useBasePositions();
     const savePersonnelChangesAsync = async () => {
-        const contractId = currentContract.contract?.id;
+        const contractId = contract?.id;
 
         if (!currentContext?.id || !contractId) return;
 
         setSaveInProgress(true);
-        await Promise.all(
-            formState.map(async person =>
-                person.created
-                    ? await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
-                    : await apiClient.createPersonnelAsync(currentContext.id, contractId, person)
+
+        try {
+            const response = await Promise.all(
+                formState.map(async person =>
+                    person.created
+                        ? await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
+                        : await apiClient.createPersonnelAsync(currentContext.id, contractId, person)
+                )
             )
-        )
-            .then(() => {
-                setSaveInProgress(false);
-                setIsOpen(false);
-                notification({
-                    level: 'low',
-                    title: 'Personnel changes saved',
-                    cancelLabel: 'dismiss',
-                });
-            })
-            .catch(e => {
-                //TODO: This could probably be more helpfull.
-                notification({
-                    level: 'high',
-                    title:
-                        'Something went wrong while saving. Please try again or contact administrator',
-                });
-                setSaveInProgress(false);
+
+            setSaveInProgress(false);
+            setIsOpen(false);
+            notification({
+                level: 'low',
+                title: 'Personnel changes saved',
+                cancelLabel: 'dismiss',
             });
+
+            dispatchContractAction({ verb: "merge", collection: "personnel", payload: response })
+
+        } catch (e) {
+            //TODO: This could probably be more helpfull.
+            notification({
+                level: 'high',
+                title:
+                    'Something went wrong while saving. Please try again or contact administrator',
+            });
+
+        }
+        setSaveInProgress(false);
     };
 
     const disciplines: BasePosition[] = React.useMemo(() => {
         if (isFetchingBasePositions || basePositionsError)
             return []
 
+        console.log(basePositions)
         return basePositions
 
-    }, [basePositions, basePositionsError, isFetchingBasePositions]);
+    }, [basePositions, isFetchingBasePositions, basePositionsError]);
 
     const onChange = React.useCallback(
         (changedPerson: Personnel) => {
