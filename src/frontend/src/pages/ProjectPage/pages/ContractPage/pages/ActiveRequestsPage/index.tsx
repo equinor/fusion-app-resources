@@ -1,13 +1,6 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import {
-    Button,
-    IconButton,
-    DeleteIcon,
-    EditIcon,
-    ErrorMessage,
-    FilterPane,
-} from '@equinor/fusion-components';
+import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -17,14 +10,16 @@ import { useCurrentContext } from '@equinor/fusion';
 import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
+import EditRequestSideSheet from '../../components/EditRequestSideSheet';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
         []
     );
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
     const { apiClient } = useAppContext();
-    const { contract, contractState, dispatchContractAction } = useContractContext();
+    const { contract, contractState, dispatchContractAction,  } = useContractContext();
     const currentContext = useCurrentContext();
 
     const fetchRequestsAsync = React.useCallback(async () => {
@@ -48,6 +43,10 @@ const ActiveRequestsPage: React.FC = () => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);
 
+    const editRequest = React.useCallback((requests: PersonnelRequest[]) => {
+        setEditRequests(requests);
+    }, [setEditRequests]);
+
     if (error) {
         return (
             <ErrorMessage
@@ -61,12 +60,12 @@ const ActiveRequestsPage: React.FC = () => {
         <div className={styles.activeRequestsContainer}>
             <div className={styles.activeRequests}>
                 <div className={styles.toolbar}>
-                    <Button>Request personnel</Button>
+                    <Button onClick={() => editRequest([])}>Request personnel</Button>
                     <div>
-                        <IconButton>
+                        <IconButton disabled>
                             <DeleteIcon />
                         </IconButton>
-                        <IconButton>
+                        <IconButton onClick={() => editRequest(selectedRequests)}>
                             <EditIcon />
                         </IconButton>
                     </div>
@@ -86,6 +85,7 @@ const ActiveRequestsPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={setFilteredActiveRequests}
             />
+            <EditRequestSideSheet initialRequests={editRequests}/>
         </div>
     );
 };

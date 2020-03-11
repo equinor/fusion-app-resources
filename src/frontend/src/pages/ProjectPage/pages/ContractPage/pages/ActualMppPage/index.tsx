@@ -8,14 +8,18 @@ import { useContractContext } from '../../../../../../contractContex';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import getFilterSections from './getFilterSections';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
+import EditRequestSideSheet from '../../components/EditRequestSideSheet';
+import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 
 const ActualMppPage: React.FC = () => {
     const [filteredContractPositions, setFilteredContractPositions] = React.useState<Position[]>(
         []
     );
     const [selectedRequests, setSelectedRequests] = React.useState<Position[]>([]);
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
+
     const apiClients = useApiClients();
-    const { contract, contractState, dispatchContractAction } = useContractContext();
+    const { contract, contractState, dispatchContractAction,  } = useContractContext();
     const currentContext = useCurrentContext();
 
     const fetchMppAsync = React.useCallback(async () => {
@@ -53,7 +57,9 @@ const ActualMppPage: React.FC = () => {
         <div className={styles.actualMppContainer}>
             <div className={styles.actualMpp}>
                 <div className={styles.toolbar}>
-                    <Button>Request personnel</Button>
+                    <Button onClick={() => setEditRequests([])}>
+                        Request personnel
+                    </Button>
                     <div>
                         <IconButton>
                             <DeleteIcon />
@@ -78,6 +84,7 @@ const ActualMppPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={filteredRequests => setFilteredContractPositions(filteredRequests)}
             />
+            <EditRequestSideSheet initialRequests={editRequests}/>
         </div>
     );
 };

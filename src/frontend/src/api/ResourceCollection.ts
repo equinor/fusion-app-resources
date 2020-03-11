@@ -23,13 +23,21 @@ export default class ResourceCollection {
     }
 
     personnel(projectId: string, contractId: string, personnelId?: string): string {
-        return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel', personnelId || '');
+        return combineUrls(
+            this.contract(projectId, contractId),
+            'resources',
+            'personnel',
+            personnelId || ''
+        );
     }
 
     personnelCollection(projectId: string, contractId: string): string {
-        return combineUrls(this.contract(projectId, contractId), 'resources', 'personnel-collection');
+        return combineUrls(
+            this.contract(projectId, contractId),
+            'resources',
+            'personnel-collection'
+        );
     }
-
 
     personnelRequests(projectId: string, contractId: string, filter?: string): string {
         const personnelRequestsFilter = filter ? `?$filter=${filter}` : '';
@@ -38,5 +46,9 @@ export default class ResourceCollection {
             'resources',
             'requests' + personnelRequestsFilter
         );
+    }
+
+    personnelRequest(projectId: string, contractId: string, requestId: string) {
+        return combineUrls(this.personnelRequests(projectId, contractId), requestId);
     }
 }
