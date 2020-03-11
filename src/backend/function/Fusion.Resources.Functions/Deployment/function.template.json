@@ -14,13 +14,13 @@
             "endpoints": {
                 "org": "https://pro-s-org-ci.azurewebsites.net",
                 "people": "https://pro-s-people-ci.azurewebsites.net",
-                "resources": "[concat('https://query-api-', parameters('env-name'), '.azurewebsites.net')]"
+                "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]"
             },
             "resources": {
                 "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
             },
             "queues": {
-                "provisionPosition": "task-resolved"
+                "provisionPosition": "provision-position"
             }
         }
     }
