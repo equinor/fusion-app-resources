@@ -164,9 +164,9 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                     </td>
                                     <td className={styles.tableRowCell}>
                                         <AddPersonnelFormDisciplinesDropDown
+                                            key={`disciplines${person.personnelId}`}
                                             disabled={saveInProgress}
                                             onChange={onChange}
-                                            selectedField={person?.disciplines[0]?.name || ''}
                                             item={person}
                                         />
                                     </td>
