@@ -23,7 +23,10 @@ namespace Fusion.Resources.Api
                     configBuilder.AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true);
 
                     AddKeyVault(ctx, configBuilder);
-                    
+
+                    // Override key vault
+                    if (ctx.HostingEnvironment.IsDevelopment())
+                        configBuilder.AddUserSecrets<Program>(); 
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

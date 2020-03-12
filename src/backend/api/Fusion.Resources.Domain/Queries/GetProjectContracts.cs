@@ -8,7 +8,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain
-{
+{    
     public class GetProjectContracts : IRequest<IEnumerable<QueryContract>>
     {
         private GetProjectContracts(Guid identifier, QueryType type)

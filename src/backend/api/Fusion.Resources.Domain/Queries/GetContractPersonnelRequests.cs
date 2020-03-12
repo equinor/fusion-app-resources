@@ -44,11 +44,13 @@ namespace Fusion.Resources.Domain.Queries
         {
             private readonly ResourcesDbContext resourcesDb;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator)
             {
                 this.resourcesDb = resourcesDb;
                 this.orgResolver = orgResolver;
+                this.mediator = mediator;
             }
 
             public async Task<IEnumerable<QueryPersonnelRequest>> Handle(GetContractPersonnelRequests request, CancellationToken cancellationToken)
@@ -106,12 +108,15 @@ namespace Fusion.Resources.Domain.Queries
                     .Select(bp => orgResolver.ResolveBasePositionAsync(bp))
                 );
 
+                var workflows = await mediator.Send(new GetRequestWorkflows(dbRequest.Select(r => r.Id)));
+
                 var positions = dbRequest.Select(p =>
                 {
                     var position = new QueryPositionRequest(p.Position)
                         .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp.Id == p.Position.BasePositionId));
+                    var workflow = workflows.FirstOrDefault(wf => wf.RequestId == p.Id);
 
-                    return new QueryPersonnelRequest(p, position);
+                    return new QueryPersonnelRequest(p, position, workflow);
                 }).ToList();
 
                 return positions;

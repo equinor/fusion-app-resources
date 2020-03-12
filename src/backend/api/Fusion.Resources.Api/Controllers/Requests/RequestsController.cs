@@ -23,85 +23,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier)
         {
-            #region Bogus data
-            var persons = new Faker<ApiPerson>()
-                .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
-                .RuleFor(p => p.Name, f => f.Person.FullName)
-                .RuleFor(p => p.Mail, f => f.Person.Email)
-                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
-                .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
-                .RuleFor(p => p.AccountType, f => f.PickRandomWithout<FusionAccountType>(FusionAccountType.Application))
-                .Generate(5);
+            var requests = await DispatchAsync(GetContractPersonnelRequests.QueryContract(projectIdentifier.ProjectId, contractIdentifier));
 
-            var personnel = new Faker<ApiContractPersonnel>()
-                .RuleFor(p => p.AzureUniquePersonId, f => Guid.NewGuid())
-                .RuleFor(p => p.Name, f => f.Person.FullName)
-                .RuleFor(p => p.Mail, f => f.Person.Email)
-                .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
-                .RuleFor(p => p.PhoneNumber, f => f.Person.Phone)
-                .RuleFor(p => p.HasCV, f => f.Random.Bool())
-                .RuleFor(p => p.AzureAdStatus, f => f.PickRandomWithout<ApiContractPersonnel.ApiAccountStatus>(ApiContractPersonnel.ApiAccountStatus.NoAccount))
-                .FinishWith((f, p) =>
-                {
-                    p.Disciplines = Enumerable.Range(0, f.Random.Number(1, 4)).Select(i => new ApiPersonnelDiscipline(f.Hacker.Adjective())).ToList();
-                })
-                .Generate(30);
-
-            var faker = new Faker();
-            var contract = new ApiContractReference
-            {
-                Company = new ApiCompany { Id = Guid.NewGuid(), Name = faker.Company.CompanyName(), Identifier = faker.Commerce.Department().ToLower() },
-                ContractNumber = faker.Finance.Account(10),
-                Id = Guid.NewGuid(),
-                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10))
-            };
-            var project = new ApiProjectReference
-            {
-                Name = faker.Lorem.Sentence(faker.Random.Int(4, 10)),
-                Id = Guid.NewGuid(),
-                ProjectMasterId = Guid.NewGuid()
-            };
-
-            var comments = new Faker<ApiRequestComment>()
-                .RuleFor(c => c.Content, f => f.Lorem.Text())
-                .RuleFor(p => p.Created, f => f.Date.Past())
-                .RuleFor(p => p.Updated, f => f.PickRandom(new[] { (DateTime?)null, f.Date.Past().ToUniversalTime() }))
-                .RuleFor(p => p.CreatedBy, f => f.PickRandom(persons))
-                .FinishWith((f, c) =>
-                {
-                    if (c.Updated.HasValue)
-                    {
-                        c.UpdatedBy = f.PickRandom(persons);
-                    }
-                })
-                .Generate(20);
-
-            var requests = new Faker<ApiContractPersonnelRequest>()
-                .RuleFor(p => p.Id, Guid.NewGuid())
-                .RuleFor(p => p.Created, f => f.Date.Past())
-                .RuleFor(p => p.Updated, f => f.PickRandom(new[] { (DateTime?)null, f.Date.Past().ToUniversalTime() }))
-                .RuleFor(p => p.CreatedBy, f => f.PickRandom(persons))
-                .RuleFor(p => p.State, f => f.PickRandom<ApiContractPersonnelRequest.ApiRequestState>())
-                .RuleFor(p => p.Description, f => f.Lorem.Text())
-                .RuleFor(p => p.Contract, contract)
-                .RuleFor(p => p.Project, project)
-                .RuleFor(p => p.Person, f => f.PickRandom(personnel))
-                .RuleFor(p => p.Comments, f => f.PickRandom(comments, f.Random.Number(0, 10)).ToList())
-                .FinishWith((f, c) =>
-                {
-                    if (c.Updated.HasValue)
-                    {
-                        c.UpdatedBy = f.PickRandom(persons);
-                    }
-                })
-                .Generate(faker.Random.Number(10, 40));
-
-            #endregion
-
-
-            var realRequests = await DispatchAsync(GetContractPersonnelRequests.QueryContract(projectIdentifier.ProjectId, contractIdentifier));
-
-            return new ApiCollection<ApiContractPersonnelRequest>(realRequests.Select(r => new ApiContractPersonnelRequest(r)).Union(requests));
+            return new ApiCollection<ApiContractPersonnelRequest>(requests.Select(r => new ApiContractPersonnelRequest(r)));
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
@@ -173,24 +97,27 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/reject")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractorPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractorPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RejectRequestRequest request)
         {
-            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+            if (request == null)
+                return await FusionApiError.NoBodyFoundAsync(Request);
 
-            if (request is null)
+            var contractorRequest = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+
+            if (contractorRequest is null)
                 return FusionApiError.NotFound(requestId, "Could not locate request");
 
 
             using (var scope = await BeginTransactionAsync())
             {
-                await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Reject(request.Id));
+                await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Reject(contractorRequest.Id, request.Reason));
 
                 await scope.CommitAsync();
             }
 
-            request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+            contractorRequest = await DispatchAsync(new GetContractPersonnelRequest(requestId));
 
-            return new ApiContractPersonnelRequest(request);
+            return new ApiContractPersonnelRequest(contractorRequest);
         }
 
 

@@ -3,6 +3,7 @@ using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
+using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -98,8 +99,24 @@ namespace Fusion.Resources.Logic.Commands
                     // Validate references.
                     await ValidateAsync(request);
 
+
+                    var newRequest = await PersistChangesAsync(request);
+
+                    // Start the workflow
+                    await mediator.Send(new Initialize(newRequest.Id));
+
+                    var personnelRequest = await mediator.Send(new GetContractPersonnelRequest(newRequest.Id));
+                    return personnelRequest;
+                }
+
+                /// <summary>
+                /// Persist the new request to the database 
+                /// </summary>
+                private async Task<DbContractorRequest> PersistChangesAsync(Create request)
+                {
                     var newRequest = new DbContractorRequest()
                     {
+                        Id = Guid.NewGuid(),
                         Contract = contract,
                         Project = project,
                         State = DbRequestState.Created,
@@ -111,13 +128,14 @@ namespace Fusion.Resources.Logic.Commands
                     };
 
                     await resourcesDb.ContractorRequests.AddAsync(newRequest);
+
+                    var workflow = new ContractorPersonnelWorkflowV1(request.Editor.Person);
+                    await resourcesDb.Workflows.AddAsync(workflow.CreateDatabaseEntity(newRequest.Id, DbRequestType.ContractorPersonnel));
                     await resourcesDb.SaveChangesAsync();
 
-                    await mediator.Send(new Initialize(newRequest.Id));
-
-                    var personnelRequest = await mediator.Send(new GetContractPersonnelRequest(newRequest.Id));
-                    return personnelRequest;
+                    return newRequest;
                 }
+
 
                 private DbContractorRequest.RequestPosition GeneratePosition(PositionInfo position, Guid? taskOwnerPositionId) => new DbContractorRequest.RequestPosition
                 {

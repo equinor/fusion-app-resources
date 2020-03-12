@@ -12,12 +12,14 @@ namespace Fusion.Resources.Logic.Commands
     {
         public class Reject : TrackableRequest
         {
-            public Reject(Guid requestId)
+            public Reject(Guid requestId, string reason)
             {
                 RequestId = requestId;
+                Reason = reason;
             }
 
             public Guid RequestId { get; }
+            public string Reason { get; }
 
 
 
@@ -37,11 +39,11 @@ namespace Fusion.Resources.Logic.Commands
                     switch (dbRequest.State)
                     {
                         case DbRequestState.Created:
-                            await mediator.Send(new SetState(request.RequestId, DbRequestState.RejectedByContractor));
+                            await mediator.Send(new SetState(request.RequestId, DbRequestState.RejectedByContractor).WithReason(request.Reason));
                             break;
 
                         case DbRequestState.SubmittedToCompany:
-                            await mediator.Send(new SetState(request.RequestId, DbRequestState.RejectedByCompany));
+                            await mediator.Send(new SetState(request.RequestId, DbRequestState.RejectedByCompany).WithReason(request.Reason));
                             break;
 
                         default:
