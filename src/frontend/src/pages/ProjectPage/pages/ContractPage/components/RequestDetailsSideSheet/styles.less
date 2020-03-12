@@ -7,17 +7,19 @@
         "description description description description"
         "basePosition basePosition customPosition customPosition"
         "taskManager taskManager taskManager taskManager"
-        "fromDate toDate";
-    grid-row: calc(var(--grid-unit) * 2px);
-    grid-column: calc(var(--grid-unit) * 3px);
+        "fromDate toDate toDate toDate"
+        "person person status status";
+    row-gap: calc(var(--grid-unit) * 2px);
+    column-gap: calc(var(--grid-unit) * 3px);
+    
 
     .textField {
         display: flex;
-
+        flex-direction: column;
         .title {
-            font-size: 12px;
+            font-size: 14px;
             line-height: calc(var(--grid-unit) * 2px);
-            color: var(--color-black-alt3);
+            color: var(--color-black-alt2);
         }
         .content {
             font-size: 16px;
@@ -43,5 +45,11 @@
     }
     .toDate {
         grid-area: toDate;
+    }
+    .person {
+        grid-area: person;
+    }
+    .status{
+        grid-area: status;;
     }
 }

@@ -11,13 +11,15 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import EditRequestSideSheet from '../../components/EditRequestSideSheet';
+import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
         []
     );
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
+    
     const { apiClient } = useAppContext();
     const { contract, contractState, dispatchContractAction,  } = useContractContext();
     const currentContext = useCurrentContext();
@@ -86,6 +88,7 @@ const ActiveRequestsPage: React.FC = () => {
                 onFilter={setFilteredActiveRequests}
             />
             <EditRequestSideSheet initialRequests={editRequests}/>
+            <RequestDetailsSideSheet requests={activeRequests}/>
         </div>
     );
 };
