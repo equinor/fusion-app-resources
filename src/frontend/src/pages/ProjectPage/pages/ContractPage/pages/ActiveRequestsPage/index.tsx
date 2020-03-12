@@ -33,14 +33,13 @@ const ActiveRequestsPage: React.FC = () => {
 
         return apiClient.getPersonnelRequestsAsync(projectId, contractId, true);
     }, [contract, currentContext]);
-
     const { data: activeRequests, isFetching, error } = useReducerCollection(
         contractState,
         dispatchContractAction,
         'activeRequests',
         fetchRequestsAsync
     );
-
+    console.log(activeRequests)
     const filterSections = React.useMemo(() => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);

@@ -2,13 +2,13 @@
 type CreatePersonnelRequest = {
     id?: string;
     description: string;
-    position: PersonnelRequestPosition | null;
+    position: CreatePersonnelRequestPosition | null;
     person: {
         mail: string;
     };
 };
 
-type PersonnelRequestPosition = {
+type CreatePersonnelRequestPosition = {
     id: string | null; 
     basePosition: {
         id: string

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import * as styles from './styles.less';
-import { PositionCard } from '@equinor/fusion-components';
-import { formatDate } from '@equinor/fusion';
+import { PositionCard, PersonCard } from '@equinor/fusion-components';
 import classNames from 'classnames';
 import RequestStateFlow from '../RequestStateFlow';
 
@@ -28,7 +27,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
             {createItemField(
                 'basePosition',
                 'Base position',
-                () => request.position?.basePosition.name || 'TBN'
+                () => request.position?.basePosition|| 'TBN'
             )}
             {createItemField(
                 'customPosition',
@@ -42,8 +41,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
             )}
             {createItemField('taskManager', 'Task Manager', () => 'TBN')}
             {createItemField('fromDate', 'From Date', () => 'TBN')}
-            {createItemField('toDate', 'To Date', () => 'TBN')}
-            {createItemField('person', 'Assigned person', () => 'TBN')}
+            {createItemField('toDate', 'To Date', () => request)}
+            {createItemField('person', 'Assigned person', () => <PersonCard personId={request.person?.azureUniquePersonId} />)}
             {createItemField('status', 'Status', () => (
                 <RequestStateFlow item={request} />
             ))}

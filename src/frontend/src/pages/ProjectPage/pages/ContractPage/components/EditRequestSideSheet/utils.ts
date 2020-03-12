@@ -16,21 +16,17 @@ export const transFormRequest = (
         id: uuid(),
         requestId: req.id,
         positionId: req.position?.id || '',
-        appliesFrom: req.position?.instances.find(i => i.appliesFrom)?.appliesFrom || null,
-        appliesTo: req.position?.instances.find(i => i.appliesTo)?.appliesTo || null,
+        appliesFrom: req.position?.appliesFrom || null,
+        appliesTo: req.position?.appliesTo || null,
         basePosition: req.position?.basePosition || null,
         description: req.description,
-        obs: req.position?.instances.find(i => i.obs)?.obs || '',
+        obs: req.position?.obs || '',
         positionName: req.position?.name || '',
-        workload: req.position?.instances.find(i => i.workload)?.workload.toString() || '',
+        workload: req.position?.workload.toString() || '',
         person: req.person,
         parentPosition:
-            parentPositions?.find(
-                position =>
-                    position.id ===
-                        req.position?.instances.find(i => i.parentPositionId)?.parentPositionId ||
-                    ''
-            ) || null,
+            parentPositions?.find(position => position.id === req.position?.taskOwner?.id || '') ||
+            null,
     }));
 };
 

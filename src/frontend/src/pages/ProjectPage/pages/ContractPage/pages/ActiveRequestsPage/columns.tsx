@@ -81,14 +81,12 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
 
     {
-        accessor: request =>
-            request.position?.instances.find(i => i.parentPositionId)?.parentPositionId || '',
+        accessor: request => request.position?.taskOwner?.id || '',
         key: 'taskOwnerId',
         label: 'Taskowner',
         sortable: true,
         component: ({ item }) => {
-            const taskOwnerId =
-                item.position?.instances.find(i => i.parentPositionId)?.parentPositionId || null;
+            const taskOwnerId = item.position?.taskOwner?.id;
             return <PositionColumn positionId={taskOwnerId} />;
         },
     },
