@@ -10,6 +10,7 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
+import ManagePersonnelToolBar, { ToolBarProps, IconButtonProps } from './components/ManagePersonnelToolBar';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
@@ -60,13 +61,23 @@ const ManagePersonnelPage: React.FC = () => {
         [sortBy]
     );
 
+    const addButton = React.useMemo((): IconButtonProps => { return { onClick: () => setIsAddPersonOpen(true) } }
+        , []
+    );
+
+    const editButton = React.useMemo((): IconButtonProps => { return { onClick: () => setIsAddPersonOpen(true), disabled: !selectedItems.length } }
+        , [selectedItems]
+    );
+
+    const deleteButton = React.useMemo((): IconButtonProps => { return { onClick: () => { }, disabled: !selectedItems.length } }
+        , [selectedItems]
+    );
+
     return (
         <div className={styles.container}>
             <div className={styles.managePersonnel}>
                 <div className={styles.toolbar}>
-                    <Button outlined onClick={() => setIsAddPersonOpen(true)}>
-                        <AddIcon /> Add Person
-                    </Button>
+                    <ManagePersonnelToolBar addButton={addButton} editButton={editButton} deleteButton={deleteButton} />
                 </div>
                 <div className={styles.table}>
                     <DataTable
@@ -98,7 +109,7 @@ const ManagePersonnelPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={setFilteredPersonnel}
             />
-        </div>
+        </div >
     );
 };
 

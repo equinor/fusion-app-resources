@@ -1,14 +1,17 @@
 import * as React from 'react';
-import { ModalSideSheet, Button, Spinner, AddIcon } from '@equinor/fusion-components';
+import { ModalSideSheet, Button, Spinner, AddIcon, useTooltipRef } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
 import * as styles from './styles.less';
-import { useCurrentContext, useNotificationCenter, BasePosition } from '@equinor/fusion';
+import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
 import useAddPersonnelForm from '../hooks/useAddPersonnelForm';
 import AddPersonnelFormDisciplinesDropDown from './AddPersonnelFormDisciplinesDropDown';
+import ManagePersonnelToolBar, { IconButtonProps } from '../components/ManagePersonnelToolBar';
+import useBasePositions from '../../../../../../../hooks/useBasePositions';
+import SelectionCell from '../components/SelectionCell';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -26,9 +29,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { contract, dispatchContractAction } = useContractContext();
     const notification = useNotificationCenter();
     const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
+    const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
     );
+
+    const { basePositions, isFetchingBasePositions, basePositionsError } = useBasePositions();
 
     const savePersonnelChangesAsync = async () => {
         const contractId = contract?.id;
@@ -94,6 +100,35 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         ]);
     }, [formState]);
 
+    //TODO: Delete selectable. Only deletes lines that was createing during this edit session"
+    const onDeletePerson = React.useCallback(() => {
+        if (formState[formState.length - 1]?.created)
+            return;
+
+        const removeLast = formState.pop()
+        setFormState(
+            [...formState]
+        );
+    }, [formState]);
+
+    const addButton = React.useMemo((): IconButtonProps => { return { onClick: onAddPerson, disabled: saveInProgress } }
+        , [saveInProgress]
+    );
+    const deleteButton = React.useMemo((): IconButtonProps => { return { onClick: onDeletePerson, disabled: saveInProgress } }
+        , [onDeletePerson, saveInProgress]
+    );
+
+    const isAllSelected = React.useMemo(() =>
+        selectedItems.length === formState.length
+        , [selectedItems, formState])
+
+    const selectableTooltipRef = useTooltipRef(isAllSelected ? 'Unselect all' : 'Select all', 'above');
+
+    const onSelectAll = React.useCallback(() => {
+
+        setSelectedItems(selectedItems.length === formState.length ? [] : formState);
+    }, [formState, selectedItems]);
+
     return (
         <ModalSideSheet
             header="Add Person"
@@ -107,24 +142,31 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             safeCloseCancelLabel={'Continue editing'}
             safeCloseConfirmLabel={'Discard changes'}
             headerIcons={[
-                <Button disabled={saveInProgress} key={'AddPerson'} outlined onClick={onAddPerson}>
-                    <AddIcon /> Add Person
-                </Button>,
                 <Button
                     disabled={!(isFormDirty && isFormValid) || saveInProgress}
                     key={'save'}
                     outlined
                     onClick={savePersonnelChangesAsync}
                 >
-                    {saveInProgress ? <Spinner inline /> : 'Create'}
+                    {saveInProgress ? <><Spinner inline />Saving</> : 'Save'}
                 </Button>,
             ]}
         >
             {isOpen && (
                 <div className={styles.container}>
+                    <ManagePersonnelToolBar deleteButton={deleteButton} addButton={addButton} />
                     <table>
                         <thead>
                             <tr>
+                                <th className={styles.header}>
+                                    <SelectionCell
+                                        isSelectable={true}
+                                        isSelected={!!selectedItems && selectedItems.length === formState.length}
+                                        onChange={onSelectAll}
+                                        indeterminate={!!selectedItems.length}
+                                        ref={selectableTooltipRef}
+                                    />
+                                </th>
                                 <th className={styles.header}>First Name</th>
                                 <th className={styles.header}>Last Name</th>
                                 <th className={styles.header}>E-Mail</th>
@@ -133,8 +175,11 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                             </tr>
                         </thead>
                         <tbody>
-                            {formState.map(person => (
+                            {!isFetchingBasePositions && formState.map(person => (
                                 <tr key={`person${person.personnelId}`}>
+                                    <td className={styles.tableRowCell}>
+                                        C
+                                    </td>
                                     <td className={styles.tableRowCell}>
                                         <AddPersonnelFormTextInput
                                             key={`firstname${person.personnelId}`}
@@ -168,6 +213,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                             disabled={saveInProgress}
                                             onChange={onChange}
                                             item={person}
+                                            basePositions={basePositions}
                                         />
                                     </td>
                                     <td className={styles.tableRowCell}>
