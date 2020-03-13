@@ -19,7 +19,7 @@ steps:
       $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
       $functionAppName = "func-fap-resources-$environment"
       $envVaultName = "kv-fap-resources-$environment"
-      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-ci" }
+      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
 
       if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
 

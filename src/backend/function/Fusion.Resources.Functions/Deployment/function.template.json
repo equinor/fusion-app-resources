@@ -51,6 +51,10 @@
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage-name'), ';AccountKey=', listKeys(variables('storage-id'),'2015-05-01-preview').key1)]"
             },
             {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
               "name": "WEBSITE_CONTENTSHARE",
               "value": "[toLower(variables('function-name'))]"
             },
