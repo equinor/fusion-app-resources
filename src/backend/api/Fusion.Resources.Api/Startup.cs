@@ -114,6 +114,7 @@ namespace Fusion.Resources.Api
             {
                 endpoints.MapControllers();
 
+                // TODO: Remove
                 endpoints.MapPost("/release-the-monkey", async (context) => {
                     var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
 
@@ -132,6 +133,7 @@ namespace Fusion.Resources.Api
                     await context.Response.WriteAsync($"Changed level to: {monkey.CurrentLevel}");
                 });
 
+                // TODO: REMOVE
                 endpoints.MapGet("/release-the-monkey", async (context) => {
                     var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
 
@@ -154,6 +156,7 @@ namespace Fusion.Resources.Api
         }
     }
 
+    // Leaving this here as it should be removed.
     internal class ChaosMonkey
     {
         public ChaosLevel CurrentLevel { get; set; } = ChaosLevel.None;
