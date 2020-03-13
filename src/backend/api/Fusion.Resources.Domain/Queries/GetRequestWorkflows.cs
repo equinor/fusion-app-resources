@@ -14,9 +14,6 @@ namespace Fusion.Resources.Domain.Queries
         public GetRequestWorkflows(IEnumerable<Guid> requestIds)
         {
             var ids = requestIds.ToList();
-            if (ids.Count == 0)
-                throw new ArgumentException("At least one request id has to be provided");
-
             RequestIds = ids;
         }
 
@@ -34,6 +31,10 @@ namespace Fusion.Resources.Domain.Queries
             public async Task<IEnumerable<QueryWorkflow>> Handle(GetRequestWorkflows request, CancellationToken cancellationToken)
             {
                 var ids = request.RequestIds.ToList();
+
+                if (ids.Count == 0)
+                    return new List<QueryWorkflow>();
+
 
                 var workflows = await resourcesDb.Workflows
                     .Include(wf => wf.WorkflowSteps).ThenInclude(s => s.CompletedBy)
