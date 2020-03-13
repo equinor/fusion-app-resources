@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Controllers
             if (Enum.TryParse(status.State, true, out ApiProvisionState state))
                 State = state;
             else
-                State = ApiProvisionState.Unkown;
+                State = ApiProvisionState.Unknown;
         }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Controllers
         public string ErrorMessage { get; set; }
         public string ErrorPayload { get; set; }
 
-        public enum ApiProvisionState { NotProvisioned, Provisioned, Error, Unkown }
+        public enum ApiProvisionState { NotProvisioned, Provisioned, Error, Unknown }
 
     }
 }

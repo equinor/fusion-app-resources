@@ -27,7 +27,7 @@ namespace Fusion.Resources.Api.Controllers
                 DbWorkflowState.Error => ApiWorkflowState.Error,
                 DbWorkflowState.Completed => ApiWorkflowState.Completed,
                 DbWorkflowState.Terminated => ApiWorkflowState.Terminated,
-                _ => ApiWorkflowState.Unkown,
+                _ => ApiWorkflowState.Unknown,
             };
         }
 
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public IEnumerable<ApiWorkflowStep> Steps { get; set; }
 
-        public enum ApiWorkflowState { Running, Canceled, Error, Completed, Terminated, Unkown }
+        public enum ApiWorkflowState { Running, Canceled, Error, Completed, Terminated, Unknown }
 
     }
 

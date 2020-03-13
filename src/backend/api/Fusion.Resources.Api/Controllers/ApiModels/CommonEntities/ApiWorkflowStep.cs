@@ -28,7 +28,7 @@ namespace Fusion.Resources.Api.Controllers
                 DbWFStepState.Pending => ApiWorkflowStepState.Pending,
                 DbWFStepState.Rejected => ApiWorkflowStepState.Rejected,
                 DbWFStepState.Skipped => ApiWorkflowStepState.Skipped,
-                _ => ApiWorkflowStepState.Unkown,
+                _ => ApiWorkflowStepState.Unknown,
             };
         }
 
@@ -53,7 +53,7 @@ namespace Fusion.Resources.Api.Controllers
         public string PreviousStep { get; set; }
         public string NextStep { get; set; }
 
-        public enum ApiWorkflowStepState { Pending, Approved, Rejected, Skipped, Unkown }
+        public enum ApiWorkflowStepState { Pending, Approved, Rejected, Skipped, Unknown }
     }
 
 }
