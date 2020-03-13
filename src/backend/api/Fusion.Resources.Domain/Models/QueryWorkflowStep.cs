@@ -12,6 +12,7 @@ namespace Fusion.Resources.Domain
             Id = step.Id;
             Name = step.Name;
             Description = step.Description;
+            State = step.State;
             Reason = step.Reason;
             CompletedBy = QueryPerson.FromEntityOrDefault(step.CompletedBy);
             Started = step.Started;
