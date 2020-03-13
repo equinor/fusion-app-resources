@@ -39,7 +39,6 @@ const ActiveRequestsPage: React.FC = () => {
         'activeRequests',
         fetchRequestsAsync
     );
-    console.log(activeRequests)
     const filterSections = React.useMemo(() => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);

@@ -4,13 +4,14 @@ import * as styles from './styles.less';
 import { PositionCard, PersonCard } from '@equinor/fusion-components';
 import classNames from 'classnames';
 import RequestStateFlow from '../RequestStateFlow';
+import { formatDate } from '@equinor/fusion';
 
 type RequestDetailsProps = {
     request: PersonnelRequest;
 };
 const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
     const createItemField = React.useCallback(
-        (fieldName: string, title: string, content: () => any) => {
+        (fieldName: string, title: string, content: () => string | JSX.Element) => {
             return (
                 <div className={classNames(styles.textField, styles[fieldName])}>
                     <span className={styles.title}>{title}</span>
@@ -27,7 +28,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
             {createItemField(
                 'basePosition',
                 'Base position',
-                () => request.position?.basePosition|| 'TBN'
+                () => request.position?.basePosition?.name || 'TBN'
             )}
             {createItemField(
                 'customPosition',
@@ -40,9 +41,15 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
                 () => request.position?.name || 'TBN'
             )}
             {createItemField('taskManager', 'Task Manager', () => 'TBN')}
-            {createItemField('fromDate', 'From Date', () => 'TBN')}
-            {createItemField('toDate', 'To Date', () => request)}
-            {createItemField('person', 'Assigned person', () => <PersonCard personId={request.person?.azureUniquePersonId} />)}
+            {createItemField('fromDate', 'From Date', () =>
+                request.position?.appliesFrom ? formatDate(request.position.appliesFrom) : 'TBN'
+            )}
+            {createItemField('toDate', 'To Date', () =>
+                request.position?.appliesTo ? formatDate(request.position.appliesTo) : 'TBN'
+            )}
+            {createItemField('person', 'Assigned person', () => (
+                <PersonCard personId={request.person?.azureUniquePersonId} />
+            ))}
             {createItemField('status', 'Status', () => (
                 <RequestStateFlow item={request} />
             ))}

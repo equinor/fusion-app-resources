@@ -19,7 +19,7 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
             return [];
         }
         return personnelRequests.reduce((positionIds: string[], request) => {
-            const parentPositionId = request.position?.taskOwner?.id
+            const parentPositionId = request.position?.taskOwner?.positionId
             if (parentPositionId) {
                 return [...positionIds, parentPositionId];
             }

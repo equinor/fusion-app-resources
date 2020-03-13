@@ -25,7 +25,7 @@ export const transFormRequest = (
         workload: req.position?.workload.toString() || '',
         person: req.person,
         parentPosition:
-            parentPositions?.find(position => position.id === req.position?.taskOwner?.id || '') ||
+            parentPositions?.find(position => position.id === req.position?.taskOwner?.positionId || '') ||
             null,
     }));
 };
@@ -53,7 +53,7 @@ export const transformToCreatePersonnelRequest = (
                 workload: +req.workload,
                 taskOwner: req.parentPosition?.id
                     ? {
-                          id: req.parentPosition.id,
+                          positionId: req.parentPosition.id,
                       }
                     : null,
             },

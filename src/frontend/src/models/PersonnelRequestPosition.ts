@@ -10,7 +10,7 @@ type PersonnelRequestPosition = {
     workload: number;
     obs?: string;
     taskOwner?: {
-        id: string | null;
+        positionId: string | null;
     };
 };
 
