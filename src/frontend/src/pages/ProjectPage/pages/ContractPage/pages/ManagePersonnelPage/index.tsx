@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DataTable, DataTableColumn, Button, AddIcon } from '@equinor/fusion-components';
-import { useSorting, useCurrentContext } from '@equinor/fusion';
+import { useSorting, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import Personnel from '../../../../../../models/Personnel';
 import * as styles from './styles.less';
@@ -19,6 +19,7 @@ const ManagePersonnelPage: React.FC = () => {
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
     const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
+    const notification = useNotificationCenter();
 
     const fetchPersonnelAsync = React.useCallback(async () => {
         const contractId = contract?.id;
@@ -37,12 +38,17 @@ const ManagePersonnelPage: React.FC = () => {
         fetchPersonnelAsync
     );
 
-
     const { sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(
         filteredPersonnel,
         'name',
         'asc'
     );
+
+
+    React.useEffect(() => {
+        console.log('personnel', personnel)
+        console.log('isFetching', isFetching)
+    }, [personnel, isFetching])
 
     const onSortChange = React.useCallback(
         (column: DataTableColumn<Personnel>) => {
@@ -61,6 +67,56 @@ const ManagePersonnelPage: React.FC = () => {
         [sortBy]
     );
 
+
+    const deletePersonnelAsync = React.useCallback(async (personnelToDelete: Personnel[]) => {
+        const contractId = contract?.id;
+        if (!currentContext?.id || !contractId) return;
+
+        try {
+            const response = await Promise.all(
+                personnelToDelete.map(async person => await apiClient.deletePersonnelAsync(currentContext.id, contractId, person))
+            )
+
+            notification({
+                level: 'low',
+                title: 'Selected personnel deleted',
+                cancelLabel: 'dismiss',
+            });
+
+            const personnelDeleteIds = personnelToDelete.map(p => p.personnelId);
+
+            const newPersonnel = personnel.filter(p => !personnelDeleteIds.includes(p.personnelId))
+            console.log("newPersonnel", newPersonnel)
+
+            dispatchContractAction({ verb: "merge", collection: "personnel", payload: personnelToDelete })
+
+        } catch (e) {
+
+            console.log('exception', e)
+            //TODO: This could probably be more helpfull.
+            notification({
+                level: 'high',
+                title:
+                    'Something went wrong while saving. Please try again or contact administrator',
+            });
+
+        }
+    }, [currentContext?.id, personnel]);
+
+
+    const onDeletePersonnel = React.useCallback(async () => {
+        const response = await notification({
+            level: 'high',
+            title: `remove ${selectedItems.length} personnel`,
+            confirmLabel: 'Confirm',
+            cancelLabel: 'Cancel',
+        });
+        if (response.confirmed) {
+            deletePersonnelAsync(selectedItems)
+        }
+    }, [selectedItems, deletePersonnelAsync]);
+
+
     const addButton = React.useMemo((): IconButtonProps => { return { onClick: () => setIsAddPersonOpen(true) } }
         , []
     );
@@ -69,8 +125,8 @@ const ManagePersonnelPage: React.FC = () => {
         , [selectedItems]
     );
 
-    const deleteButton = React.useMemo((): IconButtonProps => { return { onClick: () => { }, disabled: !selectedItems.length } }
-        , [selectedItems]
+    const deleteButton = React.useMemo((): IconButtonProps => { return { onClick: onDeletePersonnel, disabled: !selectedItems.length } }
+        , [selectedItems, onDeletePersonnel]
     );
 
     return (
@@ -95,7 +151,6 @@ const ManagePersonnelPage: React.FC = () => {
                         selectedItems={selectedItems}
                     />
                 </div>
-                >
                 {isAddPersonOpen && (
                     <AddPersonnelSideSheet
                         isOpen={isAddPersonOpen}

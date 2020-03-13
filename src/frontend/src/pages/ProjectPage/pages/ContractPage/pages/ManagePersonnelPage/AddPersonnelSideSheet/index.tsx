@@ -59,7 +59,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 title: 'Personnel changes saved',
                 cancelLabel: 'dismiss',
             });
-
+            console.log('respinse on save', response)
             dispatchContractAction({ verb: "merge", collection: "personnel", payload: response })
 
         } catch (e) {
@@ -102,17 +102,22 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
     //TODO: Delete selectable. Only deletes lines that was createing during this edit session"
     const onDeletePerson = React.useCallback(() => {
-        if (formState[formState.length - 1]?.created)
-            return;
+        console.log("currentselecteitems", selectedItems);
+        let newSelectedItems = [...selectedItems]
+        let newFormState = [...formState]
+        for (const person of newSelectedItems) {
+            if (!person?.created) {
+                newFormState = newFormState.filter(p => p.personnelId !== person.personnelId)
+            }
+            console.log("newFormState", newFormState)
 
-        const removeLast = formState.pop()
-        setFormState(
-            [...formState]
-        );
-    }, [formState]);
+            setSelectedItems(newSelectedItems)
+            setFormState(newFormState)
+        }
+    }, [formState, selectedItems]);
 
     const addButton = React.useMemo((): IconButtonProps => { return { onClick: onAddPerson, disabled: saveInProgress } }
-        , [saveInProgress]
+        , [saveInProgress, onAddPerson]
     );
     const deleteButton = React.useMemo((): IconButtonProps => { return { onClick: onDeletePerson, disabled: saveInProgress } }
         , [onDeletePerson, saveInProgress]
@@ -125,9 +130,19 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const selectableTooltipRef = useTooltipRef(isAllSelected ? 'Unselect all' : 'Select all', 'above');
 
     const onSelectAll = React.useCallback(() => {
-
         setSelectedItems(selectedItems.length === formState.length ? [] : formState);
     }, [formState, selectedItems]);
+
+    const onSelect = React.useCallback(
+        (item: Personnel) => {
+            if (selectedItems && selectedItems.some(i => i === item)) {
+                setSelectedItems(selectedItems.filter(i => i !== item));
+            } else {
+                setSelectedItems([...(selectedItems || []), item]);
+            }
+        },
+        [selectedItems]
+    );
 
     return (
         <ModalSideSheet
@@ -158,12 +173,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                     <table>
                         <thead>
                             <tr>
-                                <th className={styles.header}>
+                                <th className={styles.headerSelectionCell}>
                                     <SelectionCell
-                                        isSelectable={true}
                                         isSelected={!!selectedItems && selectedItems.length === formState.length}
                                         onChange={onSelectAll}
-                                        indeterminate={!!selectedItems.length}
+                                        indeterminate={!!selectedItems &&
+                                            selectedItems.length > 0 &&
+                                            selectedItems.length !== formState.length}
                                         ref={selectableTooltipRef}
                                     />
                                 </th>
@@ -177,8 +193,11 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                         <tbody>
                             {!isFetchingBasePositions && formState.map(person => (
                                 <tr key={`person${person.personnelId}`}>
-                                    <td className={styles.tableRowCell}>
-                                        C
+                                    <td className={styles.tableRowSelectionCell}>
+                                        <SelectionCell
+                                            isSelected={!!selectedItems && selectedItems.some(i => i === person)}
+                                            onChange={() => onSelect(person)}
+                                        />
                                     </td>
                                     <td className={styles.tableRowCell}>
                                         <AddPersonnelFormTextInput

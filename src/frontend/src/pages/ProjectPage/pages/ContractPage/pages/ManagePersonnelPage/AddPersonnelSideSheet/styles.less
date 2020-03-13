@@ -1,4 +1,4 @@
-  .container {
+.container {
     display: grid;
     height: 100%;
     width: 100%;
@@ -6,21 +6,39 @@
     padding: calc(var(--grid-unit) * 3px);
     grid-template-rows: auto 1fr;
 
-        .tableRowCell {
-            padding-bottom: calc(var(--grid-unit) * 1px);
-        }
+        
+    .tableRowCell {
+        padding-bottom: calc(var(--grid-unit) * 1px);
+    }
 
-        .header {
-            text-align: left;
-            font-weight: normal;
-            background: var(--color-black-alt5);
-            padding: calc(var(--grid-unit) * 2px);
-            position: sticky;
-            top: 0;
-            z-index: 1 ;
-        }
+    .tableRowSelectionCell {
+        display:grid;
+        justify-content:center;
+        justify-content: center;
+        padding-bottom: calc(var(--grid-unit) * 1px);
+        padding-right: 0px;
+    }
 
-
-    
-  }
+    .header {
+        text-align: left;
+        font-weight: normal;
+        background: var(--color-black-alt5);
+        padding: calc(var(--grid-unit) * 2px);
+        position: sticky;
+        top: 0;
+        z-index: 1 ;
+    }
+    .headerSelectionCell {
+        
+        display:grid;
+        justify-content:center;
+        font-weight: normal;
+        background: var(--color-black-alt5);
+        padding: 0 0 2px 0;
+        position: sticky;
+        top: 0;
+        margin:0;
+        z-index: 1 ;
+    }
+}
 
