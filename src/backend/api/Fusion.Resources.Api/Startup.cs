@@ -87,10 +87,12 @@ namespace Fusion.Resources.Api
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
-            //if (env.IsDevelopment())
-            //{
+            if (env.IsDevelopment())
+            {
                 app.UseDeveloperExceptionPage();
-            //}
+            }
+
+            app.UseMiddleware<Middleware.ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
 
