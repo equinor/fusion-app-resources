@@ -4,11 +4,11 @@
     grid-template-columns: repeat(4, auto);
     grid-template-rows: auto;
     grid-template-areas: 
-        "description description description description"
+        "person person status status"
         "basePosition basePosition customPosition customPosition"
-        "taskManager taskManager taskManager taskManager"
+        "taskOwner taskOwner taskOwner taskOwner"
         "fromDate toDate toDate toDate"
-        "person person status status";
+        "description description description description";
     row-gap: calc(var(--grid-unit) * 2px);
     column-gap: calc(var(--grid-unit) * 3px);
     
@@ -40,8 +40,8 @@
     .customPosition {
         grid-area: customPosition;
     }
-    .taskManager {
-        grid-area: taskManager;
+    .taskOwner {
+        grid-area: taskOwner;
     }
     .fromDate {
         grid-area: fromDate;

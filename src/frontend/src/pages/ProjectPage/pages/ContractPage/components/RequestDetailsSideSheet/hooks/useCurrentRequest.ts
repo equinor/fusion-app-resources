@@ -1,5 +1,5 @@
 import * as React from 'react';
-import PersonnelRequest from '../../../../../../models/PersonnelRequest';
+import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
 import { useHistory } from '@equinor/fusion';
 
 type OrgQueryParams = {

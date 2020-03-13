@@ -2,7 +2,7 @@ import * as React from 'react';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { ModalSideSheet } from '@equinor/fusion-components';
 import RequestDetails from './RequestDetails';
-import useCurrentRequest from './useCurrentRequest';
+import useCurrentRequest from './hooks/useCurrentRequest';
 
 type RequestDetailsSideSheetProps = {
     requests: PersonnelRequest[] | null;

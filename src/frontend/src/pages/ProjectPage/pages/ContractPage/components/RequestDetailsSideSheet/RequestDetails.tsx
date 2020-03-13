@@ -1,10 +1,11 @@
 import * as React from 'react';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import * as styles from './styles.less';
-import { PositionCard, PersonCard } from '@equinor/fusion-components';
+import { PersonCard } from '@equinor/fusion-components';
 import classNames from 'classnames';
 import RequestStateFlow from '../RequestStateFlow';
 import { formatDate } from '@equinor/fusion';
+import PositionIdCard from './PositionIdCard';
 
 type RequestDetailsProps = {
     request: PersonnelRequest;
@@ -24,7 +25,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
 
     return (
         <div className={styles.requestDetails}>
-            {createItemField('description', 'Description', () => request.description)}
             {createItemField(
                 'basePosition',
                 'Base position',
@@ -40,7 +40,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
                 'Custom position title',
                 () => request.position?.name || 'TBN'
             )}
-            {createItemField('taskManager', 'Task Manager', () => 'TBN')}
+            {createItemField('taskOwner', 'Task Owner', () => (
+                <PositionIdCard positionId={request.position?.taskOwner?.positionId || undefined} />
+            ))}
             {createItemField('fromDate', 'From Date', () =>
                 request.position?.appliesFrom ? formatDate(request.position.appliesFrom) : 'TBN'
             )}
@@ -53,6 +55,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
             {createItemField('status', 'Status', () => (
                 <RequestStateFlow item={request} />
             ))}
+            {createItemField('description', 'Description', () => request.description)}
         </div>
     );
 };
