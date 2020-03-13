@@ -29,7 +29,7 @@
     "function-name": "[concat('func-fap-resources-', parameters('env-name'))]",
     "ai-name": "[concat('ai-fap-resources-', parameters('env-name'))]",
     "storage-name": "[concat('safresources', parameters('env-name'))]",
-    "storage-id": "/subscriptions/63b791ae-b2bc-41a1-ac66-806c4e69bffe/resourceGroups/fusion-apps-resources-ci/providers/Microsoft.Storage/storageAccounts/safresourcesci"
+    "storage-id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Storage/storageAccounts/', variables('storage-name'))]"
   },
   "resources": [
     {
