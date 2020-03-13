@@ -13,7 +13,7 @@ namespace Fusion.Resources.Domain
     {
         public GetExternalPersonell(ODataQueryParams queryParams = null)
         {
-            Query = queryParams;
+            Query = queryParams ?? new ODataQueryParams(); //avoiding som null-checking in handler.
         }
 
         public ODataQueryParams Query { get; set; }
@@ -31,7 +31,7 @@ namespace Fusion.Resources.Domain
             {
                 var query = db.ExternalPersonnel.AsQueryable();
 
-                if (request.Query?.HasFilter ?? false)
+                if (request.Query.HasFilter)
                 {
                     query = query.ApplyODataFilters(request.Query, mapper =>
                     {
@@ -40,6 +40,11 @@ namespace Fusion.Resources.Domain
                         mapper.MapField("phoneNumber", p => p.Phone);
                     });
                 }
+
+                query = query.OrderBy(ep => ep.Id); //paging requires consistent ordering, use default id for now.
+
+                if (request.Query.Skip.HasValue) query = query.Skip(request.Query.Skip.Value);
+                if (request.Query.Top.HasValue) query = query.Take(request.Query.Top.Value);
 
                 var matches = await query.Include(ep => ep.Disciplines).ToListAsync();
 
