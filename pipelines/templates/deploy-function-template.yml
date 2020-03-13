@@ -1,6 +1,8 @@
 parameters:
   envName: ''
   clientId: ''
+  fusionEnvironment: 'ci'
+  fusionResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
   templateFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/function.template.json
 
 steps:
@@ -14,9 +16,10 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     Inline: |
       $environment = "${{ parameters.envName }}"
+      $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
       $functionAppName = "func-fap-resources-$environment"
       $envVaultName = "kv-fap-resources-$environment"
-      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-ci" }
+      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
 
       if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
 
@@ -38,12 +41,12 @@ steps:
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
           }
           endpoints = @{
-              org = "https://pro-s-org-$environment.azurewebsites.net"
-              people = "https://pro-s-people-$environment.azurewebsites.net"
+              org = "https://pro-s-org-$fusionEnvironment.azurewebsites.net"
+              people = "https://pro-s-people-$fusionEnvironment.azurewebsites.net"
               resources = "https://resources-api.$environment.fusion-dev.net/"
           }
           resources = @{
-              fusion = "5a842df8-3238-415d-b168-9f16a6a6031b"
+              fusion = "${{ parameters.fusionResource }}"
           }
           queues = @{
               provisionPosition = "provision-position"

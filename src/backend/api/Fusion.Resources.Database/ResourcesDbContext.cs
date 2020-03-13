@@ -33,12 +33,16 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbExternalPersonnelPerson> ExternalPersonnel { get; set; }
 
+        public DbSet<DbWorkflow> Workflows { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbContractPersonnel.OnModelCreating(modelBuilder);
             DbExternalPersonnelPerson.OnModelCreating(modelBuilder);
             DbContractorRequest.OnModelCreating(modelBuilder);
+            DbWorkflow.OnModelCreating(modelBuilder);
+            DbWorkflowStep.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

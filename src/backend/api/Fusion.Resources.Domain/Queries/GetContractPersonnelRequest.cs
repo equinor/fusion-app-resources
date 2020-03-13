@@ -1,8 +1,8 @@
 ﻿using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,11 +25,13 @@ namespace Fusion.Resources.Domain.Queries
         {
             private readonly ResourcesDbContext resourcesDb;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator)
             {
                 this.resourcesDb = resourcesDb;
                 this.orgResolver = orgResolver;
+                this.mediator = mediator;
             }
 
             public async Task<QueryPersonnelRequest> Handle(GetContractPersonnelRequest request, CancellationToken cancellationToken)
@@ -51,7 +53,9 @@ namespace Fusion.Resources.Domain.Queries
                 var position = new QueryPositionRequest(dbRequest.Position)
                     .WithResolvedBasePosition(basePosition);
 
-                var returnItem = new QueryPersonnelRequest(dbRequest, position);
+                var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
+
+                var returnItem = new QueryPersonnelRequest(dbRequest, position, workflow);
                 return returnItem;
             }
         }

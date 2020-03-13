@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api
                 options.ApplicationMode = true;
             });
 
-            services.AddOrgApiClient(Integration.Org.OrgConstants.HttpClients.Application, Integration.Org.OrgConstants.HttpClients.Delegate);
+            services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
 
 
@@ -67,6 +67,8 @@ namespace Fusion.Resources.Api
 
             services.AddResourceDatabase<Authentication.SqlTokenProvider>(Configuration);
             services.AddResourceDomain();
+            services.AddResourceLogic();
+            services.AddResourcesApplicationServices();
 
             #endregion
 

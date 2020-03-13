@@ -2,5 +2,4 @@
 {
     public enum DbRequestState { Created, SubmittedToCompany, RejectedByContractor, ApprovedByCompany, RejectedByCompany }
 
-
 }

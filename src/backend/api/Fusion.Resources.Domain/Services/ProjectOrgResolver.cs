@@ -1,5 +1,6 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Threading;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,12 @@ namespace Fusion.Resources.Domain.Services
     internal class ProjectOrgResolver : IProjectOrgResolver
     {
         private readonly IOrgApiClient client;
+        private readonly ILogger<ProjectOrgResolver> logger;
 
-        public ProjectOrgResolver(IOrgApiClientFactory orgApiClientFactory)
+        public ProjectOrgResolver(ILogger<ProjectOrgResolver> logger, IOrgApiClientFactory orgApiClientFactory)
         {
             client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            this.logger = logger;
         }
 
 
@@ -44,5 +47,19 @@ namespace Fusion.Resources.Domain.Services
             return basePositions.FirstOrDefault(bp => bp.Id == basePositionId);
         }
 
+        public async Task<ApiProjectContractV2?> ResolveContractAsync(Guid projectId, Guid contractId)
+        {
+            try
+            {
+                var contract = await client.GetContractV2Async(projectId, contractId);
+                return contract;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Unable to resolve contract by id for project '{projectId}' and contract id '{contractId}'. Message: {ex.Message}");
+                return null;
+            }
+            
+        }
     }
 }
