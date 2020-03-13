@@ -2,6 +2,7 @@ parameters:
     azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     sqlFile: ''
     artifact: 'drop'
+    environment: ''
   
 steps:
 #   - task: DownloadPipelineArtifact@2
@@ -28,7 +29,7 @@ steps:
             $context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
             $token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, "https://database.windows.net/")
             
-            $dbResource = Get-AzResource -TagName fusion-app-component-id -TagValue resources-api-db-ci | select -First 1 
+            $dbResource = Get-AzResource -TagName fusion-app-component-id -TagValue "resources-api-db-${{ parameters.environment }}" | select -First 1 
             $db = Get-AzSqlDatabase -DatabaseName $dbResource.Name.Split("/")[1] -ResourceGroupName $dbResource.ResourceGroupName -ServerName $dbResource.Name.Split("/")[0]
             $sqlServer = Get-AzSqlServer -ServerName $db.ServerName -ResourceGroupName $db.ResourceGroupName
 
