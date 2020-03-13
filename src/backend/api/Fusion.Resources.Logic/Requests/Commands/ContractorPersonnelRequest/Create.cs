@@ -33,13 +33,14 @@ namespace Fusion.Resources.Logic.Commands
             public PositionInfo Position { get; } = new PositionInfo();
             public Guid? PositionTaskOwner { get; set; }
 
-            public Create WithPosition(Guid basePositionId, string name, DateTime from, DateTime to, double workload)
+            public Create WithPosition(Guid basePositionId, string name, DateTime from, DateTime to, double workload, string obs)
             {
                 Position.BasePositionId = basePositionId;
                 Position.PositionName = name;
                 Position.AppliesFrom = from;
                 Position.AppliesTo = to;
                 Position.Workload = workload;
+                Position.Obs = obs;
 
                 return this;
             }
@@ -144,6 +145,7 @@ namespace Fusion.Resources.Logic.Commands
                     BasePositionId = position.BasePositionId,
                     Name = position.PositionName,
                     Workload = position.Workload,
+                    Obs = position.Obs,
                     TaskOwner = GenerateTaskOwner(taskOwnerPositionId)
                 };
 

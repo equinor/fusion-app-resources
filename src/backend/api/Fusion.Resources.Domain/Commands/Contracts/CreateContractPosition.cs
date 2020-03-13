@@ -31,6 +31,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid? ParentPositionId { get; set; }
 
         public PersonId? AssignedPerson { get; set; }
+        public string Obs { get; set; }
 
         public class Handler : IRequestHandler<CreateContractPosition, ApiClients.Org.ApiPositionV2>
         {
@@ -66,6 +67,7 @@ namespace Fusion.Resources.Domain.Commands
                             AppliesFrom = request.AppliesFrom,
                             AppliesTo = request.AppliesTo,
                             Workload = request.Workload,
+                            Obs = request.Obs,
                             AssignedPerson =  request.AssignedPerson,
                             ParentPositionId = request.ParentPositionId
                         }

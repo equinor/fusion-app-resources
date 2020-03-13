@@ -151,6 +151,7 @@ namespace Fusion.Resources.Api.Controllers
                     AppliesFrom = request.AppliesFrom,
                     AppliesTo = request.AppliesTo,
                     Workload = request.Workload,
+                    Obs = request.Obs,
                     AssignedPerson = request.AssignedPerson
                 });
             }
@@ -163,6 +164,7 @@ namespace Fusion.Resources.Api.Controllers
                     AppliesFrom = request.AppliesFrom,
                     AppliesTo = request.AppliesTo,
                     Workload = request.Workload,
+                    Obs = request.Obs,
                     AssignedPerson = request.AssignedPerson,
                     ExternalId = externalId
                 };

@@ -39,6 +39,7 @@ namespace Fusion.Resources.Domain.Commands
                 AppliesFrom = instance.AppliesFrom;
                 AppliesTo = instance.AppliesTo;
                 Workload = instance.Workload ?? 100;
+                Obs = instance.Obs;
                 AssignedPerson = instance.AssignedPerson != null ? instance.AssignedPerson : null;
             }
 
@@ -63,6 +64,7 @@ namespace Fusion.Resources.Domain.Commands
         public double Workload { get; set; }
 
         public PersonId? AssignedPerson { get; set; }
+        public string Obs { get; set; }
 
         public class Handler : IRequestHandler<UpdateContractPosition, ApiClients.Org.ApiPositionV2>
         {
@@ -98,6 +100,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 instance.AppliesFrom = request.AppliesFrom;
                 instance.AppliesTo = request.AppliesTo;
+                instance.Obs = request.Obs;
                 instance.Workload = request.Workload;
                 instance.AssignedPerson = request.AssignedPerson;
 

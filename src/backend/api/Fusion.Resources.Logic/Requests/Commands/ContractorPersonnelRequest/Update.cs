@@ -34,7 +34,7 @@ namespace Fusion.Resources.Logic.Commands
                 Person = person;
                 return this;
             }
-            public Update SetPosition(Guid basePositionId, string name, DateTime from, DateTime to, double workload)
+            public Update SetPosition(Guid basePositionId, string name, DateTime from, DateTime to, double workload, string obs)
             {
                 var position = new PositionInfo()
                 {
@@ -42,7 +42,8 @@ namespace Fusion.Resources.Logic.Commands
                     PositionName = name,
                     AppliesFrom = from,
                     AppliesTo = to,
-                    Workload = workload
+                    Workload = workload,
+                    Obs = obs
                 };
 
                 Position = position;
@@ -150,6 +151,7 @@ namespace Fusion.Resources.Logic.Commands
                         dbRequest.Position.BasePositionId = position.BasePositionId;
                         dbRequest.Position.Name = position.PositionName;
                         dbRequest.Position.Workload = position.Workload;
+                        dbRequest.Position.Obs = position.Obs;
                     }
 
                     hasChanges |= request.PositionTaskOwner.IfSet(x => dbRequest.Position.TaskOwner = new DbContractorRequest.PositionTaskOwner { PositionId = x });

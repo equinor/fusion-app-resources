@@ -48,6 +48,7 @@ namespace Fusion.Resources.Logic.Commands
                         AppliesTo = dbRequest.Position.AppliesTo,
                         PositionName = dbRequest.Position.Name,
                         Workload = dbRequest.Position.Workload,
+                        Obs = dbRequest.Position.Obs,
                         BasePositionId = dbRequest.Position.BasePositionId,
                         AssignedPerson = dbRequest.Person.Person.Mail,
                         ParentPositionId = dbRequest.Position.TaskOwner.PositionId

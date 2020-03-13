@@ -43,7 +43,7 @@ namespace Fusion.Resources.Api.Controllers
             using (var scope = await BeginTransactionAsync())
             {
                 var createCommand = new Logic.Commands.ContractorPersonnelRequest.Create(projectIdentifier.ProjectId, contractIdentifier, request.Person)
-                    .WithPosition(request.Position.BasePosition.Id, request.Position.Name, request.Position.AppliesFrom, request.Position.AppliesTo, request.Position.Workload)
+                    .WithPosition(request.Position.BasePosition.Id, request.Position.Name, request.Position.AppliesFrom, request.Position.AppliesTo, request.Position.Workload, request.Position.Obs)
                     .WithTaskOwner(request.Position.TaskOwner?.PositionId)
                     .WithDescription(request.Description);
 
@@ -65,7 +65,7 @@ namespace Fusion.Resources.Api.Controllers
                     .SetPerson(request.Person)
                     .SetDescription(request.Description)
                     .SetTaskOwner(request.Position.TaskOwner?.PositionId)
-                    .SetPosition(request.Position.BasePosition.Id, request.Position.Name, request.Position.AppliesFrom, request.Position.AppliesTo, request.Position.Workload));
+                    .SetPosition(request.Position.BasePosition.Id, request.Position.Name, request.Position.AppliesFrom, request.Position.AppliesTo, request.Position.Workload, request.Position.Obs));
 
                 await scope.CommitAsync();
 
