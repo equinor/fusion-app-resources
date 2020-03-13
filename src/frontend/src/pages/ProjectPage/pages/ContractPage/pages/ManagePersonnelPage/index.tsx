@@ -44,12 +44,6 @@ const ManagePersonnelPage: React.FC = () => {
         'asc'
     );
 
-
-    React.useEffect(() => {
-        console.log('personnel', personnel)
-        console.log('isFetching', isFetching)
-    }, [personnel, isFetching])
-
     const onSortChange = React.useCallback(
         (column: DataTableColumn<Personnel>) => {
             setSortBy(column.accessor, null);
@@ -83,12 +77,8 @@ const ManagePersonnelPage: React.FC = () => {
                 cancelLabel: 'dismiss',
             });
 
-            const personnelDeleteIds = personnelToDelete.map(p => p.personnelId);
-
-            const newPersonnel = personnel.filter(p => !personnelDeleteIds.includes(p.personnelId))
-            console.log("newPersonnel", newPersonnel)
-
-            dispatchContractAction({ verb: "merge", collection: "personnel", payload: personnelToDelete })
+            dispatchContractAction({ verb: "delete", collection: "personnel", payload: personnelToDelete })
+            setSelectedItems([]);
 
         } catch (e) {
 

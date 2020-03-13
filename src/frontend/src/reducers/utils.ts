@@ -10,7 +10,7 @@ export const createEmptyCollection = <T>(): ReadonlyCollection<T> => ({
     error: null,
 });
 
-export type ActionVerb = 'fetch' | 'error' | 'merge';
+export type ActionVerb = 'fetch' | 'error' | 'merge' | 'delete';
 
 export type ExtractCollectionType<C> = C extends ReadonlyCollection<infer T> ? T : never;
 
@@ -18,18 +18,24 @@ export type CollectionAction<
     TState,
     TCollection extends keyof TState,
     T = ExtractCollectionType<TState[TCollection]>
-> = {
-    collection: TCollection;
-    verb: ActionVerb;
-    payload?: ReadonlyCollection<T>['data'];
-    error?: Error;
-};
+    > = {
+        collection: TCollection;
+        verb: ActionVerb;
+        payload?: ReadonlyCollection<T>['data'];
+        error?: Error;
+    };
 
 export const merge = <T>(existing: T[], compare: (x: T, y: T) => boolean, payload?: T[]): T[] => {
     const updatedItems = payload?.filter(x => existing.some(y => compare(x, y)));
     const newItems = payload?.filter(x => existing.every(y => !compare(x, y))) || [];
 
     return [...existing.map(x => updatedItems?.find(y => compare(x, y)) || x), ...newItems];
+};
+
+export const remove = <T>(existing: T[], compare: (x: T, y: T) => boolean, payload?: T[]): T[] => {
+    if (!payload?.length) return existing
+
+    return existing.filter(e => !payload.some(x => compare(e, x)));
 };
 
 export type RootReducer<TState> = <T extends keyof TState>(
@@ -41,7 +47,7 @@ export type Reducer<
     TState,
     TCollection extends keyof TState,
     T = ExtractCollectionType<TState[TCollection]>
-> = (state: TState, action: CollectionAction<TState, TCollection, T>) => TState;
+    > = (state: TState, action: CollectionAction<TState, TCollection, T>) => TState;
 
 export const createCollectionReducer = <
     TState,
@@ -52,10 +58,11 @@ export const createCollectionReducer = <
     reducer: Reducer<TState, TCollection, T> = state => state
 ) => {
     return (state: TState, action: CollectionAction<TState, TCollection, T>) => {
+
+        const existing = ((state[action.collection] as unknown) as ReadonlyCollection<T>).data;
+
         switch (action.verb) {
             case 'merge':
-                const existing = ((state[action.collection] as unknown) as ReadonlyCollection<T>)
-                    .data;
                 return reducer(
                     {
                         ...state,
@@ -63,6 +70,19 @@ export const createCollectionReducer = <
                             isFetching: false,
                             error: null,
                             data: merge(existing, compare, action.payload),
+                        },
+                    },
+                    action
+                );
+
+            case 'delete':
+                return reducer(
+                    {
+                        ...state,
+                        [action.collection]: {
+                            isFetching: false,
+                            error: null,
+                            data: remove(existing, compare, action.payload),
                         },
                     },
                     action
