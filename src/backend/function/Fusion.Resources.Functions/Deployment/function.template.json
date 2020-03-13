@@ -38,6 +38,9 @@
       "name": "[variables('function-name')]",
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "dependsOn": [],
       "properties": {
         "siteConfig": {
