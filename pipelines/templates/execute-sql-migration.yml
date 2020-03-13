@@ -40,6 +40,10 @@ steps:
             $content = [IO.File]::ReadAllText($sqlFile)
             $batches = $content -split "GO"
             
+            # Is ok to print the sql connection, as there is no credentials used.
+            Write-Host "Executing migration on sql connection: "
+            Write-Host $SqlConnection.ConnectionString  
+
             $SqlConnection.Open()
             foreach($batch in $batches)
             {
