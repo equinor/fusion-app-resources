@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Bogus;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -77,6 +80,8 @@ namespace Fusion.Resources.Api
                 .AddDbContextCheck<Database.ResourcesDbContext>("db", tags: new[] { "ready" });
 
             services.AddApplicationInsightsTelemetry();
+
+            services.AddSingleton<ChaosMonkey>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -87,10 +92,14 @@ namespace Fusion.Resources.Api
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
-            //if (env.IsDevelopment())
-            //{
+            if (env.IsDevelopment())
+            {
                 app.UseDeveloperExceptionPage();
-            //}
+            }
+
+            app.UseMiddleware<Middleware.ExceptionMiddleware>();
+            app.UseMiddleware<ChaosMonkeyMiddleware>();
+            
 
             app.UseHttpsRedirection();
 
@@ -104,6 +113,32 @@ namespace Fusion.Resources.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                // TODO: Remove
+                endpoints.MapPost("/release-the-monkey", async (context) => {
+                    var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
+
+                    var auth = await context.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+
+                    if (auth.Succeeded)
+                    {
+                        monkey.CurrentLevel = monkey.CurrentLevel switch
+                        {
+                            ChaosMonkey.ChaosLevel.None => ChaosMonkey.ChaosLevel.Intermittent,
+                            ChaosMonkey.ChaosLevel.Intermittent => ChaosMonkey.ChaosLevel.Half,
+                            ChaosMonkey.ChaosLevel.Half => ChaosMonkey.ChaosLevel.Full,
+                            _ => ChaosMonkey.ChaosLevel.None
+                        };
+                    }
+                    await context.Response.WriteAsync($"Changed level to: {monkey.CurrentLevel}");
+                });
+
+                // TODO: REMOVE
+                endpoints.MapGet("/release-the-monkey", async (context) => {
+                    var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
+
+                    await context.Response.WriteAsync($"Current level at: {monkey.CurrentLevel}");
+                });
             });
 
             #region Health probes
@@ -118,6 +153,50 @@ namespace Fusion.Resources.Api
             });
 
             #endregion
+        }
+    }
+
+    // Leaving this here as it should be removed.
+    internal class ChaosMonkey
+    {
+        public ChaosLevel CurrentLevel { get; set; } = ChaosLevel.None;
+        
+        public enum ChaosLevel { None, Intermittent, Half, Full }
+    }
+
+    internal class ChaosMonkeyMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public ChaosMonkeyMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task Invoke(HttpContext httpContext, ChaosMonkey thaMonkey)
+        {
+
+            if (thaMonkey.CurrentLevel != ChaosMonkey.ChaosLevel.None && !httpContext.Request.Path.StartsWithSegments("/release-the-monkey"))
+            {
+                var faker = new Faker();
+
+                var shouldThrow = false;
+
+                switch (thaMonkey.CurrentLevel)
+                {
+                    case ChaosMonkey.ChaosLevel.Full: shouldThrow = true; break;
+                    case ChaosMonkey.ChaosLevel.Half: shouldThrow = faker.Random.Bool(); break;
+                    case ChaosMonkey.ChaosLevel.Intermittent: shouldThrow = faker.Random.Number(100) >= 80; break;
+                }
+
+                if (shouldThrow)
+                {
+                    var error = faker.System.Exception();
+                    throw error;
+                }
+            }
+            
+            await _next(httpContext);
         }
     }
 }
