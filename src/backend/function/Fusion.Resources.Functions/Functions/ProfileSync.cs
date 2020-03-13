@@ -12,7 +12,7 @@ namespace Fusion.Resources.Functions.Functions
 
         }
 
-        public async Task SyncProfiles([TimerTrigger("* * * * * *", RunOnStartup = true] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        public async Task SyncProfiles([TimerTrigger("* * * * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
 
         }

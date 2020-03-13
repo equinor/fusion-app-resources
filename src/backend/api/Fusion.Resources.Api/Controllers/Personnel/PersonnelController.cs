@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Net;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Bogus;
-using Fusion.AspNetCore.OData;
+﻿using Fusion.AspNetCore.OData;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -26,9 +20,18 @@ namespace Fusion.Resources.Api.Controllers
         public PersonnelController()
         {
         }
-        
+
+        [HttpGet("/personell")]
+        public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonell([FromQuery]ODataQueryParams query)
+        {
+            var externalPersonell = await DispatchAsync(new GetExternalPersonell(query));
+            var apiModelItems = externalPersonell.Select(ep => new ApiExternalPersonnelPerson(ep));
+
+            return new ApiCollection<ApiExternalPersonnelPerson>(apiModelItems);
+        }
+
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query) 
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query)
         {
             var contractPersonnel = await DispatchAsync(new GetContractPersonnel(contractIdentifier, query));
 
@@ -48,7 +51,7 @@ namespace Fusion.Resources.Api.Controllers
             using (var scope = await BeginTransactionAsync())
             {
                 var newPersonnel = await DispatchAsync(createCommand);
-                
+
                 await scope.CommitAsync();
 
                 var item = new ApiContractPersonnel(newPersonnel);
@@ -117,7 +120,7 @@ namespace Fusion.Resources.Api.Controllers
 
             return NoContent();
         }
-    
+
     }
 
 
