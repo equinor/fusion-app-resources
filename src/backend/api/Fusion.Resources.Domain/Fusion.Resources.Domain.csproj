@@ -8,7 +8,7 @@
     <PackageReference Include="MediatR" Version="8.0.1" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.0.0" />
 
-    <PackageReference Include="Fusion.AspNetCore" Version="3.1.0" />
+    <!--<PackageReference Include="Fusion.AspNetCore" Version="3.1.0" />-->
     <PackageReference Include="Fusion.Threading" Version="3.1.1" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.0-rc-1" />
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="3.1.0-preview-5" />
@@ -19,6 +19,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Fusion.Resources.Application\Fusion.Resources.Application.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Fusion.AspNetCore">
+      <HintPath>..\..\..\..\..\fusion-libraries\src\Web\Fusion.AspNetCore\bin\Debug\netcoreapp3.1\Fusion.AspNetCore.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

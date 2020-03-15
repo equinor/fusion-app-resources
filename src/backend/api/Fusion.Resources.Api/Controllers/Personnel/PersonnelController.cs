@@ -21,13 +21,13 @@ namespace Fusion.Resources.Api.Controllers
         {
         }
 
-        [HttpGet("/personell")]
-        public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonell([FromQuery]ODataQueryParams query)
+        [HttpGet("/personnel")]
+        public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonnel([FromQuery]ODataQueryParams query)
         {
             if (query is null) query = new ODataQueryParams { Top = 1000 };
             if (query.Top > 1000) return Problem(statusCode: 400, title: "Invalid page size", detail: "Max page size is 1000");
 
-            var externalPersonell = await DispatchAsync(new GetExternalPersonell(query));
+            var externalPersonell = await DispatchAsync(new GetExternalPersonnel(query));
             var apiModelItems = externalPersonell.Select(ep => new ApiExternalPersonnelPerson(ep));
 
             return new ApiCollection<ApiExternalPersonnelPerson>(apiModelItems);
@@ -42,6 +42,13 @@ namespace Fusion.Resources.Api.Controllers
 
             var collection = new ApiCollection<ApiContractPersonnel>(returnItems);
             return collection;
+        }
+
+        [HttpPost("/personnel/{personIdentifier}/refresh")]
+        public async Task<ActionResult<ApiExternalPersonnelPerson>> RefreshPersonnel(string personIdentifier)
+        {
+            var refreshedPersonnel = await DispatchAsync(new RefreshPersonnel(personIdentifier));
+            return new ApiExternalPersonnelPerson(refreshedPersonnel);
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]

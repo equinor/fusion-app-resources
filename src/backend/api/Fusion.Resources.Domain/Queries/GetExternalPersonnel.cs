@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetExternalPersonell : IRequest<IEnumerable<QueryExternalPersonnelPerson>>
+    public class GetExternalPersonnel : IRequest<IEnumerable<QueryExternalPersonnelPerson>>
     {
-        public GetExternalPersonell(ODataQueryParams queryParams = null)
+        public GetExternalPersonnel(ODataQueryParams queryParams = null)
         {
             Query = queryParams ?? new ODataQueryParams(); //avoiding som null-checking in handler.
         }
 
         public ODataQueryParams Query { get; set; }
 
-        public class Handler : IRequestHandler<GetExternalPersonell, IEnumerable<QueryExternalPersonnelPerson>>
+        public class Handler : IRequestHandler<GetExternalPersonnel, IEnumerable<QueryExternalPersonnelPerson>>
         {
             private readonly ResourcesDbContext db;
 
@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain
                 this.db = db;
             }
 
-            public async Task<IEnumerable<QueryExternalPersonnelPerson>> Handle(GetExternalPersonell request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryExternalPersonnelPerson>> Handle(GetExternalPersonnel request, CancellationToken cancellationToken)
             {
                 var query = db.ExternalPersonnel.AsQueryable();
 
