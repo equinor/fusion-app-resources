@@ -1,10 +1,7 @@
 import * as React from 'react';
-import {
-    DataTableColumn,
-} from '@equinor/fusion-components';
+import { DataTableColumn } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 import AzureAdStatusIcon from './components/AzureAdStatus';
-
 
 export type DataItemProps = {
     item: Personnel;
@@ -20,21 +17,21 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
     },
     {
         key: 'FirstName',
-        accessor: p => p.firstName || "",
+        accessor: p => p.firstName || '',
         label: 'First Name',
         priority: 5,
         sortable: true,
     },
     {
         key: 'LastName',
-        accessor: p => p.lastName || "",
+        accessor: p => p.lastName || '',
         label: 'Last Name',
         priority: 6,
         sortable: true,
     },
     {
         key: 'Disciplines',
-        accessor: p => p.disciplines.map((d) => d.name)?.join('/') || "",
+        accessor: p => p.disciplines.map(d => d.name)?.join('/') || '',
         label: 'Discipline',
         priority: 10,
         sortable: true,
@@ -51,7 +48,7 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
         accessor: 'azureAdStatus',
         label: 'AD',
         priority: 20,
-        component: (p) => AzureAdStatusIcon(p.item?.azureAdStatus || "NoAccount"),
+        component: p => AzureAdStatusIcon(p.item?.azureAdStatus || 'NoAccount'),
         sortable: true,
         width: '20px',
     },
@@ -66,7 +63,7 @@ const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
     },
     {
         key: 'positions',
-        accessor: r => "0",
+        accessor: r => '0',
         label: 'Nr Positions',
         priority: 30,
         sortable: true,

@@ -8,21 +8,14 @@ export type TooltipPlacement = 'below' | 'above' | 'left' | 'right';
 type PopOverMenuProps = {
     label?: String;
     placement?: TooltipPlacement;
-
-}
-const PopOverMenu: React.FC<PopOverMenuProps> = ({
-    label,
-    placement = 'below',
-    children
-}) => {
+};
+const PopOverMenu: React.FC<PopOverMenuProps> = ({ label, placement = 'below', children }) => {
     const [isOpen, setIsOpen] = React.useState<Boolean>(false);
     const tooltipClassName = classNames(styles.tooltip, styles[placement.toLocaleLowerCase()]);
 
-
-    const open = React.useCallback(
-        () => { setIsOpen(!isOpen) },
-        [isOpen]
-    );
+    const open = React.useCallback(() => {
+        setIsOpen(!isOpen);
+    }, [isOpen]);
 
     return (
         <div onClick={open} className={styles.container}>
@@ -33,7 +26,8 @@ const PopOverMenu: React.FC<PopOverMenuProps> = ({
                     <span className={styles.content}>{children}</span>
                 </div>
             )}
-        </div>);
+        </div>
+    );
 };
 
-export default PopOverMenu
+export default PopOverMenu;

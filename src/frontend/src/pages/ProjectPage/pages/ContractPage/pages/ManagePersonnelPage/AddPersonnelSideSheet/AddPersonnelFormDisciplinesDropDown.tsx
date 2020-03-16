@@ -12,7 +12,7 @@ export type PersonnelFormDisciplinesDropDown = {
     onChange: (changedPerson: Personnel) => void;
     item: Personnel;
     disabled: boolean;
-    basePositions: BasePosition[]
+    basePositions: BasePosition[];
 };
 
 const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDropDown> = ({
@@ -21,10 +21,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
     disabled,
     basePositions,
 }) => {
-
     const options = React.useMemo(() => {
-
-
         const disciplines: SearchableDropdownOption[] = [];
         return basePositions.reduce((d, b): SearchableDropdownOption[] => {
             if (d.some(d => d.key === b.discipline) || !b.discipline.length) return d;
@@ -54,7 +51,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
                 key={`disciplinesDisabled${item.personnelId}`}
                 disabled={true}
                 placeholder={item.disciplines?.map(d => d.name).join('/') || ''}
-                onChange={() => { }}
+                onChange={() => {}}
             />
         );
 
