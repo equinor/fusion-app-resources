@@ -4,7 +4,8 @@ import * as styles from './styles.less';
 
 export type IconButtonProps = {
     disabled?: boolean;
-    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    iconColor?: string;
+    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
 export type ToolBarProps = {
@@ -15,9 +16,9 @@ export type ToolBarProps = {
 
 const ManagePersonnelToolBar: React.FC<ToolBarProps> = ({ addButton, deleteButton, editButton }) => {
     return <div className={styles.container}>
-        <IconButton onClick={addButton?.onClick} disabled={addButton ? addButton.disabled : true} ><AddIcon /></IconButton>
-        <IconButton onClick={deleteButton?.onClick} disabled={deleteButton ? deleteButton.disabled : true}><DeleteIcon /></IconButton>
-        <IconButton onClick={editButton?.onClick} disabled={editButton ? editButton.disabled : true}><EditIcon /></IconButton>
+        {addButton && <IconButton onClick={addButton?.onClick} disabled={addButton?.disabled} ><AddIcon color={addButton?.iconColor} /></IconButton>}
+        {deleteButton && <IconButton onClick={deleteButton?.onClick} disabled={deleteButton?.disabled}><DeleteIcon color={deleteButton?.iconColor} /></IconButton>}
+        {editButton && <IconButton onClick={editButton?.onClick} disabled={editButton?.disabled}><EditIcon color={editButton?.iconColor} /></IconButton>}
     </div>;
 };
 
