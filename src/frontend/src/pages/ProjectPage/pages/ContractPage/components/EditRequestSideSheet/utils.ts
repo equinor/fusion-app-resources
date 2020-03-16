@@ -16,20 +16,17 @@ export const transFormRequest = (
         id: uuid(),
         requestId: req.id,
         positionId: req.position?.id || '',
-        appliesFrom: req.position?.instances.find(i => i.appliesFrom)?.appliesFrom || null,
-        appliesTo: req.position?.instances.find(i => i.appliesTo)?.appliesTo || null,
+        appliesFrom: req.position?.appliesFrom || null,
+        appliesTo: req.position?.appliesTo || null,
         basePosition: req.position?.basePosition || null,
         description: req.description,
-        obs: req.position?.instances.find(i => i.obs)?.obs || '',
+        obs: req.position?.obs || '',
         positionName: req.position?.name || '',
-        workload: req.position?.instances.find(i => i.workload)?.workload.toString() || '',
+        workload: req.position?.workload.toString() || '',
         person: req.person,
-        parentPosition:
+        taskOwner:
             parentPositions?.find(
-                position =>
-                    position.id ===
-                        req.position?.instances.find(i => i.parentPositionId)?.parentPositionId ||
-                    ''
+                position => position.id === req.position?.taskOwner?.positionId || ''
             ) || null,
     }));
 };
@@ -55,9 +52,9 @@ export const transformToCreatePersonnelRequest = (
                 name: req.positionName,
                 obs: req.obs,
                 workload: +req.workload,
-                taskOwner: req.parentPosition?.id
+                taskOwner: req.taskOwner?.id
                     ? {
-                          id: req.parentPosition.id,
+                          positionId: req.taskOwner.id,
                       }
                     : null,
             },
@@ -79,6 +76,6 @@ export const createDefaultState = (): EditRequest[] => [
         workload: '',
         obs: '',
         person: null,
-        parentPosition: null,
+        taskOwner: null,
     },
 ];

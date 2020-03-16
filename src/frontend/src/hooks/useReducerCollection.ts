@@ -22,7 +22,6 @@ const useReducerCollection = <TState, T extends keyof TState>(
             });
 
             const data = await fetcher();
-
             dispatch({
                 verb: 'merge',
                 collection,

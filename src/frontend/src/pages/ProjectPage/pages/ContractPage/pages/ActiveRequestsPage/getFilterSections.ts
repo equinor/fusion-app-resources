@@ -3,7 +3,7 @@ import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 
 const getFilterSections = (requests: PersonnelRequest[]): FilterSection<PersonnelRequest>[] => {
     const uniqueDisciplines = requests
-        .map(request => request.position?.basePosition.discipline || '')
+        .map(request => request.position?.basePosition?.discipline || '')
         .filter((d, i, l) => l.indexOf(d) === i);
 
     const uniqueStatus = requests
@@ -22,7 +22,7 @@ const getFilterSections = (requests: PersonnelRequest[]): FilterSection<Personne
                     getValue: item =>
                         item.id + item.person?.name ||
                         '' + item.state + item.position?.name ||
-                        '' + item.position?.basePosition.name ||
+                        '' + item.position?.basePosition?.name ||
                         '',
                 },
             ],
@@ -48,7 +48,7 @@ const getFilterSections = (requests: PersonnelRequest[]): FilterSection<Personne
                     key: 'disciplines',
                     title: 'Disciplines',
                     type: FilterTypes.Checkbox,
-                    getValue: request => request.position?.basePosition.discipline || '',
+                    getValue: request => request.position?.basePosition?.discipline || '',
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
                     options: uniqueDisciplines.map(discipline => ({

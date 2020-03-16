@@ -3,23 +3,32 @@ import Person from './Person';
 import { ContractReference } from './contract';
 import Project from './Project';
 import Comment from './Comment';
-import { Position } from '@equinor/fusion';
+import PersonnelRequestPosition from './PersonnelRequestPosition';
+import Workflow from './Workflow';
+import ProvisioningStatus from './ProvisioningStatus ';
 
-export type RequestState = 'Created' | 'SubmittedToCompany' | 'RejectedByContractor' | 'ApprovedByCompany' | 'RejectedByCompany';
+export type RequestState =
+    | 'Created'
+    | 'SubmittedToCompany'
+    | 'RejectedByContractor'
+    | 'ApprovedByCompany'
+    | 'RejectedByCompany';
 
 type PersonnelRequest = {
     id: string;
     created: Date;
     updated?: Date;
     createdBy: Person;
-    updatedBy: Person;
+    updatedBy?: Person;
     state: RequestState;
     description: string;
-    position: Position | null;
+    position: PersonnelRequestPosition | null;
     person: Personnel | null;
     contract: ContractReference | null;
     project: Project | null;
     comments: Comment[];
+    workflow: Workflow;
+    provisioningStatus: ProvisioningStatus;
 };
 
 export default PersonnelRequest;

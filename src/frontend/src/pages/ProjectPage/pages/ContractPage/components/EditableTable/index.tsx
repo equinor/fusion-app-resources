@@ -7,6 +7,14 @@ import TablePositionPicker from './components/TablePositionPicker';
 import TablePersonPicker from './components/TablePersonPicker';
 import TablePersonnelPicker from './components/TablePersonnelPicker';
 import TableDatePicker from './components/TableDatePicker';
+import Personnel from '../../../../../../models/Personnel';
+import { BasePosition } from '@equinor/fusion';
+import { ReadonlyCollection } from '../../../../../../reducers/utils';
+
+export type EditableTableComponentState = {
+    personnel?: ReadonlyCollection<Personnel>;
+    basePositions?: ReadonlyCollection<BasePosition>;
+};
 
 export type EditableTaleColumnItem =
     | 'TextInput'
@@ -30,6 +38,7 @@ type EditableTableProps<T> = {
     createDefaultState: () => T[];
     rowIdentifier: keyof T;
     isFetching?: boolean;
+    componentState?: EditableTableComponentState;
 };
 
 function EditableTable<T>({
@@ -39,6 +48,7 @@ function EditableTable<T>({
     createDefaultState,
     rowIdentifier,
     isFetching,
+    componentState,
 }: EditableTableProps<T>) {
     const onChange = (key: any, accessKey: keyof T, value: any) => {
         const updatedPersons = [...formState].map(stateItem =>
@@ -57,7 +67,6 @@ function EditableTable<T>({
             onAddItem();
         }
     }, [formState]);
-
     const getTableComponent = React.useCallback(
         (column: EditableTaleColumn<T>, item: T) => {
             const defaultProps = {
@@ -73,20 +82,30 @@ function EditableTable<T>({
                 case 'TextInput':
                     return <TableTextInput {...defaultProps} />;
                 case 'BasePositionPicker':
-                    return <TableBasePosition {...defaultProps} />;
+                    return (
+                        <TableBasePosition
+                            {...defaultProps}
+                            componentState={componentState?.basePositions}
+                        />
+                    );
                 case 'PositionPicker':
                     return <TablePositionPicker {...defaultProps} />;
                 case 'PersonPicker':
                     return <TablePersonPicker {...defaultProps} />;
                 case 'PersonnelPicker':
-                    return <TablePersonnelPicker {...defaultProps} />;
+                    return (
+                        <TablePersonnelPicker
+                            {...defaultProps}
+                            componentState={componentState?.personnel}
+                        />
+                    );
                 case 'DatePicker':
                     return <TableDatePicker {...defaultProps} />;
                 default:
                     return null;
             }
         },
-        [onChange, rowIdentifier, onChange, rowIdentifier]
+        [onChange, rowIdentifier, onChange, rowIdentifier, isFetching]
     );
 
     const tableHeader = React.useMemo(() => {
