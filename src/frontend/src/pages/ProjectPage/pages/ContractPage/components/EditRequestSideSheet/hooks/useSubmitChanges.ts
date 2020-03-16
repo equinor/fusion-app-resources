@@ -15,9 +15,8 @@ export default (
     formState: EditRequest[],
     setEditRequests: React.Dispatch<React.SetStateAction<PersonnelRequest[] | null>>
 ) => {
-    const { contract } = useContractContext();
+    const { contract, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
-
     const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
     const sendNotification = useNotificationCenter();
     const { apiClient } = useAppContext();
@@ -47,8 +46,9 @@ export default (
                                       request
                                   )
                             )
-                                .then(newResult => [...prevResult, ...newResult.value])
-                                .catch(() => {
+                                .then(newResult => [...prevResult, newResult])
+                                .catch((e) => {
+                                    console.error(e)
                                     failedRequests.push(request);
                                     return prevResult;
                                 });
@@ -56,8 +56,8 @@ export default (
                     },
                     Promise.resolve([])
                 );
-                await requestPromises;
-                if (failedRequests.length >= 0) {
+                const updatedRequests = await requestPromises;
+                if (failedRequests.length > 0) {
                     const error: SubmitError = {
                         errorMessage: `Could not submit ${failedRequests
                             .map(request => request.position?.name)
@@ -66,6 +66,7 @@ export default (
                     throw error;
                 }
                 setEditRequests(null);
+                dispatchContractAction({ verb: 'merge', collection: 'activeRequests', payload: updatedRequests });
             } catch (e) {
                 const response = await sendNotification({
                     level: 'high',

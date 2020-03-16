@@ -15,8 +15,8 @@ const columns: EditableTaleColumn<EditRequest>[] = [
         item: 'PersonnelPicker',
     },
     {
-        accessor: item => item.parentPosition,
-        accessKey: 'parentPosition',
+        accessor: item => item.taskOwner,
+        accessKey: 'taskOwner',
         label: 'Task owner',
         item: 'PositionPicker',
     },
