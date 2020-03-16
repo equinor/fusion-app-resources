@@ -10,7 +10,7 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
-import ManagePersonnelToolBar, { ToolBarProps, IconButtonProps } from './components/ManagePersonnelToolBar';
+import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
@@ -61,69 +61,81 @@ const ManagePersonnelPage: React.FC = () => {
         [sortBy]
     );
 
+    const deletePersonnelAsync = React.useCallback(
+        async (personnelToDelete: Personnel[]) => {
+            const contractId = contract?.id;
+            if (!currentContext?.id || !contractId) return;
 
-    const deletePersonnelAsync = React.useCallback(async (personnelToDelete: Personnel[]) => {
-        const contractId = contract?.id;
-        if (!currentContext?.id || !contractId) return;
+            try {
+                const response = await Promise.all(
+                    personnelToDelete.map(
+                        async person =>
+                            await apiClient.deletePersonnelAsync(
+                                currentContext.id,
+                                contractId,
+                                person
+                            )
+                    )
+                );
 
-        try {
-            const response = await Promise.all(
-                personnelToDelete.map(async person => await apiClient.deletePersonnelAsync(currentContext.id, contractId, person))
-            )
+                notification({
+                    level: 'low',
+                    title: 'Selected personnel deleted',
+                    cancelLabel: 'dismiss',
+                });
 
-            notification({
-                level: 'low',
-                title: 'Selected personnel deleted',
-                cancelLabel: 'dismiss',
-            });
-
-            dispatchContractAction({ verb: "delete", collection: "personnel", payload: personnelToDelete })
-            setSelectedItems([]);
-
-        } catch (e) {
-
-            console.log('exception', e)
-            //TODO: This could probably be more helpfull.
-            notification({
-                level: 'high',
-                title:
-                    'Something went wrong while saving. Please try again or contact administrator',
-            });
-
-        }
-    }, [currentContext?.id, personnel]);
-
+                dispatchContractAction({
+                    verb: 'delete',
+                    collection: 'personnel',
+                    payload: personnelToDelete,
+                });
+                setSelectedItems([]);
+            } catch (e) {
+                console.log('exception', e);
+                //TODO: This could probably be more helpfull.
+                notification({
+                    level: 'high',
+                    title:
+                        'Something went wrong while saving. Please try again or contact administrator',
+                });
+            }
+        },
+        [currentContext?.id, personnel]
+    );
 
     const onDeletePersonnel = React.useCallback(async () => {
         const response = await notification({
             level: 'high',
-            title: `remove ${selectedItems.length} personnel`,
-            confirmLabel: 'Confirm',
+            title: `Are you sure you want to delete ${selectedItems.length} entries from personnel`,
+            confirmLabel: "I'm sure",
             cancelLabel: 'Cancel',
         });
         if (response.confirmed) {
-            deletePersonnelAsync(selectedItems)
+            deletePersonnelAsync(selectedItems);
         }
     }, [selectedItems, deletePersonnelAsync]);
 
+    const addButton = React.useMemo((): IconButtonProps => {
+        return { onClick: () => setIsAddPersonOpen(true) };
+    }, []);
 
-    const addButton = React.useMemo((): IconButtonProps => { return { onClick: () => setIsAddPersonOpen(true) } }
-        , []
-    );
+    const editButton = React.useMemo((): IconButtonProps => {
+        return { onClick: () => setIsAddPersonOpen(true), disabled: !selectedItems.length };
+    }, [selectedItems]);
 
-    const editButton = React.useMemo((): IconButtonProps => { return { onClick: () => setIsAddPersonOpen(true), disabled: !selectedItems.length } }
-        , [selectedItems]
-    );
-
-    const deleteButton = React.useMemo((): IconButtonProps => { return { onClick: onDeletePersonnel, disabled: !selectedItems.length } }
-        , [selectedItems, onDeletePersonnel]
-    );
+    const deleteButton = React.useMemo((): IconButtonProps => {
+        return { onClick: onDeletePersonnel, disabled: !selectedItems.length };
+    }, [selectedItems, onDeletePersonnel]);
 
     return (
         <div className={styles.container}>
             <div className={styles.managePersonnel}>
                 <div className={styles.toolbar}>
-                    <ManagePersonnelToolBar addButton={addButton} editButton={editButton} deleteButton={deleteButton} />
+                    <ManagePersonnelToolBar
+                        addButton={addButton}
+                        editButton={editButton}
+                        deleteButton={deleteButton}
+                    />
                 </div>
                 <div className={styles.table}>
                     <DataTable
@@ -154,7 +166,7 @@ const ManagePersonnelPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={setFilteredPersonnel}
             />
-        </div >
+        </div>
     );
 };
 

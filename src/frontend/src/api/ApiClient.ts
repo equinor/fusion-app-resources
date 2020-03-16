@@ -96,20 +96,20 @@ export default class ApiClient {
         const url = this.resourceCollection.personnel(projectId, contractId, personnel.personnelId);
         const responseParser = async (response: Response) => {
             try {
-                if ([200, 204].includes(response.status))
-                    return personnel
+                if ([200, 204].includes(response.status)) return personnel;
 
-                throw (reponse)
+                throw reponse;
             } catch (parseError) {
-                // Add more info
-                throw new HttpClientParseError(response);
+                throw new HttpClientParseError(parseError);
             }
-        }
+        };
 
-        const reponse = await this.httpClient.deleteAsync<
-            Personnel,
-            Personnel
-        >(url, null, responseParser);
+        const reponse = await this.httpClient.deleteAsync<Personnel, Personnel>(
+            url,
+            null,
+            responseParser
+        );
+
         return reponse.data;
     }
 
