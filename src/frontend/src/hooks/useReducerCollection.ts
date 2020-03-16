@@ -14,7 +14,7 @@ const useReducerCollection = <TState, T extends keyof TState>(
         if (!fetcher) {
             return;
         }
-        
+
         try {
             dispatch({
                 verb: 'fetch',
