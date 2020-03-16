@@ -49,14 +49,11 @@ namespace Fusion.Resources.Api.Middleware
                 var formater = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
                 var errorString = JsonConvert.SerializeObject(responseData, Formatting.Indented, formater);
 
-                var responseFeature = httpContext.Features.Get<IHttpResponseBodyFeature>();
-
-                httpContext.Request.ContentType = "application/json";
+                httpContext.Response.ContentType = "application/json";
                 httpContext.Response.ContentLength = errorString.Length;
+                httpContext.Response.StatusCode = 500;
 
-                var writer = new StreamWriter(responseFeature.Stream);
-                await writer.WriteAsync(errorString);
-                await writer.FlushAsync();
+                await httpContext.Response.WriteAsync(errorString);
             }
         }
 

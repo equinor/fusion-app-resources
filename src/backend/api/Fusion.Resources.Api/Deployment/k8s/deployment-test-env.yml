@@ -61,7 +61,7 @@ spec:
 
         livenessProbe:
           httpGet:
-            path: /_health/live
+            path: /_health/liveness
             port: 80
           failureThreshold: 10
           timeoutSeconds: 30
