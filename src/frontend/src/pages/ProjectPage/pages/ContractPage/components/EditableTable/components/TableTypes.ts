@@ -1,3 +1,5 @@
+import { ReadonlyCollection } from '../../../../../../../reducers/utils';
+
 export type DefaultTableType<T, TReturn> = {
     item: T;
     accessor: (item: T) => TReturn;
@@ -6,4 +8,5 @@ export type DefaultTableType<T, TReturn> = {
     rowIdentifier: keyof T;
     columnLabel?: string;
     isFetching?: boolean;
+    componentState?: ReadonlyCollection<TReturn>
 };

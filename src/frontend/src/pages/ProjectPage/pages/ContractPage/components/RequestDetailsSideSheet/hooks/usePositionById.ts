@@ -18,11 +18,11 @@ export default (positionId?: string) => {
     }, [positionId, appState]);
 
     const fetchPositionAsync = React.useCallback(
-        async (projectId: string, positionId: string) => {
+        async (projectId: string, posId: string) => {
             setIsFetchingPosition(true);
             setPositionError(null);
             try {
-                const response = await apiClients.org.getPositionAsync(projectId, positionId);
+                const response = await apiClients.org.getPositionAsync(projectId, posId);
                 setPosition(response.data);
                 dispatchAppAction({
                     verb: 'merge',
@@ -32,9 +32,11 @@ export default (positionId?: string) => {
             } catch (e) {
                 console.error(e);
                 setPositionError(e);
+            }finally {
+                setIsFetchingPosition(false);
             }
         },
-        [positionId]
+        []
     );
 
     React.useEffect(() => {

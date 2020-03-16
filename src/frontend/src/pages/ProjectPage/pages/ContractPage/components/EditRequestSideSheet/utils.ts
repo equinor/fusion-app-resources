@@ -24,9 +24,10 @@ export const transFormRequest = (
         positionName: req.position?.name || '',
         workload: req.position?.workload.toString() || '',
         person: req.person,
-        parentPosition:
-            parentPositions?.find(position => position.id === req.position?.taskOwner?.positionId || '') ||
-            null,
+        taskOwner:
+            parentPositions?.find(
+                position => position.id === req.position?.taskOwner?.positionId || ''
+            ) || null,
     }));
 };
 
@@ -51,9 +52,9 @@ export const transformToCreatePersonnelRequest = (
                 name: req.positionName,
                 obs: req.obs,
                 workload: +req.workload,
-                taskOwner: req.parentPosition?.id
+                taskOwner: req.taskOwner?.id
                     ? {
-                          positionId: req.parentPosition.id,
+                          positionId: req.taskOwner.id,
                       }
                     : null,
             },
@@ -75,6 +76,6 @@ export const createDefaultState = (): EditRequest[] => [
         workload: '',
         obs: '',
         person: null,
-        parentPosition: null,
+        taskOwner: null,
     },
 ];

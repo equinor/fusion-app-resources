@@ -11,6 +11,9 @@ import useForm from '../../../../../../hooks/useForm';
 
 import useSubmitChanges from './hooks/useSubmitChanges';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
+import useBasePositions from '../../../../../../hooks/useBasePositions';
+import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
+import { ReadonlyCollection } from '../../../../../../reducers/utils';
 
 export type EditRequest = {
     id: string;
@@ -24,29 +27,42 @@ export type EditRequest = {
     workload: string;
     obs: string;
     person: Personnel | null;
-    parentPosition: Position | null;
+    taskOwner: Position | null;
 };
 
 type EditRequestSideSheetProps = {
     initialRequests: PersonnelRequest[] | null;
-}
+};
 
-const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialRequests}) => {
+const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({ initialRequests }) => {
     const { isFetchingContract } = useContractContext();
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
     const closeSideSheet = React.useCallback(() => {
         setEditRequests(null);
     }, [setEditRequests]);
 
     React.useEffect(() => {
-        if(initialRequests) {
-            setEditRequests(initialRequests)
+        if (initialRequests) {
+            setEditRequests(initialRequests);
         }
-    },[initialRequests])
+    }, [initialRequests]);
 
     const { selectedPositions, isFetchingPositions } = useRequestsParentPosition(editRequests);
 
+    const { basePositions, isFetchingBasePositions, basePositionsError } = useBasePositions();
+    const basePositionState: ReadonlyCollection<BasePosition> = {
+        data: basePositions,
+        isFetching: !!isFetchingBasePositions,
+        error: basePositionsError,
+    };
+
+    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel();
+    const personnelState: ReadonlyCollection<Personnel> = {
+        data: personnel,
+        isFetching: isFetchingPersonnel,
+        error: personnelError,
+    };
     const defaultState = React.useMemo(() => transFormRequest(editRequests, selectedPositions), [
         editRequests,
         selectedPositions,
@@ -59,7 +75,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialReque
                     state.basePosition &&
                         state.positionName &&
                         state.workload &&
-                        state.parentPosition &&
+                        state.taskOwner &&
                         !Boolean(isNaN(+state.workload))
                 )
         );
@@ -91,7 +107,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialReque
                     outlined
                     onClick={submit}
                 >
-                    {isSubmitting ?  <Spinner inline /> : 'Submit'}
+                    {isSubmitting ? <Spinner inline /> : 'Submit'}
                 </Button>,
             ]}
         >
@@ -102,6 +118,10 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialReque
                 setFormState={setFormState}
                 rowIdentifier="id"
                 isFetching={isFetchingPositions || isFetchingContract}
+                componentState={{
+                    personnel: personnelState,
+                    basePositions: basePositionState,
+                }}
             />
         </ModalSideSheet>
     );

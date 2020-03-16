@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DatePicker } from '@equinor/fusion-components';
+import { DatePicker} from '@equinor/fusion-components';
 import { DefaultTableType } from './TableTypes';
 
 function TableDatePicker<T>({

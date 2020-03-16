@@ -4,11 +4,11 @@
     grid-template-columns: repeat(4, auto);
     grid-template-rows: auto;
     grid-template-areas: 
+        "description description description description"
         "person person status status"
         "basePosition basePosition customPosition customPosition"
         "taskOwner taskOwner taskOwner taskOwner"
-        "fromDate toDate toDate toDate"
-        "description description description description";
+        "fromDate toDate toDate toDate";
     row-gap: calc(var(--grid-unit) * 2px);
     column-gap: calc(var(--grid-unit) * 3px);
     
@@ -33,6 +33,7 @@
 
     .description {
         grid-area: description;
+        max-height: calc(var(--grid-unit) * 10px);
     }
     .basePosition {
         grid-area: basePosition;
@@ -54,5 +55,22 @@
     }
     .status{
         grid-area: status;;
+    }
+}
+
+.skeletonContainer {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+
+    .details {
+        margin-left: calc(var(--grid-unit) * 2px);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        
+        .skeletonBar {
+            padding: calc(var(--grid-unit) * .5px);
+        }
     }
 }

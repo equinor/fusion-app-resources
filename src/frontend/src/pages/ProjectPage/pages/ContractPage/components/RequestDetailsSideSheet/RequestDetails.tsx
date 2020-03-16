@@ -25,6 +25,7 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
 
     return (
         <div className={styles.requestDetails}>
+            {createItemField('description', 'Description', () => request.description || "N/A")}
             {createItemField(
                 'basePosition',
                 'Base position',
@@ -55,7 +56,6 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
             {createItemField('status', 'Status', () => (
                 <RequestStateFlow item={request} />
             ))}
-            {createItemField('description', 'Description', () => request.description)}
         </div>
     );
 };
