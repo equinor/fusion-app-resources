@@ -47,8 +47,8 @@ export default (
                                   )
                             )
                                 .then(newResult => [...prevResult, newResult])
-                                .catch((e) => {
-                                    console.error(e)
+                                .catch(e => {
+                                    console.error(e);
                                     failedRequests.push(request);
                                     return prevResult;
                                 });
@@ -66,7 +66,11 @@ export default (
                     throw error;
                 }
                 setEditRequests(null);
-                dispatchContractAction({ verb: 'merge', collection: 'activeRequests', payload: updatedRequests });
+                dispatchContractAction({
+                    verb: 'merge',
+                    collection: 'activeRequests',
+                    payload: updatedRequests,
+                });
             } catch (e) {
                 const response = await sendNotification({
                     level: 'high',

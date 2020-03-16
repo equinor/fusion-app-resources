@@ -50,6 +50,12 @@ const columns: EditableTaleColumn<EditRequest>[] = [
         label: 'OBS',
         item: 'TextInput',
     },
+    {
+        accessor: item => item.description,
+        accessKey: 'description',
+        label: 'Description',
+        item: 'TextArea',
+    }
 ];
 
 export default columns;

@@ -10,6 +10,7 @@ import TableDatePicker from './components/TableDatePicker';
 import Personnel from '../../../../../../models/Personnel';
 import { BasePosition } from '@equinor/fusion';
 import { ReadonlyCollection } from '../../../../../../reducers/utils';
+import TableTextEditor from './components/TableTextArea';
 
 export type EditableTableComponentState = {
     personnel?: ReadonlyCollection<Personnel>;
@@ -22,7 +23,8 @@ export type EditableTaleColumnItem =
     | 'PositionPicker'
     | 'BasePositionPicker'
     | 'PersonnelPicker'
-    | 'DatePicker';
+    | 'DatePicker'
+    | 'TextArea';
 
 export type EditableTaleColumn<T> = {
     accessor: (item: T) => any;
@@ -101,6 +103,8 @@ function EditableTable<T>({
                     );
                 case 'DatePicker':
                     return <TableDatePicker {...defaultProps} />;
+                case 'TextArea':
+                    return <TableTextEditor {...defaultProps} />;
                 default:
                     return null;
             }

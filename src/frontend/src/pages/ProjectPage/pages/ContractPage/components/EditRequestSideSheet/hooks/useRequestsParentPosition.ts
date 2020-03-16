@@ -58,10 +58,10 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
     );
 
     React.useEffect(() => {
-        if (!currentOrgProject) {
+        if (!currentOrgProject || !currentOrgProject.externalId) {
             return;
         }
-        fetchAllPositions(currentOrgProject);
+        fetchAllPositions(currentOrgProject.externalId);
     }, [parentPositionsIds]);
 
     return { selectedPositions, isFetchingPositions, positionsError };

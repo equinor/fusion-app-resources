@@ -6,7 +6,7 @@ import CreatePersonnelRequest from '../../../../../../models/CreatePersonnelRequ
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
-    parentPositions: Position[] | null
+    taskOwners: Position[] | null
 ): EditRequest[] | null => {
     if (personnelRequest === null) {
         return null;
@@ -25,7 +25,7 @@ export const transFormRequest = (
         workload: req.position?.workload.toString() || '',
         person: req.person,
         taskOwner:
-            parentPositions?.find(
+            taskOwners?.find(
                 position => position.id === req.position?.taskOwner?.positionId || ''
             ) || null,
     }));
@@ -36,6 +36,7 @@ export const transformToCreatePersonnelRequest = (
 ): CreatePersonnelRequest[] => {
     return editRequests.map(req => {
         const personnel: CreatePersonnelRequest = {
+            id: req.requestId || undefined,
             description: req.description,
             person: {
                 mail: req.person?.mail || '',
