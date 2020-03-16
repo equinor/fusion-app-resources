@@ -175,8 +175,7 @@ namespace Fusion.Resources.Api
 
         public async Task Invoke(HttpContext httpContext, ChaosMonkey thaMonkey)
         {
-
-            if (thaMonkey.CurrentLevel != ChaosMonkey.ChaosLevel.None && !httpContext.Request.Path.StartsWithSegments("/release-the-monkey"))
+            if (thaMonkey.CurrentLevel != ChaosMonkey.ChaosLevel.None && ShouldInterruptUrl(httpContext.Request))
             {
                 var faker = new Faker();
 
@@ -198,5 +197,20 @@ namespace Fusion.Resources.Api
             
             await _next(httpContext);
         }
+
+        private bool ShouldInterruptUrl(HttpRequest request)
+        {
+            if ((HttpMethods.IsPost(request.Method) || HttpMethods.IsPut(request.Method)) == false)
+                return false;
+
+            if (request.Path.StartsWithSegments("/release-the-monkey"))
+                return false;
+
+            if (request.Path.StartsWithSegments("/_health"))
+                return false;
+
+            return true;
+        }
+        
     }
 }
