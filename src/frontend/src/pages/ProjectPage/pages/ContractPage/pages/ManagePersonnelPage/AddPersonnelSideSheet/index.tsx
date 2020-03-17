@@ -6,6 +6,7 @@ import {
     AddIcon,
     useTooltipRef,
     styling,
+    usePopoverRef,
 } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
@@ -143,7 +144,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         (person: Personnel): IconButtonProps => {
             if (person.created || formState.length <= 1) return { disabled: true };
 
-            return { onClick: () => onDeletePerson(person), iconColor: styling.colors.white };
+            return { onClick: () => onDeletePerson(person) };
         },
         [onDeletePerson, formState]
     );
@@ -172,6 +173,19 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         },
         [selectedItems]
     );
+
+    type PopOverMenuProps = {
+        person: Personnel;
+    };
+
+    const PopOverMenu: React.FC<PopOverMenuProps> = ({ person }) => {
+        const [popoverRef, isOpen] = usePopoverRef<HTMLDivElement>(
+            <ManagePersonnelToolBar deleteButton={deleteButton(person)} />,
+            {}
+        );
+
+        return <div ref={popoverRef}>...</div>;
+    };
 
     return (
         <ModalSideSheet
@@ -207,9 +221,9 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 <div className={styles.container}>
                     <ManagePersonnelToolBar addButton={addButton} />
                     <table>
-                        <thead>
-                            <tr>
-                                <th className={styles.headerSelectionCell}>
+                        <thead className={styles.tableBody}>
+                            <tr className={styles.tableRow}>
+                                <th className={styles.tableRowHeaderSelectionCell}>
                                     <SelectionCell
                                         isSelected={
                                             !!selectedItems &&
@@ -224,19 +238,22 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                         ref={selectableTooltipRef}
                                     />
                                 </th>
-                                <th className={styles.header}></th>
-                                <th className={styles.header}>First Name</th>
-                                <th className={styles.header}>Last Name</th>
-                                <th className={styles.header}>E-Mail</th>
-                                <th className={styles.header}>Disciplines</th>
-                                <th className={styles.header}>Phone Number</th>
+                                <th className={styles.headerRowCell}></th>
+                                <th className={styles.headerRowCell}>First Name</th>
+                                <th className={styles.headerRowCell}>Last Name</th>
+                                <th className={styles.headerRowCell}>E-Mail</th>
+                                <th className={styles.headerRowCell}>Disciplines</th>
+                                <th className={styles.headerRowCell}>Phone Number</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className={styles.tableBody}>
                             {!isFetchingBasePositions &&
                                 formState.map(person => (
-                                    <tr key={`person${person.personnelId}`}>
-                                        <td className={styles.tableRowSelectionCell}>
+                                    <tr
+                                        className={styles.tableRow}
+                                        key={`person${person.personnelId}`}
+                                    >
+                                        <td className={styles.tableRowCell}>
                                             <SelectionCell
                                                 isSelected={
                                                     !!selectedItems &&
@@ -245,12 +262,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                                 onChange={() => onSelect(person)}
                                             />
                                         </td>
-                                        <td className={styles.tableRowCell}>
-                                            <PopOverMenu label={'...'}>
-                                                <ManagePersonnelToolBar
-                                                    deleteButton={deleteButton(person)}
-                                                />
-                                            </PopOverMenu>
+                                        <td className={styles.tableRowMenuCell}>
+                                            <PopOverMenu person={person} />
                                         </td>
                                         <td className={styles.tableRowCell}>
                                             <AddPersonnelFormTextInput
