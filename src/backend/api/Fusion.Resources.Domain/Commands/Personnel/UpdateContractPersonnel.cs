@@ -37,21 +37,20 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : IRequestHandler<UpdateContractPersonnel, QueryContractPersonnel>
         {
             private readonly ResourcesDbContext resourcesDb;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext resourcesDb)
+            public Handler(ResourcesDbContext resourcesDb, IMediator mediator)
             {
                 this.resourcesDb = resourcesDb;
+                this.mediator = mediator;
             }
 
             public async Task<QueryContractPersonnel> Handle(UpdateContractPersonnel request, CancellationToken cancellationToken)
             {
-                var query = request.PersonnelId.Type switch
-                {
-                    PersonnelId.IdentifierType.UniqueId => resourcesDb.ContractPersonnel.Where(c => c.Id == request.PersonnelId.UniqueId || c.Person.AzureUniqueId == request.PersonnelId.UniqueId),
-                    _ => resourcesDb.ContractPersonnel.Where(c => c.Person.Mail == request.PersonnelId.Mail)
-                };
-
-                var contractPersonnel = await query.Include(cp => cp.Person).ThenInclude(p => p.Disciplines).FirstOrDefaultAsync();
+                var contractPersonnel = await resourcesDb.ContractPersonnel
+                    .GetById(request.OrgContractId, request.PersonnelId)
+                    .Include(cp => cp.Person).ThenInclude(p => p.Disciplines)
+                    .FirstOrDefaultAsync();
 
                 if (contractPersonnel is null)
                     throw new ArgumentException($"Cannot locate person using personnel identifier '{request.PersonnelId.OriginalIdentifier}'");
@@ -65,16 +64,8 @@ namespace Fusion.Resources.Domain.Commands
 
                 await resourcesDb.SaveChangesAsync();
 
-
-                var item = await query
-                      .Include(i => i.Contract)
-                      .Include(i => i.Project)
-                      .Include(i => i.UpdatedBy)
-                      .Include(i => i.CreatedBy)
-                      .Include(i => i.Person).ThenInclude(p => p.Disciplines)
-                      .FirstOrDefaultAsync();
-
-                return new QueryContractPersonnel(item);
+                var returnItem = await mediator.Send(new GetContractPersonnelItem(request.OrgContractId, contractPersonnel.PersonId));
+                return returnItem;
             }
 
             private void UpdatePerson(DbExternalPersonnelPerson dbPersonnel, UpdateContractPersonnel request)

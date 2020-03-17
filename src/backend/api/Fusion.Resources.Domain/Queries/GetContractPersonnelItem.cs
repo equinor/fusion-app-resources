@@ -38,14 +38,8 @@ namespace Fusion.Resources.Domain
 
             public async Task<QueryContractPersonnel> Handle(GetContractPersonnelItem request, CancellationToken cancellationToken)
             {
-                var query = db.ContractPersonnel.Where(p => p.Contract.OrgContractId == request.OrgContractId);
-                query = request.PersonnelId.Type switch
-                {
-                    PersonnelId.IdentifierType.UniqueId => db.ContractPersonnel.Where(c => c.PersonId == request.PersonnelId.UniqueId || c.Person.AzureUniqueId == request.PersonnelId.UniqueId),
-                    _ => db.ContractPersonnel.Where(c => c.Person.Mail == request.PersonnelId.Mail)
-                };
-
-                var item = await query
+                var item = await db.ContractPersonnel
+                    .GetById(request.OrgContractId, request.PersonnelId)
                     .Include(i => i.Contract)
                     .Include(i => i.Project)
                     .Include(i => i.UpdatedBy)
@@ -80,7 +74,7 @@ namespace Fusion.Resources.Domain
                     .Include(r => r.Person)
                     .Include(r => r.Contract)
                     .Include(r => r.Project)
-                    .Where(r => r.Person.Person.Id == personnelItem.Id)
+                    .Where(r => r.Person.Person.Id == personnelItem.PersonnelId)
                     .ToListAsync();
 
                 var basePositions = await Task.WhenAll(requests
