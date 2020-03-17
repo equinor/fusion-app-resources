@@ -42,23 +42,18 @@ namespace Fusion.Resources.Api.Controllers
 
             public Validator(IProjectOrgResolver projectOrgResolver)
             {
-
-
-                RuleFor(x => x.Description).NotContainScriptTag().When(x => x.Description != null);
-                RuleFor(x => x.Position).NotNull().WithMessage("Position details must be specified");
+                RuleFor(x => x.Description).NotContainScriptTag().When(x => x.Description != null).WithName("description");
+                RuleFor(x => x.Position).NotNull().WithName("position").WithMessage("Position details must be specified");
                 RuleFor(x => x.Person).BeValidPerson().When(x => x.Person != null);
                 RuleFor(x => x.Position).SetValidator(RequestPositionValidator).When(x => x.Position != null);
 
                 RuleFor(x => x.Position.Name).NotContainScriptTag().When(x => x.Position != null).WithName("position.name");
                 RuleFor(x => x.Position.Obs).NotContainScriptTag().When(x => x.Position != null).WithName("position.obs");
-                
-                RuleFor(x => x.Position.BasePosition.Id).MustAsync(async (bpId, ct) =>
-                {
-                    var resolvedBp = await projectOrgResolver.ResolveBasePositionAsync(bpId);
-                    return resolvedBp != null;
-                }).WithMessage("Base position is not valid. Could not be resolved from org service")
-                .WithName("position.basePosition.id")
-                .When(x => x.Position != null && x.Position.BasePosition != null);
+
+
+                RuleFor(x => x.Position.BasePosition).BeValidBasePosition(projectOrgResolver)
+                    .When(x => x.Position != null);
+
 
                 this.projectOrgResolver = projectOrgResolver;
             }
@@ -67,7 +62,9 @@ namespace Fusion.Resources.Api.Controllers
             {
 
                 if (position.AppliesTo < position.AppliesFrom)
-                    context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.appliesTo", "To date cannot be earlier than from date", $"{position.AppliesFrom} -> {position.AppliesTo}"));
+                    context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.appliesTo", 
+                        $"To date cannot be earlier than from date, {position.AppliesFrom.ToString("dd/MM/yyyy")} -> {position.AppliesTo.ToString("dd/MM/yyyy")}", 
+                        $"{position.AppliesFrom.ToString("dd/MM/yyyy")} -> {position.AppliesTo.ToString("dd/MM/yyyy")}"));
 
                 if (position.Name != null && position.Name.Length > 150)
                     context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.name", "Name cannot exceed 150 characters", position.Obs));
@@ -85,12 +82,6 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (position.BasePosition.Id == Guid.Empty)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.basePosition.id", "Base position id cannot be empty."));
-
-                    //var resolvedBasePosition = AsyncUtils.RunSync(() => projectOrgResolver.ResolveBasePositionAsync(position.BasePosition.Id));
-                    //if (resolvedBasePosition == null)
-                    //{
-                    //    context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.basePosition.id", "Base position is not valid."));
-                    //}
                 }
 
                 if (position.TaskOwner != null && position.TaskOwner.PositionId.HasValue)
