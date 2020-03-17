@@ -18,13 +18,13 @@ const AddPersonnelFormTextInput: React.FC<PersonnelFormTextInputProps> = ({
     return (
         <TextInput
             disabled={disabled}
-            placeholder={item[field]?.toString() || ""}
+            placeholder={item[field]?.toString() || ''}
             key={field + item.personnelId}
             onChange={newValue => {
                 const changedPerson = { ...item, [field]: newValue };
                 onChange(changedPerson);
             }}
-            value={item[field]?.toString() || ""}
+            value={item[field]?.toString() || ''}
         />
     );
 };

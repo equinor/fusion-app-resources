@@ -1,14 +1,26 @@
 import * as React from 'react';
-import { ModalSideSheet, Button, Spinner, AddIcon } from '@equinor/fusion-components';
+import {
+    ModalSideSheet,
+    Button,
+    Spinner,
+    AddIcon,
+    useTooltipRef,
+    styling,
+    usePopoverRef,
+} from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
 import * as styles from './styles.less';
-import { useCurrentContext, useNotificationCenter, BasePosition } from '@equinor/fusion';
+import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
 import useAddPersonnelForm from '../hooks/useAddPersonnelForm';
 import AddPersonnelFormDisciplinesDropDown from './AddPersonnelFormDisciplinesDropDown';
+import ManagePersonnelToolBar, { IconButtonProps } from '../components/ManagePersonnelToolBar';
+import useBasePositions from '../../../../../../../hooks/useBasePositions';
+import SelectionCell from '../components/SelectionCell';
+import PopOverMenu from '../components/PopOverMenu';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -26,9 +38,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { contract, dispatchContractAction } = useContractContext();
     const notification = useNotificationCenter();
     const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
+    const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
     );
+
+    const { basePositions, isFetchingBasePositions } = useBasePositions();
 
     const savePersonnelChangesAsync = async () => {
         const contractId = contract?.id;
@@ -41,10 +56,18 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             const response = await Promise.all(
                 formState.map(async person =>
                     person.created
-                        ? await apiClient.updatePersonnelAsync(currentContext.id, contractId, person)
-                        : await apiClient.createPersonnelAsync(currentContext.id, contractId, person)
+                        ? await apiClient.updatePersonnelAsync(
+                              currentContext.id,
+                              contractId,
+                              person
+                          )
+                        : await apiClient.createPersonnelAsync(
+                              currentContext.id,
+                              contractId,
+                              person
+                          )
                 )
-            )
+            );
 
             setSaveInProgress(false);
             setIsOpen(false);
@@ -53,9 +76,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 title: 'Personnel changes saved',
                 cancelLabel: 'dismiss',
             });
-
-            dispatchContractAction({ verb: "merge", collection: "personnel", payload: response })
-
+            console.log('respinse on save', response);
+            dispatchContractAction({ verb: 'merge', collection: 'personnel', payload: response });
         } catch (e) {
             //TODO: This could probably be more helpfull.
             notification({
@@ -63,7 +85,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 title:
                     'Something went wrong while saving. Please try again or contact administrator',
             });
-
         }
         setSaveInProgress(false);
     };
@@ -94,6 +115,78 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         ]);
     }, [formState]);
 
+    const onDeletePerson = React.useCallback(
+        (person: Personnel) => {
+            const personFound = formState.findIndex(p => p.personnelId === person.personnelId);
+            if (personFound < 0) return;
+
+            const newState = [...formState];
+            newState.splice(personFound, 1);
+            setFormState(newState);
+
+            const personSelected = selectedItems.findIndex(
+                p => p.personnelId === person.personnelId
+            );
+            if (personSelected > -1) {
+                const newSelected = [...selectedItems];
+                newSelected.splice(personSelected, 1);
+                setSelectedItems(newSelected);
+            }
+        },
+        [formState, selectedItems]
+    );
+
+    const addButton = React.useMemo((): IconButtonProps => {
+        return { onClick: onAddPerson, disabled: saveInProgress };
+    }, [saveInProgress, onAddPerson]);
+
+    const deleteButton = React.useCallback(
+        (person: Personnel): IconButtonProps => {
+            if (person.created || formState.length <= 1) return { disabled: true };
+
+            return { onClick: () => onDeletePerson(person) };
+        },
+        [onDeletePerson, formState]
+    );
+
+    const isAllSelected = React.useMemo(() => selectedItems.length === formState.length, [
+        selectedItems,
+        formState,
+    ]);
+
+    const selectableTooltipRef = useTooltipRef(
+        isAllSelected ? 'Unselect all' : 'Select all',
+        'above'
+    );
+
+    const onSelectAll = React.useCallback(() => {
+        setSelectedItems(selectedItems.length === formState.length ? [] : formState);
+    }, [formState, selectedItems]);
+
+    const onSelect = React.useCallback(
+        (item: Personnel) => {
+            if (selectedItems && selectedItems.some(i => i === item)) {
+                setSelectedItems(selectedItems.filter(i => i !== item));
+            } else {
+                setSelectedItems([...(selectedItems || []), item]);
+            }
+        },
+        [selectedItems]
+    );
+
+    type PopOverMenuProps = {
+        person: Personnel;
+    };
+
+    const PopOverMenu: React.FC<PopOverMenuProps> = ({ person }) => {
+        const [popoverRef, isOpen] = usePopoverRef<HTMLDivElement>(
+            <ManagePersonnelToolBar deleteButton={deleteButton(person)} />,
+            {}
+        );
+
+        return <div ref={popoverRef}>...</div>;
+    };
+
     return (
         <ModalSideSheet
             header="Add Person"
@@ -107,80 +200,118 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             safeCloseCancelLabel={'Continue editing'}
             safeCloseConfirmLabel={'Discard changes'}
             headerIcons={[
-                <Button disabled={saveInProgress} key={'AddPerson'} outlined onClick={onAddPerson}>
-                    <AddIcon /> Add Person
-                </Button>,
                 <Button
                     disabled={!(isFormDirty && isFormValid) || saveInProgress}
                     key={'save'}
                     outlined
                     onClick={savePersonnelChangesAsync}
                 >
-                    {saveInProgress ? <Spinner inline /> : 'Create'}
+                    {saveInProgress ? (
+                        <>
+                            <Spinner inline />
+                            Saving
+                        </>
+                    ) : (
+                        'Save'
+                    )}
                 </Button>,
             ]}
         >
             {isOpen && (
                 <div className={styles.container}>
+                    <ManagePersonnelToolBar addButton={addButton} />
                     <table>
-                        <thead>
-                            <tr>
-                                <th className={styles.header}>First Name</th>
-                                <th className={styles.header}>Last Name</th>
-                                <th className={styles.header}>E-Mail</th>
-                                <th className={styles.header}>Disciplines</th>
-                                <th className={styles.header}>Phone Number</th>
+                        <thead className={styles.tableBody}>
+                            <tr className={styles.tableRow}>
+                                <th className={styles.tableRowHeaderSelectionCell}>
+                                    <SelectionCell
+                                        isSelected={
+                                            !!selectedItems &&
+                                            selectedItems.length === formState.length
+                                        }
+                                        onChange={onSelectAll}
+                                        indeterminate={
+                                            !!selectedItems &&
+                                            selectedItems.length > 0 &&
+                                            selectedItems.length !== formState.length
+                                        }
+                                        ref={selectableTooltipRef}
+                                    />
+                                </th>
+                                <th className={styles.headerRowCell}></th>
+                                <th className={styles.headerRowCell}>First Name</th>
+                                <th className={styles.headerRowCell}>Last Name</th>
+                                <th className={styles.headerRowCell}>E-Mail</th>
+                                <th className={styles.headerRowCell}>Disciplines</th>
+                                <th className={styles.headerRowCell}>Phone Number</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {formState.map(person => (
-                                <tr key={`person${person.personnelId}`}>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`firstname${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'firstName'}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`lastname${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'lastName'}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`mail${person.personnelId}`}
-                                            disabled={Boolean(person.created || saveInProgress)}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'mail'}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormDisciplinesDropDown
-                                            key={`disciplines${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            onChange={onChange}
-                                            item={person}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`phoneNumber${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'phoneNumber'}
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
+                        <tbody className={styles.tableBody}>
+                            {!isFetchingBasePositions &&
+                                formState.map(person => (
+                                    <tr
+                                        className={styles.tableRow}
+                                        key={`person${person.personnelId}`}
+                                    >
+                                        <td className={styles.tableRowCell}>
+                                            <SelectionCell
+                                                isSelected={
+                                                    !!selectedItems &&
+                                                    selectedItems.some(i => i === person)
+                                                }
+                                                onChange={() => onSelect(person)}
+                                            />
+                                        </td>
+                                        <td className={styles.tableRowMenuCell}>
+                                            <PopOverMenu person={person} />
+                                        </td>
+                                        <td className={styles.tableRowCell}>
+                                            <AddPersonnelFormTextInput
+                                                key={`firstname${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'firstName'}
+                                            />
+                                        </td>
+                                        <td className={styles.tableRowCell}>
+                                            <AddPersonnelFormTextInput
+                                                key={`lastname${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'lastName'}
+                                            />
+                                        </td>
+                                        <td className={styles.tableRowCell}>
+                                            <AddPersonnelFormTextInput
+                                                key={`mail${person.personnelId}`}
+                                                disabled={Boolean(person.created || saveInProgress)}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'mail'}
+                                            />
+                                        </td>
+                                        <td className={styles.tableRowCell}>
+                                            <AddPersonnelFormDisciplinesDropDown
+                                                key={`disciplines${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                onChange={onChange}
+                                                item={person}
+                                                basePositions={basePositions}
+                                            />
+                                        </td>
+                                        <td className={styles.tableRowCell}>
+                                            <AddPersonnelFormTextInput
+                                                key={`phoneNumber${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                item={person}
+                                                onChange={onChange}
+                                                field={'phoneNumber'}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
                         </tbody>
                     </table>
                 </div>
