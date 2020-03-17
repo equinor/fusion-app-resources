@@ -32,14 +32,19 @@ export type EditRequest = {
 
 type EditRequestSideSheetProps = {
     initialRequests: PersonnelRequest[] | null;
+    onClose?: () => void;
 };
 
-const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({ initialRequests }) => {
+const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
+    initialRequests,
+    onClose,
+}) => {
     const { isFetchingContract } = useContractContext();
     const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
     const closeSideSheet = React.useCallback(() => {
         setEditRequests(null);
+        onClose && onClose();
     }, [setEditRequests]);
 
     React.useEffect(() => {
