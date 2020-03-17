@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryExternalPersonnelPerson> Handle(RefreshPersonnel request, CancellationToken cancellationToken)
             {
-                var profile = await profileService.RefreshExternalPersonnelAsync(request.personellId.ToString());
+                var profile = await profileService.RefreshExternalPersonnelAsync(request.personellId.OriginalIdentifier);
 
                 return new QueryExternalPersonnelPerson(profile);
             }

@@ -20,7 +20,7 @@ namespace Fusion.Resources.Domain
             JobTitle = item.JobTitle;
             AzureAdStatus = item.AccountStatus;
 
-            Disciplines = item.Disciplines.Select(d => new QueryPersonnelDiscipline(d)).ToList();
+            Disciplines = item.Disciplines?.Select(d => new QueryPersonnelDiscipline(d)).ToList();
         }
         public Guid PersonnelId { get; set; }
         public Guid? AzureUniqueId { get; set; }

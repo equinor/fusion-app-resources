@@ -51,9 +51,5 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 
-        /// <summary>
-        /// Class-scoped enum only used in API model
-        /// </summary>
-        public enum ApiAccountStatus { Available, InviteSent, NoAccount }
     }
 }

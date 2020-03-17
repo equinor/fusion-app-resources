@@ -56,7 +56,7 @@ namespace Fusion.Resources.Domain.Services
 
             if (profile != null)
             {
-                resolvedPerson.AccountStatus = DbAzureAccountStatus.Available;
+                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
                 resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
                 resolvedPerson.JobTitle = profile.JobTitle;
                 resolvedPerson.Name = profile.Name;
@@ -64,7 +64,7 @@ namespace Fusion.Resources.Domain.Services
             }
 
             await resourcesDb.SaveChangesAsync();
-            
+
             return resolvedPerson;
         }
 
@@ -84,7 +84,6 @@ namespace Fusion.Resources.Domain.Services
                 if (existingEntry != null)
                     return existingEntry;
 
-
                 var profile = await ResolveProfileAsync(personId);
 
                 var newEntry = new DbExternalPersonnelPerson()
@@ -97,8 +96,7 @@ namespace Fusion.Resources.Domain.Services
 
                 if (profile != null)
                 {
-
-                    newEntry.AccountStatus = DbAzureAccountStatus.Available;
+                    newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
                     newEntry.JobTitle = profile.JobTitle;
                     newEntry.Name = profile.Name;
