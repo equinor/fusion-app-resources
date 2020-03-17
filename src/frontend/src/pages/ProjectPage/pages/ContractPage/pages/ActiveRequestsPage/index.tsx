@@ -19,9 +19,9 @@ const ActiveRequestsPage: React.FC = () => {
     );
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
     const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
-    
+
     const { apiClient } = useAppContext();
-    const { contract, contractState, dispatchContractAction,  } = useContractContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
 
     const fetchRequestsAsync = React.useCallback(async () => {
@@ -43,9 +43,12 @@ const ActiveRequestsPage: React.FC = () => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);
 
-    const editRequest = React.useCallback((requests: PersonnelRequest[]) => {
-        setEditRequests(requests);
-    }, [setEditRequests]);
+    const editRequest = React.useCallback(
+        (requests: PersonnelRequest[]) => {
+            setEditRequests(requests);
+        },
+        [setEditRequests]
+    );
 
     if (error) {
         return (
@@ -85,8 +88,11 @@ const ActiveRequestsPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={setFilteredActiveRequests}
             />
-            <EditRequestSideSheet initialRequests={editRequests}/>
-            <RequestDetailsSideSheet requests={activeRequests}/>
+            <EditRequestSideSheet
+                initialRequests={editRequests}
+                onClose={() => setEditRequests(null)}
+            />
+            <RequestDetailsSideSheet requests={activeRequests} />
         </div>
     );
 };

@@ -8,6 +8,7 @@ type TextEditSideSheetProps = {
     setIsOpen: (isOpen: boolean) => void;
     value: string;
     onChange: (value: string) => void;
+    label: string;
 };
 
 const TextEditSideSheet: React.FC<TextEditSideSheetProps> = ({
@@ -15,6 +16,7 @@ const TextEditSideSheet: React.FC<TextEditSideSheetProps> = ({
     setIsOpen,
     value,
     onChange,
+    label,
 }) => {
     return (
         <ModalSideSheet
@@ -22,13 +24,13 @@ const TextEditSideSheet: React.FC<TextEditSideSheetProps> = ({
             onClose={() => setIsOpen(false)}
             id="text-edit-side-sheet"
             size="medium"
-            header="Request description"
+            header={label}
         >
             <div className={styles.textAreaContainer}>
                 <TextArea
                     value={value}
                     onChange={onChange}
-                    helperText={'Add a request description - Saved on close'}
+                    helperText={`${label} - Saves on close`}
                 />
             </div>
         </ModalSideSheet>
@@ -67,6 +69,7 @@ function TableTextArea<T>({
                 setIsOpen={setOpenSideSheet}
                 onChange={onInputChange}
                 value={accessor(item)}
+                label={columnLabel || 'Edit'}
             />
         </>
     );
