@@ -34,7 +34,7 @@ namespace Fusion.Resources.Logic.Commands
                 Person = person;
                 return this;
             }
-            public Update SetPosition(Guid basePositionId, string name, DateTime from, DateTime to, double workload, string obs)
+            public Update SetPosition(Guid basePositionId, string name, DateTime from, DateTime to, double workload, string? obs)
             {
                 var position = new PositionInfo()
                 {
@@ -43,7 +43,7 @@ namespace Fusion.Resources.Logic.Commands
                     AppliesFrom = from,
                     AppliesTo = to,
                     Workload = workload,
-                    Obs = obs
+                    Obs = obs ?? string.Empty
                 };
 
                 Position = position;

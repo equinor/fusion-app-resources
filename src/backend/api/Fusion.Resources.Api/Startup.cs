@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using FluentValidation.AspNetCore;
 
 namespace Fusion.Resources.Api
 {
@@ -43,6 +44,7 @@ namespace Fusion.Resources.Api
 
             services.AddHttpContextAccessor();
             services.AddSwagger(Configuration);
+            
 
             // Configure fusion integration
             services.AddFusionIntegration(options =>
@@ -64,7 +66,8 @@ namespace Fusion.Resources.Api
 
 
 
-            services.AddControllers();
+            services.AddControllers()
+                .AddFluentValidation(c => c.RegisterValidatorsFromAssemblyContaining<Startup>());
 
             #region Resource services
 
