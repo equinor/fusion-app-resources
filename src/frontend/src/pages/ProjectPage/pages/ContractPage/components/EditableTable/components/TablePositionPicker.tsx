@@ -25,7 +25,6 @@ function TablePositionPicker<T>({
 
     return (
         <PositionPicker
-            label={columnLabel}
             selectedPosition={accessor(item)}
             projectId={currentOrgProject.externalId}
             contractId={contract?.id || undefined}
