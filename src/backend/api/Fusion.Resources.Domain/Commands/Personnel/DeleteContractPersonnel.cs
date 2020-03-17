@@ -39,11 +39,9 @@ namespace Fusion.Resources.Domain.Commands
 
             protected override async Task Handle(DeleteContractPersonnel request, CancellationToken cancellationToken)
             {
-                var dbEntity = request.PersonnelId.Type switch
-                {
-                    PersonnelId.IdentifierType.UniqueId => await resourcesDb.ContractPersonnel.FirstOrDefaultAsync(c => c.Id == request.PersonnelId.UniqueId || c.Person.AzureUniqueId == request.PersonnelId.UniqueId),
-                    _ => await resourcesDb.ContractPersonnel.FirstOrDefaultAsync(c => c.Person.Mail == request.PersonnelId.Mail)
-                };
+                var dbEntity = await resourcesDb.ContractPersonnel
+                    .GetById(request.OrgContractId, request.PersonnelId)
+                    .FirstOrDefaultAsync();
 
                 if (dbEntity != null)
                 {

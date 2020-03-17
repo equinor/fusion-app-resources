@@ -11,7 +11,7 @@
     <PackageReference Include="Fusion.AspNetCore" Version="3.1.0" />
     <PackageReference Include="Fusion.Threading" Version="3.1.1" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.0-rc-1" />
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="3.1.0-preview-5" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="3.1.0-preview-6" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.13.1" />
 
   </ItemGroup>
