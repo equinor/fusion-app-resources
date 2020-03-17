@@ -41,7 +41,7 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var dbEntity = request.PersonnelId.Type switch
                 {
-                    PersonnelId.IdentifierType.UniqueId => await resourcesDb.ContractPersonnel.FirstOrDefaultAsync(c => c.Id == request.PersonnelId.UniqueId || c.Person.AzureUniqueId == request.PersonnelId.UniqueId),
+                    PersonnelId.IdentifierType.UniqueId => await resourcesDb.ContractPersonnel.FirstOrDefaultAsync(c => c.PersonId == request.PersonnelId.UniqueId || c.Person.AzureUniqueId == request.PersonnelId.UniqueId),
                     _ => await resourcesDb.ContractPersonnel.FirstOrDefaultAsync(c => c.Person.Mail == request.PersonnelId.Mail)
                 };
 
