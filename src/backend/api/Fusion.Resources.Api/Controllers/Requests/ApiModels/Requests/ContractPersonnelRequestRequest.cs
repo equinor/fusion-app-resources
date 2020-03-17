@@ -51,6 +51,15 @@ namespace Fusion.Resources.Api.Controllers
 
                 RuleFor(x => x.Position.Name).NotContainScriptTag().When(x => x.Position != null).WithName("position.name");
                 RuleFor(x => x.Position.Obs).NotContainScriptTag().When(x => x.Position != null).WithName("position.obs");
+                
+                RuleFor(x => x.Position.BasePosition.Id).MustAsync(async (bpId, ct) =>
+                {
+                    var resolvedBp = await projectOrgResolver.ResolveBasePositionAsync(bpId);
+                    return resolvedBp != null;
+                }).WithMessage("Base position is not valid. Could not be resolved from org service")
+                .WithName("position.basePosition.id")
+                .When(x => x.Position != null && x.Position.BasePosition != null);
+
                 this.projectOrgResolver = projectOrgResolver;
             }
 
@@ -77,11 +86,11 @@ namespace Fusion.Resources.Api.Controllers
                     if (position.BasePosition.Id == Guid.Empty)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.basePosition.id", "Base position id cannot be empty."));
 
-                    var resolvedBasePosition = AsyncUtils.RunSync(() => projectOrgResolver.ResolveBasePositionAsync(position.BasePosition.Id));
-                    if (resolvedBasePosition == null)
-                    {
-                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.basePosition.id", "Base position is not valid."));
-                    }
+                    //var resolvedBasePosition = AsyncUtils.RunSync(() => projectOrgResolver.ResolveBasePositionAsync(position.BasePosition.Id));
+                    //if (resolvedBasePosition == null)
+                    //{
+                    //    context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.basePosition.id", "Base position is not valid."));
+                    //}
                 }
 
                 if (position.TaskOwner != null && position.TaskOwner.PositionId.HasValue)
