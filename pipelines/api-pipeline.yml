@@ -1,5 +1,13 @@
 name: $(date:yyyyMMdd)$(rev:.r)
-trigger: none
+
+trigger: 
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - src/backend/api/*
+
 pr: none
 
 resources:
