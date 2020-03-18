@@ -10,10 +10,9 @@ type ContractPositionPickerProps = {
 };
 
 const ContractPositionPicker: React.FC<ContractPositionPickerProps> = ({ label, selectedPosition, onSelect, contractId }) => {
-    const currentContext = useCurrentContext();
-    const currentOrgProject = currentContext as any;
+    const currentOrgProject = useCurrentContext();
 
-    if (!currentOrgProject) {
+    if (!currentOrgProject || !currentOrgProject.externalId) {
         return null;
     }
 
