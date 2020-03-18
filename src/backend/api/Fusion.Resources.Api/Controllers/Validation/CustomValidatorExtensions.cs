@@ -46,7 +46,52 @@ namespace Fusion.Resources.Api.Controllers
             return (IRuleBuilderOptions<T, BasePositionReference>)result;
         }
 
-        
+        public static IRuleBuilderOptions<T, Guid?> BeExistingContractPositionId<T>(this IRuleBuilder<T, Guid?> ruleBuilder, IProjectOrgResolver projectOrgResolver)
+        {
+            var result = ruleBuilder.CustomAsync(async (positionId, context, ct) =>
+            {
+                if (positionId.HasValue)
+                {
+                    var position = await projectOrgResolver.ResolvePositionAsync(positionId.Value);
+
+                    if (position == null)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' does not exist in org service."));
+                    }
+
+                    if (position != null && position.ContractId == null)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' exists, but does not belong to a contract."));
+                    }
+                }
+            });
+
+            return (IRuleBuilderOptions<T, Guid?>)result;
+        }
+
+        public static IRuleBuilderOptions<T, Guid?> BeExistingCompanyPositionId<T>(this IRuleBuilder<T, Guid?> ruleBuilder, IProjectOrgResolver projectOrgResolver)
+        {
+            var result = ruleBuilder.CustomAsync(async (positionId, context, ct) =>
+            {
+                if (positionId.HasValue)
+                {
+                    var position = await projectOrgResolver.ResolvePositionAsync(positionId.Value);
+
+                    if (position == null)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' does not exist in org service."));
+                    }
+
+                    if (position != null && position.ContractId != null)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' exisits, but belongs to contract {position.Contract?.ContractNumber}."));
+                    }
+                }
+            });
+
+            return (IRuleBuilderOptions<T, Guid?>)result;
+        }
+
 
         private static string ToLowerFirstChar(this string input)
         {

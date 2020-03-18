@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<ContractRequest>
         {
-            public Validator(ICompanyResolver companyResolver)
+            public Validator(ICompanyResolver companyResolver, IProjectOrgResolver orgResolver)
             {
                 RuleFor(x => x.Id).NotEmptyIfProvided().WithName("id");
                 RuleFor(x => x.ContractNumber).MaximumLength(15).WithMessage("Contractnumber should not exceed 10 characters according to SAP rules.");
@@ -40,13 +40,22 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.Company)
                     .MustAsync(async (c, cancel) =>
                     {
-                        var resolvedCompany = await companyResolver.FindCompanyAsync(c.Id);
+                        var resolvedCompany = await companyResolver.FindCompanyAsync(c!.Id);
                         return resolvedCompany != null;
                     })
                     .WithMessage(x => $"Could not resolve company with id '{x.Company?.Id}'")
                     .When(x => x.Company != null);
 
-                // TODO: Add validator for position, but must implement "search" for position endpoint.
+                
+                RuleFor(x => x.ExternalCompanyRepPositionId).BeExistingContractPositionId(orgResolver)
+                    .When(x => x.ExternalCompanyRepPositionId.HasValue);
+                RuleFor(x => x.ExternalContractResponsiblePositionId).BeExistingContractPositionId(orgResolver)
+                    .When(x => x.ExternalContractResponsiblePositionId.HasValue); 
+
+                RuleFor(x => x.CompanyRepPositionId).BeExistingCompanyPositionId(orgResolver)
+                    .When(x => x.CompanyRepPositionId.HasValue);
+                RuleFor(x => x.ContractResponsiblePositionId).BeExistingCompanyPositionId(orgResolver)
+                    .When(x => x.ContractResponsiblePositionId.HasValue);
             }
         }
 

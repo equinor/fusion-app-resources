@@ -54,6 +54,8 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.Position.BasePosition).BeValidBasePosition(projectOrgResolver)
                     .When(x => x.Position != null);
 
+                RuleFor(x => x.Position.TaskOwner.PositionId).BeExistingContractPositionId(projectOrgResolver)
+                    .When(x => x.Position != null && x.Position.TaskOwner != null);
 
                 this.projectOrgResolver = projectOrgResolver;
             }
