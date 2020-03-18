@@ -20,7 +20,6 @@ import AddPersonnelFormDisciplinesDropDown from './AddPersonnelFormDisciplinesDr
 import ManagePersonnelToolBar, { IconButtonProps } from '../components/ManagePersonnelToolBar';
 import useBasePositions from '../../../../../../../hooks/useBasePositions';
 import SelectionCell from '../components/SelectionCell';
-import PopOverMenu from '../components/PopOverMenu';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
