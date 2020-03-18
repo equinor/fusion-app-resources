@@ -214,7 +214,7 @@ function EditableTable<T>({
                             <TableToolbar onRemove={() => onRemoveItems([stateItem])} />
                         </td>
                         {columns.map(column => (
-                            <td className={styles.tableRowCell}>
+                            <td key={column.accessKey.toString()} className={styles.tableRowCell}>
                                 {getTableComponent(column, stateItem)}
                             </td>
                         ))}

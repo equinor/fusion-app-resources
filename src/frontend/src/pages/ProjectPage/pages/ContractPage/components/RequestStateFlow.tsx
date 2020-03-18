@@ -75,7 +75,7 @@ const RequestStateFlow: React.FC<RequestStateProps> = ({ item }) => {
     return (
         <div className={styles.requestStateFlow}>
             {requestStates.map((status, i) => (
-                <RequestItem requestStatus={status} index={i} />
+                <RequestItem key={i.toString()} requestStatus={status} index={i} />
             ))}
         </div>
     );

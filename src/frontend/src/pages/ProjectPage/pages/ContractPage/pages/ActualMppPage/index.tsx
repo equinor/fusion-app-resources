@@ -24,7 +24,7 @@ const ActualMppPage: React.FC = () => {
 
     const fetchMppAsync = React.useCallback(async () => {
         const contractId = contract?.id;
-        const projectId = (currentContext as any)?.externalId;
+        const projectId = currentContext?.externalId;
         if (!contractId || !projectId) {
             return [];
         }
@@ -43,6 +43,10 @@ const ActualMppPage: React.FC = () => {
     const filterSections = React.useMemo(() => {
         return getFilterSections(contractPositions || []);
     }, [contractPositions]);
+
+    const onRequestSidesheetClose = React.useCallback(() => {
+        setEditRequests(null);
+    }, []);
 
     if (error) {
         return (
@@ -84,7 +88,10 @@ const ActualMppPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={filteredRequests => setFilteredContractPositions(filteredRequests)}
             />
-            <EditRequestSideSheet initialRequests={editRequests}/>
+            <EditRequestSideSheet
+                initialRequests={editRequests}
+                onClose={onRequestSidesheetClose}
+            />
         </div>
     );
 };

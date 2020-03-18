@@ -14,7 +14,6 @@ function TablePositionPicker<T>({
     columnLabel,
 }: DefaultTableType<T, Position | null>) {
     const currentContext = useCurrentContext();
-    const currentOrgProject = currentContext as any;
     const { contract } = useContractContext();
     const onPositionChange = React.useCallback(
         (basePosition: Position) => {
@@ -23,10 +22,14 @@ function TablePositionPicker<T>({
         [onChange, item, accessKey, rowIdentifier]
     );
 
+    if(!currentContext?.externalId) {
+        return null;
+    }
+
     return (
         <PositionPicker
             selectedPosition={accessor(item)}
-            projectId={currentOrgProject.externalId}
+            projectId={currentContext?.externalId}
             contractId={contract?.id || undefined}
             onSelect={onPositionChange}
         />

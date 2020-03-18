@@ -31,38 +31,26 @@ export const transFormRequest = (
     }));
 };
 
-export const transformToCreatePersonnelRequest = (
+export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
+    description: req.description,
+    person: {
+        mail: req.person?.mail || '',
+    },
+    position: {
+        appliesFrom: req.appliesFrom,
+        appliesTo: req.appliesTo,
+        basePosition: req.basePosition,
+        id: req.positionId || null,
+        name: req.positionName,
+        obs: req.obs,
+        workload: +req.workload,
+        taskOwner: req.taskOwner ? { positionId: req.taskOwner.id } : null,
+    },
+});
+
+export const transformToCreatePersonnelRequests = (
     editRequests: EditRequest[]
-): CreatePersonnelRequest[] => {
-    return editRequests.map(req => {
-        const personnel: CreatePersonnelRequest = {
-            id: req.requestId || undefined,
-            description: req.description,
-            person: {
-                mail: req.person?.mail || '',
-            },
-            position: {
-                appliesFrom: req.appliesFrom,
-                appliesTo: req.appliesTo,
-                basePosition: req.basePosition?.id
-                    ? {
-                          id: req.basePosition.id,
-                      }
-                    : null,
-                id: req.positionId || null,
-                name: req.positionName,
-                obs: req.obs,
-                workload: +req.workload,
-                taskOwner: req.taskOwner?.id
-                    ? {
-                          positionId: req.taskOwner.id,
-                      }
-                    : null,
-            },
-        };
-        return personnel;
-    });
-};
+): CreatePersonnelRequest[] => editRequests.map(transformToCreatePersonnelRequest);
 
 export const createDefaultState = (): EditRequest[] => [
     {

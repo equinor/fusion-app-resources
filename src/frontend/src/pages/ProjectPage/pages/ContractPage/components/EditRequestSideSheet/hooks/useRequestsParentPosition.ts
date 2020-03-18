@@ -6,7 +6,6 @@ import { useAppContext } from '../../../../../../../appContext';
 
 export default (personnelRequests: PersonnelRequest[] | null) => {
     const currentContext = useCurrentContext();
-    const currentOrgProject = currentContext as any;
 
     const [isFetchingPositions, setIsFetchingPositions] = React.useState<boolean>(false);
     const [positionsError, setPositionsError] = React.useState<Error | null>(null);
@@ -19,7 +18,7 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
             return [];
         }
         return personnelRequests.reduce((positionIds: string[], request) => {
-            const parentPositionId = request.position?.taskOwner?.positionId
+            const parentPositionId = request.position?.taskOwner?.positionId;
             if (parentPositionId) {
                 return [...positionIds, parentPositionId];
             }
@@ -58,10 +57,10 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
     );
 
     React.useEffect(() => {
-        if (!currentOrgProject || !currentOrgProject.externalId) {
+        if (!currentContext?.externalId) {
             return;
         }
-        fetchAllPositions(currentOrgProject.externalId);
+        fetchAllPositions(currentContext.externalId);
     }, [parentPositionsIds]);
 
     return { selectedPositions, isFetchingPositions, positionsError };

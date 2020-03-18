@@ -1,3 +1,4 @@
+import { BasePosition } from '@equinor/fusion';
 
 type CreatePersonnelRequest = {
     id?: string;
@@ -10,9 +11,7 @@ type CreatePersonnelRequest = {
 
 type CreatePersonnelRequestPosition = {
     id: string | null; 
-    basePosition: {
-        id: string
-    } | null;
+    basePosition: BasePosition | null;
     name: string;
     appliesFrom: Date | null;
     appliesTo: Date | null;
