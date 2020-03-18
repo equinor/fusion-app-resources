@@ -56,15 +56,15 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 formState.map(async person =>
                     person.created
                         ? await apiClient.updatePersonnelAsync(
-                              currentContext.id,
-                              contractId,
-                              person
-                          )
+                            currentContext.id,
+                            contractId,
+                            person
+                        )
                         : await apiClient.createPersonnelAsync(
-                              currentContext.id,
-                              contractId,
-                              person
-                          )
+                            currentContext.id,
+                            contractId,
+                            person
+                        )
                 )
             );
 
@@ -75,7 +75,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 title: 'Personnel changes saved',
                 cancelLabel: 'dismiss',
             });
-            console.log('respinse on save', response);
+
             dispatchContractAction({ verb: 'merge', collection: 'personnel', payload: response });
         } catch (e) {
             //TODO: This could probably be more helpfull.
@@ -211,8 +211,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                             Saving
                         </>
                     ) : (
-                        'Save'
-                    )}
+                            'Save'
+                        )}
                 </Button>,
             ]}
         >
