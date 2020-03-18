@@ -1,25 +1,31 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { IconButton, AddIcon, DeleteIcon, useTooltipRef } from '@equinor/fusion-components';
+import { IconButton, AddIcon, useTooltipRef, CloseIcon } from '@equinor/fusion-components';
 
-type TaskbarProps = {
+type TaskbarProps<T> = {
     onAddItem: () => void;
+    onRemoveItem: (removeItems: T[]) => void;
+    selectedItems: T[];
 };
 
-const Taskbar: React.FC<TaskbarProps> = ({onAddItem}) => {
-    const addItemTooltipRef = useTooltipRef("Add item");
-    const removeItemTooltipRef = useTooltipRef("Remove item");
+function Taskbar<T>({ onAddItem, onRemoveItem, selectedItems }: TaskbarProps<T>) {
+    const addItemTooltipRef = useTooltipRef('Add item');
+    const removeItemTooltipRef = useTooltipRef('Remove item');
 
     return (
         <div className={styles.taskBar}>
             <IconButton onClick={onAddItem} ref={addItemTooltipRef}>
                 <AddIcon />
             </IconButton>
-            <IconButton ref={removeItemTooltipRef} disabled>
-                <DeleteIcon />
+            <IconButton
+                ref={removeItemTooltipRef}
+                disabled={selectedItems.length <= 0}
+                onClick={() => onRemoveItem(selectedItems)}
+            >
+                <CloseIcon />
             </IconButton>
         </div>
     );
-};
+}
 
 export default Taskbar;
