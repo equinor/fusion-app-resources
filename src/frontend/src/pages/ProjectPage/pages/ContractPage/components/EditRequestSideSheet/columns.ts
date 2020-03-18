@@ -15,8 +15,8 @@ const columns: EditableTaleColumn<EditRequest>[] = [
         item: 'PersonnelPicker',
     },
     {
-        accessor: item => item.parentPosition,
-        accessKey: 'parentPosition',
+        accessor: item => item.taskOwner,
+        accessKey: 'taskOwner',
         label: 'Task owner',
         item: 'PositionPicker',
     },
@@ -50,6 +50,12 @@ const columns: EditableTaleColumn<EditRequest>[] = [
         label: 'OBS',
         item: 'TextInput',
     },
+    {
+        accessor: item => item.description,
+        accessKey: 'description',
+        label: 'Description',
+        item: 'TextArea',
+    }
 ];
 
 export default columns;

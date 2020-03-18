@@ -14,13 +14,13 @@
             "endpoints": {
                 "org": "https://pro-s-org-ci.azurewebsites.net",
                 "people": "https://pro-s-people-ci.azurewebsites.net",
-                "resources": "[concat('https://query-api-', parameters('env-name'), '.azurewebsites.net')]"
+                "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]"
             },
             "resources": {
                 "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
             },
             "queues": {
-                "provisionPosition": "task-resolved"
+                "provisionPosition": "provision-position"
             }
         }
     }
@@ -29,7 +29,7 @@
     "function-name": "[concat('func-fap-resources-', parameters('env-name'))]",
     "ai-name": "[concat('ai-fap-resources-', parameters('env-name'))]",
     "storage-name": "[concat('safresources', parameters('env-name'))]",
-    "storage-id": "/subscriptions/63b791ae-b2bc-41a1-ac66-806c4e69bffe/resourceGroups/fusion-apps-resources-ci/providers/Microsoft.Storage/storageAccounts/safresourcesci"
+    "storage-id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Storage/storageAccounts/', variables('storage-name'))]"
   },
   "resources": [
     {
@@ -38,6 +38,9 @@
       "name": "[variables('function-name')]",
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "dependsOn": [],
       "properties": {
         "siteConfig": {
@@ -49,6 +52,10 @@
             {
               "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storage-name'), ';AccountKey=', listKeys(variables('storage-id'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
             },
             {
               "name": "WEBSITE_CONTENTSHARE",

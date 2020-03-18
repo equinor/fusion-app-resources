@@ -4,6 +4,7 @@ import {
     combineUrls,
     Position,
     BasePosition,
+    HttpClientParseError,
 } from '@equinor/fusion';
 import ResourceCollection from './ResourceCollection';
 import Personnel from '../models/Personnel';
@@ -88,6 +89,27 @@ export default class ApiClient {
             Personnel,
             FusionApiHttpErrorResponse
         >(url, personnel);
+        return reponse.data;
+    }
+
+    async deletePersonnelAsync(projectId: string, contractId: string, personnel: Personnel) {
+        const url = this.resourceCollection.personnel(projectId, contractId, personnel.personnelId);
+        const responseParser = async (response: Response) => {
+            try {
+                if ([200, 204].includes(response.status)) return personnel;
+
+                throw reponse;
+            } catch (parseError) {
+                throw new HttpClientParseError(parseError);
+            }
+        };
+
+        const reponse = await this.httpClient.deleteAsync<Personnel, Personnel>(
+            url,
+            null,
+            responseParser
+        );
+
         return reponse.data;
     }
 

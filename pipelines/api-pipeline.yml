@@ -108,9 +108,63 @@ stages:
             - template: templates/execute-sql-migration.yml
               parameters:
                 artifact: 'k8s-deployment'
+                environment: $(envName)                
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
               inputs:
                 action: deploy
                 manifests: $(deploymentManifest) 
+
+  - stage: DeployFQA
+    displayName: 'Deploy to FQA'
+    dependsOn: DeployCI
+    condition: succeeded()
+    variables: 
+      envName: 'fqa'
+      clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+              
+    jobs:
+      - deployment: DeployFQA
+        pool: Private Docker
+        environment: fusion-resources-fqa.fusion-resources-app-fqa
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: AzurePowerShell@4
+                displayName: 'Get secrets'
+                inputs:
+                  azureSubscription: $(subscriptionService)
+                  ScriptType: 'InlineScript'
+                  FailOnStandardError: true
+                  azurePowerShellVersion: 'LatestVersion'
+                  Inline: |
+                      $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
+                      Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
+  
+              - template: templates/get-appinsights-key.yml
+                parameters:
+                  environment: $(envName)
+  
+              # Load the key vault url into variable, so it can be used when replacing tokens.
+              - template: templates/get-keyvault-url.yml
+                parameters:
+                  environment: $(envName)
+                  variableName: envKeyVaultUrl
+  
+              - template: templates/replace-tokens.yml@commonTemplates
+                parameters:
+                  targetFiles: '$(deploymentManifest)'
+  
+              - template: templates/execute-sql-migration.yml
+                parameters:
+                  artifact: 'k8s-deployment'
+                  environment: $(envName)
+    
+              - task: KubernetesManifest@0
+                displayName: Deploy to Kubernetes cluster
+                inputs:
+                  action: deploy
+                  manifests: $(deploymentManifest) 
+            

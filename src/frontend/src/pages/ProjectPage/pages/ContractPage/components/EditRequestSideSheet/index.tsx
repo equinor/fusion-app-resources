@@ -12,6 +12,9 @@ import useForm from '../../../../../../hooks/useForm';
 import useSubmitChanges from './hooks/useSubmitChanges';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import RequestProgressSidesheet from './components/RequestProgressSidesheet';
+import useBasePositions from '../../../../../../hooks/useBasePositions';
+import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
+import { ReadonlyCollection } from '../../../../../../reducers/utils';
 
 export type EditRequest = {
     id: string;
@@ -25,7 +28,7 @@ export type EditRequest = {
     workload: string;
     obs: string;
     person: Personnel | null;
-    parentPosition: Position | null;
+    taskOwner: Position | null;
 };
 
 type EditRequestSideSheetProps = {
@@ -53,6 +56,19 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
 
     const { selectedPositions, isFetchingPositions } = useRequestsParentPosition(editRequests);
 
+    const { basePositions, isFetchingBasePositions, basePositionsError } = useBasePositions();
+    const basePositionState: ReadonlyCollection<BasePosition> = {
+        data: basePositions,
+        isFetching: !!isFetchingBasePositions,
+        error: basePositionsError,
+    };
+
+    const { personnel, isFetchingPersonnel, personnelError } = usePersonnel();
+    const personnelState: ReadonlyCollection<Personnel> = {
+        data: personnel,
+        isFetching: isFetchingPersonnel,
+        error: personnelError,
+    };
     const defaultState = React.useMemo(() => transFormRequest(editRequests, selectedPositions), [
         editRequests,
         selectedPositions,
@@ -65,7 +81,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                     state.basePosition &&
                         state.positionName &&
                         state.workload &&
-                        state.parentPosition &&
+                        state.taskOwner &&
                         !Boolean(isNaN(+state.workload))
                 )
         );
@@ -118,6 +134,10 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                 setFormState={setFormState}
                 rowIdentifier="id"
                 isFetching={isFetchingPositions || isFetchingContract}
+                componentState={{
+                    personnel: personnelState,
+                    basePositions: basePositionState,
+                }}
             />
             <RequestProgressSidesheet
                 pendingRequests={pendingRequests}

@@ -6,7 +6,7 @@ import CreatePersonnelRequest from '../../../../../../models/CreatePersonnelRequ
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
-    parentPositions: Position[] | null
+    taskOwners: Position[] | null
 ): EditRequest[] | null => {
     if (personnelRequest === null) {
         return null;
@@ -22,13 +22,12 @@ export const transFormRequest = (
         description: req.description,
         obs: req.position?.obs || '',
         positionName: req.position?.name || '',
-        workload: req.position?.workload?.toString() || '',
+        workload: req.position?.workload.toString() || '',
         person: req.person,
-        parentPosition: req.position?.taskOwner?.positionId
-            ? parentPositions?.find(
-                  position => position.id === req.position?.taskOwner?.positionId || ''
-              ) || null
-            : null,
+        taskOwner:
+            taskOwners?.find(
+                position => position.id === req.position?.taskOwner?.positionId || ''
+            ) || null,
     }));
 };
 
@@ -45,11 +44,7 @@ export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePerso
         name: req.positionName,
         obs: req.obs,
         workload: +req.workload,
-        taskOwner: req.parentPosition?.id
-            ? {
-                  positionId: req.parentPosition.id,
-              }
-            : null,
+        taskOwner: req.taskOwner ? { positionId: req.taskOwner.id } : null,
     },
 });
 
@@ -70,6 +65,6 @@ export const createDefaultState = (): EditRequest[] => [
         workload: '',
         obs: '',
         person: null,
-        parentPosition: null,
+        taskOwner: null,
     },
 ];

@@ -253,6 +253,97 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("Projects");
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("Completed")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LogicAppName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LogicAppVersion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RequestType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SystemMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("TerminatedbyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TerminatedbyId");
+
+                    b.HasIndex("RequestId", "RequestType");
+
+                    b.ToTable("Workflows");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflowStep", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("WorkflowId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("Completed")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CompletedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DueDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NextStep")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreviousStep")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("Started")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id", "WorkflowId");
+
+                    b.HasIndex("CompletedById");
+
+                    b.HasIndex("WorkflowId");
+
+                    b.ToTable("DbWorkflowStep");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContract", b =>
                 {
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "AllocatedBy")
@@ -417,6 +508,26 @@ namespace Fusion.Resources.Database.Migrations
                         .WithMany("Disciplines")
                         .HasForeignKey("DbExternalPersonnelPersonId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "TerminatedBy")
+                        .WithMany()
+                        .HasForeignKey("TerminatedbyId");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflowStep", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CompletedBy")
+                        .WithMany()
+                        .HasForeignKey("CompletedById");
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbWorkflow", "Workflow")
+                        .WithMany("WorkflowSteps")
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

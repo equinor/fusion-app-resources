@@ -21,9 +21,8 @@ export type SuccessfulRequest<T, TResponse> = {
 export default (
     formState: EditRequest[]
 ) => {
-    const { contract } = useContractContext();
+    const { contract, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
-
     const sendNotification = useNotificationCenter();
     const { apiClient } = useAppContext();
 

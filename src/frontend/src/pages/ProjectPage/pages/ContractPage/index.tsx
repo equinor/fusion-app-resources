@@ -7,7 +7,6 @@ import {
     IconButton,
     CloseIcon,
     SkeletonBar,
-    SkeletonDisc,
 } from '@equinor/fusion-components';
 import ScopedSwitch from '../../../../components/ScopedSwitch';
 import ContractDetailsPage from './pages/ContractDetailsPage';
@@ -18,7 +17,6 @@ import ActiveRequestsPage from './pages/ActiveRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
 import * as styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
-import EditRequestSideSheet from './components/EditRequestSideSheet';
 import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 

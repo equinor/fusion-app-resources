@@ -5,7 +5,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryPersonnelRequest
     {
-        public QueryPersonnelRequest(DbContractorRequest request, QueryPositionRequest position)
+        public QueryPersonnelRequest(DbContractorRequest request, QueryPositionRequest position, QueryWorkflow workflow)
         {
             Id = request.Id;
             Position = position;
@@ -21,7 +21,10 @@ namespace Fusion.Resources.Domain
             Updated = request.Updated;
             CreatedBy = new QueryPerson(request.CreatedBy);
             UpdatedBy = QueryPerson.FromEntityOrDefault(request.UpdatedBy);
+            Workflow = workflow;
+            ProvisioningStatus = new QueryProvisioningStatus(request.ProvisioningStatus);
         }
+
         public Guid Id { get; set; }
 
         public DbRequestState State { get; set; }
@@ -39,6 +42,9 @@ namespace Fusion.Resources.Domain
 
         public QueryProject Project { get; set; }
         public QueryContract Contract { get; set; }
+
+        public QueryWorkflow Workflow { get; set; }
+        public QueryProvisioningStatus ProvisioningStatus { get; set; }
     }
 }
 

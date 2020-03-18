@@ -30,26 +30,23 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts")]
-        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectContracts([FromRoute]ProjectIdentifier projectIdentifier)
+        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectAllocatedContract([FromRoute]ProjectIdentifier projectIdentifier)
         {
             var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             var realContracts = await client.GetContractsV2Async(projectIdentifier.ProjectId);
 
-            var contracts = new Faker<ApiContract>()
-                .RuleFor(c => c.ContractNumber, f => f.Finance.Account(10))
-                .RuleFor(c => c.Name, f => f.Lorem.Sentence(f.Random.Int(4, 10)))
-                .RuleFor(c => c.Company, f => new ApiCompany { Id = Guid.NewGuid(), Name = f.Company.CompanyName() })
-                .RuleFor(c => c.Description, f => f.Lorem.Paragraphs())
-                .RuleFor(c => c.StartDate, f => f.Date.Past())
-                .RuleFor(c => c.EndDate, f => f.Date.Future())
-                .Generate(new Random(Guid.NewGuid().GetHashCode()).Next(5, 10));
+            var allocatedContracts = await DispatchAsync(GetProjectContracts.ByOrgProjectId(projectIdentifier.ProjectId));
 
-            var collection = new ApiCollection<ApiContract>(realContracts.Select(c => new ApiContract(c)).Union(contracts));
-            return Ok(collection);
+            var contractsToReturn = realContracts
+                .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c.Id))
+                .ToList();
+
+            var collection = new ApiCollection<ApiContract>(contractsToReturn.Select(c => new ApiContract(c)));
+            return collection;
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
-        public async Task<ActionResult<ApiContract>> GetProjectContracts([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
+        public async Task<ActionResult<ApiContract>> GetProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
         {
             var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractId);
@@ -154,6 +151,7 @@ namespace Fusion.Resources.Api.Controllers
                     AppliesFrom = request.AppliesFrom,
                     AppliesTo = request.AppliesTo,
                     Workload = request.Workload,
+                    Obs = request.Obs,
                     AssignedPerson = request.AssignedPerson
                 });
             }
@@ -166,6 +164,7 @@ namespace Fusion.Resources.Api.Controllers
                     AppliesFrom = request.AppliesFrom,
                     AppliesTo = request.AppliesTo,
                     Workload = request.Workload,
+                    Obs = request.Obs,
                     AssignedPerson = request.AssignedPerson,
                     ExternalId = externalId
                 };

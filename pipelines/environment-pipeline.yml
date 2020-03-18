@@ -56,7 +56,7 @@ stages:
   - deployment: DeployInfra
     environment: fusion-fqa
     variables:
-      environmentName: qa
+      environmentName: fqa
     strategy:
       runOnce:
         deploy:
@@ -76,7 +76,7 @@ stages:
   - deployment: DeployInfra
     environment: fusion-prod
     variables:
-      environmentName: prod
+      environmentName: fprd
     strategy:
       runOnce:
         deploy:

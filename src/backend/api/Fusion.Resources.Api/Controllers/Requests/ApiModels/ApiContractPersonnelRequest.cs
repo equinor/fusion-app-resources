@@ -7,11 +7,7 @@ using System.Text.Json.Serialization;
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiContractPersonnelRequest
-    {
-        public ApiContractPersonnelRequest()
-        {
-
-        }
+    {     
         public ApiContractPersonnelRequest(QueryPersonnelRequest query)
         {
             Id = query.Id;
@@ -27,6 +23,8 @@ namespace Fusion.Resources.Api.Controllers
             Person = new ApiContractPersonnel(query.Person);
             Project = new ApiProjectReference(query.Project);
             Contract = new ApiContractReference(query.Contract);
+            Workflow = new ApiWorkflow(query.Workflow);
+            ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
 
         public Guid Id { get; set; }
@@ -49,7 +47,9 @@ namespace Fusion.Resources.Api.Controllers
 
         public List<ApiRequestComment>? Comments { get; set; }
 
+        public ApiWorkflow Workflow { get; set; }
+        public ApiProvisioningStatus ProvisioningStatus { get; set; }
+
         public enum ApiRequestState { Created, SubmittedToCompany, RejectedByContractor, ApprovedByCompany, RejectedByCompany }
     }
-
 }

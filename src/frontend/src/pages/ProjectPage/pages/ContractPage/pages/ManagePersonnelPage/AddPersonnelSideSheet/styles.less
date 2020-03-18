@@ -1,23 +1,59 @@
-  .container {
+.container {
     display: grid;
+
     height: 100%;
     width: 100%;
     box-sizing: border-box;
     padding: calc(var(--grid-unit) * 3px);
+    grid-template-rows: auto 1fr;
 
-        .tableRowCell {
-            padding-bottom: calc(var(--grid-unit) * 1px);
+
+
+    .tableBody{
+        width: 100%;
+        display:grid;
+        grid-template-columns: auto;
+       
+        .tableRow {
+            width: 100%;
+            display:grid;
+            grid-template-columns: 48px 48px repeat(5,1fr);
+          
+
+            .headerRowCell {
+                display:flex;
+                align-items: center;
+                justify-content: left;
+                font-weight: normal;
+                background: var(--color-black-alt5);
+                padding-left: calc(var(--grid-unit) * 2px);
+                padding-right: calc(var(--grid-unit) * 2px);
+            }
+
+           
+
+            .tableRowHeaderSelectionCell {
+                display:flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--color-black-alt5);
+
+
+            }
+
+             .tableRowCell {
+                padding-bottom: calc(var(--grid-unit) * 1px);
+            }
+        
+            .tableRowMenuCell {
+                user-select: none; 
+                cursor:pointer;
+                display:flex;
+                justify-content: center;
+                font-size: 28px;
+            }
         }
 
-        .header {
-            text-align: left;
-            font-weight: normal;
-            background: var(--color-black-alt5);
-            padding: calc(var(--grid-unit) * 2px);
-            position: sticky;
-            top: 0;
-            z-index: 1 ;
-        }
-    
-  }
+    }    
+}
 
