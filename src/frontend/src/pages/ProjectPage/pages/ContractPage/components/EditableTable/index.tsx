@@ -109,7 +109,7 @@ function EditableTable<T>({
                 {formState.map((stateItem, index) => (
                     <tr key={`item-${index}`}>
                         {columns.map(column => (
-                            <td className={styles.tableRowCell}>
+                            <td key={column.accessKey.toString()} className={styles.tableRowCell}>
                                 {getTableComponent(column, stateItem)}
                             </td>
                         ))}

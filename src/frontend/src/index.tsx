@@ -13,17 +13,33 @@ import ApiClient from './api/ApiClient';
 import AppContext from './appContext';
 import { appReducer, createInitialState } from './reducers/appReducer';
 import useCollectionReducer from './hooks/useCollectionReducer';
+import ServiceNowApiClient from './api/ServiceNowApiClient';
+
+const RESOURCE_BASE_URL = 'https://resources-api.ci.fusion-dev.net';
+
+// "https://pro-f-utility-CI.azurewebsites.net"
+// "https://pro-f-common-CI.azurewebsites.net"
+const FUNCTION_BASE_URL = 'https://pro-f-common-CI.azurewebsites.net';
 
 const App: React.FC = () => {
     const fusionContext = useFusionContext();
     const apiClient = React.useMemo(
-        () => new ApiClient(fusionContext.http.client, 'https://resources-api.ci.fusion-dev.net'),
+        () => new ApiClient(fusionContext.http.client, RESOURCE_BASE_URL),
+        [fusionContext.http.client]
+    );
+
+    const serviceNowApiClient = React.useMemo(
+        () => new ServiceNowApiClient(fusionContext.http.client, FUNCTION_BASE_URL),
         [fusionContext.http.client]
     );
 
     React.useEffect(() => {
         fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
-            'https://resources-api.ci.fusion-dev.net',
+            RESOURCE_BASE_URL,
+        ]);
+
+        fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
+            FUNCTION_BASE_URL,
         ]);
     }, []);
 
@@ -35,7 +51,9 @@ const App: React.FC = () => {
     );
 
     return (
-        <AppContext.Provider value={{ apiClient, appState, dispatchAppAction }}>
+        <AppContext.Provider
+            value={{ apiClient, serviceNowApiClient, appState, dispatchAppAction }}
+        >
             <Switch>
                 <Route path="/" exact component={LandingPage} />
                 <Route path="/:projectId" component={ProjectPage} />
@@ -56,7 +74,7 @@ registerApp('resources', {
             return url.split('/')[0];
         },
     },
-} as any);
+});
 
 if (module.hot) {
     module.hot.accept();

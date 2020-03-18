@@ -11,6 +11,7 @@ import useForm from '../../../../../../hooks/useForm';
 
 import useSubmitChanges from './hooks/useSubmitChanges';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
+import RequestProgressSidesheet from './components/RequestProgressSidesheet';
 
 export type EditRequest = {
     id: string;
@@ -29,21 +30,26 @@ export type EditRequest = {
 
 type EditRequestSideSheetProps = {
     initialRequests: PersonnelRequest[] | null;
-}
+    onClose: () => void;
+};
 
-const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialRequests}) => {
+const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
+    initialRequests,
+    onClose,
+}) => {
     const { isFetchingContract } = useContractContext();
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
     const closeSideSheet = React.useCallback(() => {
         setEditRequests(null);
+        onClose();
     }, [setEditRequests]);
 
     React.useEffect(() => {
-        if(initialRequests) {
-            setEditRequests(initialRequests)
+        if (initialRequests) {
+            setEditRequests(initialRequests);
         }
-    },[initialRequests])
+    }, [initialRequests]);
 
     const { selectedPositions, isFetchingPositions } = useRequestsParentPosition(editRequests);
 
@@ -52,8 +58,8 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialReque
         selectedPositions,
     ]);
 
-    const validateForm = React.useCallback((formState: EditRequest[]) => {
-        return !formState.some(
+    const validateForm = React.useCallback((requests: EditRequest[]) => {
+        return !requests.some(
             state =>
                 !Boolean(
                     state.basePosition &&
@@ -71,7 +77,17 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialReque
         defaultState
     );
 
-    const { submit, isSubmitting } = useSubmitChanges(formState, setEditRequests);
+    const { submit, pendingRequests, failedRequests, successfulRequests } = useSubmitChanges(
+        formState
+    );
+
+    React.useEffect(() => {
+        setFormState(
+            failedRequests.filter(r => r.isEditable).map(r => r.item)
+        );
+    }, [failedRequests]);
+
+    const isSubmitting = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
     return (
         <ModalSideSheet
@@ -91,7 +107,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialReque
                     outlined
                     onClick={submit}
                 >
-                    {isSubmitting ?  <Spinner inline /> : 'Submit'}
+                    {isSubmitting ? <Spinner inline /> : 'Submit'}
                 </Button>,
             ]}
         >
@@ -102,6 +118,12 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({initialReque
                 setFormState={setFormState}
                 rowIdentifier="id"
                 isFetching={isFetchingPositions || isFetchingContract}
+            />
+            <RequestProgressSidesheet
+                pendingRequests={pendingRequests}
+                failedRequests={failedRequests}
+                successfulRequests={successfulRequests}
+                onClose={() => {}}
             />
         </ModalSideSheet>
     );

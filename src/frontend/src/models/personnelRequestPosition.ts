@@ -1,14 +1,5 @@
 import { BasePosition } from '@equinor/fusion';
 
-type CreatePersonnelRequest = {
-    id?: string;
-    description: string;
-    position: PersonnelRequestPosition | null;
-    person: {
-        mail: string;
-    };
-};
-
 type PersonnelRequestPosition = {
     id: string | null; 
     basePosition: BasePosition | null;
@@ -22,4 +13,4 @@ type PersonnelRequestPosition = {
     } | null
 };
 
-export default CreatePersonnelRequest;
+export default PersonnelRequestPosition;

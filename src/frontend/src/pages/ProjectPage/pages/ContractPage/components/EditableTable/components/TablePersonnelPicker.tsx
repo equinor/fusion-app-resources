@@ -21,13 +21,12 @@ function TablePersonnelPicker<T>({
     columnLabel,
 }: DefaultTableType<T, Personnel | null>) {
     const currentContext = useCurrentContext();
-    const currentOrgProject = currentContext as any;
     const { contract } = useContractContext();
     const selectedPersonnel = React.useMemo(() => accessor(item), [accessor, item]);
 
     const { personnel, isFetchingPersonnel, personnelError } = usePersonnel(
         contract?.id || undefined,
-        currentOrgProject.externalId
+        currentContext?.externalId || ''
     );
 
     const options = React.useMemo((): SearchableDropdownOption[] => {

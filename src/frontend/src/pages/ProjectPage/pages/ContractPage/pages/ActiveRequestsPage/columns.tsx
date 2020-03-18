@@ -39,15 +39,13 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
 
     {
-        accessor: request =>
-            request.position?.instances.find(i => i.parentPositionId)?.parentPositionId || '',
-        key: 'taskOwnerId',
-        label: 'Taskowner',
+        accessor: request => request.position?.taskOwner?.positionId || '',
+        key: 'taskOwnerPositionId',
+        label: 'Task owner',
         sortable: true,
         component: ({ item }) => {
-            const taskOwnerId =
-                item.position?.instances.find(i => i.parentPositionId)?.parentPositionId || null;
-            return <PositionColumn positionId={taskOwnerId} />;
+            const taskOwnerPositionId = item.position?.taskOwner?.positionId || null;
+            return <PositionColumn positionId={taskOwnerPositionId} />;
         },
     },
 ];

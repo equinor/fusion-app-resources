@@ -70,7 +70,7 @@ export default class ApiClient {
     async createPersonnelCollectionAsync(
         projectId: string,
         contractId: string,
-        personnel: Person[]
+        personnel: Personnel[]
     ) {
         const url = this.resourceCollection.personnelCollection(projectId, contractId);
         const reponse = await this.httpClient.postAsync<
@@ -172,7 +172,7 @@ export default class ApiClient {
         const url = this.resourceCollection.personnelRequests(projectId, contractId);
         const reponse = await this.httpClient.postAsync<
             CreatePersonnelRequest,
-            ApiCollection<PersonnelRequest>,
+            PersonnelRequest,
             FusionApiHttpErrorResponse
         >(url, request);
         return reponse.data;
@@ -187,7 +187,7 @@ export default class ApiClient {
         const url = this.resourceCollection.personnelRequest(projectId, contractId, requestId);
         const response = await this.httpClient.putAsync<
             CreatePersonnelRequest,
-            ApiCollection<PersonnelRequest>,
+            PersonnelRequest,
             FusionApiHttpErrorResponse
         >(url, request);
         return response.data;

@@ -43,9 +43,18 @@ const ActiveRequestsPage: React.FC = () => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);
 
-    const editRequest = React.useCallback((requests: PersonnelRequest[]) => {
-        setEditRequests(requests);
-    }, [setEditRequests]);
+    const requestPersonnel = React.useCallback(() => {
+        setEditRequests([]);
+    }, []);
+
+    const editRequest = React.useCallback(() => {
+        setEditRequests(selectedRequests);
+    }, [selectedRequests]);
+
+    const onRequestSidesheetClose = React.useCallback(() => {
+        setEditRequests(null);
+        setSelectedRequests([]);
+    }, []);
 
     if (error) {
         return (
@@ -60,12 +69,12 @@ const ActiveRequestsPage: React.FC = () => {
         <div className={styles.activeRequestsContainer}>
             <div className={styles.activeRequests}>
                 <div className={styles.toolbar}>
-                    <Button onClick={() => editRequest([])}>Request personnel</Button>
+                    <Button onClick={requestPersonnel}>Request personnel</Button>
                     <div>
                         <IconButton disabled>
                             <DeleteIcon />
                         </IconButton>
-                        <IconButton onClick={() => editRequest(selectedRequests)}>
+                        <IconButton onClick={editRequest}>
                             <EditIcon />
                         </IconButton>
                     </div>
@@ -85,7 +94,10 @@ const ActiveRequestsPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={setFilteredActiveRequests}
             />
-            <EditRequestSideSheet initialRequests={editRequests}/>
+            <EditRequestSideSheet
+                initialRequests={editRequests}
+                onClose={onRequestSidesheetClose}
+            />
         </div>
     );
 };
