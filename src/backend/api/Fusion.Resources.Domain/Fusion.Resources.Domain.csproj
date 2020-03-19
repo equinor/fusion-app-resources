@@ -20,4 +20,5 @@
     <ProjectReference Include="..\Fusion.Resources.Application\Fusion.Resources.Application.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
   </ItemGroup>
+  
 </Project>
