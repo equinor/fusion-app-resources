@@ -101,6 +101,19 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiBatchResponse<ApiContractPersonnel>(results);
         }
 
+        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/personnel/refresh")]
+        public async Task<ActionResult> RefreshContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier)
+        {
+            var personnel = await DispatchAsync(new GetContractPersonnel(contractIdentifier));
+
+            foreach (var person in personnel)
+            {
+                await DispatchAsync(new RefreshPersonnel(person.PersonnelId));
+            }
+
+            return Ok();
+        }
+
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
         public async Task<ActionResult<ApiContractPersonnel>> UpdateContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier, [FromBody] UpdateContractPersonnelRequest request)

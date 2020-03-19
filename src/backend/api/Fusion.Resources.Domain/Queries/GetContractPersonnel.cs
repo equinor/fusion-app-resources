@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Fusion.AspNetCore.OData;
+using Fusion.Resources.Database;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.AspNetCore.OData;
-using Fusion.Resources.Database;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain
 {
@@ -15,7 +15,9 @@ namespace Fusion.Resources.Domain
         public GetContractPersonnel(Guid contractId, ODataQueryParams query = null)
         {
             ContractId = contractId;
-            Query = query;
+
+            //ODataQueryParams IsEmpty() does not support OrderBy = null. Will fix in libraries-project, this can then be removed.
+            Query = query ?? new ODataQueryParams { OrderBy = new List<ODataOrderByOption>() };
         }
 
         public Guid ContractId { get; set; }
@@ -33,7 +35,7 @@ namespace Fusion.Resources.Domain
 
             public async Task<IEnumerable<QueryContractPersonnel>> Handle(GetContractPersonnel request, CancellationToken cancellationToken)
             {
-                var itemQuery = db.ContractPersonnel.Where(p => p.Contract.OrgContractId == request.ContractId)                    
+                var itemQuery = db.ContractPersonnel.Where(p => p.Contract.OrgContractId == request.ContractId)
                     .AsQueryable();
 
                 if (request.Query.HasFilter)
