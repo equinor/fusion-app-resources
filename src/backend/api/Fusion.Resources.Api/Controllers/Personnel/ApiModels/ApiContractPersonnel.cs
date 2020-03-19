@@ -54,9 +54,6 @@ namespace Fusion.Resources.Api.Controllers
         public List<ApiPositionInstanceReference>? Positions { get; set; }
         public List<ApiRequestReference>? Requests { get; set; }
 
-
-        public enum ApiAccountStatus { Available, InviteSent, NoAccount }
-
         public class ApiRequestReference
         {
             public ApiRequestReference(QueryPersonnelRequestReference request)

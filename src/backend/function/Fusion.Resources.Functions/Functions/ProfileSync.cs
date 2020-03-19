@@ -15,9 +15,12 @@ namespace Fusion.Resources.Functions.Functions
             this.profileSynchronizer = profileSynchronizer;
         }
 
+        /// <summary>
+        /// Syncing profiles at 5 am every day.
+        /// </summary>
         [Singleton]
         [FunctionName("profile-sync")]
-        public async Task SyncProfiles([TimerTrigger("* * * * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
             log.LogInformation("Profile sync starting run");
 

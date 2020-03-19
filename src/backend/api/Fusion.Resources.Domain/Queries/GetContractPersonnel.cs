@@ -1,14 +1,14 @@
-﻿using Fusion.AspNetCore.OData;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
@@ -19,12 +19,12 @@ namespace Fusion.Resources.Domain
         public GetContractPersonnel(Guid contractId, ODataQueryParams query = null)
         {
             ContractId = contractId;
-
             Query = query;
+
+
         }
 
         public Guid ContractId { get; set; }
-
         public ODataQueryParams Query
         {
             get => query; set
