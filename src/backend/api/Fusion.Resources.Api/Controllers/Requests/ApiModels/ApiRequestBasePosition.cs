@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Resources.Domain;
 using System;
 
 namespace Fusion.Resources.Api.Controllers
@@ -9,10 +10,20 @@ namespace Fusion.Resources.Api.Controllers
         {
             Id = basePosition.Id;
             Name = basePosition.Name;
-            Discipline = basePosition.Disicipline;
+            Discipline = basePosition.Discipline;
             ProjectType = basePosition.ProjectType;
          
             WasResolved = basePosition.Resolved;
+        }
+
+        public ApiRequestBasePosition(ApiBasePositionV2 basePosition)
+        {
+            Id = basePosition.Id;
+            Name = basePosition.Name;
+            Discipline = basePosition.Discipline;
+            ProjectType = basePosition.ProjectType;
+
+            WasResolved = true;
         }
 
         public Guid Id { get; set; }

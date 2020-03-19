@@ -2,6 +2,8 @@
 using Fusion.Resources.Database.Entities;
 using System;
 
+#nullable enable
+
 namespace Fusion.Resources.Domain
 {
     public class QueryPositionRequest
@@ -12,6 +14,7 @@ namespace Fusion.Resources.Domain
             AppliesFrom = position.AppliesFrom;
             AppliesTo = position.AppliesTo;
             Workload = position.Workload;
+            Obs = position.Obs;
 
             BasePosition = new QueryBasePosition(position.BasePositionId);
 
@@ -20,13 +23,14 @@ namespace Fusion.Resources.Domain
 
         public QueryBasePosition BasePosition { get; set; }
         public string Name { get; set; }
+        public string Obs { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
         public double Workload { get; set; }
 
         public Guid? TaskOwnerPositionId { get; set; }
 
-        public QueryPositionRequest WithResolvedBasePosition(ApiBasePositionV2 basePosition = null)
+        public QueryPositionRequest WithResolvedBasePosition(ApiBasePositionV2? basePosition = null)
         {
             // Indicate failure unless not null. 
             BasePosition.Resolved = false;
