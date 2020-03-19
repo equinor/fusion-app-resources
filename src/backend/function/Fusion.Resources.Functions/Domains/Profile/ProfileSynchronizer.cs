@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Functions.Domains.Profile
@@ -12,9 +13,9 @@ namespace Fusion.Resources.Functions.Domains.Profile
     {
         private readonly HttpClient peopleClient;
         private readonly HttpClient resourcesClient;
-        private readonly ILogger logger;
+        private readonly ILogger<ProfileSynchronizer> logger;
 
-        public ProfileSynchronizer(IHttpClientFactory httpClientFactory, ILogger logger)
+        public ProfileSynchronizer(IHttpClientFactory httpClientFactory, ILogger<ProfileSynchronizer> logger)
         {
             peopleClient = httpClientFactory.CreateClient(HttpClientNames.Application.People);
             resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
@@ -25,7 +26,7 @@ namespace Fusion.Resources.Functions.Domains.Profile
         {
             logger.LogInformation("Reading external person personnel with NoAccount or InviteSent from Resources API");
 
-            var response = await resourcesClient.GetAsync($"personell?$filter=azureAdStatus in ('NoAccount','InviteSent')");
+            var response = await resourcesClient.GetAsync($"personnel?$filter=azureAdStatus in ('NoAccount','InviteSent', 'NotSet')");
             response.EnsureSuccessStatusCode();
 
             var body = await response.Content.ReadAsStringAsync();
@@ -38,12 +39,7 @@ namespace Fusion.Resources.Functions.Domains.Profile
 
             logger.LogInformation($"Found {mailsToEnsure.Count} profiles to ensure");
 
-            var peopleResponse = await peopleClient.PostAsJsonAsync($"persons/ensure?api-version=2.0", new { PersonIdentifiers = mailsToEnsure });
-            peopleResponse.EnsureSuccessStatusCode();
-
-            var peopleBody = await response.Content.ReadAsStringAsync();
-            var people = JsonConvert.DeserializeObject<List<PersonValidationResult>>(peopleBody);
-            var ensuredPeople = people.Where(p => p.Success).ToList();
+            var ensuredPeople = await EnsurePeople(mailsToEnsure);
 
             logger.LogInformation($"Succesfully ensured {ensuredPeople.Count} people");
 
@@ -55,10 +51,26 @@ namespace Fusion.Resources.Functions.Domains.Profile
                 if (!InvitationStatusMatches(person.Person.InvitationStatus, resourcesPerson.AzureAdStatus))
                 {
                     logger.LogInformation($"Detected change in profile '{resourcesPerson.Mail}'. Initiating refresh.");
-                    var refreshResponse = await resourcesClient.PostAsJsonAsync($"personell/{resourcesPerson.Mail}/refresh", new { });
+                    var refreshResponse = await resourcesClient.PostAsJsonAsync($"personnel/{resourcesPerson.Mail}/refresh", new { });
                     refreshResponse.EnsureSuccessStatusCode();
                 }
             }
+        }
+
+        private async Task<List<PersonValidationResult>> EnsurePeople(List<string> mailsToEnsure)
+        {
+            var peopleRequest = new HttpRequestMessage(HttpMethod.Post, $"persons/ensure");
+            peopleRequest.Headers.Add("api-version", "2.0");
+            var bodyContent = JsonConvert.SerializeObject(new { PersonIdentifiers = mailsToEnsure });
+            peopleRequest.Content = new StringContent(bodyContent, Encoding.UTF8, "application/json");
+
+            var peopleResponse = await peopleClient.SendAsync(peopleRequest);
+            peopleResponse.EnsureSuccessStatusCode();
+
+            var peopleBody = await peopleResponse.Content.ReadAsStringAsync();
+            var people = JsonConvert.DeserializeObject<List<PersonValidationResult>>(peopleBody);
+            var ensuredPeople = people.Where(p => p.Success).ToList();
+            return ensuredPeople;
         }
 
         private bool InvitationStatusMatches(InvitationStatus? peopleStatus, ApiAccountStatus resourcesStatus)

@@ -6,5 +6,10 @@
         "autoComplete": false
       }
     }
+  },
+  "logging": {
+    "logLevel": {
+      "default": "Information"
+    }
   }
 }

@@ -1,11 +1,10 @@
 ﻿using Fusion.Resources.Functions;
+using Fusion.Resources.Functions.Domains.Profile;
 using Fusion.Resources.Functions.Integration.Authentication;
 using Fusion.Resources.Functions.Integration.Http;
 using Fusion.Resources.Functions.Integration.ServiceDiscovery;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -43,6 +42,13 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddOrgClient();
             builder.AddPeopleClient();
             builder.AddResourcesClient();
+
+            return services;
+        }
+
+        public static IServiceCollection AddProfileDomain(this IServiceCollection services)
+        {
+            services.AddSingleton<ProfileSynchronizer>();
 
             return services;
         }
