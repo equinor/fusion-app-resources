@@ -13,6 +13,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             var problem = new ProblemDetails()
             {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                 Detail = error.Message,
                 Title = "Invalid Operation",
                 Status = (int)System.Net.HttpStatusCode.BadRequest
