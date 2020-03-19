@@ -26,7 +26,9 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
 
     return (
         <div className={styles.requestDetails}>
-            <DetailedRequestWorkflow workflow={request.workflow} />
+            <div className={styles.workflow}>
+                <DetailedRequestWorkflow workflow={request.workflow} />
+            </div>
             {createItemField('description', 'Description', () => request.description || 'N/A')}
             {createItemField(
                 'basePosition',

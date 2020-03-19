@@ -4,6 +4,7 @@
     grid-template-columns: repeat(4, auto);
     grid-template-rows: auto;
     grid-template-areas: 
+        "workflow workflow workflow workflow"
         "description description description description"
         "person person status status"
         "basePosition basePosition customPosition customPosition"
@@ -55,6 +56,9 @@
     }
     .status{
         grid-area: status;;
+    }
+    .workflow{ 
+        grid-area: workflow;
     }
 }
 
