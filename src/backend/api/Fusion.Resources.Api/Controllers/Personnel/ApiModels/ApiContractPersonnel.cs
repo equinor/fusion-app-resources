@@ -29,6 +29,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public Guid PersonnelId { get; set; }
 
+
         public Guid? AzureUniquePersonId { get; set; }
         public string Name { get; set; }
         public string FirstName { get; set; }
@@ -48,7 +49,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 
-    
+
 
         public List<ApiPositionInstanceReference>? Positions { get; set; }
         public List<ApiRequestReference>? Requests { get; set; }
@@ -65,7 +66,7 @@ namespace Fusion.Resources.Api.Controllers
                 Updated = request.Updated;
 
                 State = Enum.Parse<ApiContractPersonnelRequest.ApiRequestState>($"{request.State}", true);
-                
+
 
                 Position = new ApiRequestPosition(request.Position);
                 Project = new ApiProjectReference(request.Project);
@@ -124,4 +125,7 @@ namespace Fusion.Resources.Api.Controllers
             public Fusion.ApiClients.Org.ApiContractReferenceV2 Contract { get; set; }
         }
     }
+
+
+
 }
