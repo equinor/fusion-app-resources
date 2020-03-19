@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { ModalSideSheet } from '@equinor/fusion-components';
+import { ModalSideSheet, Tabs, Tab } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
+import GeneralTab from './GeneralTab';
+import PositionsTab from './PositionsTab';
 
 type PersonnelInfoSideSheetProps = {
     isOpen: boolean;
-    person: Personnel | null;
+    person: Personnel;
     setIsOpen: (state: boolean) => void;
 };
 
@@ -13,17 +15,26 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
     person,
     setIsOpen,
 }) => {
+
+    const [activeTabKey, setActiveTabKey] = React.useState<string>('general');
+
     return (
         <ModalSideSheet
-            header={`${person?.firstName} ${person?.lastName}`}
+            header={`Disciplines`}
             show={isOpen}
             size={'large'}
             onClose={() => {
                 setIsOpen(false);
             }}
         >
-            <div>{person?.firstName}</div>
-            <div>{person?.lastName}</div>
+            <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
+                <Tab tabKey="general" title="General">
+                    <GeneralTab person={person} />
+                </Tab>
+                <Tab tabKey="positions" title="Positions">
+                    <PositionsTab person={person} />
+                </Tab>
+            </Tabs>
         </ModalSideSheet>
     );
 };
