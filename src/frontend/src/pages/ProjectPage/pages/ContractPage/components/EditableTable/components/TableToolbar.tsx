@@ -24,7 +24,6 @@ const TableToolbar: React.FC<TableToolbarProps> = ({ onRemove }) => {
     const { isOpen, setIsOpen } = dropdownController;
     const select = React.useCallback(
         (onClick?: () => void) => {
-            console.log("CLICKED")
             onClick && onClick();
             if (isOpen) {
                 setIsOpen(false);
