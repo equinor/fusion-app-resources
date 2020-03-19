@@ -1,5 +1,4 @@
 .workflowContainer {
-    height: calc(var(--grid-unit) * 8px);
     display: flex;
     overflow: auto;
 
@@ -7,17 +6,25 @@
         display: flex;
         flex-direction: column;
         width: calc(var(--grid-unit) * 28px);
+        padding-right: calc(var(--grid-unit) * 2px);
 
         .stepHeader {
             display: flex;
+            padding-bottom: calc(var(--grid-unit) * 1px);
 
             .stepTitle {
                 flex: 1;
-                padding-right: calc(var(--grid-unit) * 1px);
+                padding-left: calc(var(--grid-unit) * 1px);
+                display: flex;
+                align-items: center;
+                white-space: nowrap;
+                font-weight: 600;
+
             }
             .stepConnector {
                 flex: 1;
                 position: relative;
+                width: calc(var(--grid-unit) * 14px);
 
                 .stepConnectorLine {
                     position: absolute;
@@ -28,13 +35,14 @@
                     transform: translateY(-50%);
 
                     &.approved{
-                        border-color: var(--color-primary);
+                        border-color: var(--color-green);
                     }
                 }
             }
         }
         .stepPerson {
             display: flex;
+            padding-bottom: calc(vaR(--grid-unit) * 2px);
 
             .stepPersonDetails {
                 display: flex;
@@ -43,6 +51,17 @@
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;
+                padding-left: calc(var(--grid-unit) * 1px);
+                
+                .completed {
+                    color: var(--color-black-alt3);
+                    font-size: 14px;
+                    line-height: 16px;
+                }
+                .completedDate{
+                    font-size: 14px;
+                    line-height: 16px;
+                }
             }
         }
     }
