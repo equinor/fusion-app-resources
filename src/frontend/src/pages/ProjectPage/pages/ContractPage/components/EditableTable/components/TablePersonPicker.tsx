@@ -19,7 +19,7 @@ function TablePersonPicker<T>({
     );
     return (
         <PersonPicker
-            label={columnLabel}
+            placeholder={columnLabel}
             onSelect={onPersonChange}
             selectedPerson={accessor(item)}
         />

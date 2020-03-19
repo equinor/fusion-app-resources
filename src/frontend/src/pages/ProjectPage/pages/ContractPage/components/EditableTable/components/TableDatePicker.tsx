@@ -16,7 +16,7 @@ function TableDatePicker<T>({
         },
         [onChange, item, accessKey, rowIdentifier]
     );
-    return <DatePicker onChange={onDateChange} selectedDate={accessor(item)} label={columnLabel} />;
+    return <DatePicker onChange={onDateChange} selectedDate={accessor(item)} />;
 }
 
 export default TableDatePicker;
