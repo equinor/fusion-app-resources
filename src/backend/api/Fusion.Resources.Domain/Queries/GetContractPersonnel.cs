@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Fusion.AspNetCore.OData;
+﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
@@ -19,9 +19,9 @@ namespace Fusion.Resources.Domain
         public GetContractPersonnel(Guid contractId, ODataQueryParams query = null)
         {
             ContractId = contractId;
-            Query = query;
 
-
+            //Will fail if query is null and will fail if OrderBy is null. Will fix this in the source package, this can then be removed
+            Query = query ?? new ODataQueryParams { OrderBy = new List<ODataOrderByOption>() };
         }
 
         public Guid ContractId { get; set; }
@@ -41,7 +41,6 @@ namespace Fusion.Resources.Domain
                 }
             }
         }
-
 
         public ExpandProperties Expands { get; set; }
 
