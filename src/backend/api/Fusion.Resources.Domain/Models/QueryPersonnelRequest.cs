@@ -1,5 +1,8 @@
-﻿using Fusion.Resources.Database.Entities;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Resources.Database.Entities;
 using System;
+
+#nullable enable
 
 namespace Fusion.Resources.Domain
 {
@@ -11,8 +14,11 @@ namespace Fusion.Resources.Domain
             Position = position;
             Person = new QueryContractPersonnel(request.Person);
 
+            OriginalPositionId = request.OriginalPositionId;
+
             Description = request.Description;
             State = request.State;
+            Category = request.Category;
 
             Project = new QueryProject(request.Project);
             Contract = new QueryContract(request.Contract);
@@ -28,12 +34,20 @@ namespace Fusion.Resources.Domain
         public Guid Id { get; set; }
 
         public DbRequestState State { get; set; }
+        public DbRequestCategory Category { get; set; }
 
         public string Description { get; set; }
 
 
         public QueryContractPersonnel Person { get; set; }
         public QueryPositionRequest Position { get; set; }
+
+        /// <summary>
+        /// The position this request is based upon. 
+        /// Null if request is of category new.
+        /// </summary>
+        public Guid? OriginalPositionId { get; set; }
+        public ApiPositionV2? ResolvedOriginalPosition { get; set; }
 
         public QueryPerson CreatedBy { get; set; }
         public QueryPerson UpdatedBy { get; set; }
@@ -45,6 +59,14 @@ namespace Fusion.Resources.Domain
 
         public QueryWorkflow Workflow { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
+
+        internal QueryPersonnelRequest WithResolvedOriginalPosition(ApiPositionV2 originalPosition)
+        {
+            OriginalPositionId = originalPosition.Id;
+            ResolvedOriginalPosition = originalPosition;
+
+            return this;
+        }
     }
 }
 

@@ -1,4 +1,5 @@
-﻿using Fusion.AspNetCore.OData;
+﻿using Fusion.ApiClients.Org;
+using Fusion.AspNetCore.OData;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,23 +23,40 @@ namespace Fusion.Resources.Domain.Queries
             Type = type;
         }
 
-        public static GetContractPersonnelRequests QueryContract(Guid orgProjectId, Guid orgContractId, ODataQueryParams? query = null) => new GetContractPersonnelRequests(QueryType.Contract)
+        public static GetContractPersonnelRequests QueryContract(Guid orgProjectId, Guid orgContractId) => new GetContractPersonnelRequests(QueryType.Contract)
         {
             OrgProjectId = orgProjectId,
-            OrgContractId = orgContractId,
-            Query = query
+            OrgContractId = orgContractId            
         };
 
 
-
-        public ODataQueryParams? Query { get; set; }
+        public ODataQueryParams? Query { get; private set; }
         public Guid? OrgContractId { get; set; }
         public Guid? OrgProjectId { get; set; }
 
+        public ExpandFields Expands { get; set; }
 
         private QueryType Type { get; set; }
 
         private enum QueryType { All, Project, Contract }
+
+        [Flags]
+        public enum ExpandFields { 
+            None                = 0,
+            OriginalPosition    = 1 << 0,
+
+            All                 = OriginalPosition
+        }
+
+        public GetContractPersonnelRequests WithQuery(ODataQueryParams query)
+        {
+            Query = query;
+
+            if (query.ShoudExpand("originalPosition"))
+                Expands |= ExpandFields.OriginalPosition;
+
+            return this;
+        }
 
         public class Handler : IRequestHandler<GetContractPersonnelRequests, IEnumerable<QueryPersonnelRequest>>
         {
@@ -67,6 +85,7 @@ namespace Fusion.Resources.Domain.Queries
                     query = query.ApplyODataFilters(request.Query, m =>
                     {
                         m.MapField("state", e => e.State);
+                        m.MapField("category", e => e.Category);
 
                         m.MapField("createdBy.azureUniquePersonId", e => e.CreatedBy.AzureUniqueId);
                         m.MapField("createdBy.mail", e => e.CreatedBy.Mail);
@@ -74,6 +93,8 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("updatedBy.azureUniquePersonId", e => e.CreatedBy.AzureUniqueId);
                         m.MapField("updatedBy.mail", e => e.CreatedBy.Mail);
                         m.MapField("updated", e => e.Created);
+
+                        m.MapField("originalPositionId", e => e.OriginalPositionId);
 
                         m.MapField("position.workload", e => e.Position.Workload);
                         m.MapField("position.name", e => e.Position.Name);
@@ -108,6 +129,10 @@ namespace Fusion.Resources.Domain.Queries
                     .Select(bp => orgResolver.ResolveBasePositionAsync(bp))
                 );
 
+                var resolvedOrgChartPositions = request.Expands.HasFlag(ExpandFields.OriginalPosition) ?
+                    await orgResolver.ResolvePositionsAsync(dbRequest.Where(r => r.OriginalPositionId.HasValue).Select(r => r.OriginalPositionId!.Value)) : 
+                    new List<ApiPositionV2>();
+
                 var workflows = await mediator.Send(new GetRequestWorkflows(dbRequest.Select(r => r.Id)));
 
                 var positions = dbRequest.Select(p =>
@@ -116,12 +141,24 @@ namespace Fusion.Resources.Domain.Queries
                         .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp.Id == p.Position.BasePositionId));
                     var workflow = workflows.FirstOrDefault(wf => wf.RequestId == p.Id);
 
-                    return new QueryPersonnelRequest(p, position, workflow);
+                    var personnelRequest = new QueryPersonnelRequest(p, position, workflow);
+
+                    // Expand original position.
+                    if (personnelRequest.OriginalPositionId.HasValue)
+                    {
+                        var originalPosition = resolvedOrgChartPositions.FirstOrDefault(p => p.Id == personnelRequest.OriginalPositionId.Value);
+                        if (originalPosition != null)
+                            personnelRequest.WithResolvedOriginalPosition(originalPosition);
+                    }
+
+                    return personnelRequest;
                 }).ToList();
 
                 return positions;
             }
         }
+
+
     }
 }
 

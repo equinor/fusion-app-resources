@@ -87,5 +87,30 @@ namespace Fusion.Resources.Domain.Services
                 throw;
             }
         }
+
+        public async Task<IEnumerable<ApiPositionV2>> ResolvePositionsAsync(IEnumerable<Guid> positionIds)
+        {
+            var ids = positionIds.ToList();
+
+            var resolvedPositions = new List<ApiPositionV2>();
+
+            int index = 0;
+            while (true)
+            {
+                var page = ids.Skip(index).Take(10);
+                index += 10;
+
+                if (page.Count() == 0)
+                    break;
+
+                var positions = await Task.WhenAll(page.Select(async id =>
+                {
+                    try { return await ResolvePositionAsync(id); } catch { return null; }
+                }));
+                resolvedPositions.AddRange(positions);
+            }
+
+            return resolvedPositions;
+        }
     }
 }

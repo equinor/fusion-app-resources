@@ -22,6 +22,9 @@ namespace Fusion.Resources.Database.Entities
         public RequestPosition Position { get; set; } = new RequestPosition();
 
         public DbRequestState State { get; set; }
+        public DbRequestCategory Category { get; set; }
+
+        public Guid? OriginalPositionId { get; set; }
 
         public ProvisionStatus ProvisioningStatus { get; set; } = new ProvisionStatus();
 
@@ -54,6 +57,7 @@ namespace Fusion.Resources.Database.Entities
                 });
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
+                entity.Property(e => e.Category).HasConversion(new EnumToStringConverter<DbRequestCategory>());
             });
 
         }
