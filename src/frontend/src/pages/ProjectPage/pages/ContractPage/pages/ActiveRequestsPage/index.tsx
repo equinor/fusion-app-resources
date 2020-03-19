@@ -11,15 +11,17 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import EditRequestSideSheet from '../../components/EditRequestSideSheet';
+import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
         []
     );
     const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
+
     const { apiClient } = useAppContext();
-    const { contract, contractState, dispatchContractAction,  } = useContractContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
 
     const fetchRequestsAsync = React.useCallback(async () => {
@@ -31,21 +33,28 @@ const ActiveRequestsPage: React.FC = () => {
 
         return apiClient.getPersonnelRequestsAsync(projectId, contractId, true);
     }, [contract, currentContext]);
-
     const { data: activeRequests, isFetching, error } = useReducerCollection(
         contractState,
         dispatchContractAction,
         'activeRequests',
         fetchRequestsAsync
     );
-
     const filterSections = React.useMemo(() => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);
 
-    const editRequest = React.useCallback((requests: PersonnelRequest[]) => {
-        setEditRequests(requests);
-    }, [setEditRequests]);
+    const requestPersonnel = React.useCallback(() => {
+        setEditRequests([]);
+    }, []);
+
+    const editRequest = React.useCallback(() => {
+        setEditRequests(selectedRequests);
+    }, [selectedRequests]);
+
+    const onRequestSidesheetClose = React.useCallback(() => {
+        setEditRequests(null);
+        setSelectedRequests([]);
+    }, []);
 
     if (error) {
         return (
@@ -60,12 +69,12 @@ const ActiveRequestsPage: React.FC = () => {
         <div className={styles.activeRequestsContainer}>
             <div className={styles.activeRequests}>
                 <div className={styles.toolbar}>
-                    <Button onClick={() => editRequest([])}>Request personnel</Button>
+                    <Button onClick={requestPersonnel}>Request personnel</Button>
                     <div>
                         <IconButton disabled>
                             <DeleteIcon />
                         </IconButton>
-                        <IconButton onClick={() => editRequest(selectedRequests)}>
+                        <IconButton onClick={editRequest}>
                             <EditIcon />
                         </IconButton>
                     </div>
@@ -85,7 +94,10 @@ const ActiveRequestsPage: React.FC = () => {
                 filterSections={filterSections}
                 onFilter={setFilteredActiveRequests}
             />
-            <EditRequestSideSheet initialRequests={editRequests}/>
+            <EditRequestSideSheet
+                initialRequests={editRequests}
+                onClose={onRequestSidesheetClose}
+            />
         </div>
     );
 };

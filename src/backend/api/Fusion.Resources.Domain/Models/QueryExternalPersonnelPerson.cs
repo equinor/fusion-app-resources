@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Fusion.Resources.Database.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {

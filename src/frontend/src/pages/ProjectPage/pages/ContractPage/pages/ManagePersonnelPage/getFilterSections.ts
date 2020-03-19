@@ -17,7 +17,12 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                     type: FilterTypes.Search,
                     title: '',
                     getValue: p =>
-                        p.name + (p.firstName || '') + (p.lastName || '') + p.mail + p.phoneNumber + (p.disciplines?.map(d => d.name).join(' ') || ''),
+                        p.name +
+                        (p.firstName || '') +
+                        (p.lastName || '') +
+                        p.mail +
+                        p.phoneNumber +
+                        (p.disciplines?.map(d => d.name).join(' ') || ''),
                 },
             ],
         },

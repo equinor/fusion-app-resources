@@ -44,6 +44,22 @@ namespace Fusion.Resources.Api.Controllers
             return collection;
         }
 
+        [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
+        public async Task<ActionResult<ApiContractPersonnel>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
+        {
+            var personnelId = new PersonnelId(personIdentifier);
+
+            var contractPersonnel = await DispatchAsync(new GetContractPersonnelItem(contractIdentifier, personnelId));
+
+            if (contractPersonnel == null)
+            {
+                return FusionApiError.NotFound(personIdentifier, "Could not locate personnel");
+            }
+
+            var returnItem = new ApiContractPersonnel(contractPersonnel);
+            return returnItem;
+        }
+
         [HttpPost("/personnel/{personIdentifier}/refresh")]
         public async Task<ActionResult<ApiExternalPersonnelPerson>> RefreshPersonnel(string personIdentifier)
         {

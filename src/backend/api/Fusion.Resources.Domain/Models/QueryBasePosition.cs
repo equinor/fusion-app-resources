@@ -1,4 +1,5 @@
 ﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile;
 using System;
 
 namespace Fusion.Resources.Domain
@@ -16,6 +17,16 @@ namespace Fusion.Resources.Domain
             Name = basePosition.Name;
             Disicipline = basePosition.Discipline;
             ProjectType = basePosition.ProjectType;
+
+            Resolved = true;
+        }
+
+        public QueryBasePosition(FusionBasePosition basePosition)
+        {
+            Id = basePosition.Id;
+            Name = basePosition.Name;
+            Disicipline = basePosition.Discipline;
+            ProjectType = basePosition.Type;
 
             Resolved = true;
         }

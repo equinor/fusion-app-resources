@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNotificationCenter, useCurrentContext } from '@equinor/fusion';
+import { useNotificationCenter, useCurrentContext, HttpClientRequestFailedError } from '@equinor/fusion';
 import CreatePersonnelRequest from '../../../../../../../models/CreatePersonnelRequest';
 import { transformToCreatePersonnelRequest } from '../utils';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
@@ -7,89 +7,95 @@ import { useAppContext } from '../../../../../../../appContext';
 import { EditRequest } from '..';
 import { useContractContext } from '../../../../../../../contractContex';
 
-type SubmitError = {
-    errorMessage: string;
+export type FailedRequest<T> = {
+    item: T;
+    error: Error;
+    isEditable: boolean;
+};
+
+export type SuccessfulRequest<T, TResponse> = {
+    item: T;
+    response: TResponse;
 };
 
 export default (
-    formState: EditRequest[],
-    setEditRequests: React.Dispatch<React.SetStateAction<PersonnelRequest[] | null>>
+    formState: EditRequest[]
 ) => {
-    const { contract } = useContractContext();
+    const { contract, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
-
-    const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
     const sendNotification = useNotificationCenter();
     const { apiClient } = useAppContext();
 
-    const submitChangesAsync = React.useCallback(
-        async (projectId: string, contractId: string) => {
-            setIsSubmitting(true);
+    const [pendingRequests, setPendingRequests] = React.useState<EditRequest[]>([]);
+    const [failedRequests, setFailedRequests] = React.useState<FailedRequest<EditRequest>[]>([]);
+    const [successfulRequests, setSuccessfullRequests] = React.useState<SuccessfulRequest<EditRequest, PersonnelRequest>[]>([]);
+
+    const createRequest = React.useCallback(
+        async (
+            projectId: string,
+            contractId: string,
+            request: EditRequest
+        ) => {
+            const transformedRequest = transformToCreatePersonnelRequest(request);
+
             try {
-                const failedRequests: CreatePersonnelRequest[] = [];
-                const transformedRequests = transformToCreatePersonnelRequest(formState);
-                const requestPromises = transformedRequests.reduce(
-                    (
-                        previousPromise: Promise<PersonnelRequest[]>,
-                        request: CreatePersonnelRequest
-                    ) => {
-                        return previousPromise.then(prevResult => {
-                            return (request.id
-                                ? apiClient.updatePersonnelRequestAsync(
-                                      projectId,
-                                      contractId,
-                                      request.id,
-                                      request
-                                  )
-                                : apiClient.createPersonnelRequestAsync(
-                                      projectId,
-                                      contractId,
-                                      request
-                                  )
-                            )
-                                .then(newResult => [...prevResult, ...newResult.value])
-                                .catch(() => {
-                                    failedRequests.push(request);
-                                    return prevResult;
-                                });
-                        });
-                    },
-                    Promise.resolve([])
-                );
-                await requestPromises;
-                if (failedRequests.length >= 0) {
-                    const error: SubmitError = {
-                        errorMessage: `Could not submit ${failedRequests
-                            .map(request => request.position?.name)
-                            .join(', ')}`,
-                    };
-                    throw error;
+                setPendingRequests(r => [...r, request]);
+                if(transformedRequest.id) {
+                    const updateResponse = await apiClient.updatePersonnelRequestAsync(
+                        projectId,
+                        contractId,
+                        transformedRequest.id,
+                        transformedRequest
+                    );
+
+                    setSuccessfullRequests(s => [...s, {
+                        item: request,
+                        response: updateResponse,
+                    }]);
+                } else {
+                    const createResponse = await apiClient.createPersonnelRequestAsync(
+                        projectId,
+                        contractId,
+                        transformedRequest
+                    );
+
+                    setSuccessfullRequests(s => [...s, {
+                        item: request,
+                        response: createResponse,
+                    }]);
                 }
-                setEditRequests(null);
-            } catch (e) {
-                const response = await sendNotification({
-                    level: 'high',
-                    title: 'Unable to submit requests',
-                    priority: 'high',
-                    body: e && e.errorMessage ? e.errorMessage : '',
-                    confirmLabel: 'Try again',
-                    cancelLabel: 'Cancel',
-                });
-                if (response.confirmed) {
-                    submitChangesAsync(projectId, contractId);
+            } catch(error) {
+                if(error instanceof HttpClientRequestFailedError) {
+                    const requestError = error as HttpClientRequestFailedError<PersonnelRequest>;
+                    
+                    setFailedRequests(f => [...f, {
+                        error: requestError,
+                        item: request,
+                        isEditable: requestError.statusCode < 500 && requestError.statusCode !== 424 && requestError.statusCode !== 408,
+                    }]);
+                } else {
+                    setFailedRequests(f => [...f, {
+                        error,
+                        item: request,
+                        isEditable: false,
+                    }]);
                 }
-            } finally {
-                setIsSubmitting(false);
+
             }
+
+            setPendingRequests(r => r.filter(x => x !== request));
         },
-        [setIsSubmitting, setEditRequests, sendNotification, formState, apiClient]
+        [apiClient]
     );
 
     const submit = React.useCallback(() => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
+        setPendingRequests([]);
+        setFailedRequests([]);
+        setSuccessfullRequests([]);
         if (contractId && projectId) {
-            submitChangesAsync(projectId, contractId);
+            formState.map(request => createRequest(projectId, contractId, request));
         } else {
             sendNotification({
                 level: 'medium',
@@ -97,7 +103,7 @@ export default (
                 priority: 'high',
             });
         }
-    }, [contract, currentContext, sendNotification]);
+    }, [contract, currentContext, createRequest, formState]);
 
-    return { submit, isSubmitting };
+    return { submit, pendingRequests, failedRequests, successfulRequests };
 };

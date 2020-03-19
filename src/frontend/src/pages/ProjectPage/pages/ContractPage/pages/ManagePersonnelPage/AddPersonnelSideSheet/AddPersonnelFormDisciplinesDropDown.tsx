@@ -6,23 +6,22 @@ import {
 } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import useBasePositions from '../../../../../../../hooks/useBasePositions';
+import { BasePosition } from '@equinor/fusion';
 
 export type PersonnelFormDisciplinesDropDown = {
     onChange: (changedPerson: Personnel) => void;
     item: Personnel;
     disabled: boolean;
+    basePositions: BasePosition[];
 };
 
 const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDropDown> = ({
     onChange,
     item,
     disabled,
+    basePositions,
 }) => {
-    const { basePositions, isFetchingBasePositions, basePositionsError } = useBasePositions();
-
     const options = React.useMemo(() => {
-        if (isFetchingBasePositions || basePositionsError) return [];
-
         const disciplines: SearchableDropdownOption[] = [];
         return basePositions.reduce((d, b): SearchableDropdownOption[] => {
             if (d.some(d => d.key === b.discipline) || !b.discipline.length) return d;
@@ -35,7 +34,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
 
             return d;
         }, disciplines);
-    }, [basePositions, isFetchingBasePositions, basePositionsError, item]);
+    }, [basePositions, item]);
 
     const onSelect = React.useCallback(
         (newValue: SearchableDropdownOption) => {
@@ -52,7 +51,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
                 key={`disciplinesDisabled${item.personnelId}`}
                 disabled={true}
                 placeholder={item.disciplines?.map(d => d.name).join('/') || ''}
-                onChange={() => { }}
+                onChange={() => {}}
             />
         );
 

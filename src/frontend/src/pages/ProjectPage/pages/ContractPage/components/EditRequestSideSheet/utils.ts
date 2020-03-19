@@ -6,7 +6,7 @@ import CreatePersonnelRequest from '../../../../../../models/CreatePersonnelRequ
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
-    parentPositions: Position[] | null
+    taskOwners: Position[] | null
 ): EditRequest[] | null => {
     if (personnelRequest === null) {
         return null;
@@ -16,55 +16,41 @@ export const transFormRequest = (
         id: uuid(),
         requestId: req.id,
         positionId: req.position?.id || '',
-        appliesFrom: req.position?.instances.find(i => i.appliesFrom)?.appliesFrom || null,
-        appliesTo: req.position?.instances.find(i => i.appliesTo)?.appliesTo || null,
+        appliesFrom: req.position?.appliesFrom || null,
+        appliesTo: req.position?.appliesTo || null,
         basePosition: req.position?.basePosition || null,
         description: req.description,
-        obs: req.position?.instances.find(i => i.obs)?.obs || '',
+        obs: req.position?.obs || '',
         positionName: req.position?.name || '',
-        workload: req.position?.instances.find(i => i.workload)?.workload.toString() || '',
+        workload: req.position?.workload.toString() || '',
         person: req.person,
-        parentPosition:
-            parentPositions?.find(
-                position =>
-                    position.id ===
-                        req.position?.instances.find(i => i.parentPositionId)?.parentPositionId ||
-                    ''
+        taskOwner:
+            taskOwners?.find(
+                position => position.id === req.position?.taskOwner?.positionId || ''
             ) || null,
     }));
 };
 
-export const transformToCreatePersonnelRequest = (
+export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
+    description: req.description,
+    person: {
+        mail: req.person?.mail || '',
+    },
+    position: {
+        appliesFrom: req.appliesFrom,
+        appliesTo: req.appliesTo,
+        basePosition: req.basePosition,
+        id: req.positionId || null,
+        name: req.positionName,
+        obs: req.obs,
+        workload: +req.workload,
+        taskOwner: req.taskOwner ? { positionId: req.taskOwner.id } : null,
+    },
+});
+
+export const transformToCreatePersonnelRequests = (
     editRequests: EditRequest[]
-): CreatePersonnelRequest[] => {
-    return editRequests.map(req => {
-        const personnel: CreatePersonnelRequest = {
-            description: req.description,
-            person: {
-                mail: req.person?.mail || '',
-            },
-            position: {
-                appliesFrom: req.appliesFrom,
-                appliesTo: req.appliesTo,
-                basePosition: req.basePosition?.id
-                    ? {
-                          id: req.basePosition.id,
-                      }
-                    : null,
-                id: req.positionId || null,
-                name: req.positionName,
-                obs: req.obs,
-                workload: +req.workload,
-                taskOwner: req.parentPosition?.id
-                    ? {
-                          id: req.parentPosition.id,
-                      }
-                    : null,
-            },
-        };
-        return personnel;
-    });
-};
+): CreatePersonnelRequest[] => editRequests.map(transformToCreatePersonnelRequest);
 
 export const createDefaultState = (): EditRequest[] => [
     {
@@ -79,6 +65,6 @@ export const createDefaultState = (): EditRequest[] => [
         workload: '',
         obs: '',
         person: null,
-        parentPosition: null,
+        taskOwner: null,
     },
 ];

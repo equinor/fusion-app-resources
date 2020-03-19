@@ -10,5 +10,6 @@ namespace Fusion.Resources.Domain
     {
         Task<ApiBasePositionV2?> ResolveBasePositionAsync(Guid basePositionId);
         Task<ApiProjectContractV2?> ResolveContractAsync(Guid projectId, Guid contractId);
+        Task<ApiPositionV2?> ResolvePositionAsync(Guid positionId);
     }
 }

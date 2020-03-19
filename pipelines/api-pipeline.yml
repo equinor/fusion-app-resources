@@ -1,5 +1,13 @@
 name: $(date:yyyyMMdd)$(rev:.r)
-trigger: none
+
+trigger: 
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - src/backend/api/*
+
 pr: none
 
 resources:
@@ -108,6 +116,7 @@ stages:
             - template: templates/execute-sql-migration.yml
               parameters:
                 artifact: 'k8s-deployment'
+                environment: $(envName)                
   
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
@@ -159,6 +168,7 @@ stages:
               - template: templates/execute-sql-migration.yml
                 parameters:
                   artifact: 'k8s-deployment'
+                  environment: $(envName)
     
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster

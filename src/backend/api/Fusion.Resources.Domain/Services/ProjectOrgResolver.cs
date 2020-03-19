@@ -61,5 +61,31 @@ namespace Fusion.Resources.Domain.Services
             }
             
         }
+
+        public async Task<ApiPositionV2?> ResolvePositionAsync(Guid positionId)
+        {
+            try
+            {
+                var contract = await client.GetPositionV2Async(positionId);
+                return contract;
+            }
+            catch (OrgApiError ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                logger.LogWarning($"Could not locate position with id {positionId}, received NotFound from server");
+                return null;
+            }
+            catch (OrgApiError ex)
+            {
+                logger.LogError(ex, $"Error resolving position from org service. Received code {ex.HttpStatusCode} from service, with message: {ex.Message}.");
+                logger.LogError(ex.ResponseText);
+
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error trying to resolve position id '{positionId}'. Message: {ex.Message}");
+                throw;
+            }
+        }
     }
 }
