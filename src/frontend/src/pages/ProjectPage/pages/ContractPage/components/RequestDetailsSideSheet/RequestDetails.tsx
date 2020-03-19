@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import RequestStateFlow from '../RequestStateFlow';
 import { formatDate } from '@equinor/fusion';
 import PositionIdCard from './PositionIdCard';
+import DetailedRequestWorkflow from '../DetailedRequestWorkflow';
 
 type RequestDetailsProps = {
     request: PersonnelRequest;
@@ -25,7 +26,8 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
 
     return (
         <div className={styles.requestDetails}>
-            {createItemField('description', 'Description', () => request.description || "N/A")}
+            <DetailedRequestWorkflow workflow={request.workflow} />
+            {createItemField('description', 'Description', () => request.description || 'N/A')}
             {createItemField(
                 'basePosition',
                 'Base position',

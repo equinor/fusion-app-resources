@@ -1,0 +1,49 @@
+.workflowContainer {
+    height: calc(var(--grid-unit) * 8px);
+    display: flex;
+    overflow: auto;
+
+    .workflowStep{
+        display: flex;
+        flex-direction: column;
+        width: calc(var(--grid-unit) * 28px);
+
+        .stepHeader {
+            display: flex;
+
+            .stepTitle {
+                flex: 1;
+                padding-right: calc(var(--grid-unit) * 1px);
+            }
+            .stepConnector {
+                flex: 1;
+                position: relative;
+
+                .stepConnectorLine {
+                    position: absolute;
+                    top: 50%;
+                    left: 0;
+                    border-top: 1px solid var(--color-black-alt4);
+                    width: 100%;
+                    transform: translateY(-50%);
+
+                    &.approved{
+                        border-color: var(--color-primary);
+                    }
+                }
+            }
+        }
+        .stepPerson {
+            display: flex;
+
+            .stepPersonDetails {
+                display: flex;
+                flex-direction: column;
+                max-width: calc(var(--grid-unit) * 24px);
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+}
