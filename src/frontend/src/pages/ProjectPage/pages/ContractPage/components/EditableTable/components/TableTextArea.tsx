@@ -62,7 +62,7 @@ function TableTextArea<T>({
                         <EditIcon />
                     </div>
                 }
-                label={columnLabel}
+                placeholder={columnLabel}
             />
             <TextEditSideSheet
                 isOpen={openSideSheet}

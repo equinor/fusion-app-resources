@@ -51,7 +51,7 @@ function TablePersonnelPicker<T>({
 
     return (
         <SearchableDropdown
-            label={columnLabel}
+            placeholder={columnLabel}
             options={options}
             onSelect={onDropdownSelect}
             error={componentState?.error !== null}
