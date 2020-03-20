@@ -7,6 +7,7 @@ import {
     CloseCircleIcon,
     PersonPhoto,
     usePopoverRef,
+    ScheduleIcon,
 } from '@equinor/fusion-components';
 import classNames from 'classnames';
 import { formatDate } from '@equinor/fusion';
@@ -48,7 +49,7 @@ const WorkflowStep: React.FC<WorkflowStepProps> = ({ step, inline }) => {
             case 'Approved':
                 return <CheckCircleIcon color={styling.colors.green} />;
             case 'Pending':
-                return <CheckCircleIcon color={styling.colors.orange} />; //TODO:Implement correct icon
+                return <ScheduleIcon color={styling.colors.orange} />;;
             case 'Rejected':
                 return <CloseCircleIcon color={styling.colors.secondary} />;
             case 'Skipped':

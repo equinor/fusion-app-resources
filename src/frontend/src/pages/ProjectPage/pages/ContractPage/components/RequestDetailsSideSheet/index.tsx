@@ -94,7 +94,7 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                                     key="comments"
                                     isOpen={openAccordions.comments}
                                 >
-                                    <div>test</div>
+                                    <div>No comments</div>
                                 </AccordionItem>
                             </Accordion>
                         </div>
