@@ -1,27 +1,16 @@
 import * as React from 'react';
 import { useNotificationCenter, useCurrentContext, HttpClientRequestFailedError } from '@equinor/fusion';
-import CreatePersonnelRequest from '../../../../../../../models/CreatePersonnelRequest';
 import { transformToCreatePersonnelRequest } from '../utils';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../../appContext';
 import { EditRequest } from '..';
 import { useContractContext } from '../../../../../../../contractContex';
-
-export type FailedRequest<T> = {
-    item: T;
-    error: Error;
-    isEditable: boolean;
-};
-
-export type SuccessfulRequest<T, TResponse> = {
-    item: T;
-    response: TResponse;
-};
+import { FailedRequest, SuccessfulRequest } from '../../../../../../../components/RequestProgressSidesheet';
 
 export default (
     formState: EditRequest[]
 ) => {
-    const { contract, dispatchContractAction } = useContractContext();
+    const { contract } = useContractContext();
     const currentContext = useCurrentContext();
     const sendNotification = useNotificationCenter();
     const { apiClient } = useAppContext();
