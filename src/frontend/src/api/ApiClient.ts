@@ -177,7 +177,7 @@ export default class ApiClient {
         contractId: string,
         filterOnActive?: boolean
     ) {
-        const filter = filterOnActive ? 'isActive eq true' : undefined;
+        const filter = filterOnActive ? '' : undefined;
         const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
         const response = await this.httpClient.getAsync<
             ApiCollection<PersonnelRequest>,

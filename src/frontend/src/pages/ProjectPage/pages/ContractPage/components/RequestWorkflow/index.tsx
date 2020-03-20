@@ -1,13 +1,14 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import Workflow, { WorkflowStepId } from '../../../../../../models/Workflow';
+import Workflow from '../../../../../../models/Workflow';
 import WorkflowStep from './WorkflowStep';
 
-type DetailedRequestWorkflowProps = {
+type RequestWorkflowProps = {
     workflow: Workflow;
+    inline?: boolean
 };
 
-const DetailedRequestWorkflow: React.FC<DetailedRequestWorkflowProps> = ({ workflow }) => {
+const RequestWorkflow: React.FC<RequestWorkflowProps> = ({ workflow, inline }) => {
     const sortedWorkflowSteps = React.useMemo(() => {
         const sortByObject = {
             created: 0,
@@ -22,10 +23,10 @@ const DetailedRequestWorkflow: React.FC<DetailedRequestWorkflowProps> = ({ workf
     return (
         <div className={styles.workflowContainer}>
             {sortedWorkflowSteps.map(step => (
-                <WorkflowStep step={step} />
+                <WorkflowStep step={step} inline={!!inline} />
             ))}
         </div>
     );
 };
 
-export default DetailedRequestWorkflow;
+export default RequestWorkflow;

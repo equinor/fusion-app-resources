@@ -3,10 +3,8 @@ import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import * as styles from './styles.less';
 import { PersonCard } from '@equinor/fusion-components';
 import classNames from 'classnames';
-import RequestStateFlow from '../RequestStateFlow';
 import { formatDate } from '@equinor/fusion';
 import PositionIdCard from './PositionIdCard';
-import DetailedRequestWorkflow from '../DetailedRequestWorkflow';
 
 type RequestDetailsProps = {
     request: PersonnelRequest;
@@ -51,12 +49,11 @@ const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
             {createItemField('toDate', 'To Date', () =>
                 request.position?.appliesTo ? formatDate(request.position.appliesTo) : 'TBN'
             )}
-            {createItemField('person', 'Assigned person', () => (
-                <PersonCard personId={request.person?.azureUniquePersonId} />
-            ))}
-            {createItemField('status', 'Status', () => (
-                <RequestStateFlow item={request} />
-            ))}
+            {createItemField(
+                'workload',
+                'Workload',
+                () => request.position?.workload.toString() + '%' || 'N/A'
+            )}
         </div>
     );
 };

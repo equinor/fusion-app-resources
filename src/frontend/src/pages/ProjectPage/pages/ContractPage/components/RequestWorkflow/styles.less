@@ -8,6 +8,19 @@
         width: calc(var(--grid-unit) * 28px);
         padding-right: calc(var(--grid-unit) * 2px);
 
+        &.inline {
+            width: initial;
+            padding: 0;
+
+            .stepHeader {
+                padding: 0;
+
+                .stepConnector {
+                    width: calc(var(--grid-unit) * 1px);
+                }
+            }
+        }
+
         .stepHeader {
             display: flex;
             padding-bottom: calc(var(--grid-unit) * 1px);

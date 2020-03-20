@@ -1,15 +1,33 @@
 import * as React from 'react';
 import * as styles from './styles.less';
 import { WorkflowStep } from '../../../../../../models/Workflow';
-import { CheckCircleIcon, styling, CloseCircleIcon, PersonPhoto } from '@equinor/fusion-components';
+import {
+    CheckCircleIcon,
+    styling,
+    CloseCircleIcon,
+    PersonPhoto,
+    usePopoverRef,
+} from '@equinor/fusion-components';
 import classNames from 'classnames';
 import { formatDate } from '@equinor/fusion';
+import WorkflowPopover from '../WorkflowPopover';
 
 type WorkflowStepProps = {
     step: WorkflowStep;
+    inline: boolean;
 };
 
-const WorkflowStep: React.FC<WorkflowStepProps> = ({ step }) => {
+const WorkflowStep: React.FC<WorkflowStepProps> = ({ step, inline }) => {
+    const [popoverRef] = usePopoverRef<HTMLDivElement>(
+        <WorkflowPopover step={step} />,
+        {
+            justify: 'start',
+            placement: 'below',
+        },
+        true,
+        300
+    );
+
     const stepTitle = React.useMemo(() => {
         switch (step.id) {
             case 'created':
@@ -39,9 +57,10 @@ const WorkflowStep: React.FC<WorkflowStepProps> = ({ step }) => {
                 null;
         }
     }, [step]);
+
     const completedBy = React.useMemo(() => {
         const person = step.completedBy;
-        if (!person) {
+        if (!person || inline) {
             return null;
         }
         return (
@@ -60,24 +79,27 @@ const WorkflowStep: React.FC<WorkflowStepProps> = ({ step }) => {
                 </div>
             </>
         );
-    }, [step]);
+    }, [step, inline]);
 
+    const workflowStepClasses = classNames(styles.workflowStep, {
+        [styles.inline]: inline,
+    });
     const connectorClasses = classNames(styles.stepConnectorLine, {
         [styles.approved]: step.state === 'Approved',
     });
 
     return (
-        <div className={styles.workflowStep}>
-            <div className={styles.stepHeader}>
+        <div className={workflowStepClasses}>
+            <div className={styles.stepHeader} ref={popoverRef}>
                 <div>{icon}</div>
-                <span className={styles.stepTitle}>{stepTitle}</span>
+                {!inline && <span className={styles.stepTitle}>{stepTitle}</span>}
                 {step.nextStep !== null && (
                     <div className={styles.stepConnector}>
                         <div className={connectorClasses}></div>
                     </div>
                 )}
             </div>
-            {completedBy}
+            {!inline && completedBy}
         </div>
     );
 };

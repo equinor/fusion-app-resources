@@ -1,40 +1,66 @@
 
 .tabContainer {
-    padding: calc(var(--grid-unit) * 3px);
     display: flex;
     flex-direction: column;
 
+    .accordionItem {
+        border: 1px solid var(--color-black-alt2);
+    }
+
+    .compactPersonDetails {
+        display: flex;
+        
+        > div {
+            padding-right: calc(var(--grid-unit) * 3px);
+        }
+        .disciplineChip{
+            height: calc(var(--grid-unit) * 2px);
+            padding: calc(var(--grid-unit) * 1px);
+            max-width: calc(var(--grid-unit) * 25px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--color-primary);
+            border-radius: 4px;
+            background-color: var(--color-black-alt5);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .textField {
+        display: flex;
+        flex-direction: column;
+        .title {
+            font-size: 14px;
+            line-height: calc(var(--grid-unit) * 2px);
+            color: var(--color-black-alt2);
+        }
+        .content {
+            font-size: 16px;
+            line-height: calc(var(--grid-unit) * 3px);
+            padding-top: calc(var(--grid-unit) * 0.5px);
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+    }
+
     .requestDetails {
         display: grid;
-        grid-template-columns: repeat(4, auto);
+        grid-template-columns: repeat(3, auto);
         grid-template-rows: auto;
         grid-template-areas: 
-            "description description description description"
-            "person person status status"
-            "basePosition basePosition customPosition customPosition"
-            "taskOwner taskOwner taskOwner taskOwner"
-            "fromDate toDate toDate toDate";
+            "description description description"
+            "basePosition basePosition customPosition"
+            "taskOwner taskOwner taskOwner"
+            "fromDate toDate workload";
         row-gap: calc(var(--grid-unit) * 2px);
         column-gap: calc(var(--grid-unit) * 3px);
         
     
-        .textField {
-            display: flex;
-            flex-direction: column;
-            .title {
-                font-size: 14px;
-                line-height: calc(var(--grid-unit) * 2px);
-                color: var(--color-black-alt2);
-            }
-            .content {
-                font-size: 16px;
-                line-height: calc(var(--grid-unit) * 3px);
-                padding-top: calc(var(--grid-unit) * 0.5px);
-                height: 100%;
-                display: flex;
-                align-items: center;
-            }
-        }
+        
     
         .description {
             grid-area: description;
@@ -55,11 +81,8 @@
         .toDate {
             grid-area: toDate;
         }
-        .person {
-            grid-area: person;
-        }
-        .status{
-            grid-area: status;;
+        .workload{
+            grid-area: workload;
         }
     
     }
@@ -81,4 +104,11 @@
             padding: calc(var(--grid-unit) * .5px);
         }
     }
+}
+.separator{
+    width: 100%;
+    border-top: 1px solid var(--color-black-alt4);
+}
+.container {
+    padding: calc(var(--grid-unit) * 3px);
 }

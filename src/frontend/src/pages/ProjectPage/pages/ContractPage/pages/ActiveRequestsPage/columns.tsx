@@ -5,6 +5,7 @@ import * as React from 'react';
 import PositionColumn from '../../../../components/PositionColumn';
 import { useHistory } from '@equinor/fusion';
 import * as styles from './styles.less';
+import RequestWorkflow from '../../components/RequestWorkflow';
 
 type ColumnSideSheetLinkProps = {
     requestId: string;
@@ -42,7 +43,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         accessor: request => request.state.toString(),
         key: 'status',
         label: 'Status',
-        component: RequestStateFlow,
+        component: ({ item }) => <RequestWorkflow workflow={item.workflow} inline />,
         sortable: true,
     },
     {
