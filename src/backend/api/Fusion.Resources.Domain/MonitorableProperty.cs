@@ -10,6 +10,8 @@ namespace Fusion.Resources.Domain.Commands
 
         public MonitorableProperty()
         {
+            HasBeenSet = false;
+            Value = default!;
         }
 
         public MonitorableProperty(T value)

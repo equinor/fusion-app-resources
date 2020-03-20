@@ -22,8 +22,8 @@ namespace Fusion.Resources.Domain.Commands
         public Guid OrgContractId { get; }
 
         public Guid BasePositionId { get; set; }
-        public string PositionName { get; set; }
-        public string ExternalId { get; set; }
+        public string? PositionName { get; set; }
+        public string? ExternalId { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
         public double Workload { get; set; }
@@ -31,7 +31,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid? ParentPositionId { get; set; }
 
         public PersonId? AssignedPerson { get; set; }
-        public string Obs { get; set; }
+        public string? Obs { get; set; }
 
         public class Handler : IRequestHandler<CreateContractPosition, ApiClients.Org.ApiPositionV2>
         {

@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain.Behaviours
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
 
-            var dependency = telemetryClient.StartOperation<DependencyTelemetry>($"{request.GetType().Name}");
+            var dependency = telemetryClient.StartOperation<DependencyTelemetry>($"{request!.GetType().Name}");
             dependency.Telemetry.Data = JsonConvert.SerializeObject(request, Formatting.Indented);
             dependency.Telemetry.Type = "CQRS";
 

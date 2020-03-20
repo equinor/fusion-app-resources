@@ -15,7 +15,7 @@ namespace Fusion.Resources.Api.Controllers
             Name = person.Name;
             FirstName = person.FirstName;
             LastName = person.LastName;
-            JobTitle = person.JobTitle;
+            JobTitle = person.JobTitle ?? string.Empty;
             PhoneNumber = person.PhoneNumber;
             Mail = person.Mail;
             AzureAdStatus = Enum.Parse<ApiAccountStatus>($"{person.AzureAdStatus}", true);

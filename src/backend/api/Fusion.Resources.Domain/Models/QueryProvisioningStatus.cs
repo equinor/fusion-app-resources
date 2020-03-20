@@ -17,8 +17,8 @@ namespace Fusion.Resources.Domain
         public string State { get; set; }
         public Guid? PositionId { get; set; }
         public DateTimeOffset? Provisioned { get; set; }
-        public string ErrorMessage { get; set; }
-        public string ErrorPayload { get; set; }
+        public string? ErrorMessage { get; set; }
+        public string? ErrorPayload { get; set; }
     }
 }
 

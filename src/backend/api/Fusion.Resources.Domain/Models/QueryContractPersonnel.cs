@@ -46,7 +46,7 @@ namespace Fusion.Resources.Domain
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string JobTitle { get; set; }
+        public string? JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }
 
@@ -55,7 +55,7 @@ namespace Fusion.Resources.Domain
         public List<QueryPersonnelDiscipline> Disciplines { get; set; }
 
         public QueryPerson CreatedBy { get; set; }
-        public QueryPerson UpdatedBy { get; set; }
+        public QueryPerson? UpdatedBy { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 

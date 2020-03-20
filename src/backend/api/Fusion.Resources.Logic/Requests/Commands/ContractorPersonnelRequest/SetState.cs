@@ -68,7 +68,7 @@ namespace Fusion.Resources.Logic.Commands
                             break;
 
                         case DbRequestState.SubmittedToCompany:
-                            await HandleWhenSubmittedToCompany(request);
+                            await HandleWhenSubmittedToCompanyAsync(request);
                             break;
 
                         case DbRequestState.RejectedByCompany:
@@ -86,7 +86,7 @@ namespace Fusion.Resources.Logic.Commands
                     await resourcesDb.SaveChangesAsync();
                 }
             
-                private async Task HandleWhenSubmittedToCompany(SetState request)
+                private async ValueTask HandleWhenSubmittedToCompanyAsync(SetState request)
                 {
                     switch (request.State)
                     {
@@ -111,7 +111,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                 }
-                private async Task HandleWhenCreatedAsync(SetState request)
+                private ValueTask HandleWhenCreatedAsync(SetState request)
                 {
                     switch (request.State)
                     {
@@ -129,6 +129,7 @@ namespace Fusion.Resources.Logic.Commands
                             throw new IllegalStateChangeError(dbItem.State, request.State, DbRequestState.SubmittedToCompany, DbRequestState.RejectedByContractor);
                     }
 
+                    return new ValueTask();
                 }
             }
         }

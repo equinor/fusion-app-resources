@@ -90,6 +90,7 @@ namespace Fusion.Resources.Domain
         {
             Content = content;
             Response = response;
+            Value = default(TResponse)!;
         }
 
         public HttpStatusCode StatusCode => Response.StatusCode;

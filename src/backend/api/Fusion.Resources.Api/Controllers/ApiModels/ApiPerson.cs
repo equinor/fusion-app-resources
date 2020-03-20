@@ -8,7 +8,6 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPerson
     {
-        public ApiPerson() { }
         public ApiPerson(FusionFullPersonProfile profile)
         {
             AzureUniquePersonId = profile.AzureUniqueId;
@@ -32,7 +31,7 @@ namespace Fusion.Resources.Api.Controllers
             Mail = person.Mail;
             Name = person.Name;
             PhoneNumber = person.Phone;
-            JobTitle = person.JobTitle;
+            JobTitle = person.JobTitle ?? string.Empty;
             AccountType = person.AccountType;
         }
 
@@ -53,8 +52,8 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? AzureUniquePersonId { get; set; }
         public string Mail { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string PhoneNumber { get; set; } = null!;
-        public string JobTitle { get; set; } = null!;
+        public string PhoneNumber { get; set; }
+        public string JobTitle { get; set; } 
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FusionAccountType AccountType { get; set; }

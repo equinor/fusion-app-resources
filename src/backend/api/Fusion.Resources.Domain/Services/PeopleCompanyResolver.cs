@@ -15,8 +15,8 @@ namespace Fusion.Resources.Domain.Services
         private HttpClient client;
 
 
-        private List<ApiCompanyV2> companies = null;
-        private Timer cacheRestTimer = null;
+        private List<ApiCompanyV2>? companies = null;
+        private Timer? cacheRestTimer = null;
 
         public PeopleCompanyResolver(IHttpClientFactory httpClientFactory)
         {

@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain
         public ApiPositionV2? ResolvedOriginalPosition { get; set; }
 
         public QueryPerson CreatedBy { get; set; }
-        public QueryPerson UpdatedBy { get; set; }
+        public QueryPerson? UpdatedBy { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 

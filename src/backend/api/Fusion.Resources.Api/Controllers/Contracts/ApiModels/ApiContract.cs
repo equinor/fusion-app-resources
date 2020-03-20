@@ -6,7 +6,6 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiContract
     {
-        public ApiContract() { }
         public ApiContract(ApiProjectContractV2 orgContract)
         {
             Id = orgContract.Id;
@@ -18,7 +17,7 @@ namespace Fusion.Resources.Api.Controllers
             EndDate = orgContract.EndDate;
 
             if (orgContract.Company != null)
-                Company = new ApiCompany { Id = orgContract.Company.Id, Name = orgContract.Company.Name };
+                Company = new ApiCompany(orgContract.Company);
 
             ContractResponsiblePositionId = orgContract.ContractRep?.Id;
             CompanyRepPositionId = orgContract.CompanyRep?.Id;

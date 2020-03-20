@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             command.FirstName = FirstName;
             command.LastName = LastName;
-            command.Phone = PhoneNumber;
+            command.Phone = PhoneNumber ?? string.Empty;
             command.JobTitle = JobTitle;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
