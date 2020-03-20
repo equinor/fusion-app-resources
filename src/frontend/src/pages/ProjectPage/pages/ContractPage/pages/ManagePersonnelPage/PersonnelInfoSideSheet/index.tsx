@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ModalSideSheet, Tabs, Tab } from '@equinor/fusion-components';
+import { ModalSideSheet, Tabs, Tab, IconButton, EditIcon, DoneIcon } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import GeneralTab from './GeneralTab';
 import PositionsTab from './PositionsTab';
@@ -17,21 +17,39 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
 }) => {
 
     const [activeTabKey, setActiveTabKey] = React.useState<string>('general');
+    const [editMode, setEditMode] = React.useState<boolean>(false);
+
+    const headerIcons = React.useMemo(() => {
+        if (activeTabKey !== 'general') return []
+
+        return editMode
+            ? [
+                <IconButton onClick={() => setEditMode(false)}>
+                    <DoneIcon />
+                </IconButton>
+            ]
+            : [
+                <IconButton onClick={() => setEditMode(true)}>
+                    <EditIcon />
+                </IconButton>
+            ]
+    }, [editMode, activeTabKey])
 
     return (
         <ModalSideSheet
             header={`Disciplines`}
             show={isOpen}
             size={'large'}
+            headerIcons={headerIcons}
             onClose={() => {
                 setIsOpen(false);
             }}
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
                 <Tab tabKey="general" title="General">
-                    <GeneralTab person={person} />
+                    <GeneralTab person={person} edit={editMode} />
                 </Tab>
-                <Tab tabKey="positions" title="Positions">
+                <Tab disabled={editMode} tabKey="positions" title="Positions">
                     <PositionsTab person={person} />
                 </Tab>
             </Tabs>
