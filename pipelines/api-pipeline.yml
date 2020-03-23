@@ -1,5 +1,7 @@
 name: $(date:yyyyMMdd)$(rev:.r)
 
+pr: none
+
 trigger: 
   branches:
     include:
@@ -7,8 +9,6 @@ trigger:
   paths:
     include:
       - src/backend/api/*
-
-pr: none
 
 resources:
     repositories:
