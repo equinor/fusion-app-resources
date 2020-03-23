@@ -7,6 +7,7 @@ import {
     useTooltipRef,
     styling,
     usePopoverRef,
+    MoreIcon,
 } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
@@ -180,10 +181,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const PopOverMenu: React.FC<PopOverMenuProps> = ({ person }) => {
         const [popoverRef, isOpen] = usePopoverRef<HTMLDivElement>(
             <ManagePersonnelToolBar deleteButton={deleteButton(person)} />,
-            {}
+            {
+                justify: 'center'
+            }
         );
 
-        return <div ref={popoverRef}>...</div>;
+        return <div ref={popoverRef}><MoreIcon /></div>;
     };
 
     return (
@@ -237,7 +240,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                         ref={selectableTooltipRef}
                                     />
                                 </th>
-                                <th className={styles.headerRowCell}></th>
+                                <th className={styles.tableRowHeaderSelectionCell}><MoreIcon /></th>
                                 <th className={styles.headerRowCell}>First Name</th>
                                 <th className={styles.headerRowCell}>Last Name</th>
                                 <th className={styles.headerRowCell}>E-Mail</th>
@@ -261,7 +264,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                                 onChange={() => onSelect(person)}
                                             />
                                         </td>
-                                        <td className={styles.tableRowMenuCell}>
+                                        <td className={styles.tableRowCellMenu}>
                                             <PopOverMenu person={person} />
                                         </td>
                                         <td className={styles.tableRowCell}>

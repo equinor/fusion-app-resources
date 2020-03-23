@@ -24,7 +24,8 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
 
         return editMode
             ? [
-                <IconButton onClick={() => setEditMode(false)}>
+                <IconButton onClick={() => {
+                }}>
                     <DoneIcon />
                 </IconButton>
             ]
@@ -42,12 +43,13 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
             size={'large'}
             headerIcons={headerIcons}
             onClose={() => {
+                setEditMode(false);
                 setIsOpen(false);
             }}
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
                 <Tab tabKey="general" title="General">
-                    <GeneralTab person={person} edit={editMode} />
+                    <GeneralTab person={person} edit={editMode} setEdit={setEditMode} />
                 </Tab>
                 <Tab disabled={editMode} tabKey="positions" title="Positions">
                     <PositionsTab person={person} />
