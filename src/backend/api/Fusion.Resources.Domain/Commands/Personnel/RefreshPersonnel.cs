@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using Fusion.Resources.Database.Entities;
+using MediatR;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +27,7 @@ namespace Fusion.Resources.Domain.Commands
             public async Task<QueryExternalPersonnelPerson> Handle(RefreshPersonnel request, CancellationToken cancellationToken)
             {
                 var profile = await profileService.RefreshExternalPersonnelAsync(request.personellId.OriginalIdentifier);
+                profile.Disciplines = new List<DbPersonnelDiscipline>();
 
                 return new QueryExternalPersonnelPerson(profile);
             }

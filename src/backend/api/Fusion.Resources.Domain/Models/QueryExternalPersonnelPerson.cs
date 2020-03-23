@@ -20,7 +20,10 @@ namespace Fusion.Resources.Domain
             JobTitle = item.JobTitle;
             AzureAdStatus = item.AccountStatus;
 
-            Disciplines = item.Disciplines?.Select(d => new QueryPersonnelDiscipline(d)).ToList();
+            if (item.Disciplines == null)
+                throw new ArgumentNullException(nameof(item.Disciplines), "Disciplines must be included or initialized on the entity when constructing query model");
+
+            Disciplines = item.Disciplines.Select(d => new QueryPersonnelDiscipline(d)).ToList();
         }
         public Guid PersonnelId { get; set; }
         public Guid? AzureUniqueId { get; set; }
