@@ -189,6 +189,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult> CheckAccessCreateRequests(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
         {
+            await Task.Delay(1);
             var faker = new Faker();
 
             if (faker.Random.Bool())
@@ -203,6 +204,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckAccessUpdateRequest(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
         {
+            await Task.Delay(1);
             var faker = new Faker();
 
             if (faker.Random.Bool())
@@ -216,6 +218,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/actions/{actionName}")]
         public async Task<ActionResult> CheckAccessRequestAction(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
         {
+            await Task.Delay(1);
             var faker = new Faker();
 
             if (faker.Random.Bool())

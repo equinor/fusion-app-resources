@@ -14,27 +14,27 @@ namespace Fusion.Resources.Database.Entities
         /// Not really logic apps running here, but could keep the same type of properties as the query app.
         /// This should keep a name representing the logic running the workflow.
         /// </summary>
-        public string LogicAppName { get; set; }
+        public string LogicAppName { get; set; } = string.Empty;
 
         /// <summary>
         /// The logic, wherever it is implemented, should version it's logic, to give the possibility to convert/upgrade/run on old logic, as it changes.
         /// </summary>
-        public string LogicAppVersion { get; set; }
+        public string LogicAppVersion { get; set; } = string.Empty;
 
         public DbWorkflowState State { get; set; }
-        public string SystemMessage { get; set; }
+        public string? SystemMessage { get; set; }
 
         public Guid RequestId { get; set; }
         public DbRequestType RequestType { get; set; }
 
 
-        public List<DbWorkflowStep> WorkflowSteps { get; set; }
+        public List<DbWorkflowStep> WorkflowSteps { get; set; } = null!;
 
         public DateTimeOffset Created { get; set; }
 
         public DateTimeOffset? Completed { get; set; }
 
-        public DbPerson TerminatedBy { get; set; }
+        public DbPerson? TerminatedBy { get; set; }
         public Guid? TerminatedbyId { get; set; }
 
 

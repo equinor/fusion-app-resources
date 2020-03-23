@@ -49,10 +49,11 @@ namespace Fusion.Resources.Domain
             return new PersonId(uniqueId);
         }
 
-        public static implicit operator PersonId(ApiPersonV2 assignedPerson)
+        public static implicit operator PersonId?(ApiPersonV2? assignedPerson)
         {
             if (assignedPerson is null)
-                throw new ArgumentNullException(nameof(assignedPerson), "Assigned persin is null. Must provide value when implicitly converting");
+                return null;
+                //throw new ArgumentNullException(nameof(assignedPerson), "Assigned persin is null. Must provide value when implicitly converting");
 
             return new PersonId(assignedPerson.AzureUniqueId.HasValue switch {
                 true => $"{assignedPerson.AzureUniqueId}",

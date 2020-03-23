@@ -132,7 +132,7 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     bool hasChanges = false;
 
-                    hasChanges |= request.Description.IfSet(x => dbRequest.Description = x);
+                    hasChanges |= request.Description.IfSet(x => dbRequest.Description = x ?? string.Empty);
 
                     return hasChanges;
                 }

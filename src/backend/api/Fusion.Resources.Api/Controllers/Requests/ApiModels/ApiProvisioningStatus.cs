@@ -23,8 +23,8 @@ namespace Fusion.Resources.Api.Controllers
         public ApiProvisionState State { get; set; }
         public Guid? PositionId { get; set; }
         public DateTimeOffset? Provisioned { get; set; }
-        public string ErrorMessage { get; set; }
-        public string ErrorPayload { get; set; }
+        public string? ErrorMessage { get; set; }
+        public string? ErrorPayload { get; set; }
 
         public enum ApiProvisionState { NotProvisioned, Provisioned, Error, Unknown }
 

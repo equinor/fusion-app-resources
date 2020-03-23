@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid OrgContractId { get; set; }
 
         public MonitorableProperty<string> Name { get; set; } = new MonitorableProperty<string>();
-        public MonitorableProperty<string> Description { get; set; } = new MonitorableProperty<string>();
+        public MonitorableProperty<string?> Description { get; set; } = new MonitorableProperty<string?>();
         public MonitorableProperty<DateTime?> StartDate { get; set; } = new MonitorableProperty<DateTime?>();
         public MonitorableProperty<DateTime?> EndDate { get; set; } = new MonitorableProperty<DateTime?>();
         public MonitorableProperty<Guid?> CompanyId { get; set; } = new MonitorableProperty<Guid?>();

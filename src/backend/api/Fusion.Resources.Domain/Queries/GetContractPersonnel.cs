@@ -14,9 +14,9 @@ namespace Fusion.Resources.Domain
 {
     public class GetContractPersonnel : IRequest<IEnumerable<QueryContractPersonnel>>
     {
-        private ODataQueryParams query = null;
+        private ODataQueryParams? query = null;
 
-        public GetContractPersonnel(Guid contractId, ODataQueryParams query = null)
+        public GetContractPersonnel(Guid contractId, ODataQueryParams? query = null)
         {
             ContractId = contractId;
             Query = query;
@@ -25,16 +25,16 @@ namespace Fusion.Resources.Domain
         }
 
         public Guid ContractId { get; set; }
-        public ODataQueryParams Query { get => query; set
+        public ODataQueryParams? Query { get => query; set
             {
                 this.query = value;
 
                 if (value != null)
                 {
-                    if (query.ShoudExpand("requests"))
+                    if (value.ShoudExpand("requests"))
                         Expands |= ExpandProperties.Requests;
 
-                    if (query.ShoudExpand("positions"))
+                    if (value.ShoudExpand("positions"))
                         Expands |= ExpandProperties.Positions;
                 }
             }
@@ -71,7 +71,7 @@ namespace Fusion.Resources.Domain
                 var itemQuery = db.ContractPersonnel.Where(p => p.Contract.OrgContractId == request.ContractId)                    
                     .AsQueryable();
 
-                if (request.Query.HasFilter)
+                if (request.Query != null && request.Query.HasFilter)
                     itemQuery = itemQuery.ApplyODataFilters(request.Query, m =>
                     {
                         m.MapField("azureAdStatus", p => p.Person.AccountStatus);
@@ -108,7 +108,7 @@ namespace Fusion.Resources.Domain
 
             private async Task ExpandPositionsAsync(IEnumerable<QueryContractPersonnel> personnelItems)
             {
-                var azureIds = personnelItems.Where(i => i.AzureUniqueId.HasValue).Select(i => i.AzureUniqueId.Value);
+                var azureIds = personnelItems.Where(i => i.AzureUniqueId.HasValue).Select(i => i.AzureUniqueId!.Value);
 
                 var profiles = new List<FusionFullPersonProfile>();
 
