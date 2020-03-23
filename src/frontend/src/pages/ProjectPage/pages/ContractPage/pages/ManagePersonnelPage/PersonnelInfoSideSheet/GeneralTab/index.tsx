@@ -6,13 +6,11 @@ import { PersonDetails, useCurrentContext, useNotificationCenter } from '@equino
 import AzureAdStatusIcon from '../../components/AzureAdStatus';
 import classNames from 'classnames';
 import useBasePositions from '../../../../../../../../hooks/useBasePositions';
-import { useContractContext } from '../../../../../../../../contractContex';
-import { useAppContext } from '../../../../../../../../appContext';
 
 type GeneralTabProps = {
   person: Personnel;
   edit: boolean;
-  setEdit: (state: boolean) => void;
+  setField: (field: keyof Personnel) => (value: string | PersonnelDiscipline[]) => void;
 };
 
 const createTextField = (
@@ -33,7 +31,7 @@ const createTextField = (
 const createEditField = (
   label: string,
   value: string,
-  onChange: (newValue: string) => void,
+  onChange: (value: string | PersonnelDiscipline[]) => void
 ) => {
 
   return (
@@ -41,7 +39,7 @@ const createEditField = (
       <label>{label}</label>
       <TextInput
         key={label}
-        onChange={(newValue) => onChange(newValue)}
+        onChange={onChange}
         value={value}
       />
     </div>
@@ -51,84 +49,10 @@ const createEditField = (
 const GeneralTab: React.FC<GeneralTabProps> = ({
   person,
   edit,
-  setEdit
+  setField
 }) => {
 
-  const { apiClient } = useAppContext();
-  const currentContext = useCurrentContext();
-  const { contract, dispatchContractAction } = useContractContext();
-  const notification = useNotificationCenter();
-
-  const [firstName, setFirstName] = React.useState<string>('');
-  const [lastName, setLastName] = React.useState<string>('');
-  const [phoneNumber, setPhoneNumber] = React.useState<string>('');
-  const [disciplines, setDisciplines] = React.useState<PersonnelDiscipline[]>([]);
-
   const { basePositions } = useBasePositions();
-
-
-  const isDirty = () => {
-    return (firstName !== person.firstName ||
-      lastName !== person.lastName ||
-      phoneNumber !== person.phoneNumber ||
-      disciplines !== person.disciplines)
-  }
-
-  const savePersonChangesAsync = async () => {
-    const contractId = contract?.id;
-    if (!currentContext?.id || !contractId) return;
-
-    if (!isDirty()) {
-      return setEdit(false)
-    }
-
-    try {
-
-      const updatedPerson = {
-        ...person,
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber,
-        disciplines: disciplines
-      }
-
-      const response = await apiClient.updatePersonnelAsync(
-        currentContext.id,
-        contractId,
-        updatedPerson
-      )
-
-      notification({
-        level: 'low',
-        title: 'Personnel changes saved',
-        cancelLabel: 'dismiss',
-      });
-
-      dispatchContractAction({ verb: 'merge', collection: 'personnel', payload: [response] });
-      setEdit(false);
-
-    } catch (e) {
-      //TODO: This could probably be more helpfull.
-      notification({
-        level: 'high',
-        title:
-          'Something went wrong while saving. Please try again or contact administrator',
-      });
-    }
-  };
-
-
-
-
-  React.useEffect(() => {
-    if (!edit) return
-
-    setFirstName(person.firstName || '');
-    setLastName(person.lastName || '');
-    setPhoneNumber(person.phoneNumber || '');
-    setDisciplines(person.disciplines);
-
-  }, [edit, person])
 
   const PersonDetails = React.useMemo<PersonDetails>(() => {
     return {
@@ -143,7 +67,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({
       accountType: 'External',
       company: { id: '', name: '' },
     }
-  }, [person])
+  }, [person.personnelId])
 
   const dropDownOptions = React.useMemo(() => {
     const disciplineOptions: SearchableDropdownOption[] = [];
@@ -153,16 +77,16 @@ const GeneralTab: React.FC<GeneralTabProps> = ({
       d.push({
         title: b.discipline,
         key: b.discipline,
-        isSelected: b.discipline === disciplines[0]?.name,
+        isSelected: b.discipline === person.disciplines[0]?.name,
       });
 
       return d;
     }, disciplineOptions);
-  }, [basePositions, disciplines]);
+  }, [basePositions, person.disciplines]);
 
   const onSelect = React.useCallback(
     (newValue: SearchableDropdownOption) => {
-      setDisciplines([{ name: newValue.title }])
+      setField('disciplines')([{ name: newValue.key }]);
     }, []);
 
   return (
@@ -176,11 +100,11 @@ const GeneralTab: React.FC<GeneralTabProps> = ({
           {edit
             ? (<>
               <div className={styles.row}>
-                {createEditField('First name', firstName, setFirstName)}
-                {createEditField('Last name', lastName, setLastName)}
+                {createEditField('First name', person.firstName || '', setField('firstName'))}
+                {createEditField('Last name', person.lastName || '', setField('lastName'))}
               </div>
               <div className={styles.row}>
-                {createEditField('Phone', phoneNumber, setPhoneNumber)}
+                {createEditField('Phone', person.phoneNumber, setField('phoneNumber'))}
                 {createTextField('E-Mail', person.mail || '')}
                 {createTextField('AD Status', AzureAdStatusIcon(person.azureAdStatus || 'NoAccount'), 'AdStatus')}
               </div>
