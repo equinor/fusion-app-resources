@@ -27,45 +27,55 @@ const mapPositionsToPersoPosition = (p: Position): PersonPosition => {
 };
 
 const PositionsTab: React.FC<PositionsTabProps> = ({ person }) => {
+    const positions = React.useMemo(() => person.positions?.map(mapPositionsToPersoPosition), [
+        person,
+    ]);
 
-    const positions = React.useMemo(() => person.positions?.map(mapPositionsToPersoPosition), [person]);
-
-    const currentDate = React.useMemo(() => new Date().getTime(), [])
-    const pastPositions = React.useMemo(() => positions?.filter(p => (p.appliesTo?.getTime() || currentDate) <= currentDate), [positions]);
-    const activePositions = React.useMemo(() => positions?.filter(p => ((p.appliesFrom?.getTime() || currentDate) < currentDate) && ((p.appliesTo?.getTime() || currentDate) >= currentDate)), [positions]);
-
+    const currentDate = React.useMemo(() => new Date().getTime(), []);
+    const pastPositions = React.useMemo(
+        () => positions?.filter(p => (p.appliesTo?.getTime() || currentDate) <= currentDate),
+        [positions]
+    );
+    const activePositions = React.useMemo(
+        () =>
+            positions?.filter(
+                p =>
+                    (p.appliesFrom?.getTime() || currentDate) < currentDate &&
+                    (p.appliesTo?.getTime() || currentDate) >= currentDate
+            ),
+        [positions]
+    );
 
     return (
         <div className={styles.container}>
             <div className={styles.activePositions}>
                 <h4>Active Positions</h4>
-                {activePositions?.length ? <ul className={styles.positionList}>
-                    {
-                        activePositions.map(position => (
+                {activePositions?.length ? (
+                    <ul className={styles.positionList}>
+                        {activePositions.map(position => (
                             <li key={position.id} className={styles.positionListItem}>
                                 <PersonPositionCard position={position} />
                             </li>
                         ))}
-                </ul> :
-                    <div className={styles.nopositions}>
-                        No active positions
-                    </div>}
+                    </ul>
+                ) : (
+                    <div className={styles.nopositions}>No active positions</div>
+                )}
             </div>
             <div className={styles.pastPositions}>
                 <h4>Past Positions</h4>
 
-                {pastPositions?.length ?
+                {pastPositions?.length ? (
                     <ul className={styles.positionList}>
-                        {
-                            pastPositions.map(position => (
-                                <li key={position.id} className={styles.positionListItem}>
-                                    <PersonPositionCard position={position} />
-                                </li>
-                            ))}
-                    </ul> :
-                    <div className={styles.nopositions}>
-                        No past positions
-                    </div>}
+                        {pastPositions.map(position => (
+                            <li key={position.id} className={styles.positionListItem}>
+                                <PersonPositionCard position={position} />
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <div className={styles.nopositions}>No past positions</div>
+                )}
             </div>
         </div>
     );

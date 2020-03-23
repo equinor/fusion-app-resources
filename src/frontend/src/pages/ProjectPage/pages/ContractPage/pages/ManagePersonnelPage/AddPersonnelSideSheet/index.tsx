@@ -57,15 +57,15 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 formState.map(async person =>
                     person.created
                         ? await apiClient.updatePersonnelAsync(
-                            currentContext.id,
-                            contractId,
-                            person
-                        )
+                              currentContext.id,
+                              contractId,
+                              person
+                          )
                         : await apiClient.createPersonnelAsync(
-                            currentContext.id,
-                            contractId,
-                            person
-                        )
+                              currentContext.id,
+                              contractId,
+                              person
+                          )
                 )
             );
 
@@ -182,11 +182,15 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         const [popoverRef, isOpen] = usePopoverRef<HTMLDivElement>(
             <ManagePersonnelToolBar deleteButton={deleteButton(person)} />,
             {
-                justify: 'center'
+                justify: 'center',
             }
         );
 
-        return <div ref={popoverRef}><MoreIcon /></div>;
+        return (
+            <div ref={popoverRef}>
+                <MoreIcon />
+            </div>
+        );
     };
 
     return (
@@ -214,8 +218,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                             Saving
                         </>
                     ) : (
-                            'Save'
-                        )}
+                        'Save'
+                    )}
                 </Button>,
             ]}
         >
@@ -240,7 +244,9 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                         ref={selectableTooltipRef}
                                     />
                                 </th>
-                                <th className={styles.tableRowHeaderSelectionCell}><MoreIcon /></th>
+                                <th className={styles.tableRowHeaderSelectionCell}>
+                                    <MoreIcon />
+                                </th>
                                 <th className={styles.headerRowCell}>First Name</th>
                                 <th className={styles.headerRowCell}>Last Name</th>
                                 <th className={styles.headerRowCell}>E-Mail</th>

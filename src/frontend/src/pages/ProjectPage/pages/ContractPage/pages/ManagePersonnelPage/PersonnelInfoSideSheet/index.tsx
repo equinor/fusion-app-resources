@@ -40,18 +40,16 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
     const validatePerson = (formState: Personnel) => {
         return Boolean(
             formState.firstName?.length &&
-            formState.lastName?.length &&
-            formState.phoneNumber?.length &&
-            formState.disciplines?.length
+                formState.lastName?.length &&
+                formState.phoneNumber?.length &&
+                formState.disciplines?.length
         );
     };
 
-    const {
-        formState,
-        isFormValid,
-        formFieldSetter,
-        isFormDirty,
-    } = useForm<Personnel>(createDefaultState, validatePerson);
+    const { formState, isFormValid, formFieldSetter, isFormDirty } = useForm<Personnel>(
+        createDefaultState,
+        validatePerson
+    );
 
     const savePersonChangesAsync = React.useCallback(async () => {
         const contractId = contract?.id;
@@ -64,9 +62,8 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
                 cancelLabel: 'dismiss',
             });
             setEditMode(false);
-            return
+            return;
         }
-
 
         try {
             const response = await apiClient.updatePersonnelAsync(
@@ -96,15 +93,15 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         if (activeTabKey !== 'general') return [];
         return editMode
             ? [
-                <IconButton disabled={(!isFormValid)} onClick={savePersonChangesAsync}>
-                    <DoneIcon />
-                </IconButton>,
-            ]
+                  <IconButton disabled={!isFormValid} onClick={savePersonChangesAsync}>
+                      <DoneIcon />
+                  </IconButton>,
+              ]
             : [
-                <IconButton onClick={() => setEditMode(true)}>
-                    <EditIcon />
-                </IconButton>,
-            ];
+                  <IconButton onClick={() => setEditMode(true)}>
+                      <EditIcon />
+                  </IconButton>,
+              ];
     }, [editMode, activeTabKey, savePersonChangesAsync, isFormValid]);
 
     return (
@@ -112,7 +109,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
             header={`Disciplines`}
             show={isOpen}
             size={'large'}
-            safeClose={(editMode && isFormDirty)}
+            safeClose={editMode && isFormDirty}
             safeCloseTitle={`Close Personnel Edit? Unsaved changes will be lost.`}
             safeCloseCancelLabel={'Continue editing'}
             safeCloseConfirmLabel={'Discard changes'}
@@ -124,11 +121,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
                 <Tab tabKey="general" title="General">
-                    <GeneralTab
-                        person={formState}
-                        edit={editMode}
-                        setField={formFieldSetter}
-                    />
+                    <GeneralTab person={formState} edit={editMode} setField={formFieldSetter} />
                 </Tab>
                 <Tab disabled={editMode} tabKey="positions" title="Positions">
                     <PositionsTab person={person} />

@@ -46,7 +46,7 @@ export type RequestPosition = {
     name: string;
     appliesFrom: Date;
     appliesTo: Date;
-    workload: 0;
+    workload: number;
     basePosition: BasePosition & {
         wasResolved: true;
     };

@@ -45,9 +45,8 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
             isFetchingContract,
             contractState,
             dispatchContractAction,
-
         };
-    }, [contract, isFetchingContract, contractState, dispatchContractAction ]);
+    }, [contract, isFetchingContract, contractState, dispatchContractAction]);
 
     const history = useHistory();
     const onClose = React.useCallback(() => {
