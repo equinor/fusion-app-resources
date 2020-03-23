@@ -14,6 +14,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public RequestPosition Position { get; set; } = null!;
         public PersonReference Person { get; set; } = null!;
+
+        public Guid? OriginalPositionId { get; set; }
     
 
         public class RequestPosition
@@ -56,6 +58,9 @@ namespace Fusion.Resources.Api.Controllers
 
                 RuleFor(x => x.Position.TaskOwner.PositionId).BeExistingContractPositionId(projectOrgResolver)
                     .When(x => x.Position != null && x.Position.TaskOwner != null);
+
+                RuleFor(x => x.OriginalPositionId).BeValidChangeRequestPosition(projectOrgResolver)
+                    .When(x => x.OriginalPositionId.HasValue);
 
                 this.projectOrgResolver = projectOrgResolver;
             }

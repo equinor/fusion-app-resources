@@ -98,6 +98,7 @@ const ActiveRequestsPage: React.FC = () => {
                 initialRequests={editRequests}
                 onClose={onRequestSidesheetClose}
             />
+            <RequestDetailsSideSheet requests={activeRequests}/>
         </div>
     );
 };

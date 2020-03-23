@@ -7,6 +7,7 @@ using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,6 +33,15 @@ namespace Fusion.Resources.Logic.Commands
             public string? Description { get; set; }
             public PositionInfo Position { get; } = new PositionInfo();
             public Guid? PositionTaskOwner { get; set; }
+            public Guid? OriginalPositionId { get; set; }
+
+
+
+            public Create WithOriginalPosition(Guid? originalPositionId)
+            {
+                OriginalPositionId = originalPositionId;
+                return this;
+            }
 
             public Create WithPosition(Guid basePositionId, string name, DateTime from, DateTime to, double workload, string? obs)
             {
@@ -61,12 +71,14 @@ namespace Fusion.Resources.Logic.Commands
                 private readonly ResourcesDbContext resourcesDb;
                 private readonly IProfileService profileService;
                 private readonly IMediator mediator;
+                private readonly IProjectOrgResolver orgResolver;
 
-                public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IMediator mediator)
+                public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IMediator mediator, IProjectOrgResolver orgResolver)
                 {
                     this.resourcesDb = resourcesDb;
                     this.profileService = profileService;
                     this.mediator = mediator;
+                    this.orgResolver = orgResolver;
                 }
 
                 DbProject project = null!;
@@ -93,13 +105,15 @@ namespace Fusion.Resources.Logic.Commands
 
                     if (contractPersonnel is null)
                         throw new InvalidOperationException("The person was located as contractor personnel, but has not been added to this contract.");
+
+                    await ValidateOriginalPositionAsync(request);
+                    await ValidateIsOnlyActiveChangeRequestAsync(request);
                 }
 
                 public async Task<QueryPersonnelRequest> Handle(Create request, CancellationToken cancellationToken)
                 {
                     // Validate references.
                     await ValidateAsync(request);
-
 
                     var newRequest = await PersistChangesAsync(request);
 
@@ -115,6 +129,8 @@ namespace Fusion.Resources.Logic.Commands
                 /// </summary>
                 private async Task<DbContractorRequest> PersistChangesAsync(Create request)
                 {
+                    var category = request.OriginalPositionId.HasValue ? DbRequestCategory.ChangeRequest : DbRequestCategory.NewRequest;
+
                     var newRequest = new DbContractorRequest()
                     {
                         Id = Guid.NewGuid(),
@@ -122,6 +138,8 @@ namespace Fusion.Resources.Logic.Commands
                         Project = project,
                         State = DbRequestState.Created,
                         Person = contractPersonnel,
+                        Category = category,
+                        OriginalPositionId = request.OriginalPositionId,
                         Position = GeneratePosition(request.Position, request.PositionTaskOwner),
                         Description = request.Description,
                         Created = DateTimeOffset.UtcNow,
@@ -153,12 +171,50 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     PositionId = positionId.Value
                 } : new DbContractorRequest.PositionTaskOwner();
+
+                #region Validate
+
+                private async Task ValidateIsOnlyActiveChangeRequestAsync(Create request)
+                {
+                    if (request.OriginalPositionId.HasValue)
+                    {
+                        var activeRequests = await resourcesDb.ContractorRequests
+                            .Where(r => r.OriginalPositionId == request.OriginalPositionId)
+                            .IsRunningQuery()
+                            .ToListAsync();
+
+                        if (activeRequests.Count > 0)
+                        {
+                            throw new RequestAlreadyExistsError("There are already requests active against the specified position");
+                        }
+                    }
+                }
+
+                private async Task ValidateOriginalPositionAsync(Create request)
+                {
+                    if (request.OriginalPositionId != null)
+                    {
+                        var position = await orgResolver.ResolvePositionAsync(request.OriginalPositionId.Value);
+
+                        if (position is null)
+                            throw InvalidOrgChartPositionError.NotFound(request.OriginalPositionId.Value);
+
+                        if (position.Project.ProjectId != request.OrgProjectId)
+                            throw InvalidOrgChartPositionError.InvalidProject(position);
+
+                        if (position.ContractId != request.OrgContractId)
+                            throw InvalidOrgChartPositionError.InvalidContract(position);
+                    }
+                }
+
+                #endregion
             }
 
 
         }
 
     }
+
 
 
 }
