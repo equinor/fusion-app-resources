@@ -37,7 +37,15 @@
                 "enableRbacAuthorization": false,
                 "tenantId": "[subscription().tenantId]",
                 "accessPolicies": [
-    
+                    {
+                        "objectId": "[reference(variables('function-name'), '2016-08-01', 'Full').identity.principalId]",
+                        "permissions": {
+                            "keys": [],
+                            "secrets": [
+                                "Get"
+                            ]
+                        }
+                    }
                 ],
                 "sku": {
                     "name": "Standard",
@@ -49,7 +57,10 @@
                     "ipRules": [],
                     "virtualNetworkRules": []
                 }
-            }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('function-name'))]"
+            ]
         },
 
         /* APP INSIGHTS */
@@ -112,7 +123,8 @@
                 "fusion-app": "resources",
                 "fusion-app-env": "[toLower(parameters('env-name'))]",
                 "fusion-app-component-type": "azFunc",
-                "fusion-app-component-id": "[concat('resources-func-', variables('env-name'))]"
+                "fusion-app-component-id": "[concat('resources-func-', variables('env-name'))]",
+                "kv-msi-access": "true"
             },
             "identity": {
                 "type": "SystemAssigned"
@@ -123,7 +135,14 @@
                 "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
             ],
             "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]",
+                "httpsOnly": true,
+                "siteConfig": {
+                    "phpVersion": "off",
+                    "ftpsState": "FtpsOnly",
+                    "minTlsVersion": "1.2",
+                    "webSocketsEnabled": false
+                }
             }
         },
 
