@@ -93,6 +93,7 @@
                 "fusion-app-component-type": "storage",
                 "fusion-app-component-id": "[concat('resources-storage-', variables('env-name'))]"
             },
+            "kind": "StorageV2",
             "sku": {
                 "name": "Standard_LRS"
             },
