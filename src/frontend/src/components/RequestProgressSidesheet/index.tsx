@@ -59,7 +59,7 @@ function PendingRequestProgressItem<TRequest>({
             <div className={styles.icon}>
                 <Spinner inline size={24} />
             </div>
-            <div>{renderRequest({ request })}</div>
+            <div className={styles.content}>{renderRequest({ request })}</div>
         </div>
     );
 }
@@ -79,7 +79,7 @@ function InvalidRequestProgressItem<TRequest>({
             <div className={styles.icon}>
                 <ErrorIcon outline={false} />
             </div>
-            <div>{renderRequest({ request })}</div>
+            <div className={styles.content}>{renderRequest({ request })}</div>
             <div className={styles.errorMessage}>{error.message}</div>
         </div>
     );
@@ -99,7 +99,7 @@ function FailedRequestProgressItem<TRequest>({
             <div className={styles.icon}>
                 <ErrorIcon outline={false} />
             </div>
-            <div>{renderRequest({ request })}</div>
+            <div className={styles.content}>{renderRequest({ request })}</div>
         </div>
     );
 }
@@ -113,7 +113,7 @@ function SuccesfulRequestProgressItem<TRequest, TResponse>({
             <div className={styles.icon}>
                 <DoneIcon />
             </div>
-            <div>{renderRequest({ request })}</div>
+            <div className={styles.content}>{renderRequest({ request })}</div>
         </div>
     );
 }

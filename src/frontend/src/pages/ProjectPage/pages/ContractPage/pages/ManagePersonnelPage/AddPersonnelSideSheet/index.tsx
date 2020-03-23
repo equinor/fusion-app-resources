@@ -26,6 +26,7 @@ import RequestProgressSidesheet, {
     FailedRequest,
     SuccessfulRequest,
 } from '../../../../../../../components/RequestProgressSidesheet';
+import PersonnelRequest from './PersonnelRequest';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -41,8 +42,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
-    const notification = useNotificationCenter();
-    const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
@@ -57,9 +56,9 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     >([]);
 
     React.useEffect(() => {
-        setFormState(
-            failedRequests.filter(r => r.isEditable).map(r => r.item)
-        );
+        if(failedRequests.length) {
+            setFormState(failedRequests.filter(r => r.isEditable).map(r => r.item));
+        }
     }, [failedRequests]);
 
     const savePersonnelAsync = React.useCallback(
@@ -72,6 +71,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                     : await apiClient.createPersonnelAsync(contextId, contractId, person);
 
                 setSuccessfullRequests(r => [...r, { item: person, response }]);
+
+                dispatchContractAction({
+                    collection: 'personnel',
+                    verb: 'merge',
+                    payload: [response],
+                });
             } catch (error) {
                 if (error instanceof HttpClientRequestFailedError) {
                     const requestError = error as HttpClientRequestFailedError<Personnel>;
@@ -108,6 +113,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         const contractId = contract?.id;
 
         if (!currentContext?.id || !contractId) return;
+
+        setPendingRequests([]);
+        setFailedRequests([]);
+        setSuccessfullRequests([]);
 
         formState.forEach(person => savePersonnelAsync(person, currentContext.id, contractId));
     }, [contract, formState, currentContext, savePersonnelAsync]);
@@ -158,6 +167,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         },
         [formState, selectedItems]
     );
+
+    const saveInProgress = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
     const addButton = React.useMemo((): IconButtonProps => {
         return { onClick: onAddPerson, disabled: saveInProgress };
@@ -344,7 +355,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 successfulRequests={successfulRequests}
                 pendingRequests={pendingRequests}
                 onClose={() => {}}
-                renderRequest={({ request }) => <div>{request.mail}</div>}
+                renderRequest={({ request }) => <PersonnelRequest person={request} />}
             />
         </ModalSideSheet>
     );

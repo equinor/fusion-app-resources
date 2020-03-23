@@ -19,20 +19,10 @@
             justify-content: center;
         }
 
-        .position {
-            height: calc(var(--grid-unit) * 10px);
+        .content {
+            display: flex;
             flex-grow: 1;
-            display: grid;
-            align-items: center;
-            font-weight: 500;
-            font-size: 16px;
-        }
-
-        .person {
-            height: calc(var(--grid-unit) * 10px);
-            flex-grow: 1;
-            display: grid;
-            align-items: center;
+            flex-direction: column;
         }
 
         &.failed {
