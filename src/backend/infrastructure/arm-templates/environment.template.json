@@ -38,7 +38,7 @@
                 "tenantId": "[subscription().tenantId]",
                 "accessPolicies": [
                     {
-                        "objectId": "[reference(variables('function-name'), '2016-08-01', 'Full').identity.principalId]",
+                        "objectId": "[reference(concat(resourceId('Microsoft.Web/sites', variables('function-name')), '/providers/Microsoft.ManagedIdentity/Identities/default'), '2015-08-31-PREVIEW').principalId]",
                         "permissions": {
                             "keys": [],
                             "secrets": [
