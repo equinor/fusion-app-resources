@@ -14,7 +14,7 @@ resources:
     repositories:
       - repository: commonTemplates
         type: git
-        name: 'ProView Portal/fusion-pipeline-templates'
+        name: ProView%20Portal/fusion-pipeline-templates
   
 variables:
     imageTag: $(Build.BuildNumber)
