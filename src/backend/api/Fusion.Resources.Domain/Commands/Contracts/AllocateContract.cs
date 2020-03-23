@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain.Commands
             private readonly IOrgApiClient orgClient;
             private readonly ResourcesDbContext resourcesDb;
 
-            private ApiClients.Org.ApiProjectV2 project;
+            private ApiClients.Org.ApiProjectV2? project;
 
             public Handler(IOrgApiClientFactory orgApiClientFactory, ResourcesDbContext resourcesDb)
             {

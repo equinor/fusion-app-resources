@@ -18,7 +18,7 @@ namespace Fusion.Resources.Database.Authentication
         private readonly ConnectionMode connectionMode;
         private readonly Timer tokenRefreshTimer;
 
-        private string accessToken = null;
+        private string? accessToken = null;
 
         public AzureTokenAuthenticationManager(ISqlTokenProvider tokenProvider, IConfiguration configuration)
         {

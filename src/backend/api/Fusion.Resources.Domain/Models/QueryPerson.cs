@@ -25,14 +25,15 @@ namespace Fusion.Resources.Domain
         public Guid AzureUniqueId { get; set; }
         public string Mail { get; set; }
         public string Name { get; set; }
-        public string JobTitle { get; set; }
+        public string? JobTitle { get; set; }
         public string Phone { get; set; }
         public FusionAccountType AccountType { get; set; }
 
-        public static QueryPerson FromEntityOrDefault(DbPerson updatedBy)
+        public static QueryPerson? FromEntityOrDefault(DbPerson? updatedBy)
         {
             if (updatedBy != null)
                 return new QueryPerson(updatedBy);
+
             return null;
         }
     }

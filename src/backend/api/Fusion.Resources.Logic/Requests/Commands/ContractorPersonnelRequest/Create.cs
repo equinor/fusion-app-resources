@@ -141,7 +141,7 @@ namespace Fusion.Resources.Logic.Commands
                         Category = category,
                         OriginalPositionId = request.OriginalPositionId,
                         Position = GeneratePosition(request.Position, request.PositionTaskOwner),
-                        Description = request.Description,
+                        Description = request.Description ?? string.Empty,
                         Created = DateTimeOffset.UtcNow,
                         CreatedBy = request.Editor.Person
                     };

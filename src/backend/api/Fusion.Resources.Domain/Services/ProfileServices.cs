@@ -15,7 +15,7 @@ namespace Fusion.Resources.Domain.Services
     {
         private readonly IFusionProfileResolver profileResolver;
         private readonly ResourcesDbContext resourcesDb;
-        private static SemaphoreSlim locker = new SemaphoreSlim(1);
+        private static readonly SemaphoreSlim locker = new SemaphoreSlim(1);
 
         public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb)
         {
@@ -90,12 +90,13 @@ namespace Fusion.Resources.Domain.Services
                 {
                     AccountStatus = DbAzureAccountStatus.NoAccount,
                     Disciplines = new List<DbPersonnelDiscipline>(),
-                    Mail = personId.Mail,
-                    Name = personId.Mail
+                    Mail = personId.Mail!,  // Assume mail 
+                    Name = personId.Mail!
                 };
 
                 if (profile != null)
                 {
+                    newEntry.Mail = profile.Mail;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
                     newEntry.JobTitle = profile.JobTitle;
@@ -114,7 +115,7 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
-        public async Task<DbPerson> EnsurePersonAsync(Guid azureUniqueId)
+        public async Task<DbPerson?> EnsurePersonAsync(Guid azureUniqueId)
         {
             await locker.WaitAsync();
 
@@ -150,7 +151,7 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
-        public async Task<DbPerson> EnsureApplicationAsync(Guid azureUniqueId)
+        public async Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId)
         {
             await locker.WaitAsync();
 

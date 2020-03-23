@@ -10,6 +10,8 @@ namespace Fusion.Resources.Domain
         {
             Id = basePositionId;
             Name = "[Not resolved]";
+            Discipline = null!;
+            ProjectType = null!;
         }
         public QueryBasePosition(ApiBasePositionV2 basePosition)
         {

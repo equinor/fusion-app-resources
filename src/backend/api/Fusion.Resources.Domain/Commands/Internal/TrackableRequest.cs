@@ -6,29 +6,21 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class TrackableRequest<TResponse> : IRequest<TResponse>, ITrackableRequest
     {
-        public CommandEditor Editor { get; private set; }
+        public CommandEditor Editor { get; private set; } = null!;
 
         public void SetEditor(Guid azureUniqueId, DbPerson person)
         {
-            Editor = new CommandEditor
-            {
-                AzureUniqueId = azureUniqueId,
-                Person = person
-            };
+            Editor = new CommandEditor(azureUniqueId, person);
         }
     }
 
     public class TrackableRequest : IRequest, ITrackableRequest
     {
-        public CommandEditor Editor { get; private set; }
+        public CommandEditor Editor { get; private set; } = null!;
 
         public void SetEditor(Guid azureUniqueId, DbPerson person)
         {
-            Editor = new CommandEditor
-            {
-                AzureUniqueId = azureUniqueId,
-                Person = person
-            };
+            Editor = new CommandEditor(azureUniqueId, person);
         }
     }
 }

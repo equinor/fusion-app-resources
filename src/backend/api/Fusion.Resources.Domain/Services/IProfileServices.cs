@@ -13,9 +13,9 @@ namespace Fusion.Resources.Domain
         /// </summary>
         /// <param name="azureUniqueId"></param>
         /// <returns></returns>
-        Task<DbPerson> EnsurePersonAsync(Guid azureUniqueId);
+        Task<DbPerson?> EnsurePersonAsync(Guid azureUniqueId);
 
-        Task<DbPerson> EnsureApplicationAsync(Guid azureUniqueId);
+        Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId);
 
         Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(PersonId personId);
         Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId);
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain
         /// </summary>
         /// <param name="person"></param>
         /// <returns></returns>
-        Task<FusionPersonProfile> ResolveProfileAsync(PersonId person);
+        Task<FusionPersonProfile?> ResolveProfileAsync(PersonId person);
 
         /// <summary>
         /// Refresh external personnel information from People services. 

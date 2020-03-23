@@ -72,6 +72,10 @@ namespace Fusion.Resources.Domain.Queries
                     try
                     {
                         var originalPosition = await orgResolver.ResolvePositionAsync(request.OriginalPositionId.Value);
+
+                        if (originalPosition is null)
+                            throw new Exception($"Could locate any position id '{originalPosition}'");
+
                         request.WithResolvedOriginalPosition(originalPosition);
 
                     }

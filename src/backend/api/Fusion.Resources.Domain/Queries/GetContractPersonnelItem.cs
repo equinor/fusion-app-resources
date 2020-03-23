@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain
         public PersonnelId PersonnelId { get; }
 
 
-        public class Handler : IRequestHandler<GetContractPersonnelItem, QueryContractPersonnel>
+        public class Handler : IRequestHandler<GetContractPersonnelItem, QueryContractPersonnel?>
         {
             private readonly ResourcesDbContext db;
             private readonly IFusionProfileResolver profileResolver;
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain
                 this.orgResolver = orgResolver;
             }
 
-            public async Task<QueryContractPersonnel> Handle(GetContractPersonnelItem request, CancellationToken cancellationToken)
+            public async Task<QueryContractPersonnel?> Handle(GetContractPersonnelItem request, CancellationToken cancellationToken)
             {
                 var item = await db.ContractPersonnel
                     .GetById(request.OrgContractId, request.PersonnelId)

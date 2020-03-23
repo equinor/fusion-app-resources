@@ -35,8 +35,8 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? Started { get; set; }
         public DateTimeOffset? Completed { get; set; }
         public DateTimeOffset? DueDate { get; set; }
-        public string PreviousStep { get; set; }
-        public string NextStep { get; set; }
+        public string? PreviousStep { get; set; }
+        public string? NextStep { get; set; }
     }
 }
 

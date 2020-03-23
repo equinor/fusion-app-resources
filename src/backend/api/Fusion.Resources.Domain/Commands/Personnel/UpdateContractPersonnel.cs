@@ -25,13 +25,11 @@ namespace Fusion.Resources.Domain.Commands
         public Guid OrgProjectId { get; set; }
         public PersonnelId PersonnelId { get; set; }
 
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string JobTitle { get; set; }
-        public string Phone { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string? JobTitle { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
         public List<string> Disciplines { get; set; } = new List<string>();
-
-        public Guid EditorAzureUniqueId { get; set; }
 
 
         public class Handler : IRequestHandler<UpdateContractPersonnel, QueryContractPersonnel>

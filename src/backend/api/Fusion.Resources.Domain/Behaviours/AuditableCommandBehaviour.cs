@@ -37,6 +37,9 @@ namespace Fusion.Resources.Domain.Behaviours
                         _ => await profileServices.EnsurePersonAsync(uniqueId)
                     };
 
+                    if (editor == null)
+                        throw new InvalidOperationException("Could not determin editor");
+
                     trackableRequest.SetEditor(uniqueId, editor);
                 }
             }

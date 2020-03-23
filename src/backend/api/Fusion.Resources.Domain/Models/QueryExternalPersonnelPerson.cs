@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string JobTitle { get; set; }
+        public string? JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }
 

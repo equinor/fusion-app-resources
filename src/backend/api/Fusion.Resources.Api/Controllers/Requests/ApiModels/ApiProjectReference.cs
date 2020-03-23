@@ -5,9 +5,6 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiProjectReference
     {
-        public ApiProjectReference()
-        {
-        }
         public ApiProjectReference(QueryProject project)
         {
             Id = project.OrgProjectId;
@@ -22,7 +19,5 @@ namespace Fusion.Resources.Api.Controllers
 
         public Guid InternalId { get; set; }
         public string Name { get; set; }
-
-        public Guid ProjectMasterId { get; set; }
     }
 }

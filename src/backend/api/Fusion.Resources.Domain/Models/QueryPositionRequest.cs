@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain
 
         public QueryBasePosition BasePosition { get; set; }
         public string Name { get; set; }
-        public string Obs { get; set; }
+        public string? Obs { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
         public double Workload { get; set; }

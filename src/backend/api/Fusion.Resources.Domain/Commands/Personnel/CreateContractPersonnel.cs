@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Domain.Commands
 {
 
-
     public class CreateContractPersonnel : TrackableRequest<QueryContractPersonnel>
     {
         public CreateContractPersonnel(Guid projectId, Guid contractIdentifier, string mail)
@@ -28,10 +27,10 @@ namespace Fusion.Resources.Domain.Commands
 
         public PersonId Person { get; set; }
 
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string JobTitle { get; set; }
-        public string Phone { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string? JobTitle { get; set; }
+        public string Phone { get; set; } = string.Empty;
         public List<string> Disciplines { get; set; } = new List<string>();
 
         public class Handler : IRequestHandler<CreateContractPersonnel, QueryContractPersonnel>
@@ -49,6 +48,7 @@ namespace Fusion.Resources.Domain.Commands
             {
 
                 var personnel = await profileService.EnsureExternalPersonnelAsync(request.Person);
+
 
                 // Even if the personnel is fetch from existing. Update to new values, as things might change, like phone number.
                 UpdatePerson(personnel, request);
