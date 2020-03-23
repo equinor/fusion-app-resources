@@ -19,6 +19,7 @@ namespace Fusion.Resources.Api.Controllers
             JobTitle = personnel.JobTitle ?? string.Empty;
             PhoneNumber = personnel.PhoneNumber;
             Mail = personnel.Mail;
+            DawinciCode = personnel.DawinciCode;
             AzureAdStatus = Enum.Parse<ApiAccountStatus>($"{personnel.AzureAdStatus}", true);
             Disciplines = personnel.Disciplines.Select(d => new ApiPersonnelDiscipline(d)).ToList();
             Created = personnel.Created;
@@ -39,6 +40,8 @@ namespace Fusion.Resources.Api.Controllers
         public string JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }
+
+        public string? DawinciCode { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAccountStatus AzureAdStatus { get; set; }

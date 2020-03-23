@@ -15,6 +15,8 @@ namespace Fusion.Resources.Api.Controllers
         public string? JobTitle { get; set; } = null!;
         public string? PhoneNumber { get; set; } = null!;
 
+        public string? DawinciCode { get; set; }
+
         public List<PersonnelDisciplineEntity>? Disciplines { get; set; }
 
         public void LoadCommand(CreateContractPersonnel command)
@@ -23,6 +25,7 @@ namespace Fusion.Resources.Api.Controllers
             command.LastName = LastName;
             command.Phone = PhoneNumber ?? string.Empty;
             command.JobTitle = JobTitle;
+            command.DawinciCode = DawinciCode;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
 

@@ -22,6 +22,9 @@ namespace Fusion.Resources.Database.Entities
         public string Phone { get; set; } = null!;
         public string? JobTitle { get; set; }
 
+
+        public string? DawinciCode { get; set; }
+
         public ICollection<DbPersonnelDiscipline> Disciplines { get; set; } = null!;
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)

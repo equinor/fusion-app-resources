@@ -27,10 +27,10 @@ namespace Fusion.Resources.Domain.Commands
 
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
-        public string? JobTitle { get; set; } = string.Empty;
+        public string? JobTitle { get; set; } 
         public string Phone { get; set; } = string.Empty;
         public List<string> Disciplines { get; set; } = new List<string>();
-
+        public string? DawinciCode { get; set; }
 
         public class Handler : IRequestHandler<UpdateContractPersonnel, QueryContractPersonnel>
         {
@@ -72,6 +72,7 @@ namespace Fusion.Resources.Domain.Commands
                 dbPersonnel.FirstName = request.FirstName;
                 dbPersonnel.LastName = request.LastName;
                 dbPersonnel.JobTitle = request.JobTitle;
+                dbPersonnel.DawinciCode = request.DawinciCode;
                 dbPersonnel.Phone = request.Phone;
                 dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
             }

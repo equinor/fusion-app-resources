@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+#nullable enable 
+
 namespace Fusion.Resources.Domain.Commands
 {
 
@@ -31,6 +33,9 @@ namespace Fusion.Resources.Domain.Commands
         public string LastName { get; set; } = string.Empty;
         public string? JobTitle { get; set; }
         public string Phone { get; set; } = string.Empty;
+
+        public string? DawinciCode { get; set; }
+
         public List<string> Disciplines { get; set; } = new List<string>();
 
         public class Handler : IRequestHandler<CreateContractPersonnel, QueryContractPersonnel>
@@ -90,6 +95,7 @@ namespace Fusion.Resources.Domain.Commands
                 dbPersonnel.LastName = request.LastName;
                 dbPersonnel.JobTitle = request.JobTitle;
                 dbPersonnel.Phone = request.Phone;
+                dbPersonnel.DawinciCode = request.DawinciCode;
                 dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
             }
 

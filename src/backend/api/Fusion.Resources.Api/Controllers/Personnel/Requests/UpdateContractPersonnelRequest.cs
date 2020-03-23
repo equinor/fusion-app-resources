@@ -10,8 +10,10 @@ namespace Fusion.Resources.Api.Controllers
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
 
-        public string? JobTitle { get; set; } = null!;
-        public string? PhoneNumber { get; set; } = null!;
+        public string? JobTitle { get; set; }
+        public string? PhoneNumber { get; set; }
+
+        public string? DawinciCode { get; set; }
 
         public List<PersonnelDisciplineEntity>? Disciplines { get; set; }
 
@@ -20,6 +22,7 @@ namespace Fusion.Resources.Api.Controllers
             command.FirstName = FirstName;
             command.LastName = LastName;
             command.JobTitle = JobTitle;
+            command.DawinciCode = DawinciCode;
             command.Phone = PhoneNumber ?? string.Empty;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
