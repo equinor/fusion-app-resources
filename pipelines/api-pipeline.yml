@@ -2,13 +2,13 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 pr: none
 
-trigger: 
+trigger:
   branches:
     include:
-      - master
+    - master
   paths:
     include:
-      - src/backend/api/*
+    - src/backend/api/*
 
 resources:
     repositories:
