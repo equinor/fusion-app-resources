@@ -19,8 +19,6 @@ namespace Fusion.Resources.Functions
 
             builder.Services.AddServiceResolver();
             builder.Services.AddHttpClients();
-
-            builder.Services.AddProfileDomain();
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Fusion.Resources.Domain
             {
                 case InvitationStatus.Accepted: return DbAzureAccountStatus.Available;
                 case InvitationStatus.Pending: return DbAzureAccountStatus.InviteSent;
-                default: return DbAzureAccountStatus.NotSet;
+                default: return DbAzureAccountStatus.NoAccount;
             }
         }
     }
