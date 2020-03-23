@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers
         {
         }
 
-        [HttpGet("/personnel")]
+        [HttpGet("resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonnel([FromQuery]ODataQueryParams query)
         {
             if (query is null) query = new ODataQueryParams { Top = 1000 };
@@ -60,7 +60,7 @@ namespace Fusion.Resources.Api.Controllers
             return returnItem;
         }
 
-        [HttpPost("/personnel/{personIdentifier}/refresh")]
+        [HttpPost("resources/personnel/{personIdentifier}/refresh")]
         public async Task<ActionResult<ApiExternalPersonnelPerson>> RefreshPersonnel(string personIdentifier)
         {
             var refreshedPersonnel = await DispatchAsync(new RefreshPersonnel(personIdentifier));

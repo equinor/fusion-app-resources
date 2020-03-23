@@ -26,7 +26,7 @@ namespace Fusion.Resources.Functions.Domains.Profile
         {
             logger.LogInformation("Reading external person personnel with NoAccount or InviteSent from Resources API");
 
-            var response = await resourcesClient.GetAsync($"personnel?$filter=azureAdStatus in ('NoAccount','InviteSent', 'NotSet')");
+            var response = await resourcesClient.GetAsync($"resources/personnel?$filter=azureAdStatus in ('NoAccount','InviteSent', 'NotSet')");
             response.EnsureSuccessStatusCode();
 
             var body = await response.Content.ReadAsStringAsync();
@@ -51,7 +51,7 @@ namespace Fusion.Resources.Functions.Domains.Profile
                 if (!InvitationStatusMatches(person.Person.InvitationStatus, resourcesPerson.AzureAdStatus))
                 {
                     logger.LogInformation($"Detected change in profile '{resourcesPerson.Mail}'. Initiating refresh.");
-                    var refreshResponse = await resourcesClient.PostAsJsonAsync($"personnel/{resourcesPerson.Mail}/refresh", new { });
+                    var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { });
                     refreshResponse.EnsureSuccessStatusCode();
                 }
             }
