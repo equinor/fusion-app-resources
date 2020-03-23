@@ -7,12 +7,20 @@ import {
     Accordion,
     AccordionItem,
     ErrorMessage,
+    Button,
+    CloseCircleIcon,
+    styling,
+    CheckCircleIcon,
+    Spinner,
 } from '@equinor/fusion-components';
 import RequestDetails from './RequestDetails';
 import useCurrentRequest from './hooks/useCurrentRequest';
 import RequestWorkflow from '../RequestWorkflow';
 import * as styles from './styles.less';
 import CompactPersonDetails from './CompactPersonDetails';
+import useRequestApproval from '../../hooks/useRequestApproval';
+import RejectPersonnelSideSheet from '../RejectRequestSideSheet';
+import useRequestRejection from '../../hooks/useRequestRejection';
 
 type RequestDetailsSideSheetProps = {
     requests: PersonnelRequest[] | null;
@@ -26,12 +34,18 @@ type AccordionOpenDictionary = {
 const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ requests }) => {
     const { currentRequest, setCurrentRequest } = useCurrentRequest(requests);
     const [activeTabKey, setActiveTabKey] = React.useState<string>('general');
+    const [rejectRequest, setRejectRequest] = React.useState<PersonnelRequest[]>([]);
     const [openAccordions, setOpenAccordions] = React.useState<AccordionOpenDictionary>({
         comments: true,
         description: true,
         person: true,
     });
-
+    const { approve, canApprove, isApproving } = useRequestApproval(
+        currentRequest ? [currentRequest] : []
+    );
+    const { reject, canReject, isRejecting } = useRequestRejection(
+        currentRequest ? [currentRequest] : []
+    );
     const showSideSheet = React.useMemo(() => currentRequest !== null, [currentRequest]);
 
     const onClose = React.useCallback(() => {
@@ -54,6 +68,34 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
             show={showSideSheet}
             header={currentRequest.position?.basePosition?.name || ''}
             onClose={onClose}
+            headerIcons={[
+                <Button
+                    outlined
+                    disabled={!canReject}
+                    onClick={() => canReject && setRejectRequest([currentRequest])}
+                >
+                    <div className={styles.buttonIcon}>
+                        <CloseCircleIcon
+                            width={styling.numericalGrid(2)}
+                            height={styling.numericalGrid(2)}
+                        />
+                    </div>
+                    Reject
+                </Button>,
+                <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
+                    <div className={styles.buttonIcon}>
+                        {isApproving ? (
+                            <Spinner inline />
+                        ) : (
+                            <CheckCircleIcon
+                                width={styling.numericalGrid(2)}
+                                height={styling.numericalGrid(2)}
+                            />
+                        )}
+                    </div>
+                    Approve
+                </Button>,
+            ]}
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
                 <Tab tabKey="general" title="General">
@@ -108,6 +150,11 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                     </div>
                 </Tab>
             </Tabs>
+            <RejectPersonnelSideSheet
+                requests={rejectRequest}
+                setRequests={setRejectRequest}
+                onReject={reason => reject(reason)}
+            />
         </ModalSideSheet>
     );
 };

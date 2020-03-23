@@ -214,4 +214,76 @@ export default class ApiClient {
         >(url, request);
         return response.data;
     }
+
+    async approveRequestAsync(projectId: string, contractId: string, requestId: string) {
+        const url = this.resourceCollection.approvePersonnelRequest(
+            projectId,
+            contractId,
+            requestId
+        );
+        const response = await this.httpClient.postAsync<
+            void,
+            PersonnelRequest,
+            FusionApiHttpErrorResponse
+        >(url, undefined);
+        return response.data;
+    }
+    async rejectRequestAsync(
+        projectId: string,
+        contractId: string,
+        requestId: string,
+        reason: string
+    ) {
+        const url = this.resourceCollection.rejectPersonnelRequest(
+            projectId,
+            contractId,
+            requestId
+        );
+
+        type RejectRequest = {
+            reason: string;
+        };
+
+        const response = await this.httpClient.postAsync<
+            RejectRequest,
+            PersonnelRequest,
+            FusionApiHttpErrorResponse
+        >(url, {
+            reason,
+        });
+        return response.data;
+    }
+
+    public async canEditActionAsync(
+        projectId: string,
+        contractId: string,
+        requestId: string,
+        actionName: string
+    ) {
+        const url = this.resourceCollection.requestAction(
+            projectId,
+            contractId,
+            requestId,
+            actionName
+        );
+
+        try {
+            const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(
+                url,
+                {},
+                () => Promise.resolve()
+            );
+
+            // const allowHeader = response.headers.get('Allow');
+            // if (allowHeader !== null && allowHeader.indexOf('PUT') !== -1) {
+            //     return true;
+            // }
+            if(response.status === 204) {
+                return true;
+            }
+            return false;
+        } catch (e) {
+            return false;
+        }
+    }
 }

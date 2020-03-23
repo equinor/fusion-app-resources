@@ -22,7 +22,7 @@ const WorkflowStep: React.FC<WorkflowStepProps> = ({ step, inline }) => {
     const [popoverRef] = usePopoverRef<HTMLDivElement>(
         <WorkflowPopover step={step} />,
         {
-            justify: 'start',
+            justify: 'center',
             placement: 'below',
         },
         true,
