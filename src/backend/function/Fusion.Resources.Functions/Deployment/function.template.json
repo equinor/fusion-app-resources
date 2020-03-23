@@ -43,7 +43,12 @@
       },
       "dependsOn": [],
       "properties": {
+        "httpsOnly":  true,
         "siteConfig": {
+          "phpVersion": "off",
+          "ftpsState": "FtpsOnly",
+          "minTlsVersion": "1.2",
+          "webSocketsEnabled": false,
           "appSettings": [
             {
               "name": "AzureWebJobsStorage",
