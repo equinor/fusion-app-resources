@@ -177,7 +177,7 @@ export default class ApiClient {
         contractId: string,
         filterOnActive?: boolean
     ) {
-        const filter = filterOnActive ? 'isActive eq true' : undefined;
+        const filter = filterOnActive ? 'state eq Created or state eq SubmittedToCompany' : undefined;
         const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
         const response = await this.httpClient.getAsync<
             ApiCollection<PersonnelRequest>,
@@ -213,5 +213,72 @@ export default class ApiClient {
             FusionApiHttpErrorResponse
         >(url, request);
         return response.data;
+    }
+
+    async approveRequestAsync(projectId: string, contractId: string, requestId: string) {
+        const url = this.resourceCollection.approvePersonnelRequest(
+            projectId,
+            contractId,
+            requestId
+        );
+        const response = await this.httpClient.postAsync<
+            void,
+            PersonnelRequest,
+            FusionApiHttpErrorResponse
+        >(url, undefined);
+        return response.data;
+    }
+    async rejectRequestAsync(
+        projectId: string,
+        contractId: string,
+        requestId: string,
+        reason: string
+    ) {
+        const url = this.resourceCollection.rejectPersonnelRequest(
+            projectId,
+            contractId,
+            requestId
+        );
+
+        type RejectRequest = {
+            reason: string;
+        };
+
+        const response = await this.httpClient.postAsync<
+            RejectRequest,
+            PersonnelRequest,
+            FusionApiHttpErrorResponse
+        >(url, {
+            reason,
+        });
+        return response.data;
+    }
+
+    public async canEditActionAsync(
+        projectId: string,
+        contractId: string,
+        requestId: string,
+        actionName: string
+    ) {
+        const url = this.resourceCollection.requestAction(
+            projectId,
+            contractId,
+            requestId,
+            actionName
+        );
+
+        try {
+            const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(
+                url,
+                {},
+                () => Promise.resolve()
+            );
+            if(response.status === 204) {
+                return true;
+            }
+            return false;
+        } catch (e) {
+            return false;
+        }
     }
 }

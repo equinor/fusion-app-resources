@@ -10,11 +10,13 @@ export type WorkflowState =
 
 export type WorkflowStepState = 'Pending' | 'Approved' | 'Rejected' | 'Skipped' | 'unknown';
 
+export type WorkflowStepId = 'created' | 'contractorApproval' | 'companyApproval' | 'provisioning';
+
 export type WorkflowStep = {
-    id: string;
+    id: WorkflowStepId;
     name: string;
     isCompleted: boolean;
-    state:WorkflowStepState
+    state: WorkflowStepState;
     started: Date | null;
     completed: Date | null;
     dueDate: Date | null;
@@ -23,7 +25,6 @@ export type WorkflowStep = {
     reason: string | null;
     previousStep: string;
     nextStep: string;
-
 };
 
 type Workflow = {

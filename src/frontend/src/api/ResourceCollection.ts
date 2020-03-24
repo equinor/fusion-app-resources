@@ -51,4 +51,16 @@ export default class ResourceCollection {
     personnelRequest(projectId: string, contractId: string, requestId: string) {
         return combineUrls(this.personnelRequests(projectId, contractId), requestId);
     }
+
+    approvePersonnelRequest(projectId: string, contractId: string, requestId: string) {
+        return combineUrls(this.personnelRequest(projectId, contractId, requestId), 'approve');
+    }
+
+    rejectPersonnelRequest(projectId: string, contractId: string, requestId: string) {
+        return combineUrls(this.personnelRequest(projectId, contractId, requestId), 'reject');
+    }
+
+    requestAction(projectId: string, contractId: string, requestId: string, actionName: string) {
+        return combineUrls(this.personnelRequest(projectId, contractId, requestId), 'actions', actionName);
+    }
 }
