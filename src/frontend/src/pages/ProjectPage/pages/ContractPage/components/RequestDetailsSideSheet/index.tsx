@@ -127,14 +127,7 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                                     isOpen={openAccordions.person}
                                 >
                                     {currentRequest.person ? (
-                                        <>
-                                            <CompactPersonDetails
-                                                personnel={currentRequest.person}
-                                            />
-                                            <PersonPositionsDetails
-                                                person={currentRequest.person}
-                                            />
-                                        </>
+                                        <CompactPersonDetails personnel={currentRequest.person} />
                                     ) : (
                                         <ErrorMessage
                                             hasError
@@ -166,9 +159,16 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
                             {currentRequest.person ? (
-                                <EditablePositionDetails person={currentRequest.person} />
+                                <>
+                                    <EditablePositionDetails person={currentRequest.person} />
+                                    <PersonPositionsDetails person={currentRequest.person} />
+                                </>
                             ) : (
-                                <ErrorMessage hasError title="No person assigned" />
+                                <ErrorMessage
+                                    hasError
+                                    errorType="noData"
+                                    message="Could not find a person for this request"
+                                />
                             )}
                         </div>
                     </div>
