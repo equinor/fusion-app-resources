@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PersonCard } from '@equinor/fusion-components';
+import { PersonCard, Chip } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 import * as styles from './styles.less';
 import AzureAdStatusIcon from '../../pages/ManagePersonnelPage/components/AzureAdStatus';
@@ -21,9 +21,7 @@ const CompactPersonDetails: React.FC<CompactPersonDetailsProps> = ({ personnel }
                 <span className={styles.title}>{'Disciplines'}</span>
                 <div className={styles.content}>
                     {personnel.disciplines.map(discipline => (
-                        <div className={styles.disciplineChip}>
-                            {discipline.name}
-                        </div>
+                        <Chip title={discipline.name} />
                     ))}
                 </div>
             </div>

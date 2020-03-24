@@ -75,10 +75,14 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                     onClick={() => canReject && setRejectRequest([currentRequest])}
                 >
                     <div className={styles.buttonIcon}>
-                        <CloseCircleIcon
-                            width={styling.numericalGrid(2)}
-                            height={styling.numericalGrid(2)}
-                        />
+                        {isRejecting ? (
+                            <Spinner inline />
+                        ) : (
+                            <CloseCircleIcon
+                                width={styling.numericalGrid(2)}
+                                height={styling.numericalGrid(2)}
+                            />
+                        )}
                     </div>
                     Reject
                 </Button>,
