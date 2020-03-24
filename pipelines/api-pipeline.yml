@@ -1,12 +1,14 @@
 name: $(date:yyyyMMdd)$(rev:.r)
-trigger: none
+
 pr: none
 
-resources:
-    repositories:
-      - repository: commonTemplates
-        type: git
-        name: 'ProView Portal/fusion-pipeline-templates'
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - src/backend/api/*
   
 variables:
     imageTag: $(Build.BuildNumber)
@@ -101,7 +103,7 @@ stages:
                 variableName: envKeyVaultUrl
                 
 
-            - template: templates/replace-tokens.yml@commonTemplates
+            - template: templates/replace-tokens.yml
               parameters:
                 targetFiles: '$(deploymentManifest)'
 
@@ -153,7 +155,7 @@ stages:
                   environment: $(envName)
                   variableName: envKeyVaultUrl
   
-              - template: templates/replace-tokens.yml@commonTemplates
+              - template: templates/replace-tokens.yml
                 parameters:
                   targetFiles: '$(deploymentManifest)'
   

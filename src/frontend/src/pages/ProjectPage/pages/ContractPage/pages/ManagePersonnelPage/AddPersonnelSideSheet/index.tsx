@@ -3,16 +3,18 @@ import {
     ModalSideSheet,
     Button,
     Spinner,
-    AddIcon,
     useTooltipRef,
-    styling,
     usePopoverRef,
     MoreIcon,
 } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
 import * as styles from './styles.less';
-import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
+import {
+    useCurrentContext,
+    useNotificationCenter,
+    HttpClientRequestFailedError,
+} from '@equinor/fusion';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';
@@ -21,6 +23,11 @@ import AddPersonnelFormDisciplinesDropDown from './AddPersonnelFormDisciplinesDr
 import ManagePersonnelToolBar, { IconButtonProps } from '../components/ManagePersonnelToolBar';
 import useBasePositions from '../../../../../../../hooks/useBasePositions';
 import SelectionCell from '../components/SelectionCell';
+import RequestProgressSidesheet, {
+    FailedRequest,
+    SuccessfulRequest,
+} from '../../../../../../../components/RequestProgressSidesheet';
+import PersonnelRequest from './PersonnelRequest';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -36,8 +43,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
-    const notification = useNotificationCenter();
-    const [saveInProgress, setSaveInProgress] = React.useState<boolean>(false);
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
         selectedPersonnel
@@ -45,49 +50,77 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
     const { basePositions, isFetchingBasePositions } = useBasePositions();
 
-    const savePersonnelChangesAsync = async () => {
+    const [pendingRequests, setPendingRequests] = React.useState<Personnel[]>([]);
+    const [failedRequests, setFailedRequests] = React.useState<FailedRequest<Personnel>[]>([]);
+    const [successfulRequests, setSuccessfullRequests] = React.useState<
+        SuccessfulRequest<Personnel, Personnel>[]
+    >([]);
+
+    React.useEffect(() => {
+        if (failedRequests.length) {
+            setFormState(failedRequests.filter(r => r.isEditable).map(r => r.item));
+        }
+    }, [failedRequests]);
+
+    const savePersonnelAsync = React.useCallback(
+        async (person: Personnel, contextId: string, contractId: string) => {
+            try {
+                setPendingRequests(r => [...r, person]);
+
+                const response = person.created
+                    ? await apiClient.updatePersonnelAsync(contextId, contractId, person)
+                    : await apiClient.createPersonnelAsync(contextId, contractId, person);
+
+                setSuccessfullRequests(r => [...r, { item: person, response }]);
+
+                dispatchContractAction({
+                    collection: 'personnel',
+                    verb: 'merge',
+                    payload: [response],
+                });
+            } catch (error) {
+                if (error instanceof HttpClientRequestFailedError) {
+                    const requestError = error as HttpClientRequestFailedError<Personnel>;
+
+                    setFailedRequests(f => [
+                        ...f,
+                        {
+                            error: requestError,
+                            item: person,
+                            isEditable:
+                                requestError.statusCode < 500 &&
+                                requestError.statusCode !== 424 &&
+                                requestError.statusCode !== 408,
+                        },
+                    ]);
+                } else {
+                    setFailedRequests(f => [
+                        ...f,
+                        {
+                            error,
+                            item: person,
+                            isEditable: false,
+                        },
+                    ]);
+                }
+            } finally {
+                setPendingRequests(r => r.filter(x => x !== person));
+            }
+        },
+        [apiClient]
+    );
+
+    const savePersonnelChangesAsync = React.useCallback(async () => {
         const contractId = contract?.id;
 
         if (!currentContext?.id || !contractId) return;
 
-        setSaveInProgress(true);
+        setPendingRequests([]);
+        setFailedRequests([]);
+        setSuccessfullRequests([]);
 
-        try {
-            const response = await Promise.all(
-                formState.map(async person =>
-                    person.created
-                        ? await apiClient.updatePersonnelAsync(
-                            currentContext.id,
-                            contractId,
-                            person
-                        )
-                        : await apiClient.createPersonnelAsync(
-                            currentContext.id,
-                            contractId,
-                            person
-                        )
-                )
-            );
-
-            setSaveInProgress(false);
-            setIsOpen(false);
-            notification({
-                level: 'low',
-                title: 'Personnel changes saved',
-                cancelLabel: 'dismiss',
-            });
-
-            dispatchContractAction({ verb: 'merge', collection: 'personnel', payload: response });
-        } catch (e) {
-            //TODO: This could probably be more helpfull.
-            notification({
-                level: 'high',
-                title:
-                    'Something went wrong while saving. Please try again or contact administrator',
-            });
-        }
-        setSaveInProgress(false);
-    };
+        formState.forEach(person => savePersonnelAsync(person, currentContext.id, contractId));
+    }, [contract, formState, currentContext, savePersonnelAsync]);
 
     const onChange = React.useCallback(
         (changedPerson: Personnel) => {
@@ -135,6 +168,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         },
         [formState, selectedItems]
     );
+
+    const saveInProgress = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
     const addButton = React.useMemo((): IconButtonProps => {
         return { onClick: onAddPerson, disabled: saveInProgress };
@@ -218,8 +253,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                             Saving
                         </>
                     ) : (
-                            'Save'
-                        )}
+                        'Save'
+                    )}
                 </Button>,
             ]}
         >
@@ -244,8 +279,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                         ref={selectableTooltipRef}
                                     />
                                 </th>
-                                <th className={styles.tableRowHeaderSelectionCell}>
-                                </th>
+                                <th className={styles.tableRowHeaderSelectionCell}></th>
                                 <th className={styles.headerRowCell}>First Name</th>
                                 <th className={styles.headerRowCell}>Last Name</th>
                                 <th className={styles.headerRowCell}>E-Mail</th>
@@ -323,6 +357,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                     </table>
                 </div>
             )}
+            <RequestProgressSidesheet
+                failedRequests={failedRequests}
+                successfulRequests={successfulRequests}
+                pendingRequests={pendingRequests}
+                onClose={() => {}}
+                renderRequest={({ request }) => <PersonnelRequest person={request} />}
+            />
         </ModalSideSheet>
     );
 };

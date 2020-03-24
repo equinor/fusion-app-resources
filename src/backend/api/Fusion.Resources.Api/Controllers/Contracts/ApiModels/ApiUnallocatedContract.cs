@@ -2,6 +2,6 @@
 {
     public class ApiUnallocatedContract
     {
-        public string ContractNumber { get; set; }
+        public string ContractNumber { get; set; } = null!;
     }
 }

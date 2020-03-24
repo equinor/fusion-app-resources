@@ -8,7 +8,7 @@ import {
 import { DefaultTableType } from './TableTypes';
 import Personnel from '../../../../../../../models/Personnel';
 
-function TablePersonnelPicker<T, TState extends Personnel>({
+function TablePersonnelPicker<T>({
     item,
     onChange,
     accessKey,
@@ -16,8 +16,9 @@ function TablePersonnelPicker<T, TState extends Personnel>({
     rowIdentifier,
     columnLabel,
     componentState,
-}: DefaultTableType<T, TState>) {
+}: DefaultTableType<T, Personnel>) {
     const selectedPersonnel = React.useMemo(() => accessor(item), [accessor, item]);
+
     const options = React.useMemo((): SearchableDropdownOption[] => {
         if (!componentState) {
             return [];
@@ -50,7 +51,7 @@ function TablePersonnelPicker<T, TState extends Personnel>({
 
     return (
         <SearchableDropdown
-            label={columnLabel}
+            placeholder={columnLabel}
             options={options}
             onSelect={onDropdownSelect}
             error={componentState?.error !== null}

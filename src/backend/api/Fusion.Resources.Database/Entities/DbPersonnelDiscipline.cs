@@ -6,7 +6,7 @@ namespace Fusion.Resources.Database.Entities
     {
         public Guid Id { get; set; }
         public Guid PersonnelId { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
     }
 
 }

@@ -14,15 +14,19 @@ namespace Fusion.Resources.Database.Entities
 
         public DbAzureAccountStatus AccountStatus { get; set; }
 
-        public string Name { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string Name { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
 
-        public string Mail { get; set; }
-        public string Phone { get; set; }
-        public string JobTitle { get; set; }
+        public string Mail { get; set; } = null!;
+        public string Phone { get; set; } = null!;
+        public string? JobTitle { get; set; }
 
-        public ICollection<DbPersonnelDiscipline> Disciplines { get; set; }
+
+        public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
+
+        public ICollection<DbPersonnelDiscipline> Disciplines { get; set; } = null!;
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -42,6 +42,22 @@ namespace Fusion.Resources.Logic.Commands
                     if (dbRequest is null)
                         throw new RequestNotFoundError(request.RequestId);
 
+                    switch (dbRequest.Category)
+                    {
+                        case DbRequestCategory.NewRequest:
+                            await CreatePositionAsync(dbRequest);
+                            break;
+
+                        case DbRequestCategory.ChangeRequest:
+                            await UpdatePositionAsync(dbRequest);
+                            break;
+                    }
+
+                    await resourcesDb.SaveChangesAsync();
+                }
+
+                private async Task CreatePositionAsync(DbContractorRequest dbRequest)
+                {
                     var createPositionCommand = new CreateContractPosition(dbRequest.Project.OrgProjectId, dbRequest.Contract.OrgContractId)
                     {
                         AppliesFrom = dbRequest.Position.AppliesFrom,
@@ -71,8 +87,42 @@ namespace Fusion.Resources.Logic.Commands
                         dbRequest.ProvisioningStatus.ErrorPayload = apiError.ResponseText;
                         dbRequest.ProvisioningStatus.State = DbContractorRequest.DbProvisionState.Error;
                     }
+                }
 
-                    await resourcesDb.SaveChangesAsync();
+                private async Task UpdatePositionAsync(DbContractorRequest dbRequest)
+                {
+                    if (dbRequest.OriginalPositionId == null)
+                        throw new InvalidOperationException("Cannot provision change request when original position id is empty.");
+
+                    var updatePositionCommand = new UpdateContractPosition(dbRequest.Project.OrgProjectId, dbRequest.Contract.OrgContractId, dbRequest.OriginalPositionId.Value)
+                    {
+                        AppliesFrom = dbRequest.Position.AppliesFrom,
+                        AppliesTo = dbRequest.Position.AppliesTo,
+                        PositionName = dbRequest.Position.Name,
+                        Workload = dbRequest.Position.Workload,
+                        Obs = dbRequest.Position.Obs,
+                        BasePositionId = dbRequest.Position.BasePositionId,
+                        AssignedPerson = dbRequest.Person.Person.Mail,
+                        ParentPositionId = dbRequest.Position.TaskOwner.PositionId
+                    };
+
+                    dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
+
+                    try
+                    {
+                        var position = await mediator.Send(updatePositionCommand);
+                        dbRequest.ProvisioningStatus.State = DbContractorRequest.DbProvisionState.Provisioned;
+                        dbRequest.ProvisioningStatus.PositionId = position.Id;
+
+                        dbRequest.ProvisioningStatus.ErrorMessage = null;
+                        dbRequest.ProvisioningStatus.ErrorPayload = null;
+                    }
+                    catch (OrgApiError apiError)
+                    {
+                        dbRequest.ProvisioningStatus.ErrorMessage = $"Received error from Org service when trying to create the position: '{apiError.Error?.Message}'";
+                        dbRequest.ProvisioningStatus.ErrorPayload = apiError.ResponseText;
+                        dbRequest.ProvisioningStatus.State = DbContractorRequest.DbProvisionState.Error;
+                    }
                 }
             }
         }

@@ -10,12 +10,14 @@ namespace Fusion.Resources.Domain
         {
             Id = basePositionId;
             Name = "[Not resolved]";
+            Discipline = null!;
+            ProjectType = null!;
         }
         public QueryBasePosition(ApiBasePositionV2 basePosition)
         {
             Id = basePosition.Id;
             Name = basePosition.Name;
-            Disicipline = basePosition.Discipline;
+            Discipline = basePosition.Discipline;
             ProjectType = basePosition.ProjectType;
 
             Resolved = true;
@@ -25,7 +27,7 @@ namespace Fusion.Resources.Domain
         {
             Id = basePosition.Id;
             Name = basePosition.Name;
-            Disicipline = basePosition.Discipline;
+            Discipline = basePosition.Discipline;
             ProjectType = basePosition.Type;
 
             Resolved = true;
@@ -33,7 +35,7 @@ namespace Fusion.Resources.Domain
 
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string Disicipline { get; set; }
+        public string Discipline { get; set; }
         public string ProjectType { get; set; }
 
         /// <summary>

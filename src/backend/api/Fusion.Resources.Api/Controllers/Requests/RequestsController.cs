@@ -12,6 +12,9 @@ using Fusion.Resources.Domain;
 using Microsoft.Extensions.DependencyInjection;
 using MediatR;
 using Fusion.Resources.Domain.Commands;
+using Fusion.AspNetCore.OData;
+using Fusion.Resources.Api.Middleware;
+using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -20,10 +23,19 @@ namespace Fusion.Resources.Api.Controllers
     public class RequestsController : ResourceControllerBase
     {
 
+        /// <summary>
+        /// 
+        /// OData:
+        ///     $expand = originalPosition
+        ///     
+        /// </summary>
+        /// <param name="projectIdentifier"></param>
+        /// <param name="contractIdentifier"></param>
+        /// <returns></returns>
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier)
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query)
         {
-            var requests = await DispatchAsync(GetContractPersonnelRequests.QueryContract(projectIdentifier.ProjectId, contractIdentifier));
+            var requests = await DispatchAsync(GetContractPersonnelRequests.QueryContract(projectIdentifier.ProjectId, contractIdentifier).WithQuery(query));
 
             return new ApiCollection<ApiContractPersonnelRequest>(requests.Select(r => new ApiContractPersonnelRequest(r)));
         }
@@ -31,27 +43,52 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-
             var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
             return new ApiContractPersonnelRequest(request);
         }
 
 
+        /// <summary>
+        /// 
+        /// 
+        /// Validations:
+        /// - Only one change request for a specific position can be active at the same time.
+        ///    -> Bad Request, Invalid operation.
+        ///    
+        /// - The original position id has to be a valid position.
+        ///     -> Bad Request
+        /// </summary>
+        /// <param name="projectIdentifier"></param>
+        /// <param name="contractIdentifier"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
         {
-            using (var scope = await BeginTransactionAsync())
+            try
             {
-                var createCommand = new Logic.Commands.ContractorPersonnelRequest.Create(projectIdentifier.ProjectId, contractIdentifier, request.Person)
-                    .WithPosition(request.Position.BasePosition.Id, request.Position.Name, request.Position.AppliesFrom, request.Position.AppliesTo, request.Position.Workload, request.Position.Obs)
-                    .WithTaskOwner(request.Position.TaskOwner?.PositionId)
-                    .WithDescription(request.Description);
+                using (var scope = await BeginTransactionAsync())
+                {
+                    var createCommand = new Logic.Commands.ContractorPersonnelRequest.Create(projectIdentifier.ProjectId, contractIdentifier, request.Person)
+                        .WithOriginalPosition(request.OriginalPositionId)
+                        .WithPosition(request.Position.BasePosition.Id, request.Position.Name, request.Position.AppliesFrom, request.Position.AppliesTo, request.Position.Workload, request.Position.Obs)
+                        .WithTaskOwner(request.Position.TaskOwner?.PositionId)
+                        .WithDescription(request.Description);
 
-                var query = await DispatchAsync(createCommand);
+                    var query = await DispatchAsync(createCommand);
 
-                await scope.CommitAsync();
+                    await scope.CommitAsync();
 
-                return new ApiContractPersonnelRequest(query);
+                    return new ApiContractPersonnelRequest(query);
+                }
+            }
+            catch (InvalidOrgChartPositionError ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
             }
         }
 
@@ -152,6 +189,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult> CheckAccessCreateRequests(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
         {
+            await Task.Delay(1);
             var faker = new Faker();
 
             if (faker.Random.Bool())
@@ -166,6 +204,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckAccessUpdateRequest(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
         {
+            await Task.Delay(1);
             var faker = new Faker();
 
             if (faker.Random.Bool())
@@ -179,6 +218,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/actions/{actionName}")]
         public async Task<ActionResult> CheckAccessRequestAction(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
         {
+            await Task.Delay(1);
             var faker = new Faker();
 
             if (faker.Random.Bool())
@@ -193,5 +233,6 @@ namespace Fusion.Resources.Api.Controllers
 
         
     }
+
 
 }

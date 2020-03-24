@@ -9,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             Id = basePosition.Id;
             Name = basePosition.Name;
-            Discipline = basePosition.Disicipline;
+            Discipline = basePosition.Discipline;
             ProjectType = basePosition.ProjectType;
         }
 

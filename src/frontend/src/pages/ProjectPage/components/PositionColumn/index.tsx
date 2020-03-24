@@ -27,8 +27,8 @@ const PositionColumn: React.FC<PositionColumnProps> = ({ position, positionId })
     };
 
     React.useEffect(() => {
-        if (currentProject && positionId) {
-            fetchPosition((currentProject as any).externalId, positionId);
+        if (currentProject?.externalId && positionId) {
+            fetchPosition(currentProject.externalId, positionId);
         }
     }, [currentProject, positionId]);
 

@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +16,11 @@ namespace Fusion.Resources.Api.Controllers
             Name = personnel.Name;
             FirstName = personnel.FirstName;
             LastName = personnel.LastName;
-            JobTitle = personnel.JobTitle;
+            JobTitle = personnel.JobTitle ?? string.Empty;
             PhoneNumber = personnel.PhoneNumber;
             Mail = personnel.Mail;
+            DawinciCode = personnel.DawinciCode;
+            LinkedInProfile = personnel.LinkedInProfile;
             AzureAdStatus = Enum.Parse<ApiAccountStatus>($"{personnel.AzureAdStatus}", true);
             Disciplines = personnel.Disciplines.Select(d => new ApiPersonnelDiscipline(d)).ToList();
             Created = personnel.Created;
@@ -38,6 +41,9 @@ namespace Fusion.Resources.Api.Controllers
         public string JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }
+
+        public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAccountStatus AzureAdStatus { get; set; }
