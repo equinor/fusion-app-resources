@@ -36,7 +36,7 @@ const RequestWorkflow: React.FC<RequestWorkflowProps> = ({ workflow, inline }) =
     return (
         <div className={styles.workflowContainer}>
             {sortedWorkflowSteps.map(step => (
-                <RequestWorkflowStep step={step} inline={!!inline} />
+                <RequestWorkflowStep key={step.id} step={step} inline={!!inline} />
             ))}
         </div>
     );

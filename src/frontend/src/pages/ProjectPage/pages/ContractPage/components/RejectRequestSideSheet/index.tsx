@@ -25,6 +25,7 @@ const RejectPersonnelSideSheet: React.FC<RejectRequestSideSheetProps> = ({
             header={`Reject ${requests.length} requests?`}
             headerIcons={[
                 <Button
+                    key="confirm-rejection-button"
                     disabled={inputValue.length <= 0}
                     outlined
                     onClick={() => {
