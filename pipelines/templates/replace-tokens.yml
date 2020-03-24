@@ -3,7 +3,7 @@ parameters:
     keepToken: true
     displayName: 'Replace tokens in file'
   
-  steps:
+steps:
   - task: replacetokens@3
     displayName: '${{ parameters.displayName }}'
     inputs:
