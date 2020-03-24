@@ -57,15 +57,15 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 formState.map(async person =>
                     person.created
                         ? await apiClient.updatePersonnelAsync(
-                              currentContext.id,
-                              contractId,
-                              person
-                          )
+                            currentContext.id,
+                            contractId,
+                            person
+                        )
                         : await apiClient.createPersonnelAsync(
-                              currentContext.id,
-                              contractId,
-                              person
-                          )
+                            currentContext.id,
+                            contractId,
+                            person
+                        )
                 )
             );
 
@@ -218,8 +218,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                             Saving
                         </>
                     ) : (
-                        'Save'
-                    )}
+                            'Save'
+                        )}
                 </Button>,
             ]}
         >
@@ -245,7 +245,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                     />
                                 </th>
                                 <th className={styles.tableRowHeaderSelectionCell}>
-                                    <MoreIcon />
                                 </th>
                                 <th className={styles.headerRowCell}>First Name</th>
                                 <th className={styles.headerRowCell}>Last Name</th>
