@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonnel([FromQuery]ODataQueryParams query)
         {
             if (query is null) query = new ODataQueryParams { Top = 1000 };
-            if (query.Top > 1000) return Problem(statusCode: 400, title: "Invalid page size", detail: "Max page size is 1000");
+            if (query.Top > 1000) return ApiErrors.InvalidPageSize("Max page size is 1000");
 
             var externalPersonell = await DispatchAsync(new GetExternalPersonnel(query));
             var apiModelItems = externalPersonell.Select(ep => new ApiExternalPersonnelPerson(ep));

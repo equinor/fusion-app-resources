@@ -1,9 +1,6 @@
 ﻿using Fusion.Resources.Api.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -19,6 +16,22 @@ namespace Fusion.Resources.Api.Controllers
                 Status = (int)System.Net.HttpStatusCode.BadRequest
             };
             problem.Extensions.Add("error", new ApiProblem.ApiError(error.GetType().Name, error.Message));
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
+        internal static ActionResult InvalidPageSize(string message)
+        {
+            var problem = new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Detail = message,
+                Title = "Invalid page size",
+                Status = (int)System.Net.HttpStatusCode.BadRequest
+            };
 
             return new ObjectResult(problem)
             {
