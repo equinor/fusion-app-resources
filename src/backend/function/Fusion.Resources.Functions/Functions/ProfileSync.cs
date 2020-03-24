@@ -86,8 +86,7 @@ namespace Fusion.Resources.Functions.Functions
         {
             if ((peopleStatus == InvitationStatus.Accepted && resourcesStatus == ApiAccountStatus.Available) ||
                 (peopleStatus == InvitationStatus.Pending && resourcesStatus == ApiAccountStatus.InviteSent) ||
-                (peopleStatus == InvitationStatus.NotSent && resourcesStatus == ApiAccountStatus.NoAccount) ||
-                (peopleStatus == null && resourcesStatus == ApiAccountStatus.NotSet))
+                (peopleStatus == InvitationStatus.NotSent && resourcesStatus == ApiAccountStatus.NoAccount))
             {
                 return true;
             }
@@ -119,7 +118,7 @@ namespace Fusion.Resources.Functions.Functions
         }
 
         public enum InvitationStatus { Accepted, Pending, NotSent }
-        public enum ApiAccountStatus { Available, InviteSent, NoAccount, NotSet }
+        public enum ApiAccountStatus { Available, InviteSent, NoAccount }
 
 
 
