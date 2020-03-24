@@ -13,12 +13,12 @@ import classNames from 'classnames';
 import { formatDate } from '@equinor/fusion';
 import WorkflowPopover from '../WorkflowPopover';
 
-type WorkflowStepProps = {
+type RequestWorkflowStepProps = {
     step: WorkflowStep;
     inline: boolean;
 };
 
-const WorkflowStep: React.FC<WorkflowStepProps> = ({ step, inline }) => {
+const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({ step, inline }) => {
     const [popoverRef] = usePopoverRef<HTMLDivElement>(
         <WorkflowPopover step={step} />,
         {
@@ -105,4 +105,4 @@ const WorkflowStep: React.FC<WorkflowStepProps> = ({ step, inline }) => {
     );
 };
 
-export default WorkflowStep;
+export default RequestWorkflowStep;
