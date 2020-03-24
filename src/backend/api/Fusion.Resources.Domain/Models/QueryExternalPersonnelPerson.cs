@@ -19,6 +19,8 @@ namespace Fusion.Resources.Domain
             PhoneNumber = item.Phone;
             JobTitle = item.JobTitle;
             AzureAdStatus = item.AccountStatus;
+            DawinciCode = item.DawinciCode;
+            LinkedInProfile = item.LinkedInProfile;
 
             Disciplines = item.Disciplines.Select(d => new QueryPersonnelDiscipline(d)).ToList();
         }
@@ -30,6 +32,8 @@ namespace Fusion.Resources.Domain
         public string? JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }
+        public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public DbAzureAccountStatus AzureAdStatus { get; set; }
 

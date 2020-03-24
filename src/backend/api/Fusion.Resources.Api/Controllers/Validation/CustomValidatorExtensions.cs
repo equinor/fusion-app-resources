@@ -11,6 +11,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public static class CustomValidatorExtensions
     {
+
         public static IRuleBuilderOptions<T, PersonReference> BeValidPerson<T>(this IRuleBuilder<T, PersonReference> ruleBuilder)
         {
             return ruleBuilder.SetValidator(new CustomValidator<PersonReference>((person, context) =>

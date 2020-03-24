@@ -24,6 +24,8 @@ namespace Fusion.Resources.Domain
             PhoneNumber = item.Person.Phone;
             JobTitle = item.Person.JobTitle;
             AzureAdStatus = item.Person.AccountStatus;
+            DawinciCode = item.Person.DawinciCode;
+            LinkedInProfile = item.Person.LinkedInProfile;
 
             Created = item.Created;
             Updated = item.Updated;
@@ -49,6 +51,8 @@ namespace Fusion.Resources.Domain
         public string? JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }
+        public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public DbAzureAccountStatus AzureAdStatus { get; set; }
 
