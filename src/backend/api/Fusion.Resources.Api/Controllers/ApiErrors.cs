@@ -6,11 +6,13 @@ namespace Fusion.Resources.Api.Controllers
 {
     public static class ApiErrors
     {
+        private const string rfcProblemDetails = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
+
         public static ActionResult InvalidOperation(Exception error)
         {
             var problem = new ProblemDetails()
             {
-                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Type = rfcProblemDetails,
                 Detail = error.Message,
                 Title = "Invalid Operation",
                 Status = (int)System.Net.HttpStatusCode.BadRequest
@@ -27,7 +29,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             var problem = new ProblemDetails
             {
-                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Type = rfcProblemDetails,
                 Detail = message,
                 Title = "Invalid page size",
                 Status = (int)System.Net.HttpStatusCode.BadRequest
