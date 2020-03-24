@@ -1,0 +1,76 @@
+.container {
+  width: 100%;
+  height: 100%;
+  padding: calc(var(--grid-unit) * 3px);
+
+  .personnelDetails {
+      display:grid;
+      grid-template-columns: auto 1fr ;
+      padding-bottom: calc(var(--grid-unit) * 3px);
+  
+
+    .personPhoto {
+      padding-right: calc(var(--grid-unit) * 3px);
+    }
+
+    .row {
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr ;
+      margin-bottom: calc(var(--grid-unit) * 3px);
+
+      .field {
+        flex-grow: 1;
+        margin-right: calc(var(--grid-unit) * 2px);
+        max-width: calc(var(--grid-unit) * 40px);
+
+        label {
+            font-size: 14px;
+            line-height: 16px;
+            margin-bottom: calc(var(--grid-unit) * 1px);
+            color: var(--color-black-alt3);
+        }
+
+        .value {
+            font-size: 16px;
+            line-height: 41px;
+            width: 100%;
+            min-height: calc(var(--grid-unit) * 2px);
+        } 
+
+        .AdStatus {
+          width: 63px;
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  .disciplines{
+    display:grid ;
+    
+    .disciplineDropDown{
+      width: 50%;
+    }
+
+    .disciplinesChips{
+      padding: calc(var(--grid-unit) * 1px);  
+      display:flex ;
+      flex-wrap:wrap;
+
+      
+      
+      .disciplineChip {
+        display:inline;
+        text-align: center;
+        background-color:var(--color-primary-alt4);
+        color:var(--color-primary);
+        font-size: 12px;
+        line-height: 16px;
+        border-width: 2px 4px;
+        border-radius: 40px;
+        padding: calc(var(--grid-unit) * 1px);
+        margin: calc(var(--grid-unit) * 1px);
+      }
+    }
+  }
+}
