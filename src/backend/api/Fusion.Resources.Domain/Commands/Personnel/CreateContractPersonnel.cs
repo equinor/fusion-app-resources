@@ -35,6 +35,7 @@ namespace Fusion.Resources.Domain.Commands
         public string Phone { get; set; } = string.Empty;
 
         public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public List<string> Disciplines { get; set; } = new List<string>();
 
@@ -96,6 +97,7 @@ namespace Fusion.Resources.Domain.Commands
                 dbPersonnel.JobTitle = request.JobTitle;
                 dbPersonnel.Phone = request.Phone;
                 dbPersonnel.DawinciCode = request.DawinciCode;
+                dbPersonnel.LinkedInProfile = request.LinkedInProfile;
                 dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
             }
 

@@ -14,6 +14,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? PhoneNumber { get; set; }
 
         public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public List<PersonnelDisciplineEntity>? Disciplines { get; set; }
 
@@ -23,6 +24,7 @@ namespace Fusion.Resources.Api.Controllers
             command.LastName = LastName;
             command.JobTitle = JobTitle;
             command.DawinciCode = DawinciCode;
+            command.LinkedInProfile = LinkedInProfile;
             command.Phone = PhoneNumber ?? string.Empty;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
@@ -48,6 +50,19 @@ namespace Fusion.Resources.Api.Controllers
 
                 RuleFor(x => x.PhoneNumber).MaximumLength(50).WithName("phoneNumber").When(x => x.PhoneNumber != null);
                 RuleFor(x => x.PhoneNumber).NotContainScriptTag();
+
+
+                RuleFor(x => x.DawinciCode).MaximumLength(50).WithName("dawinciCode").When(x => x.DawinciCode != null);
+                RuleFor(x => x.DawinciCode).NotContainScriptTag();
+
+                RuleFor(x => x.LinkedInProfile).MaximumLength(300).WithName("linkedInProfile").When(x => x.LinkedInProfile!= null);
+                RuleFor(x => x.LinkedInProfile)
+                    .Must(x => x!.StartsWith("https://www.linkedin.com") || x!.StartsWith("http://www.linkedin.com"))
+                    .WithName("linkedInProfile")
+                    .WithMessage("Linked in profile must be a valid url to the linked in profile in the form of 'https://www.linkedin.com/...'")
+                    .When(x => x.LinkedInProfile != null);
+                RuleFor(x => x.LinkedInProfile).NotContainScriptTag();
+
 
 
                 RuleForEach(x => x.Disciplines).Must(d => d.Name != null).WithMessage("Discipline name must be specified. Empty value is not allowed.").WithName("disciplines.name")

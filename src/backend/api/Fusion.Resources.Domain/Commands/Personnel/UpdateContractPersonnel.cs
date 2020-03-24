@@ -31,6 +31,7 @@ namespace Fusion.Resources.Domain.Commands
         public string Phone { get; set; } = string.Empty;
         public List<string> Disciplines { get; set; } = new List<string>();
         public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public class Handler : IRequestHandler<UpdateContractPersonnel, QueryContractPersonnel>
         {
@@ -73,6 +74,7 @@ namespace Fusion.Resources.Domain.Commands
                 dbPersonnel.LastName = request.LastName;
                 dbPersonnel.JobTitle = request.JobTitle;
                 dbPersonnel.DawinciCode = request.DawinciCode;
+                dbPersonnel.LinkedInProfile = request.LinkedInProfile;
                 dbPersonnel.Phone = request.Phone;
                 dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
             }

@@ -180,6 +180,9 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("LinkedInProfile")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Mail")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");

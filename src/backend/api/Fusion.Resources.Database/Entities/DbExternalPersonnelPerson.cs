@@ -24,6 +24,7 @@ namespace Fusion.Resources.Database.Entities
 
 
         public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public ICollection<DbPersonnelDiscipline> Disciplines { get; set; } = null!;
 
