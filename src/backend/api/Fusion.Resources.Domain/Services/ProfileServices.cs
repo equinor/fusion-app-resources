@@ -58,9 +58,9 @@ namespace Fusion.Resources.Domain.Services
             {
                 resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
                 resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
-                resolvedPerson.JobTitle = profile.JobTitle;
+                resolvedPerson.JobTitle = profile.JobTitle ?? "";
                 resolvedPerson.Name = profile.Name;
-                resolvedPerson.Phone = profile.MobilePhone;
+                resolvedPerson.Phone = profile.MobilePhone ?? "";
             }
 
             await resourcesDb.SaveChangesAsync();

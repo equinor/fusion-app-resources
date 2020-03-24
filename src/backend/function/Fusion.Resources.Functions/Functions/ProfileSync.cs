@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.WebJobs;
+﻿using Fusion.Events;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -22,12 +23,29 @@ namespace Fusion.Resources.Functions.Functions
             resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
         }
 
+        [FunctionName("profile-sync-event")]
+        public async Task SyncProfile(
+            [EventSubscriptionTrigger(HttpClientNames.Application.People, "subscriptions/persons", "resources-profile")] MessageContext message,
+            ILogger log)
+        {
+            log.LogInformation("Profile sync event received");
+
+            var raw = Encoding.UTF8.GetString(message.Message.Body, 0, message.Message.Body.Length);
+            log.LogInformation(raw);
+
+            var deserialized = JsonConvert.DeserializeAnonymousType(raw, new { Person = new { Mail = string.Empty } });
+            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{deserialized.Person.Mail}/refresh", new { });
+            refreshResponse.EnsureSuccessStatusCode();
+
+            log.LogInformation("Profile sync event processing completed");
+        }
+
         /// <summary>
         /// Syncing profiles at 5 am every day.
         /// </summary>
         [Singleton]
         [FunctionName("profile-sync")]
-        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
             log.LogInformation("Profile sync starting run");
 
