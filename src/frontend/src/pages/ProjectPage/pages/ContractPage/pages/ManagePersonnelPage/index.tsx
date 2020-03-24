@@ -116,7 +116,12 @@ const ManagePersonnelPage: React.FC = () => {
     }, [selectedItems, deletePersonnelAsync]);
 
     const addButton = React.useMemo((): IconButtonProps => {
-        return { onClick: () => setIsAddPersonOpen(true) };
+        return {
+            onClick: () => {
+                setSelectedItems([])
+                setIsAddPersonOpen(true)
+            }
+        };
     }, []);
 
     const editButton = React.useMemo((): IconButtonProps => {
