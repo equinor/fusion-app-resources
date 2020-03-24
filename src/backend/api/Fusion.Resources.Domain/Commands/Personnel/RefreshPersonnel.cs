@@ -1,12 +1,10 @@
-﻿using Fusion.Resources.Database.Entities;
-using MediatR;
-using System.Collections.Generic;
+﻿using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class RefreshPersonnel : TrackableRequest<QueryExternalPersonnelPerson>
+    public class RefreshPersonnel : TrackableRequest
     {
         private readonly PersonnelId personellId;
 
@@ -15,7 +13,7 @@ namespace Fusion.Resources.Domain.Commands
             this.personellId = personellId;
         }
 
-        public class Handler : IRequestHandler<RefreshPersonnel, QueryExternalPersonnelPerson>
+        public class Handler : AsyncRequestHandler<RefreshPersonnel>
         {
             private readonly IProfileService profileService;
 
@@ -24,12 +22,9 @@ namespace Fusion.Resources.Domain.Commands
                 this.profileService = profileService;
             }
 
-            public async Task<QueryExternalPersonnelPerson> Handle(RefreshPersonnel request, CancellationToken cancellationToken)
+            protected override async Task Handle(RefreshPersonnel request, CancellationToken cancellationToken)
             {
-                var profile = await profileService.RefreshExternalPersonnelAsync(request.personellId.OriginalIdentifier);
-                profile.Disciplines = new List<DbPersonnelDiscipline>();
-
-                return new QueryExternalPersonnelPerson(profile);
+                await profileService.RefreshExternalPersonnelAsync(request.personellId.OriginalIdentifier);
             }
         }
     }

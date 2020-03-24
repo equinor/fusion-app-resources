@@ -63,14 +63,15 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("resources/personnel/{personIdentifier}/refresh")]
         public async Task<ActionResult<ApiExternalPersonnelPerson>> RefreshPersonnel(string personIdentifier)
         {
-            var refreshedPersonnel = await DispatchAsync(new RefreshPersonnel(personIdentifier));
+            await DispatchAsync(new RefreshPersonnel(personIdentifier));
+            var refreshedPersonnel = await DispatchAsync(new GetExternalPersonnelPerson(personIdentifier));
+
             return new ApiExternalPersonnelPerson(refreshedPersonnel);
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
         public async Task<ActionResult<ApiContractPersonnel>> CreateContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateContractPersonnelRequest request)
         {
-
             var createCommand = new CreateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, request.Mail);
             request.LoadCommand(createCommand);
 
