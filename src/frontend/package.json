@@ -1,7 +1,7 @@
 {
     "name": "resources",
     "version": "1.0.0",
-    "description": "Manage resources in org chart contracts",
+    "description": "Manage resources in pro org chart contracts",
     "main": "src/index.tsx",
     "repository": {
         "type": "git",
@@ -20,11 +20,12 @@
     },
     "dependencies": {
         "@equinor/fusion": "^1.1.1",
-        "@equinor/fusion-components": "^1.1.60",
+        "@equinor/fusion-components": "^1.1.64",
         "@types/classnames": "^2.2.9",
         "@types/deep-equal": "^1.0.1",
         "classnames": "^2.2.6",
         "deep-equal": "^2.0.1",
+        "moment": "^2.24.0",
         "react": "^16.9.0",
         "uuid": "^7.0.1"
     },

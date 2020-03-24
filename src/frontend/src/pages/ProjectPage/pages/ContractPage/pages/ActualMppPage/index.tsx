@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage } from '@equinor/fusion-components';
+import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage, AddIcon } from '@equinor/fusion-components';
 import { Position, useApiClients, useCurrentContext } from '@equinor/fusion';
 import SortableTable from '../../../../../../components/SortableTable';
 import columns from './columns';
@@ -61,17 +61,13 @@ const ActualMppPage: React.FC = () => {
         <div className={styles.actualMppContainer}>
             <div className={styles.actualMpp}>
                 <div className={styles.toolbar}>
-                    <Button onClick={() => setEditRequests([])}>
-                        Request personnel
-                    </Button>
-                    <div>
-                        <IconButton>
-                            <DeleteIcon />
-                        </IconButton>
-                        <IconButton>
-                            <EditIcon />
-                        </IconButton>
-                    </div>
+                    <IconButton onClick={() => setEditRequests([])}><AddIcon /></IconButton>
+                    <IconButton disabled>
+                        <DeleteIcon />
+                    </IconButton>
+                    <IconButton disabled>
+                        <EditIcon />
+                    </IconButton>
                 </div>
                 <SortableTable
                     data={filteredContractPositions || []}

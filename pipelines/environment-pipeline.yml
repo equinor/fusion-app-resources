@@ -1,10 +1,10 @@
 trigger: 
-    branches:
-      include:
-      - master
-    paths:
-      include:
-      - src/backend/infrastructure/*
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - src/backend/infrastructure/*
   
 pr: none
   

@@ -1,0 +1,81 @@
+.workflowContainer {
+    display: flex;
+    overflow: auto;
+
+    .workflowStep{
+        display: flex;
+        flex-direction: column;
+        width: calc(var(--grid-unit) * 28px);
+        padding-right: calc(var(--grid-unit) * 2px);
+
+        &.inline {
+            width: initial;
+            padding: 0;
+
+            .stepHeader {
+                padding: 0;
+
+                .stepConnector {
+                    width: calc(var(--grid-unit) * 1px);
+                }
+            }
+        }
+
+        .stepHeader {
+            display: flex;
+            padding-bottom: calc(var(--grid-unit) * 1px);
+
+            .stepTitle {
+                flex: 1;
+                padding-left: calc(var(--grid-unit) * 1px);
+                display: flex;
+                align-items: center;
+                white-space: nowrap;
+                font-weight: 600;
+
+            }
+            .stepConnector {
+                flex: 1;
+                position: relative;
+                width: calc(var(--grid-unit) * 14px);
+
+                .stepConnectorLine {
+                    position: absolute;
+                    top: 50%;
+                    left: 0;
+                    border-top: 1px solid var(--color-black-alt4);
+                    width: 100%;
+                    transform: translateY(-50%);
+
+                    &.approved{
+                        border-color: var(--color-green);
+                    }
+                }
+            }
+        }
+        .stepPerson {
+            display: flex;
+            padding-bottom: calc(vaR(--grid-unit) * 2px);
+
+            .stepPersonDetails {
+                display: flex;
+                flex-direction: column;
+                max-width: calc(var(--grid-unit) * 24px);
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                padding-left: calc(var(--grid-unit) * 1px);
+                
+                .completed {
+                    color: var(--color-black-alt3);
+                    font-size: 14px;
+                    line-height: 16px;
+                }
+                .completedDate{
+                    font-size: 14px;
+                    line-height: 16px;
+                }
+            }
+        }
+    }
+}

@@ -1,20 +1,15 @@
 name: $(date:yyyyMMdd)$(rev:.r)
+
 trigger: 
   branches:
     include:
-      - master
+    - master
   paths:
     include:
-      - src/backend/function/*
-      - src/backend/integration/*
+    - src/backend/function/*
+    - src/backend/integration/*
 
 pr: none
-
-resources:
-    repositories:
-      - repository: commonTemplates
-        type: git
-        name: 'ProView Portal/fusion-pipeline-templates'
   
 variables:
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
