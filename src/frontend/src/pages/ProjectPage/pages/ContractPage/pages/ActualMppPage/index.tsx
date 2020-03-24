@@ -10,6 +10,7 @@ import getFilterSections from './getFilterSections';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import EditRequestSideSheet from '../../components/EditRequestSideSheet';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
+import PositionDetailsSideSheet from '../../components/PositionDetailsSideSheet';
 
 const ActualMppPage: React.FC = () => {
     const [filteredContractPositions, setFilteredContractPositions] = React.useState<Position[]>(
@@ -92,6 +93,7 @@ const ActualMppPage: React.FC = () => {
                 initialRequests={editRequests}
                 onClose={onRequestSidesheetClose}
             />
+            <PositionDetailsSideSheet positions={contractPositions}/>
         </div>
     );
 };
