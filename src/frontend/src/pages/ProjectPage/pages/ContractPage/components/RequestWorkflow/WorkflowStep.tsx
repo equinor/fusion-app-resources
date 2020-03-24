@@ -51,9 +51,9 @@ const WorkflowStep: React.FC<WorkflowStepProps> = ({ step, inline }) => {
             case 'Pending':
                 return <ScheduleIcon color={styling.colors.orange} />;;
             case 'Rejected':
-                return <CloseCircleIcon color={styling.colors.secondary} />;
+                return <CloseCircleIcon color={styling.colors.red} />;
             case 'Skipped':
-                return <CheckCircleIcon color={styling.colors.blackAlt5} />;
+                return <CheckCircleIcon color={styling.colors.blackAlt3} />;
             default:
                 null;
         }

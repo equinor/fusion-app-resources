@@ -13,7 +13,7 @@ export default (requests: PersonnelRequest[], action: 'approve' | 'reject') => {
     const { contract } = useContractContext();
     const projectId = currentContext?.externalId;
     const contractId = contract?.id;
-    console.log(requests)
+
     const checkForEditAccessAsync = useCallback(
         async (projectId: string, contractId: string, req: PersonnelRequest[]) => {
             const responses = req.map(
@@ -27,28 +27,29 @@ export default (requests: PersonnelRequest[], action: 'approve' | 'reject') => {
                 const editable = requests.every(r => newEditableRequestIds.some(id => id === r.id));
                 setEditableRequestIds(newEditableRequestIds);
                 setCanEdit(editable);
+            } else {
+                setCanEdit(false);
             }
         },
-        [apiClient, editableRequestIds]
+        [apiClient, editableRequestIds, requests]
     );
 
     useEffect(() => {
-        const editable =
-            requests.every(r => editableRequestIds.some(id => id === r.id)) && requests.length > 0;
-        setCanEdit(editable);
-    }, [requests]);
-
-    useEffect(() => {
+        if (requests.length <= 0) {
+            setCanEdit(false);
+        }
         if (requests.length <= 0 || !projectId || !contractId) {
             return;
         }
+
         const unCheckedRequest = requests.filter(r => !editableRequestIds.some(id => id === r.id));
-        console.log("Unchecked", unCheckedRequest)
         if (unCheckedRequest.length <= 0) {
+            setCanEdit(true)
             return;
         }
+
         checkForEditAccessAsync(projectId, contractId, unCheckedRequest);
-    }, [requests]);
+    }, [requests.length]);
 
     return { canEdit, checkForEditAccessAsync };
 };

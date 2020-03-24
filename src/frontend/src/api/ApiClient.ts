@@ -177,7 +177,7 @@ export default class ApiClient {
         contractId: string,
         filterOnActive?: boolean
     ) {
-        const filter = filterOnActive ? '' : undefined;
+        const filter = filterOnActive ? 'state eq Created or state eq SubmittedToCompany' : undefined;
         const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
         const response = await this.httpClient.getAsync<
             ApiCollection<PersonnelRequest>,
@@ -273,11 +273,6 @@ export default class ApiClient {
                 {},
                 () => Promise.resolve()
             );
-
-            // const allowHeader = response.headers.get('Allow');
-            // if (allowHeader !== null && allowHeader.indexOf('PUT') !== -1) {
-            //     return true;
-            // }
             if(response.status === 204) {
                 return true;
             }

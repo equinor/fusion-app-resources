@@ -39,7 +39,7 @@ const ActiveRequestsPage: React.FC = () => {
     const { apiClient } = useAppContext();
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
-
+    
     const { approve, canApprove, isApproving } = useRequestApproval(selectedRequests);
     const { reject, canReject, isRejecting } = useRequestRejection(selectedRequests);
 
@@ -61,6 +61,11 @@ const ActiveRequestsPage: React.FC = () => {
         'activeRequests',
         fetchRequestsAsync
     );
+
+    React.useEffect(() => {
+        setSelectedRequests([]);
+    }, [activeRequests]);
+
     const filterSections = React.useMemo(() => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);

@@ -1,4 +1,4 @@
-import { DataTableColumn } from '@equinor/fusion-components';
+import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import * as React from 'react';
 import PositionColumn from '../../../../components/PositionColumn';
@@ -30,12 +30,23 @@ const ColumnSideSheetLink: React.FC<ColumnSideSheetLinkProps> = ({ requestId, ch
 
 const columns: DataTableColumn<PersonnelRequest>[] = [
     {
+        accessor: request => request.position?.basePosition?.name || 'TBN',
+        key: 'basePosition',
+        label: 'Base position',
+        sortable: true,
+        component: ({ item }) => (
+            <ColumnSideSheetLink requestId={item.id}>
+                {item.position?.basePosition?.name || 'TBN'}
+            </ColumnSideSheetLink>
+        ),
+    },
+    {
         accessor: request => request.person?.name || '',
         key: 'person',
         label: 'Person',
         sortable: true,
         component: ({ item }) => (
-            <ColumnSideSheetLink requestId={item.id}>{item.person?.name || ''}</ColumnSideSheetLink>
+            <PersonCard personId={item.person?.azureUniquePersonId} inline photoSize="medium" />
         ),
     },
     {
@@ -48,23 +59,11 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     {
         accessor: request => request.position?.name || 'TBN',
         key: 'position',
-        label: 'Position',
+        label: 'Custom position title',
         sortable: true,
         component: ({ item }) => (
             <ColumnSideSheetLink requestId={item.id}>
                 {item.position?.name || 'TBN'}
-            </ColumnSideSheetLink>
-        ),
-    },
-
-    {
-        accessor: request => request.position?.basePosition?.name || 'TBN',
-        key: 'basePosition',
-        label: 'Base position',
-        sortable: true,
-        component: ({ item }) => (
-            <ColumnSideSheetLink requestId={item.id}>
-                {item.position?.basePosition?.name || 'TBN'}
             </ColumnSideSheetLink>
         ),
     },
@@ -79,7 +78,6 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
             </ColumnSideSheetLink>
         ),
     },
-
     {
         accessor: request => request.position?.taskOwner?.positionId || '',
         key: 'taskOwnerId',
