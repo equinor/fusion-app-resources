@@ -7,12 +7,15 @@ namespace Fusion.Resources.Domain
     {
         public static DbAzureAccountStatus GetDbAccountStatus(this FusionPersonProfile profile)
         {
-            switch (profile.InvitationStatus)
+            if (profile.AzureUniqueId.HasValue && profile.InvitationStatus == null)
+                return DbAzureAccountStatus.Available;
+
+            return profile.InvitationStatus switch
             {
-                case InvitationStatus.Accepted: return DbAzureAccountStatus.Available;
-                case InvitationStatus.Pending: return DbAzureAccountStatus.InviteSent;
-                default: return DbAzureAccountStatus.NoAccount;
-            }
+                InvitationStatus.Accepted => DbAzureAccountStatus.Available,
+                InvitationStatus.Pending => DbAzureAccountStatus.InviteSent,
+                _ => DbAzureAccountStatus.NoAccount
+            };
         }
     }
 }
