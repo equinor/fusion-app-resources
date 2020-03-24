@@ -5,9 +5,6 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiContractReference
     {
-        public ApiContractReference()
-        {
-        }
         public ApiContractReference(QueryContract contract)
         {
             Id = contract.OrgContractId;

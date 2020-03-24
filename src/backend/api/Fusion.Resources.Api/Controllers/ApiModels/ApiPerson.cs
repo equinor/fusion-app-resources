@@ -1,4 +1,5 @@
-﻿using Fusion.Integration.Profile;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
 using System;
 using System.Text.Json.Serialization;
@@ -7,7 +8,6 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPerson
     {
-        public ApiPerson() { }
         public ApiPerson(FusionFullPersonProfile profile)
         {
             AzureUniquePersonId = profile.AzureUniqueId;
@@ -31,15 +31,29 @@ namespace Fusion.Resources.Api.Controllers
             Mail = person.Mail;
             Name = person.Name;
             PhoneNumber = person.Phone;
-            JobTitle = person.JobTitle;
+            JobTitle = person.JobTitle ?? string.Empty;
             AccountType = person.AccountType;
+        }
+
+        public ApiPerson(ApiPersonV2 person)
+        {
+            AzureUniquePersonId = person.AzureUniqueId;
+            Mail = person.Mail;
+            Name = person.Name;
+            PhoneNumber = person.MobilePhone;
+            JobTitle = person.JobTitle;
+
+            if (Enum.TryParse(person.AccountType, true, out FusionAccountType parsedAccountType))
+                AccountType = parsedAccountType;
+            else
+                AccountType = FusionAccountType.External;
         }
 
         public Guid? AzureUniquePersonId { get; set; }
         public string Mail { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string PhoneNumber { get; set; } = null!;
-        public string JobTitle { get; set; } = null!;
+        public string PhoneNumber { get; set; }
+        public string JobTitle { get; set; } 
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FusionAccountType AccountType { get; set; }

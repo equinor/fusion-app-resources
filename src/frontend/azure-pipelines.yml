@@ -12,11 +12,11 @@ trigger:
 
 pr: none
 
-resources:
-  repositories:
-    - repository: commonTemplates
-      type: git
-      name: 'ProView Portal/fusion-pipeline-templates'
+# resources:
+#   repositories:
+#     - repository: commonTemplates
+#       type: git
+#       name: 'ProView Portal/fusion-pipeline-templates'
 
 variables:
   imageTag: $(Build.BuildNumber)
@@ -52,13 +52,9 @@ stages:
         command: 'Push an image'
         imageName: '$(imageName)'
 
-    - template: templates/replace-tokens.yml@commonTemplates
+    - template: ../../pipelines/templates/replace-tokens.yml
       parameters:
         targetFiles: 'src/frontend/k8s/deployment.template.yml'
-        
-    - template: templates/replace-tokens.yml@commonTemplates
-      parameters:
-        targetFiles: 'src/frontend/k8s/deployment.template.pr.yml'        
 
     - task: CopyFiles@2
       displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
@@ -66,7 +62,6 @@ stages:
         SourceFolder: 'src/frontend/k8s'
         Contents: |
             deployment.template.yml
-            deployment.template.pr.yml
         TargetFolder: '$(Build.ArtifactStagingDirectory)'        
 
     - publish: $(Build.ArtifactStagingDirectory)
@@ -88,7 +83,7 @@ stages:
       runOnce:
         deploy:
           steps:
-          - template: templates/replace-tokens.yml@commonTemplates
+          - template: ../../pipelines/templates/replace-tokens.yml
             parameters:
               targetFiles: '$(deploymentManifest)'
 

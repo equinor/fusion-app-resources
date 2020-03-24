@@ -6,7 +6,7 @@ namespace Fusion.Resources.Api.Controllers
     public class PersonReference
     {
         public Guid? AzureUniquePersonId { get; set; }
-        public string Mail { get; set; }
+        public string? Mail { get; set; }
 
 
         public static implicit operator PersonId?(PersonReference? personReference)
@@ -16,6 +16,9 @@ namespace Fusion.Resources.Api.Controllers
 
             if (personReference.AzureUniquePersonId.HasValue)
                 return new PersonId(personReference.AzureUniquePersonId.Value);
+
+            if (string.IsNullOrEmpty(personReference.Mail))
+                throw new ArgumentException("Either azure uniwue id or mail has to contain value");
 
             return new PersonId(personReference.Mail);
         }
@@ -28,6 +31,9 @@ namespace Fusion.Resources.Api.Controllers
 
             if (personReference.AzureUniquePersonId.HasValue)
                 return new PersonId(personReference.AzureUniquePersonId.Value);
+
+            if (string.IsNullOrEmpty(personReference.Mail))
+                throw new ArgumentException("Either azure uniwue id or mail has to contain value");
 
             return new PersonId(personReference.Mail);
         }

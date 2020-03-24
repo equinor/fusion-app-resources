@@ -8,19 +8,19 @@ namespace Fusion.Resources.Database.Entities
     {
         public Guid Id { get; set; }
 
-        public DbContract Contract { get; set; }
+        public DbContract Contract { get; set; } = null!;
         public Guid ContractId { get; set; }
 
-        public DbProject Project { get; set; }
+        public DbProject Project { get; set; } = null!;
         public Guid ProjectId { get; set; }
 
-        public DbExternalPersonnelPerson Person { get; set; }
+        public DbExternalPersonnelPerson Person { get; set; } = null!;
         public Guid PersonId { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
-        public DbPerson CreatedBy { get; set; }
-        public DbPerson UpdatedBy { get; set; }
+        public DbPerson CreatedBy { get; set; } = null!;
+        public DbPerson? UpdatedBy { get; set; }
 
         public Guid CreatedById { get; set; }
         public Guid? UpdatedById { get; set; }

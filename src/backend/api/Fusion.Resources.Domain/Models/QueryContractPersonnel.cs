@@ -24,6 +24,8 @@ namespace Fusion.Resources.Domain
             PhoneNumber = item.Person.Phone;
             JobTitle = item.Person.JobTitle;
             AzureAdStatus = item.Person.AccountStatus;
+            DawinciCode = item.Person.DawinciCode;
+            LinkedInProfile = item.Person.LinkedInProfile;
 
             Created = item.Created;
             Updated = item.Updated;
@@ -46,16 +48,18 @@ namespace Fusion.Resources.Domain
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string JobTitle { get; set; }
+        public string? JobTitle { get; set; }
         public string PhoneNumber { get; set; }
         public string Mail { get; set; }
+        public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public DbAzureAccountStatus AzureAdStatus { get; set; }
 
         public List<QueryPersonnelDiscipline> Disciplines { get; set; }
 
         public QueryPerson CreatedBy { get; set; }
-        public QueryPerson UpdatedBy { get; set; }
+        public QueryPerson? UpdatedBy { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 

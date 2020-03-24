@@ -57,6 +57,8 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/available-contracts")]
         public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts([FromRoute]ProjectIdentifier projectIdentifier)
         {
+            await Task.Delay(1);
+
             var contracts = new[]
             {
                 new ApiUnallocatedContract { ContractNumber = "0000000001" },

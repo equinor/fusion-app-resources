@@ -40,7 +40,7 @@ namespace Fusion.Resources.Domain.Commands
                 AppliesTo = instance.AppliesTo;
                 Workload = instance.Workload ?? 100;
                 Obs = instance.Obs;
-                AssignedPerson = instance.AssignedPerson != null ? instance.AssignedPerson : null;
+                AssignedPerson = instance.AssignedPerson;
             }
 
         }
@@ -57,14 +57,17 @@ namespace Fusion.Resources.Domain.Commands
         public Guid PositionId { get; }
 
         public Guid BasePositionId { get; set; }
-        public string PositionName { get; set; }
-        public string ExternalId { get; set; }
+        public string? PositionName { get; set; }
+        public string? ExternalId { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
         public double Workload { get; set; }
 
         public PersonId? AssignedPerson { get; set; }
-        public string Obs { get; set; }
+        public string? Obs { get; set; }
+
+        public Guid? ParentPositionId { get; set; }
+
 
         public class Handler : IRequestHandler<UpdateContractPosition, ApiClients.Org.ApiPositionV2>
         {
@@ -103,6 +106,7 @@ namespace Fusion.Resources.Domain.Commands
                 instance.Obs = request.Obs;
                 instance.Workload = request.Workload;
                 instance.AssignedPerson = request.AssignedPerson;
+                instance.ParentPositionId = request.ParentPositionId;
 
 
                 var resp = await orgClient.PutPositionAsync(position);

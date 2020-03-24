@@ -25,14 +25,13 @@ namespace Fusion.Resources.Domain.Commands
         public Guid OrgProjectId { get; set; }
         public PersonnelId PersonnelId { get; set; }
 
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string JobTitle { get; set; }
-        public string Phone { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string? JobTitle { get; set; } 
+        public string Phone { get; set; } = string.Empty;
         public List<string> Disciplines { get; set; } = new List<string>();
-
-        public Guid EditorAzureUniqueId { get; set; }
-
+        public string? DawinciCode { get; set; }
+        public string? LinkedInProfile { get; set; }
 
         public class Handler : IRequestHandler<UpdateContractPersonnel, QueryContractPersonnel>
         {
@@ -74,6 +73,8 @@ namespace Fusion.Resources.Domain.Commands
                 dbPersonnel.FirstName = request.FirstName;
                 dbPersonnel.LastName = request.LastName;
                 dbPersonnel.JobTitle = request.JobTitle;
+                dbPersonnel.DawinciCode = request.DawinciCode;
+                dbPersonnel.LinkedInProfile = request.LinkedInProfile;
                 dbPersonnel.Phone = request.Phone;
                 dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
             }

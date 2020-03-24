@@ -62,7 +62,8 @@ namespace Fusion.Resources.Api.Middleware
             if (ex is NullReferenceException 
                 || ex is ArgumentNullException
                 || ex is ArgumentException 
-                || ex is InvalidOperationException)
+                || ex is InvalidOperationException
+                || ex is InvalidOrgChartPositionError)
             {
                 return true;
             }

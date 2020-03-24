@@ -50,8 +50,8 @@ namespace Fusion.Resources.Api.Controllers
         public string Description { get; set; }
         public string? Reason { get; set; }
 
-        public string PreviousStep { get; set; }
-        public string NextStep { get; set; }
+        public string? PreviousStep { get; set; }
+        public string? NextStep { get; set; }
 
         public enum ApiWorkflowStepState { Pending, Approved, Rejected, Skipped, Unknown }
     }

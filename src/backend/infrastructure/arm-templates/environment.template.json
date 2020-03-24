@@ -37,7 +37,16 @@
                 "enableRbacAuthorization": false,
                 "tenantId": "[subscription().tenantId]",
                 "accessPolicies": [
-    
+                    {
+                        "tenantId": "[subscription().tenantid]",
+                        "objectId": "[reference(concat(resourceId('Microsoft.Web/sites', variables('function-name')), '/providers/Microsoft.ManagedIdentity/Identities/default'), '2015-08-31-PREVIEW').principalId]",
+                        "permissions": {
+                            "keys": [],
+                            "secrets": [
+                                "Get"
+                            ]
+                        }
+                    }
                 ],
                 "sku": {
                     "name": "Standard",
@@ -49,7 +58,10 @@
                     "ipRules": [],
                     "virtualNetworkRules": []
                 }
-            }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('function-name'))]"
+            ]
         },
 
         /* APP INSIGHTS */
@@ -81,6 +93,7 @@
                 "fusion-app-component-type": "storage",
                 "fusion-app-component-id": "[concat('resources-storage-', variables('env-name'))]"
             },
+            "kind": "StorageV2",
             "sku": {
                 "name": "Standard_LRS"
             },
@@ -112,7 +125,8 @@
                 "fusion-app": "resources",
                 "fusion-app-env": "[toLower(parameters('env-name'))]",
                 "fusion-app-component-type": "azFunc",
-                "fusion-app-component-id": "[concat('resources-func-', variables('env-name'))]"
+                "fusion-app-component-id": "[concat('resources-func-', variables('env-name'))]",
+                "kv-msi-access": "true"
             },
             "identity": {
                 "type": "SystemAssigned"
@@ -123,7 +137,14 @@
                 "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
             ],
             "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]"
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('function-hosting-plan-name'))]",
+                "httpsOnly": true,
+                "siteConfig": {
+                    "phpVersion": "off",
+                    "ftpsState": "FtpsOnly",
+                    "minTlsVersion": "1.2",
+                    "webSocketsEnabled": false
+                }
             }
         },
 

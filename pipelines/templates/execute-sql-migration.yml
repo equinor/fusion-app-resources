@@ -38,21 +38,28 @@ steps:
             $SqlConnection.AccessToken = $token.AccessToken
             
             $content = [IO.File]::ReadAllText($sqlFile)
-            $batches = $content -split "GO"
+            $batches = $content -split "\nGO\n"
             
             # Is ok to print the sql connection, as there is no credentials used.
             Write-Host "Executing migration on sql connection: "
             Write-Host $SqlConnection.ConnectionString  
 
             $SqlConnection.Open()
+
+            Write-Host "Starting transaction..."
+            $transaction = $SqlConnection.BeginTransaction("EF Migration");
+
             foreach($batch in $batches)
             {
                 if ($batch.Trim() -ne "") {
                     $SqlCmd = New-Object System.Data.SqlClient.SqlCommand
                     $SqlCmd.CommandText = $batch
                     $SqlCmd.Connection = $SqlConnection
+                    $SqlCmd.Transaction = $transaction
                     $SqlCmd.ExecuteNonQuery()
                 }
             }
+            $transaction.Commit()
+
             $SqlConnection.Close()
       

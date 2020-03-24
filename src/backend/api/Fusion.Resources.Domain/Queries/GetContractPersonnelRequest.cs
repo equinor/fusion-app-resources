@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
+using Microsoft.ApplicationInsights;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Text;
@@ -26,12 +27,14 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ResourcesDbContext resourcesDb;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
+            private readonly TelemetryClient telemetryClient;
 
-            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator)
+            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator, TelemetryClient telemetryClient)
             {
                 this.resourcesDb = resourcesDb;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
+                this.telemetryClient = telemetryClient;
             }
 
             public async Task<QueryPersonnelRequest> Handle(GetContractPersonnelRequest request, CancellationToken cancellationToken)
@@ -49,14 +52,41 @@ namespace Fusion.Resources.Domain.Queries
                     .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
                 var basePosition = await orgResolver.ResolveBasePositionAsync(dbRequest.Position.BasePositionId);
-
+               
                 var position = new QueryPositionRequest(dbRequest.Position)
                     .WithResolvedBasePosition(basePosition);
 
                 var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
 
                 var returnItem = new QueryPersonnelRequest(dbRequest, position, workflow);
+
+                await TryResolveOriginalPositionAsync(returnItem);
+
                 return returnItem;
+            }
+
+            private async Task TryResolveOriginalPositionAsync(QueryPersonnelRequest request)
+            {
+                if (request.OriginalPositionId.HasValue)
+                {
+                    try
+                    {
+                        var originalPosition = await orgResolver.ResolvePositionAsync(request.OriginalPositionId.Value);
+
+                        if (originalPosition is null)
+                            throw new Exception($"Could locate any position id '{originalPosition}'");
+
+                        request.WithResolvedOriginalPosition(originalPosition);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        // TODO: Log error
+                        telemetryClient.TrackException(ex);
+                        telemetryClient.TrackTrace($"Could not resolve original position on request {request.Id}: {ex.Message}");
+                    }
+
+                }
             }
         }
     }

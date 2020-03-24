@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var connectionString = configuration.GetConnectionString(nameof(ResourcesDbContext));
 
-            string migrationAssemblyName = Assembly.GetExecutingAssembly().FullName;
+            string migrationAssemblyName = Assembly.GetExecutingAssembly().FullName!;
 
             services.AddDbContext<ResourcesDbContext>(options => {
                 // Connection string is handled by auth manager.
@@ -39,7 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static DbContextOptionsBuilder UseSqlServer(this DbContextOptionsBuilder optionsBuilder, Action<SqlServerDbContextOptionsBuilder> sqlServerOptionsAction = null)
+        public static DbContextOptionsBuilder UseSqlServer(this DbContextOptionsBuilder optionsBuilder, Action<SqlServerDbContextOptionsBuilder>? sqlServerOptionsAction = null)
         {
             sqlServerOptionsAction?.Invoke(new SqlServerDbContextOptionsBuilder(optionsBuilder));
             return optionsBuilder;

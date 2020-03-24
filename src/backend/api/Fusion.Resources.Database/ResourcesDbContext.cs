@@ -7,6 +7,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 
+#nullable disable
+
 namespace Fusion.Resources.Database
 {
     public class ResourcesDbContext : DbContext

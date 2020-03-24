@@ -11,6 +11,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public static class CustomValidatorExtensions
     {
+
         public static IRuleBuilderOptions<T, PersonReference> BeValidPerson<T>(this IRuleBuilder<T, PersonReference> ruleBuilder)
         {
             return ruleBuilder.SetValidator(new CustomValidator<PersonReference>((person, context) =>
@@ -62,6 +63,35 @@ namespace Fusion.Resources.Api.Controllers
                     if (position != null && position.ContractId == null)
                     {
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' exists, but does not belong to a contract."));
+                    }
+                }
+            });
+
+            return (IRuleBuilderOptions<T, Guid?>)result;
+        }
+
+        public static IRuleBuilderOptions<T, Guid?> BeValidChangeRequestPosition<T>(this IRuleBuilder<T, Guid?> ruleBuilder, IProjectOrgResolver projectOrgResolver)
+        {
+            var result = ruleBuilder.CustomAsync(async (positionId, context, ct) =>
+            {
+                if (positionId.HasValue)
+                {
+                    var position = await projectOrgResolver.ResolvePositionAsync(positionId.Value);
+
+                    if (position == null)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' does not exist in org service."));
+                    }
+
+                    if (position != null && position.ContractId == null)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", $"Position with id '{positionId}' exists, but does not belong to a contract."));
+                    }
+
+                    if (position != null && position.Instances.Count > 1)
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", 
+                            $"Position with id '{positionId}' exists, but have multiple instances, {position.Instances.Count}, which is not supported."));
                     }
                 }
             });
