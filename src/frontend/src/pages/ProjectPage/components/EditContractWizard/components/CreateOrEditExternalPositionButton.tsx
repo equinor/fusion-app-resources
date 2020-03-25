@@ -28,7 +28,7 @@ const CreateOrEditExternalPositionButton: React.FC<CreateOrEditExternalPositionB
     return (
         <>
             {existingPosition ? (
-                <div className={styles.row}>
+                <div className={styles.helpText}>
                     <Button frameless onClick={show}>
                         <EditIcon />{' '}
                         <span className={styles.buttonPositionName}>
@@ -37,7 +37,7 @@ const CreateOrEditExternalPositionButton: React.FC<CreateOrEditExternalPositionB
                     </Button>
                 </div>
             ) : (
-                <div className={styles.row}>
+                <div className={styles.helpText}>
                     <span>If you can't find your position, try to </span>
                     <Button frameless onClick={show}>
                         <AddIcon /> Add new position
