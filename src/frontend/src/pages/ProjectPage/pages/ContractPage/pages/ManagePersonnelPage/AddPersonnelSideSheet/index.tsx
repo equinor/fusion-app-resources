@@ -14,6 +14,7 @@ import {
     useCurrentContext,
     useNotificationCenter,
     HttpClientRequestFailedError,
+    FusionApiHttpErrorResponse,
 } from '@equinor/fusion';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
@@ -66,7 +67,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         async (person: Personnel, contextId: string, contractId: string) => {
             try {
                 setPendingRequests(r => [...r, person]);
-
                 const response = person.created
                     ? await apiClient.updatePersonnelAsync(contextId, contractId, person)
                     : await apiClient.createPersonnelAsync(contextId, contractId, person);
@@ -80,15 +80,16 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 });
             } catch (error) {
                 if (error instanceof HttpClientRequestFailedError) {
-                    const requestError = error as HttpClientRequestFailedError<Personnel>;
-
+                    const requestError = error as HttpClientRequestFailedError<
+                        FusionApiHttpErrorResponse
+                    >;
                     setFailedRequests(f => [
                         ...f,
                         {
-                            error: requestError,
+                            error: requestError.response,
                             item: person,
                             isEditable:
-                                requestError.statusCode < 500 &&
+                                requestError.statusCode <= 500 &&
                                 requestError.statusCode !== 424 &&
                                 requestError.statusCode !== 408,
                         },

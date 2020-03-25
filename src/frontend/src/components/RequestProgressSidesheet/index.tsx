@@ -13,10 +13,11 @@ import {
 import useServiceNowPopoverRef from '../../hooks/useServiceNowPopoverRef';
 import classNames from 'classnames';
 import * as styles from './styles.less';
+import { FusionApiHttpErrorResponse } from '@equinor/fusion';
 
 export type FailedRequest<T> = {
     item: T;
-    error: Error;
+    error: FusionApiHttpErrorResponse;
     isEditable: boolean;
 };
 
@@ -43,7 +44,7 @@ type RequestItemProps<TRequest> = {
 };
 
 type FailedRequestItemProps<TRequest> = RequestItemProps<TRequest> & {
-    error: Error;
+    error: FusionApiHttpErrorResponse;
 };
 
 type SuccessfulRequestItemProps<TRequest, TResponse> = RequestItemProps<TRequest> & {
@@ -80,7 +81,7 @@ function InvalidRequestProgressItem<TRequest>({
                 <ErrorIcon outline={false} />
             </div>
             <div className={styles.content}>{renderRequest({ request })}</div>
-            <div className={styles.errorMessage}>{error.message}</div>
+            <div className={styles.errorMessage}>{error.error?.message}</div>
         </div>
     );
 }
