@@ -167,7 +167,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
-                    or.ContractRole(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -216,7 +216,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
-                    or.ContractRole(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -277,7 +277,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
-                    or.ContractRole(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 

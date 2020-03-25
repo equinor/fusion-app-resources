@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
@@ -28,10 +29,17 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
-        public static IAuthorizationRequirementRule ContractRole(this IAuthorizationRequirementRule builder, ContractRole role, ProjectIdentifier project, Guid contractOrgId)
+        public static IAuthorizationRequirementRule ContractAccess(this IAuthorizationRequirementRule builder, ContractRole role, ProjectIdentifier project, Guid contractOrgId)
         {
             var resource = new ContractResource(project, contractOrgId);
             builder.AddRule(resource, role);
+
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule RequestAccess(this IAuthorizationRequirementRule builder, RequestAccess level, QueryPersonnelRequest request)
+        {
+            builder.AddRule(request, level);
 
             return builder;
         }

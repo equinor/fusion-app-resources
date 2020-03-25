@@ -63,8 +63,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractRole(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
-                    or.ContractRole(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -92,8 +92,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractRole(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
-                    or.ContractRole(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -151,7 +151,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractRole(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -185,7 +185,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractRole(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -234,7 +234,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractRole(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -265,7 +265,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractRole(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -300,7 +300,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractRole(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
