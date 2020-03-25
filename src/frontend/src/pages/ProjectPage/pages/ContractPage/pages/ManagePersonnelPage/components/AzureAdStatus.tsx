@@ -1,18 +1,12 @@
 import * as React from 'react';
-import {
-    useTooltipRef,
-    DoneIcon,
-    WarningIcon,
-    CloseIcon,
-    styling,
-} from '@equinor/fusion-components';
+import { useTooltipRef, styling } from '@equinor/fusion-components';
 import { azureAdStatus } from '../../../../../../../models/Personnel';
+import AdStatusIcon from '../../../../../../../components/AdStatusIcon';
 
 type AdStatus = {
     [index: string]: {
         text: string;
         color: string;
-        icon: JSX.Element;
     };
 };
 
@@ -21,23 +15,20 @@ const AdStatus: AdStatus = {
     Available: {
         text: 'Azure AD Approved',
         color: styling.colors.green,
-        icon: <DoneIcon color={styling.colors.green} />,
     },
     InviteSent: {
         text: 'Azure AD pending approval',
         color: styling.colors.orange,
-        icon: <WarningIcon outline color={styling.colors.orange} />,
     },
     NoAccount: {
         text: 'No Azure Access',
-        color: styling.colors.red,
-        icon: <CloseIcon color={styling.colors.red} />,
+        color: styling.colors.blackAlt3,
     },
 };
 
 const AzureAdStatusIcon: React.FC<azureAdStatus> = (status: azureAdStatus) => {
-    const { text, icon } = AdStatus[status];
-    return <div ref={useTooltipRef(text)}>{icon}</div>;
+    const { text, color } = AdStatus[status];
+    return <div ref={useTooltipRef(text)}>{<AdStatusIcon color={color} />}</div>;
 };
 
 export const AzureAdStatusTextFormat = (status: azureAdStatus) => {

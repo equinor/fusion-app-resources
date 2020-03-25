@@ -1,10 +1,10 @@
-import { DataTableColumn } from '@equinor/fusion-components';
+import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
-import RequestStateFlow from '../../components/RequestStateFlow';
 import * as React from 'react';
 import PositionColumn from '../../../../components/PositionColumn';
 import { useHistory } from '@equinor/fusion';
 import * as styles from './styles.less';
+import RequestWorkflow from '../../components/RequestWorkflow';
 
 type ColumnSideSheetLinkProps = {
     requestId: string;
@@ -30,34 +30,6 @@ const ColumnSideSheetLink: React.FC<ColumnSideSheetLinkProps> = ({ requestId, ch
 
 const columns: DataTableColumn<PersonnelRequest>[] = [
     {
-        accessor: request => request.person?.name || '',
-        key: 'person',
-        label: 'Person',
-        sortable: true,
-        component: ({ item }) => (
-            <ColumnSideSheetLink requestId={item.id}>{item.person?.name || ''}</ColumnSideSheetLink>
-        ),
-    },
-    {
-        accessor: request => request.state.toString(),
-        key: 'status',
-        label: 'Status',
-        component: RequestStateFlow,
-        sortable: true,
-    },
-    {
-        accessor: request => request.position?.name || 'TBN',
-        key: 'position',
-        label: 'Position',
-        sortable: true,
-        component: ({ item }) => (
-            <ColumnSideSheetLink requestId={item.id}>
-                {item.position?.name || 'TBN'}
-            </ColumnSideSheetLink>
-        ),
-    },
-
-    {
         accessor: request => request.position?.basePosition?.name || 'TBN',
         key: 'basePosition',
         label: 'Base position',
@@ -65,6 +37,33 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         component: ({ item }) => (
             <ColumnSideSheetLink requestId={item.id}>
                 {item.position?.basePosition?.name || 'TBN'}
+            </ColumnSideSheetLink>
+        ),
+    },
+    {
+        accessor: request => request.person?.name || '',
+        key: 'person',
+        label: 'Person',
+        sortable: true,
+        component: ({ item }) => (
+            <PersonCard personId={item.person?.azureUniquePersonId} inline photoSize="medium" />
+        ),
+    },
+    {
+        accessor: request => request.state.toString(),
+        key: 'status',
+        label: 'Status',
+        component: ({ item }) => <RequestWorkflow workflow={item.workflow} inline />,
+        sortable: true,
+    },
+    {
+        accessor: request => request.position?.name || 'TBN',
+        key: 'position',
+        label: 'Custom position title',
+        sortable: true,
+        component: ({ item }) => (
+            <ColumnSideSheetLink requestId={item.id}>
+                {item.position?.name || 'TBN'}
             </ColumnSideSheetLink>
         ),
     },
@@ -79,7 +78,6 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
             </ColumnSideSheetLink>
         ),
     },
-
     {
         accessor: request => request.position?.taskOwner?.positionId || '',
         key: 'taskOwnerId',

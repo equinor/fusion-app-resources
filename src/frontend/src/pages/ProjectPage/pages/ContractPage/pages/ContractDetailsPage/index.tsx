@@ -101,7 +101,7 @@ const ExternalCompanyRep = () =>
     );
 const ExternalContractResponsible = () =>
     createFieldWithSkeleton(
-        'Equinor contract responsible',
+        'External contract responsible',
         contract => renderPosition(contract.externalContractResponsible),
         () => <PositionCardSkeleton />
     );

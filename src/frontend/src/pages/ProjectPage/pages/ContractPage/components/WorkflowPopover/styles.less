@@ -1,0 +1,59 @@
+
+.popoverContainer{
+    display: grid;
+    grid-template-areas: 
+        "header header"
+        "started completed"
+        "completedBy completedBy"
+        "description description";
+    width: calc(var(--grid-unit) * 36px);
+    height: calc(var(--grid-unit) * 30px);
+
+    .textField {
+        display: flex;
+        flex-direction: column;
+
+        .title {
+            font-size: 14px;
+            color: var(--color-black-alt2);
+        }
+
+        .content {
+            font-size: 16px;
+            line-height: calc(var(--grid-unit) * 2px);
+            padding-top: calc(var(--grid-unit) * 0.5px);
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: calc(var(--grid-unit) * 34px);
+
+        }
+    }
+
+    .header{
+        grid-area: header;
+        font-size: 18px;
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .started {
+        grid-area: started;
+    }
+
+    .completed{
+        grid-area: completed;
+    }
+
+    .completedBy {
+        grid-area: completedBy;
+    }
+
+    .description {
+        grid-area: description;
+    }
+}
