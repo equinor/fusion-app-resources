@@ -47,7 +47,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAccountStatus AzureAdStatus { get; set; }
-        
+
         public bool HasCV { get; set; }
 
         public List<ApiPersonnelDiscipline> Disciplines { get; set; }
@@ -55,13 +55,10 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 
-    
+
 
         public List<ApiPositionInstanceReference>? Positions { get; set; }
         public List<ApiRequestReference>? Requests { get; set; }
-
-
-        public enum ApiAccountStatus { Available, InviteSent, NoAccount }
 
         public class ApiRequestReference
         {
@@ -72,7 +69,7 @@ namespace Fusion.Resources.Api.Controllers
                 Updated = request.Updated;
 
                 State = Enum.Parse<ApiContractPersonnelRequest.ApiRequestState>($"{request.State}", true);
-                
+
 
                 Position = new ApiRequestPosition(request.Position);
                 Project = new ApiProjectReference(request.Project);

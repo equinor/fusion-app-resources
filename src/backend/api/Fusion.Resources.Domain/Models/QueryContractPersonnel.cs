@@ -7,7 +7,6 @@ using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {
-
     public class QueryContractPersonnel
     {
         public QueryContractPersonnel(DbContractPersonnel item)

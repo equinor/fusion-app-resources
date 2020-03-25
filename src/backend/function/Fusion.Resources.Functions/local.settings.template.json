@@ -8,13 +8,13 @@
 
     "AzureWebJobsServiceBus": "[REPLACE WITH SB CONNECTION STRING]",
 
-    "AzureAd:TenantId": "3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
-    "AzureAd:ClientId": "5a842df8-3238-415d-b168-9f16a6a6031b",
-    "AzureAd:Secret": "[REPLACE WITH SECRET]",
+    "AzureAd_TenantId": "3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
+    "AzureAd_ClientId": "5a842df8-3238-415d-b168-9f16a6a6031b",
+    "AzureAd_Secret": "[REPLACE WITH SECRET]",
 
-    "Endpoints:people": "https://pro-s-people-ci.azurewebsites.net",
-    "Endpoints:org": "https://pro-s-org-ci.azurewebsites.net",
-    "Endpoints:query": "https://localhost:44330",
+    "Endpoints_people": "https://pro-s-people-ci.azurewebsites.net",
+    "Endpoints_org": "https://pro-s-org-ci.azurewebsites.net",
+    "Endpoints_resources": "https://localhost:44330",
 
     "Endpoints:Resources:Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
   }

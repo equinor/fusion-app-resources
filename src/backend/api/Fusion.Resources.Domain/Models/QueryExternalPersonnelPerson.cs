@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Fusion.Resources.Database.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {
@@ -21,6 +21,9 @@ namespace Fusion.Resources.Domain
             AzureAdStatus = item.AccountStatus;
             DawinciCode = item.DawinciCode;
             LinkedInProfile = item.LinkedInProfile;
+
+            if (item.Disciplines == null)
+                throw new ArgumentNullException(nameof(item.Disciplines), "Disciplines must be included or initialized on the entity when constructing query model");
 
             Disciplines = item.Disciplines.Select(d => new QueryPersonnelDiscipline(d)).ToList();
         }

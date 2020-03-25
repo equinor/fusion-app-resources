@@ -1,22 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Bogus;
+using FluentValidation.AspNetCore;
+using Fusion.Integration;
+using Fusion.Integration.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using FluentValidation.AspNetCore;
+using System;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api
 {
@@ -44,7 +41,7 @@ namespace Fusion.Resources.Api
 
             services.AddHttpContextAccessor();
             services.AddSwagger(Configuration);
-            
+
 
             // Configure fusion integration
             services.AddFusionIntegration(options =>
@@ -53,6 +50,7 @@ namespace Fusion.Resources.Api
                 options.AddOrgIntegration();
 
                 options.UseDefaultEndpointResolver("ci");
+                //options.UseEndpointResolver<LocalEndpointResolver>();
                 options.UseDefaultTokenProvider(opts =>
                 {
                     opts.ClientId = Configuration["AzureAd:ClientId"];
@@ -91,7 +89,7 @@ namespace Fusion.Resources.Api
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseCors(opts => opts
-                .AllowAnyOrigin()                
+                .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
@@ -102,7 +100,7 @@ namespace Fusion.Resources.Api
 
             app.UseMiddleware<Middleware.ExceptionMiddleware>();
             app.UseMiddleware<ChaosMonkeyMiddleware>();
-            
+
 
             app.UseHttpsRedirection();
 
@@ -118,7 +116,8 @@ namespace Fusion.Resources.Api
                 endpoints.MapControllers();
 
                 // TODO: Remove
-                endpoints.MapPost("/release-the-monkey", async (context) => {
+                endpoints.MapPost("/release-the-monkey", async (context) =>
+                {
                     var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
 
                     var auth = await context.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
@@ -137,7 +136,8 @@ namespace Fusion.Resources.Api
                 });
 
                 // TODO: REMOVE
-                endpoints.MapGet("/release-the-monkey", async (context) => {
+                endpoints.MapGet("/release-the-monkey", async (context) =>
+                {
                     var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
 
                     await context.Response.WriteAsync($"Current level at: {monkey.CurrentLevel}");
@@ -163,7 +163,7 @@ namespace Fusion.Resources.Api
     internal class ChaosMonkey
     {
         public ChaosLevel CurrentLevel { get; set; } = ChaosLevel.None;
-        
+
         public enum ChaosLevel { None, Intermittent, Half, Full }
     }
 
@@ -197,7 +197,7 @@ namespace Fusion.Resources.Api
                     throw error;
                 }
             }
-            
+
             await _next(httpContext);
         }
 
@@ -214,6 +214,35 @@ namespace Fusion.Resources.Api
 
             return true;
         }
-        
+
+
+        /// <summary>
+        /// Change 
+        ///     o.UseDefaultEndpointResolver("ci") --> o.UseEndpointResolver<LocalEndpointResolver>() 
+        /// in the Fusion Integration section to run Fusion services locally and connect to them from Query.
+        /// </summary>
+        private class LocalEndpointResolver : IFusionEndpointResolver
+        {
+            public Task<string> ResolveEndpointAsync(FusionEndpoint endpoint)
+            {
+                switch (endpoint)
+                {
+                    case FusionEndpoint.People:
+                        return Task.FromResult("https://pro-s-people-pr-1669.azurewebsites.net");
+                    case FusionEndpoint.Mail:
+                        return Task.FromResult("https://pro-s-mail-ci.azurewebsites.net");
+                    case FusionEndpoint.ProOrganisation:
+                        return Task.FromResult("https://pro-s-org-ci.azurewebsites.net");
+                    case FusionEndpoint.Context:
+                        return Task.FromResult("https://pro-s-context-ci.azurewebsites.net");
+                    default:
+                        throw new Exception("Endpoint not supported");
+                }
+            }
+            public Task<string> ResolveResource()
+            {
+                return Task.FromResult("5a842df8-3238-415d-b168-9f16a6a6031b"); //Statoil ProView Test app id
+            }
+        }
     }
 }
