@@ -1,14 +1,14 @@
 import * as React from 'react';
-import Personnel, { Position } from '../../../../../../../../models/Personnel';
+import Personnel, { Position } from '../../../../../../models/Personnel';
 import * as styles from './styles.less';
 import { PersonPosition } from '@equinor/fusion';
 import { PersonPositionCard } from '@equinor/fusion-components';
 
-type PositionsTabProps = {
+type PersonPositionsDetailsProps = {
     person: Personnel;
 };
 
-const mapPositionsToPersoPosition = (p: Position): PersonPosition => {
+const mapPositionsToPersonPosition = (p: Position): PersonPosition => {
     return {
         id: p.positionId,
         name: p.name,
@@ -26,8 +26,8 @@ const mapPositionsToPersoPosition = (p: Position): PersonPosition => {
     };
 };
 
-const PositionsTab: React.FC<PositionsTabProps> = ({ person }) => {
-    const positions = React.useMemo(() => person.positions?.map(mapPositionsToPersoPosition), [
+const PersonPositionsDetails: React.FC<PersonPositionsDetailsProps> = ({ person }) => {
+    const positions = React.useMemo(() => person.positions?.map(mapPositionsToPersonPosition), [
         person,
     ]);
 
@@ -59,7 +59,7 @@ const PositionsTab: React.FC<PositionsTabProps> = ({ person }) => {
                         ))}
                     </ul>
                 ) : (
-                    <div className={styles.nopositions}>No active positions</div>
+                    <div className={styles.noPositions}>No active positions</div>
                 )}
             </div>
             <div className={styles.pastPositions}>
@@ -74,11 +74,11 @@ const PositionsTab: React.FC<PositionsTabProps> = ({ person }) => {
                         ))}
                     </ul>
                 ) : (
-                    <div className={styles.nopositions}>No past positions</div>
+                    <div className={styles.noPositions}>No past positions</div>
                 )}
             </div>
         </div>
     );
 };
 
-export default PositionsTab;
+export default PersonPositionsDetails;
