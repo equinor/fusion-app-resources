@@ -293,8 +293,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                 <th className={styles.headerRowCell}>First Name</th>
                                 <th className={styles.headerRowCell}>Last Name</th>
                                 <th className={styles.headerRowCell}>E-Mail</th>
-                                <th className={styles.headerRowCell}>Disciplines</th>
                                 <th className={styles.headerRowCell}>Phone Number</th>
+                                <th className={styles.headerRowCell}>Disciplines (optional)</th>
                             </tr>
                         </thead>
                         <tbody className={styles.tableBody}>
@@ -344,21 +344,21 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                             />
                                         </td>
                                         <td className={styles.tableRowCell}>
-                                            <AddPersonnelFormDisciplinesDropDown
-                                                key={`disciplines${person.personnelId}`}
-                                                disabled={saveInProgress}
-                                                onChange={onChange}
-                                                item={person}
-                                                basePositions={basePositions}
-                                            />
-                                        </td>
-                                        <td className={styles.tableRowCell}>
                                             <AddPersonnelFormTextInput
                                                 key={`phoneNumber${person.personnelId}`}
                                                 disabled={saveInProgress}
                                                 item={person}
                                                 onChange={onChange}
                                                 field={'phoneNumber'}
+                                            />
+                                        </td>
+                                        <td className={styles.tableRowCell}>
+                                            <AddPersonnelFormDisciplinesDropDown
+                                                key={`disciplines${person.personnelId}`}
+                                                disabled={saveInProgress}
+                                                onChange={onChange}
+                                                item={person}
+                                                basePositions={basePositions}
                                             />
                                         </td>
                                     </tr>
