@@ -29,13 +29,13 @@ const columns: EditableTaleColumn<EditRequest>[] = [
     {
         accessor: item => item.appliesFrom,
         accessKey: 'appliesFrom',
-        label: 'Applies from',
+        label: 'Applies from (optional)',
         item: 'DatePicker',
     },
     {
         accessor: item => item.appliesTo,
         accessKey: 'appliesTo',
-        label: 'AppliesTo',
+        label: 'Applies to (optional)',
         item: 'DatePicker',
     },
     {
@@ -47,13 +47,13 @@ const columns: EditableTaleColumn<EditRequest>[] = [
     {
         accessor: item => item.obs,
         accessKey: 'obs',
-        label: 'OBS',
+        label: 'OBS (optional)',
         item: 'TextInput',
     },
     {
         accessor: item => item.description,
         accessKey: 'description',
-        label: 'Description',
+        label: 'Description (optional)',
         item: 'TextArea',
     }
 ];
