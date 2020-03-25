@@ -9,6 +9,7 @@ import {
     ErrorIcon,
     DoneIcon,
     Button,
+    useTooltipRef,
 } from '@equinor/fusion-components';
 import useServiceNowPopoverRef from '../../hooks/useServiceNowPopoverRef';
 import classNames from 'classnames';
@@ -72,10 +73,11 @@ function InvalidRequestProgressItem<TRequest>({
     error,
     onRemove,
 }: FailedRequestItemProps<TRequest>) {
+    const ignoreTooltipRef = useTooltipRef('Ignore');
     return (
         <div className={classNames(styles.item, styles.failed)}>
             <div className={styles.icon}>
-                <IconButton onClick={onRemove}>
+                <IconButton onClick={onRemove} ref={ignoreTooltipRef}>
                     <CloseIcon />
                 </IconButton>
             </div>
@@ -93,10 +95,11 @@ function FailedRequestProgressItem<TRequest>({
     renderRequest,
     onRemove,
 }: FailedRequestItemProps<TRequest>) {
+    const ignoreTooltipRef = useTooltipRef('Ignore');
     return (
         <div className={classNames(styles.item, styles.failed)}>
             <div className={styles.icon}>
-            <IconButton onClick={onRemove}>
+                <IconButton onClick={onRemove} ref={ignoreTooltipRef}>
                     <CloseIcon />
                 </IconButton>
             </div>
@@ -162,7 +165,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     }, [onClose]);
 
     React.useEffect(() => {
-        if(isShowing && failedRequests.length === 0) {
+        if (isShowing && failedRequests.length === 0) {
             closeSidesheet();
         }
     }, [failedRequests, closeSidesheet]);
