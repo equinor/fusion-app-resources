@@ -228,14 +228,24 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         );
     };
 
+    const closeSidesheet = React.useCallback(() => setIsOpen(false), [setIsOpen]);
+
+    const onProgressSidesheetClose = React.useCallback(() => {
+        const editableFailedRequests = failedRequests.filter(r => r.isEditable);
+        if(editableFailedRequests.length > 0) {
+            setFormState(editableFailedRequests.map(r => r.item));
+            return;
+        }
+
+        closeSidesheet();
+    }, [failedRequests, closeSidesheet]);
+
     return (
         <ModalSideSheet
             header="Add Person"
             show={isOpen}
             size={'fullscreen'}
-            onClose={() => {
-                setIsOpen(false);
-            }}
+            onClose={closeSidesheet}
             safeClose={isFormDirty}
             safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
             safeCloseCancelLabel={'Continue editing'}
@@ -361,7 +371,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 failedRequests={failedRequests}
                 successfulRequests={successfulRequests}
                 pendingRequests={pendingRequests}
-                onClose={() => {}}
+                onClose={onProgressSidesheetClose}
                 renderRequest={({ request }) => <PersonnelRequest person={request} />}
             />
         </ModalSideSheet>

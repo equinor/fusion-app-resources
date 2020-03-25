@@ -69,6 +69,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         isFetching: isFetchingPersonnel,
         error: personnelError,
     };
+
     const defaultState = React.useMemo(() => transFormRequest(editRequests, selectedPositions), [
         editRequests,
         selectedPositions,
@@ -102,6 +103,16 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
             failedRequests.filter(r => r.isEditable).map(r => r.item)
         );
     }, [failedRequests]);
+
+    const onProgressSidesheetClose = React.useCallback(() => {
+        const editableFailedRequests = failedRequests.filter(r => r.isEditable);
+        if(editableFailedRequests.length > 0) {
+            setFormState(editableFailedRequests.map(r => r.item));
+            return;
+        }
+
+        closeSideSheet();
+    }, [failedRequests, closeSideSheet]);
 
     const isSubmitting = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
@@ -143,7 +154,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                 pendingRequests={pendingRequests}
                 failedRequests={failedRequests}
                 successfulRequests={successfulRequests}
-                onClose={() => {}}
+                onClose={onProgressSidesheetClose}
             />
         </ModalSideSheet>
     );
