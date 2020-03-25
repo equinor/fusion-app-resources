@@ -9,11 +9,13 @@ import {
 } from '@equinor/fusion-components';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import Personnel from '../../../../../../../models/Personnel';
-import GeneralTab from './GeneralTab';
-import PositionsTab from './PositionsTab';
+
 import useForm from '../../../../../../../hooks/useForm';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
+import * as styles from './styles.less';
+import EditablePositionDetails from '../../../components/EditablePositionDetails';
+import PersonPositionsDetails from '../../../components/PersonPositionsDetails';
 
 type PersonnelInfoSideSheetProps = {
     isOpen: boolean;
@@ -121,10 +123,18 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
                 <Tab tabKey="general" title="General">
-                    <GeneralTab person={formState} edit={editMode} setField={formFieldSetter} />
+                    <div className={styles.tabContainer}>
+                        <EditablePositionDetails
+                            person={formState}
+                            edit={editMode}
+                            setField={formFieldSetter}
+                        />
+                    </div>
                 </Tab>
                 <Tab disabled={editMode} tabKey="positions" title="Positions">
-                    <PositionsTab person={person} />
+                    <div className={styles.tabContainer}>
+                        <PersonPositionsDetails person={person} />
+                    </div>
                 </Tab>
             </Tabs>
         </ModalSideSheet>
