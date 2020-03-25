@@ -77,12 +77,17 @@ export default (
         [apiClient]
     );
 
-    const submit = React.useCallback(() => {
-        const contractId = contract?.id;
-        const projectId = currentContext?.id;
+    const reset = React.useCallback(() => {
         setPendingRequests([]);
         setFailedRequests([]);
         setSuccessfullRequests([]);
+    }, []);
+
+    const submit = React.useCallback(() => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        reset();
+
         if (contractId && projectId) {
             formState.map(request => createRequest(projectId, contractId, request));
         } else {
@@ -92,7 +97,7 @@ export default (
                 priority: 'high',
             });
         }
-    }, [contract, currentContext, createRequest, formState]);
+    }, [contract, currentContext, createRequest, formState, reset]);
 
-    return { submit, pendingRequests, failedRequests, successfulRequests };
+    return { submit, reset, pendingRequests, failedRequests, successfulRequests };
 };

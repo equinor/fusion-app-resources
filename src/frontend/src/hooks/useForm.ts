@@ -10,6 +10,7 @@ const useForm = <T>(
 
     const [initialState, setInitialState] = useState<T>(formState);
     const isFormDirty = useMemo(() => {
+        console.log("CHECKING DIRTY", formState, initialState);
         return !deepEqual(formState, initialState);
     }, [formState, initialState]);
 
