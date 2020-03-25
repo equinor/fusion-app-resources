@@ -1,0 +1,32 @@
+.disciplineNetworkContainer {
+    display: flex;
+    justify-content: center;
+
+    .disciplineNetwork {
+        padding: 0 calc(var(--grid-unit) * 2px);
+
+        .disciplineSection {
+            display: flex;
+            flex-direction: column;
+            padding: calc(var(--grid-unit)* 1px) 0;
+            border-top: 1px solid var(--color-black-alt3);
+            margin-top: calc(var(--grid-unit)* 2px);
+
+            .positionCard{
+                padding: calc(var(--grid-unit)* .5px) 0;
+                
+            }
+            .depthNumber{
+                font-size: 12px;
+                letter-spacing: 1.5px;
+                display: flex;
+                justify-content: flex-end;
+            }
+        }
+        .disciplineTitle {
+            font-size: 14px;
+            letter-spacing: 1.5px;
+        }
+        
+    }
+}
