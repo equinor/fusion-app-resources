@@ -240,6 +240,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         closeSidesheet();
     }, [failedRequests, closeSidesheet]);
 
+    const onRemoveFailedRequest = React.useCallback((request: FailedRequest<Personnel>) => {
+        setFailedRequests(fr => fr.filter(r => r !== request));
+    }, []);
+
     return (
         <ModalSideSheet
             header="Add Person"
@@ -372,6 +376,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 successfulRequests={successfulRequests}
                 pendingRequests={pendingRequests}
                 onClose={onProgressSidesheetClose}
+                onRemoveFailedRequest={onRemoveFailedRequest}
                 renderRequest={({ request }) => <PersonnelRequest person={request} />}
             />
         </ModalSideSheet>
