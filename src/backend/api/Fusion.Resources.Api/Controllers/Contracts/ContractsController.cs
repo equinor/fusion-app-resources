@@ -1,18 +1,11 @@
-﻿using Bogus;
-using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -43,6 +36,12 @@ namespace Fusion.Resources.Api.Controllers
 
             var collection = new ApiCollection<ApiContract>(contractsToReturn.Select(c => new ApiContract(c)));
             return collection;
+        }
+
+        [HttpGet("/projects/{projectIdentifier}/contracts/unallocated")]
+        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectUnallocatedContracts([FromRoute]ProjectIdentifier projectIdentifier)
+        {
+            throw new NotImplementedException();
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
@@ -129,7 +128,7 @@ namespace Fusion.Resources.Api.Controllers
                 ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
             });
 
-           
+
             var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractIdentifier);
 
@@ -173,7 +172,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 position = await DispatchAsync(createNewPositionCommand);
             }
-            
+
             await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
 
             return position;
