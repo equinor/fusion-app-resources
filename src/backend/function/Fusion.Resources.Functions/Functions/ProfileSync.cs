@@ -33,13 +33,20 @@ namespace Fusion.Resources.Functions.Functions
             log.LogInformation(message.Event.Data);
             var body = message.GetBody<PeopleSubscriptionEvent>();
 
-            if (body.Type != PeopleSubscriptionEventType.ProfileUpdated) //manual filtering to avoid hard-coding in attribute
+            if (body.Type != PeopleSubscriptionEventType.ProfileUpdated)
                 return;
 
             var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new { });
+
+            if (refreshResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                log.LogWarning($"Person with email '{body.Person.Mail}' not found in Resources");
+                return;
+            }
+
             refreshResponse.EnsureSuccessStatusCode();
 
-            log.LogInformation("Profile sync event processing completed");
+            log.LogInformation($"Successfully refreshed profile '{body.Person.Mail}'");
         }
 
         /// <summary>

@@ -38,35 +38,20 @@ namespace Fusion.Resources.Domain.Services
         public async Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId)
         {
             var profile = await ResolveProfileAsync(personId);
+
+            if (profile == null) //early check for null to avoid hitting DB unneccesary
+                throw new PersonNotFoundError(personId.OriginalIdentifier);
+
             var resolvedPerson = await ResolveExternalPersonnelAsync(personId);
 
-            //in the unlikely event of non-existent person, add it to database
             if (resolvedPerson == null)
-            {
-                string mail = profile?.Mail ?? personId.Mail ?? string.Empty;
+                throw new PersonNotFoundError(personId.OriginalIdentifier);
 
-                if (string.IsNullOrEmpty(mail))
-                    throw new ArgumentNullException($"No email provided for user with identifier {personId.OriginalIdentifier}, unable to create user");
-
-                resolvedPerson = new DbExternalPersonnelPerson()
-                {
-                    AccountStatus = DbAzureAccountStatus.NoAccount,
-                    Disciplines = new List<DbPersonnelDiscipline>(),
-                    Mail = mail,
-                    Name = profile?.Name ?? personId.Mail ?? string.Empty
-                };
-
-                await resourcesDb.AddAsync(resolvedPerson);
-            }
-
-            if (profile != null)
-            {
-                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
-                resolvedPerson.JobTitle = profile.JobTitle;
-                resolvedPerson.Name = profile.Name;
-                resolvedPerson.Phone = profile.MobilePhone ?? string.Empty; //column does not allow nulls, set empty string.
-            }
+            resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
+            resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+            resolvedPerson.JobTitle = profile.JobTitle;
+            resolvedPerson.Name = profile.Name;
+            resolvedPerson.Phone = profile.MobilePhone ?? string.Empty; //column does not allow nulls, set empty string.
 
             await resourcesDb.SaveChangesAsync();
 
