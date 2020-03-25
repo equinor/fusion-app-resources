@@ -39,7 +39,6 @@ export default (requests: PersonnelRequest[]) => {
                 });
             } catch (e) {
                 setDeleteError(e);
-                console.error(e);
                 sendNotification({
                     level: 'medium',
                     title: 'Failed to delete request(s)',
