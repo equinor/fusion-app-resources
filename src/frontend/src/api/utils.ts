@@ -1,6 +1,6 @@
 type ResourceQueryParams = {
-    requestId: string;
-    positionId: string
+    requestId?: string;
+    positionId?: string
 };
 
 export const parseQueryString = (queryString: string) => {
