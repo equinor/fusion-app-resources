@@ -1,4 +1,5 @@
 ﻿using Fusion.Events;
+using Fusion.Events.People;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -29,12 +30,13 @@ namespace Fusion.Resources.Functions.Functions
             ILogger log)
         {
             log.LogInformation("Profile sync event received");
+            log.LogInformation(message.Event.Data);
+            var body = message.GetBody<PeopleSubscriptionEvent>();
 
-            var raw = Encoding.UTF8.GetString(message.Message.Body, 0, message.Message.Body.Length);
-            log.LogInformation(raw);
+            if (body.Type != PeopleSubscriptionEventType.ProfileUpdated) //manual filtering to avoid hard-coding in attribute
+                return;
 
-            var deserialized = JsonConvert.DeserializeAnonymousType(raw, new { Person = new { Mail = string.Empty } });
-            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{deserialized.Person.Mail}/refresh", new { });
+            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new { });
             refreshResponse.EnsureSuccessStatusCode();
 
             log.LogInformation("Profile sync event processing completed");
