@@ -5,7 +5,7 @@ import * as React from "react";
 const FusionIcon:React.FC= () => {
     return (
         <div className={styles.fusionIconContainer}>
-            <FusionLogo scale={0.6}/>
+            <FusionLogo scale={0.7}/>
         </div>
     )
 }

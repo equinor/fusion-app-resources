@@ -27,7 +27,7 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({
     provisioningStatus,
 }) => {
     const [popoverRef] = usePopoverRef<HTMLDivElement>(
-        <WorkflowPopover step={step} />,
+        <WorkflowPopover step={step} provisioningStatus={provisioningStatus} />,
         {
             justify: 'center',
             placement: 'below',

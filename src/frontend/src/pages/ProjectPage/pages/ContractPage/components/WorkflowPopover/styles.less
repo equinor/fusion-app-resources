@@ -53,4 +53,18 @@
     .description {
         grid-area: description;
     }
+
+    .stepPerson {
+        display: flex;
+        padding-bottom: calc(vaR(--grid-unit) * 2px);
+    
+        .stepPersonDetails {
+            display: flex;
+            flex-direction: column;
+            max-width: calc(var(--grid-unit) * 24px);
+            justify-content: center;
+            padding-left: calc(var(--grid-unit) * 1px);
+        }
+    }
 }
+
