@@ -58,6 +58,15 @@ export default class ApiClient {
         return response.data.value;
     }
 
+    async getPersonnelWithPositionsAsync(projectId: string, contractId: string) {
+        const url = this.resourceCollection.personnel(projectId, contractId, undefined, 'positions');
+        const response = await this.httpClient.getAsync<
+            ApiCollection<Personnel>,
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data.value;
+    }
+
     async createPersonnelAsync(projectId: string, contractId: string, personnel: Personnel) {
         const url = this.resourceCollection.personnel(projectId, contractId);
         const reponse = await this.httpClient.postAsync<

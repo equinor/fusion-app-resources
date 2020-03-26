@@ -26,7 +26,7 @@ const ColumnPersonnelInfoSideSheetLink: React.FC<ColumnPersonnelInfoSideSheetLin
 
 
 
-const PersonnelColumns = (): DataTableColumn<Personnel>[] => [
+const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel>[] => [
     {
         key: 'Mail',
         accessor: 'mail',
