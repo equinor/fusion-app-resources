@@ -82,6 +82,7 @@ const getNavigationStructure = (history: History, contractId: string): Navigatio
             navigationChildren: [
                 createNavItem(history, contractId, 'Actual MPP', 'actual-mpp', 'child'),
                 createNavItem(history, contractId, 'Active requests', 'active-requests', 'child'),
+                createNavItem(history, contractId, 'Completed requests', 'completed-requests', 'child'),
             ],
         },
     ];

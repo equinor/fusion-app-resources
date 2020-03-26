@@ -107,7 +107,7 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                 <Tab tabKey="general" title="General">
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
-                            <RequestWorkflow workflow={currentRequest.workflow} />
+                            <RequestWorkflow workflow={currentRequest.workflow} provisioningStatus={currentRequest.provisioningStatus}/>
                         </div>
                         <div className={styles.separator} />
                         <div className={styles.container}>

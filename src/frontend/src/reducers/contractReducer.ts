@@ -13,6 +13,7 @@ export type ContractState = {
     personnel: ReadonlyCollection<Personnel>;
     activeRequests: ReadonlyCollection<PersonnelRequest>;
     actualMpp: ReadonlyCollection<Position>;
+    completedRequests: ReadonlyCollection<PersonnelRequest>;
 };
 
 const personnelReducer = createCollectionReducer<ContractState, 'personnel'>(
@@ -23,6 +24,9 @@ const activeRequestsReducer = createCollectionReducer<ContractState, 'activeRequ
     (x, y) => x.id === y.id
 );
 
+const completedRequestsReducer = createCollectionReducer<ContractState, 'completedRequests'>(
+    (x, y) => x.id === y.id
+);
 const actualMppReducer = createCollectionReducer<ContractState, 'actualMpp'>(
     (x, y) => x.id === y.id
 );
@@ -50,6 +54,11 @@ export const contractReducer = createCollectionRootReducer(
                     state,
                     action as CollectionAction<ContractState, 'actualMpp'>
                 );
+            case 'completedRequests':
+                return completedRequestsReducer(
+                    state,
+                    action as CollectionAction<ContractState, 'completedRequests'>
+                );
         }
 
         return state;
@@ -60,4 +69,5 @@ export const createInitialState = (): ContractState => ({
     personnel: createEmptyCollection<Personnel>(),
     activeRequests: createEmptyCollection<PersonnelRequest>(),
     actualMpp: createEmptyCollection<Position>(),
+    completedRequests: createEmptyCollection<PersonnelRequest>(),
 });

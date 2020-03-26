@@ -12,13 +12,20 @@ import {
 import classNames from 'classnames';
 import { formatDate } from '@equinor/fusion';
 import WorkflowPopover from '../WorkflowPopover';
+import ProvisioningStatus from '../../../../../../models/ProvisioningStatus ';
+import FusionIcon from '../FusionIcon';
 
 type RequestWorkflowStepProps = {
     step: WorkflowStep;
+    provisioningStatus: ProvisioningStatus;
     inline: boolean;
 };
 
-const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({ step, inline }) => {
+const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({
+    step,
+    inline,
+    provisioningStatus,
+}) => {
     const [popoverRef] = usePopoverRef<HTMLDivElement>(
         <WorkflowPopover step={step} />,
         {
@@ -27,6 +34,11 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({ step, inline 
         },
         true,
         300
+    );
+
+    const hasProvisioned = React.useMemo(
+        () => step.id === 'provisioning' && provisioningStatus.state === 'Provisioned',
+        [provisioningStatus, step]
     );
 
     const stepTitle = React.useMemo(() => {
@@ -45,11 +57,14 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({ step, inline 
     }, [step]);
 
     const icon = React.useMemo(() => {
+        if (hasProvisioned) {
+            return <CheckCircleIcon color={styling.colors.green} />;
+        }
         switch (step.state) {
             case 'Approved':
                 return <CheckCircleIcon color={styling.colors.green} />;
             case 'Pending':
-                return <ScheduleIcon color={styling.colors.orange} />;;
+                return <ScheduleIcon color={styling.colors.orange} />;
             case 'Rejected':
                 return <CloseCircleIcon color={styling.colors.red} />;
             case 'Skipped':
@@ -57,30 +72,44 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({ step, inline 
             default:
                 null;
         }
-    }, [step]);
+    }, [step, hasProvisioned]);
 
     const completedBy = React.useMemo(() => {
         const person = step.completedBy;
+        if (hasProvisioned) {
+            return (
+                <div className={styles.stepPerson}>
+                    <FusionIcon  />
+                    <div className={styles.stepPersonDetails}>
+                        <span>System account</span>
+                        <span className={styles.completed}>{provisioningStatus.state}</span>
+                        <span className={styles.completedDate}>
+                            {provisioningStatus.provisioned
+                                ? formatDate(provisioningStatus.provisioned)
+                                : 'N/A'}
+                        </span>
+                    </div>
+                </div>
+            );
+        }
         if (!person || inline) {
             return null;
         }
         return (
-            <>
-                <div className={styles.stepPerson}>
-                    <PersonPhoto personId={person.azureUniquePersonId} />
+            <div className={styles.stepPerson}>
+                <PersonPhoto personId={person.azureUniquePersonId} />
 
-                    <div className={styles.stepPersonDetails}>
-                        <span>{person.name}</span>
-                        <a href={`mailto:${person.mail}`}>{person.mail}</a>
-                        <span className={styles.completed}>{step.state}</span>
-                        <span className={styles.completedDate}>
-                            {step.completed ? formatDate(step.completed) : 'N/A'}
-                        </span>
-                    </div>
+                <div className={styles.stepPersonDetails}>
+                    <span>{person.name}</span>
+                    <a href={`mailto:${person.mail}`}>{person.mail}</a>
+                    <span className={styles.completed}>{step.state}</span>
+                    <span className={styles.completedDate}>
+                        {step.completed ? formatDate(step.completed) : 'N/A'}
+                    </span>
                 </div>
-            </>
+            </div>
         );
-    }, [step, inline]);
+    }, [step, inline, provisioningStatus, hasProvisioned]);
 
     const workflowStepClasses = classNames(styles.workflowStep, {
         [styles.inline]: inline,
