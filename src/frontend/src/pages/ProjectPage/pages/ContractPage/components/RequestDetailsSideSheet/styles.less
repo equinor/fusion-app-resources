@@ -41,7 +41,11 @@
             padding-top: calc(var(--grid-unit) * 0.5px);
             height: 100%;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+
+            > div {
+                padding-bottom: calc(var(--grid-unit) * 1px);
+            }
         }
     }
 

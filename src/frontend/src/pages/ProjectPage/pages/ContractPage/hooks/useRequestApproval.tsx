@@ -57,7 +57,10 @@ export default (requests: PersonnelRequest[]) => {
                 await checkForEditAccessAsync(projectId, contractId, requests);
             } catch (e) {
                 setApprovedError(e);
-                console.error(e);
+                sendNotification({
+                    level: 'high',
+                    title: 'Failed to approve request(s)',
+                });
             }
             setIsApproving(false);
         },

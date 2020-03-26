@@ -59,7 +59,12 @@ export default class ApiClient {
     }
 
     async getPersonnelWithPositionsAsync(projectId: string, contractId: string) {
-        const url = this.resourceCollection.personnel(projectId, contractId, undefined, 'positions');
+        const url = this.resourceCollection.personnel(
+            projectId,
+            contractId,
+            undefined,
+            'positions'
+        );
         const response = await this.httpClient.getAsync<
             ApiCollection<Personnel>,
             FusionApiHttpErrorResponse
@@ -267,10 +272,11 @@ export default class ApiClient {
 
     public async deleteRequestAsync(projectId: string, contractId: string, requestId: string) {
         const url = this.resourceCollection.personnelRequest(projectId, contractId, requestId);
-        const response = await this.httpClient.deleteAsync<
-            void,
-            FusionApiHttpErrorResponse
-        >(url, {}, () => Promise.resolve());
+        const response = await this.httpClient.deleteAsync<void, FusionApiHttpErrorResponse>(
+            url,
+            {},
+            () => Promise.resolve()
+        );
         return response.data;
     }
 
@@ -293,9 +299,11 @@ export default class ApiClient {
                 {},
                 () => Promise.resolve()
             );
-            if (response.status === 204) {
+            const allowHeader = response.headers.get('Allow');
+            if (allowHeader !== null && allowHeader.indexOf('POST') !== -1) {
                 return true;
             }
+
             return false;
         } catch (e) {
             return false;

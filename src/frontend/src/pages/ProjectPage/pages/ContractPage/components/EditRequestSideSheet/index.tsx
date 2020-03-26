@@ -46,6 +46,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
 
     React.useEffect(() => {
         if (initialRequests) {
+            console.log("Initial request", initialRequests)
             setEditRequests(initialRequests);
         }
     }, [initialRequests]);
@@ -84,7 +85,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         );
     }, []);
 
-    const { formState, setFormState, isFormDirty, isFormValid } = useForm(
+    const { formState, setFormState, isFormDirty, isFormValid ,resetForm} = useForm(
         createDefaultState,
         validateForm,
         defaultState
@@ -97,8 +98,9 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
     const closeSideSheet = React.useCallback(() => {
         reset();
         setEditRequests(null);
+        resetForm()
         onClose();
-    }, [setEditRequests]);
+    }, [setEditRequests, resetForm]);
 
     const onProgressSidesheetClose = React.useCallback(() => {
         const editableFailedRequests = failedRequests.filter(r => r.isEditable);
