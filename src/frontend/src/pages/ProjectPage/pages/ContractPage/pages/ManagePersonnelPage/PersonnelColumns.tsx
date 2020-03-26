@@ -2,7 +2,7 @@ import * as React from 'react';
 import { DataTableColumn } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 import AzureAdStatusIcon from './components/AzureAdStatus';
-import * as styles from './styles.less'
+import * as styles from './styles.less';
 import PersonnelInfoSideSheet from './PersonnelInfoSideSheet';
 
 export type DataItemProps = {
@@ -13,7 +13,10 @@ type ColumnPersonnelInfoSideSheetLinkProps = {
     person: Personnel;
 };
 
-const ColumnPersonnelInfoSideSheetLink: React.FC<ColumnPersonnelInfoSideSheetLinkProps> = ({ person, children }) => {
+const ColumnPersonnelInfoSideSheetLink: React.FC<ColumnPersonnelInfoSideSheetLinkProps> = ({
+    person,
+    children,
+}) => {
     const [isOpen, setIsOpen] = React.useState<boolean>(false);
 
     return (
@@ -24,14 +27,16 @@ const ColumnPersonnelInfoSideSheetLink: React.FC<ColumnPersonnelInfoSideSheetLin
     );
 };
 
-
-
 const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel>[] => [
     {
         key: 'Mail',
         accessor: 'mail',
         label: 'E-Mail',
-        component: ({ item }) => (<ColumnPersonnelInfoSideSheetLink person={item}>{item.mail}</ColumnPersonnelInfoSideSheetLink>),
+        component: ({ item }) => (
+            <ColumnPersonnelInfoSideSheetLink person={item}>
+                {item.mail}
+            </ColumnPersonnelInfoSideSheetLink>
+        ),
         priority: 1,
         sortable: true,
     },
@@ -39,7 +44,11 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         key: 'FirstName',
         accessor: p => p.firstName || '',
         label: 'First Name',
-        component: ({ item }) => (<ColumnPersonnelInfoSideSheetLink person={item}>{item.firstName || ''}</ColumnPersonnelInfoSideSheetLink>),
+        component: ({ item }) => (
+            <ColumnPersonnelInfoSideSheetLink person={item}>
+                {item.firstName || ''}
+            </ColumnPersonnelInfoSideSheetLink>
+        ),
         priority: 5,
         sortable: true,
     },
@@ -47,7 +56,11 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         key: 'LastName',
         accessor: p => p.lastName || '',
         label: 'Last Name',
-        component: ({ item }) => (<ColumnPersonnelInfoSideSheetLink person={item}>{item.lastName || ''}</ColumnPersonnelInfoSideSheetLink>),
+        component: ({ item }) => (
+            <ColumnPersonnelInfoSideSheetLink person={item}>
+                {item.lastName || ''}
+            </ColumnPersonnelInfoSideSheetLink>
+        ),
         priority: 6,
         sortable: true,
     },
@@ -80,7 +93,13 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         accessor: r => '-',
         label: 'Workload',
         priority: 25,
-        component: p => <span>{`${(p.item.positions?.reduce((val, pos) => { return val += pos.workload }, 0) || 0).toString()}%`}</span>,
+        component: p => (
+            <span>{`${(
+                p.item.positions?.reduce((val, pos) => {
+                    return (val += pos.workload);
+                }, 0) || 0
+            ).toString()}%`}</span>
+        ),
         sortable: true,
         width: '20px',
     },
