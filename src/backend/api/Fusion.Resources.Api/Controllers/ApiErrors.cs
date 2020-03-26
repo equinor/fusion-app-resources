@@ -1,24 +1,55 @@
 ﻿using Fusion.Resources.Api.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public static class ApiErrors
     {
+        private const string rfcProblemDetails = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
+
         public static ActionResult InvalidOperation(Exception error)
         {
             var problem = new ProblemDetails()
             {
-                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Type = rfcProblemDetails,
                 Detail = error.Message,
                 Title = "Invalid Operation",
                 Status = (int)System.Net.HttpStatusCode.BadRequest
             };
             problem.Extensions.Add("error", new ApiProblem.ApiError(error.GetType().Name, error.Message));
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
+        internal static ActionResult InvalidPageSize(string message)
+        {
+            var problem = new ProblemDetails
+            {
+                Type = rfcProblemDetails,
+                Detail = message,
+                Title = "Invalid page size",
+                Status = (int)System.Net.HttpStatusCode.BadRequest
+            };
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
+        internal static ActionResult<ApiExternalPersonnelPerson> NotFound(string resourcePath)
+        {
+            var problem = new ProblemDetails
+            {
+                Type = rfcProblemDetails,
+                Detail = $"Resource '{resourcePath}' was not found",
+                Title = "Resource not found",
+                Status = (int)System.Net.HttpStatusCode.NotFound
+            };
 
             return new ObjectResult(problem)
             {

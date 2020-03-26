@@ -1,22 +1,20 @@
 import * as React from 'react';
-import Personnel, { PersonnelDiscipline } from '../../../../../../../../models/Personnel';
+import Personnel, { PersonnelDiscipline } from '../../../../../../models/Personnel';
 import * as styles from './styles.less';
 import {
     PersonPhoto,
     TextInput,
     SearchableDropdownOption,
     SearchableDropdown,
-    Button,
 } from '@equinor/fusion-components';
-import { PersonDetails } from '@equinor/fusion';
-import AzureAdStatusIcon from '../../components/AzureAdStatus';
 import classNames from 'classnames';
-import useBasePositions from '../../../../../../../../hooks/useBasePositions';
+import useBasePositions from '../../../../../../hooks/useBasePositions';
+import AzureAdStatusIcon from '../../pages/ManagePersonnelPage/components/AzureAdStatus';
 
-type GeneralTabProps = {
+type EditablePositionDetailsProps = {
     person: Personnel;
-    edit: boolean;
-    setField: (field: keyof Personnel) => (value: string | PersonnelDiscipline[]) => void;
+    edit?: boolean;
+    setField?: (field: keyof Personnel) => (value: string | PersonnelDiscipline[]) => void;
 };
 
 const createTextField = (
@@ -47,23 +45,12 @@ const createEditField = (
     );
 };
 
-const GeneralTab: React.FC<GeneralTabProps> = ({ person, edit, setField }) => {
+const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
+    person,
+    edit,
+    setField,
+}) => {
     const { basePositions } = useBasePositions();
-
-    const PersonDetails = React.useMemo<PersonDetails>(() => {
-        return {
-            azureUniqueId: person.azureUniquePersonId || '',
-            name: person.name,
-            mail: person.mail,
-            jobTitle: person.jobTitle,
-            department: null,
-            mobilePhone: person.phoneNumber,
-            officeLocation: null,
-            upn: '',
-            accountType: 'External',
-            company: { id: '', name: '' },
-        };
-    }, [person.personnelId]);
 
     const dropDownOptions = React.useMemo(() => {
         const disciplineOptions: SearchableDropdownOption[] = [];
@@ -80,18 +67,25 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ person, edit, setField }) => {
         }, disciplineOptions);
     }, [basePositions, person.disciplines]);
 
-    const onSelect = React.useCallback((newValue: SearchableDropdownOption) => {
-        setField('disciplines')([{ name: newValue.key }]);
-    }, []);
+    const onSelect = React.useCallback(
+        (newValue: SearchableDropdownOption) => {
+            setField && setField('disciplines')([{ name: newValue.key }]);
+        },
+        [setField]
+    );
 
     return (
         <div className={styles.container}>
             <div className={styles.personnelDetails}>
                 <div className={styles.personPhoto}>
-                    <PersonPhoto hideTooltip={true} person={PersonDetails} size={'xlarge'} />
+                    <PersonPhoto
+                        hideTooltip={true}
+                        personId={person.azureUniquePersonId}
+                        size={'xlarge'}
+                    />
                 </div>
                 <div>
-                    {edit ? (
+                    {edit && setField ? (
                         <>
                             <div className={styles.row}>
                                 {createEditField(
@@ -103,6 +97,11 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ person, edit, setField }) => {
                                     'Last name',
                                     person.lastName || '',
                                     setField('lastName')
+                                )}
+                                {createEditField(
+                                    'Dawinci',
+                                    person.dawinciCode || '',
+                                    setField('dawinciCode')
                                 )}
                             </div>
                             <div className={styles.row}>
@@ -124,6 +123,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ person, edit, setField }) => {
                             <div className={styles.row}>
                                 {createTextField('First name', person.firstName || '')}
                                 {createTextField('Last name', person.lastName || '')}
+                                {createTextField('Dawinci', person.dawinciCode || '')}
                             </div>
                             <div className={styles.row}>
                                 {createTextField('Phone', person.phoneNumber || '')}
@@ -133,7 +133,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ person, edit, setField }) => {
                                     AzureAdStatusIcon(person.azureAdStatus || 'NoAccount'),
                                     'AdStatus'
                                 )}
-                            </div>{' '}
+                            </div>
                         </>
                     )}
                 </div>
@@ -158,4 +158,4 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ person, edit, setField }) => {
     );
 };
 
-export default GeneralTab;
+export default EditablePositionDetails;

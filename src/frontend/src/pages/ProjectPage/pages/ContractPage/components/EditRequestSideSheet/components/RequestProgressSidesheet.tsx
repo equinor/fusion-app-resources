@@ -12,6 +12,7 @@ type RequestProgressSidesheetProps = {
     failedRequests: FailedRequest<EditRequest>[];
     successfulRequests: SuccessfulRequest<EditRequest, PersonnelRequest>[];
     onClose: () => void;
+    onRemoveFailedRequest: (request: FailedRequest<EditRequest>) => void;
 };
 
 type RequestItemProps = {
@@ -34,6 +35,7 @@ const MppRequestProgressSidesheet: React.FC<RequestProgressSidesheetProps> = ({
     failedRequests,
     successfulRequests,
     onClose,
+    onRemoveFailedRequest,
 }) => {
     return (
         <RequestProgressSidesheet
@@ -42,6 +44,7 @@ const MppRequestProgressSidesheet: React.FC<RequestProgressSidesheetProps> = ({
             successfulRequests={successfulRequests}
             onClose={onClose}
             renderRequest={PendingRequestProgressItem}
+            onRemoveFailedRequest={onRemoveFailedRequest}
         />
     );
 };

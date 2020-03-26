@@ -21,6 +21,8 @@ import CompactPersonDetails from './CompactPersonDetails';
 import useRequestApproval from '../../hooks/useRequestApproval';
 import RejectPersonnelSideSheet from '../RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
+import EditablePositionDetails from '../EditablePositionDetails';
+import PersonPositionsDetails from '../PersonPositionsDetails';
 
 type RequestDetailsSideSheetProps = {
     requests: PersonnelRequest[] | null;
@@ -150,6 +152,24 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
                             <RequestDetails request={currentRequest} />
+                        </div>
+                    </div>
+                </Tab>
+                <Tab tabKey="person" title="Person">
+                    <div className={styles.tabContainer}>
+                        <div className={styles.container}>
+                            {currentRequest.person ? (
+                                <>
+                                    <EditablePositionDetails person={currentRequest.person} />
+                                    <PersonPositionsDetails person={currentRequest.person} />
+                                </>
+                            ) : (
+                                <ErrorMessage
+                                    hasError
+                                    errorType="noData"
+                                    message="Could not find a person for this request"
+                                />
+                            )}
                         </div>
                     </div>
                 </Tab>

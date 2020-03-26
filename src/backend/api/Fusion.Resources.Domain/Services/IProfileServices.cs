@@ -17,7 +17,7 @@ namespace Fusion.Resources.Domain
 
         Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId);
 
-        Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(PersonId personId);
+        Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string mail, string firstName, string lastName);
         Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId);
         /// <summary>
         /// Resolves the fusion profile. Returns null if not found.
@@ -25,5 +25,13 @@ namespace Fusion.Resources.Domain
         /// <param name="person"></param>
         /// <returns></returns>
         Task<FusionPersonProfile?> ResolveProfileAsync(PersonId person);
+
+        /// <summary>
+        /// Refresh external personnel information from People services. 
+        /// Will add it to database if not present.
+        /// </summary>
+        /// <param name="personId">Identifier for person, can be e-mail or azure unique id</param>
+        /// <returns>The updated person entity</returns>
+        Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId);
     }
 }

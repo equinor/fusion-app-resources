@@ -27,6 +27,7 @@ import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
 import useRequestApproval from '../../hooks/useRequestApproval';
 import RejectPersonnelSideSheet from '../../components/RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
+import useRequestDeletion from '../../hooks/useRequestDeletion';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
@@ -39,12 +40,14 @@ const ActiveRequestsPage: React.FC = () => {
     const { apiClient } = useAppContext();
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
-    
+
     const { approve, canApprove, isApproving } = useRequestApproval(selectedRequests);
     const { reject, canReject, isRejecting } = useRequestRejection(selectedRequests);
+    const { deleteRequests, isDeleting } = useRequestDeletion(selectedRequests);
 
     const addRequestTooltipRef = useTooltipRef('Create a new request');
     const editRequestTooltipRef = useTooltipRef('Edit selected requests');
+    const deleteRequestTooltipRef = useTooltipRef('Delete selected request');
 
     const fetchRequestsAsync = React.useCallback(async () => {
         const contractId = contract?.id;
@@ -100,8 +103,12 @@ const ActiveRequestsPage: React.FC = () => {
                         <IconButton onClick={requestPersonnel} ref={addRequestTooltipRef}>
                             <AddIcon />
                         </IconButton>
-                        <IconButton disabled>
-                            <DeleteIcon />
+                        <IconButton
+                            disabled={selectedRequests.length <= 0}
+                            ref={deleteRequestTooltipRef}
+                            onClick={deleteRequests}
+                        >
+                            {isDeleting ? <Spinner inline small /> : <DeleteIcon />}
                         </IconButton>
                         <IconButton
                             onClick={editRequest}

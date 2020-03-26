@@ -8,7 +8,7 @@ export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
     taskOwners: Position[] | null
 ): EditRequest[] | null => {
-    if (personnelRequest === null) {
+    if (personnelRequest === null || personnelRequest.length === 0) {
         return null;
     }
 
@@ -32,6 +32,7 @@ export const transFormRequest = (
 };
 
 export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
+    id: req.requestId || undefined,
     description: req.description,
     person: {
         mail: req.person?.mail || '',

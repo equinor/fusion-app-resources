@@ -58,6 +58,15 @@ export default class ApiClient {
         return response.data.value;
     }
 
+    async getPersonnelWithPositionsAsync(projectId: string, contractId: string) {
+        const url = this.resourceCollection.personnel(projectId, contractId, undefined, 'positions');
+        const response = await this.httpClient.getAsync<
+            ApiCollection<Personnel>,
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data.value;
+    }
+
     async createPersonnelAsync(projectId: string, contractId: string, personnel: Personnel) {
         const url = this.resourceCollection.personnel(projectId, contractId);
         const reponse = await this.httpClient.postAsync<
@@ -177,7 +186,9 @@ export default class ApiClient {
         contractId: string,
         filterOnActive?: boolean
     ) {
-        const filter = filterOnActive ? 'state eq Created or state eq SubmittedToCompany' : undefined;
+        const filter = filterOnActive
+            ? 'state eq Created or state eq SubmittedToCompany'
+            : undefined;
         const url = this.resourceCollection.personnelRequests(projectId, contractId, filter);
         const response = await this.httpClient.getAsync<
             ApiCollection<PersonnelRequest>,
@@ -254,6 +265,15 @@ export default class ApiClient {
         return response.data;
     }
 
+    public async deleteRequestAsync(projectId: string, contractId: string, requestId: string) {
+        const url = this.resourceCollection.personnelRequest(projectId, contractId, requestId);
+        const response = await this.httpClient.deleteAsync<
+            void,
+            FusionApiHttpErrorResponse
+        >(url, {}, () => Promise.resolve());
+        return response.data;
+    }
+
     public async canEditActionAsync(
         projectId: string,
         contractId: string,
@@ -273,7 +293,8 @@ export default class ApiClient {
                 {},
                 () => Promise.resolve()
             );
-            if(response.status === 204) {
+            
+            if (response.status === 204) {
                 return true;
             }
             return false;

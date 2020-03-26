@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers
             DawinciCode = person.DawinciCode;
             LinkedInProfile = person.LinkedInProfile;
             AzureAdStatus = Enum.Parse<ApiAccountStatus>($"{person.AzureAdStatus}", true);
-            Disciplines = person.Disciplines.Select(d => new ApiPersonnelDiscipline(d)).ToList();
+            Disciplines = person.Disciplines?.Select(d => new ApiPersonnelDiscipline(d)).ToList() ?? new List<ApiPersonnelDiscipline>();
         }
 
         /// <summary>
@@ -47,9 +47,5 @@ namespace Fusion.Resources.Api.Controllers
         public bool HasCV { get; set; }
 
         public List<ApiPersonnelDiscipline> Disciplines { get; set; }
-
-        public enum ApiAccountStatus { Available, Invited, NoAccount }
     }
-
-
 }

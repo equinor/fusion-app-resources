@@ -5,10 +5,10 @@ import {
     Button,
     TextInput,
     DatePicker,
-    ArrowBackIcon,
     IconButton,
     useTooltipRef,
     Spinner,
+    CloseIcon,
 } from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
@@ -98,6 +98,22 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
 
     const backButtonTooltipRef = useTooltipRef('Go back to ' + goBackTo, 'right');
 
+    const clearEquinorContractResponsible = React.useCallback(
+        () => setFormField('contractResponsible', null),
+        [setFormField]
+    );
+    const clearEquinorCompanyRep = React.useCallback(() => setFormField('companyRep', null), [
+        setFormField,
+    ]);
+    const clearExternalContractResponsible = React.useCallback(
+        () => setFormField('externalContractResponsible', null),
+        [setFormField]
+    );
+    const clearExternalCompanyRep = React.useCallback(
+        () => setFormField('externalCompanyRep', null),
+        [setFormField]
+    );
+
     const handleSubmit = React.useCallback(async () => {
         try {
             const contract = await saveAsync();
@@ -115,7 +131,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         <div className={styles.container}>
             <header className={styles.header}>
                 <IconButton onClick={onGoBack} ref={backButtonTooltipRef}>
-                    <ArrowBackIcon />
+                    <CloseIcon />
                 </IconButton>
                 <h2>{title}</h2>
                 <Button outlined onClick={onCancel}>
@@ -135,7 +151,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                     )}
                 </Button>
             </header>
-            <Stepper activeStepKey={activeStepKey}>
+            <Stepper hideNavButtons activeStepKey={activeStepKey}>
                 <Step
                     title="Select contract"
                     stepKey="select-contract"
@@ -203,6 +219,11 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     selectedPosition={formState.contractResponsible}
                                     onSelect={formFieldSetter('contractResponsible')}
                                 />
+                                {formState.contractResponsible && (
+                                    <Button frameless onClick={clearEquinorContractResponsible}>
+                                        Clear
+                                    </Button>
+                                )}
                             </div>
                             <div className={styles.field}>
                                 <ContractPositionPicker
@@ -210,6 +231,11 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     selectedPosition={formState.companyRep}
                                     onSelect={formFieldSetter('companyRep')}
                                 />
+                                {formState.companyRep && (
+                                    <Button frameless onClick={clearEquinorCompanyRep}>
+                                        Clear
+                                    </Button>
+                                )}
                             </div>
                         </div>
 
@@ -241,6 +267,11 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     selectedPosition={formState.externalCompanyRep}
                                     onSelect={formFieldSetter('externalCompanyRep')}
                                 />
+                                {formState.externalCompanyRep && (
+                                    <Button frameless onClick={clearExternalCompanyRep}>
+                                        Clear
+                                    </Button>
+                                )}
                                 <CreateOrEditExternalPositionButton
                                     repType="company-rep"
                                     contract={formState}
@@ -255,17 +286,18 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                                     label="External Contract responsible"
                                     contractId={formState.id || undefined}
                                     selectedPosition={formState.externalContractResponsible}
-                                    onSelect={formFieldSetter(
-                                        'externalContractResponsible'
-                                    )}
+                                    onSelect={formFieldSetter('externalContractResponsible')}
                                 />
+                                {formState.externalContractResponsible && (
+                                    <Button frameless onClick={clearExternalContractResponsible}>
+                                        Clear
+                                    </Button>
+                                )}
                                 <CreateOrEditExternalPositionButton
                                     repType="contract-responsible"
                                     contract={formState}
                                     existingPosition={formState.externalContractResponsible}
-                                    onComplete={formFieldSetter(
-                                        'externalContractResponsible'
-                                    )}
+                                    onComplete={formFieldSetter('externalContractResponsible')}
                                 />
                             </div>
                         </div>

@@ -5,7 +5,6 @@ import {
     SearchableDropdownOption,
 } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
-import useBasePositions from '../../../../../../../hooks/useBasePositions';
 import { BasePosition } from '@equinor/fusion';
 
 export type PersonnelFormDisciplinesDropDown = {
