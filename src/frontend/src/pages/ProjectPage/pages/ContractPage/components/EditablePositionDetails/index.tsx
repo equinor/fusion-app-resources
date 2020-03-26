@@ -98,6 +98,11 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
                                     person.lastName || '',
                                     setField('lastName')
                                 )}
+                                {createEditField(
+                                    'Dawinci',
+                                    person.dawinciCode || '',
+                                    setField('dawinciCode')
+                                )}
                             </div>
                             <div className={styles.row}>
                                 {createEditField(
@@ -118,6 +123,7 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
                             <div className={styles.row}>
                                 {createTextField('First name', person.firstName || '')}
                                 {createTextField('Last name', person.lastName || '')}
+                                {createTextField('Dawinci', person.dawinciCode || '')}
                             </div>
                             <div className={styles.row}>
                                 {createTextField('Phone', person.phoneNumber || '')}
