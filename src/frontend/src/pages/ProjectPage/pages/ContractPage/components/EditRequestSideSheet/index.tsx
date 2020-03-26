@@ -91,7 +91,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         defaultState
     );
 
-    const { submit, reset, pendingRequests, failedRequests, successfulRequests } = useSubmitChanges(
+    const { submit, reset, pendingRequests, failedRequests, successfulRequests, removeFailedRequest } = useSubmitChanges(
         formState
     );
 
@@ -153,6 +153,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                 failedRequests={failedRequests}
                 successfulRequests={successfulRequests}
                 onClose={onProgressSidesheetClose}
+                onRemoveFailedRequest={removeFailedRequest}
             />
         </ModalSideSheet>
     );

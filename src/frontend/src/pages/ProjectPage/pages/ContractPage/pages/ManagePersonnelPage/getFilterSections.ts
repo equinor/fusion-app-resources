@@ -33,7 +33,7 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
             filters: [
                 {
                     key: 'azureAdStatus',
-                    title: 'AD',
+                    title: 'AD Status',
                     type: FilterTypes.Checkbox,
                     getValue: p => p?.azureAdStatus || 'NoAccount',
                     isVisibleWhenPaneIsCollapsed: true,

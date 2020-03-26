@@ -3,6 +3,7 @@ import {
     useNotificationCenter,
     useCurrentContext,
     HttpClientRequestFailedError,
+    FusionApiHttpErrorResponse,
 } from '@equinor/fusion';
 import { transformToCreatePersonnelRequest } from '../utils';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
@@ -74,15 +75,16 @@ export default (formState: EditRequest[]) => {
                 }
             } catch (error) {
                 if (error instanceof HttpClientRequestFailedError) {
-                    const requestError = error as HttpClientRequestFailedError<PersonnelRequest>;
-
+                    const requestError = error as HttpClientRequestFailedError<
+                        FusionApiHttpErrorResponse
+                    >;
                     setFailedRequests(f => [
                         ...f,
                         {
-                            error: requestError,
+                            error: error,
                             item: request,
                             isEditable:
-                                requestError.statusCode < 500 &&
+                                requestError.statusCode <= 500 &&
                                 requestError.statusCode !== 424 &&
                                 requestError.statusCode !== 408,
                         },
@@ -126,5 +128,9 @@ export default (formState: EditRequest[]) => {
         }
     }, [contract, currentContext, createRequest, formState, reset]);
 
-    return { submit, reset, pendingRequests, failedRequests, successfulRequests };
+    const removeFailedRequest = React.useCallback((request: FailedRequest<EditRequest>) => {
+        setFailedRequests(fr => fr.filter(r => r !== request));
+    }, [])
+
+    return { submit, reset, pendingRequests, failedRequests, successfulRequests, removeFailedRequest };
 };
