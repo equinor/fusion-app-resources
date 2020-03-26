@@ -22,13 +22,19 @@ export default class ResourceCollection {
         return combineUrls(this.contracts(projectId), contractId);
     }
 
-    personnel(projectId: string, contractId: string, personnelId?: string): string {
-        return combineUrls(
+    personnel(projectId: string, contractId: string, personnelId?: string, expand?: string): string {
+        const base = combineUrls(
             this.contract(projectId, contractId),
             'resources',
             'personnel',
             personnelId || ''
         );
+
+        if(expand) {
+            return `${base}?$expand=${expand}`;
+        }
+
+        return base;
     }
 
     personnelCollection(projectId: string, contractId: string): string {
