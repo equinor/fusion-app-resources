@@ -145,21 +145,31 @@ function RequestProgressSidesheet<TRequest, TResponse>({
         }
     );
 
+    const [isShowing, setIsShowing] = React.useState(false);
+    React.useEffect(() => {
+        setIsShowing(
+            pendingRequests.length > 0 ||
+            failedRequests.length > 0 ||
+            successfulRequests.length > 0
+        );
+    }, [pendingRequests, failedRequests, successfulRequests]);
+
+    const closeSidesheet = React.useCallback(() => {
+        setIsShowing(false);
+        onClose();
+    }, [onClose]);
+
     return (
         <ModalSideSheet
             header="Saving requests"
-            show={
-                pendingRequests.length > 0 ||
-                failedRequests.length > 0 ||
-                successfulRequests.length > 0
-            }
+            show={isShowing}
             onClose={onClose}
         >
             {invalidRequests.length > 0 && (
                 <div className={styles.failedRequests}>
                     <div className={styles.header}>
                         <h3>Invalid requests</h3>
-                        <Button>Edit failed</Button>
+                        <Button onClick={closeSidesheet}>Edit failed</Button>
                     </div>
                     <div className={styles.progressList}>
                         {invalidRequests.map((request, index) => (
@@ -181,6 +191,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                             Open ticked for failed requests in{' '}
                             <a
                                 href="#"
+                                onClick={e => e.preventDefault()}
                                 ref={serviceNowPopoverRef as React.RefObject<HTMLAnchorElement>}
                             >
                                 Service Now

@@ -1,0 +1,101 @@
+
+.positionTimelineContainer{
+    display: flex;
+    flex-direction: column;
+    margin: calc(var(--grid-unit) * 1px);
+    margin-top: 0;
+    position: relative;
+
+    .selectedDateIndicator{
+        position: absolute;
+        border-right: 2px solid var(--color-black-alt3);
+        top: calc(var(--grid-unit) * 3px);
+        bottom: calc(var(--grid-unit) * 3px);
+
+    
+    }
+
+    .timelineInstancesContainer {
+        display: flex;
+        flex-direction: column;
+
+        .timelineInstancesWithRotation{
+            display: flex;
+            flex-direction: row;
+            height: calc(var(--grid-unit) * 7px);
+            align-items:  center;
+
+            
+            .timelineLabel {
+                width: calc(var(--grid-unit) * 7px);
+                height: calc(var(--grid-unit) * 7px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .timelineInstances{
+                position: relative;
+                height: 100%;
+                width: 100%;
+
+                .instance {
+                    top: calc(var(--grid-unit) * 1px);
+                    position: absolute;
+                    height: calc(var(--grid-unit) * 5px);
+                    display: flex;
+                    align-items: center;
+                    background: var(--color-black-alt4);
+                    box-sizing: border-box;
+                    padding: 0 calc(var(--grid-unit) * 1px);
+                    display: flex;
+                    border-radius: 4px;
+                    margin-right: 1px;
+                    overflow: hidden;
+                   
+            
+                    &.hasAssignedPerson {
+                        background: var(--color-primary-alt4);
+                        &.edit:not(.isSelected){
+                            background: var(--color-black-alt4);
+                        }
+                    }
+                   
+                   
+                    &.isSelected {
+                        background: var(--color-primary);
+                        color: var(--color-white);
+                        &.isRotation {
+                            background: var(--color-secondary-alt1);
+                        }
+                      
+                    }
+        
+                    .assignedPerson {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        flex-shrink: 0;
+                    }
+        
+                    .workload {
+                        font-size: 12px;
+                        box-sizing: border-box;
+                        padding-left: calc(var(--grid-unit) * .5px);
+                        overflow: hidden;
+                    }
+
+                    .disabledIndicator{
+                        box-sizing: border-box;
+                        padding-left: calc(var(--grid-unit) * .5px);
+                        overflow: hidden;
+                    }
+                }
+
+            }
+            
+        }
+       
+    }
+   
+}

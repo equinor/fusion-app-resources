@@ -43,10 +43,6 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
     const { isFetchingContract } = useContractContext();
     const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
-    const closeSideSheet = React.useCallback(() => {
-        setEditRequests(null);
-        onClose();
-    }, [setEditRequests]);
 
     React.useEffect(() => {
         if (initialRequests) {
@@ -69,6 +65,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         isFetching: isFetchingPersonnel,
         error: personnelError,
     };
+
     const defaultState = React.useMemo(() => transFormRequest(editRequests, selectedPositions), [
         editRequests,
         selectedPositions,
@@ -93,15 +90,25 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         defaultState
     );
 
-    const { submit, pendingRequests, failedRequests, successfulRequests } = useSubmitChanges(
+    const { submit, reset, pendingRequests, failedRequests, successfulRequests } = useSubmitChanges(
         formState
     );
 
-    React.useEffect(() => {
-        setFormState(
-            failedRequests.filter(r => r.isEditable).map(r => r.item)
-        );
-    }, [failedRequests]);
+    const closeSideSheet = React.useCallback(() => {
+        reset();
+        setEditRequests(null);
+        onClose();
+    }, [setEditRequests]);
+
+    const onProgressSidesheetClose = React.useCallback(() => {
+        const editableFailedRequests = failedRequests.filter(r => r.isEditable);
+        if (editableFailedRequests.length > 0) {
+            setFormState(editableFailedRequests.map(r => r.item));
+            return;
+        }
+
+        closeSideSheet();
+    }, [failedRequests, closeSideSheet]);
 
     const isSubmitting = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
@@ -143,7 +150,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                 pendingRequests={pendingRequests}
                 failedRequests={failedRequests}
                 successfulRequests={successfulRequests}
-                onClose={() => {}}
+                onClose={onProgressSidesheetClose}
             />
         </ModalSideSheet>
     );

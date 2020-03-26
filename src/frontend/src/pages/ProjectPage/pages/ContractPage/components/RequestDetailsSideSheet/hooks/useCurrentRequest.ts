@@ -1,23 +1,7 @@
 import * as React from 'react';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
 import { useHistory } from '@equinor/fusion';
-
-type OrgQueryParams = {
-    requestId: string;
-};
-
-const parseQueryString = (queryString: string) => {
-    const segments = queryString.replace('?', '').split('&');
-    const parsed = segments.reduce((params, segment) => {
-        const parts = segment.split('=');
-        return {
-            ...params,
-            [parts[0]]: parts[1],
-        };
-    }, {});
-
-    return parsed as OrgQueryParams;
-};
+import { parseQueryString } from '../../../../../../../api/utils';
 
 export default (requests: PersonnelRequest[] | null) => {
     const history = useHistory();

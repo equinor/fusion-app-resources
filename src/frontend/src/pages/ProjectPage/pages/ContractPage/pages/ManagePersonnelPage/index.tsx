@@ -21,6 +21,21 @@ const ManagePersonnelPage: React.FC = () => {
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const notification = useNotificationCenter();
 
+    const getPersonnelWithPositionsAsync = async () => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        if (!contractId || !projectId) {
+            return;
+        }
+
+        const result = await apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
+        dispatchContractAction({
+            verb: "merge",
+            collection: "personnel",
+            payload: result,
+        });
+    };
+
     const fetchPersonnelAsync = React.useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
@@ -28,7 +43,11 @@ const ManagePersonnelPage: React.FC = () => {
             return [];
         }
 
-        return apiClient.getPersonnelAsync(projectId, contractId);
+        const result = apiClient.getPersonnelAsync(projectId, contractId);
+
+        getPersonnelWithPositionsAsync();
+
+        return result;
     }, [contract, currentContext]);
 
     const { data: personnel, isFetching, error } = useReducerCollection(
@@ -55,7 +74,7 @@ const ManagePersonnelPage: React.FC = () => {
         return getFilterSections(personnel);
     }, [personnel]);
 
-    const personnelColumns = React.useMemo(() => PersonnelColumns(), []);
+    const personnelColumns = React.useMemo(() => PersonnelColumns(contract?.id), [contract]);
     const sortedByColumn = React.useMemo(
         () => personnelColumns.find(c => c.accessor === sortBy) || null,
         [sortBy]

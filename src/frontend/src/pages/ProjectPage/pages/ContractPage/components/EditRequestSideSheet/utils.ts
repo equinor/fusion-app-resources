@@ -8,7 +8,7 @@ export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
     taskOwners: Position[] | null
 ): EditRequest[] | null => {
-    if (personnelRequest === null) {
+    if (personnelRequest === null || personnelRequest.length === 0) {
         return null;
     }
 
