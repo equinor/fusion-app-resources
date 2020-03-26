@@ -99,5 +99,9 @@ export default (
         }
     }, [contract, currentContext, createRequest, formState, reset]);
 
-    return { submit, reset, pendingRequests, failedRequests, successfulRequests };
+    const removeFailedRequest = React.useCallback((request: FailedRequest<EditRequest>) => {
+        setFailedRequests(fr => fr.filter(r => r !== request));
+    }, [])
+
+    return { submit, reset, pendingRequests, failedRequests, successfulRequests, removeFailedRequest };
 };
