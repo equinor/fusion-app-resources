@@ -5,10 +5,10 @@ import {
     Button,
     TextInput,
     DatePicker,
-    ArrowBackIcon,
     IconButton,
     useTooltipRef,
     Spinner,
+    CloseIcon,
 } from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
@@ -131,7 +131,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         <div className={styles.container}>
             <header className={styles.header}>
                 <IconButton onClick={onGoBack} ref={backButtonTooltipRef}>
-                    <ArrowBackIcon />
+                    <CloseIcon />
                 </IconButton>
                 <h2>{title}</h2>
                 <Button outlined onClick={onCancel}>
@@ -151,7 +151,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                     )}
                 </Button>
             </header>
-            <Stepper activeStepKey={activeStepKey}>
+            <Stepper hideNavButtons activeStepKey={activeStepKey}>
                 <Step
                     title="Select contract"
                     stepKey="select-contract"
