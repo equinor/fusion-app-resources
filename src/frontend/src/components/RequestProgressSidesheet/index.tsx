@@ -9,14 +9,16 @@ import {
     ErrorIcon,
     DoneIcon,
     Button,
+    useTooltipRef,
 } from '@equinor/fusion-components';
 import useServiceNowPopoverRef from '../../hooks/useServiceNowPopoverRef';
 import classNames from 'classnames';
 import * as styles from './styles.less';
+import { FusionApiHttpErrorResponse } from '@equinor/fusion';
 
 export type FailedRequest<T> = {
     item: T;
-    error: Error;
+    error: FusionApiHttpErrorResponse;
     isEditable: boolean;
 };
 
@@ -34,6 +36,7 @@ type RequestProgressSidesheetProps<TRequest, TResponse> = {
     failedRequests: FailedRequest<TRequest>[];
     successfulRequests: SuccessfulRequest<TRequest, TResponse>[];
     renderRequest: React.FC<RenderRequestProps<TRequest>>;
+    onRemoveFailedRequest: (request: FailedRequest<TRequest>) => void;
     onClose: () => void;
 };
 
@@ -43,7 +46,8 @@ type RequestItemProps<TRequest> = {
 };
 
 type FailedRequestItemProps<TRequest> = RequestItemProps<TRequest> & {
-    error: Error;
+    error: FusionApiHttpErrorResponse;
+    onRemove: () => void;
 };
 
 type SuccessfulRequestItemProps<TRequest, TResponse> = RequestItemProps<TRequest> & {
@@ -68,11 +72,13 @@ function InvalidRequestProgressItem<TRequest>({
     request,
     renderRequest,
     error,
+    onRemove,
 }: FailedRequestItemProps<TRequest>) {
+    const ignoreTooltipRef = useTooltipRef('Ignore');
     return (
         <div className={classNames(styles.item, styles.failed)}>
             <div className={styles.icon}>
-                <IconButton>
+                <IconButton onClick={onRemove} ref={ignoreTooltipRef}>
                     <CloseIcon />
                 </IconButton>
             </div>
@@ -80,7 +86,7 @@ function InvalidRequestProgressItem<TRequest>({
                 <ErrorIcon outline={false} />
             </div>
             <div className={styles.content}>{renderRequest({ request })}</div>
-            <div className={styles.errorMessage}>{error.message}</div>
+            <div className={styles.errorMessage}>{error.error?.message}</div>
         </div>
     );
 }
@@ -88,11 +94,13 @@ function InvalidRequestProgressItem<TRequest>({
 function FailedRequestProgressItem<TRequest>({
     request,
     renderRequest,
+    onRemove,
 }: FailedRequestItemProps<TRequest>) {
+    const ignoreTooltipRef = useTooltipRef('Ignore');
     return (
         <div className={classNames(styles.item, styles.failed)}>
             <div className={styles.icon}>
-                <IconButton>
+                <IconButton onClick={onRemove} ref={ignoreTooltipRef}>
                     <CloseIcon />
                 </IconButton>
             </div>
@@ -123,6 +131,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     failedRequests,
     successfulRequests,
     renderRequest,
+    onRemoveFailedRequest,
     onClose,
 }: RequestProgressSidesheetProps<TRequest, TResponse>) {
     const [isPendingRequestsOpen, setIsPendingRequestsOpen] = React.useState(true);
@@ -144,21 +153,31 @@ function RequestProgressSidesheet<TRequest, TResponse>({
         }
     );
 
+    const [isShowing, setIsShowing] = React.useState(false);
+    React.useEffect(() => {
+        setIsShowing(
+            pendingRequests.length > 0 || failedRequests.length > 0 || successfulRequests.length > 0
+        );
+    }, [pendingRequests, failedRequests, successfulRequests]);
+
+    const closeSidesheet = React.useCallback(() => {
+        setIsShowing(false);
+        onClose();
+    }, [onClose]);
+
+    React.useEffect(() => {
+        if (isShowing && failedRequests.length === 0) {
+            closeSidesheet();
+        }
+    }, [failedRequests, closeSidesheet]);
+
     return (
-        <ModalSideSheet
-            header="Saving requests"
-            show={
-                pendingRequests.length > 0 ||
-                failedRequests.length > 0 ||
-                successfulRequests.length > 0
-            }
-            onClose={onClose}
-        >
+        <ModalSideSheet header="Saving requests" show={isShowing} onClose={onClose}>
             {invalidRequests.length > 0 && (
                 <div className={styles.failedRequests}>
                     <div className={styles.header}>
                         <h3>Invalid requests</h3>
-                        <Button>Edit failed</Button>
+                        <Button onClick={closeSidesheet}>Edit failed</Button>
                     </div>
                     <div className={styles.progressList}>
                         {invalidRequests.map((request, index) => (
@@ -167,6 +186,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                                 request={request.item}
                                 error={request.error}
                                 renderRequest={renderRequest}
+                                onRemove={() => onRemoveFailedRequest(request)}
                             />
                         ))}
                     </div>
@@ -180,6 +200,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                             Open ticked for failed requests in{' '}
                             <a
                                 href="#"
+                                onClick={e => e.preventDefault()}
                                 ref={serviceNowPopoverRef as React.RefObject<HTMLAnchorElement>}
                             >
                                 Service Now
@@ -193,6 +214,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                                 request={request.item}
                                 error={request.error}
                                 renderRequest={renderRequest}
+                                onRemove={() => onRemoveFailedRequest(request)}
                             />
                         ))}
                     </div>

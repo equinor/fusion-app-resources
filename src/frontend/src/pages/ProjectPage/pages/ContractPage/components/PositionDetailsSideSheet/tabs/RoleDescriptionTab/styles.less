@@ -1,0 +1,56 @@
+.personalTaskDescription {
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(var(--grid-unit) * 2px);
+
+    .header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        height: calc(var(--grid-unit) * 28px);
+        background-color: var(--color-white);
+        margin-top: calc(var(--grid-unit) * 1px);
+        padding: calc(var(--grid-unit) * 2px);
+
+        .descriptionBar{
+            display: flex;
+            justify-content: space-between;
+            padding-right: calc(var(--grid-unit) * .5px);
+            padding-left: calc(var(--grid-unit) * .5px);
+            align-items: center;
+        }
+        .titleBar{
+            display: flex;
+            justify-content: space-between;
+            padding-top: calc(var(--grid-unit) * 2px);
+            font-size: 12px;
+            padding-right: calc(var(--grid-unit) * .5px);
+            padding-left: calc(var(--grid-unit) * .5px);
+        }
+
+
+        .textInput{
+            padding-top: calc(var(--grid-unit) * 1px);
+            height: calc(var(--grid-unit) * 17px);
+
+            .viewMarkdown {
+                height: 100%;
+                overflow: auto;
+                background-color: var(--color-black-alt5);
+                padding: 0 calc(var(--grid-unit)* 1px);
+                cursor: default;
+            }
+            .inputValueCounter{
+                display: flex;
+                flex-direction: row-reverse;
+                padding-top: calc(var(--grid-unit) * 1px);
+                font-size: 12px;
+            }
+        }
+    }
+}
