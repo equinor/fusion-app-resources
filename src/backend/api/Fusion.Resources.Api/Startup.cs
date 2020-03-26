@@ -59,6 +59,8 @@ namespace Fusion.Resources.Api
 
                 options.ApplicationMode = true;
             });
+            services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
+
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
@@ -73,6 +75,8 @@ namespace Fusion.Resources.Api
             services.AddResourceDomain();
             services.AddResourceLogic();
             services.AddResourcesApplicationServices();
+
+            services.AddResourcesAuthorizationHandlers();
 
             #endregion
 
@@ -91,7 +95,8 @@ namespace Fusion.Resources.Api
             app.UseCors(opts => opts
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
-                .AllowAnyHeader());
+                .AllowAnyHeader()
+                .WithExposedHeaders("Allow", "x-fusion-retriable"));
 
             if (env.IsDevelopment())
             {
