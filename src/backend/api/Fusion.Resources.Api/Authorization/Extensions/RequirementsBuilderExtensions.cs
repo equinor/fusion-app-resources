@@ -15,7 +15,7 @@ namespace Fusion.Resources.Api.Controllers
         public static IAuthorizationRequirementRule FullControl(this IAuthorizationRequirementRule builder)
         {
             var policy = new AuthorizationPolicyBuilder()
-                .RequireAssertion(c => c.User.IsInRole("ProView.Admin.DevOps") || c.User.IsInRole("Fusion.Resources.FullControl"))
+                .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.FullControl"))
                 .Build();
 
             builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
