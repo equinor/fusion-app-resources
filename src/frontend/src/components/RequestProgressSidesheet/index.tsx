@@ -9,6 +9,7 @@ import {
     ErrorIcon,
     DoneIcon,
     Button,
+    useTooltipRef,
 } from '@equinor/fusion-components';
 import useServiceNowPopoverRef from '../../hooks/useServiceNowPopoverRef';
 import classNames from 'classnames';
@@ -35,6 +36,7 @@ type RequestProgressSidesheetProps<TRequest, TResponse> = {
     failedRequests: FailedRequest<TRequest>[];
     successfulRequests: SuccessfulRequest<TRequest, TResponse>[];
     renderRequest: React.FC<RenderRequestProps<TRequest>>;
+    onRemoveFailedRequest: (request: FailedRequest<TRequest>) => void;
     onClose: () => void;
 };
 
@@ -45,6 +47,7 @@ type RequestItemProps<TRequest> = {
 
 type FailedRequestItemProps<TRequest> = RequestItemProps<TRequest> & {
     error: FusionApiHttpErrorResponse;
+    onRemove: () => void;
 };
 
 type SuccessfulRequestItemProps<TRequest, TResponse> = RequestItemProps<TRequest> & {
@@ -69,11 +72,13 @@ function InvalidRequestProgressItem<TRequest>({
     request,
     renderRequest,
     error,
+    onRemove,
 }: FailedRequestItemProps<TRequest>) {
+    const ignoreTooltipRef = useTooltipRef('Ignore');
     return (
         <div className={classNames(styles.item, styles.failed)}>
             <div className={styles.icon}>
-                <IconButton>
+                <IconButton onClick={onRemove} ref={ignoreTooltipRef}>
                     <CloseIcon />
                 </IconButton>
             </div>
@@ -89,11 +94,13 @@ function InvalidRequestProgressItem<TRequest>({
 function FailedRequestProgressItem<TRequest>({
     request,
     renderRequest,
+    onRemove,
 }: FailedRequestItemProps<TRequest>) {
+    const ignoreTooltipRef = useTooltipRef('Ignore');
     return (
         <div className={classNames(styles.item, styles.failed)}>
             <div className={styles.icon}>
-                <IconButton>
+                <IconButton onClick={onRemove} ref={ignoreTooltipRef}>
                     <CloseIcon />
                 </IconButton>
             </div>
@@ -124,6 +131,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     failedRequests,
     successfulRequests,
     renderRequest,
+    onRemoveFailedRequest,
     onClose,
 }: RequestProgressSidesheetProps<TRequest, TResponse>) {
     const [isPendingRequestsOpen, setIsPendingRequestsOpen] = React.useState(true);
@@ -148,9 +156,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     const [isShowing, setIsShowing] = React.useState(false);
     React.useEffect(() => {
         setIsShowing(
-            pendingRequests.length > 0 ||
-            failedRequests.length > 0 ||
-            successfulRequests.length > 0
+            pendingRequests.length > 0 || failedRequests.length > 0 || successfulRequests.length > 0
         );
     }, [pendingRequests, failedRequests, successfulRequests]);
 
@@ -159,12 +165,14 @@ function RequestProgressSidesheet<TRequest, TResponse>({
         onClose();
     }, [onClose]);
 
+    React.useEffect(() => {
+        if (isShowing && failedRequests.length === 0) {
+            closeSidesheet();
+        }
+    }, [failedRequests, closeSidesheet]);
+
     return (
-        <ModalSideSheet
-            header="Saving requests"
-            show={isShowing}
-            onClose={onClose}
-        >
+        <ModalSideSheet header="Saving requests" show={isShowing} onClose={onClose}>
             {invalidRequests.length > 0 && (
                 <div className={styles.failedRequests}>
                     <div className={styles.header}>
@@ -178,6 +186,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                                 request={request.item}
                                 error={request.error}
                                 renderRequest={renderRequest}
+                                onRemove={() => onRemoveFailedRequest(request)}
                             />
                         ))}
                     </div>
@@ -205,6 +214,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                                 request={request.item}
                                 error={request.error}
                                 renderRequest={renderRequest}
+                                onRemove={() => onRemoveFailedRequest(request)}
                             />
                         ))}
                     </div>

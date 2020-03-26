@@ -6,6 +6,7 @@ import {
     useTooltipRef,
     usePopoverRef,
     MoreIcon,
+    SkeletonBar,
 } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
@@ -45,7 +46,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
-    const { formState, setFormState, isFormValid, isFormDirty } = useAddPersonnelForm(
+    const { formState, setFormState, isFormValid, isFormDirty, resetForm } = useAddPersonnelForm(
         selectedPersonnel
     );
 
@@ -229,7 +230,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         );
     };
 
-    const closeSidesheet = React.useCallback(() => setIsOpen(false), [setIsOpen]);
+    const closeSidesheet = React.useCallback(() => {
+        resetForm();
+        setIsOpen(false);
+    }, [setIsOpen]);
 
     const onProgressSidesheetClose = React.useCallback(() => {
         const editableFailedRequests = failedRequests.filter(r => r.isEditable);
@@ -240,6 +244,10 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
         closeSidesheet();
     }, [failedRequests, closeSidesheet]);
+
+    const onRemoveFailedRequest = React.useCallback((request: FailedRequest<Personnel>) => {
+        setFailedRequests(fr => fr.filter(r => r !== request));
+    }, []);
 
     return (
         <ModalSideSheet
@@ -299,7 +307,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                             </tr>
                         </thead>
                         <tbody className={styles.tableBody}>
-                            {!isFetchingBasePositions &&
+                            {
                                 formState.map(person => (
                                     <tr
                                         className={styles.tableRow}
@@ -354,13 +362,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                                             />
                                         </td>
                                         <td className={styles.tableRowCell}>
-                                            <AddPersonnelFormDisciplinesDropDown
+                                            {isFetchingBasePositions ? <SkeletonBar /> :  (<AddPersonnelFormDisciplinesDropDown
                                                 key={`disciplines${person.personnelId}`}
                                                 disabled={saveInProgress}
                                                 onChange={onChange}
                                                 item={person}
                                                 basePositions={basePositions}
-                                            />
+                                            />)}
                                         </td>
                                     </tr>
                                 ))}
@@ -373,6 +381,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 successfulRequests={successfulRequests}
                 pendingRequests={pendingRequests}
                 onClose={onProgressSidesheetClose}
+                onRemoveFailedRequest={onRemoveFailedRequest}
                 renderRequest={({ request }) => <PersonnelRequest person={request} />}
             />
         </ModalSideSheet>
