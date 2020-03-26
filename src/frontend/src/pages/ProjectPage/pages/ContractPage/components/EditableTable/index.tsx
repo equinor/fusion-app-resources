@@ -84,12 +84,6 @@ function EditableTable<T>({
         [formState, rowIdentifier, selectedItems]
     );
 
-    React.useEffect(() => {
-        if (formState && formState.length <= 0) {
-            onAddItem();
-        }
-    }, [formState]);
-
     const getTableComponent = React.useCallback(
         (column: EditableTaleColumn<T>, item: T) => {
             const defaultProps = {
