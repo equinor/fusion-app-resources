@@ -32,6 +32,7 @@ export const transFormRequest = (
 };
 
 export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
+    id: req.requestId || undefined,
     description: req.description,
     person: {
         mail: req.person?.mail || '',

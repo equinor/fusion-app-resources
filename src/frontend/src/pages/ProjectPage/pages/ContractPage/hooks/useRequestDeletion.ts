@@ -40,7 +40,7 @@ export default (requests: PersonnelRequest[]) => {
             } catch (e) {
                 setDeleteError(e);
                 sendNotification({
-                    level: 'medium',
+                    level: 'high',
                     title: 'Failed to delete request(s)',
                 });
             } finally {

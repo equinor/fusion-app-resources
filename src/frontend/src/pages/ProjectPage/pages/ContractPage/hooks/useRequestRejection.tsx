@@ -52,7 +52,10 @@ export default (requests: PersonnelRequest[]) => {
                 await checkForEditAccessAsync(projectId, contractId, requests);
             } catch (e) {
                 setRejectedError(e);
-                console.error(e);
+                sendNotification({
+                    level: 'high',
+                    title: 'Failed to reject request(s)',
+                });
             }
             setIsRejecting(false);
         },

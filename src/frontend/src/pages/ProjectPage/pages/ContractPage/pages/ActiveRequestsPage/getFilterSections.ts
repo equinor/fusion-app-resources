@@ -20,10 +20,10 @@ const getFilterSections = (requests: PersonnelRequest[]): FilterSection<Personne
                     type: FilterTypes.Search,
                     title: 'Search',
                     getValue: item =>
-                        item.id + item.person?.name ||
-                        '' + item.state + item.position?.name ||
-                        '' + item.position?.basePosition?.name ||
-                        '',
+                        item.id +
+                        (item.person?.name || '') +
+                        (item.state + item.position?.name || '') +
+                        (item.position?.basePosition?.name || ''),
                 },
             ],
         },
