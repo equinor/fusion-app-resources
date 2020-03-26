@@ -46,7 +46,6 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
 
     React.useEffect(() => {
         if (initialRequests) {
-            console.log("Initial request", initialRequests)
             setEditRequests(initialRequests);
         }
     }, [initialRequests]);
