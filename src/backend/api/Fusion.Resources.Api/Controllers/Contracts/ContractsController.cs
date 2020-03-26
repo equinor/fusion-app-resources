@@ -1,10 +1,14 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.Integration;
+using Fusion.Resources.Api.Configuration;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
@@ -38,12 +42,6 @@ namespace Fusion.Resources.Api.Controllers
             return collection;
         }
 
-        [HttpGet("/projects/{projectIdentifier}/contracts/unallocated")]
-        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectUnallocatedContracts([FromRoute]ProjectIdentifier projectIdentifier)
-        {
-            throw new NotImplementedException();
-        }
-
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
         public async Task<ActionResult<ApiContract>> GetProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
         {
@@ -54,23 +52,41 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/available-contracts")]
-        public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts([FromRoute]ProjectIdentifier projectIdentifier)
+        public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts(
+            [FromRoute]ProjectIdentifier projectIdentifier,
+            [FromServices] IHttpClientFactory httpClientFactory,
+            [FromServices] IFusionContextResolver contextResolver)
         {
-            await Task.Delay(1);
+            var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(projectIdentifier.ProjectId), FusionContextType.OrgChart);
 
-            var contracts = new[]
-            {
-                new ApiUnallocatedContract { ContractNumber = "0000000001" },
-                new ApiUnallocatedContract { ContractNumber = "0000000002" },
-                new ApiUnallocatedContract { ContractNumber = "0000000003" },
-                new ApiUnallocatedContract { ContractNumber = "0000000004" },
-                new ApiUnallocatedContract { ContractNumber = "0000055555" },
-                new ApiUnallocatedContract { ContractNumber = "0000666666" },
-                new ApiUnallocatedContract { ContractNumber = "1000000000" },
-                new ApiUnallocatedContract { ContractNumber = "1111111111" }
-            };
+            if (context == null)
+                return ApiErrors.NotFound($"/contexts/project/{projectIdentifier.ProjectId}");
 
-            return Ok(new ApiCollection<ApiUnallocatedContract>(contracts));
+            var projectMasterContext = await contextResolver.RelationsFirstOrDefaultAsync(context, FusionContextType.ProjectMaster);
+
+            if (projectMasterContext == null)
+                return ApiErrors.NotFound($"/contexts/projectMaster");
+
+            var commonlibClient = httpClientFactory.CreateClient(HttpClientNames.AppCommonLib);
+            var response = await commonlibClient.GetAsync($"/projects/{projectMasterContext.ExternalId}/contracts");
+
+            if (!response.IsSuccessStatusCode)
+                return ApiErrors.FailedFusionRequest(FusionEndpoint.CommonLib, "Failed to get contracts for project");
+
+            var body = await response.Content.ReadAsStringAsync();
+            var items = JsonConvert.DeserializeAnonymousType(body, new[] { new { Name = string.Empty, ContractNumber = string.Empty, CompanyName = string.Empty } });
+            var allocatedContracts = await DispatchAsync(GetProjectContracts.ByOrgProjectId(projectIdentifier.ProjectId));
+
+            var list = items
+                .Where(item => !allocatedContracts.Any(ac => ac.ContractNumber == item.ContractNumber))
+                .Select(item => new ApiUnallocatedContract
+                {
+                    Name = item.Name,
+                    ContractNumber = item.ContractNumber,
+                    CompanyName = item.CompanyName
+                });
+
+            return Ok(new ApiCollection<ApiUnallocatedContract>(list));
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts")]
