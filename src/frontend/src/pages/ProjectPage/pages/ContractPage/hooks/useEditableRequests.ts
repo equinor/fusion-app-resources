@@ -48,6 +48,11 @@ export default (requests: PersonnelRequest[], action: 'approve' | 'reject') => {
             return;
         }
 
+        if(unCheckedRequest.some(r => r.state==="ApprovedByCompany")){
+            setCanEdit(false);
+            return;
+        }
+
         checkForEditAccessAsync(projectId, contractId, unCheckedRequest);
     }, [requests.length]);
 

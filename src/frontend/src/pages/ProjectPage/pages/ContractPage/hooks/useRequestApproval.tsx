@@ -27,24 +27,12 @@ export default (requests: PersonnelRequest[]) => {
                         await apiClient.approveRequestAsync(projectId, contractId, request.id)
                 );
                 const approvedRequests = await Promise.all(responses);
-                const finishedRequest = approvedRequests.filter(
-                    request => request.state === 'ApprovedByCompany'
-                );
-                const nonFinishedRequests = approvedRequests.filter(
-                    request => request.state !== 'ApprovedByCompany'
-                );
-                if (finishedRequest.length > 0) {
-                    dispatchContractAction({
-                        verb: 'delete',
-                        collection: 'activeRequests',
-                        payload: finishedRequest,
-                    });
-                }
-                if (nonFinishedRequests.length > 0) {
+                
+                if (approvedRequests.length > 0) {
                     dispatchContractAction({
                         verb: 'merge',
                         collection: 'activeRequests',
-                        payload: nonFinishedRequests,
+                        payload: approvedRequests,
                     });
                 }
 
