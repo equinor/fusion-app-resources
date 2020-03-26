@@ -44,7 +44,12 @@ namespace Fusion.Resources.Functions.Functions
                 return;
             }
 
-            refreshResponse.EnsureSuccessStatusCode();
+            if (!refreshResponse.IsSuccessStatusCode)
+            {
+                var raw = await refreshResponse.Content.ReadAsStringAsync();
+                log.LogError(raw);
+                refreshResponse.EnsureSuccessStatusCode();
+            }
 
             log.LogInformation($"Successfully refreshed profile '{body.Person.Mail}'");
         }
