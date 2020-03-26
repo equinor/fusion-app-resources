@@ -43,8 +43,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         return Boolean(
             formState.firstName?.length &&
                 formState.lastName?.length &&
-                formState.phoneNumber?.length &&
-                formState.disciplines?.length
+                formState.phoneNumber?.length
         );
     };
 
