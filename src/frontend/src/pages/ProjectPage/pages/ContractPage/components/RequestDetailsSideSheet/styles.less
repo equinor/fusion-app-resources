@@ -49,10 +49,15 @@
             height: 100%;
             display: flex;
             align-items: center;
-
+            flex-direction: column;
+            
             &.original {
                 filter: grayscale();
                 text-decoration: line-through;
+            }
+
+            > div {
+                padding-bottom: calc(var(--grid-unit) * 1px);
             }
         }
     }

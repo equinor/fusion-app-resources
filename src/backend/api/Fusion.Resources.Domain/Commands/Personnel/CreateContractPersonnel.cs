@@ -52,9 +52,12 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryContractPersonnel> Handle(CreateContractPersonnel request, CancellationToken cancellationToken)
             {
+                var profile = await profileService.ResolveProfileAsync(request.Person);
+                if (profile == null && request.Person.Mail == null)
+                    throw new ArgumentException("Cannot create personnel without either a valid azure unique id or mail address");
 
-                var personnel = await profileService.EnsureExternalPersonnelAsync(request.Person);
 
+                var personnel = await profileService.EnsureExternalPersonnelAsync(profile?.Mail ?? request.Person.Mail!, request.FirstName, request.LastName);
 
                 // Even if the personnel is fetch from existing. Update to new values, as things might change, like phone number.
                 UpdatePerson(personnel, request);
@@ -100,7 +103,6 @@ namespace Fusion.Resources.Domain.Commands
                 dbPersonnel.LinkedInProfile = request.LinkedInProfile;
                 dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
             }
-
         }
     }
 }

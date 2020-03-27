@@ -293,6 +293,7 @@ export default class ApiClient {
                 {},
                 () => Promise.resolve()
             );
+            
             if (response.status === 204) {
                 return true;
             }

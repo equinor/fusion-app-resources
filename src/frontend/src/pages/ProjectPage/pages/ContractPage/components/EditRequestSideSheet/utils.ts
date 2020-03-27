@@ -84,6 +84,7 @@ export const transformPositionsToChangeRequest = (positions: Position[], personn
 };
 
 export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
+    id: req.requestId || undefined,
     description: req.description,
     person: {
         mail: req.person?.mail || '',
