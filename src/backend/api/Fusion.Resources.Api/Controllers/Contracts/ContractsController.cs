@@ -57,15 +57,16 @@ namespace Fusion.Resources.Api.Controllers
             [FromServices] IHttpClientFactory httpClientFactory,
             [FromServices] IFusionContextResolver contextResolver)
         {
-            var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(projectIdentifier.ProjectId), FusionContextType.OrgChart);
+            FusionContext projectMasterContext;
 
-            if (context == null)
-                return ApiErrors.NotFound($"/contexts/project/{projectIdentifier.ProjectId}");
-
-            var projectMasterContext = await contextResolver.RelationsFirstOrDefaultAsync(context, FusionContextType.ProjectMaster);
-
-            if (projectMasterContext == null)
-                return ApiErrors.NotFound($"/contexts/projectMaster");
+            try
+            {
+                projectMasterContext = await contextResolver.ResolveProjectMasterAsync(projectIdentifier);
+            }
+            catch (ContextResolverExtensions.ProjectMasterNotFoundError ex)
+            {
+                return ApiErrors.NotFound(ex.Message);
+            }
 
             var commonlibClient = httpClientFactory.CreateClient(HttpClientNames.AppCommonLib);
             var response = await commonlibClient.GetAsync($"/projects/{projectMasterContext.ExternalId}/contracts");

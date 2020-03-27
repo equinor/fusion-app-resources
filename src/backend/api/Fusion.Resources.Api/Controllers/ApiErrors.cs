@@ -42,12 +42,12 @@ namespace Fusion.Resources.Api.Controllers
             };
         }
 
-        internal static ActionResult NotFound(string resourcePath)
+        internal static ActionResult NotFound(string message)
         {
             var problem = new ProblemDetails
             {
                 Type = rfcProblemDetails,
-                Detail = $"Resource '{resourcePath}' was not found",
+                Detail = message,
                 Title = "Resource not found",
                 Status = (int)System.Net.HttpStatusCode.NotFound
             };
