@@ -53,7 +53,8 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         accessor: request => request.state.toString(),
         key: 'status',
         label: 'Status',
-        component: ({ item }) => <RequestWorkflow workflow={item.workflow} inline />,
+        component: ({ item }) =>
+            item.workflow ? <RequestWorkflow workflow={item.workflow} inline /> : null,
         sortable: true,
     },
     {

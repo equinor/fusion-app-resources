@@ -29,6 +29,7 @@ export type EditRequest = {
     obs: string;
     person: Personnel | null;
     taskOwner: Position | null;
+    originalPositionId: string | null;
 };
 
 type EditRequestSideSheetProps = {

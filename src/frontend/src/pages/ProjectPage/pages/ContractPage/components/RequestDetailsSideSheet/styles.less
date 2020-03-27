@@ -25,6 +25,13 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        &.original {
+            filter: grayscale();
+            text-decoration: line-through;
+            width: 100%;
+            margin-top: calc(var(--grid-unit) * 4px);
+        }
     }
 
     .textField {
@@ -42,6 +49,11 @@
             height: 100%;
             display: flex;
             align-items: center;
+
+            &.original {
+                filter: grayscale();
+                text-decoration: line-through;
+            }
         }
     }
 
