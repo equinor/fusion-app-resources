@@ -7,7 +7,7 @@ import {
 } from './utils';
 import Personnel from '../models/Personnel';
 import PersonnelRequest from '../models/PersonnelRequest';
-import { Position, BasePosition } from '@equinor/fusion';
+import { Position } from '@equinor/fusion';
 
 export type ContractState = {
     personnel: ReadonlyCollection<Personnel>;
@@ -20,13 +20,11 @@ const personnelReducer = createCollectionReducer<ContractState, 'personnel'>(
     (x, y) => x.personnelId === y.personnelId
 );
 
-const activeRequestsReducer = createCollectionReducer<ContractState, 'activeRequests'>(
-    (x, y) => x.id === y.id
-);
+const personnelRequestsReducer = createCollectionReducer<
+    ContractState,
+    'activeRequests' | 'completedRequests'
+>((x, y) => x.id === y.id);
 
-const completedRequestsReducer = createCollectionReducer<ContractState, 'completedRequests'>(
-    (x, y) => x.id === y.id
-);
 const actualMppReducer = createCollectionReducer<ContractState, 'actualMpp'>(
     (x, y) => x.id === y.id
 );
@@ -44,20 +42,20 @@ export const contractReducer = createCollectionRootReducer(
                 );
 
             case 'activeRequests':
-                return activeRequestsReducer(
+                return personnelRequestsReducer(
                     state,
                     action as CollectionAction<ContractState, 'activeRequests'>
+                );
+            case 'completedRequests':
+                return personnelRequestsReducer(
+                    state,
+                    action as CollectionAction<ContractState, 'completedRequests'>
                 );
 
             case 'actualMpp':
                 return actualMppReducer(
                     state,
                     action as CollectionAction<ContractState, 'actualMpp'>
-                );
-            case 'completedRequests':
-                return completedRequestsReducer(
-                    state,
-                    action as CollectionAction<ContractState, 'completedRequests'>
                 );
         }
 

@@ -13,9 +13,9 @@ import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
 
 const CompletedRequestsPage: React.FC = () => {
-    const [filteredCompletedRequests, setFilteredCompletedRequests] = React.useState<PersonnelRequest[]>(
-        []
-    );
+    const [filteredCompletedRequests, setFilteredCompletedRequests] = React.useState<
+        PersonnelRequest[]
+    >([]);
 
     const { apiClient } = useAppContext();
     const { contract, contractState, dispatchContractAction } = useContractContext();
@@ -28,13 +28,31 @@ const CompletedRequestsPage: React.FC = () => {
             return [];
         }
 
-        return apiClient.getPersonnelRequestsAsync(projectId, contractId, "completed");
+        return apiClient.getPersonnelRequestsAsync(projectId, contractId, 'completed');
     }, [contract, currentContext]);
-    const { data: completedRequests, isFetching, error } = useReducerCollection(
+    const { data, isFetching, error } = useReducerCollection(
         contractState,
         dispatchContractAction,
         'completedRequests',
         fetchRequestsAsync
+    );
+
+    const completedRequests = React.useMemo(
+        () =>
+            data
+                .filter(
+                    request =>
+                        !(
+                            request.state === 'ApprovedByCompany' &&
+                            request.provisioningStatus.state !== 'Provisioned'
+                        )
+                )
+                .sort(
+                    (a, b) =>
+                        (b.updated ? b.updated.getTime() : b.created.getTime()) -
+                        (a.updated ? a.updated.getTime() : a.created.getTime())
+                ),
+        [data]
     );
 
     const filterSections = React.useMemo(() => {
