@@ -28,6 +28,7 @@ import useRequestApproval from '../../hooks/useRequestApproval';
 import RejectPersonnelSideSheet from '../../components/RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
 import useRequestDeletion from '../../hooks/useRequestDeletion';
+import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
@@ -87,12 +88,22 @@ const ActiveRequestsPage: React.FC = () => {
     }, []);
 
     if (error) {
-        return (
-            <ErrorMessage
-                hasError
-                message="An error occurred while trying to fetch active requests"
-            />
-        );
+        const errorMessage: ErrorMessageProps = {
+            hasError: true,
+        };
+
+        switch (error.statusCode) {
+            case 403:
+                errorMessage.errorType = 'accessDenied';
+                errorMessage.message = error.response.error.message;
+                errorMessage.resourceName = 'Active Requests';
+                break;
+            default:
+                errorMessage.errorType = 'error';
+                break;
+        }
+
+        return <ErrorMessage {...errorMessage} />;
     }
 
     return (
