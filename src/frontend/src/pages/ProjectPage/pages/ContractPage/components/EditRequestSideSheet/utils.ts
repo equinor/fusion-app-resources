@@ -65,7 +65,7 @@ const transformPositionDetailsToPersonnel = (position: Position, personnel: Pers
 
 export const transformPositionsToChangeRequest = (positions: Position[], personnel: Personnel[]): PersonnelRequest[] => {
     return positions.map<PersonnelRequest>(p => ({
-        id: uuid(),
+        id: "",
         created: new Date(),
         state: 'Created',
         description: '',
