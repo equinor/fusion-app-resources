@@ -9,12 +9,10 @@ namespace Fusion.Resources.Api.Authorization.Handlers
 {
     internal class RequestAccessAuthHandler : AuthorizationHandler<RequestAccess, QueryPersonnelRequest>
     {
-        private readonly IProjectOrgResolver orgResolver;
         private readonly IMediator mediator;
 
-        public RequestAccessAuthHandler(IProjectOrgResolver orgResolver, IMediator mediator)
+        public RequestAccessAuthHandler(IMediator mediator)
         {
-            this.orgResolver = orgResolver;
             this.mediator = mediator;
         }
 
@@ -30,9 +28,9 @@ namespace Fusion.Resources.Api.Authorization.Handlers
 
         private async Task EvaluateWorkflowAccessAsync(AuthorizationHandlerContext context, RequestAccess requirement, QueryPersonnelRequest resource)
         {
-            var hasNaturalAccess = await mediator.Send(new ContractorPersonnelRequest.CheckUserAccess(resource.Id));
+            var hasAccess = await mediator.Send(new ContractorPersonnelRequest.CheckUserAccess(resource.Id));
 
-            if (hasNaturalAccess)
+            if (hasAccess)
             {
                 context.Succeed(requirement);
             }

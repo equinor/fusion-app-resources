@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration.Org;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -39,6 +40,11 @@ namespace Fusion.Resources.Logic.Commands
 
                 public async Task<bool> Handle(CheckUserAccess request, CancellationToken cancellationToken)
                 {
+                    // If there is no user, we cannot evaluate this.
+                    if (request.Editor.AzureUniqueId == null)
+                        return false;
+
+
                     var dbRequest = await resourcesDb.ContractorRequests
                         .Where(r => r.Id == request.RequestId)
                         .Select(r => new { r.State, r.Project.OrgProjectId, r.Contract.OrgContractId })
@@ -47,30 +53,19 @@ namespace Fusion.Resources.Logic.Commands
                     if (dbRequest == null)
                         return false;
 
-
                     var contract = await orgResolver.ResolveContractAsync(dbRequest.OrgProjectId, dbRequest.OrgContractId);
 
                     if (contract == null)
                         return false;
 
-                    if (request.Editor.AzureUniqueId == null)
-                        return false;
-
                     var userAzureId = request.Editor.AzureUniqueId.Value;
 
-                    switch (dbRequest.State)
+                    return dbRequest.State switch
                     {
-                        case DbRequestState.Created:
-                            return contract.ExternalCompanyRep.HasActiveAssignment(userAzureId) || contract.ExternalContractRep.HasActiveAssignment(userAzureId);
-
-                        case DbRequestState.SubmittedToCompany:
-                            return contract.CompanyRep.HasActiveAssignment(userAzureId) || contract.ContractRep.HasActiveAssignment(userAzureId);
-
-                        default:
-                            return false;
-                    }
-
-                    
+                        DbRequestState.Created => contract.ExternalCompanyRep.HasActiveAssignment(userAzureId) || contract.ExternalContractRep.HasActiveAssignment(userAzureId),
+                        DbRequestState.SubmittedToCompany => contract.CompanyRep.HasActiveAssignment(userAzureId) || contract.ContractRep.HasActiveAssignment(userAzureId),
+                        _ => false,
+                    };
                 }
             }
         }

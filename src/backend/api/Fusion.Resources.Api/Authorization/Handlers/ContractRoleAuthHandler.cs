@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.Integration.Org;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Security.Claims;
