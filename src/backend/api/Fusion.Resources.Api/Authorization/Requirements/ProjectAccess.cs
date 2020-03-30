@@ -1,32 +1,29 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Authorization
 {
-    public class ProjectAccess : IReportableAuthorizationRequirement
+    public class ProjectAccess : FusionAuthorizationRequirement
     {
-        private ProjectAccess(AccessType type)
+        private readonly string code;
+        private readonly string description;
+
+        private ProjectAccess(AccessType type, string code, string description)
         {
             Type = type;
+            this.code = code;
+            this.description = description;
         }
-
+        
         public AccessType Type { get; }
 
-        public string Description { get; private set; } = string.Empty;
+        public override string Description => description;
 
-        public string? Evaluation { get; set; }
-
-        public string Code { get; set; } = "ProjectAccess";
-
-        public bool IsEvaluated { get; set; }
+        public override string Code => code;
 
 
-
-        public static ProjectAccess ManageContracts = new ProjectAccess(AccessType.ManageContracts)
-        {
-            Code = "Project.Contract.Manage",
-            Description = "You need permission to manage contracts in context of the project. This is typically granted to procurement personnel."
-        };
-
+        public static ProjectAccess ManageContracts = new ProjectAccess(AccessType.ManageContracts, "Project.Contract.Manage", 
+            "You need permission to manage contracts in context of the project. This is typically granted to procurement personnel.");
 
         public enum AccessType { ManageContracts }
     }

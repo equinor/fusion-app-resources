@@ -21,9 +21,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             var contract = await orgResolver.ResolveContractAsync(resource.Project.ProjectId, resource.Contract);
             if (contract == null)
             {
-                requirement.IsEvaluated = false;
-                requirement.Evaluation = $"Couldn't locate contract in project '{resource.Project.Name}'";
-
+                requirement.SetEvaluation($"Couldn't locate contract in project '{resource.Project.Name}'");
                 return;
             }
 
@@ -41,19 +39,19 @@ namespace Fusion.Resources.Api.Authorization.Handlers
 
             if (!isAnyRole)
             {
-                requirement.SetFailure("User does not have any role in the contract");
+                requirement.SetEvaluation("User does not have any role in the contract");
                 return;
             }
 
             if (requirement.Classification == ContractRole.RoleClassification.Internal && !isInternal)
             {
-                requirement.SetFailure("Internal company rep or contract responsible is required.");
+                requirement.SetEvaluation("Internal company rep or contract responsible is required.");
                 return;
             }
 
             if (requirement.Classification == ContractRole.RoleClassification.External && !isExternal)
             {
-                requirement.SetFailure("External company rep or contract responsible is required.");
+                requirement.SetEvaluation("External company rep or contract responsible is required.");
                 return;
             }
 
@@ -75,7 +73,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
                     break;
             }
 
-            requirement.SetFailure("User does not have any role on the contract.");
+            requirement.SetEvaluation("User does not have any role on the contract.");
 
         }
         

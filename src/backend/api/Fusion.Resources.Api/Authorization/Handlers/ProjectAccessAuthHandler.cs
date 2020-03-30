@@ -44,8 +44,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
                 }
             }
 
-            requirement.IsEvaluated = true;
-            requirement.Evaluation = $"User does not have any procurement position in the project '{resource.Name}'";
+            requirement.SetEvaluation($"User does not have any procurement position in the project '{resource.Name}'");
         }
     }
 }

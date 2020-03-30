@@ -35,7 +35,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
                 context.Succeed(requirement);
             }
 
-            requirement.SetFailure("No access to the request workflow");
+            requirement.SetEvaluation("No access to the request workflow");
         }
         
     }

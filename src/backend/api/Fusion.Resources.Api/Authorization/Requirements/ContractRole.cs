@@ -1,8 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
+using System;
 
 namespace Fusion.Resources.Api.Authorization
 {
-    public class ContractRole : IReportableAuthorizationRequirement
+    public class ContractRole : FusionAuthorizationRequirement
     {
         public ContractRole(RoleType type, RoleClassification? classification = null)
         {
@@ -10,13 +12,31 @@ namespace Fusion.Resources.Api.Authorization
             Classification = classification;
         }
 
-        public string Description { get; set; } = string.Empty;
+        public override string Description => Type switch
+        {
+            RoleType.Any => Classification switch
+            {
+                RoleClassification.Internal => "The user must be in active assignment for any of the Equinor company rep/contract responsible positions.",
+                RoleClassification.External => "The user must be in active assignment for any of the contractor company rep/contract responsible positions.",
+                _ => "The user must be in active assignment for any of the Equinor or contractor company rep/contract responsible positions."
+            },
+            RoleType.CompanyRep => Classification switch
+            {
+                RoleClassification.Internal => "The user must be in active assignment for the Equinor company rep positions.",
+                RoleClassification.External => "The user must be in active assignment for the contractor company rep positions.",
+                _ => "The user must be in active assignment for either the Equinor or contractor company rep positions."
+            },
+            RoleType.ContractResponsible => Classification switch
+            {
+                RoleClassification.Internal => "The user must be in active assignment for the Equinor contract responsible positions.",
+                RoleClassification.External => "The user must be in active assignment for the contractor contract responsible positions.",
+                _ => "The user must be in active assignment for either the Equinor or contractor contract responsible positions."
+            },
+            _ => throw new NotSupportedException("Invalid role type to generate description for")
+        };
 
-        public string? Evaluation { get; set; }
+        public override string Code => "ContractRepRole";
 
-        public string Code { get; set; } = "ContractRole";
-
-        public bool IsEvaluated { get; set; }
 
 
         public RoleType Type { get; set; }
@@ -30,12 +50,6 @@ namespace Fusion.Resources.Api.Authorization
 
         public enum RoleType { Any, CompanyRep, ContractResponsible }
         public enum RoleClassification { Internal, External }
-
-        public void SetFailure(string message)
-        {
-            IsEvaluated = true;
-            Evaluation = message;
-        }
 
     }
 }
