@@ -63,10 +63,17 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("resources/personnel/{personIdentifier}/refresh")]
         public async Task<ActionResult<ApiExternalPersonnelPerson>> RefreshPersonnel(string personIdentifier)
         {
-            await DispatchAsync(new RefreshPersonnel(personIdentifier));
-            var refreshedPersonnel = await DispatchAsync(new GetExternalPersonnelPerson(personIdentifier));
+            try
+            {
+                await DispatchAsync(new RefreshPersonnel(personIdentifier));
+                var refreshedPersonnel = await DispatchAsync(new GetExternalPersonnelPerson(personIdentifier));
 
-            return new ApiExternalPersonnelPerson(refreshedPersonnel);
+                return new ApiExternalPersonnelPerson(refreshedPersonnel);
+            }
+            catch (PersonNotFoundError)
+            {
+                return ApiErrors.NotFound($"resources/personnel/{personIdentifier}");
+            }
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]

@@ -40,5 +40,21 @@ namespace Fusion.Resources.Api.Controllers
                 StatusCode = problem.Status
             };
         }
+
+        internal static ActionResult<ApiExternalPersonnelPerson> NotFound(string resourcePath)
+        {
+            var problem = new ProblemDetails
+            {
+                Type = rfcProblemDetails,
+                Detail = $"Resource '{resourcePath}' was not found",
+                Title = "Resource not found",
+                Status = (int)System.Net.HttpStatusCode.NotFound
+            };
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
     }
 }

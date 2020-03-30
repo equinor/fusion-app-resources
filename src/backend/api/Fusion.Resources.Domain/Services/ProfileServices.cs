@@ -38,33 +38,23 @@ namespace Fusion.Resources.Domain.Services
             return existingEntry;
         }
 
-        public async Task<DbExternalPersonnelPerson?> RefreshExternalPersonnelAsync(PersonId personId)
+        public async Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId)
         {
             var profile = await ResolveProfileAsync(personId);
+
+            if (profile == null) //early check for null to avoid hitting DB unneccesary
+                throw new PersonNotFoundError(personId.OriginalIdentifier);
+
             var resolvedPerson = await ResolveExternalPersonnelAsync(personId);
 
-            //in the unlikely event of non-existent person, add it to database
             if (resolvedPerson == null)
-            {
-                resolvedPerson = new DbExternalPersonnelPerson()
-                {
-                    AccountStatus = DbAzureAccountStatus.NoAccount,
-                    Disciplines = new List<DbPersonnelDiscipline>(),
-                    Mail = personId.Mail,
-                    Name = personId.Mail
-                };
+                throw new PersonNotFoundError(personId.OriginalIdentifier);
 
-                await resourcesDb.AddAsync(resolvedPerson);
-            }
-
-            if (profile != null)
-            {
-                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
-                resolvedPerson.JobTitle = profile.JobTitle;
-                resolvedPerson.Name = profile.Name;
-                resolvedPerson.Phone = profile.MobilePhone;
-            }
+            resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
+            resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+            resolvedPerson.JobTitle = profile.JobTitle;
+            resolvedPerson.Name = profile.Name;
+            resolvedPerson.Phone = profile.MobilePhone ?? string.Empty; //column does not allow nulls, set empty string.
 
             await resourcesDb.SaveChangesAsync();
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.Azure.WebJobs;
+﻿using Fusion.Events;
+using Fusion.Events.People;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -20,6 +22,36 @@ namespace Fusion.Resources.Functions.Functions
         {
             peopleClient = httpClientFactory.CreateClient(HttpClientNames.Application.People);
             resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
+        }
+
+        [FunctionName("profile-sync-event")]
+        public async Task SyncProfile(
+            [EventSubscriptionTrigger(HttpClientNames.Application.People, "subscriptions/persons", "resources-profile")] MessageContext message,
+            ILogger log)
+        {
+            log.LogInformation("Profile sync event received");
+            log.LogInformation(message.Event.Data);
+            var body = message.GetBody<PeopleSubscriptionEvent>();
+
+            if (body.Type != PeopleSubscriptionEventType.ProfileUpdated)
+                return;
+
+            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new { });
+
+            if (refreshResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                log.LogWarning($"Person with email '{body.Person.Mail}' not found in Resources");
+                return;
+            }
+
+            if (!refreshResponse.IsSuccessStatusCode)
+            {
+                var raw = await refreshResponse.Content.ReadAsStringAsync();
+                log.LogError(raw);
+                refreshResponse.EnsureSuccessStatusCode();
+            }
+
+            log.LogInformation($"Successfully refreshed profile '{body.Person.Mail}'");
         }
 
         /// <summary>
