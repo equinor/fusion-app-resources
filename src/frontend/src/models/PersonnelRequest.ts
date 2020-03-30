@@ -18,7 +18,7 @@ type PersonnelRequest = {
     id: string;
     created: Date;
     updated?: Date;
-    createdBy: Person;
+    createdBy?: Person | null;
     updatedBy?: Person;
     state: RequestState;
     description: string;
@@ -27,8 +27,11 @@ type PersonnelRequest = {
     contract: ContractReference | null;
     project: Project | null;
     comments: Comment[];
-    workflow: Workflow;
-    provisioningStatus: ProvisioningStatus;
+    workflow?: Workflow | null;
+    provisioningStatus?: ProvisioningStatus | null;
+    originalPerson: Personnel | null;
+    originalPosition: PersonnelRequestPosition | null;
+    originalPositionId: string | null;
 };
 
 export default PersonnelRequest;

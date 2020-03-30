@@ -28,6 +28,12 @@ const ManagePersonnelPage: React.FC = () => {
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const notification = useNotificationCenter();
 
+    React.useEffect(() => {
+        if(!isAddPersonOpen) {
+            setSelectedItems([]);
+        }
+    }, [isAddPersonOpen]);
+
     const getPersonnelWithPositionsAsync = async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;

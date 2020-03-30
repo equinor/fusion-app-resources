@@ -7,10 +7,11 @@ type CreatePersonnelRequest = {
     person: {
         mail: string;
     };
+    originalPositionId: string | null;
 };
 
 type CreatePersonnelRequestPosition = {
-    id: string | null; 
+    id: string | null;
     basePosition: BasePosition | null;
     name: string;
     appliesFrom: Date | null;
@@ -18,8 +19,8 @@ type CreatePersonnelRequestPosition = {
     workload: number;
     obs: string;
     taskOwner: {
-        positionId: string
-    } | null
+        positionId: string;
+    } | null;
 };
 
 export default CreatePersonnelRequest;

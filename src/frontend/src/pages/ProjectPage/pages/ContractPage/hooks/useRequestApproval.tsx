@@ -39,6 +39,11 @@ export default (requests: PersonnelRequest[]) => {
                         collection: 'activeRequests',
                         payload: finishedRequest,
                     });
+                    dispatchContractAction({
+                        verb: 'merge',
+                        collection: 'completedRequests',
+                        payload: finishedRequest,
+                    });
                 }
                 if (nonFinishedRequests.length > 0) {
                     dispatchContractAction({
