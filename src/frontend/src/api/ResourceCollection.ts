@@ -22,7 +22,12 @@ export default class ResourceCollection {
         return combineUrls(this.contracts(projectId), contractId);
     }
 
-    personnel(projectId: string, contractId: string, personnelId?: string, expand?: string): string {
+    personnel(
+        projectId: string,
+        contractId: string,
+        personnelId?: string,
+        expand?: string
+    ): string {
         const base = combineUrls(
             this.contract(projectId, contractId),
             'resources',
@@ -30,7 +35,7 @@ export default class ResourceCollection {
             personnelId || ''
         );
 
-        if(expand) {
+        if (expand) {
             return `${base}?$expand=${expand}`;
         }
 
@@ -46,16 +51,21 @@ export default class ResourceCollection {
     }
 
     personnelRequests(projectId: string, contractId: string, filter?: string): string {
-        const personnelRequestsFilter = filter ? `?$filter=${filter}` : '';
+        const personnelRequestsFilter = filter ? `&$filter=${filter}` : '';
         return combineUrls(
             this.contract(projectId, contractId),
             'resources',
-            'requests' + personnelRequestsFilter
+            'requests?$expand=originalPosition' + personnelRequestsFilter
         );
     }
 
     personnelRequest(projectId: string, contractId: string, requestId: string) {
-        return combineUrls(this.personnelRequests(projectId, contractId), requestId);
+        return combineUrls(
+            this.contract(projectId, contractId),
+            'resources',
+            'requests',
+            requestId
+        );
     }
 
     approvePersonnelRequest(projectId: string, contractId: string, requestId: string) {
@@ -67,6 +77,10 @@ export default class ResourceCollection {
     }
 
     requestAction(projectId: string, contractId: string, requestId: string, actionName: string) {
-        return combineUrls(this.personnelRequest(projectId, contractId, requestId), 'actions', actionName);
+        return combineUrls(
+            this.personnelRequest(projectId, contractId, requestId),
+            'actions',
+            actionName
+        );
     }
 }

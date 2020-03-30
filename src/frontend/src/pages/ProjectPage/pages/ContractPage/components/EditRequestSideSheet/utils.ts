@@ -3,6 +3,8 @@ import { EditRequest } from '.';
 import { v1 as uuid } from 'uuid';
 import { Position } from '@equinor/fusion';
 import CreatePersonnelRequest from '../../../../../../models/CreatePersonnelRequest';
+import PersonnelRequestPosition from '../../../../../../models/PersonnelRequestPosition';
+import Personnel from '../../../../../../models/Personnel';
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
@@ -28,6 +30,56 @@ export const transFormRequest = (
             taskOwners?.find(
                 position => position.id === req.position?.taskOwner?.positionId || ''
             ) || null,
+        originalPositionId: req.originalPositionId,
+    }));
+};
+
+const transformPositionToRequestPosition = (
+    position: Position
+): PersonnelRequestPosition | null => {
+    const instance = position.instances[0];
+    if (!instance) {
+        return null;
+    }
+
+    return {
+        appliesFrom: instance.appliesFrom,
+        appliesTo: instance.appliesTo,
+        basePosition: position.basePosition,
+        name: position.name,
+        workload: instance.workload,
+        externalId: position.externalId,
+        obs: instance.obs,
+        taskOwner: { positionId: instance.parentPositionId },
+    };
+};
+
+const transformPositionDetailsToPersonnel = (position: Position, personnel: Personnel[]): Personnel | null => {
+    const instance = position.instances[0];
+    if (!instance) {
+        return null;
+    }
+
+    return personnel.find(p => p.mail === instance.assignedPerson?.mail) || null;
+}
+
+export const transformPositionsToChangeRequest = (positions: Position[], personnel: Personnel[]): PersonnelRequest[] => {
+    return positions.map<PersonnelRequest>(p => ({
+        id: uuid(),
+        created: new Date(),
+        state: 'Created',
+        description: '',
+        position: transformPositionToRequestPosition(p),
+        person: transformPositionDetailsToPersonnel(p, personnel),
+        contract: null,
+        project: null,
+        comments: [],
+        originalPosition: transformPositionToRequestPosition(p),
+        originalPositionId: p.id,
+        originalPerson: transformPositionDetailsToPersonnel(p, personnel),
+        createdBy: null,
+        workflow: null,
+        provisioningStatus: null,
     }));
 };
 
@@ -47,13 +99,14 @@ export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePerso
         workload: +req.workload,
         taskOwner: req.taskOwner ? { positionId: req.taskOwner.id } : null,
     },
+    originalPositionId: req.originalPositionId,
 });
 
 export const transformToCreatePersonnelRequests = (
     editRequests: EditRequest[]
 ): CreatePersonnelRequest[] => editRequests.map(transformToCreatePersonnelRequest);
 
-export const createDefaultState = (): EditRequest[] => [
+export const createDefaultState = (originalPosition?: Position): EditRequest[] => [
     {
         id: uuid(),
         requestId: null,
@@ -67,5 +120,6 @@ export const createDefaultState = (): EditRequest[] => [
         obs: '',
         person: null,
         taskOwner: null,
+        originalPositionId: originalPosition?.id || null,
     },
 ];

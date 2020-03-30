@@ -53,13 +53,14 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         accessor: request => request.state.toString(),
         key: 'status',
         label: 'Status',
-        component: ({ item }) => (
-            <RequestWorkflow
-                workflow={item.workflow}
-                provisioningStatus={item.provisioningStatus}
-                inline
-            />
-        ),
+        component: ({ item }) =>
+            item.workflow && item.provisioningStatus ? (
+                <RequestWorkflow
+                    workflow={item.workflow}
+                    inline
+                    provisioningStatus={item.provisioningStatus}
+                />
+            ) : null,
         sortable: true,
     },
     {
