@@ -89,22 +89,7 @@ const getNavigationStructure = (
             navigationChildren: [
                 createNavItem(history, contractId, 'Actual MPP', 'actual-mpp', 'child'),
                 createNavItem(history, contractId, 'Active requests', 'active-requests', 'child'),
-                createNavItem(
-                    history,
-                    contractId,
-                    'Provisioning requests',
-                    'provisioning-requests',
-                    'child',
-                    undefined,
-                    provisioningComponent
-                ),
-                createNavItem(
-                    history,
-                    contractId,
-                    'Completed requests',
-                    'completed-requests',
-                    'child'
-                ),
+                createNavItem(history, contractId, 'Completed requests', 'completed-requests', 'child'),
             ],
         },
     ];
@@ -115,10 +100,10 @@ const useNavigationStructure = (contractId: string, contractContext: IContractCo
 
     const provisioningRequests = contractContext.contractState.completedRequests.data;
     const provisioning = provisioningRequests.filter(
-        r => r.provisioningStatus.state === 'NotProvisioned' && r.state === 'ApprovedByCompany'
+        r => r.provisioningStatus?.state === 'NotProvisioned' && r.state === 'ApprovedByCompany'
     ).length;
     const failedProvisioning = provisioningRequests.filter(
-        r => r.provisioningStatus.state === 'Error' && r.state === 'ApprovedByCompany'
+        r => r.provisioningStatus?.state === 'Error' && r.state === 'ApprovedByCompany'
     ).length;
     const provisioningComponent = React.useMemo(() => {
         if (provisioning <= 0 && failedProvisioning <= 0) {

@@ -44,7 +44,7 @@ const CompletedRequestsPage: React.FC = () => {
                     request =>
                         !(
                             request.state === 'ApprovedByCompany' &&
-                            request.provisioningStatus.state !== 'Provisioned'
+                            request.provisioningStatus?.state !== 'Provisioned'
                         )
                 )
                 .sort(
