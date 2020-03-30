@@ -16,7 +16,7 @@
     <PackageReference Include="Bogus" Version="29.0.1" />
     <PackageReference Include="Fusion.Integration" Version="3.2.0-preview-2" />
     <PackageReference Include="Fusion.Integration.Authorization" Version="3.2.0-preview-1" />
-    <PackageReference Include="Fusion.Integration.Org" Version="3.2.0-preview-1" />
+    <PackageReference Include="Fusion.Integration.Org" Version="3.2.0-preview-3" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.0-rc2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
 
