@@ -89,6 +89,7 @@ const getNavigationStructure = (
             navigationChildren: [
                 createNavItem(history, contractId, 'Actual MPP', 'actual-mpp', 'child'),
                 createNavItem(history, contractId, 'Active requests', 'active-requests', 'child'),
+                createNavItem(history, contractId, 'Provisioning requests', 'provisioning-requests', 'child', undefined, provisioningComponent),
                 createNavItem(history, contractId, 'Completed requests', 'completed-requests', 'child'),
             ],
         },

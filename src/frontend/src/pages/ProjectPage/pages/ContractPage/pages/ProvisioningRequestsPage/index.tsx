@@ -50,7 +50,7 @@ const ProvisioningRequestsPage: React.FC = () => {
             data.filter(
                 request =>
                     request.state === 'ApprovedByCompany' &&
-                    request.provisioningStatus.state !== 'Provisioned'
+                    request.provisioningStatus?.state !== 'Provisioned'
             ),
         [data]
     );
@@ -72,7 +72,7 @@ const ProvisioningRequestsPage: React.FC = () => {
                 payload: updatedRequests,
             });
             const finishedRequests = updatedRequests.filter(
-                r => r.provisioningStatus.state === 'Provisioned'
+                r => r.provisioningStatus?.state === 'Provisioned'
             );
             if (finishedRequests.length > 0) {
                 sendNotification({

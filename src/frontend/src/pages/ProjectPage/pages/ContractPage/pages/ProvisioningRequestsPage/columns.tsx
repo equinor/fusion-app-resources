@@ -2,7 +2,7 @@ import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import * as React from 'react';
 import PositionColumn from '../../../../components/PositionColumn';
-import { useHistory } from '@equinor/fusion';
+import { useHistory, formatDateTime } from '@equinor/fusion';
 import * as styles from './styles.less';
 import RequestWorkflow from '../../components/RequestWorkflow';
 
@@ -53,7 +53,14 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         accessor: request => request.state.toString(),
         key: 'status',
         label: 'Status',
-        component: ({ item }) => <RequestWorkflow workflow={item.workflow} provisioningStatus={item.provisioningStatus} inline />,
+        component: ({ item }) =>
+            item.workflow && item.provisioningStatus ? (
+                <RequestWorkflow
+                    workflow={item.workflow}
+                    inline
+                    provisioningStatus={item.provisioningStatus}
+                />
+            ) : null,
         sortable: true,
     },
     {
@@ -64,6 +71,17 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         component: ({ item }) => (
             <ColumnSideSheetLink requestId={item.id}>
                 {item.position?.name || 'TBN'}
+            </ColumnSideSheetLink>
+        ),
+    },
+    {
+        accessor: request => request.created ? formatDateTime(request.created) : "N/A",
+        key: 'created',
+        label: 'Created',
+        sortable: true,
+        component: ({ item }) => (
+            <ColumnSideSheetLink requestId={item.id}>
+                {item.created ? formatDateTime(item.created) : "N/A"}
             </ColumnSideSheetLink>
         ),
     },
