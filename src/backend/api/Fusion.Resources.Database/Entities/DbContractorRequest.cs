@@ -61,6 +61,7 @@ namespace Fusion.Resources.Database.Entities
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
                 entity.Property(e => e.Category).HasConversion(new EnumToStringConverter<DbRequestCategory>());
                 entity.Property(e => e.LastActivity).HasDefaultValue(DateTimeOffset.MinValue);
+                entity.HasIndex(e => e.LastActivity).IsClustered(false);
             });
         }
 

@@ -149,6 +149,9 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("LastActivity")
+                        .HasAnnotation("SqlServer:Clustered", false);
+
                     b.HasIndex("PersonId");
 
                     b.HasIndex("ProjectId");

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20200330190822_Added LastActivity on request")]
+    [Migration("20200330195808_Added LastActivity on request")]
     partial class AddedLastActivityonrequest
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -150,6 +150,9 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("ContractId");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("LastActivity")
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.HasIndex("PersonId");
 
