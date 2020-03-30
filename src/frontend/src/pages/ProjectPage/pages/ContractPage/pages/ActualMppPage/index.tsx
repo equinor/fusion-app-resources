@@ -18,6 +18,7 @@ import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import EditRequestSideSheet from '../../components/EditRequestSideSheet';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import PositionDetailsSideSheet from '../../components/PositionDetailsSideSheet';
+import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 import { transformPositionsToChangeRequest } from '../../components/EditRequestSideSheet/utils';
 import { useAppContext } from '../../../../../../appContext';
 
@@ -30,7 +31,7 @@ const ActualMppPage: React.FC = () => {
 
     const apiClients = useApiClients();
     const { contract, contractState, dispatchContractAction } = useContractContext();
-    const {apiClient} = useAppContext();
+    const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
 
     const fetchMppAsync = React.useCallback(async () => {
@@ -60,8 +61,8 @@ const ActualMppPage: React.FC = () => {
 
         const result = await apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
         dispatchContractAction({
-            verb: "merge",
-            collection: "personnel",
+            verb: 'merge',
+            collection: 'personnel',
             payload: result,
         });
     };
@@ -98,30 +99,50 @@ const ActualMppPage: React.FC = () => {
     const editTooltipRef = useTooltipRef('Create change request for this position');
 
     const editSelected = React.useCallback(() => {
-       const transformedPositions = transformPositionsToChangeRequest(selectedPositions, personnel);
-       setEditRequests(transformedPositions);
+        const transformedPositions = transformPositionsToChangeRequest(
+            selectedPositions,
+            personnel
+        );
+        setEditRequests(transformedPositions);
     }, [selectedPositions, personnel]);
 
     if (error) {
-        return (
-            <ErrorMessage
-                hasError
-                message="An error occurred while trying to fetch contract personnel data"
-            />
-        );
+        const errorMessage: ErrorMessageProps = {
+            hasError: true,
+        };
+
+        switch (error.statusCode) {
+            case 403:
+                errorMessage.errorType = 'accessDenied';
+                errorMessage.message = error.response.error.message;
+                errorMessage.resourceName = 'Actual Mpp';
+                break;
+            default:
+                errorMessage.errorType = 'error';
+                break;
+        }
+
+        return <ErrorMessage {...errorMessage} />;
     }
 
     return (
         <div className={styles.actualMppContainer}>
             <div className={styles.actualMpp}>
                 <div className={styles.toolbar}>
-                    <IconButton onClick={() => setEditRequests([])} disabled={selectedPositions.length !== 0}>
+                    <IconButton
+                        onClick={() => setEditRequests([])}
+                        disabled={selectedPositions.length !== 0}
+                    >
                         <AddIcon />
                     </IconButton>
                     <IconButton disabled>
                         <DeleteIcon />
                     </IconButton>
-                    <IconButton ref={editTooltipRef} onClick={editSelected} disabled={selectedPositions.length === 0}>
+                    <IconButton
+                        ref={editTooltipRef}
+                        onClick={editSelected}
+                        disabled={selectedPositions.length === 0}
+                    >
                         <EditIcon />
                     </IconButton>
                 </div>

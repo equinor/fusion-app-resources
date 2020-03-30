@@ -1,7 +1,9 @@
+import ResourceError from './ResourceError';
+
 export type ReadonlyCollection<T> = {
     data: T[];
     isFetching: Readonly<boolean>;
-    error: Readonly<Error | null>;
+    error: Readonly<ResourceError | null>;
 };
 
 export const createEmptyCollection = <T>(): ReadonlyCollection<T> => ({
@@ -18,12 +20,12 @@ export type CollectionAction<
     TState,
     TCollection extends keyof TState,
     T = ExtractCollectionType<TState[TCollection]>
-    > = {
-        collection: TCollection;
-        verb: ActionVerb;
-        payload?: ReadonlyCollection<T>['data'];
-        error?: Error;
-    };
+> = {
+    collection: TCollection;
+    verb: ActionVerb;
+    payload?: ReadonlyCollection<T>['data'];
+    error?: ResourceError;
+};
 
 export const merge = <T>(existing: T[], compare: (x: T, y: T) => boolean, payload?: T[]): T[] => {
     const updatedItems = payload?.filter(x => existing.some(y => compare(x, y)));
@@ -33,7 +35,7 @@ export const merge = <T>(existing: T[], compare: (x: T, y: T) => boolean, payloa
 };
 
 export const remove = <T>(existing: T[], compare: (x: T, y: T) => boolean, payload?: T[]): T[] => {
-    if (!payload?.length) return existing
+    if (!payload?.length) return existing;
 
     return existing.filter(e => !payload.some(x => compare(e, x)));
 };
@@ -47,7 +49,7 @@ export type Reducer<
     TState,
     TCollection extends keyof TState,
     T = ExtractCollectionType<TState[TCollection]>
-    > = (state: TState, action: CollectionAction<TState, TCollection, T>) => TState;
+> = (state: TState, action: CollectionAction<TState, TCollection, T>) => TState;
 
 export const createCollectionReducer = <
     TState,
@@ -58,7 +60,6 @@ export const createCollectionReducer = <
     reducer: Reducer<TState, TCollection, T> = state => state
 ) => {
     return (state: TState, action: CollectionAction<TState, TCollection, T>) => {
-
         const existing = ((state[action.collection] as unknown) as ReadonlyCollection<T>).data;
 
         switch (action.verb) {
