@@ -36,6 +36,8 @@ namespace Fusion.Resources.Database.Entities
         public Guid CreatedById { get; set; }
         public Guid? UpdatedById { get; set; }
 
+        public DateTimeOffset LastActivity { get; set; }
+
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbContractorRequest>(entity =>
@@ -58,8 +60,8 @@ namespace Fusion.Resources.Database.Entities
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
                 entity.Property(e => e.Category).HasConversion(new EnumToStringConverter<DbRequestCategory>());
+                entity.Property(e => e.LastActivity).HasDefaultValue(DateTimeOffset.MinValue);
             });
-
         }
 
         public class RequestPosition
@@ -79,7 +81,7 @@ namespace Fusion.Resources.Database.Entities
             public Guid? PositionId { get; set; }
             public Guid? RequestId { get; set; }
         }
-    
+
         public class ProvisionStatus
         {
             public DbProvisionState State { get; set; } = DbProvisionState.NotProvisioned;
