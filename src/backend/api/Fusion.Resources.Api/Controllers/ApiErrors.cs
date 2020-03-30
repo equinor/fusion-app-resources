@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Api.Middleware;
+﻿using Fusion.Integration;
+using Fusion.Resources.Api.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -41,14 +42,31 @@ namespace Fusion.Resources.Api.Controllers
             };
         }
 
-        internal static ActionResult<ApiExternalPersonnelPerson> NotFound(string resourcePath)
+        internal static ActionResult NotFound(string message, string? resourcePath = null)
         {
             var problem = new ProblemDetails
             {
                 Type = rfcProblemDetails,
-                Detail = $"Resource '{resourcePath}' was not found",
+                Detail = message,
                 Title = "Resource not found",
+                Instance = resourcePath,
                 Status = (int)System.Net.HttpStatusCode.NotFound
+            };
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
+        internal static ActionResult FailedFusionRequest(FusionEndpoint endpoint, string message)
+        {
+            var problem = new ProblemDetails
+            {
+                Type = rfcProblemDetails,
+                Detail = $"Error invoking endpoint on service '{endpoint}': {message}",
+                Title = "Fusion service request failed",
+                Status = (int)System.Net.HttpStatusCode.FailedDependency
             };
 
             return new ObjectResult(problem)
