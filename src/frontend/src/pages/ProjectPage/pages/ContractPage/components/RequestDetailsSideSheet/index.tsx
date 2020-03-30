@@ -23,7 +23,6 @@ import RejectPersonnelSideSheet from '../RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
 import EditablePositionDetails from '../EditablePositionDetails';
 import PersonPositionsDetails from '../PersonPositionsDetails';
-import OriginalPositionDetails from './OriginalPositionDetails';
 import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
 
 type RequestDetailsSideSheetProps = {
@@ -180,20 +179,6 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                         </div>
                     </div>
                 </Tab>
-                {/* <Tab
-                    tabKey="originalPosition"
-                    title={currentRequest.originalPosition ? 'Original position' : ''}
-                    disabled={!currentRequest.originalPosition}
-                >
-                    <div className={styles.tabContainer}>
-                        <div className={styles.container}>
-                            <OriginalPositionDetails
-                                position={currentRequest.originalPosition}
-                                person={currentRequest.originalPerson}
-                            />
-                        </div>
-                    </div>
-                </Tab> */}
             </Tabs>
             <RejectPersonnelSideSheet
                 requests={rejectRequest}
