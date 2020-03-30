@@ -56,7 +56,7 @@ const ActiveRequestsPage: React.FC = () => {
             return [];
         }
 
-        return apiClient.getPersonnelRequestsAsync(projectId, contractId, true);
+        return apiClient.getPersonnelRequestsAsync(projectId, contractId, "active");
     }, [contract, currentContext]);
     const { data: activeRequests, isFetching, error } = useReducerCollection(
         contractState,

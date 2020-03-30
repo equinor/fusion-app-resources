@@ -111,8 +111,11 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                 <Tab tabKey="general" title="General">
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
-                            {currentRequest.workflow && (
-                                <RequestWorkflow workflow={currentRequest.workflow} />
+                            {currentRequest.workflow && currentRequest.provisioningStatus && (
+                                <RequestWorkflow
+                                    workflow={currentRequest.workflow}
+                                    provisioningStatus={currentRequest.provisioningStatus}
+                                />
                             )}
                         </div>
                         <div className={styles.separator} />
@@ -133,7 +136,10 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                                     isOpen={openAccordions.person}
                                 >
                                     {currentRequest.person ? (
-                                        <CompactPersonDetails personnel={currentRequest.person} originalPersonnel={originalPersonnel} />
+                                        <CompactPersonDetails
+                                            personnel={currentRequest.person}
+                                            originalPersonnel={originalPersonnel}
+                                        />
                                     ) : (
                                         <ErrorMessage
                                             hasError
