@@ -1,7 +1,5 @@
 using Bogus;
 using FluentValidation.AspNetCore;
-using Fusion.Integration;
-using Fusion.Integration.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -12,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using System;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api
@@ -50,7 +47,6 @@ namespace Fusion.Resources.Api
                 options.AddOrgIntegration();
 
                 options.UseDefaultEndpointResolver("ci");
-                //options.UseEndpointResolver<LocalEndpointResolver>();
                 options.UseDefaultTokenProvider(opts =>
                 {
                     opts.ClientId = Configuration["AzureAd:ClientId"];
@@ -155,32 +151,6 @@ namespace Fusion.Resources.Api
             });
 
             #endregion
-        }
-
-        /// <summary>
-        /// Change 
-        ///     o.UseDefaultEndpointResolver("ci") --> o.UseEndpointResolver<LocalEndpointResolver>() 
-        /// in the Fusion Integration section to run Fusion services locally and connect to them from Query.
-        /// </summary>
-        private class LocalEndpointResolver : IFusionEndpointResolver
-        {
-            public Task<string> ResolveEndpointAsync(FusionEndpoint endpoint)
-            {
-                return endpoint switch
-                {
-                    FusionEndpoint.People => Task.FromResult("https://pro-s-people-ci.azurewebsites.net"),
-                    FusionEndpoint.Mail => Task.FromResult("https://pro-s-mail-ci.azurewebsites.net"),
-                    FusionEndpoint.ProOrganisation => Task.FromResult("https://pro-s-org-ci.azurewebsites.net"),
-                    FusionEndpoint.Context => Task.FromResult("https://pro-s-context-ci.azurewebsites.net"),
-                    FusionEndpoint.CommonLib => Task.FromResult("https://pro-s-commonlib-pr-1690.azurewebsites.net"),
-                    _ => throw new Exception("Endpoint not supported"),
-                };
-            }
-
-            public Task<string> ResolveResource()
-            {
-                return Task.FromResult("5a842df8-3238-415d-b168-9f16a6a6031b"); //Statoil ProView Test app id
-            }
         }
     }
 
