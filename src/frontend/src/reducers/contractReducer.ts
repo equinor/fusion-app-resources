@@ -25,9 +25,6 @@ const personnelRequestsReducer = createCollectionReducer<
     'activeRequests' | 'completedRequests'
 >((x, y) => x.id === y.id);
 
-const completedRequestsReducer = createCollectionReducer<ContractState, 'completedRequests'>(
-    (x, y) => x.id === y.id
-);
 const actualMppReducer = createCollectionReducer<ContractState, 'actualMpp'>(
     (x, y) => x.id === y.id
 );
@@ -54,17 +51,12 @@ export const contractReducer = createCollectionRootReducer(
                     state,
                     action as CollectionAction<ContractState, 'completedRequests'>
                 );
-
             case 'actualMpp':
                 return actualMppReducer(
                     state,
                     action as CollectionAction<ContractState, 'actualMpp'>
                 );
-            case 'completedRequests':
-                return completedRequestsReducer(
-                    state,
-                    action as CollectionAction<ContractState, 'completedRequests'>
-                );
+
         }
 
         return state;
