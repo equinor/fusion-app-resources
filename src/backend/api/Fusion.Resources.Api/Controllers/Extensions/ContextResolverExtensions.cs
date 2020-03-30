@@ -23,7 +23,7 @@ namespace Fusion.Integration
         public class ProjectMasterNotFoundError : Exception
         {
             public ProjectMasterNotFoundError(Resources.Api.Controllers.ProjectIdentifier projectIdentifier) :
-                base($"Unable to find master project for '{projectIdentifier.Name} ({projectIdentifier.OriginalIdentifier})'")
+                base($"Unable to find project master for '{projectIdentifier.Name} ({projectIdentifier.OriginalIdentifier})'")
             {
             }
         }
