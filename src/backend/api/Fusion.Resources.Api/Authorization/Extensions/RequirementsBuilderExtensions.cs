@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Integration;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,23 @@ namespace Fusion.Resources.Api.Controllers
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.FullControl"))
                 .Build();
+
+            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
+
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule BeContractorInProject(this IAuthorizationRequirementRule builder, ProjectIdentifier project)
+        {
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAssertion(ctx =>
+                {
+                    var contractProjectIds = ctx.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey("projectId"))
+                        .Select(c => {Guid.TryParse(c.Properties["projectId"], out Guid projectId); return projectId; });
+
+                    return contractProjectIds.Any(pid => pid == project.ProjectId);
+
+                }).Build();
 
             builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
 

@@ -15,6 +15,8 @@ using System.Transactions;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
+using Fusion.Integration.Org;
+using System.Threading;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -23,25 +25,52 @@ namespace Fusion.Resources.Api.Controllers
     public class ContractsController : ResourceControllerBase
     {
         private readonly IMediator mediator;
-        private readonly IOrgApiClientFactory orgApiClientFactory;
+        private readonly IProjectOrgResolver orgResolver;
 
-        public ContractsController(IMediator mediator, IOrgApiClientFactory orgApiClientFactory)
+        public ContractsController(IMediator mediator, IProjectOrgResolver orgResolver)
         {
             this.mediator = mediator;
-            this.orgApiClientFactory = orgApiClientFactory;
+            this.orgResolver = orgResolver;
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts")]
         public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectAllocatedContract([FromRoute]ProjectIdentifier projectIdentifier)
         {
             // Not sure if there is any restrictions on listing contracts for a project.
+            #region Authorization
 
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var realContracts = await client.GetContractsV2Async(projectIdentifier.ProjectId);
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.BeEmployee();
+                    or.BeContractorInProject(projectIdentifier);
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
 
             var allocatedContracts = await DispatchAsync(GetProjectContracts.ByOrgProjectId(projectIdentifier.ProjectId));
 
-            var contractsToReturn = realContracts
+            var pager = new SemaphoreSlim(10);
+            var orgContracts = await Task.WhenAll(allocatedContracts.Select(async c =>
+            {
+                await pager.WaitAsync();
+                try { return await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, c.OrgContractId); }
+                finally { pager.Release(); }
+            }));
+
+            //var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+            //var realContracts = await client.GetContractsV2Async(projectIdentifier.ProjectId);
+
+            var contractsToReturn = orgContracts
                 .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c.Id))
                 .ToList();
 
@@ -61,8 +90,32 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
         public async Task<ActionResult<ApiContract>> GetProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
         {
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractId);
+            // Not sure if there is any restrictions on listing contracts for a project.
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.BeEmployee();
+                    or.BeContractorInProject(projectIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractId);
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var orgContract = await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, contractId);
+
+            if (orgContract is null)
+                return ApiErrors.NotFound("Could not locate contract", $"/projects/{projectIdentifier.OriginalIdentifier}/contracts/{contractId}");
+
 
             return new ApiContract(orgContract);
         }
@@ -165,10 +218,9 @@ namespace Fusion.Resources.Api.Controllers
                 ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
             });
 
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, allocatedContract.OrgContractId);
+            var orgContract = await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, allocatedContract.OrgContractId);
 
-            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract));
+            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract!));
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}")]
@@ -213,11 +265,9 @@ namespace Fusion.Resources.Api.Controllers
                 ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
             });
 
-           
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractIdentifier);
+            var orgContract = await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, contractIdentifier);
 
-            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract));
+            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract!));
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
