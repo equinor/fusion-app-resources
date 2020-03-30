@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +25,7 @@ namespace Fusion.Resources.Domain.Queries
         public static GetContractPersonnelRequests QueryContract(Guid orgProjectId, Guid orgContractId) => new GetContractPersonnelRequests(QueryType.Contract)
         {
             OrgProjectId = orgProjectId,
-            OrgContractId = orgContractId            
+            OrgContractId = orgContractId
         };
 
 
@@ -41,10 +40,10 @@ namespace Fusion.Resources.Domain.Queries
         private enum QueryType { All, Project, Contract }
 
         [Flags]
-        public enum ExpandFields { 
+        public enum ExpandFields 
+        { 
             None                = 0,
             OriginalPosition    = 1 << 0,
-
             All                 = OriginalPosition
         }
 
@@ -121,6 +120,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)
                     .Include(r => r.Contract)
+                    .OrderByDescending(r => r.LastActivity)
                     .ToListAsync();
 
                 var basePositions = await Task.WhenAll(dbRequest
@@ -130,7 +130,7 @@ namespace Fusion.Resources.Domain.Queries
                 );
 
                 var resolvedOrgChartPositions = request.Expands.HasFlag(ExpandFields.OriginalPosition) ?
-                    await orgResolver.ResolvePositionsAsync(dbRequest.Where(r => r.OriginalPositionId.HasValue).Select(r => r.OriginalPositionId!.Value)) : 
+                    await orgResolver.ResolvePositionsAsync(dbRequest.Where(r => r.OriginalPositionId.HasValue).Select(r => r.OriginalPositionId!.Value)) :
                     new List<ApiPositionV2>();
 
                 var workflows = await mediator.Send(new GetRequestWorkflows(dbRequest.Select(r => r.Id)));
