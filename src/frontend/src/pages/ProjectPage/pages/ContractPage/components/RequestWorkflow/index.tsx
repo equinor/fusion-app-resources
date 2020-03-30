@@ -3,13 +3,15 @@ import * as styles from './styles.less';
 import Workflow from '../../../../../../models/Workflow';
 import { WorkflowStep } from '../../../../../../models/Workflow';
 import RequestWorkflowStep from './WorkflowStep';
+import ProvisioningStatus from '../../../../../../models/ProvisioningStatus ';
 
 type RequestWorkflowProps = {
     workflow: Workflow;
+    provisioningStatus:ProvisioningStatus;
     inline?: boolean;
 };
 
-const RequestWorkflow: React.FC<RequestWorkflowProps> = ({ workflow, inline }) => {
+const RequestWorkflow: React.FC<RequestWorkflowProps> = ({ workflow, inline, provisioningStatus }) => {
     const findWorkflowIndex = React.useCallback(
         (step: WorkflowStep, index: number): number => {
             const previousStep = workflow.steps.find(
@@ -32,11 +34,11 @@ const RequestWorkflow: React.FC<RequestWorkflowProps> = ({ workflow, inline }) =
             }, new Array(workflow.steps.length).fill(null)),
         [workflow]
     );
-
+    
     return (
         <div className={styles.workflowContainer}>
             {sortedWorkflowSteps.map(step => (
-                <RequestWorkflowStep key={step.id} step={step} inline={!!inline} />
+                <RequestWorkflowStep key={step.id} step={step} inline={!!inline} provisioningStatus={provisioningStatus}/>
             ))}
         </div>
     );

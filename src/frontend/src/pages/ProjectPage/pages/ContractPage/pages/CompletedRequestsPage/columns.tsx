@@ -75,13 +75,13 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         ),
     },
     {
-        accessor: request => (request.created ? formatDateTime(request.created) : 'N/A'),
+        accessor: request => request.created ? formatDateTime(request.created) : "N/A",
         key: 'created',
         label: 'Created',
         sortable: true,
         component: ({ item }) => (
             <ColumnSideSheetLink requestId={item.id}>
-                {item.created ? formatDateTime(item.created) : 'N/A'}
+                {item.created ? formatDateTime(item.created) : "N/A"}
             </ColumnSideSheetLink>
         ),
     },

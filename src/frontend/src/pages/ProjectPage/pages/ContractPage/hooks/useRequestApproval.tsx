@@ -39,6 +39,11 @@ export default (requests: PersonnelRequest[]) => {
                         collection: 'activeRequests',
                         payload: finishedRequest,
                     });
+                    dispatchContractAction({
+                        verb: 'merge',
+                        collection: 'completedRequests',
+                        payload: finishedRequest,
+                    });
                 }
                 if (nonFinishedRequests.length > 0) {
                     dispatchContractAction({
@@ -57,7 +62,10 @@ export default (requests: PersonnelRequest[]) => {
                 await checkForEditAccessAsync(projectId, contractId, requests);
             } catch (e) {
                 setApprovedError(e);
-                console.error(e);
+                sendNotification({
+                    level: 'high',
+                    title: 'Failed to approve request(s)',
+                });
             }
             setIsApproving(false);
         },

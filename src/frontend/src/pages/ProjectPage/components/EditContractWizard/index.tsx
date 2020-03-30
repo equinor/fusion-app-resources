@@ -5,10 +5,10 @@ import {
     Button,
     TextInput,
     DatePicker,
-    ArrowBackIcon,
     IconButton,
     useTooltipRef,
     Spinner,
+    CloseIcon,
 } from '@equinor/fusion-components';
 import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
@@ -20,7 +20,7 @@ import CreateOrEditExternalPositionButton from './components/CreateOrEditExterna
 import { formatDate, useTelemetryLogger, useNotificationCenter } from '@equinor/fusion';
 import CompanyPicker from './components/CompanyPicker';
 import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFocus';
-import useActiveStepKey from './hooks/useActiveStepKey';
+import useActiveStepKey, { StepKey } from './hooks/useActiveStepKey';
 import useContractPersister from './hooks/useContractPersister';
 
 export { default as ContractWizardSkeleton } from './components/ContractWizardSkeleton';
@@ -77,11 +77,13 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         }
     }, [formState, resetForm, setFormField, saveAsync]);
 
-    const { activeStepKey, gotoContract, gotoContractDetails, gotoExteral } = useActiveStepKey(
-        isEdit,
-        formState,
-        onSave
-    );
+    const {
+        setActiveStepKey,
+        activeStepKey,
+        gotoContract,
+        gotoContractDetails,
+        gotoExteral,
+    } = useActiveStepKey(isEdit, formState, onSave);
 
     const {
         contractNumberRef,
@@ -127,11 +129,15 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         }
     }, [saveAsync, onSubmit]);
 
+    const handleChange = React.useCallback((stepKey: string) => {
+        setActiveStepKey(stepKey as StepKey);
+    }, []);
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
                 <IconButton onClick={onGoBack} ref={backButtonTooltipRef}>
-                    <ArrowBackIcon />
+                    <CloseIcon />
                 </IconButton>
                 <h2>{title}</h2>
                 <Button outlined onClick={onCancel}>
@@ -151,7 +157,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
                     )}
                 </Button>
             </header>
-            <Stepper activeStepKey={activeStepKey}>
+            <Stepper hideNavButtons activeStepKey={activeStepKey} onChange={handleChange}>
                 <Step
                     title="Select contract"
                     stepKey="select-contract"

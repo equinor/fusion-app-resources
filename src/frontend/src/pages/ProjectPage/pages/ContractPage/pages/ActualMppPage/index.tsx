@@ -1,6 +1,13 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { Button, IconButton, DeleteIcon, EditIcon, ErrorMessage, AddIcon } from '@equinor/fusion-components';
+import {
+    IconButton,
+    DeleteIcon,
+    EditIcon,
+    ErrorMessage,
+    AddIcon,
+    useTooltipRef,
+} from '@equinor/fusion-components';
 import { Position, useApiClients, useCurrentContext } from '@equinor/fusion';
 import SortableTable from '../../../../../../components/SortableTable';
 import columns from './columns';
@@ -11,16 +18,20 @@ import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import EditRequestSideSheet from '../../components/EditRequestSideSheet';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import PositionDetailsSideSheet from '../../components/PositionDetailsSideSheet';
+import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
+import { transformPositionsToChangeRequest } from '../../components/EditRequestSideSheet/utils';
+import { useAppContext } from '../../../../../../appContext';
 
 const ActualMppPage: React.FC = () => {
     const [filteredContractPositions, setFilteredContractPositions] = React.useState<Position[]>(
         []
     );
-    const [selectedRequests, setSelectedRequests] = React.useState<Position[]>([]);
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null)
+    const [selectedPositions, setSelectedPositions] = React.useState<Position[]>([]);
+    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
 
     const apiClients = useApiClients();
-    const { contract, contractState, dispatchContractAction,  } = useContractContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
+    const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
 
     const fetchMppAsync = React.useCallback(async () => {
@@ -41,6 +52,42 @@ const ActualMppPage: React.FC = () => {
         fetchMppAsync
     );
 
+    const getPersonnelWithPositionsAsync = async () => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        if (!contractId || !projectId) {
+            return;
+        }
+
+        const result = await apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
+        dispatchContractAction({
+            verb: 'merge',
+            collection: 'personnel',
+            payload: result,
+        });
+    };
+
+    const fetchPersonnelAsync = React.useCallback(async () => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        if (!contractId || !projectId) {
+            return [];
+        }
+
+        const result = apiClient.getPersonnelAsync(projectId, contractId);
+
+        getPersonnelWithPositionsAsync();
+
+        return result;
+    }, [contract, currentContext]);
+
+    const { data: personnel } = useReducerCollection(
+        contractState,
+        dispatchContractAction,
+        'personnel',
+        fetchPersonnelAsync
+    );
+
     const filterSections = React.useMemo(() => {
         return getFilterSections(contractPositions || []);
     }, [contractPositions]);
@@ -49,24 +96,53 @@ const ActualMppPage: React.FC = () => {
         setEditRequests(null);
     }, []);
 
-    if (error) {
-        return (
-            <ErrorMessage
-                hasError
-                message="An error occurred while trying to fetch contract personnel data"
-            />
+    const editTooltipRef = useTooltipRef('Create change request for this position');
+
+    const editSelected = React.useCallback(() => {
+        const transformedPositions = transformPositionsToChangeRequest(
+            selectedPositions,
+            personnel
         );
+        setEditRequests(transformedPositions);
+    }, [selectedPositions, personnel]);
+
+    if (error) {
+        const errorMessage: ErrorMessageProps = {
+            hasError: true,
+        };
+
+        switch (error.statusCode) {
+            case 403:
+                errorMessage.errorType = 'accessDenied';
+                errorMessage.message = error.response.error.message;
+                errorMessage.resourceName = 'Actual Mpp';
+                break;
+            default:
+                errorMessage.errorType = 'error';
+                break;
+        }
+
+        return <ErrorMessage {...errorMessage} />;
     }
 
     return (
         <div className={styles.actualMppContainer}>
             <div className={styles.actualMpp}>
                 <div className={styles.toolbar}>
-                    <IconButton onClick={() => setEditRequests([])}><AddIcon /></IconButton>
+                    <IconButton
+                        onClick={() => setEditRequests([])}
+                        disabled={selectedPositions.length !== 0}
+                    >
+                        <AddIcon />
+                    </IconButton>
                     <IconButton disabled>
                         <DeleteIcon />
                     </IconButton>
-                    <IconButton disabled>
+                    <IconButton
+                        ref={editTooltipRef}
+                        onClick={editSelected}
+                        disabled={selectedPositions.length === 0}
+                    >
                         <EditIcon />
                     </IconButton>
                 </div>
@@ -76,8 +152,8 @@ const ActualMppPage: React.FC = () => {
                     rowIdentifier="id"
                     isFetching={isFetching && !contractPositions.length}
                     isSelectable
-                    selectedItems={selectedRequests}
-                    onSelectionChange={setSelectedRequests}
+                    selectedItems={selectedPositions}
+                    onSelectionChange={setSelectedPositions}
                 />
             </div>
             <GenericFilter
@@ -89,7 +165,7 @@ const ActualMppPage: React.FC = () => {
                 initialRequests={editRequests}
                 onClose={onRequestSidesheetClose}
             />
-            <PositionDetailsSideSheet positions={contractPositions}/>
+            <PositionDetailsSideSheet positions={contractPositions} />
         </div>
     );
 };

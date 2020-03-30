@@ -134,10 +134,17 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            await DispatchAsync(new RefreshPersonnel(personIdentifier));
-            var refreshedPersonnel = await DispatchAsync(new GetExternalPersonnelPerson(personIdentifier));
+            try
+            {
+                await DispatchAsync(new RefreshPersonnel(personIdentifier));
+                var refreshedPersonnel = await DispatchAsync(new GetExternalPersonnelPerson(personIdentifier));
 
-            return new ApiExternalPersonnelPerson(refreshedPersonnel);
+                return new ApiExternalPersonnelPerson(refreshedPersonnel);
+            }
+            catch (PersonNotFoundError)
+            {
+                return ApiErrors.NotFound($"Personnel with given id not found", "resources/personnel/{personIdentifier}");
+            }
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]

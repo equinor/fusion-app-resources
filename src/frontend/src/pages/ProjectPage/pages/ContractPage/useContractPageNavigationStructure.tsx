@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { NavigationStructure } from '@equinor/fusion-components';
+import { NavigationStructure, Chip } from '@equinor/fusion-components';
 import { useHistory, combineUrls } from '@equinor/fusion';
 import { History } from 'history';
+import { useContractContext, IContractContext } from '../../../../contractContex';
 
 type NavStructureType = 'grouping' | 'section' | 'child';
 
@@ -51,7 +52,8 @@ const createNavItem = (
     title: string,
     path: string,
     type: NavStructureType,
-    icon?: React.ReactNode
+    icon?: React.ReactNode,
+    aside?: React.ReactNode
 ): NavigationStructure => ({
     id: title,
     title,
@@ -59,9 +61,14 @@ const createNavItem = (
     isActive: history.location.pathname === createContractPath(history, contractId, path),
     onClick: () => history.push(createContractPath(history, contractId, path)),
     icon,
+    aside,
 });
 
-const getNavigationStructure = (history: History, contractId: string): NavigationStructure[] => {
+const getNavigationStructure = (
+    history: History,
+    contractId: string,
+    provisioningComponent: React.ReactNode
+): NavigationStructure[] => {
     return [
         createNavItem(history, contractId, 'General', '', 'grouping', <GeneralIcon />),
         createNavItem(
@@ -82,20 +89,42 @@ const getNavigationStructure = (history: History, contractId: string): Navigatio
             navigationChildren: [
                 createNavItem(history, contractId, 'Actual MPP', 'actual-mpp', 'child'),
                 createNavItem(history, contractId, 'Active requests', 'active-requests', 'child'),
+                createNavItem(history, contractId, 'Provisioning requests', 'provisioning-requests', 'child', undefined, provisioningComponent),
+                createNavItem(history, contractId, 'Completed requests', 'completed-requests', 'child'),
             ],
         },
     ];
 };
 
-const useNavigationStructure = (contractId: string) => {
+const useNavigationStructure = (contractId: string, contractContext: IContractContext) => {
     const history = useHistory();
+
+    const provisioningRequests = contractContext.contractState.completedRequests.data;
+    const provisioning = provisioningRequests.filter(
+        r => r.provisioningStatus?.state === 'NotProvisioned' && r.state === 'ApprovedByCompany'
+    ).length;
+    const failedProvisioning = provisioningRequests.filter(
+        r => r.provisioningStatus?.state === 'Error' && r.state === 'ApprovedByCompany'
+    ).length;
+    const provisioningComponent = React.useMemo(() => {
+        if (provisioning <= 0 && failedProvisioning <= 0) {
+            return null;
+        }
+        return (
+            <div>
+                {provisioning > 0 && <Chip primary title={provisioning.toString()} />}
+                {failedProvisioning > 0 && <Chip secondary title={failedProvisioning.toString()} />}
+            </div>
+        );
+    }, [provisioning, failedProvisioning]);
+
     const [structure, setStructure] = React.useState<NavigationStructure[]>(
-        getNavigationStructure(history, contractId)
+        getNavigationStructure(history, contractId, provisioningComponent)
     );
 
     React.useEffect(() => {
-        setStructure(getNavigationStructure(history, contractId));
-    }, [contractId, history.location.pathname]);
+        setStructure(getNavigationStructure(history, contractId, provisioningComponent));
+    }, [contractId, history.location.pathname, provisioning, failedProvisioning]);
 
     return { structure, setStructure };
 };

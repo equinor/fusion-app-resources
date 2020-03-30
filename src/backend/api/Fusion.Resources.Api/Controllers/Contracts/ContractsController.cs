@@ -1,4 +1,5 @@
-﻿using Bogus;
+﻿using Fusion.Integration;
+using Fusion.Resources.Api.Configuration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -7,11 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Transactions;
 using Fusion.AspNetCore.FluentAuthorization;
@@ -70,7 +68,10 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/available-contracts")]
-        public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts([FromRoute]ProjectIdentifier projectIdentifier)
+        public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts(
+            [FromRoute]ProjectIdentifier projectIdentifier,
+            [FromServices] IHttpClientFactory httpClientFactory,
+            [FromServices] IFusionContextResolver contextResolver)
         {
             #region Authorization
 
@@ -89,22 +90,37 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
+            FusionContext projectMasterContext;
 
-            await Task.Delay(1);
-
-            var contracts = new[]
+            try
             {
-                new ApiUnallocatedContract { ContractNumber = "0000000001" },
-                new ApiUnallocatedContract { ContractNumber = "0000000002" },
-                new ApiUnallocatedContract { ContractNumber = "0000000003" },
-                new ApiUnallocatedContract { ContractNumber = "0000000004" },
-                new ApiUnallocatedContract { ContractNumber = "0000055555" },
-                new ApiUnallocatedContract { ContractNumber = "0000666666" },
-                new ApiUnallocatedContract { ContractNumber = "1000000000" },
-                new ApiUnallocatedContract { ContractNumber = "1111111111" }
-            };
+                projectMasterContext = await contextResolver.ResolveProjectMasterAsync(projectIdentifier);
+            }
+            catch (ContextResolverExtensions.ProjectMasterNotFoundError ex)
+            {
+                return ApiErrors.NotFound(ex.Message);
+            }
 
-            return Ok(new ApiCollection<ApiUnallocatedContract>(contracts));
+            var commonlibClient = httpClientFactory.CreateClient(HttpClientNames.AppCommonLib);
+            var response = await commonlibClient.GetAsync($"/projects/{projectMasterContext.ExternalId}/contracts");
+
+            if (!response.IsSuccessStatusCode)
+                return ApiErrors.FailedFusionRequest(FusionEndpoint.CommonLib, "Failed to get contracts for project");
+
+            var body = await response.Content.ReadAsStringAsync();
+            var items = JsonConvert.DeserializeAnonymousType(body, new[] { new { Name = string.Empty, ContractNumber = string.Empty, CompanyName = string.Empty } });
+            var allocatedContracts = await DispatchAsync(GetProjectContracts.ByOrgProjectId(projectIdentifier.ProjectId));
+
+            var list = items
+                .Where(item => !allocatedContracts.Any(ac => ac.ContractNumber == item.ContractNumber))
+                .Select(item => new ApiUnallocatedContract
+                {
+                    Name = item.Name,
+                    ContractNumber = item.ContractNumber,
+                    CompanyName = item.CompanyName
+                });
+
+            return Ok(new ApiCollection<ApiUnallocatedContract>(list));
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts")]
@@ -259,7 +275,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 position = await DispatchAsync(createNewPositionCommand);
             }
-            
+
             await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
 
             return position;

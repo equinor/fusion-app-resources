@@ -23,6 +23,7 @@ import RejectPersonnelSideSheet from '../RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
 import EditablePositionDetails from '../EditablePositionDetails';
 import PersonPositionsDetails from '../PersonPositionsDetails';
+import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
 
 type RequestDetailsSideSheetProps = {
     requests: PersonnelRequest[] | null;
@@ -60,6 +61,9 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
         },
         [setOpenAccordions, openAccordions]
     );
+
+    const { personnel } = usePersonnel();
+    const originalPersonnel = personnel.find(p => p.mail === currentRequest?.originalPerson?.mail);
 
     if (!currentRequest) {
         return null;
@@ -107,7 +111,12 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                 <Tab tabKey="general" title="General">
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
-                            <RequestWorkflow workflow={currentRequest.workflow} />
+                            {currentRequest.workflow && currentRequest.provisioningStatus && (
+                                <RequestWorkflow
+                                    workflow={currentRequest.workflow}
+                                    provisioningStatus={currentRequest.provisioningStatus}
+                                />
+                            )}
                         </div>
                         <div className={styles.separator} />
                         <div className={styles.container}>
@@ -127,7 +136,10 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                                     isOpen={openAccordions.person}
                                 >
                                     {currentRequest.person ? (
-                                        <CompactPersonDetails personnel={currentRequest.person} />
+                                        <CompactPersonDetails
+                                            personnel={currentRequest.person}
+                                            originalPersonnel={originalPersonnel}
+                                        />
                                     ) : (
                                         <ErrorMessage
                                             hasError

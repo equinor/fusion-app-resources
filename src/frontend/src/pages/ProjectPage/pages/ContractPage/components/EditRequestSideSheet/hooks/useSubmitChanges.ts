@@ -16,14 +16,14 @@ import {
 } from '../../../../../../../components/RequestProgressSidesheet';
 
 export default (formState: EditRequest[]) => {
-    const { contract } = useContractContext();
+    const { contract, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
     const sendNotification = useNotificationCenter();
     const { apiClient } = useAppContext();
 
     const [pendingRequests, setPendingRequests] = React.useState<EditRequest[]>([]);
     const [failedRequests, setFailedRequests] = React.useState<FailedRequest<EditRequest>[]>([]);
-    const [successfulRequests, setSuccessfullRequests] = React.useState<
+    const [successfulRequests, setSuccessfulRequests] = React.useState<
         SuccessfulRequest<EditRequest, PersonnelRequest>[]
     >([]);
 
@@ -41,13 +41,18 @@ export default (formState: EditRequest[]) => {
                         transformedRequest
                     );
 
-                    setSuccessfullRequests(s => [
+                    setSuccessfulRequests(s => [
                         ...s,
                         {
                             item: request,
                             response: updateResponse,
                         },
                     ]);
+                    dispatchContractAction({
+                        verb: 'merge',
+                        collection: 'activeRequests',
+                        payload: [updateResponse],
+                    });
                 } else {
                     const createResponse = await apiClient.createPersonnelRequestAsync(
                         projectId,
@@ -55,13 +60,18 @@ export default (formState: EditRequest[]) => {
                         transformedRequest
                     );
 
-                    setSuccessfullRequests(s => [
+                    setSuccessfulRequests(s => [
                         ...s,
                         {
                             item: request,
                             response: createResponse,
                         },
                     ]);
+                    dispatchContractAction({
+                        verb: 'merge',
+                        collection: 'activeRequests',
+                        payload: [createResponse],
+                    });
                 }
             } catch (error) {
                 if (error instanceof HttpClientRequestFailedError) {
@@ -99,7 +109,7 @@ export default (formState: EditRequest[]) => {
     const reset = React.useCallback(() => {
         setPendingRequests([]);
         setFailedRequests([]);
-        setSuccessfullRequests([]);
+        setSuccessfulRequests([]);
     }, []);
 
     const submit = React.useCallback(() => {

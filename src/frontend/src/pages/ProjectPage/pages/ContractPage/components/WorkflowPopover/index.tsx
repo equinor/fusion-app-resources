@@ -4,12 +4,15 @@ import classNames from 'classnames';
 import { WorkflowStep } from '../../../../../../models/Workflow';
 import { PersonCard } from '@equinor/fusion-components';
 import * as moment from 'moment';
+import ProvisioningStatus from '../../../../../../models/ProvisioningStatus ';
+import FusionIcon from '../FusionIcon';
 
 type WorkflowPopoverProps = {
     step: WorkflowStep;
+    provisioningStatus: ProvisioningStatus;
 };
 
-const WorkflowPopover: React.FC<WorkflowPopoverProps> = ({ step }) => {
+const WorkflowPopover: React.FC<WorkflowPopoverProps> = ({ step, provisioningStatus }) => {
     const createItemField = React.useCallback(
         (fieldName: string, title: string, content: () => string | JSX.Element) => {
             return (
@@ -22,10 +25,15 @@ const WorkflowPopover: React.FC<WorkflowPopoverProps> = ({ step }) => {
         []
     );
 
+    const hasProvisioned = React.useMemo(
+        () => step.id === 'provisioning' && provisioningStatus.state === 'Provisioned',
+        [provisioningStatus, step]
+    );
+
     return (
         <div className={styles.popoverContainer}>
             <span className={styles.header}>
-                {step.name} - {step.state}
+                {step.name} - {hasProvisioned ? provisioningStatus.state : step.state}
             </span>
             {createItemField('started', 'Started', () =>
                 step.started ? moment(step.started).fromNow() : 'N/A'
@@ -35,7 +43,14 @@ const WorkflowPopover: React.FC<WorkflowPopoverProps> = ({ step }) => {
                 step.completed ? moment(step.completed).fromNow() : 'N/A'
             )}
             {createItemField('completedBy', 'Completed by', () =>
-                step.completedBy?.azureUniquePersonId ? (
+                hasProvisioned ? (
+                    <div className={styles.stepPerson}>
+                        <FusionIcon />
+                        <div className={styles.stepPersonDetails}>
+                            <span>System account</span>
+                        </div>
+                    </div>
+                ) : step.completedBy?.azureUniquePersonId ? (
                     <PersonCard
                         personId={step.completedBy?.azureUniquePersonId}
                         photoSize="large"

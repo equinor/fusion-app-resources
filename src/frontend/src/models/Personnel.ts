@@ -95,6 +95,8 @@ type Personnel = {
     jobTitle: string;
     phoneNumber: string;
     mail: string;
+    dawinciCode?: string | null;
+    linkedInProfile?: string | null;
     azureAdStatus?: azureAdStatus;
     hasCV?: boolean;
     disciplines: PersonnelDiscipline[];

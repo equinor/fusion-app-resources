@@ -14,11 +14,13 @@ import ManagePersonellPage from './pages/ManagePersonnelPage';
 import useContractPageNavigationStructure from './useContractPageNavigationStructure';
 import ActualMppPage from './pages/ActualMppPage';
 import ActiveRequestsPage from './pages/ActiveRequestsPage';
+import CompletedRequestsPage from './pages/CompletedRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
 import * as styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
 import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';
+import ProvisioningRequestsPage from './pages/ProvisioningRequestsPage';
 
 type ContractPageMatch = {
     contractId: string;
@@ -31,7 +33,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     const { contract, isFetchingContract, contractError } = useContractFromId(
         match.params.contractId
     );
-    const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId);
+    
 
     const [contractState, dispatchContractAction] = useCollectionReducer(
         match.params.contractId,
@@ -47,6 +49,8 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
             dispatchContractAction,
         };
     }, [contract, isFetchingContract, contractState, dispatchContractAction]);
+
+    const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId, contractContext);
 
     const history = useHistory();
     const onClose = React.useCallback(() => {
@@ -100,6 +104,8 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                             <Route path="/manage-personnel" component={ManagePersonellPage} />
                             <Route path="/actual-mpp" component={ActualMppPage} />
                             <Route path="/active-requests" component={ActiveRequestsPage} />
+                            <Route path="/provisioning-requests" component={ProvisioningRequestsPage} />
+                            <Route path="/completed-requests" component={CompletedRequestsPage} />
                         </ScopedSwitch>
                     </div>
                 </div>
