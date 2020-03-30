@@ -323,8 +323,8 @@ export default class ApiClient {
                 {},
                 () => Promise.resolve()
             );
-
-            if (response.status === 204) {
+            const allowHeader = response.headers.get('Allow');
+            if (allowHeader !== null && allowHeader.indexOf('POST') !== -1) {
                 return true;
             }
             return false;
