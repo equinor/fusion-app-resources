@@ -1,17 +1,18 @@
-import { CollectionAction, ReadonlyCollection, ExtractCollectionType } from '../reducers/utils';
-import { useCallback, useEffect } from 'react';
-import { useDebouncedAbortable, useTelemetryLogger } from '@equinor/fusion';
+import { CollectionAction, ReadonlyCollection, ExtractCollectionType, ActionVerb } from '../reducers/utils';
+import { Dispatch, useCallback, useEffect } from 'react';
+import { useTelemetryLogger } from '@equinor/fusion';
 
 const useReducerCollection = <TState, T extends keyof TState>(
     state: TState,
-    dispatch: React.Dispatch<CollectionAction<TState, T>>,
+    dispatch: Dispatch<CollectionAction<TState, T>>,
     collection: T,
-    fetcher?: () => Promise<ReadonlyCollection<ExtractCollectionType<TState[T]>>['data']>
+    fetcher?: () => Promise<ReadonlyCollection<ExtractCollectionType<TState[T]>>['data']>,
+    verb: ActionVerb = 'merge'
 ): TState[T] => {
     const telemetryLogger = useTelemetryLogger();
 
-    const fetch = useCallback(async () => {
-        if (!fetcher) {
+    const fetch = useCallback(async (abortSignal: AbortSignal) => {
+        if (!fetcher || abortSignal.aborted) {
             return;
         }
 
@@ -22,8 +23,13 @@ const useReducerCollection = <TState, T extends keyof TState>(
             });
 
             const data = await fetcher();
+
+            if(abortSignal.aborted) {
+                return;
+            }
+
             dispatch({
-                verb: 'merge',
+                verb,
                 collection,
                 payload: data,
             });
@@ -38,10 +44,12 @@ const useReducerCollection = <TState, T extends keyof TState>(
         }
     }, [fetcher]);
 
-    useDebouncedAbortable(fetch, void 0, 0);
-
     useEffect(() => {
-        fetch();
+        const abortController = new AbortController();
+
+        fetch(abortController.signal);
+
+        return () => abortController.abort();
     }, [fetch]);
 
     return state[collection];

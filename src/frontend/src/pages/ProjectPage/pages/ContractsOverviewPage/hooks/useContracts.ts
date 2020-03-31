@@ -13,7 +13,7 @@ const useContracts = (projectId?: string) => {
         return apiClient.getContractsAsync(projectId);
     }, [projectId]);
 
-    const contracts = useReducerCollection(appState, dispatchAppAction, 'contracts', fetchContracts);
+    const contracts = useReducerCollection(appState, dispatchAppAction, 'contracts', fetchContracts, 'set');
 
     return {
         contracts: contracts.data,

@@ -12,7 +12,7 @@ export const createEmptyCollection = <T>(): ReadonlyCollection<T> => ({
     error: null,
 });
 
-export type ActionVerb = 'fetch' | 'error' | 'merge' | 'delete' | 'reset';
+export type ActionVerb = 'fetch' | 'error' | 'set' | 'merge' | 'delete' | 'reset';
 
 export type ExtractCollectionType<C> = C extends ReadonlyCollection<infer T> ? T : never;
 
@@ -63,6 +63,19 @@ export const createCollectionReducer = <
         const existing = ((state[action.collection] as unknown) as ReadonlyCollection<T>).data;
 
         switch (action.verb) {
+            case 'set':
+                return reducer(
+                    {
+                        ...state,
+                        [action.collection]: {
+                            isFetching: false,
+                            error: null,
+                            data: action.payload,
+                        },
+                    },
+                    action
+                );
+
             case 'merge':
                 return reducer(
                     {
@@ -88,6 +101,17 @@ export const createCollectionReducer = <
                     },
                     action
                 );
+
+            case 'reset':
+                const resetState = {
+                    ...state,
+                    [action.collection]: {
+                        ...state[action.collection],
+                        data: [],
+                    }
+                };
+
+                return reducer(resetState, action);
         }
 
         return reducer(state, action);
@@ -108,7 +132,7 @@ export const createCollectionRootReducer = <TState>(
                         isFetching: true,
                     },
                 };
-                
+
                 return reducer(fetchingState, action);
 
             case 'error':
@@ -122,17 +146,6 @@ export const createCollectionRootReducer = <TState>(
                 };
 
                 return reducer(errorState, action);
-
-            case 'reset':
-                const resetState = {
-                    ...state,
-                    [action.collection]: {
-                        ...state[action.collection],
-                        data: [],
-                    }
-                };
-
-                return reducer(resetState, action);
         }
         return reducer(state, action);
     };
