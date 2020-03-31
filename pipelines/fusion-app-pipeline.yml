@@ -59,7 +59,7 @@ stages:
           runOnce:
             deploy:
               steps: 
-              - task: FusionApp@2
+              - task: FusionApp@1
                 displayName: 'Deploying app bundle for resources'
                 condition: succeeded()
                 inputs:
