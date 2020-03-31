@@ -1,71 +1,55 @@
-parameters:
-  appKey: resources
-  appName: Resources
-  dockerfile: src/frontend/build.Dockerfile
-  dockerContext: src/frontend/
-  buildNumber: $(Build.BuildNumber)
-  outputSource: ./app/out
-  outputDestination: $(Agent.TempDirectory)
-  outputContents: out/*.zip
-  artifactsDirectory: $(Build.ArtifactStagingDirectory)
-  artifactName: app-bundle
-  pool: Private Docker
-  fusionCredentials: 'Fusion test'
-  bundlePath: '$(pipeline.workspace)/app-bundle/${{ parameters.appKey }}.zip'
-  
-  stages:
+pr: none
+
+stages:
   # BUILD
   ###################################################################################################################
   - stage: Build
-    displayName: Build ${{ parameters.appName }}
+    displayName: Build Resources
   
     jobs:
-    - job: Prebuild
-      pool: ${{ parameters.pool }}
-      steps:
     - job: Build
-      pool: ${{ parameters.pool }}
-      displayName: 'Build ${{ parameters.appKey }} bundle'
+      pool: Private Docker
+      displayName: 'Build resources bundle'
       
       variables:
-        image: fusion-app-${{ parameters.appKey }}:${{ parameters.buildNumber }}
-        container: app-${{ parameters.appKey }}-${{ parameters.buildNumber }}
+        image: fusion-app-resources:$(Build.BuildNumber)
+        container: app-resources-$(Build.BuildNumber)
     
       steps:
       - script: |
-          docker build -f ${{ parameters.dockerfile }} ${{ parameters.dockerContext }} -t $(image)
-        displayName: 'Build dockerfile ${{ parameters.dockerfile }}'
+          docker build -f src/frontend/build.Dockerfile src/frontend/ -t $(image)
+        displayName: 'Build dockerfile src/frontend/build.Dockerfile'
     
       - script: |
           docker container create --name $(container) $(image) 
-          docker container cp $(container):${{ parameters.outputSource}} ${{ parameters.outputDestination }}
+          docker container cp $(container):./app/out $(Agent.TempDirectory)
           docker container rm -f $(container)
         displayName: 'Copy docker output to temp folder'
     
       - task: CopyFiles@2
         inputs:
-          sourceFolder: ${{ parameters.outputDestination }}
-          contents: ${{ parameters.outputContents }}
-          targetFolder: ${{ parameters.artifactsDirectory }}
+          sourceFolder: $(Agent.TempDirectory)
+          contents: out/*.zip
+          targetFolder: $(Build.ArtifactStagingDirectory)
           flattenFolders: true
     
       - task: PublishBuildArtifacts@1
         inputs:
-          pathToPublish: ${{ parameters.artifactsDirectory }}
-          artifactName: ${{ parameters.artifactName }}
+          pathToPublish: $(Build.ArtifactStagingDirectory)
+          artifactName: app-bundle
 
   
   # CI DEPLOYMENT
   ###################################################################################################################
   - stage: CI
-    displayName: Deploy ${{ parameters.appName }} CI
+    displayName: Deploy Resources CI
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     
     jobs:
       - deployment: DeployApp
-      displayName: 'Deploy ${{ parameters.appKey }}'
-      pool: ${{ parameters.pool }}
+      displayName: 'Deploy resources'
+      pool: Private Docker
       environment: fusion-ci
       variables:
         portalUrl: 'https://pro-s-portal-ci.azurewebsites.net'
@@ -76,14 +60,14 @@ parameters:
           deploy:
             steps: 
             - task: FusionApp@2
-              displayName: 'Deploying app bundle for ${{ parameters.appKey }}'
+              displayName: 'Deploying app bundle for resources'
               condition: succeeded()
               inputs:
-                fusionCredentials: ${{ parameters.fusionCredentials }}
+                fusionCredentials: 'Fusion test'
                 tokenResource: ${{ parameters.tokenResource }}
                 portalUrl: ${{ parameters.portalUrl }}
                 action: deploy
-                appKey: ${{ parameters.appKey }}
-                bundlePath: ${{ parameters.bundlePath }}
+                appKey: resources
+                bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
                 ignoreVersionConflict: ${{ parameters.ignoreVersionConflict }}
                 forceReplaceExisting: ${{ parameters.forceReplaceExisting }}
