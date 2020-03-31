@@ -12,7 +12,7 @@ export const createEmptyCollection = <T>(): ReadonlyCollection<T> => ({
     error: null,
 });
 
-export type ActionVerb = 'fetch' | 'error' | 'merge' | 'delete';
+export type ActionVerb = 'fetch' | 'error' | 'merge' | 'delete' | 'reset';
 
 export type ExtractCollectionType<C> = C extends ReadonlyCollection<infer T> ? T : never;
 
@@ -108,6 +108,7 @@ export const createCollectionRootReducer = <TState>(
                         isFetching: true,
                     },
                 };
+                
                 return reducer(fetchingState, action);
 
             case 'error':
@@ -121,6 +122,17 @@ export const createCollectionRootReducer = <TState>(
                 };
 
                 return reducer(errorState, action);
+
+            case 'reset':
+                const resetState = {
+                    ...state,
+                    [action.collection]: {
+                        ...state[action.collection],
+                        data: [],
+                    }
+                };
+
+                return reducer(resetState, action);
         }
         return reducer(state, action);
     };

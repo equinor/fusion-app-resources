@@ -50,6 +50,20 @@ const App: React.FC = () => {
         createInitialState()
     );
 
+    const prevContext = React.useRef<Context | null>(null);
+    React.useEffect(() => {
+        if (!prevContext.current) {
+            prevContext.current = currentContext;
+            return;
+        }
+
+        if (!currentContext || currentContext.id !== prevContext.current.id) {
+            dispatchAppAction({ verb: 'reset', collection: 'contracts' });
+            dispatchAppAction({ verb: 'reset', collection: 'positions' });
+            dispatchAppAction({ verb: 'reset', collection: 'basePositions' });
+        }
+    }, [currentContext]);
+
     return (
         <AppContext.Provider
             value={{ apiClient, serviceNowApiClient, appState, dispatchAppAction }}
