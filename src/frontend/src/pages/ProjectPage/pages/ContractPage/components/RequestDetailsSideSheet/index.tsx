@@ -65,6 +65,11 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
     const { personnel } = usePersonnel();
     const originalPersonnel = personnel.find(p => p.mail === currentRequest?.originalPerson?.mail);
 
+    const isRequestCompleted = React.useMemo(
+        () => !!(currentRequest?.state === 'ApprovedByCompany'),
+        [currentRequest]
+    );
+
     if (!currentRequest) {
         return null;
     }
@@ -74,38 +79,42 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
             show={showSideSheet}
             header={currentRequest.position?.basePosition?.name || ''}
             onClose={onClose}
-            headerIcons={[
-                <Button
-                    outlined
-                    disabled={!canReject}
-                    onClick={() => canReject && setRejectRequest([currentRequest])}
-                >
-                    <div className={styles.buttonIcon}>
-                        {isRejecting ? (
-                            <Spinner inline />
-                        ) : (
-                            <CloseCircleIcon
-                                width={styling.numericalGrid(2)}
-                                height={styling.numericalGrid(2)}
-                            />
-                        )}
-                    </div>
-                    Reject
-                </Button>,
-                <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
-                    <div className={styles.buttonIcon}>
-                        {isApproving ? (
-                            <Spinner inline />
-                        ) : (
-                            <CheckCircleIcon
-                                width={styling.numericalGrid(2)}
-                                height={styling.numericalGrid(2)}
-                            />
-                        )}
-                    </div>
-                    Approve
-                </Button>,
-            ]}
+            headerIcons={
+                isRequestCompleted
+                    ? undefined
+                    : [
+                          <Button
+                              outlined
+                              disabled={!canReject}
+                              onClick={() => canReject && setRejectRequest([currentRequest])}
+                          >
+                              <div className={styles.buttonIcon}>
+                                  {isRejecting ? (
+                                      <Spinner inline />
+                                  ) : (
+                                      <CloseCircleIcon
+                                          width={styling.numericalGrid(2)}
+                                          height={styling.numericalGrid(2)}
+                                      />
+                                  )}
+                              </div>
+                              Reject
+                          </Button>,
+                          <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
+                              <div className={styles.buttonIcon}>
+                                  {isApproving ? (
+                                      <Spinner inline />
+                                  ) : (
+                                      <CheckCircleIcon
+                                          width={styling.numericalGrid(2)}
+                                          height={styling.numericalGrid(2)}
+                                      />
+                                  )}
+                              </div>
+                              Approve
+                          </Button>,
+                      ]
+            }
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
                 <Tab tabKey="general" title="General">

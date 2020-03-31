@@ -49,8 +49,8 @@ const CompletedRequestsPage: React.FC = () => {
                 )
                 .sort(
                     (a, b) =>
-                        (b.updated ? b.updated.getTime() : b.created.getTime()) -
-                        (a.updated ? a.updated.getTime() : a.created.getTime())
+                        (b.lastActivity ? b.lastActivity.getTime() : b.created.getTime()) -
+                        (a.lastActivity ? a.lastActivity.getTime() : a.created.getTime())
                 ),
         [data]
     );
