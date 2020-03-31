@@ -80,6 +80,7 @@ export const transformPositionsToChangeRequest = (positions: Position[], personn
         createdBy: null,
         workflow: null,
         provisioningStatus: null,
+        lastActivity: null,
     }));
 };
 
