@@ -64,8 +64,8 @@ stages:
                 condition: succeeded()
                 inputs:
                   fusionCredentials: 'Fusion test'
-                  tokenResource: ${{ parameters.tokenResource }}
-                  portalUrl: ${{ parameters.portalUrl }}
+                  tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                  portalUrl: 'https://pro-s-portal-ci.azurewebsites.net'
                   action: deploy
                   appKey: resources
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
