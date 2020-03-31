@@ -60,7 +60,9 @@ function EditableTable<T>({
 
     const onChange = (key: any, accessKey: keyof T, value: any) => {
         const updatedPersons = [...formState].map(stateItem =>
-            stateItem[rowIdentifier] === key ? { ...stateItem, [accessKey]: value } : stateItem
+            stateItem[rowIdentifier] === key
+                ? { ...stateItem, [accessKey]: value || null }
+                : stateItem
         );
         setFormState(updatedPersons);
     };

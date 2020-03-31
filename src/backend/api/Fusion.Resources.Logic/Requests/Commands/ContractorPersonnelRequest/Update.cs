@@ -115,6 +115,7 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         dbRequest.Updated = DateTime.Now;
                         dbRequest.UpdatedBy = request.Editor.Person;
+                        dbRequest.LastActivity = DateTime.Now;
 
                         await resourcesDb.SaveChangesAsync();
                     }

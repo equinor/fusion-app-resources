@@ -27,6 +27,8 @@ namespace Fusion.Resources.Domain
             Updated = request.Updated;
             CreatedBy = new QueryPerson(request.CreatedBy);
             UpdatedBy = QueryPerson.FromEntityOrDefault(request.UpdatedBy);
+            LastActivity = request.LastActivity;
+
             Workflow = workflow;
             ProvisioningStatus = new QueryProvisioningStatus(request.ProvisioningStatus);
         }
@@ -53,6 +55,7 @@ namespace Fusion.Resources.Domain
         public QueryPerson? UpdatedBy { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
+        public DateTimeOffset LastActivity { get; set; }
 
         public QueryProject Project { get; set; }
         public QueryContract Contract { get; set; }

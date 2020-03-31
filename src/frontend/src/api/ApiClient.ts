@@ -186,6 +186,7 @@ export default class ApiClient {
         return response.data;
     }
 
+ 
     async getPersonnelRequestsAsync(
         projectId: string,
         contractId: string,
@@ -206,6 +207,23 @@ export default class ApiClient {
             FusionApiHttpErrorResponse
         >(url);
         return response.data.value;
+    }
+    async getPersonnelRequestAsync(
+        projectId: string,
+        contractId: string,
+        requestId: string
+    ) {
+       
+        const url = this.resourceCollection.personnelRequest(
+            projectId,
+            contractId,
+            requestId
+        );
+        const response = await this.httpClient.getAsync<
+            PersonnelRequest,
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data;
     }
 
     async createPersonnelRequestAsync(
@@ -305,8 +323,8 @@ export default class ApiClient {
                 {},
                 () => Promise.resolve()
             );
-
-            if (response.status === 204) {
+            const allowHeader = response.headers.get('Allow');
+            if (allowHeader !== null && allowHeader.indexOf('POST') !== -1) {
                 return true;
             }
             return false;

@@ -72,7 +72,7 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (PersonNotFoundError)
             {
-                return ApiErrors.NotFound($"resources/personnel/{personIdentifier}");
+                return ApiErrors.NotFound($"Personnel with given id not found", "resources/personnel/{personIdentifier}");
             }
         }
 
