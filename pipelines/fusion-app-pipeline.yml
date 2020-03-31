@@ -69,5 +69,5 @@ stages:
                   action: deploy
                   appKey: resources
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
-                  ignoreVersionConflict: ${{ parameters.ignoreVersionConflict }}
-                  forceReplaceExisting: ${{ parameters.forceReplaceExisting }}
+                  ignoreVersionConflict: true
+                  forceReplaceExisting: true
