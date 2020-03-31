@@ -57,6 +57,8 @@ function EditableTable<T>({
     componentState,
 }: EditableTableProps<T>) {
     const [selectedItems, setSelectedItems] = React.useState<T[]>([]);
+    const [activeTableCell, setActiveTableCell] = React.useState<HTMLTableCellElement | null>(null);
+    const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
 
     const onChange = (key: any, accessKey: keyof T, value: any) => {
         const updatedPersons = [...formState].map(stateItem =>
@@ -126,7 +128,7 @@ function EditableTable<T>({
                     return null;
             }
         },
-        [onChange, rowIdentifier, onChange, rowIdentifier, isFetching]
+        [onChange, rowIdentifier, isFetching]
     );
 
     const onItemSelectChange = React.useCallback(
@@ -153,6 +155,25 @@ function EditableTable<T>({
     const onSelectAll = React.useCallback(() => {
         setSelectedItems(selectedItems.length === formState.length ? [] : formState);
     }, [formState, selectedItems]);
+
+    const scrollToTableCell = React.useCallback((tableCell: HTMLTableCellElement | null) => {
+        if (!tableContainerRef.current || !tableCell) {
+            return;
+        }
+        const header = tableContainerRef.current;
+
+        if (header.scrollWidth === header.offsetWidth) {
+            return;
+        }
+        header.scrollTo(
+            tableCell.offsetLeft - header.offsetWidth / 2 + tableCell.offsetWidth / 2,
+            0
+        );
+    },[tableContainerRef]);
+    
+    React.useEffect(() => {
+        scrollToTableCell(activeTableCell);
+    }, [activeTableCell]);
 
     const tableHeader = React.useMemo(() => {
         return (
@@ -210,7 +231,13 @@ function EditableTable<T>({
                             <TableToolbar onRemove={() => onRemoveItems([stateItem])} />
                         </td>
                         {columns.map(column => (
-                            <td key={column.accessKey.toString()} className={styles.tableRowCell}>
+                            <td
+                                key={column.accessKey.toString()}
+                                className={styles.tableRowCell}
+                                onClick={e => {
+                                    setActiveTableCell(e.currentTarget);
+                                }}
+                            >
                                 {getTableComponent(column, stateItem)}
                             </td>
                         ))}
@@ -218,16 +245,16 @@ function EditableTable<T>({
                 ))}
             </tbody>
         );
-    }, [columns, formState, selectedItems]);
+    }, [columns, formState, selectedItems, setActiveTableCell]);
 
     return (
-        <div className={styles.editableTable}>
+        <div className={styles.editableTable} >
             <Taskbar
                 onAddItem={onAddItem}
                 selectedItems={selectedItems}
                 onRemoveItem={onRemoveItems}
             />
-            <div className={styles.container}>
+            <div className={styles.container} ref={tableContainerRef}>
                 <table className={styles.table}>
                     {tableHeader}
                     {tableBody}
