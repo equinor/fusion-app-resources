@@ -1,0 +1,89 @@
+parameters:
+  appKey: resources
+  appName: Resources
+  dockerfile: src/frontend/build.Dockerfile
+  dockerContext: src/frontend/
+  buildNumber: $(Build.BuildNumber)
+  outputSource: ./app/out
+  outputDestination: $(Agent.TempDirectory)
+  outputContents: out/*.zip
+  artifactsDirectory: $(Build.ArtifactStagingDirectory)
+  artifactName: app-bundle
+  pool: Private Docker
+  fusionCredentials: 'Fusion test'
+  bundlePath: '$(pipeline.workspace)/app-bundle/${{ parameters.appKey }}.zip'
+  
+  stages:
+  # BUILD
+  ###################################################################################################################
+  - stage: Build
+    displayName: Build ${{ parameters.appName }}
+  
+    jobs:
+    - job: Prebuild
+      pool: ${{ parameters.pool }}
+      steps:
+    - job: Build
+      pool: ${{ parameters.pool }}
+      displayName: 'Build ${{ parameters.appKey }} bundle'
+      
+      variables:
+        image: fusion-app-${{ parameters.appKey }}:${{ parameters.buildNumber }}
+        container: app-${{ parameters.appKey }}-${{ parameters.buildNumber }}
+    
+      steps:
+      - script: |
+          docker build -f ${{ parameters.dockerfile }} ${{ parameters.dockerContext }} -t $(image)
+        displayName: 'Build dockerfile ${{ parameters.dockerfile }}'
+    
+      - script: |
+          docker container create --name $(container) $(image) 
+          docker container cp $(container):${{ parameters.outputSource}} ${{ parameters.outputDestination }}
+          docker container rm -f $(container)
+        displayName: 'Copy docker output to temp folder'
+    
+      - task: CopyFiles@2
+        inputs:
+          sourceFolder: ${{ parameters.outputDestination }}
+          contents: ${{ parameters.outputContents }}
+          targetFolder: ${{ parameters.artifactsDirectory }}
+          flattenFolders: true
+    
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathToPublish: ${{ parameters.artifactsDirectory }}
+          artifactName: ${{ parameters.artifactName }}
+
+  
+  # CI DEPLOYMENT
+  ###################################################################################################################
+  - stage: CI
+    displayName: Deploy ${{ parameters.appName }} CI
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    
+    jobs:
+      - deployment: DeployApp
+      displayName: 'Deploy ${{ parameters.appKey }}'
+      pool: ${{ parameters.pool }}
+      environment: fusion-ci
+      variables:
+        portalUrl: 'https://pro-s-portal-ci.azurewebsites.net'
+        tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+      
+      strategy:
+        runOnce:
+          deploy:
+            steps: 
+            - task: FusionApp@2
+              displayName: 'Deploying app bundle for ${{ parameters.appKey }}'
+              condition: succeeded()
+              inputs:
+                fusionCredentials: ${{ parameters.fusionCredentials }}
+                tokenResource: ${{ parameters.tokenResource }}
+                portalUrl: ${{ parameters.portalUrl }}
+                action: deploy
+                appKey: ${{ parameters.appKey }}
+                bundlePath: ${{ parameters.bundlePath }}
+                ignoreVersionConflict: ${{ parameters.ignoreVersionConflict }}
+                forceReplaceExisting: ${{ parameters.forceReplaceExisting }}
