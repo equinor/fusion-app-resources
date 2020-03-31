@@ -61,11 +61,12 @@ function EditableTable<T>({
     const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
 
     const onChange = (key: any, accessKey: keyof T, value: any) => {
-        const updatedPersons = [...formState].map(stateItem =>
-            stateItem[rowIdentifier] === key
-                ? { ...stateItem, [accessKey]: value || null }
-                : stateItem
-        );
+        const updatedPersons = [...formState].map(stateItem => {
+            const nullValue = typeof stateItem[accessKey] === 'string' ? '' : null;
+            return stateItem[rowIdentifier] === key
+                ? { ...stateItem, [accessKey]: value || nullValue }
+                : stateItem;
+        });
         setFormState(updatedPersons);
     };
 
@@ -156,21 +157,24 @@ function EditableTable<T>({
         setSelectedItems(selectedItems.length === formState.length ? [] : formState);
     }, [formState, selectedItems]);
 
-    const scrollToTableCell = React.useCallback((tableCell: HTMLTableCellElement | null) => {
-        if (!tableContainerRef.current || !tableCell) {
-            return;
-        }
-        const header = tableContainerRef.current;
+    const scrollToTableCell = React.useCallback(
+        (tableCell: HTMLTableCellElement | null) => {
+            if (!tableContainerRef.current || !tableCell) {
+                return;
+            }
+            const header = tableContainerRef.current;
 
-        if (header.scrollWidth === header.offsetWidth) {
-            return;
-        }
-        header.scrollTo(
-            tableCell.offsetLeft - header.offsetWidth / 2 + tableCell.offsetWidth / 2,
-            0
-        );
-    },[tableContainerRef]);
-    
+            if (header.scrollWidth === header.offsetWidth) {
+                return;
+            }
+            header.scrollTo(
+                tableCell.offsetLeft - header.offsetWidth / 2 + tableCell.offsetWidth / 2,
+                0
+            );
+        },
+        [tableContainerRef]
+    );
+
     React.useEffect(() => {
         scrollToTableCell(activeTableCell);
     }, [activeTableCell]);
@@ -248,7 +252,7 @@ function EditableTable<T>({
     }, [columns, formState, selectedItems, setActiveTableCell]);
 
     return (
-        <div className={styles.editableTable} >
+        <div className={styles.editableTable}>
             <Taskbar
                 onAddItem={onAddItem}
                 selectedItems={selectedItems}

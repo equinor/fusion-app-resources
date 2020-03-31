@@ -63,7 +63,7 @@ const PositionCardSkeleton = () => (
 const getCurrentInstance = (position: Position) => {
     const now = new Date();
     return position.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
-}
+};
 
 const renderPosition = (position: Position | null) =>
     position ? (
@@ -124,8 +124,8 @@ const ContractDetailsPage = () => {
                     <ToDate />
                 </div>
                 <div className={styles.row}>
-                    <EquinorContractResponsible />
                     <EquinorCompanyRep />
+                    <EquinorContractResponsible />
                 </div>
                 <div className={styles.row}>
                     <ExternalCompanyRep />
