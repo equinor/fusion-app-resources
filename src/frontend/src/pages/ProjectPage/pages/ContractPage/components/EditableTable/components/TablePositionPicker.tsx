@@ -11,13 +11,12 @@ function TablePositionPicker<T>({
     accessKey,
     accessor,
     rowIdentifier,
-    columnLabel,
 }: DefaultTableType<T, Position | null>) {
     const currentContext = useCurrentContext();
     const { contract } = useContractContext();
     const onPositionChange = React.useCallback(
-        (basePosition: Position) => {
-            onChange(item[rowIdentifier], accessKey, basePosition);
+        (position: Position) => {
+            onChange(item[rowIdentifier], accessKey, position || null);
         },
         [onChange, item, accessKey, rowIdentifier]
     );
