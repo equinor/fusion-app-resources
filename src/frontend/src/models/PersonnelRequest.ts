@@ -32,6 +32,7 @@ type PersonnelRequest = {
     originalPerson: Personnel | null;
     originalPosition: PersonnelRequestPosition | null;
     originalPositionId: string | null;
+    lastActivity: Date | null;
 };
 
 export default PersonnelRequest;
