@@ -71,6 +71,7 @@ namespace Fusion.Resources.Api.Controllers
             //var realContracts = await client.GetContractsV2Async(projectIdentifier.ProjectId);
 
             var contractsToReturn = orgContracts
+                .Where(c => c != null)
                 .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c.Id))
                 .ToList();
 
