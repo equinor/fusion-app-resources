@@ -131,6 +131,7 @@ namespace Fusion.Resources.Logic.Commands
                 private async Task<DbContractorRequest> PersistChangesAsync(Create request)
                 {
                     var category = request.OriginalPositionId.HasValue ? DbRequestCategory.ChangeRequest : DbRequestCategory.NewRequest;
+                    var created = DateTimeOffset.UtcNow;
 
                     var newRequest = new DbContractorRequest()
                     {
@@ -143,8 +144,9 @@ namespace Fusion.Resources.Logic.Commands
                         OriginalPositionId = request.OriginalPositionId,
                         Position = GeneratePosition(request.Position, request.PositionTaskOwner),
                         Description = request.Description ?? string.Empty,
-                        Created = DateTimeOffset.UtcNow,
-                        CreatedBy = request.Editor.Person
+                        Created = created,
+                        CreatedBy = request.Editor.Person,
+                        LastActivity = created
                     };
 
                     await resourcesDb.ContractorRequests.AddAsync(newRequest);

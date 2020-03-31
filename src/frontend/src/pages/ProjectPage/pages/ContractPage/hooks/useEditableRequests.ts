@@ -16,6 +16,10 @@ export default (requests: PersonnelRequest[], action: 'approve' | 'reject') => {
 
     const checkForEditAccessAsync = useCallback(
         async (projectId: string, contractId: string, req: PersonnelRequest[]) => {
+            if (req.some(r => !(r.state === 'Created' || r.state === 'SubmittedToCompany'))) {
+                setCanEdit(false);
+                return;
+            }
             const responses = req.map(
                 async request =>
                     await apiClient.canEditActionAsync(projectId, contractId, request.id, action)
@@ -35,16 +39,14 @@ export default (requests: PersonnelRequest[], action: 'approve' | 'reject') => {
     );
 
     useEffect(() => {
-        if (requests.length <= 0) {
-            setCanEdit(false);
-        }
         if (requests.length <= 0 || !projectId || !contractId) {
+            setCanEdit(false);
             return;
         }
 
         const unCheckedRequest = requests.filter(r => !editableRequestIds.some(id => id === r.id));
         if (unCheckedRequest.length <= 0) {
-            setCanEdit(true)
+            setCanEdit(true);
             return;
         }
 
