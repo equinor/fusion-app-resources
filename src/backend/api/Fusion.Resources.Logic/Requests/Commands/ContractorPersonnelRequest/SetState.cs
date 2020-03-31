@@ -77,15 +77,16 @@ namespace Fusion.Resources.Logic.Commands
                         default:
                             throw new IllegalStateChangeError(dbItem.State, request.State);
                     }
-                    
+
                     dbItem.State = request.State;
+                    dbItem.LastActivity = DateTime.UtcNow;
 
                     // Update the encapsulated dbentity with the new workflow state.
                     workflow.SaveChanges();
 
                     await resourcesDb.SaveChangesAsync();
                 }
-            
+
                 private async ValueTask HandleWhenSubmittedToCompanyAsync(SetState request)
                 {
                     switch (request.State)
@@ -135,5 +136,5 @@ namespace Fusion.Resources.Logic.Commands
         }
     }
 
-    
+
 }

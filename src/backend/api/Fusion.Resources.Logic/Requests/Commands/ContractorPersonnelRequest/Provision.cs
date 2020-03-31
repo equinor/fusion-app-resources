@@ -71,6 +71,7 @@ namespace Fusion.Resources.Logic.Commands
                     };
 
                     dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
+                    dbRequest.LastActivity = DateTime.UtcNow;
 
                     try
                     {
@@ -107,6 +108,7 @@ namespace Fusion.Resources.Logic.Commands
                     };
 
                     dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
+                    dbRequest.LastActivity = DateTime.UtcNow;
 
                     try
                     {

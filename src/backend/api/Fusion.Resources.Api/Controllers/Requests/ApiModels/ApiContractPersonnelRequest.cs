@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiContractPersonnelRequest
-    {     
+    {
         public ApiContractPersonnelRequest(QueryPersonnelRequest query)
         {
             Id = query.Id;
@@ -16,6 +16,7 @@ namespace Fusion.Resources.Api.Controllers
             Updated = query.Updated;
             CreatedBy = new ApiPerson(query.CreatedBy);
             UpdatedBy = ApiPerson.FromEntityOrDefault(query.UpdatedBy);
+            LastActivity = query.LastActivity;
 
             State = Enum.Parse<ApiRequestState>($"{query.State}", true);
             Description = query.Description;
@@ -44,6 +45,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? Updated { get; set; }
         public ApiPerson CreatedBy { get; set; }
         public ApiPerson? UpdatedBy { get; set; }
+        public DateTimeOffset LastActivity { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiRequestState State { get; set; }
