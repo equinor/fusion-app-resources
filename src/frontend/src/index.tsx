@@ -14,32 +14,35 @@ import AppContext from './appContext';
 import { appReducer, createInitialState } from './reducers/appReducer';
 import useCollectionReducer from './hooks/useCollectionReducer';
 import ServiceNowApiClient from './api/ServiceNowApiClient';
-
-const RESOURCE_BASE_URL = 'https://resources-api.ci.fusion-dev.net';
-
-// "https://pro-f-utility-CI.azurewebsites.net"
-// "https://pro-f-common-CI.azurewebsites.net"
-const FUNCTION_BASE_URL = 'https://pro-f-common-CI.azurewebsites.net';
+import { getResourceApiBaseUrl, getFunctionsBaseUrl } from './api/env';
 
 const App: React.FC = () => {
     const fusionContext = useFusionContext();
+
+    const resourceBaseUrl = React.useMemo(() => getResourceApiBaseUrl(fusionContext.environment), [
+        fusionContext.environment,
+    ]);
+    const functionsBaseUrl = React.useMemo(() => getFunctionsBaseUrl(fusionContext.environment), [
+        fusionContext.environment,
+    ]);
+
     const apiClient = React.useMemo(
-        () => new ApiClient(fusionContext.http.client, RESOURCE_BASE_URL),
+        () => new ApiClient(fusionContext.http.client, resourceBaseUrl),
         [fusionContext.http.client]
     );
 
     const serviceNowApiClient = React.useMemo(
-        () => new ServiceNowApiClient(fusionContext.http.client, FUNCTION_BASE_URL),
+        () => new ServiceNowApiClient(fusionContext.http.client, functionsBaseUrl),
         [fusionContext.http.client]
     );
 
     React.useEffect(() => {
         fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
-            RESOURCE_BASE_URL,
+            resourceBaseUrl,
         ]);
 
         fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
-            FUNCTION_BASE_URL,
+            functionsBaseUrl,
         ]);
     }, []);
 
