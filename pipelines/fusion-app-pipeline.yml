@@ -69,5 +69,92 @@ stages:
                   action: deploy
                   appKey: resources
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
-                  ignoreVersionConflict: true
-                  forceReplaceExisting: true
+              - task: FusionApp@1
+                displayName: 'Publish app bundle for resources'
+                condition: succeeded()
+                inputs:
+                  fusionCredentials: 'Fusion test'
+                  tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                  portalUrl: 'https://pro-s-portal-ci.azurewebsites.net'
+                  action: publish
+                  appKey: resources
+
+  # FQA DEPLOYMENT
+  ###################################################################################################################
+  - stage: FQA
+    displayName: Deploy Resources FQA
+    dependsOn: CI
+    condition: succeeded()
+    
+    jobs:
+      - deployment: DeployApp
+        displayName: 'Deploy resources'
+        pool: Private Docker
+        environment: fusion-fqa
+        variables:
+          portalUrl: 'https://pro-s-portal-fqa.azurewebsites.net'
+          tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+        
+        strategy:
+          runOnce:
+            deploy:
+              steps: 
+              - task: FusionApp@1
+                displayName: 'Deploying app bundle for resources'
+                condition: succeeded()
+                inputs:
+                  fusionCredentials: 'Fusion test'
+                  tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                  portalUrl: 'https://pro-s-portal-fqa.azurewebsites.net'
+                  action: deploy
+                  appKey: resources
+                  bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
+              - task: FusionApp@1
+                displayName: 'Publish app bundle for resources'
+                condition: succeeded()
+                inputs:
+                  fusionCredentials: 'Fusion test'
+                  tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                  portalUrl: 'https://pro-s-portal-fqa.azurewebsites.net'
+                  action: publish
+                  appKey: resources
+
+  # PROD DEPLOYMENT
+  ###################################################################################################################
+  - stage: PROD
+    displayName: Deploy Resources PROD
+    dependsOn: FQA
+    condition: succeeded()
+    
+    jobs:
+      - deployment: DeployApp
+        displayName: 'Deploy resources'
+        pool: Private Docker
+        environment: fusion-prod
+        variables:
+          portalUrl: 'https://pro-s-portal-fprd.azurewebsites.net'
+          tokenResource: '97978493-9777-4d48-b38a-67b0b9cd88d2'
+        
+        strategy:
+          runOnce:
+            deploy:
+              steps: 
+              - task: FusionApp@1
+                displayName: 'Deploying app bundle for resources'
+                condition: succeeded()
+                inputs:
+                  fusionCredentials: 'Fusion Prod'
+                  tokenResource: '97978493-9777-4d48-b38a-67b0b9cd88d2'
+                  portalUrl: 'https://pro-s-portal-fprd.azurewebsites.net'
+                  action: deploy
+                  appKey: resources
+                  bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
+              - task: FusionApp@1
+                displayName: 'Publish app bundle for resources'
+                condition: succeeded()
+                inputs:
+                  fusionCredentials: 'Fusion Prod'
+                  tokenResource: '97978493-9777-4d48-b38a-67b0b9cd88d2'
+                  portalUrl: 'https://pro-s-portal-fprd.azurewebsites.net'
+                  action: publish
+                  appKey: resources
