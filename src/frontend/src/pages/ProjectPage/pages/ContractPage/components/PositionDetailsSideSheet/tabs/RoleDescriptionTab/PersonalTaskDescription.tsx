@@ -19,7 +19,7 @@ import {
     useCurrentContext,
     Position,
 } from '@equinor/fusion';
-import { getInstances } from '../../orgHelpers';
+import { getInstances } from '../../../../../../orgHelpers';
 
 type PersonalTaskDescriptionProps = {
     selectedInstance: PositionInstance;

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { PositionCard } from '@equinor/fusion-components';
 import * as styles from './styles.less';
 import { Position } from '@equinor/fusion';
-import { isInstanceFuture, isInstancePast } from '../orgHelpers';
+import { isInstanceFuture, isInstancePast } from '../../../../../orgHelpers';
 import useInstancesWithPosition, { InstanceWithPosition } from '../hooks/useInstancesWithPosition';
 
 type DisciplineNetworkTabProps = {

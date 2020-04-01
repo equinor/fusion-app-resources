@@ -11,6 +11,7 @@ import {
 } from '@equinor/fusion-components';
 import { formatDate, Position, useHistory, useCurrentContext } from '@equinor/fusion';
 import Contract from '../../../../../../models/contract';
+import { getInstances, isInstanceFuture, isInstancePast } from '../../../../orgHelpers';
 
 const createFieldWithSkeleton = (
     name: string,
@@ -60,26 +61,30 @@ const PositionCardSkeleton = () => (
     </div>
 );
 
-const getCurrentInstance = (position: Position) => {
-    const now = new Date();
-    return position.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
-};
 
-const renderPosition = (position: Position | null) =>
-    position ? (
+const renderPosition = (position: Position | null) => {
+    if (!position) {
+        return 'N/A';
+    }
+    const now = new Date();
+    const instance = getInstances(position, now)[0];
+    const isFuture = isInstanceFuture(instance, now);
+    const isPast = isInstancePast(instance, now);
+    return (
         <PositionCard
             position={position}
-            instance={getCurrentInstance(position)}
+            instance={instance}
             showDate
             showExternalId
             showLocation
             showObs
             showTimeline
             showRotation
+            isFuture={isFuture}
+            isPast={isPast}
         />
-    ) : (
-        'N/A'
     );
+};
 
 const EquinorContractResponsible = () =>
     createFieldWithSkeleton(
