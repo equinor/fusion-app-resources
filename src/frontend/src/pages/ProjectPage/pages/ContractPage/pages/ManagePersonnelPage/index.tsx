@@ -29,29 +29,10 @@ const ManagePersonnelPage: React.FC = () => {
     const notification = useNotificationCenter();
 
     React.useEffect(() => {
-        if(!isAddPersonOpen) {
+        if (!isAddPersonOpen) {
             setSelectedItems([]);
         }
     }, [isAddPersonOpen]);
-
-    const getPersonnelWithPositionsAsync = async () => {
-        const contractId = contract?.id;
-        const projectId = currentContext?.id;
-        if (!contractId || !projectId) {
-            return;
-        }
-
-        try {
-            const result = await apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
-            dispatchContractAction({
-                verb: 'merge',
-                collection: 'personnel',
-                payload: result,
-            });
-        } catch (error) {
-            return error;
-        }
-    };
 
     const fetchPersonnelAsync = React.useCallback(async () => {
         const contractId = contract?.id;
@@ -61,8 +42,7 @@ const ManagePersonnelPage: React.FC = () => {
         }
 
         try {
-            const result = apiClient.getPersonnelAsync(projectId, contractId);
-            getPersonnelWithPositionsAsync();
+            const result = apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
             return result;
         } catch (error) {
             return error;
