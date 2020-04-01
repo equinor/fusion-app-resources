@@ -69,6 +69,8 @@ stages:
                   action: deploy
                   appKey: resources
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
+                  ignoreVersionConflict: true
+                  forceReplaceExisting: true
               - task: FusionApp@1
                 displayName: 'Publish app bundle for resources'
                 condition: succeeded()
@@ -109,6 +111,8 @@ stages:
                   action: deploy
                   appKey: resources
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
+                  ignoreVersionConflict: true
+                  forceReplaceExisting: true
               - task: FusionApp@1
                 displayName: 'Publish app bundle for resources'
                 condition: succeeded()
