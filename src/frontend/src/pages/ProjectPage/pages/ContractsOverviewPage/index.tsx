@@ -8,6 +8,7 @@ import GenericFilter from '../../../../components/GenericFilter';
 import getFilterSections from './getFilterSections';
 import Contract from '../../../../models/contract';
 import SortableTable from '../../../../components/SortableTable';
+import ResourceErrorMessage from '../../../../components/ResourceErrorMessage.tsx';
 
 const ContractsOverviewPage = () => {
     const currentProject = useCurrentContext();
@@ -23,28 +24,35 @@ const ContractsOverviewPage = () => {
 
     const hasError = React.useMemo(
         () => contractsError !== null || (!isFetchingContracts && !contracts.length),
-        [contractsError, isFetchingContracts, contractsError]
+        [contractsError, isFetchingContracts]
     );
 
     return (
         <div className={styles.container}>
-            <div className={styles.tableContainer}>
-                <div className={styles.toolbar}>
-                    <Button relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
-                        Allocate contract
-                    </Button>
+            <ResourceErrorMessage error={contractsError}>
+                <div className={styles.tableContainer}>
+                    <div className={styles.toolbar}>
+                        <Button relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
+                            Allocate contract
+                        </Button>
+                    </div>
+                    <div className={styles.table}>
+                        <ErrorMessage
+                            hasError={hasError}
+                            errorType="noData"
+                            resourceName="contracts"
+                            title="Unfortunately, we did not find any contracts allocated to the selected project"
+                        >
+                            <SortableTable
+                                rowIdentifier="contractNumber"
+                                data={filteredContracts}
+                                isFetching={isFetchingContracts && !contracts.length}
+                                columns={columns}
+                            />
+                        </ErrorMessage>
+                    </div>
                 </div>
-                <div className={styles.table}>
-                    <ErrorMessage hasError={hasError} errorType="notFound" resourceName="contracts">
-                        <SortableTable
-                            rowIdentifier="contractNumber"
-                            data={filteredContracts}
-                            isFetching={isFetchingContracts && !contracts.length}
-                            columns={columns}
-                        />
-                    </ErrorMessage>
-                </div>
-            </div>
+            </ResourceErrorMessage>
             {hasError ? null : (
                 <GenericFilter
                     data={contracts}
