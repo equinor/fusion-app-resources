@@ -41,6 +41,23 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
+        public static IAuthorizationRequirementRule BeContractorInContract(this IAuthorizationRequirementRule builder, Guid orgContractId)
+        {
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAssertion(ctx =>
+                {                    
+                    var contractContractIds = ctx.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey("contractId"))
+                        .Select(c => { Guid.TryParse(c.Properties["contractId"], out Guid projectId); return projectId; });
+
+                    return contractContractIds.Any(cid => cid == orgContractId);
+
+                }).Build();
+
+            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
+
+            return builder;
+        }
+
         public static IAuthorizationRequirementRule ProjectAccess(this IAuthorizationRequirementRule builder, ProjectAccess level, ProjectIdentifier project)
         {
             builder.AddRule(project, level);
