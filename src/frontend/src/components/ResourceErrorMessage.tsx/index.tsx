@@ -3,6 +3,8 @@ import { ErrorMessage, BlockIcon } from '@equinor/fusion-components';
 import * as styles from './styles.less';
 import ResourceError from '../../reducers/ResourceError';
 import { ErrorTypes } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
+import classNames from 'classnames';
+import { useComponentDisplayClassNames } from '@equinor/fusion';
 
 const iconProps = {
     width: 80,
@@ -15,27 +17,32 @@ type AccessDeniedProps = { error: ResourceError };
 const AccessDenied: React.FC<AccessDeniedProps> = ({ error }) => {
     const { accessRequirements, message } = error.response.error;
 
+    const messageContainerClasses = classNames(
+        styles.messageContainer,
+        useComponentDisplayClassNames(styles)
+    );
+
     return (
-        <div className={styles.errorContainer}>
-            <div>
+        <div className={styles.container}>
+            <div className={messageContainerClasses}>
                 <BlockIcon {...iconProps} />
-            </div>
-            <div className={styles.errorTitle}>{message}</div>
-            {accessRequirements && accessRequirements.length > 0 && (
-                <div className={styles.requirementsContainer}>
-                    <div className={styles.errorMetadata}>
-                        The reason you can not access the data is the following
+                <div className={styles.title}>{message}</div>
+                {accessRequirements && accessRequirements.length > 0 && (
+                    <div className={styles.requirementsContainer}>
+                        <div className={styles.message}>
+                            The reason you can not access the data is the following
+                        </div>
+                        <ul>
+                            {accessRequirements.map(req => (
+                                <li key={req.code} className={styles.requirement}>
+                                    <div className={styles.outcome}>{req.outcome}</div>
+                                    <div className={styles.description}>{req.description}</div>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
-                    <ul>
-                        {accessRequirements.map(req => (
-                            <li className={styles.requirement}>
-                                <div className={styles.outcome}>{req.outcome}</div>
-                                <div className={styles.description}>{req.description}</div>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };

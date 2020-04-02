@@ -1,46 +1,92 @@
-.errorContainer {
-  // sizes taken from fusion component ErrorMessage
-  margin-top: calc(var(--grid-unit) * 15px);
-  
-  display:flex;
-  width:100%;
-  align-items:center;
-  flex-direction:column;
-  line-height: 24px;
 
-  .errorTitle {
-    font-size: 28px;
-    height: calc(var(--grid-unit) * 4px);
-    padding-top: calc(var(--grid-unit) * 6px);
-  }
+.container {
+    position: relative;
+    width: 100%;
+    height: 100%;
 
-  .requirementsContainer {
-    display:flex;
-    align-items:center;
-    flex-direction:column;
+    .messageContainer {
+        position: relative;
+        left: 0; bottom: 0; right: 0;
+        display: flex;
+        align-content: center;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 999;
+        
+        .message {
+            text-align: center;
+        }
 
-    .errorMetadata {
-      font-size: 20px;
-      height: calc(var(--grid-unit) * 3px);
+        &.comfortable {
+            top: 0; 
+            margin-top:calc(var(--grid-unit) * 15px);
+
+            .title {
+                padding-top: calc(var(--grid-unit) * 6px);
+                font-size: 28px;
+                height: calc(var(--grid-unit) * 4px);
+                overflow: hidden;
+            }
+
+            .message {
+                font-size: 20px;
+                height: calc(var(--grid-unit) * 3px);
+                padding-bottom: calc(var(--grid-unit) * 1px);
+                padding-top: calc(var(--grid-unit)* 3px);
+            }
+        }
+
+        &.compact {
+            margin-top: 0;
+            top: 50%;
+            transform: translateY(-50%);
+                    
+            .title {
+                padding-top: calc(var(--grid-unit)* 5px);
+                font-size: 16px;
+                height: calc(var(--grid-unit)* 3px);
+                font-weight: 600;
+            }
+
+            .message {
+                font-size: 16px;
+                height: calc(var(--grid-unit)* 2px);
+                padding-bottom: calc(var(--grid-unit) * 1px);
+                padding-top: calc(var(--grid-unit)* 1px);
+
+            }
+        }
+
+        .requirementsContainer {
+          display:flex;
+          align-items:center;
+          flex-direction:column;
+      
+          .errorMetadata {
+            font-size: 20px;
+            height: calc(var(--grid-unit) * 3px);
+          }
+        
+      
+      
+          .requirement {
+          font-size: 18px;
+          padding: calc(var(--grid-unit) * 1px);
+      
+          .description {
+            font-size: 14px;
+          }
+      
+        }}
+      
+        ul {
+          padding:0
+        }
+      
+        ul > li > {
+          list-style-type: none;
+        }
     }
-  
-
-
-    .requirement {
-    font-size: 18px;
-    padding: calc(var(--grid-unit) * 1px);
-
-    .description {
-      font-size: 14px;
-    }
-
-  }}
-
-  ul {
-    padding:0
-  }
-
-  ul > li > {
-    list-style-type: none;
-  }
 }
+
