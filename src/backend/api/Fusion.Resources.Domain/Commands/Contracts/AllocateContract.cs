@@ -96,7 +96,8 @@ namespace Fusion.Resources.Domain.Commands
                         OrgContractId = contract.Id,
                         ProjectId = dbProject.Id,
                         Allocated = DateTimeOffset.UtcNow,
-                        AllocatedBy = command.Editor.Person
+                        AllocatedBy = command.Editor.Person,
+                        CompanyName = contract.Company?.Name ?? string.Empty
                     };
                     await resourcesDb.Contracts.AddAsync(dbContract);
                 }
