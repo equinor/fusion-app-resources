@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { ErrorMessage, Button, Spinner } from '@equinor/fusion-components';
+import { Button, Spinner } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -16,6 +16,7 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 let fetchUpdateInterval: NodeJS.Timeout;
 const ProvisioningRequestsPage: React.FC = () => {
@@ -99,7 +100,7 @@ const ProvisioningRequestsPage: React.FC = () => {
     React.useEffect(() => {
         if (provisioningRequests.length <= 0) {
             clearTimeout(fetchUpdateInterval);
-            setCheckForRequestStatus(false)
+            setCheckForRequestStatus(false);
         }
     }, [provisioningRequests]);
 
@@ -121,49 +122,42 @@ const ProvisioningRequestsPage: React.FC = () => {
         return getFilterSections(provisioningRequests || []);
     }, [provisioningRequests]);
 
-    if (error) {
-        return (
-            <ErrorMessage
-                hasError
-                message="An error occurred while trying to fetch provisioning requests"
-            />
-        );
-    }
-
     return (
         <div className={styles.activeRequestsContainer}>
-            <div className={styles.activeRequests}>
-                <div className={styles.activeRequestsButton}>
-                    <Button
-                        disabled={checkForRequestStatus || provisioningRequests.length <= 0}
-                        onClick={() =>
-                            !checkForRequestStatus &&
-                            provisioningRequests.length > 0 &&
-                            periodicallyCheckForUpdate()
-                        }
-                    >
-                        {checkForRequestStatus ? (
-                            <Spinner small inline />
-                        ) : (
-                            'Check for request status'
-                        )}
-                    </Button>
+            <ResourceErrorMessage error={error}>
+                <div className={styles.activeRequests}>
+                    <div className={styles.activeRequestsButton}>
+                        <Button
+                            disabled={checkForRequestStatus || provisioningRequests.length <= 0}
+                            onClick={() =>
+                                !checkForRequestStatus &&
+                                provisioningRequests.length > 0 &&
+                                periodicallyCheckForUpdate()
+                            }
+                        >
+                            {checkForRequestStatus ? (
+                                <Spinner small inline />
+                            ) : (
+                                'Check for request status'
+                            )}
+                        </Button>
+                    </div>
+
+                    <SortableTable
+                        data={filteredProvisioningRequests || []}
+                        columns={columns}
+                        rowIdentifier="id"
+                        isFetching={isFetching && !provisioningRequests.length}
+                    />
                 </div>
-
-                <SortableTable
-                    data={filteredProvisioningRequests || []}
-                    columns={columns}
-                    rowIdentifier="id"
-                    isFetching={isFetching && !provisioningRequests.length}
+                <GenericFilter
+                    data={provisioningRequests}
+                    filterSections={filterSections}
+                    onFilter={setFilteredProvisioningRequests}
                 />
-            </div>
-            <GenericFilter
-                data={provisioningRequests}
-                filterSections={filterSections}
-                onFilter={setFilteredProvisioningRequests}
-            />
 
-            <RequestDetailsSideSheet requests={provisioningRequests} />
+                <RequestDetailsSideSheet requests={provisioningRequests} />
+            </ResourceErrorMessage>
         </div>
     );
 };
