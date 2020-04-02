@@ -5,7 +5,7 @@ import { useContractContext } from '../../../../../contractContex';
 import PersonnelRequest from '../../../../../models/PersonnelRequest';
 import useEditableRequests from './useEditableRequests';
 
-export default (requests: PersonnelRequest[]) => {
+export default (requests: PersonnelRequest[], onApprove?: () => void) => {
     const [isApproving, setIsApproving] = React.useState<boolean>(false);
     const [approvedError, setApprovedError] = React.useState<Error | null>(null);
     const { apiClient } = useAppContext();
@@ -83,8 +83,9 @@ export default (requests: PersonnelRequest[]) => {
         });
         if (userApproval.confirmed) {
             await approveRequestsAsync(projectId, contractId, requests);
+            onApprove  && onApprove()
         }
-    }, [projectId, contractId, canEdit, requests]);
+    }, [projectId, contractId, canEdit, requests, onApprove]);
 
     return { approve, canApprove: canEdit, isApproving, approvedError };
 };

@@ -46,7 +46,7 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({
             case 'created':
                 return 'Create';
             case 'contractorApproval':
-                return 'Approve SR';
+                return 'Approve CR';
             case 'companyApproval':
                 return 'Approve Equinor';
             case 'provisioning':

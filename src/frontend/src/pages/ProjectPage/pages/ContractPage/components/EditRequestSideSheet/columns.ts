@@ -53,7 +53,7 @@ const columns: EditableTaleColumn<EditRequest>[] = [
     {
         accessor: item => item.description,
         accessKey: 'description',
-        label: 'Description (optional)',
+        label: 'Request description (optional)',
         item: 'TextArea',
     }
 ];

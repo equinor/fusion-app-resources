@@ -5,7 +5,6 @@ import {
     IconButton,
     DeleteIcon,
     EditIcon,
-    ErrorMessage,
     CloseCircleIcon,
     styling,
     Spinner,
@@ -113,63 +112,70 @@ const ActiveRequestsPage: React.FC = () => {
                         </div>
 
                         <div className={styles.buttonContainer}>
-                            <Button
-                                outlined
-                                disabled={!canReject}
-                                onClick={() => setRejectRequest(selectedRequests)}
-                            >
-                                <div className={styles.buttonIcon}>
-                                    {isRejecting ? (
-                                        <Spinner small inline />
-                                    ) : (
-                                        <CloseCircleIcon
-                                            width={styling.numericalGrid(2)}
-                                            height={styling.numericalGrid(2)}
-                                        />
-                                    )}
-                                </div>
-                                Reject
-                            </Button>
-                            <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
-                                <div className={styles.buttonIcon}>
-                                    {isApproving ? (
-                                        <Spinner small inline />
-                                    ) : (
-                                        <CheckCircleIcon
-                                            width={styling.numericalGrid(2)}
-                                            height={styling.numericalGrid(2)}
-                                        />
-                                    )}
-                                </div>
-                                Approve
-                            </Button>
+                            {canReject && (
+                                <Button
+                                    outlined
+                                    disabled={!canReject}
+                                    onClick={() => setRejectRequest(selectedRequests)}
+                                >
+                                    <div className={styles.buttonIcon}>
+                                        {isRejecting ? (
+                                            <Spinner small inline />
+                                        ) : (
+                                            <CloseCircleIcon
+                                                width={styling.numericalGrid(2)}
+                                                height={styling.numericalGrid(2)}
+                                            />
+                                        )}
+                                    </div>
+                                    Reject
+                                </Button>
+                            )}
+                            {canApprove && (
+                                <Button
+                                    disabled={!canApprove}
+                                    onClick={() => canApprove && approve()}
+                                >
+                                    <div className={styles.buttonIcon}>
+                                        {isApproving ? (
+                                            <Spinner small inline />
+                                        ) : (
+                                            <CheckCircleIcon
+                                                width={styling.numericalGrid(2)}
+                                                height={styling.numericalGrid(2)}
+                                            />
+                                        )}
+                                    </div>
+                                    Approve
+                                </Button>
+                            )}
                         </div>
+                        <SortableTable
+                            data={filteredActiveRequests || []}
+                            columns={columns}
+                            rowIdentifier="id"
+                            isFetching={isFetching && !activeRequests.length}
+                            isSelectable
+                            selectedItems={selectedRequests}
+                            onSelectionChange={setSelectedRequests}
+                        />
                     </div>
-                    <SortableTable
-                        data={filteredActiveRequests || []}
-                        columns={columns}
-                        rowIdentifier="id"
-                        isFetching={isFetching && !activeRequests.length}
-                        isSelectable
-                        selectedItems={selectedRequests}
-                        onSelectionChange={setSelectedRequests}
+                    <GenericFilter
+                        data={activeRequests}
+                        filterSections={filterSections}
+                        onFilter={setFilteredActiveRequests}
+                    />
+                    <EditRequestSideSheet
+                        initialRequests={editRequests}
+                        onClose={onRequestSidesheetClose}
+                    />
+                    <RequestDetailsSideSheet requests={activeRequests} />
+                    <RejectPersonnelSideSheet
+                        requests={rejectRequest}
+                        setRequests={setRejectRequest}
+                        onReject={reason => reject(reason)}
                     />
                 </div>
-                <GenericFilter
-                    data={activeRequests}
-                    filterSections={filterSections}
-                    onFilter={setFilteredActiveRequests}
-                />
-                <EditRequestSideSheet
-                    initialRequests={editRequests}
-                    onClose={onRequestSidesheetClose}
-                />
-                <RequestDetailsSideSheet requests={activeRequests} />
-                <RejectPersonnelSideSheet
-                    requests={rejectRequest}
-                    setRequests={setRejectRequest}
-                    onReject={reason => reject(reason)}
-                />
             </ResourceErrorMessage>
         </div>
     );
