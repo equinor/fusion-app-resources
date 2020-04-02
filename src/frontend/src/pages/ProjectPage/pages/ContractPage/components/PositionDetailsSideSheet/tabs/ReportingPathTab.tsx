@@ -8,7 +8,7 @@ import {
     PositionReportPath,
     useCurrentContext,
 } from '@equinor/fusion';
-import { getParentPositionId, getInstances, isInstanceFuture, isInstancePast } from '../orgHelpers';
+import { getParentPositionId, getInstances, isInstanceFuture, isInstancePast } from '../../../../../orgHelpers';
 import useArrangedInstance from '../hooks/useArrangedInstance';
 
 type ReportingPathTabProps = {

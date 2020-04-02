@@ -79,7 +79,7 @@ const columns: DataTableColumn<Position>[] = [
         accessor: position =>
             position.instances.find(i => i.parentPositionId)?.parentPositionId || '',
         key: 'taskOwnerId',
-        label: 'Taskowner',
+        label: 'Task owner',
         sortable: true,
         component: ({ item }) => {
             const taskOwnerId =
