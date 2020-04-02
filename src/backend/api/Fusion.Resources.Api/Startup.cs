@@ -98,7 +98,7 @@ namespace Fusion.Resources.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMiddleware<Middleware.RequestResponseLoggingMiddleware>();
+            //app.UseMiddleware<Middleware.RequestResponseLoggingMiddleware>();
             app.UseMiddleware<Middleware.ExceptionMiddleware>();
             app.UseMiddleware<ChaosMonkeyMiddleware>();
 
