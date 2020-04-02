@@ -5,7 +5,7 @@ import { parseQueryString } from '../../../../../../../api/utils';
 
 export default (requests: PersonnelRequest[] | null) => {
     const history = useHistory();
-    const [currentRequest, setCurrentRequest] = React.useState<PersonnelRequest | null>(null);
+    const [currentRequest, setCurrentRequest] = React.useState<PersonnelRequest | null>();
 
     React.useEffect(() => {
         if (!requests) {
@@ -17,13 +17,13 @@ export default (requests: PersonnelRequest[] | null) => {
     }, [history.location.search, requests]);
 
     React.useEffect(() => {
-        if(currentRequest === null){
+        if (currentRequest === null) {
             history.push({
                 pathname: history.location.pathname,
-                search: "",
+                search: '',
             });
         }
-    },[currentRequest])
+    }, [currentRequest]);
 
-    return {currentRequest, setCurrentRequest};
+    return { currentRequest: currentRequest || null, setCurrentRequest };
 };
