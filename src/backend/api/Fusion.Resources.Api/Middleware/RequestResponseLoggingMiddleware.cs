@@ -61,17 +61,27 @@ namespace Fusion.Resources.Api.Middleware
 
         private async Task<string> FormatRequest(HttpRequest request)
         {
-            var body = request.Body;
-
             request.EnableBuffering();
 
-            var buffer = new byte[Convert.ToInt32(request.ContentLength)];
-            await request.Body.ReadAsync(buffer, 0, buffer.Length);
-            var bodyAsText = Encoding.UTF8.GetString(buffer);
-            
-            request.Body = body;
+            if (request.ContentLength > 500 * 1024)
+            {
+                return $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} [Content length too long... {request.ContentLength}]";
+            }
 
-            return $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} {bodyAsText}";
+            if (request.Body.CanSeek == false)
+            {
+                return $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} [Body stream doesn't support streaming, so not reading it]";
+            }
+
+            // Try to read the body... Might be at the end of the stream, if rewind is not enabled.
+            using (StreamReader sr = new StreamReader(request.Body))
+            {
+                var content = await sr.ReadToEndAsync();
+                var formattedBody = $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} {content}";
+                
+                request.Body.Seek(0, SeekOrigin.Begin);
+                return formattedBody;
+            }
         }
 
         private async Task<string> FormatResponse(HttpResponse response)
