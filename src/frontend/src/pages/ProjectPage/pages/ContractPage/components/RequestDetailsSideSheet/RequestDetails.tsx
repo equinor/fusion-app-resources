@@ -30,7 +30,7 @@ const ItemField: React.FC<ItemFieldProps> = ({ fieldName, title, original, value
 const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
     return (
         <div className={styles.requestDetails}>
-            <ItemField fieldName="description" title="Description">
+            <ItemField fieldName="description" title="Request description">
                 {request.description || 'N/A'}
             </ItemField>
             <ItemField

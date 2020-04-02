@@ -220,43 +220,45 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                     </div>
                 </div>
             )}
-            <Accordion>
-                {pendingRequests.length > 0 && (
-                    <AccordionItem
-                        label={`In progress (${pendingRequests.length})`}
-                        isOpen={isPendingRequestsOpen}
-                        onChange={() => setIsPendingRequestsOpen(!isPendingRequestsOpen)}
-                    >
-                        <div className={styles.progressList}>
-                            {pendingRequests.map((request, index) => (
-                                <PendingRequestProgressItem
-                                    key={index.toString()}
-                                    request={request}
-                                    renderRequest={renderRequest}
-                                />
-                            ))}
-                        </div>
-                    </AccordionItem>
-                )}
-                {successfulRequests.length > 0 && (
-                    <AccordionItem
-                        label={`Successful (${successfulRequests.length})`}
-                        isOpen={isSuccessfulRequestsOpen}
-                        onChange={() => setIsSuccessfulRequestsOpen(!isSuccessfulRequestsOpen)}
-                    >
-                        <div className={styles.progressList}>
-                            {successfulRequests.map((request, index) => (
-                                <SuccesfulRequestProgressItem
-                                    key={index.toString()}
-                                    request={request.item}
-                                    response={request.response}
-                                    renderRequest={renderRequest}
-                                />
-                            ))}
-                        </div>
-                    </AccordionItem>
-                )}
-            </Accordion>
+            <div className={styles.accordionContainer}>
+                <Accordion>
+                    {pendingRequests.length > 0 && (
+                        <AccordionItem
+                            label={`In progress (${pendingRequests.length})`}
+                            isOpen={isPendingRequestsOpen}
+                            onChange={() => setIsPendingRequestsOpen(!isPendingRequestsOpen)}
+                        >
+                            <div className={styles.progressList}>
+                                {pendingRequests.map((request, index) => (
+                                    <PendingRequestProgressItem
+                                        key={index.toString()}
+                                        request={request}
+                                        renderRequest={renderRequest}
+                                    />
+                                ))}
+                            </div>
+                        </AccordionItem>
+                    )}
+                    {successfulRequests.length > 0 && (
+                        <AccordionItem
+                            label={`Successful (${successfulRequests.length})`}
+                            isOpen={isSuccessfulRequestsOpen}
+                            onChange={() => setIsSuccessfulRequestsOpen(!isSuccessfulRequestsOpen)}
+                        >
+                            <div className={styles.progressList}>
+                                {successfulRequests.map((request, index) => (
+                                    <SuccesfulRequestProgressItem
+                                        key={index.toString()}
+                                        request={request.item}
+                                        response={request.response}
+                                        renderRequest={renderRequest}
+                                    />
+                                ))}
+                            </div>
+                        </AccordionItem>
+                    )}
+                </Accordion>
+            </div>
         </ModalSideSheet>
     );
 }
