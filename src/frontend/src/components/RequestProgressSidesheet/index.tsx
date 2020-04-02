@@ -14,11 +14,11 @@ import {
 import useServiceNowPopoverRef from '../../hooks/useServiceNowPopoverRef';
 import classNames from 'classnames';
 import * as styles from './styles.less';
-import { FusionApiHttpErrorResponse } from '@equinor/fusion';
+import RequestValidationError from '../../models/RequestValidationError';
 
 export type FailedRequest<T> = {
     item: T;
-    error: FusionApiHttpErrorResponse;
+    error: RequestValidationError;
     isEditable: boolean;
 };
 
@@ -46,7 +46,7 @@ type RequestItemProps<TRequest> = {
 };
 
 type FailedRequestItemProps<TRequest> = RequestItemProps<TRequest> & {
-    error: FusionApiHttpErrorResponse;
+    error: RequestValidationError;
     onRemove: () => void;
 };
 
@@ -75,6 +75,14 @@ function InvalidRequestProgressItem<TRequest>({
     onRemove,
 }: FailedRequestItemProps<TRequest>) {
     const ignoreTooltipRef = useTooltipRef('Ignore');
+
+    let errors: string[] = [];
+    if (error.errors) {
+        for (let key in error.errors) {
+            errors.push(...error.errors[key]);
+        }
+    }
+
     return (
         <div className={classNames(styles.item, styles.failed)}>
             <div className={styles.icon}>
@@ -86,7 +94,16 @@ function InvalidRequestProgressItem<TRequest>({
                 <ErrorIcon outline={false} />
             </div>
             <div className={styles.content}>{renderRequest({ request })}</div>
-            <div className={styles.errorMessage}>{error.error?.message}</div>
+            <div className={styles.errorMessage}>
+                <div className={styles.errorMessage}>{error.error?.message}</div>
+                {errors.length > 0 && (
+                    <ul>
+                        {errors.map((errorMessage, i) => (
+                            <li key={i}>{errorMessage}</li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </div>
     );
 }
