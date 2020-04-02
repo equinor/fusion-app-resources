@@ -28,8 +28,7 @@ import useRequestApproval from '../../hooks/useRequestApproval';
 import RejectPersonnelSideSheet from '../../components/RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
 import useRequestDeletion from '../../hooks/useRequestDeletion';
-import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
-import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage.tsx';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(

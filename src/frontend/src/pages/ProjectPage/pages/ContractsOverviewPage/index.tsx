@@ -8,7 +8,7 @@ import GenericFilter from '../../../../components/GenericFilter';
 import getFilterSections from './getFilterSections';
 import Contract from '../../../../models/contract';
 import SortableTable from '../../../../components/SortableTable';
-import ResourceErrorMessage from '../../../../components/ResourceErrorMessage.tsx';
+import ResourceErrorMessage from '../../../../components/ResourceErrorMessage';
 
 const ContractsOverviewPage = () => {
     const currentProject = useCurrentContext();

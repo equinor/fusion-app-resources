@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { ErrorMessage, Button, Spinner } from '@equinor/fusion-components';
+import { Button, Spinner } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -16,7 +16,7 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
-import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage.tsx';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 let fetchUpdateInterval: NodeJS.Timeout;
 const ProvisioningRequestsPage: React.FC = () => {

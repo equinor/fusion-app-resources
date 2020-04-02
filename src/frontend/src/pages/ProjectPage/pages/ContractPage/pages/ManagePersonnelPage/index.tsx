@@ -18,7 +18,7 @@ import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
-import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage.tsx';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { ErrorMessage } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -11,7 +10,7 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
-import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage.tsx';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const CompletedRequestsPage: React.FC = () => {
     const [filteredCompletedRequests, setFilteredCompletedRequests] = React.useState<
