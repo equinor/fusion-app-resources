@@ -82,21 +82,14 @@ namespace Fusion.Resources.Api.Controllers
             var createCommand = new CreateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, request.Mail);
             request.LoadCommand(createCommand);
 
-            try
+            using (var scope = await BeginTransactionAsync())
             {
-                using (var scope = await BeginTransactionAsync())
-                {
+                var newPersonnel = await DispatchAsync(createCommand);
 
-                    var newPersonnel = await DispatchAsync(createCommand);
-                    await scope.CommitAsync();
+                await scope.CommitAsync();
 
-                    var item = new ApiContractPersonnel(newPersonnel);
-                    return Created($"/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{item.Mail}", item);
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ApiErrors.InvalidOperation(ex);
+                var item = new ApiContractPersonnel(newPersonnel);
+                return Created($"/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{item.Mail}", item);
             }
         }
 

@@ -2,7 +2,9 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,24 +60,23 @@ namespace Fusion.Resources.Domain.Commands
                     contract.Name = request.Name.Value;
                     dbContract.Name = request.Name.Value;
                 }
-
+                 
                 if (request.CompanyId.HasBeenSet)
-                    contract.Company = request.CompanyId.Value.HasValue ? new ApiClients.Org.ApiCompanyV2 { Id = request.CompanyId.Value.Value } : null;
+                    contract.Company = request.CompanyId.Value.HasValue ? new ApiClients.Org.ApiCompanyV2 { Id = request.CompanyId.Value.Value } : null;                    
 
                 if (request.Description.HasBeenSet) { contract.Description = request.Description.Value; }
                 if (request.StartDate.HasBeenSet) { contract.StartDate = request.StartDate.Value; }
                 if (request.EndDate.HasBeenSet) { contract.EndDate = request.EndDate.Value; }
 
 
-                var updatedContract = await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
-
-                if (string.IsNullOrEmpty(dbContract.CompanyName))
-                    dbContract.CompanyName = updatedContract.Company?.Name ?? string.Empty;
-
+                await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
                 await resourcesDb.SaveChangesAsync();
 
                 return new QueryContract(dbContract);
             }
         }
+
     }
+
+
 }

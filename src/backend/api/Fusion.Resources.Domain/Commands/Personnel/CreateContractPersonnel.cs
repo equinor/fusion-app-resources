@@ -1,10 +1,12 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -59,7 +61,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 // Even if the personnel is fetch from existing. Update to new values, as things might change, like phone number.
                 UpdatePerson(personnel, request);
-
+                
                 // Validate references.
                 var project = await resourcesDb.Projects.FirstOrDefaultAsync(p => p.OrgProjectId == request.OrgProjectId);
                 var contract = await resourcesDb.Contracts.FirstOrDefaultAsync(c => c.OrgContractId == request.OrgContractId);
@@ -74,15 +76,6 @@ namespace Fusion.Resources.Domain.Commands
                 var existingItem = await resourcesDb.ContractPersonnel.Include(c => c.CreatedBy).FirstOrDefaultAsync(c => c.PersonId == personnel.Id && c.ProjectId == project.Id && c.ContractId == contract.Id);
                 if (existingItem != null)
                     throw new InvalidOperationException($"The specified person is already added to the current contract. Added @ {existingItem.Created} by {existingItem.CreatedBy.Mail}");
-
-                //check that this user profile does not exist in other companies
-                var allocatedToOtherCompanies = await resourcesDb.ContractPersonnel
-                    .Where(c => c.PersonId == personnel.Id)
-                    .Select(c => c.Contract.CompanyName)
-                    .AnyAsync(c => c.ToLower() != contract.CompanyName.ToLower());
-
-                if (allocatedToOtherCompanies)
-                    throw new InvalidOperationException("Personnel is allocated to contract belonging to another company. He/she cannot be allocated to this contract");
 
                 var newItem = new DbContractPersonnel
                 {
