@@ -61,15 +61,23 @@ const PositionCardSkeleton = () => (
     </div>
 );
 
-
 const renderPosition = (position: Position | null) => {
     if (!position) {
         return 'N/A';
     }
-    const now = new Date();
-    const instance = getInstances(position, now)[0];
-    const isFuture = isInstanceFuture(instance, now);
-    const isPast = isInstancePast(instance, now);
+    const filterToDate = React.useMemo(() => new Date(), []);
+    const instance = React.useMemo(() => getInstances(position, filterToDate)[0], [
+        position,
+        filterToDate,
+    ]);
+    const isFuture = React.useMemo(() => isInstanceFuture(instance, filterToDate), [
+        position,
+        filterToDate,
+    ]);
+    const isPast = React.useMemo(() => isInstancePast(instance, filterToDate), [
+        position,
+        filterToDate,
+    ]);
     return (
         <PositionCard
             position={position}
