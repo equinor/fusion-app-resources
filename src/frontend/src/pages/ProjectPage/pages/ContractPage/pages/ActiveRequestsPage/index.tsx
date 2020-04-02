@@ -57,7 +57,7 @@ const ActiveRequestsPage: React.FC = () => {
             return [];
         }
 
-        return apiClient.getPersonnelRequestsAsync(projectId, contractId, "active");
+        return apiClient.getPersonnelRequestsAsync(projectId, contractId, 'active');
     }, [contract, currentContext]);
     const { data: activeRequests, isFetching, error } = useReducerCollection(
         contractState,
@@ -131,36 +131,40 @@ const ActiveRequestsPage: React.FC = () => {
                     </div>
 
                     <div className={styles.buttonContainer}>
-                        <Button
-                            outlined
-                            disabled={!canReject}
-                            onClick={() => setRejectRequest(selectedRequests)}
-                        >
-                            <div className={styles.buttonIcon}>
-                                {isRejecting ? (
-                                    <Spinner small inline />
-                                ) : (
-                                    <CloseCircleIcon
-                                        width={styling.numericalGrid(2)}
-                                        height={styling.numericalGrid(2)}
-                                    />
-                                )}
-                            </div>
-                            Reject
-                        </Button>
-                        <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
-                            <div className={styles.buttonIcon}>
-                                {isApproving ? (
-                                    <Spinner small inline />
-                                ) : (
-                                    <CheckCircleIcon
-                                        width={styling.numericalGrid(2)}
-                                        height={styling.numericalGrid(2)}
-                                    />
-                                )}
-                            </div>
-                            Approve
-                        </Button>
+                        {canReject && (
+                            <Button
+                                outlined
+                                disabled={!canReject}
+                                onClick={() => setRejectRequest(selectedRequests)}
+                            >
+                                <div className={styles.buttonIcon}>
+                                    {isRejecting ? (
+                                        <Spinner small inline />
+                                    ) : (
+                                        <CloseCircleIcon
+                                            width={styling.numericalGrid(2)}
+                                            height={styling.numericalGrid(2)}
+                                        />
+                                    )}
+                                </div>
+                                Reject
+                            </Button>
+                        )}
+                        {canApprove && (
+                            <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
+                                <div className={styles.buttonIcon}>
+                                    {isApproving ? (
+                                        <Spinner small inline />
+                                    ) : (
+                                        <CheckCircleIcon
+                                            width={styling.numericalGrid(2)}
+                                            height={styling.numericalGrid(2)}
+                                        />
+                                    )}
+                                </div>
+                                Approve
+                            </Button>
+                        )}
                     </div>
                 </div>
                 <SortableTable
