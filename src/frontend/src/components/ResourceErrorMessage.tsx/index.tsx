@@ -5,12 +5,13 @@ import ResourceError from '../../reducers/ResourceError';
 import { ErrorTypes } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 import classNames from 'classnames';
 import { useComponentDisplayClassNames } from '@equinor/fusion';
+import { styling } from '@equinor/fusion-components';
 
 const iconProps = {
     width: 80,
     height: 80,
     cursor: 'default',
-    color: '#666666',
+    color: styling.colors.blackAlt2,
 };
 
 type AccessDeniedProps = { error: ResourceError };
