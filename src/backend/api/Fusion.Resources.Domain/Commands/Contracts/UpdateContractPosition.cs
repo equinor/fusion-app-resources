@@ -90,7 +90,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (position.Instances.Count > 1)
                     throw GenerateMultiInstanceError(position);
 
-                position.BasePosition = new ApiBasePositionV2 { Id = request.BasePositionId };
+                position.BasePosition = new ApiPositionBasePositionV2 { Id = request.BasePositionId };
                 position.Name = request.PositionName;
                 position.ExternalId = request.ExternalId;
 

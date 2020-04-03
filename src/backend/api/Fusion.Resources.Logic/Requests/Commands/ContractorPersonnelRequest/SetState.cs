@@ -12,6 +12,7 @@ namespace Fusion.Resources.Logic.Commands
 {
     public partial class ContractorPersonnelRequest
     {
+
         public class SetState : TrackableRequest
         {
             public SetState(Guid requestId, DbRequestState state)

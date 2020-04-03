@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration;
+using Fusion.Integration.Org;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
 using MediatR;
@@ -14,7 +15,7 @@ namespace Fusion.Resources.Domain
 {
     public class GetContractPersonnel : IRequest<IEnumerable<QueryContractPersonnel>>
     {
-        private ODataQueryParams? query = null;
+        private ODataQueryParams query = null!;
 
         public GetContractPersonnel(Guid contractId, ODataQueryParams? query = null)
         {

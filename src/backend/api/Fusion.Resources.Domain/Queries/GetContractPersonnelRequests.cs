@@ -1,5 +1,6 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.AspNetCore.OData;
+using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

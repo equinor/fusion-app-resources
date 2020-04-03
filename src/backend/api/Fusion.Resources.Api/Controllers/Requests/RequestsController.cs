@@ -15,6 +15,9 @@ using Fusion.Resources.Domain.Commands;
 using Fusion.AspNetCore.OData;
 using Fusion.Resources.Api.Middleware;
 using Microsoft.AspNetCore.Http;
+using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Resources.Api.Authorization;
+using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -35,6 +38,26 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
             var requests = await DispatchAsync(GetContractPersonnelRequests.QueryContract(projectIdentifier.ProjectId, contractIdentifier).WithQuery(query));
 
             return new ApiCollection<ApiContractPersonnelRequest>(requests.Select(r => new ApiContractPersonnelRequest(r)));
@@ -43,6 +66,25 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
             return new ApiContractPersonnelRequest(request);
         }
@@ -65,6 +107,26 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
         {
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
             try
             {
                 using (var scope = await BeginTransactionAsync())
@@ -96,6 +158,24 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             using (var scope = await BeginTransactionAsync())
             {
                 var query = await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Update(requestId)
@@ -121,6 +201,25 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.NotFound(requestId, "Could not locate request");
 
 
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    // The workflow level check will do the logic to see if the user has access in the current workflow state.
+                    or.RequestAccess(RequestAccess.Workflow, request);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
             using (var scope = await BeginTransactionAsync())
             {
                 await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Approve(request.Id));
@@ -144,6 +243,24 @@ namespace Fusion.Resources.Api.Controllers
             if (contractorRequest is null)
                 return FusionApiError.NotFound(requestId, "Could not locate request");
 
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    // The workflow level check will do the logic to see if the user has access in the current workflow state.
+                    or.RequestAccess(RequestAccess.Workflow, contractorRequest);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
 
             using (var scope = await BeginTransactionAsync())
             {
@@ -161,6 +278,17 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractorRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
             using (var scope = await BeginTransactionAsync())
             {
                 await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Delete(requestId));
@@ -174,6 +302,15 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/provision")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> ProvisionContractorRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+                });
+            });
+
             using (var scope = await BeginTransactionAsync())
             {
                 await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Provision(requestId));
@@ -187,12 +324,19 @@ namespace Fusion.Resources.Api.Controllers
 
         #region Options
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult> CheckAccessCreateRequests(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
+        public async Task<ActionResult> CheckAccessCreateRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            await Task.Delay(1);
-            var faker = new Faker();
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
 
-            if (faker.Random.Bool())
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Success)
                 Response.Headers.Add("Allow", "GET,POST");
             else
                 Response.Headers.Add("Allow", "GET");
@@ -202,26 +346,47 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult> CheckAccessUpdateRequest(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
+        public async Task<ActionResult> CheckAccessUpdateRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
-            await Task.Delay(1);
-            var faker = new Faker();
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
 
-            if (faker.Random.Bool())
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Success)
                 Response.Headers.Add("Allow", "GET,PUT,DELETE");
             else
                 Response.Headers.Add("Allow", "GET");
+
 
             return NoContent();
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/actions/{actionName}")]
-        public async Task<ActionResult> CheckAccessRequestAction(string projectIdentifier, string contractIdentifier, Guid requestId, string actionName)
+        public async Task<ActionResult> CheckAccessRequestAction([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, string actionName)
         {
-            await Task.Delay(1);
-            var faker = new Faker();
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
 
-            if (faker.Random.Bool())
+            if (request is null)
+                return FusionApiError.NotFound(requestId, "Could not locate request");
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    // The workflow level check will do the logic to see if the user has access in the current workflow state.
+                    or.RequestAccess(RequestAccess.Workflow, request);
+                });
+            });
+
+            if (authResult.Success)
                 Response.Headers.Add("Allow", "POST");
             else
                 Response.Headers.Add("Allow", "");

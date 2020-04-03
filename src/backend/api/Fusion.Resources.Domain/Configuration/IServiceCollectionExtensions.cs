@@ -19,8 +19,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddScoped<IProfileService, ProfileServices>();
 
-            services.AddScoped<IProjectOrgResolver, ProjectOrgResolver>();
-
             services.AddSingleton<ICompanyResolver, PeopleCompanyResolver>();
 
             return services;
