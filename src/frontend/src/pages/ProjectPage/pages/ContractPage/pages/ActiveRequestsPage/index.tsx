@@ -150,32 +150,32 @@ const ActiveRequestsPage: React.FC = () => {
                                 </Button>
                             )}
                         </div>
-                        <SortableTable
-                            data={filteredActiveRequests || []}
-                            columns={columns}
-                            rowIdentifier="id"
-                            isFetching={isFetching && !activeRequests.length}
-                            isSelectable
-                            selectedItems={selectedRequests}
-                            onSelectionChange={setSelectedRequests}
-                        />
                     </div>
-                    <GenericFilter
-                        data={activeRequests}
-                        filterSections={filterSections}
-                        onFilter={setFilteredActiveRequests}
-                    />
-                    <EditRequestSideSheet
-                        initialRequests={editRequests}
-                        onClose={onRequestSidesheetClose}
-                    />
-                    <RequestDetailsSideSheet requests={activeRequests} />
-                    <RejectPersonnelSideSheet
-                        requests={rejectRequest}
-                        setRequests={setRejectRequest}
-                        onReject={reason => reject(reason)}
+                    <SortableTable
+                        data={filteredActiveRequests || []}
+                        columns={columns}
+                        rowIdentifier="id"
+                        isFetching={isFetching && !activeRequests.length}
+                        isSelectable
+                        selectedItems={selectedRequests}
+                        onSelectionChange={setSelectedRequests}
                     />
                 </div>
+                <GenericFilter
+                    data={activeRequests}
+                    filterSections={filterSections}
+                    onFilter={setFilteredActiveRequests}
+                />
+                <EditRequestSideSheet
+                    initialRequests={editRequests}
+                    onClose={onRequestSidesheetClose}
+                />
+                <RequestDetailsSideSheet requests={activeRequests} />
+                <RejectPersonnelSideSheet
+                    requests={rejectRequest}
+                    setRequests={setRejectRequest}
+                    onReject={reason => reject(reason)}
+                />
             </ResourceErrorMessage>
         </div>
     );
