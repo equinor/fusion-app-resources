@@ -4,7 +4,6 @@ import {
     IconButton,
     DeleteIcon,
     EditIcon,
-    ErrorMessage,
     AddIcon,
     useTooltipRef,
 } from '@equinor/fusion-components';
@@ -18,7 +17,6 @@ import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import EditRequestSideSheet from '../../components/EditRequestSideSheet';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import PositionDetailsSideSheet from '../../components/PositionDetailsSideSheet';
-import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 import { transformPositionsToChangeRequest } from '../../components/EditRequestSideSheet/utils';
 import { useAppContext } from '../../../../../../appContext';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
