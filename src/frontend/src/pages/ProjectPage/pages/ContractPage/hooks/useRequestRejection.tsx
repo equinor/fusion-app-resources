@@ -5,7 +5,7 @@ import { useContractContext } from '../../../../../contractContex';
 import PersonnelRequest from '../../../../../models/PersonnelRequest';
 import useEditableRequests from './useEditableRequests';
 
-export default (requests: PersonnelRequest[]) => {
+export default (requests: PersonnelRequest[], onReject?: () => void) => {
     const [isRejecting, setIsRejecting] = React.useState<boolean>(false);
     const [rejectedError, setRejectedError] = React.useState<Error | null>(null);
     const { apiClient } = useAppContext();
@@ -69,8 +69,9 @@ export default (requests: PersonnelRequest[]) => {
             }
 
             await rejectRequestsAsync(projectId, contractId, requests, reason);
+            onReject && onReject()
         },
-        [projectId, contractId, canEdit, requests]
+        [projectId, contractId, canEdit, requests, onReject]
     );
 
     return { reject, checkForEditAccessAsync, canReject: canEdit, isRejecting, rejectedError };

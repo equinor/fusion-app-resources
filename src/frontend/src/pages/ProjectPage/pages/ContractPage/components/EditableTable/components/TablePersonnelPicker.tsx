@@ -23,13 +23,15 @@ function TablePersonnelPicker<T>({
         if (!componentState) {
             return [];
         }
-        return componentState.data.map(person => ({
-            title: person.name,
-            key: person.personnelId,
-            isSelected: !!(
-                selectedPersonnel && person.personnelId === selectedPersonnel.personnelId
-            ),
-        }));
+        return componentState.data
+            .filter(person => person.azureAdStatus === 'Available')
+            .map(person => ({
+                title: person.name,
+                key: person.personnelId,
+                isSelected: !!(
+                    selectedPersonnel && person.personnelId === selectedPersonnel.personnelId
+                ),
+            }));
     }, [selectedPersonnel, componentState]);
 
     const onDropdownSelect = React.useCallback(

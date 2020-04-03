@@ -10,12 +10,26 @@ import {
 import classNames from 'classnames';
 import useBasePositions from '../../../../../../hooks/useBasePositions';
 import AzureAdStatusIcon from '../../pages/ManagePersonnelPage/components/AzureAdStatus';
+import { PersonDetails } from '@equinor/fusion';
 
 type EditablePositionDetailsProps = {
     person: Personnel;
     edit?: boolean;
     setField?: (field: keyof Personnel) => (value: string | PersonnelDiscipline[]) => void;
 };
+
+const getPersonDetails = (person: Personnel): PersonDetails => ({
+    azureUniqueId: person.azureUniquePersonId || '',
+    name: `${person.firstName} ${person.lastName}`,
+    mail: person.mail,
+    jobTitle: person.jobTitle,
+    department: '',
+    mobilePhone: person.phoneNumber,
+    officeLocation: '',
+    upn: '',
+    accountType: 'External',
+    company: { id: '', name: '' },
+});
 
 const createTextField = (
     label: string,
@@ -81,6 +95,7 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
                     <PersonPhoto
                         hideTooltip={true}
                         personId={person.azureUniquePersonId}
+                        person={getPersonDetails(person)}
                         size={'xlarge'}
                     />
                 </div>

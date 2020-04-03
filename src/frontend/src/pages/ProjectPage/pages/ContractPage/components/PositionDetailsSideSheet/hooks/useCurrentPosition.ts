@@ -4,7 +4,7 @@ import { parseQueryString } from '../../../../../../../api/utils';
 
 export default (positions: Position[] | null) => {
     const history = useHistory();
-    const [currentPosition, setCurrentPosition] = React.useState<Position | null>(null);
+    const [currentPosition, setCurrentPosition] = React.useState<Position | null>();
 
     React.useEffect(() => {
         if (!positions) {
@@ -16,13 +16,13 @@ export default (positions: Position[] | null) => {
     }, [history.location.search, positions]);
 
     React.useEffect(() => {
-        if(currentPosition === null){
+        if (currentPosition === null) {
             history.push({
                 pathname: history.location.pathname,
-                search: "",
+                search: '',
             });
         }
-    },[currentPosition])
+    }, [currentPosition]);
 
-    return {currentPosition, setCurrentPosition};
+    return { currentPosition: currentPosition || null, setCurrentPosition };
 };

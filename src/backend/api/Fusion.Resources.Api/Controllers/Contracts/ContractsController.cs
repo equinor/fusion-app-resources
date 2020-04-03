@@ -1,5 +1,6 @@
 ﻿using Fusion.Integration;
 using Fusion.Resources.Api.Configuration;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using MediatR;
@@ -10,6 +11,12 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Transactions;
+using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
+using Fusion.Resources.Api.Authorization;
+using Fusion.Integration.Org;
+using System.Threading;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -18,25 +25,61 @@ namespace Fusion.Resources.Api.Controllers
     public class ContractsController : ResourceControllerBase
     {
         private readonly IMediator mediator;
-        private readonly IOrgApiClientFactory orgApiClientFactory;
+        private readonly IProjectOrgResolver orgResolver;
 
-        public ContractsController(IMediator mediator, IOrgApiClientFactory orgApiClientFactory)
+        public ContractsController(IMediator mediator, IProjectOrgResolver orgResolver)
         {
             this.mediator = mediator;
-            this.orgApiClientFactory = orgApiClientFactory;
+            this.orgResolver = orgResolver;
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts")]
         public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectAllocatedContract([FromRoute]ProjectIdentifier projectIdentifier)
         {
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var realContracts = await client.GetContractsV2Async(projectIdentifier.ProjectId);
+            // Not sure if there is any restrictions on listing contracts for a project.
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.BeEmployee();
+                    or.BeContractorInProject(projectIdentifier);
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
 
             var allocatedContracts = await DispatchAsync(GetProjectContracts.ByOrgProjectId(projectIdentifier.ProjectId));
 
-            var contractsToReturn = realContracts
+            var pager = new SemaphoreSlim(10);
+            var orgContracts = await Task.WhenAll(allocatedContracts.Select(async c =>
+            {
+                await pager.WaitAsync();
+                try { return await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, c.OrgContractId); }
+                finally { pager.Release(); }
+            }));
+
+            var contractsToReturn = orgContracts
+                .Where(c => c != null)
                 .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c.Id))
                 .ToList();
+
+
+            // Trim contracts
+            switch (User.GetUserAccountType())
+            {
+                case FusionAccountType.External:
+                    contractsToReturn.RemoveAll(c => User.IsInContract(c.ContractNumber) == false);
+                    break;
+            } 
 
             var collection = new ApiCollection<ApiContract>(contractsToReturn.Select(c => new ApiContract(c)));
             return collection;
@@ -45,8 +88,32 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
         public async Task<ActionResult<ApiContract>> GetProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
         {
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractId);
+            // Not sure if there is any restrictions on listing contracts for a project.
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.BeEmployee();
+                    or.BeContractorInProject(projectIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractId);
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var orgContract = await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, contractId);
+
+            if (orgContract is null)
+                return ApiErrors.NotFound("Could not locate contract", $"/projects/{projectIdentifier.OriginalIdentifier}/contracts/{contractId}");
+
 
             return new ApiContract(orgContract);
         }
@@ -57,6 +124,23 @@ namespace Fusion.Resources.Api.Controllers
             [FromServices] IHttpClientFactory httpClientFactory,
             [FromServices] IFusionContextResolver contextResolver)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             FusionContext projectMasterContext;
 
             try
@@ -65,7 +149,7 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ContextResolverExtensions.ProjectMasterNotFoundError ex)
             {
-                return ApiErrors.NotFound(ex.Message);
+                return ApiErrors.InvalidOperation(ex);
             }
 
             var commonlibClient = httpClientFactory.CreateClient(HttpClientNames.AppCommonLib);
@@ -93,6 +177,23 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/contracts")]
         public async Task<ActionResult<ApiContract>> AllocateProjectContract([FromRoute]ProjectIdentifier projectIdentifier, [FromBody] ContractRequest request)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             var allocatedContract = await mediator.Send(new AllocateContract(projectIdentifier.ProjectId, request.ContractNumber));
             allocatedContract = await mediator.Send(new UpdateContract(projectIdentifier.ProjectId, allocatedContract.OrgContractId)
             {
@@ -115,15 +216,32 @@ namespace Fusion.Resources.Api.Controllers
                 ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
             });
 
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, allocatedContract.OrgContractId);
+            var orgContract = await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, allocatedContract.OrgContractId);
 
-            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract));
+            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract!));
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}")]
         public async Task<ActionResult<ApiContract>> UpdateProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractRequest request)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             await DispatchAsync(new UpdateContract(projectIdentifier.ProjectId, contractIdentifier)
             {
                 Name = request.Name,
@@ -145,16 +263,32 @@ namespace Fusion.Resources.Api.Controllers
                 ContractResponsiblePositionId = request.ExternalContractResponsiblePositionId
             });
 
+            var orgContract = await orgResolver.ResolveContractAsync(projectIdentifier.ProjectId, contractIdentifier);
 
-            var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-            var orgContract = await client.GetContractV2Async(projectIdentifier.ProjectId, contractIdentifier);
-
-            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract));
+            return Created($"/projects/{projectIdentifier}/contracts/{request.ContractNumber}", new ApiContract(orgContract!));
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
         public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalCompanyRep([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             var externalId = "ext-comp-rep";
             var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
 
@@ -198,6 +332,24 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
         public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalContractResp([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
+                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             var externalId = "ext-contr-resp";
             var existingPosition = await DispatchAsync(GetContractPosition.ByExternalId(projectIdentifier.ProjectId, contractIdentifier, externalId));
 

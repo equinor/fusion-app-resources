@@ -11,7 +11,7 @@ namespace Fusion.Resources.Domain
 {
     public class GetExternalPersonnel : IRequest<IEnumerable<QueryExternalPersonnelPerson>>
     {
-        public GetExternalPersonnel(ODataQueryParams queryParams = null)
+        public GetExternalPersonnel(ODataQueryParams? queryParams = null)
         {
             Query = queryParams ?? new ODataQueryParams(); //avoiding som null-checking in handler.
         }

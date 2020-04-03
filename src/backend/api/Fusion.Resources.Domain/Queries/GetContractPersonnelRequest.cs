@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration.Org;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.ApplicationInsights;

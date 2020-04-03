@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
 using System;
 

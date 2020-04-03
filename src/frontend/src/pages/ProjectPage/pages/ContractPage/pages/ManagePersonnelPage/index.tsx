@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-    DataTable,
-    DataTableColumn,
-    Button,
-    AddIcon,
-    ErrorMessage,
-} from '@equinor/fusion-components';
+import { DataTable, DataTableColumn } from '@equinor/fusion-components';
 import { useSorting, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import Personnel from '../../../../../../models/Personnel';
@@ -17,7 +11,7 @@ import GenericFilter from '../../../../../../components/GenericFilter';
 import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
-import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
@@ -29,7 +23,7 @@ const ManagePersonnelPage: React.FC = () => {
     const notification = useNotificationCenter();
 
     React.useEffect(() => {
-        if(!isAddPersonOpen) {
+        if (!isAddPersonOpen) {
             setSelectedItems([]);
         }
     }, [isAddPersonOpen]);
@@ -171,64 +165,47 @@ const ManagePersonnelPage: React.FC = () => {
         return { onClick: onDeletePersonnel, disabled: !selectedItems.length };
     }, [selectedItems, onDeletePersonnel]);
 
-    if (error) {
-        const errorMessage: ErrorMessageProps = {
-            hasError: true,
-        };
-
-        switch (error.statusCode) {
-            case 403:
-                errorMessage.errorType = 'accessDenied';
-                errorMessage.message = error.response.error.message;
-                errorMessage.resourceName = 'Managed Personnel';
-                break;
-            default:
-                errorMessage.errorType = 'error';
-                break;
-        }
-
-        return <ErrorMessage {...errorMessage} />;
-    }
-
     return (
         <div className={styles.container}>
-            <div className={styles.managePersonnel}>
-                <div className={styles.toolbar}>
-                    <ManagePersonnelToolBar
-                        addButton={addButton}
-                        editButton={editButton}
-                        deleteButton={deleteButton}
-                    />
+            <ResourceErrorMessage error={error}>
+                <div className={styles.managePersonnel}>
+                    <div className={styles.toolbar}>
+                        <ManagePersonnelToolBar
+                            addButton={addButton}
+                            editButton={editButton}
+                            deleteButton={deleteButton}
+                        />
+                    </div>
+                    <div className={styles.table}>
+                        <DataTable
+                            columns={personnelColumns}
+                            data={sortedData}
+                            isFetching={isFetching}
+                            rowIdentifier={'personnelId'}
+                            onSortChange={onSortChange}
+                            sortedBy={{
+                                column: sortedByColumn,
+                                direction,
+                            }}
+                            isSelectable
+                            onSelectionChange={setSelectedItems}
+                            selectedItems={selectedItems}
+                        />
+                    </div>
+                    {isAddPersonOpen && (
+                        <AddPersonnelSideSheet
+                            isOpen={isAddPersonOpen}
+                            setIsOpen={setIsAddPersonOpen}
+                            selectedPersonnel={selectedItems.length ? selectedItems : null}
+                        />
+                    )}
                 </div>
-                <div className={styles.table}>
-                    <DataTable
-                        columns={personnelColumns}
-                        data={sortedData}
-                        isFetching={isFetching}
-                        rowIdentifier={'personnelId'}
-                        onSortChange={onSortChange}
-                        sortedBy={{
-                            column: sortedByColumn,
-                            direction,
-                        }}
-                        isSelectable
-                        onSelectionChange={setSelectedItems}
-                        selectedItems={selectedItems}
-                    />
-                </div>
-                {isAddPersonOpen && (
-                    <AddPersonnelSideSheet
-                        isOpen={isAddPersonOpen}
-                        setIsOpen={setIsAddPersonOpen}
-                        selectedPersonnel={selectedItems.length ? selectedItems : null}
-                    />
-                )}
-            </div>
-            <GenericFilter
-                data={personnel}
-                filterSections={filterSections}
-                onFilter={setFilteredPersonnel}
-            />
+                <GenericFilter
+                    data={personnel}
+                    filterSections={filterSections}
+                    onFilter={setFilteredPersonnel}
+                />
+            </ResourceErrorMessage>
         </div>
     );
 };

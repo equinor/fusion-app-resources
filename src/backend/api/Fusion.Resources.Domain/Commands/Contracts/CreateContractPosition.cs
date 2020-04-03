@@ -57,7 +57,7 @@ namespace Fusion.Resources.Domain.Commands
 
             private ApiPositionV2 GeneratePositionEntity(CreateContractPosition request) => new ApiPositionV2
             {
-                BasePosition = new ApiBasePositionV2 { Id = request.BasePositionId },
+                BasePosition = new ApiPositionBasePositionV2 { Id = request.BasePositionId },
                 Name = request.PositionName,
                 ExternalId = request.ExternalId,
                 Instances = new List<ApiPositionInstanceV2>
