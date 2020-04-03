@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-    DataTable,
-    DataTableColumn,
-    Button,
-    AddIcon,
-    ErrorMessage,
-} from '@equinor/fusion-components';
+import { DataTable, DataTableColumn } from '@equinor/fusion-components';
 import { useSorting, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import Personnel from '../../../../../../models/Personnel';
@@ -17,7 +11,6 @@ import GenericFilter from '../../../../../../components/GenericFilter';
 import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
-import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const ManagePersonnelPage: React.FC = () => {
@@ -171,25 +164,6 @@ const ManagePersonnelPage: React.FC = () => {
     const deleteButton = React.useMemo((): IconButtonProps => {
         return { onClick: onDeletePersonnel, disabled: !selectedItems.length };
     }, [selectedItems, onDeletePersonnel]);
-
-    if (error) {
-        const errorMessage: ErrorMessageProps = {
-            hasError: true,
-        };
-
-        switch (error.statusCode) {
-            case 403:
-                errorMessage.errorType = 'accessDenied';
-                errorMessage.message = error.response.error.message;
-                errorMessage.resourceName = 'Managed Personnel';
-                break;
-            default:
-                errorMessage.errorType = 'error';
-                break;
-        }
-
-        return <ErrorMessage {...errorMessage} />;
-    }
 
     return (
         <div className={styles.container}>
