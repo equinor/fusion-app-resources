@@ -76,12 +76,7 @@ function InvalidRequestProgressItem<TRequest>({
 }: FailedRequestItemProps<TRequest>) {
     const ignoreTooltipRef = useTooltipRef('Ignore');
 
-    let errors: string[] = [];
-    if (error.errors) {
-        for (let key in error.errors) {
-            errors.push(...error.errors[key]);
-        }
-    }
+    const errors = Object.values(error.errors || []).reduce((all, e) => [...all, ...e], []);
 
     return (
         <div className={classNames(styles.item, styles.failed)}>
