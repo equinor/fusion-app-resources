@@ -149,7 +149,7 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ContextResolverExtensions.ProjectMasterNotFoundError ex)
             {
-                return ApiErrors.NotFound(ex.Message);
+                return ApiErrors.InvalidOperation(ex);
             }
 
             var commonlibClient = httpClientFactory.CreateClient(HttpClientNames.AppCommonLib);
