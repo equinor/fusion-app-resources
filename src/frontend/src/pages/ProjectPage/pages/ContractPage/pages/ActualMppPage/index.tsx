@@ -21,6 +21,7 @@ import PositionDetailsSideSheet from '../../components/PositionDetailsSideSheet'
 import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 import { transformPositionsToChangeRequest } from '../../components/EditRequestSideSheet/utils';
 import { useAppContext } from '../../../../../../appContext';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const ActualMppPage: React.FC = () => {
     const [filteredContractPositions, setFilteredContractPositions] = React.useState<Position[]>(
@@ -106,66 +107,49 @@ const ActualMppPage: React.FC = () => {
         setEditRequests(transformedPositions);
     }, [selectedPositions, personnel]);
 
-    if (error) {
-        const errorMessage: ErrorMessageProps = {
-            hasError: true,
-        };
-
-        switch (error.statusCode) {
-            case 403:
-                errorMessage.errorType = 'accessDenied';
-                errorMessage.message = error.response.error.message;
-                errorMessage.resourceName = 'Actual Mpp';
-                break;
-            default:
-                errorMessage.errorType = 'error';
-                break;
-        }
-
-        return <ErrorMessage {...errorMessage} />;
-    }
-
     return (
         <div className={styles.actualMppContainer}>
-            <div className={styles.actualMpp}>
-                <div className={styles.toolbar}>
-                    <IconButton
-                        onClick={() => setEditRequests([])}
-                        disabled={selectedPositions.length !== 0}
-                    >
-                        <AddIcon />
-                    </IconButton>
-                    <IconButton disabled>
-                        <DeleteIcon />
-                    </IconButton>
-                    <IconButton
-                        ref={editTooltipRef}
-                        onClick={editSelected}
-                        disabled={selectedPositions.length === 0}
-                    >
-                        <EditIcon />
-                    </IconButton>
+            <ResourceErrorMessage error={error}>
+                <div className={styles.actualMpp}>
+                    <div className={styles.toolbar}>
+                        <IconButton
+                            onClick={() => setEditRequests([])}
+                            disabled={selectedPositions.length !== 0}
+                        >
+                            <AddIcon />
+                        </IconButton>
+                        <IconButton disabled>
+                            <DeleteIcon />
+                        </IconButton>
+                        <IconButton
+                            ref={editTooltipRef}
+                            onClick={editSelected}
+                            disabled={selectedPositions.length === 0}
+                        >
+                            <EditIcon />
+                        </IconButton>
+                    </div>
+                    <SortableTable
+                        data={filteredContractPositions || []}
+                        columns={columns}
+                        rowIdentifier="id"
+                        isFetching={isFetching && !contractPositions.length}
+                        isSelectable
+                        selectedItems={selectedPositions}
+                        onSelectionChange={setSelectedPositions}
+                    />
                 </div>
-                <SortableTable
-                    data={filteredContractPositions || []}
-                    columns={columns}
-                    rowIdentifier="id"
-                    isFetching={isFetching && !contractPositions.length}
-                    isSelectable
-                    selectedItems={selectedPositions}
-                    onSelectionChange={setSelectedPositions}
+                <GenericFilter
+                    data={contractPositions}
+                    filterSections={filterSections}
+                    onFilter={filteredRequests => setFilteredContractPositions(filteredRequests)}
                 />
-            </div>
-            <GenericFilter
-                data={contractPositions}
-                filterSections={filterSections}
-                onFilter={filteredRequests => setFilteredContractPositions(filteredRequests)}
-            />
-            <EditRequestSideSheet
-                initialRequests={editRequests}
-                onClose={onRequestSidesheetClose}
-            />
-            <PositionDetailsSideSheet positions={contractPositions} />
+                <EditRequestSideSheet
+                    initialRequests={editRequests}
+                    onClose={onRequestSidesheetClose}
+                />
+                <PositionDetailsSideSheet positions={contractPositions} />
+            </ResourceErrorMessage>
         </div>
     );
 };
