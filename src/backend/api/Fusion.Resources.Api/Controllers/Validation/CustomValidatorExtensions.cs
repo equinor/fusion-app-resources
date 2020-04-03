@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
 using FluentValidation.Validators;
+using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;

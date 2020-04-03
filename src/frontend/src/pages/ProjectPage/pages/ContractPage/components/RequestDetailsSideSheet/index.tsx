@@ -43,17 +43,20 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
         description: true,
         person: true,
     });
-    const { approve, canApprove, isApproving } = useRequestApproval(
-        currentRequest ? [currentRequest] : []
-    );
-    const { reject, canReject, isRejecting } = useRequestRejection(
-        currentRequest ? [currentRequest] : []
-    );
-    const showSideSheet = React.useMemo(() => currentRequest !== null, [currentRequest]);
 
     const onClose = React.useCallback(() => {
         setCurrentRequest(null);
     }, [setCurrentRequest]);
+
+    const { approve, canApprove, isApproving } = useRequestApproval(
+        currentRequest ? [currentRequest] : [],
+        onClose
+    );
+    const { reject, canReject, isRejecting } = useRequestRejection(
+        currentRequest ? [currentRequest] : [],
+        onClose
+    );
+    const showSideSheet = React.useMemo(() => currentRequest !== null, [currentRequest]);
 
     const handleAccordionStateChange = React.useCallback(
         (id: keyof AccordionOpenDictionary) => {
@@ -83,36 +86,39 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                 isRequestCompleted
                     ? undefined
                     : [
-                          <Button
-                              outlined
-                              disabled={!canReject}
-                              onClick={() => canReject && setRejectRequest([currentRequest])}
-                          >
-                              <div className={styles.buttonIcon}>
-                                  {isRejecting ? (
-                                      <Spinner inline />
-                                  ) : (
-                                      <CloseCircleIcon
-                                          width={styling.numericalGrid(2)}
-                                          height={styling.numericalGrid(2)}
-                                      />
-                                  )}
-                              </div>
-                              Reject
-                          </Button>,
-                          <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
-                              <div className={styles.buttonIcon}>
-                                  {isApproving ? (
-                                      <Spinner inline />
-                                  ) : (
-                                      <CheckCircleIcon
-                                          width={styling.numericalGrid(2)}
-                                          height={styling.numericalGrid(2)}
-                                      />
-                                  )}
-                              </div>
-                              Approve
-                          </Button>,
+                          canReject && (
+                              <Button
+                                  outlined
+                                  onClick={() => canReject && setRejectRequest([currentRequest])}
+                              >
+                                  <div className={styles.buttonIcon}>
+                                      {isRejecting ? (
+                                          <Spinner inline />
+                                      ) : (
+                                          <CloseCircleIcon
+                                              width={styling.numericalGrid(2)}
+                                              height={styling.numericalGrid(2)}
+                                          />
+                                      )}
+                                  </div>
+                                  Reject
+                              </Button>
+                          ),
+                          canApprove && (
+                              <Button onClick={() => canApprove && approve()}>
+                                  <div className={styles.buttonIcon}>
+                                      {isApproving ? (
+                                          <Spinner inline />
+                                      ) : (
+                                          <CheckCircleIcon
+                                              width={styling.numericalGrid(2)}
+                                              height={styling.numericalGrid(2)}
+                                          />
+                                      )}
+                                  </div>
+                                  Approve
+                              </Button>
+                          ),
                       ]
             }
         >

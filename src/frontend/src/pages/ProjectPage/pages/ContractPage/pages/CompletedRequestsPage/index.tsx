@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { ErrorMessage } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -11,6 +10,7 @@ import getFilterSections from './getFilterSections';
 import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const CompletedRequestsPage: React.FC = () => {
     const [filteredCompletedRequests, setFilteredCompletedRequests] = React.useState<
@@ -59,32 +59,25 @@ const CompletedRequestsPage: React.FC = () => {
         return getFilterSections(completedRequests || []);
     }, [completedRequests]);
 
-    if (error) {
-        return (
-            <ErrorMessage
-                hasError
-                message="An error occurred while trying to fetch completed requests"
-            />
-        );
-    }
-
     return (
         <div className={styles.activeRequestsContainer}>
-            <div className={styles.activeRequests}>
-                <SortableTable
-                    data={filteredCompletedRequests || []}
-                    columns={columns}
-                    rowIdentifier="id"
-                    isFetching={isFetching && !completedRequests.length}
+            <ResourceErrorMessage error={error}>
+                <div className={styles.activeRequests}>
+                    <SortableTable
+                        data={filteredCompletedRequests || []}
+                        columns={columns}
+                        rowIdentifier="id"
+                        isFetching={isFetching && !completedRequests.length}
+                    />
+                </div>
+                <GenericFilter
+                    data={completedRequests}
+                    filterSections={filterSections}
+                    onFilter={setFilteredCompletedRequests}
                 />
-            </div>
-            <GenericFilter
-                data={completedRequests}
-                filterSections={filterSections}
-                onFilter={setFilteredCompletedRequests}
-            />
 
-            <RequestDetailsSideSheet requests={completedRequests} />
+                <RequestDetailsSideSheet requests={completedRequests} />
+            </ResourceErrorMessage>
         </div>
     );
 };

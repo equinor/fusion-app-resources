@@ -7,7 +7,7 @@ import useSortedInstances from '../../hooks/useSortedInstances';
 import useArrangedInstance from '../../hooks/useArrangedInstance';
 import InstancesTimeline from './InstancesTimeline';
 import classNames from 'classnames';
-import { getInstances } from '../../orgHelpers';
+import { getInstances } from '../../../../../../orgHelpers';
 
 export type TimelineStructure = {
     instance: PositionInstance;
