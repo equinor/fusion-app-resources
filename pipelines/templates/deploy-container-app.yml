@@ -18,7 +18,6 @@ steps:
     ScriptArguments: >
       -environment ${{ parameters.environment }} 
       -clientId ${{ parameters.clientId }} 
-      -clientSecretName ${{ parameters.clientSecretName }} 
       -fusionEnvironment ${{ parameters.fusionEnvironment }} 
       -imageName ${{ parameters.imageName }}
             

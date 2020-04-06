@@ -2,7 +2,6 @@ param(
     [string]$environment,
     [string]$fusionEnvironment,
     [string]$clientId,
-    [string]$clientSecretName,
     [string]$imageName
 )
 
