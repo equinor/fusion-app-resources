@@ -89,13 +89,13 @@ const columns: DataTableColumn<Position>[] = [
     },
     {
         accessor: position =>
-            position.instances.find(i => i.workload)?.workload.toString() + '%' || '',
+            position.instances.find(i => !isNaN(i.workload))?.workload.toString() + '%' || '',
         key: 'workload',
         label: 'Workload',
         sortable: true,
         component: ({ item }) => (
             <ColumnSideSheetLink positionId={item.id}>
-                {item.instances.find(i => i.workload)?.workload.toString() + '%' || ''}
+                {item.instances.find(i => !isNaN(i.workload))?.workload.toString() + '%' || ''}
             </ColumnSideSheetLink>
         ),
     },

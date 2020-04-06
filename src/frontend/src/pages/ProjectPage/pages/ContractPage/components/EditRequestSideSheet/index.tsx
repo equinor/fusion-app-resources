@@ -4,7 +4,7 @@ import { useContractContext } from '../../../../../../contractContex';
 import columns from './columns';
 import { BasePosition, Position } from '@equinor/fusion';
 import Personnel from '../../../../../../models/Personnel';
-import { transFormRequest, createDefaultState } from './utils';
+import { transFormRequest, createDefaultState, createCopyState } from './utils';
 import EditableTable from '../EditableTable';
 import useRequestsParentPosition from './hooks/useRequestsParentPosition';
 import useForm from '../../../../../../hooks/useForm';
@@ -85,20 +85,25 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         );
     }, []);
 
-    const { formState, setFormState, isFormDirty, isFormValid ,resetForm} = useForm(
+    const { formState, setFormState, isFormDirty, isFormValid, resetForm } = useForm(
         createDefaultState,
         validateForm,
         defaultState
     );
 
-    const { submit, reset, pendingRequests, failedRequests, successfulRequests, removeFailedRequest } = useSubmitChanges(
-        formState
-    );
+    const {
+        submit,
+        reset,
+        pendingRequests,
+        failedRequests,
+        successfulRequests,
+        removeFailedRequest,
+    } = useSubmitChanges(formState);
 
     const closeSideSheet = React.useCallback(() => {
         reset();
         setEditRequests(null);
-        resetForm()
+        resetForm();
         onClose();
     }, [setEditRequests, resetForm]);
 
@@ -147,6 +152,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                     personnel: personnelState,
                     basePositions: basePositionState,
                 }}
+                createCopyState={createCopyState}
             />
             <RequestProgressSidesheet
                 pendingRequests={pendingRequests}

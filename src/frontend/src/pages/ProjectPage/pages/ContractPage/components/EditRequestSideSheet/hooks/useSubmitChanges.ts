@@ -14,6 +14,7 @@ import {
     FailedRequest,
     SuccessfulRequest,
 } from '../../../../../../../components/RequestProgressSidesheet';
+import RequestValidationError from '../../../../../../../models/RequestValidationError';
 
 export default (formState: EditRequest[]) => {
     const { contract, dispatchContractAction } = useContractContext();
@@ -76,12 +77,12 @@ export default (formState: EditRequest[]) => {
             } catch (error) {
                 if (error instanceof HttpClientRequestFailedError) {
                     const requestError = error as HttpClientRequestFailedError<
-                        FusionApiHttpErrorResponse
+                        RequestValidationError
                     >;
                     setFailedRequests(f => [
                         ...f,
                         {
-                            error: error,
+                            error: requestError.response,
                             item: request,
                             isEditable:
                                 requestError.statusCode <= 500 &&
@@ -130,7 +131,14 @@ export default (formState: EditRequest[]) => {
 
     const removeFailedRequest = React.useCallback((request: FailedRequest<EditRequest>) => {
         setFailedRequests(fr => fr.filter(r => r !== request));
-    }, [])
+    }, []);
 
-    return { submit, reset, pendingRequests, failedRequests, successfulRequests, removeFailedRequest };
+    return {
+        submit,
+        reset,
+        pendingRequests,
+        failedRequests,
+        successfulRequests,
+        removeFailedRequest,
+    };
 };

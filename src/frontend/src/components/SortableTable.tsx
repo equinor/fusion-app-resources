@@ -28,7 +28,7 @@ function SortableTable<T>({
     const { isFetchingContract } = useContractContext();
     const { sortedData, setSortBy, sortBy, direction } = useSorting<T>(data, null, null);
 
-    const { pagination, pagedData, setCurrentPage } = usePagination<T>(sortedData, 15);
+    const { pagination, pagedData, setCurrentPage } = usePagination<T>(sortedData, 100);
 
     const onSortChange = React.useCallback(
         (column: DataTableColumn<T>) => {
