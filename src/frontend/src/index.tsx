@@ -84,8 +84,8 @@ registerApp('resources', {
     name: 'Resources',
     context: {
         types: [ContextTypes.OrgChart],
-        buildUrl: (context: Context | null) => {
-            return context?.id || '';
+        buildUrl: (context: Context | null, url: string) => {
+            return context && url.includes(context.id) ? url : context?.id || '';
         },
         getContextFromUrl: (url: string) => {
             return url.split('/')[0];

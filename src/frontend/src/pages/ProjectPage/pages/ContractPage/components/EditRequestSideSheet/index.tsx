@@ -85,20 +85,25 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         );
     }, []);
 
-    const { formState, setFormState, isFormDirty, isFormValid ,resetForm} = useForm(
+    const { formState, setFormState, isFormDirty, isFormValid, resetForm } = useForm(
         createDefaultState,
         validateForm,
         defaultState
     );
 
-    const { submit, reset, pendingRequests, failedRequests, successfulRequests, removeFailedRequest } = useSubmitChanges(
-        formState
-    );
+    const {
+        submit,
+        reset,
+        pendingRequests,
+        failedRequests,
+        successfulRequests,
+        removeFailedRequest,
+    } = useSubmitChanges(formState);
 
     const closeSideSheet = React.useCallback(() => {
         reset();
         setEditRequests(null);
-        resetForm()
+        resetForm();
         onClose();
     }, [setEditRequests, resetForm]);
 
