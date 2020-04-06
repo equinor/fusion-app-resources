@@ -55,7 +55,7 @@ const ManagePersonnelPage: React.FC = () => {
         }
 
         try {
-            const result = apiClient.getPersonnelAsync(projectId, contractId);
+            const result = await apiClient.getPersonnelAsync(projectId, contractId);
             getPersonnelWithPositionsAsync();
             return result;
         } catch (error) {
