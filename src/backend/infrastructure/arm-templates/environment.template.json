@@ -4,8 +4,7 @@
     "parameters": {
         "env-name": { "type": "string" },        
         "aad-client-secret": { "type": "securestring" },
-        "sql-connection-string": { "type": "string", "metadata": { "description": "Conection string without username/password"} },
-        "create-hosting-plan": {"type":"bool", "defaultValue": false, "metadata": { "description": "Create host plan for the environment"} }
+        "sql-connection-string": { "type": "string", "metadata": { "description": "Conection string without username/password"} }
     },
     "variables": {
         "env-name": "[toLower(parameters('env-name'))]",
@@ -232,30 +231,6 @@
             "dependsOn": [
                 "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
             ]
-        },
-
-        /* Conditional Host Plan */
-        {
-            "apiVersion": "2018-02-01",
-            "condition": "[parameters('create-hosting-plan')]",
-            "name": "[concat('asp-fap-resources-', variables('env-name'))]",
-            "type": "Microsoft.Web/serverfarms",
-            "location": "[variables('location')]",
-            "kind": "linux",
-            "tags": {
-                "fusion-app": "resources",
-                "fusion-app-env": "[toLower(parameters('env-name'))]",
-                "fusion-app-component-type": "hostingPlan",
-                "fusion-app-component-id": "[concat('resources-asp-', variables('env-name'))]"
-            },
-            "properties": {
-                "name": "[concat('asp-fap-resources-', variables('env-name'))]",
-                "reserved": true
-            },
-            "sku": {
-                "Tier": "PremiumV2",
-                "Name": "P1v2"   
-            }
         }
     ]
 }

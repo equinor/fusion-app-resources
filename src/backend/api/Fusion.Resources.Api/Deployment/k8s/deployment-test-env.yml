@@ -51,6 +51,8 @@ spec:
           value: "{{envKeyVaultUrl}}"
         - name: ENVNAME
           value: "{{ENVNAME}}"
+        - name: FUSION_ENVIRONMENT
+          value: "{{fusionEnvironment}}"
         resources:
           requests:
             memory: "250Mi"
