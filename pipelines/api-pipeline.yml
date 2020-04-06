@@ -197,7 +197,7 @@ stages:
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
                   Inline: |
-                      $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-FPRD
+                      $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-PROD
                       Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
   
               - template: templates/get-appinsights-key.yml
