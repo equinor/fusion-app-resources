@@ -7,6 +7,7 @@ import {
     ErrorMessage,
     AddIcon,
     useTooltipRef,
+    CopyIcon,
 } from '@equinor/fusion-components';
 import { Position, useApiClients, useCurrentContext } from '@equinor/fusion';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -19,7 +20,10 @@ import EditRequestSideSheet from '../../components/EditRequestSideSheet';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import PositionDetailsSideSheet from '../../components/PositionDetailsSideSheet';
 import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
-import { transformPositionsToChangeRequest } from '../../components/EditRequestSideSheet/utils';
+import {
+    transformPositionsToChangeRequest,
+    transformPositionsToCopyRequest,
+} from '../../components/EditRequestSideSheet/utils';
 import { useAppContext } from '../../../../../../appContext';
 
 const ActualMppPage: React.FC = () => {
@@ -97,14 +101,18 @@ const ActualMppPage: React.FC = () => {
     }, []);
 
     const editTooltipRef = useTooltipRef('Create change request for this position');
+    const addRequestTooltipRef = useTooltipRef('Create a new request');
+    const copyTooltipRef = useTooltipRef('Create new request(s) based on selected positions(s)');
 
-    const editSelected = React.useCallback(() => {
-        const transformedPositions = transformPositionsToChangeRequest(
-            selectedPositions,
-            personnel
-        );
-        setEditRequests(transformedPositions);
-    }, [selectedPositions, personnel]);
+    const editSelected = React.useCallback(
+        (copy?: boolean) => {
+            const transformedPositions = copy
+                ? transformPositionsToCopyRequest(selectedPositions, personnel)
+                : transformPositionsToChangeRequest(selectedPositions, personnel);
+            setEditRequests(transformedPositions);
+        },
+        [selectedPositions, personnel]
+    );
 
     if (error) {
         const errorMessage: ErrorMessageProps = {
@@ -132,18 +140,26 @@ const ActualMppPage: React.FC = () => {
                     <IconButton
                         onClick={() => setEditRequests([])}
                         disabled={selectedPositions.length !== 0}
+                        ref={addRequestTooltipRef}
                     >
                         <AddIcon />
                     </IconButton>
-                    <IconButton disabled>
-                        <DeleteIcon />
+                    <IconButton
+                        onClick={() => editSelected(true)}
+                        disabled={selectedPositions.length <= 0}
+                        ref={copyTooltipRef}
+                    >
+                        <CopyIcon />
                     </IconButton>
                     <IconButton
                         ref={editTooltipRef}
-                        onClick={editSelected}
+                        onClick={() => editSelected()}
                         disabled={selectedPositions.length === 0}
                     >
-                        <EditIcon />
+                        <EditIcon outline />
+                    </IconButton>
+                    <IconButton disabled>
+                        <DeleteIcon outline />
                     </IconButton>
                 </div>
                 <SortableTable

@@ -45,6 +45,7 @@ type EditableTableProps<T> = {
     rowIdentifier: keyof T;
     isFetching?: boolean;
     componentState?: EditableTableComponentState;
+    createCopyState?: (items: T) => T;
 };
 
 function EditableTable<T>({
@@ -55,6 +56,7 @@ function EditableTable<T>({
     rowIdentifier,
     isFetching,
     componentState,
+    createCopyState,
 }: EditableTableProps<T>) {
     const [selectedItems, setSelectedItems] = React.useState<T[]>([]);
     const [activeTableCell, setActiveTableCell] = React.useState<HTMLTableCellElement | null>(null);
@@ -87,6 +89,17 @@ function EditableTable<T>({
             setSelectedItems(newSelectedItems);
         },
         [formState, rowIdentifier, selectedItems]
+    );
+
+    const onCopyItems = React.useCallback(
+        (items: T[]) => {
+            if (!createCopyState) {
+                return;
+            }
+            const copyItems = items.map(item => createCopyState(item));
+            setFormState([...formState, ...copyItems]);
+        },
+        [setFormState, createCopyState, formState]
     );
 
     const getTableComponent = React.useCallback(
@@ -232,7 +245,10 @@ function EditableTable<T>({
                             />
                         </td>
                         <td className={classNames(styles.tableRowCell, styles.toolbarCell)}>
-                            <TableToolbar onRemove={() => onRemoveItems([stateItem])} />
+                            <TableToolbar
+                                onRemove={() => onRemoveItems([stateItem])}
+                                onCopy={() => onCopyItems([stateItem])}
+                            />
                         </td>
                         {columns.map(column => (
                             <td
@@ -256,7 +272,8 @@ function EditableTable<T>({
             <Taskbar
                 onAddItem={onAddItem}
                 selectedItems={selectedItems}
-                onRemoveItem={onRemoveItems}
+                onRemoveItems={onRemoveItems}
+                onCopyItems={() => onCopyItems(selectedItems)}
             />
             <div className={styles.container} ref={tableContainerRef}>
                 <table className={styles.table}>

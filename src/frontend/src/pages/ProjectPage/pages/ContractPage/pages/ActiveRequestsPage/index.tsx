@@ -11,6 +11,7 @@ import {
     CheckCircleIcon,
     AddIcon,
     useTooltipRef,
+    CopyIcon,
 } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
@@ -48,6 +49,7 @@ const ActiveRequestsPage: React.FC = () => {
     const addRequestTooltipRef = useTooltipRef('Create a new request');
     const editRequestTooltipRef = useTooltipRef('Edit selected requests');
     const deleteRequestTooltipRef = useTooltipRef('Delete selected request');
+    const copyTooltipRef = useTooltipRef('Create new request(s) based on selected request(s)');
 
     const fetchRequestsAsync = React.useCallback(async () => {
         const contractId = contract?.id;
@@ -77,9 +79,19 @@ const ActiveRequestsPage: React.FC = () => {
         setEditRequests([]);
     }, []);
 
-    const editRequest = React.useCallback(() => {
-        setEditRequests(selectedRequests);
-    }, [selectedRequests]);
+    const editRequest = React.useCallback(
+        (copy?: boolean) => {
+            const requests: PersonnelRequest[] = copy
+                ? selectedRequests.map(s => ({
+                      ...s,
+                      id: '',
+                      originalPositionId: null,
+                  }))
+                : selectedRequests;
+            setEditRequests(requests);
+        },
+        [selectedRequests]
+    );
 
     const onRequestSidesheetClose = React.useCallback(() => {
         setEditRequests(null);
@@ -95,19 +107,27 @@ const ActiveRequestsPage: React.FC = () => {
                             <IconButton onClick={requestPersonnel} ref={addRequestTooltipRef}>
                                 <AddIcon />
                             </IconButton>
+                            
+                            <IconButton
+                                onClick={() => editRequest(true)}
+                                disabled={selectedRequests.length <= 0}
+                                ref={copyTooltipRef}
+                            >
+                                <CopyIcon />
+                            </IconButton>
+                            <IconButton
+                                onClick={() => editRequest()}
+                                disabled={selectedRequests.length <= 0}
+                                ref={editRequestTooltipRef}
+                            >
+                                <EditIcon outline />
+                            </IconButton>
                             <IconButton
                                 disabled={selectedRequests.length <= 0}
                                 ref={deleteRequestTooltipRef}
                                 onClick={deleteRequests}
                             >
-                                {isDeleting ? <Spinner inline small /> : <DeleteIcon />}
-                            </IconButton>
-                            <IconButton
-                                onClick={editRequest}
-                                disabled={selectedRequests.length <= 0}
-                                ref={editRequestTooltipRef}
-                            >
-                                <EditIcon />
+                                {isDeleting ? <Spinner inline small /> : <DeleteIcon outline />}
                             </IconButton>
                         </div>
 

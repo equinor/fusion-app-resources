@@ -5,14 +5,16 @@ import {
     Dropdown,
     CloseIcon,
     MoreIcon,
+    CopyIcon,
 } from '@equinor/fusion-components';
 import * as styles from '../styles.less';
 
 type TableToolbarProps = {
     onRemove?: () => void;
+    onCopy?: () => void;
 };
 
-const TableToolbar: React.FC<TableToolbarProps> = ({ onRemove }) => {
+const TableToolbar: React.FC<TableToolbarProps> = ({ onRemove, onCopy }) => {
     const dropdownController = useDropdownController((_, isOpen, setIsOpen) => (
         <IconButton onClick={() => setIsOpen(!isOpen)}>
             <MoreIcon />
@@ -36,6 +38,12 @@ const TableToolbar: React.FC<TableToolbarProps> = ({ onRemove }) => {
         <div ref={containerRef}>
             <Dropdown controller={dropdownController}>
                 <div className={styles.menuContainer}>
+                    <div className={styles.menuItem} key={'copy'} onClick={() => select(onCopy)}>
+                        <div className={styles.icon}>
+                            <CopyIcon />
+                        </div>
+                        <span className={styles.label}>Copy</span>
+                    </div>
                     <div
                         className={styles.menuItem}
                         key={'remove'}
