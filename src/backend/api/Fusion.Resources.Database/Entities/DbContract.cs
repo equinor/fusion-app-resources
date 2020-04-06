@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 
 namespace Fusion.Resources.Database.Entities
 {
@@ -16,14 +15,6 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset Allocated { get; set; }
         public DbPerson AllocatedBy { get; set; } = null!;
         public Guid AllocatedById { get; set; }
-
-        public string CompanyName { get; set; } = null!;
-
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<DbContract>()
-                .Property(c => c.CompanyName)
-                .HasDefaultValue(string.Empty);
-        }
     }
+
 }

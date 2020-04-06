@@ -31,10 +31,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<Guid>("AllocatedById")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ContractNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

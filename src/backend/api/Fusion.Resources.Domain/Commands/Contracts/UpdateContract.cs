@@ -69,9 +69,6 @@ namespace Fusion.Resources.Domain.Commands
 
                 var updatedContract = await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
 
-                if (string.IsNullOrEmpty(dbContract.CompanyName))
-                    dbContract.CompanyName = updatedContract.Company?.Name ?? string.Empty;
-
                 await resourcesDb.SaveChangesAsync();
 
                 return new QueryContract(dbContract);

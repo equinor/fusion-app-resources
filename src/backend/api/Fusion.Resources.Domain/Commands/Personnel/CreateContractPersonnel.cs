@@ -41,11 +41,13 @@ namespace Fusion.Resources.Domain.Commands
         {
             private readonly IProfileService profileService;
             private readonly ResourcesDbContext resourcesDb;
+            private readonly IProjectOrgResolver resolver;
 
-            public Handler(IProfileService profileService, ResourcesDbContext resourcesDb)
+            public Handler(IProfileService profileService, ResourcesDbContext resourcesDb, IProjectOrgResolver resolver)
             {
                 this.profileService = profileService;
                 this.resourcesDb = resourcesDb;
+                this.resolver = resolver;
             }
 
             public async Task<QueryContractPersonnel> Handle(CreateContractPersonnel request, CancellationToken cancellationToken)
@@ -53,7 +55,6 @@ namespace Fusion.Resources.Domain.Commands
                 var profile = await profileService.ResolveProfileAsync(request.Person);
                 if (profile == null && request.Person.Mail == null)
                     throw new ArgumentException("Cannot create personnel without either a valid azure unique id or mail address");
-
 
                 var personnel = await profileService.EnsureExternalPersonnelAsync(profile?.Mail ?? request.Person.Mail!, request.FirstName, request.LastName);
 
@@ -75,14 +76,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (existingItem != null)
                     throw new InvalidOperationException($"The specified person is already added to the current contract. Added @ {existingItem.Created} by {existingItem.CreatedBy.Mail}");
 
-                //check that this user profile does not exist in other companies
-                var allocatedToOtherCompanies = await resourcesDb.ContractPersonnel
-                    .Where(c => c.PersonId == personnel.Id)
-                    .Select(c => c.Contract.CompanyName)
-                    .AnyAsync(c => c.ToLower() != contract.CompanyName.ToLower());
-
-                if (allocatedToOtherCompanies)
-                    throw new InvalidOperationException("Personnel is allocated to contract belonging to another company. He/she cannot be allocated to this contract");
+                await EnsureUserNotAllocatedToOtherCompanies(personnel, project, contract);
 
                 var newItem = new DbContractPersonnel
                 {
@@ -97,6 +91,32 @@ namespace Fusion.Resources.Domain.Commands
                 await resourcesDb.SaveChangesAsync();
 
                 return new QueryContractPersonnel(newItem);
+            }
+
+            private async Task EnsureUserNotAllocatedToOtherCompanies(DbExternalPersonnelPerson personnel, DbProject project, DbContract contract)
+            {
+                var newContractInfo = await resolver.ResolveContractAsync(project.OrgProjectId, contract.OrgContractId);
+
+                if (newContractInfo is null)
+                    throw new InvalidOperationException($"Could not locate the new contract info in Pro Org service. Aborting request creation.");
+
+                //check that this user profile does not exist in other companies
+                var existingContractIds = await resourcesDb.ContractPersonnel
+                    .Where(c => c.PersonId == personnel.Id)
+                    .Select(c => c.Contract.OrgContractId)
+                    .ToListAsync();
+
+                foreach (var contractId in existingContractIds)
+                {
+                    var existingContract = await resolver.ResolveContractAsync(project.OrgProjectId, contract.OrgContractId);
+
+                    if (existingContract == null)
+                        throw new InvalidOperationException($"Could not find contract '{contractId}' for existing allocation in Pro Org service. Aborting request creation.");
+
+                    if (newContractInfo.Company.Id != existingContract.Company.Id)
+                        throw new InvalidOperationException($"Personnel is allocated to contract belonging to company '{existingContract.Company.Name}'. " +
+                            $"He/she cannot be allocated to this contract, which is for company '{newContractInfo.Company.Name}'");
+                }
             }
 
             private void UpdatePerson(DbExternalPersonnelPerson dbPersonnel, CreateContractPersonnel request)
