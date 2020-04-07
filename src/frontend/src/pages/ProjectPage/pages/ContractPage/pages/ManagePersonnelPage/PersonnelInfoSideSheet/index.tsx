@@ -94,12 +94,16 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         if (activeTabKey !== 'general') return [];
         return editMode
             ? [
-                  <IconButton disabled={!isFormValid} onClick={savePersonChangesAsync}>
+                  <IconButton
+                      key="DoneButton"
+                      disabled={!isFormValid}
+                      onClick={savePersonChangesAsync}
+                  >
                       <DoneIcon />
                   </IconButton>,
               ]
             : [
-                  <IconButton onClick={() => setEditMode(true)}>
+                  <IconButton key="EditButton" onClick={() => setEditMode(true)}>
                       <EditIcon />
                   </IconButton>,
               ];

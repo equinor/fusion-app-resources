@@ -15,6 +15,7 @@ import { appReducer, createInitialState } from './reducers/appReducer';
 import useCollectionReducer from './hooks/useCollectionReducer';
 import ServiceNowApiClient from './api/ServiceNowApiClient';
 import { getResourceApiBaseUrl, getFunctionsBaseUrl } from './api/env';
+import HelpPage from './pages/HelpPage';
 
 const App: React.FC = () => {
     const fusionContext = useFusionContext();
@@ -73,6 +74,8 @@ const App: React.FC = () => {
         >
             <Switch>
                 <Route path="/" exact component={LandingPage} />
+                <Route path="/help" component={HelpPage} exact />
+
                 <Route path="/:projectId" component={ProjectPage} />
             </Switch>
         </AppContext.Provider>
@@ -85,7 +88,9 @@ registerApp('resources', {
     context: {
         types: [ContextTypes.OrgChart],
         buildUrl: (context: Context | null, url: string) => {
-            return context && url.includes(context.id) ? url : context?.id || '';
+            return (context && url.includes(context.id)) || url.includes('/help')
+                ? url
+                : context?.id || '';
         },
         getContextFromUrl: (url: string) => {
             return url.split('/')[0];
