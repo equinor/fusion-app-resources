@@ -62,7 +62,7 @@ const WorkflowPopover: React.FC<WorkflowPopoverProps> = ({ step, provisioningSta
             {createItemField('description', 'Description', () =>
                 step.description.length > 0 ? step.description : 'N/A'
             )}
-            {step.isCompleted && step.state === 'Rejected' ? createItemField('reasong', 'Reason', () =>
+            {step.isCompleted && step.state === 'Rejected' ? createItemField('reason', 'Reason', () =>
                 step.reason || ""
             ) : null}
         </div>
