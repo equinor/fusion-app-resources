@@ -6,7 +6,7 @@ export const getResourceApiBaseUrl = (env: FusionEnvironment) => {
             return 'https://resources-api.fqa.fusion-dev.net';
 
         case 'FPRD':
-            return 'https://resources-api.fprd.fusion-dev.net';
+            return 'https://fap-resources-api-fprd.azurewebsites.net';
     }
 
     return 'https://resources-api.ci.fusion-dev.net';
