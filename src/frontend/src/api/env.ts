@@ -23,3 +23,11 @@ export const getFunctionsBaseUrl = (env: FusionEnvironment) => {
 
     return 'https://pro-f-common-CI.azurewebsites.net';
 };
+
+export const getFusionAppId = () => {
+    if('clientId' in window) {
+        return (window as any)['clientId'];
+    }
+
+    return '5a842df8-3238-415d-b168-9f16a6a6031b';
+};
