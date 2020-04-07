@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {        
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "hosting-plan": "asp-fap-resources-prod"
+    },
+    "resources": [   
+        {
+            "apiVersion": "2018-02-01",
+            "name": "[variables('hosting-plan')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[variables('location')]",
+            "kind": "linux",
+            "tags": {
+                "fusion-app": "resources",
+                "fusion-app-env": "hosting-prod",
+                "fusion-app-component-type": "hostingPlan",
+                "fusion-app-component-id": "[concat('resources-asp-prod')]"
+            },
+            "properties": {
+                "name": "[variables('hosting-plan')]",
+                "reserved": true
+            },
+            "sku": {
+                "Tier": "PremiumV2",
+                "Name": "P1v2"   
+            }
+        }
+    ]
+}

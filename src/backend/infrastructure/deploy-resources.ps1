@@ -1,6 +1,7 @@
 param(
     [string]$environment,
-    [string]$clientId
+    [string]$clientId,
+    [string]$clientSecretName
 )
 
 Write-Host "Starting deployment of general resources"
@@ -11,7 +12,6 @@ $envKeyVault = "kv-fap-resources-$environment"
 Write-Host "Using resource group $resourceGroup"      
 
 
-$clientSecretName = "ClientSecret-Resources-Test"
 $adClientSecret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name $clientSecretName
 
 Write-Host "Deploying template"
