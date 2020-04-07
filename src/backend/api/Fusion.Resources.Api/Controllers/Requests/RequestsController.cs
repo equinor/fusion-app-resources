@@ -55,7 +55,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromQuery]ODataQueryParams query)
         {
             #region Authorization
 
@@ -76,7 +76,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId).WithQuery(query));
             return new ApiContractPersonnelRequest(request);
         }
 

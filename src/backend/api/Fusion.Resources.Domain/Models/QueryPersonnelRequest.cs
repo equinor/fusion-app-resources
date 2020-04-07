@@ -1,6 +1,7 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Resources.Database.Entities;
 using System;
+using System.Collections.Generic;
 
 #nullable enable
 
@@ -63,10 +64,19 @@ namespace Fusion.Resources.Domain
         public QueryWorkflow Workflow { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
 
+        public IEnumerable<QueryRequestComment>? Comments { get; set; }
+
         internal QueryPersonnelRequest WithResolvedOriginalPosition(ApiPositionV2 originalPosition)
         {
             OriginalPositionId = originalPosition.Id;
             ResolvedOriginalPosition = originalPosition;
+
+            return this;
+        }
+
+        internal QueryPersonnelRequest WithComments(IEnumerable<QueryRequestComment> comments)
+        {
+            Comments = comments;
 
             return this;
         }
