@@ -4,7 +4,13 @@ import { AzureAdStatusTextFormat, AzureAdStatusColor } from './components/AzureA
 
 const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] => {
     const uniqueAdStatus = personnel
-        .map(p => p?.azureAdStatus || 'NoAccount')
+        .map((p) => p?.azureAdStatus || 'NoAccount')
+        .filter((d, i, l) => l.indexOf(d) === i);
+
+    const uniqueDisciplines = personnel
+        .reduce<string[]>((arr, p) => {
+            return arr.concat(p.disciplines?.map((d) => d.name));
+        }, [])
         .filter((d, i, l) => l.indexOf(d) === i);
 
     return [
@@ -16,13 +22,13 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                     key: 'search-filter',
                     type: FilterTypes.Search,
                     title: '',
-                    getValue: p =>
+                    getValue: (p) =>
                         p.name +
                         (p.firstName || '') +
                         (p.lastName || '') +
                         p.mail +
                         p.phoneNumber +
-                        (p.disciplines?.map(d => d.name).join(' ') || ''),
+                        (p.disciplines?.map((d) => d.name).join(' ') || ''),
                 },
             ],
         },
@@ -32,10 +38,22 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
             isCollapsible: true,
             filters: [
                 {
+                    key: 'discipline-filter',
+                    title: 'Disciplines',
+                    type: FilterTypes.Checkbox,
+                    getValue: (p) => p.disciplines?.map((d) => d.name).join(' ') || '',
+                    isVisibleWhenPaneIsCollapsed: true,
+                    isCollapsible: true,
+                    options: uniqueDisciplines.map((discipline) => ({
+                        key: discipline,
+                        label: discipline || '(none)',
+                    })),
+                },
+                {
                     key: 'azureAdStatus',
                     title: 'AD Status',
                     type: FilterTypes.Checkbox,
-                    getValue: p => p?.azureAdStatus || 'NoAccount',
+                    getValue: (p) => p?.azureAdStatus || 'NoAccount',
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
 
