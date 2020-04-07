@@ -154,8 +154,7 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                                     {rejectedStep.completed
                                         ? moment(rejectedStep.completed).fromNow()
                                         : ''}{' '}
-                                    by {rejectedStep.completedBy?.firstName}{' '}
-                                    {rejectedStep.completedBy?.lastName}
+                                    by {rejectedStep.completedBy?.name}
                                 </h3>
                                 <div className={styles.rejectedReason}>
                                     <h6>Reason</h6>

@@ -8,7 +8,13 @@
     }
 
     .rejectedReasonContainer {
+        padding-top: 0;
         color: var(--color-danger-hover);
+
+        h3 {
+            font-size: 16px;
+            line-height: 24px;
+        }
 
         .rejectedReason {
             background-color: var(--color-danger-highlight);
@@ -19,6 +25,17 @@
                 font-size: 10px;
                 margin: 0;
                 line-height: 16px;
+                font-weight: normal;
+            }
+
+            p {
+                margin-top: 0;
+                font-size: 16px;
+                line-height: 20px;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
             }
         }
     }
