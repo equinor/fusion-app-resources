@@ -30,7 +30,7 @@
         "uuid": "^7.0.1"
     },
     "devDependencies": {
-        "@equinor/fusion-cli": "^1.0.24",
+        "@equinor/fusion-cli": "^1.0.25",
         "@types/history": "^4.7.2",
         "@types/react": "^16.9.0",
         "@types/react-router-dom": "^5.1.3",
