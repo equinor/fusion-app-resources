@@ -31,10 +31,10 @@ const getFilterSections = (positions: Position[]): FilterSection<Position>[] => 
             isCollapsible: true,
             filters: [
                 {
-                    key: 'base-positions',
-                    title: 'Base positions',
+                    key: 'discipline-filter',
+                    title: 'Disciplines',
                     type: FilterTypes.Checkbox,
-                    getValue: position => position.basePosition.name,
+                    getValue: position => position.basePosition.discipline,
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
                     options: uniqueDisciplines.map(discipline => ({

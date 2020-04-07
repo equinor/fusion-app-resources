@@ -16,7 +16,7 @@ export const transFormRequest = (
 
     return personnelRequest.map(req => ({
         id: uuid(),
-        requestId: req.id,
+        requestId: req.id.length === 0 ? null : req.id,
         positionId: req.position?.id || '',
         appliesFrom: req.position?.appliesFrom || null,
         appliesTo: req.position?.appliesTo || null,
@@ -54,18 +54,23 @@ const transformPositionToRequestPosition = (
     };
 };
 
-const transformPositionDetailsToPersonnel = (position: Position, personnel: Personnel[]): Personnel | null => {
+const transformPositionDetailsToPersonnel = (
+    position: Position,
+    personnel: Personnel[]
+): Personnel | null => {
     const instance = position.instances[0];
     if (!instance) {
         return null;
     }
+    return personnel.find(p => p.mail.toLowerCase() === instance.assignedPerson?.mail?.toLowerCase()) || null;
+};
 
-    return personnel.find(p => p.mail === instance.assignedPerson?.mail) || null;
-}
-
-export const transformPositionsToChangeRequest = (positions: Position[], personnel: Personnel[]): PersonnelRequest[] => {
+export const transformPositionsToChangeRequest = (
+    positions: Position[],
+    personnel: Personnel[]
+): PersonnelRequest[] => {
     return positions.map<PersonnelRequest>(p => ({
-        id: "",
+        id: '',
         created: new Date(),
         state: 'Created',
         description: '',
@@ -77,6 +82,30 @@ export const transformPositionsToChangeRequest = (positions: Position[], personn
         originalPosition: transformPositionToRequestPosition(p),
         originalPositionId: p.id,
         originalPerson: transformPositionDetailsToPersonnel(p, personnel),
+        createdBy: null,
+        workflow: null,
+        provisioningStatus: null,
+        lastActivity: null,
+    }));
+};
+
+export const transformPositionsToCopyRequest = (
+    positions: Position[],
+    personnel: Personnel[]
+): PersonnelRequest[] => {
+    return positions.map<PersonnelRequest>(p => ({
+        id: '',
+        created: new Date(),
+        state: 'Created',
+        description: '',
+        position: transformPositionToRequestPosition(p),
+        person: transformPositionDetailsToPersonnel(p, personnel),
+        contract: null,
+        project: null,
+        comments: [],
+        originalPosition: null,
+        originalPositionId:null,
+        originalPerson: null,
         createdBy: null,
         workflow: null,
         provisioningStatus: null,
@@ -124,3 +153,10 @@ export const createDefaultState = (originalPosition?: Position): EditRequest[] =
         originalPositionId: originalPosition?.id || null,
     },
 ];
+
+export const createCopyState = (request: EditRequest): EditRequest => ({
+    ...request,
+    id: uuid(),
+    requestId: null,
+    originalPositionId: null,
+})
