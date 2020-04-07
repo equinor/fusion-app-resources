@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
 
-                options.UseDefaultEndpointResolver(Configuration["FUSION_ENV"] ?? "ci");
+                options.UseDefaultEndpointResolver(Configuration["FUSION_ENVIRONMENT"] ?? "ci");
                 options.UseDefaultTokenProvider(opts =>
                 {
                     opts.ClientId = Configuration["AzureAd:ClientId"];

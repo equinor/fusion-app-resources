@@ -26,7 +26,15 @@
             }
         },
         "client-id": { "type": "string" },
-        "clientsecret-secret-id": { "type": "string" }
+        "clientsecret-secret-id": { "type": "string" },
+        "hosting": { 
+            "type": "object",
+            "defaultValue": {
+                "name": "server-farm-name",
+                "id": "server-farm-id"
+            },
+            "metadata": { "description": "The hosting plan to run the web app on" }
+        }
     },
     "variables": {
         "env-name": "[toLower(parameters('env-name'))]",
@@ -34,33 +42,9 @@
         "location": "[resourceGroup().location]",
         "api-name": "[concat('fap-resources-api-', variables('env-name'))]",
         "keyvault-name": "[concat('kv-fap-resources-', variables('env-name'))]",
-        "ai-api-name": "[concat('ai-fap-resources-', variables('env-name'))]",
-        "hosting-plan": "[concat('asp-fap-resources-', variables('env-name'))]"
+        "ai-api-name": "[concat('ai-fap-resources-', variables('env-name'))]"
     },
     "resources": [   
-        /* Conditional Host Plan */
-        {
-            "apiVersion": "2018-02-01",
-            "name": "[variables('hosting-plan')]",
-            "type": "Microsoft.Web/serverfarms",
-            "location": "[variables('location')]",
-            "kind": "linux",
-            "tags": {
-                "fusion-app": "resources",
-                "fusion-app-env": "[toLower(parameters('env-name'))]",
-                "fusion-app-component-type": "hostingPlan",
-                "fusion-app-component-id": "[concat('resources-asp-', variables('env-name'))]"
-            },
-            "properties": {
-                "name": "[concat('asp-fap-resources-', variables('env-name'))]",
-                "reserved": true
-            },
-            "sku": {
-                "Tier": "PremiumV2",
-                "Name": "P1v2"   
-            }
-        },
-
         /* API SERVICE */      
         {
             "apiVersion": "2018-11-01",            
@@ -77,7 +61,6 @@
                 "type": "SystemAssigned"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('hosting-plan'))]"
             ],
             "properties": {
                 "name": "[variables('api-name')]",
@@ -110,7 +93,7 @@
                         },
                         {
                             "name": "AzureAd__ClientSecret",
-                            "value": "[parameters('clientsecret-secret-id')]"
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('clientsecret-secret-id'), ')')]"
                         },
                         {
                             "name": "FUSION_ENVIRONMENT",
@@ -133,12 +116,11 @@
                     "appCommandLine": "[parameters('docker').startupCommand]",
                     "alwaysOn": true
                 },
-                "serverFarmId": "[resourceId(resourceGroup().name, 'Microsoft.Web/serverfarms', variables('hosting-plan'))]",
-                "hostingEnvironment": "[variables('hosting-plan')]",
+                "serverFarmId": "[parameters('hosting').id]",
+                "hostingEnvironment": "[parameters('hosting').name]",
                 "clientAffinityEnabled": false
             }
         },
-
         {
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(variables('keyvault-name'), '/add')]",
