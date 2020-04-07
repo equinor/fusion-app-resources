@@ -1,23 +1,13 @@
-﻿using Bogus;
-using Fusion.Integration.Profile;
+﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
+using Fusion.Authorization;
+using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Fusion.Integration;
-using Fusion.Resources.Domain.Queries;
-using Fusion.Resources.Domain;
-using Microsoft.Extensions.DependencyInjection;
-using MediatR;
-using Fusion.Resources.Domain.Commands;
-using Fusion.AspNetCore.OData;
-using Fusion.Resources.Api.Middleware;
-using Microsoft.AspNetCore.Http;
-using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Resources.Api.Authorization;
-using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -223,7 +213,7 @@ namespace Fusion.Resources.Api.Controllers
             using (var scope = await BeginTransactionAsync())
             {
                 await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Approve(request.Id));
-                
+
                 await scope.CommitAsync();
             }
 
@@ -321,8 +311,37 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        #region Comments
+
+        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments")]
+        public async Task<ActionResult<ApiRequestComment>> AddCommentToRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] CreateRequestComment create)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            //var result = await DispatchAsync(new )
+            return new ApiRequestComment();
+        }
+
+        #endregion Comments
 
         #region Options
+
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult> CheckAccessCreateRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
@@ -333,6 +352,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
                 });
             });
 
@@ -375,6 +395,31 @@ namespace Fusion.Resources.Api.Controllers
             if (request is null)
                 return FusionApiError.NotFound(requestId, "Could not locate request");
 
+            #region "Comment"
+
+            if (actionName.ToLower() == "comment")
+            {
+                var commentAuthResult = await Request.RequireAuthorizationAsync(r =>
+                {
+                    r.AlwaysAccessWhen().FullControl();
+
+                    r.AnyOf(or =>
+                    {
+                        or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                        or.BeContractorInContract(contractIdentifier);
+                    });
+                });
+
+                if (commentAuthResult.Success)
+                    Response.Headers.Add("Allow", "POST");
+                else
+                    Response.Headers.Add("Allow", "");
+
+                return NoContent();
+            }
+
+            #endregion
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
@@ -393,11 +438,8 @@ namespace Fusion.Resources.Api.Controllers
 
             return NoContent();
         }
+
         #endregion
 
-
-        
     }
-
-
 }
