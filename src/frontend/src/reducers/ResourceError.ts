@@ -1,18 +1,18 @@
-type AccessRequirement = {
+export type AccessRequirement = {
     code: string;
     description: string;
     outcome: string;
     wasEvaluated: boolean;
 };
 
-type ResourceResponse = {
+export type ResourceResponse = {
     error: ResourceResponseError;
 };
 
-type ResourceResponseError = {
+export type ResourceResponseError = {
     code: string;
     message: string;
-    accessRequirement?: AccessRequirement[];
+    accessRequirements?: AccessRequirement[];
 };
 
 interface ResourceError extends Error {

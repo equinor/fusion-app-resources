@@ -5,13 +5,13 @@ import {
     IconButton,
     DeleteIcon,
     EditIcon,
-    ErrorMessage,
     CloseCircleIcon,
     styling,
     Spinner,
     CheckCircleIcon,
     AddIcon,
     useTooltipRef,
+    CopyIcon,
 } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
@@ -28,7 +28,7 @@ import useRequestApproval from '../../hooks/useRequestApproval';
 import RejectPersonnelSideSheet from '../../components/RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
 import useRequestDeletion from '../../hooks/useRequestDeletion';
-import { ErrorMessageProps } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
+import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
@@ -49,6 +49,7 @@ const ActiveRequestsPage: React.FC = () => {
     const addRequestTooltipRef = useTooltipRef('Create a new request');
     const editRequestTooltipRef = useTooltipRef('Edit selected requests');
     const deleteRequestTooltipRef = useTooltipRef('Delete selected request');
+    const copyTooltipRef = useTooltipRef('Create new request(s) based on selected request(s)');
 
     const fetchRequestsAsync = React.useCallback(async () => {
         const contractId = contract?.id;
@@ -57,7 +58,7 @@ const ActiveRequestsPage: React.FC = () => {
             return [];
         }
 
-        return apiClient.getPersonnelRequestsAsync(projectId, contractId, "active");
+        return apiClient.getPersonnelRequestsAsync(projectId, contractId, 'active');
     }, [contract, currentContext]);
     const { data: activeRequests, isFetching, error } = useReducerCollection(
         contractState,
@@ -78,116 +79,124 @@ const ActiveRequestsPage: React.FC = () => {
         setEditRequests([]);
     }, []);
 
-    const editRequest = React.useCallback(() => {
-        setEditRequests(selectedRequests);
-    }, [selectedRequests]);
+    const editRequest = React.useCallback(
+        (copy?: boolean) => {
+            const requests: PersonnelRequest[] = copy
+                ? selectedRequests.map(s => ({
+                      ...s,
+                      id: '',
+                      originalPositionId: null,
+                  }))
+                : selectedRequests;
+            setEditRequests(requests);
+        },
+        [selectedRequests]
+    );
 
     const onRequestSidesheetClose = React.useCallback(() => {
         setEditRequests(null);
         setSelectedRequests([]);
     }, []);
 
-    if (error) {
-        const errorMessage: ErrorMessageProps = {
-            hasError: true,
-        };
-
-        switch (error.statusCode) {
-            case 403:
-                errorMessage.errorType = 'accessDenied';
-                errorMessage.message = error.response.error.message;
-                errorMessage.resourceName = 'Active Requests';
-                break;
-            default:
-                errorMessage.errorType = 'error';
-                break;
-        }
-
-        return <ErrorMessage {...errorMessage} />;
-    }
-
     return (
         <div className={styles.activeRequestsContainer}>
-            <div className={styles.activeRequests}>
-                <div className={styles.toolbar}>
-                    <div>
-                        <IconButton onClick={requestPersonnel} ref={addRequestTooltipRef}>
-                            <AddIcon />
-                        </IconButton>
-                        <IconButton
-                            disabled={selectedRequests.length <= 0}
-                            ref={deleteRequestTooltipRef}
-                            onClick={deleteRequests}
-                        >
-                            {isDeleting ? <Spinner inline small /> : <DeleteIcon />}
-                        </IconButton>
-                        <IconButton
-                            onClick={editRequest}
-                            disabled={selectedRequests.length <= 0}
-                            ref={editRequestTooltipRef}
-                        >
-                            <EditIcon />
-                        </IconButton>
-                    </div>
+            <ResourceErrorMessage error={error}>
+                <div className={styles.activeRequests}>
+                    <div className={styles.toolbar}>
+                        <div>
+                            <IconButton onClick={requestPersonnel} ref={addRequestTooltipRef}>
+                                <AddIcon />
+                            </IconButton>
+                            
+                            <IconButton
+                                onClick={() => editRequest(true)}
+                                disabled={selectedRequests.length <= 0}
+                                ref={copyTooltipRef}
+                            >
+                                <CopyIcon />
+                            </IconButton>
+                            <IconButton
+                                onClick={() => editRequest()}
+                                disabled={selectedRequests.length <= 0}
+                                ref={editRequestTooltipRef}
+                            >
+                                <EditIcon outline />
+                            </IconButton>
+                            <IconButton
+                                disabled={selectedRequests.length <= 0}
+                                ref={deleteRequestTooltipRef}
+                                onClick={deleteRequests}
+                            >
+                                {isDeleting ? <Spinner inline small /> : <DeleteIcon outline />}
+                            </IconButton>
+                        </div>
 
-                    <div className={styles.buttonContainer}>
-                        <Button
-                            outlined
-                            disabled={!canReject}
-                            onClick={() => setRejectRequest(selectedRequests)}
-                        >
-                            <div className={styles.buttonIcon}>
-                                {isRejecting ? (
-                                    <Spinner small inline />
-                                ) : (
-                                    <CloseCircleIcon
-                                        width={styling.numericalGrid(2)}
-                                        height={styling.numericalGrid(2)}
-                                    />
-                                )}
-                            </div>
-                            Reject
-                        </Button>
-                        <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
-                            <div className={styles.buttonIcon}>
-                                {isApproving ? (
-                                    <Spinner small inline />
-                                ) : (
-                                    <CheckCircleIcon
-                                        width={styling.numericalGrid(2)}
-                                        height={styling.numericalGrid(2)}
-                                    />
-                                )}
-                            </div>
-                            Approve
-                        </Button>
+                        <div className={styles.buttonContainer}>
+                            {canReject && (
+                                <Button
+                                    outlined
+                                    disabled={!canReject}
+                                    onClick={() => setRejectRequest(selectedRequests)}
+                                >
+                                    <div className={styles.buttonIcon}>
+                                        {isRejecting ? (
+                                            <Spinner small inline />
+                                        ) : (
+                                            <CloseCircleIcon
+                                                width={styling.numericalGrid(2)}
+                                                height={styling.numericalGrid(2)}
+                                            />
+                                        )}
+                                    </div>
+                                    Reject
+                                </Button>
+                            )}
+                            {canApprove && (
+                                <Button
+                                    disabled={!canApprove}
+                                    onClick={() => canApprove && approve()}
+                                >
+                                    <div className={styles.buttonIcon}>
+                                        {isApproving ? (
+                                            <Spinner small inline />
+                                        ) : (
+                                            <CheckCircleIcon
+                                                width={styling.numericalGrid(2)}
+                                                height={styling.numericalGrid(2)}
+                                            />
+                                        )}
+                                    </div>
+                                    Approve
+                                </Button>
+                            )}
+                        </div>
                     </div>
+                    <SortableTable
+                        data={filteredActiveRequests || []}
+                        columns={columns}
+                        rowIdentifier="id"
+                        isFetching={isFetching && !activeRequests.length}
+                        isSelectable
+                        selectedItems={selectedRequests}
+                        onSelectionChange={setSelectedRequests}
+                    />
                 </div>
-                <SortableTable
-                    data={filteredActiveRequests || []}
-                    columns={columns}
-                    rowIdentifier="id"
-                    isFetching={isFetching && !activeRequests.length}
-                    isSelectable
-                    selectedItems={selectedRequests}
-                    onSelectionChange={setSelectedRequests}
+                <GenericFilter
+                    data={activeRequests}
+                    filterSections={filterSections}
+                    onFilter={setFilteredActiveRequests}
                 />
-            </div>
-            <GenericFilter
-                data={activeRequests}
-                filterSections={filterSections}
-                onFilter={setFilteredActiveRequests}
-            />
-            <EditRequestSideSheet
-                initialRequests={editRequests}
-                onClose={onRequestSidesheetClose}
-            />
-            <RequestDetailsSideSheet requests={activeRequests} />
-            <RejectPersonnelSideSheet
-                requests={rejectRequest}
-                setRequests={setRejectRequest}
-                onReject={reason => reject(reason)}
-            />
+                <EditRequestSideSheet
+                    initialRequests={editRequests}
+                    onClose={onRequestSidesheetClose}
+                />
+                <RequestDetailsSideSheet requests={activeRequests} />
+                <RejectPersonnelSideSheet
+                    requests={rejectRequest}
+                    setRequests={setRejectRequest}
+                    onReject={reason => reject(reason)}
+                />
+            </ResourceErrorMessage>
         </div>
     );
 };

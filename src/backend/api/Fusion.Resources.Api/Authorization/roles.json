@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Fusion.Resources.FullControl",
+    "displayName": "Fusion Resources Full Control",
+    "sourceSystem": "Fusion.Resources",
+    "type": "global",
+    "onDemandSupport": true
+  }
+]

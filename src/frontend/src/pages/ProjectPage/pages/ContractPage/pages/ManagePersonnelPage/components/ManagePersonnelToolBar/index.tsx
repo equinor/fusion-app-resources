@@ -42,7 +42,7 @@ const ManagePersonnelToolBar: React.FC<ToolBarProps> = ({
                     onClick={deleteButton?.onClick}
                     disabled={deleteButton?.disabled}
                 >
-                    <DeleteIcon color={deleteButton?.iconColor} />
+                    <DeleteIcon color={deleteButton?.iconColor} outline />
                 </IconButton>
             )}
             {editButton && (
@@ -51,7 +51,7 @@ const ManagePersonnelToolBar: React.FC<ToolBarProps> = ({
                     onClick={editButton?.onClick}
                     disabled={editButton?.disabled}
                 >
-                    <EditIcon color={editButton?.iconColor} />
+                    <EditIcon color={editButton?.iconColor} outline />
                 </IconButton>
             )}
         </div>

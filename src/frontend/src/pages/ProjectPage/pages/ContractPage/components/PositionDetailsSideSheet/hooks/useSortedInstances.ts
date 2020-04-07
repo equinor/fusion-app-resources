@@ -1,6 +1,6 @@
 import * as React from "react";
 import { PositionInstance } from "@equinor/fusion";
-import { sortInstancesByFrom, sortInstancesByTo } from "../orgHelpers";
+import { sortInstancesByFrom, sortInstancesByTo } from "../../../../../orgHelpers";
 
 type SortedInstances = {
     instancesByFrom: PositionInstance[],

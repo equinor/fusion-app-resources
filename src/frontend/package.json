@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@equinor/fusion": "^1.1.2",
-        "@equinor/fusion-components": "^1.1.70",
+        "@equinor/fusion-components": "^1.1.74",
         "@types/classnames": "^2.2.9",
         "@types/deep-equal": "^1.0.1",
         "classnames": "^2.2.6",
@@ -30,7 +30,7 @@
         "uuid": "^7.0.1"
     },
     "devDependencies": {
-        "@equinor/fusion-cli": "^1.0.15",
+        "@equinor/fusion-cli": "^1.0.24",
         "@types/history": "^4.7.2",
         "@types/react": "^16.9.0",
         "@types/react-router-dom": "^5.1.3",

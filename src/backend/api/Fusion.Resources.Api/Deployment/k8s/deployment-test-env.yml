@@ -49,6 +49,8 @@ spec:
           value: "{{instrumentationKey}}"
         - name: KEYVAULT_URL
           value: "{{envKeyVaultUrl}}"
+        - name: ENVNAME
+          value: "{{ENVNAME}}"
         resources:
           requests:
             memory: "250Mi"
