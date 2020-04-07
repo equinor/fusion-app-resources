@@ -1,11 +1,6 @@
 ﻿using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Reflection;
 
 #nullable disable
 
@@ -32,6 +27,7 @@ namespace Fusion.Resources.Database
         public DbSet<DbContract> Contracts { get; set; }
         public DbSet<DbProject> Projects { get; set; }
         public DbSet<DbContractorRequest> ContractorRequests { get; set; }
+        public DbSet<DbRequestComment> RequestComments { get; set; }
 
         public DbSet<DbExternalPersonnelPerson> ExternalPersonnel { get; set; }
 
@@ -45,6 +41,7 @@ namespace Fusion.Resources.Database
             DbContractorRequest.OnModelCreating(modelBuilder);
             DbWorkflow.OnModelCreating(modelBuilder);
             DbWorkflowStep.OnModelCreating(modelBuilder);
+            DbRequestComment.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -58,6 +55,6 @@ namespace Fusion.Resources.Database
             optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
         }
 
-        
+
     }
 }

@@ -2,6 +2,7 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -314,7 +315,7 @@ namespace Fusion.Resources.Api.Controllers
         #region Comments
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments")]
-        public async Task<ActionResult<ApiRequestComment>> AddCommentToRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] CreateRequestComment create)
+        public async Task<ActionResult> AddRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] CreateRequestComment create)
         {
             #region Authorization
 
@@ -334,8 +335,62 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            //var result = await DispatchAsync(new )
-            return new ApiRequestComment();
+            await DispatchAsync(new AddComment(requestId, create.Content, create.Origin.ToString()));
+
+            return NoContent();
+        }
+
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> UpdateRequestComment(
+            [FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] UpdateRequestComment update)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new UpdateComment(commentId, update.Content));
+
+            return NoContent();
+        }
+
+        [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> DeleteRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new DeleteComment(commentId));
+
+            return NoContent();
         }
 
         #endregion Comments

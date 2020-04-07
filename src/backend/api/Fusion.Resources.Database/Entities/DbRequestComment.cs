@@ -9,6 +9,8 @@ namespace Fusion.Resources.Database.Entities
 
         public string Comment { get; set; } = null!;
 
+        public string Origin { get; set; } = null!;
+
         public DateTimeOffset Created { get; set; }
 
         public Guid CreatedById { get; set; }
