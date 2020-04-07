@@ -37,7 +37,7 @@ const ContractsOverviewPage = () => {
                         <Button relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
                             Allocate contract
                         </Button>
-                        <Link target="_blank" to="/help?general-flow">
+                        <Link target="_blank" to="/help?responsibilities">
                             <IconButton ref={helpIconRef}>
                                 <HelpIcon />
                             </IconButton>

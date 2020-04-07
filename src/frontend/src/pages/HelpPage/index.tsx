@@ -26,7 +26,7 @@ const RoleDescription: React.FC<RoleDescriptionProps> = ({ title, icon, children
 };
 
 const HelpPage: React.FC = () => {
-    const [activeKey, setActiveKey] = React.useState('general-flow');
+    const [activeKey, setActiveKey] = React.useState('responsibilities');
     const history = useHistory();
 
     const onTabKeyChange = React.useCallback(
@@ -48,38 +48,25 @@ const HelpPage: React.FC = () => {
         <div className={styles.helpContainer}>
             <Tabs activeTabKey={activeKey} onChange={onTabKeyChange}>
                 <Tab
-                    tabKey="general-flow"
-                    isCurrent={activeKey === 'general-flow'}
-                    title="General flow"
+                    tabKey="responsibilities"
+                    isCurrent={activeKey === 'responsibilities'}
+                    title="Responsibilities"
                 >
                     <div className={styles.tabContainer}>
                         <div className={styles.rolesContainer}>
                             <h2>Roles</h2>
                             <RoleDescription
-                                title="Responsible - procurement"
-                                icon={<ContractorAccount />}
-                            >
-                                The responsible person for planning, coordinating and executing the
-                                procurement process, and with a delegated authority to commit the
-                                company towards suppliers, ensuring right quality and commercial
-                                terms.
-                            </RoleDescription>
-                            <RoleDescription
-                                title="Responsible - company representative (CR)"
+                                title="Equinor"
                                 icon={<EquinorAccount />}
-                            >
-                                This role acts as the company's single point of contact towards the
-                                contractor/supplier when the agreement has been awarded. Agreement
-                                is a collective term which covers contracts, amendments, purchase
-                                orders and framework agreements. This role acts as the leader of the
-                                agreement team
-                            </RoleDescription>
-                            <RoleDescription title="System account" icon={<SystemAccount />}>
-                                System account is a function that is automatically triggered
-                            </RoleDescription>
+                            />
+                            <RoleDescription
+                                title="Contractor"
+                                icon={<ContractorAccount />}
+                            />
+                            <RoleDescription title="System account" icon={<SystemAccount />} />
                         </div>
                         <div className={styles.helpContent}>
-                            <h2 className={styles.title}>General flow</h2>
+                            <h2 className={styles.title}>Responsibilities</h2>
                             <GeneralFlow />
                         </div>
                     </div>
@@ -87,7 +74,7 @@ const HelpPage: React.FC = () => {
                 <Tab
                     tabKey="request-flow"
                     isCurrent={activeKey === 'request-flow'}
-                    title="Request flow"
+                    title="Personnel request flow"
                 >
                     <div className={styles.tabContainer}>
                         <div className={styles.rolesContainer}>
@@ -116,7 +103,7 @@ const HelpPage: React.FC = () => {
                         </div>
 
                         <div className={styles.helpContent}>
-                            <h2 className={styles.title}>New and Edit - Request flow</h2>
+                            <h2 className={styles.title}>New and Edit - Personnel request flow</h2>
                             <RequestFlow />
                         </div>
                     </div>
