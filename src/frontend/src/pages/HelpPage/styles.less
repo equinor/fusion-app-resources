@@ -3,20 +3,61 @@
     height: 100%;
     display: flex;
 
-    .helpContent {
+    > div {
         width: 100%;
+    }
 
-        .tabContainer {
+    .tabContainer {
+        width: 100%;
+        height: 100%;
+        display: flex;
+
+        .helpContent{
             background-color: var(--color-black-alt5);
             padding: calc(var(--grid-unit) * 3px);
             display: flex;
             flex-direction: column;
             align-items: center;
-            
+            flex: 1;
 
             .title {
                 padding-bottom: calc(var(--grid-unit) * 2px);
             }
+        }
+    }
+}
+
+.rolesContainer {
+    height: calc(100% - (var(--grid-unit) * 4px));
+    width: calc(var(--grid-unit) * 47px);
+    display: flex;
+    padding: 0 calc(var(--grid-unit) * 4px);
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--color-black-alt4);
+    
+    &:first-child {
+        padding-top: calc(var(--grid-unit) * 4px);
+    }
+   
+
+    .roleDescription {
+        padding-top: calc(var(--grid-unit) * 4px);
+        display: flex;
+        flex-direction: column;
+        
+        .header {
+            display: flex;
+            align-items: center;
+            
+            .title {
+                font-weight: 500;
+                font-size: 16px;
+                padding-left: calc(var(--grid-unit) * 1px);
+            }
+        }
+        .content {
+            padding-top: calc(var(--grid-unit) * 2px);
         }
     }
 }

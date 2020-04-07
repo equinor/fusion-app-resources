@@ -11,6 +11,7 @@ import {
     CheckCircleIcon,
     AddIcon,
     useTooltipRef,
+    HelpIcon,
 } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
@@ -28,6 +29,7 @@ import RejectPersonnelSideSheet from '../../components/RejectRequestSideSheet';
 import useRequestRejection from '../../hooks/useRequestRejection';
 import useRequestDeletion from '../../hooks/useRequestDeletion';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
+import { Link } from 'react-router-dom';
 
 const ActiveRequestsPage: React.FC = () => {
     const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
@@ -48,6 +50,7 @@ const ActiveRequestsPage: React.FC = () => {
     const addRequestTooltipRef = useTooltipRef('Create a new request');
     const editRequestTooltipRef = useTooltipRef('Edit selected requests');
     const deleteRequestTooltipRef = useTooltipRef('Delete selected request');
+    const helpIconRef = useTooltipRef('Help page', 'below');
 
     const fetchRequestsAsync = React.useCallback(async () => {
         const contractId = contract?.id;
@@ -149,6 +152,13 @@ const ActiveRequestsPage: React.FC = () => {
                                     Approve
                                 </Button>
                             )}
+                            <div className={styles.helpButton}>
+                                <Link target="_blank" to="/help?request-flow">
+                                    <IconButton ref={helpIconRef}>
+                                        <HelpIcon />
+                                    </IconButton>
+                                </Link>
+                            </div>
                         </div>
                     </div>
                     <SortableTable
