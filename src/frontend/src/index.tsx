@@ -14,7 +14,7 @@ import AppContext from './appContext';
 import { appReducer, createInitialState } from './reducers/appReducer';
 import useCollectionReducer from './hooks/useCollectionReducer';
 import ServiceNowApiClient from './api/ServiceNowApiClient';
-import { getResourceApiBaseUrl, getFunctionsBaseUrl } from './api/env';
+import { getResourceApiBaseUrl, getFunctionsBaseUrl, getFusionAppId } from './api/env';
 import HelpPage from './pages/HelpPage';
 
 const App: React.FC = () => {
@@ -38,11 +38,11 @@ const App: React.FC = () => {
     );
 
     React.useEffect(() => {
-        fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
+        fusionContext.auth.container.registerAppAsync(getFusionAppId(), [
             resourceBaseUrl,
         ]);
 
-        fusionContext.auth.container.registerAppAsync('5a842df8-3238-415d-b168-9f16a6a6031b', [
+        fusionContext.auth.container.registerAppAsync(getFusionAppId(), [
             functionsBaseUrl,
         ]);
     }, []);
