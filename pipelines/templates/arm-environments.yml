@@ -45,6 +45,6 @@ steps:
       FailOnStandardError: true
       azurePowerShellVersion: 'LatestVersion'
       ScriptPath: src/backend/infrastructure/deploy-resources.ps1
-      ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }}
+      ScriptArguments: -environment ${{ parameters.environment }} -clientId ${{ parameters.clientId }} -clientSecretName ${{ parameters.clientSecretName }}
       
   

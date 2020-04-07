@@ -51,6 +51,10 @@ spec:
           value: "{{envKeyVaultUrl}}"
         - name: ENVNAME
           value: "{{ENVNAME}}"
+        - name: FUSION_ENVIRONMENT
+          value: "{{fusionEnvironment}}"
+        - name: AzureAd__ClientId
+          value: "{{clientId}}"
         resources:
           requests:
             memory: "250Mi"

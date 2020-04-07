@@ -5,6 +5,7 @@
         "header header"
         "started completed"
         "completedBy completedBy"
+        "reason reason"
         "description description";
     width: calc(var(--grid-unit) * 36px);
     height: calc(var(--grid-unit) * 30px);
@@ -52,6 +53,11 @@
 
     .description {
         grid-area: description;
+    }
+
+    .reason {
+        grid-area: reason;
+        color: var(--color-danger-hover);
     }
 
     .stepPerson {
