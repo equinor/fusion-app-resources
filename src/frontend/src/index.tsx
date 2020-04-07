@@ -88,7 +88,6 @@ registerApp('resources', {
     context: {
         types: [ContextTypes.OrgChart],
         buildUrl: (context: Context | null, url: string) => {
-            console.log(url)
             return (context && url.includes(context.id)) || url.includes('/help')
                 ? url
                 : context?.id || '';
