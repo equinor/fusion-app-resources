@@ -8,7 +8,7 @@
         "reason reason"
         "description description";
     width: calc(var(--grid-unit) * 36px);
-    height: calc(var(--grid-unit) * 30px);
+    min-height: calc(var(--grid-unit) * 30px);
 
     .textField {
         display: flex;
@@ -58,6 +58,7 @@
     .reason {
         grid-area: reason;
         color: var(--color-danger-hover);
+        margin-bottom: calc(var(--grid-unit) * 1px);
     }
 
     .stepPerson {
