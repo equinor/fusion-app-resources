@@ -6,6 +6,7 @@ import {
     IconButton,
     EditIcon,
     DoneIcon,
+    Spinner,
 } from '@equinor/fusion-components';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import Personnel from '../../../../../../../models/Personnel';
@@ -30,9 +31,11 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
 }) => {
     const [activeTabKey, setActiveTabKey] = React.useState<string>('general');
     const [editMode, setEditMode] = React.useState<boolean>(false);
+    const [isSaving, setIsSaving] = React.useState<boolean>(false);
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
+
     const notification = useNotificationCenter();
 
     const createDefaultState = () => {
@@ -67,6 +70,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         }
 
         try {
+            setIsSaving(true);
             const response = await apiClient.updatePersonnelAsync(
                 currentContext.id,
                 contractId,
@@ -80,8 +84,10 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
             });
 
             dispatchContractAction({ verb: 'merge', collection: 'personnel', payload: [response] });
+            setIsSaving(false);
             setEditMode(false);
         } catch (e) {
+            setIsSaving(false);
             notification({
                 level: 'high',
                 title:
@@ -96,10 +102,10 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
             ? [
                   <IconButton
                       key="DoneButton"
-                      disabled={!isFormValid}
+                      disabled={isSaving || !isFormValid}
                       onClick={savePersonChangesAsync}
                   >
-                      <DoneIcon />
+                      {isSaving ? <Spinner inline /> : <DoneIcon />}
                   </IconButton>,
               ]
             : [
@@ -107,7 +113,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
                       <EditIcon />
                   </IconButton>,
               ];
-    }, [editMode, activeTabKey, savePersonChangesAsync, isFormValid]);
+    }, [editMode, activeTabKey, savePersonChangesAsync, isFormValid, isSaving]);
 
     return (
         <ModalSideSheet
