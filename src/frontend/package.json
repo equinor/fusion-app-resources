@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@equinor/fusion": "^1.1.2",
-        "@equinor/fusion-components": "^1.1.74",
+        "@equinor/fusion-components": "^1.1.75",
         "@types/classnames": "^2.2.9",
         "@types/deep-equal": "^1.0.1",
         "classnames": "^2.2.6",

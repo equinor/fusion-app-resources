@@ -24,6 +24,8 @@ import useRequestRejection from '../../hooks/useRequestRejection';
 import EditablePositionDetails from '../EditablePositionDetails';
 import PersonPositionsDetails from '../PersonPositionsDetails';
 import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
+import * as moment from 'moment';
+import classNames from 'classnames';
 
 type RequestDetailsSideSheetProps = {
     requests: PersonnelRequest[] | null;
@@ -66,10 +68,17 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
     );
 
     const { personnel } = usePersonnel();
-    const originalPersonnel = personnel.find(p => p.mail === currentRequest?.originalPerson?.mail);
+    const originalPersonnel = personnel.find(
+        (p) => p.mail === currentRequest?.originalPerson?.mail
+    );
 
     const isRequestCompleted = React.useMemo(
         () => !!(currentRequest?.state === 'ApprovedByCompany'),
+        [currentRequest]
+    );
+
+    const rejectedStep = React.useMemo(
+        () => currentRequest?.workflow?.steps.find((s) => s.state === 'Rejected'),
         [currentRequest]
     );
 
@@ -133,6 +142,26 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                                 />
                             )}
                         </div>
+                        {rejectedStep ? (
+                            <div
+                                className={classNames(
+                                    styles.container,
+                                    styles.rejectedReasonContainer
+                                )}
+                            >
+                                <h3>
+                                    Rejected{' '}
+                                    {rejectedStep.completed
+                                        ? moment(rejectedStep.completed).fromNow()
+                                        : ''}{' '}
+                                    by {rejectedStep.completedBy?.name}
+                                </h3>
+                                <div className={styles.rejectedReason}>
+                                    <h6>Reason</h6>
+                                    <p>{rejectedStep.reason}</p>
+                                </div>
+                            </div>
+                        ) : null}
                         <div className={styles.separator} />
                         <div className={styles.container}>
                             <Accordion>
@@ -204,7 +233,7 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
             <RejectPersonnelSideSheet
                 requests={rejectRequest}
                 setRequests={setRejectRequest}
-                onReject={reason => reject(reason)}
+                onReject={(reason) => reject(reason)}
             />
         </ModalSideSheet>
     );
