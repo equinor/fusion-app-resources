@@ -53,24 +53,6 @@ stages:
                     appName: $(functionServiceName)
                     package: $(webPackage)
                     deploymentMethod: 'runFromPackage'
-                # - task: AzureRmWebAppDeployment@3
-                #   displayName: 'Deploy service bin files'
-                #   inputs:
-                #     azureSubscription: $(subscriptionService)
-                #     WebAppName: $(functionServiceName)
-                #     Package: $(webPackage)
-                #     useCustomDeployment: true
-                #     deploymentMethod: 'webDeploy'
-                #     appOffline: true
-                #     removeAdditionalFilesFlag: true
-                #     renameFilesFlag: true
-                
-                # - task: AzureAppServiceManage@0
-                #   displayName: 'Restart function app'
-                #   inputs:
-                #     azureSubscription: $(subscriptionService)
-                #     WebAppName: $(functionServiceName)
-                #     Action: 'Restart Azure App Service'
 
     - stage: DeployFQA
       displayName: FQA
@@ -96,7 +78,7 @@ stages:
                   parameters:
                     envName: $(environment)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-                    fusionEnvironment: ci
+                    fusionEnvironment: fqa
                     
                 - task: AzureFunctionApp@1
                   inputs:
@@ -106,24 +88,41 @@ stages:
                     package: $(webPackage)
                     deploymentMethod: 'runFromPackage'
 
-                # - task: AzureRmWebAppDeployment@3
-                #   displayName: 'Deploy service bin files'
-                #   inputs:
-                #     azureSubscription: $(subscriptionService)
-                #     WebAppName: $(functionServiceName)
-                #     Package: $(webPackage)
-                #     useCustomDeployment: true
-                #     deploymentMethod: 'webDeploy'
-                #     appOffline: true
-                #     removeAdditionalFilesFlag: true
-                #     renameFilesFlag: true
-                
-                # - task: AzureAppServiceManage@0
-                #   displayName: 'Restart function app'
-                #   inputs:
-                #     azureSubscription: $(subscriptionService)
-                #     WebAppName: $(functionServiceName)
-                #     Action: 'Restart Azure App Service'
+    - stage: DeployFPRD
+      displayName: FPRD
+      dependsOn: DeployFQA
+      condition: succeeded()
+      
+      variables:
+        environment: 'fprd'
+        functionServiceName: func-fap-resources-$(environment)
+    
+      jobs:
+      - deployment: Deploy
+        pool: Private Docker
+    
+        displayName: 'Deploy function app'
+        environment: fusion-prod
+    
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/deploy-function-template.yml
+                  parameters:
+                    envName: $(environment)
+                    clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
+                    fusionEnvironment: fprd
+                    
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(subscriptionService)
+                    appType: 'functionApp'
+                    appName: $(functionServiceName)
+                    package: $(webPackage)
+                    deploymentMethod: 'runFromPackage'
+
+
                     
                     
   
