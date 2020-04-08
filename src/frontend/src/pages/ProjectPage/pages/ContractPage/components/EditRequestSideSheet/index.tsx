@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
+import { ModalSideSheet, Button, Spinner, IconButton, HelpIcon, useTooltipRef } from '@equinor/fusion-components';
 import { useContractContext } from '../../../../../../contractContex';
 import columns from './columns';
 import { BasePosition, Position } from '@equinor/fusion';
@@ -15,6 +15,8 @@ import RequestProgressSidesheet from './components/RequestProgressSidesheet';
 import useBasePositions from '../../../../../../hooks/useBasePositions';
 import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
 import { ReadonlyCollection } from '../../../../../../reducers/utils';
+import { Link } from 'react-router-dom';
+import * as styles from "./styles.less"
 
 export type EditRequest = {
     id: string;
@@ -44,6 +46,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
     const { isFetchingContract } = useContractContext();
     const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
     const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
+    const helpIconRef = useTooltipRef('Help page', 'below');
 
     React.useEffect(() => {
         if (initialRequests) {
@@ -141,6 +144,13 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                 </Button>,
             ]}
         >
+            <div className={styles.helpButton}>
+                <Link target="_blank" to="/help?request-flow">
+                    <IconButton ref={helpIconRef}>
+                        <HelpIcon />
+                    </IconButton>
+                </Link>
+            </div>
             <EditableTable
                 columns={columns}
                 createDefaultState={createDefaultState}

@@ -6,6 +6,7 @@ import {
     IconButton,
     EditIcon,
     DoneIcon,
+    Spinner,
 } from '@equinor/fusion-components';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import Personnel from '../../../../../../../models/Personnel';
@@ -30,9 +31,11 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
 }) => {
     const [activeTabKey, setActiveTabKey] = React.useState<string>('general');
     const [editMode, setEditMode] = React.useState<boolean>(false);
+    const [isSaving, setIsSaving] = React.useState<boolean>(false);
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
+
     const notification = useNotificationCenter();
 
     const createDefaultState = () => {
@@ -67,6 +70,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         }
 
         try {
+            setIsSaving(true);
             const response = await apiClient.updatePersonnelAsync(
                 currentContext.id,
                 contractId,
@@ -80,8 +84,10 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
             });
 
             dispatchContractAction({ verb: 'merge', collection: 'personnel', payload: [response] });
+            setIsSaving(false);
             setEditMode(false);
         } catch (e) {
+            setIsSaving(false);
             notification({
                 level: 'high',
                 title:
@@ -94,16 +100,20 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         if (activeTabKey !== 'general') return [];
         return editMode
             ? [
-                  <IconButton disabled={!isFormValid} onClick={savePersonChangesAsync}>
-                      <DoneIcon />
+                  <IconButton
+                      key="DoneButton"
+                      disabled={isSaving || !isFormValid}
+                      onClick={savePersonChangesAsync}
+                  >
+                      {isSaving ? <Spinner inline /> : <DoneIcon />}
                   </IconButton>,
               ]
             : [
-                  <IconButton onClick={() => setEditMode(true)}>
+                  <IconButton key="EditButton" onClick={() => setEditMode(true)}>
                       <EditIcon />
                   </IconButton>,
               ];
-    }, [editMode, activeTabKey, savePersonChangesAsync, isFormValid]);
+    }, [editMode, activeTabKey, savePersonChangesAsync, isFormValid, isSaving]);
 
     return (
         <ModalSideSheet

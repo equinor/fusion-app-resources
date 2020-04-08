@@ -69,7 +69,7 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
     const dropDownOptions = React.useMemo(() => {
         const disciplineOptions: SearchableDropdownOption[] = [];
         return basePositions.reduce((d, b): SearchableDropdownOption[] => {
-            if (d.some(d => d.key === b.discipline) || !b.discipline.length) return d;
+            if (d.some((d) => d.key === b.discipline) || !b.discipline.length) return d;
 
             d.push({
                 title: b.discipline,
@@ -113,11 +113,9 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
                                     person.lastName || '',
                                     setField('lastName')
                                 )}
-                                {createEditField(
-                                    'Dawinci',
-                                    person.dawinciCode || '',
-                                    setField('dawinciCode')
-                                )}
+                            </div>
+                            <div className={styles.row}>
+                                {createTextField('E-Mail', person.mail || '')}
                             </div>
                             <div className={styles.row}>
                                 {createEditField(
@@ -125,7 +123,11 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
                                     person.phoneNumber,
                                     setField('phoneNumber')
                                 )}
-                                {createTextField('E-Mail', person.mail || '')}
+                                {createEditField(
+                                    'Dawinci',
+                                    person.dawinciCode || '',
+                                    setField('dawinciCode')
+                                )}
                                 {createTextField(
                                     'AD Status',
                                     AzureAdStatusIcon(person.azureAdStatus || 'NoAccount'),
@@ -138,11 +140,13 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
                             <div className={styles.row}>
                                 {createTextField('First name', person.firstName || '')}
                                 {createTextField('Last name', person.lastName || '')}
-                                {createTextField('Dawinci', person.dawinciCode || '')}
+                            </div>
+                            <div className={styles.row}>
+                                {createTextField('E-Mail', person.mail || '')}
                             </div>
                             <div className={styles.row}>
                                 {createTextField('Phone', person.phoneNumber || '')}
-                                {createTextField('E-Mail', person.mail || '')}
+                                {createTextField('Dawinci', person.dawinciCode || '')}
                                 {createTextField(
                                     'AD Status',
                                     AzureAdStatusIcon(person.azureAdStatus || 'NoAccount'),
@@ -161,7 +165,7 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
                     </div>
                 ) : (
                     <div className={styles.disciplinesChips}>
-                        {person.disciplines.map(d => (
+                        {person.disciplines.map((d) => (
                             <div key={d.name} className={styles.disciplineChip}>
                                 {d.name}
                             </div>

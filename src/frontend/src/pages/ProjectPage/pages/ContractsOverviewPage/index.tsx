@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCurrentContext, combineUrls } from '@equinor/fusion';
-import { Button, ErrorMessage } from '@equinor/fusion-components';
+import { Button, ErrorMessage, IconButton, HelpIcon, useTooltipRef } from '@equinor/fusion-components';
 import * as styles from './styles.less';
 import createColumns from './Columns';
 import useContracts from './hooks/useContracts';
@@ -9,6 +9,7 @@ import getFilterSections from './getFilterSections';
 import Contract from '../../../../models/contract';
 import SortableTable from '../../../../components/SortableTable';
 import ResourceErrorMessage from '../../../../components/ResourceErrorMessage';
+import { Link } from 'react-router-dom';
 
 const ContractsOverviewPage = () => {
     const currentProject = useCurrentContext();
@@ -26,6 +27,7 @@ const ContractsOverviewPage = () => {
         () => contractsError !== null || (!isFetchingContracts && !contracts.length),
         [contractsError, isFetchingContracts]
     );
+    const helpIconRef = useTooltipRef("Help page", "left");
 
     return (
         <div className={styles.container}>
@@ -35,6 +37,11 @@ const ContractsOverviewPage = () => {
                         <Button relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
                             Allocate contract
                         </Button>
+                        <Link target="_blank" to="/help?responsibilities">
+                            <IconButton ref={helpIconRef}>
+                                <HelpIcon />
+                            </IconButton>
+                        </Link>
                     </div>
                     <div className={styles.table}>
                         <ErrorMessage

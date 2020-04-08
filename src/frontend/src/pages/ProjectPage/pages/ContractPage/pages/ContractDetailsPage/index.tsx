@@ -8,10 +8,12 @@ import {
     IconButton,
     EditIcon,
     useTooltipRef,
+    HelpIcon,
 } from '@equinor/fusion-components';
 import { formatDate, Position, useHistory, useCurrentContext } from '@equinor/fusion';
 import Contract from '../../../../../../models/contract';
 import { getInstances, isInstanceFuture, isInstancePast } from '../../../../orgHelpers';
+import { Link } from 'react-router-dom';
 
 const createFieldWithSkeleton = (
     name: string,
@@ -121,6 +123,8 @@ const ExternalContractResponsible = () =>
 
 const ContractDetailsPage = () => {
     const editTooltipRef = useTooltipRef('Edit contract', 'left');
+    const helpIconRef = useTooltipRef('help page', 'left');
+
     const history = useHistory();
     const contractContext = useContractContext();
     const currentContext = useCurrentContext();
@@ -154,6 +158,11 @@ const ContractDetailsPage = () => {
                 >
                     <EditIcon />
                 </IconButton>
+                <Link target="_blank" to="/help?responsibilities">
+                    <IconButton ref={helpIconRef}>
+                        <HelpIcon />
+                    </IconButton>
+                </Link>
             </div>
         </div>
     );
