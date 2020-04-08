@@ -114,7 +114,8 @@
                     ],
                     "linuxFxVersion": "[concat('DOCKER|', parameters('docker').image)]",
                     "appCommandLine": "[parameters('docker').startupCommand]",
-                    "alwaysOn": true
+                    "alwaysOn": true,
+                    "healthCheckPath": "/_health/liveness"
                 },
                 "serverFarmId": "[parameters('hosting').id]",
                 "hostingEnvironment": "[parameters('hosting').name]",

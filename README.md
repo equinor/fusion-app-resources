@@ -10,6 +10,8 @@ First features consists of:
 
 ## Manage contract personnel
 
+[Documentation](docs/contract-management.md)
+
 Contracts will be allocated on demand, by contract number, retrieved from common lib/SAP.
 
 When the contract is allocated, company can assign contractor comp rep & contract responsible. These will be the first positions added to the contract.
@@ -22,8 +24,8 @@ After the personnel is defined, they can be used when creating requests. The ext
 
 # Technical
 
-POC / MVP service design:
-https://github.com/equinor/fusion/blob/technical/resource-service/services/resources.md (resource service branch)
+Initial POC / MVP service design:
+https://github.com/equinor/fusion/blob/technical/resource-service/services/resources.md
 
 ## Infrastructure
 The app will manage it's own infrastructure. This includes separate Azure AD App Registration.
