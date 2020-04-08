@@ -48,14 +48,14 @@ A guest account in the company Azure AD. This means the user can sign in to the 
 > Once a user is added to the personnel list, the system will do a check to see if that user has an affiliate account. This is indicated with a **gray**/**yellow**/**green** icon. 
 > 
 > ![#a6a6a6](https://placehold.it/15/cacaca/000000?text=+) **Gray** indicates the user does not have an account.</br>
-> ![#f0b913](https://placehold.it/15/f0b913/000000?text=+) **Yellow** means the user has **not** accepted the invitation yet, so he cannot sign in.</br>
+> ![#f0b913](https://placehold.it/15/f0b913/000000?text=+) **Yellow** means the user has **not** accepted the invitation yet. That results in the user not being able to sign in.</br>
 > ![#1fcf00](https://placehold.it/15/1fcf00/000000?text=+) **Green** the user can sign in and use company services. 
 
 > ### 3.1 Requests - create/submitt
 > ![#d66dd3](https://placehold.it/15/d66dd3/000000?text=+) CR/PR and any other users with a position in the contract can create requests to add personnel to the contract.
 > If a non CR/PR user creates the request, the CR/PR has to approve for the request to be submitted to the ![#6f30a0](https://placehold.it/15/6f30a0/000000?text=+) CR for approval.
 >  
->  **If a person is not available for requests, the user might not have a yellow/green status**
+>  **If a person is not available for requests, the user might not have a green status**
 
 > ### 3.2 Requests - approve
 >  ![#6f30a0](https://placehold.it/15/6f30a0/000000?text=+) CR receives the request for approval. The  CR can review the request information, like position information and suggested person. 
