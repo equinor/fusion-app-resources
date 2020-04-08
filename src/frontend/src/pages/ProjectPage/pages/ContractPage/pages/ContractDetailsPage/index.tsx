@@ -158,7 +158,7 @@ const ContractDetailsPage = () => {
                 >
                     <EditIcon />
                 </IconButton>
-                <Link target="_blank" to="/help?general-flow">
+                <Link target="_blank" to="/help?responsibilities">
                     <IconButton ref={helpIconRef}>
                         <HelpIcon />
                     </IconButton>
