@@ -344,17 +344,23 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult> UpdateRequestComment(
             [FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment == null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
-
+                r.AnyOf(r => r.BeCommentAuthor(comment));
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
+
             });
 
             if (authResult.Unauthorized)
@@ -370,17 +376,23 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
         public async Task<ActionResult> DeleteRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId)
         {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment == null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
-
+                r.AnyOf(r => r.BeCommentAuthor(comment));
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
+
             });
 
             if (authResult.Unauthorized)

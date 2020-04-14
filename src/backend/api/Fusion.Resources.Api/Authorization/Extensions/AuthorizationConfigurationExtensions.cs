@@ -1,9 +1,5 @@
 ﻿using Fusion.Resources.Api.Authorization.Handlers;
 using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -14,6 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAuthorizationHandler, ContractRoleAuthHandler>();
             services.AddScoped<IAuthorizationHandler, ProjectAccessAuthHandler>();
             services.AddScoped<IAuthorizationHandler, RequestAccessAuthHandler>();
+            services.AddScoped<IAuthorizationHandler, RequestCommentAuthorHandler>();
 
             return services;
         }

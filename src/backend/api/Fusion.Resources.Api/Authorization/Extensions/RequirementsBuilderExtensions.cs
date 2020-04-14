@@ -4,9 +4,7 @@ using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 
 namespace Fusion.Resources.Api.Controllers
@@ -30,7 +28,7 @@ namespace Fusion.Resources.Api.Controllers
                 .RequireAssertion(ctx =>
                 {
                     var contractProjectIds = ctx.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey("projectId"))
-                        .Select(c => {Guid.TryParse(c.Properties["projectId"], out Guid projectId); return projectId; });
+                        .Select(c => { Guid.TryParse(c.Properties["projectId"], out Guid projectId); return projectId; });
 
                     return contractProjectIds.Any(pid => pid == project.ProjectId);
 
@@ -45,7 +43,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(ctx =>
-                {                    
+                {
                     var contractContractIds = ctx.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey("contractId"))
                         .Select(c => { Guid.TryParse(c.Properties["contractId"], out Guid projectId); return projectId; });
 
@@ -75,6 +73,13 @@ namespace Fusion.Resources.Api.Controllers
         public static IAuthorizationRequirementRule RequestAccess(this IAuthorizationRequirementRule builder, RequestAccess level, QueryPersonnelRequest request)
         {
             builder.AddRule(request, level);
+
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule BeCommentAuthor(this IAuthorizationRequirementRule builder, QueryRequestComment comment)
+        {
+            builder.AddRule(comment, new RequestCommentAuthor());
 
             return builder;
         }
