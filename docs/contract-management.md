@@ -29,11 +29,11 @@ Common library will provide list available contracts for a specific project (pro
 A guest account in the company Azure AD. This means the user can sign in to the company systems using their own e-mail. To get this account; **1.** the e-mail must be invited; **2.** the user receives a mail with a link; **3** the user has to follow the link and agree to the company terms.
 
 # Request flow
-<p align="center">  <img src="https://github.com/equinor/fusion-app-resources/blob/docs/contract-management/docs/images/contracts-request-flow.svg">  </p>
+<p align="center">  <img src="https://github.com/equinor/fusion-app-resources/blob/master/docs/images/contracts-request-flow.svg">  </p>
 
 ## The overall process
 
-<p align="center">  <img src="https://github.com/equinor/fusion-app-resources/blob/docs/contract-management/docs/images/contracts-general-process.svg">  </p>
+<p align="center">  <img src="https://github.com/equinor/fusion-app-resources/blob/master/docs/images/contracts-general-process.svg">  </p>
 
 >  ### 1. Allocation
 > The contract is allocated by a company employ with correct permission. This permission is granted to persons with procurement positions in the selected project, or super-users with said permission for all projects.
