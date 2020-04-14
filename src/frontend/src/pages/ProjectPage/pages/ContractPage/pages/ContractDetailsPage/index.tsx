@@ -123,7 +123,7 @@ const ExternalContractResponsible = () =>
 
 const ContractDetailsPage = () => {
     const editTooltipRef = useTooltipRef('Edit contract', 'left');
-    const helpIconRef = useTooltipRef('help page', 'left');
+    const helpIconRef = useTooltipRef('Help page', 'left');
 
     const history = useHistory();
     const contractContext = useContractContext();
@@ -158,7 +158,7 @@ const ContractDetailsPage = () => {
                 >
                     <EditIcon />
                 </IconButton>
-                <Link target="_blank" to="/help?responsibilities">
+                <Link target="_blank" to="/help">
                     <IconButton ref={helpIconRef}>
                         <HelpIcon />
                     </IconButton>

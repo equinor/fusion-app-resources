@@ -145,7 +145,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
             ]}
         >
             <div className={styles.helpButton}>
-                <Link target="_blank" to="/help?request-flow">
+                <Link target="_blank" to="/help">
                     <IconButton ref={helpIconRef}>
                         <HelpIcon />
                     </IconButton>
