@@ -1,3 +1,11 @@
+trigger: 
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - frontend/Apps/pro-org/package.json
+
 pr: none
 
 stages:
