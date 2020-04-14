@@ -133,7 +133,7 @@ namespace Fusion.Resources.Domain.Services
                     JobTitle = profile.JobTitle,
                     Mail = profile.Mail,
                     Name = profile.Name,
-                    Phone = profile.MobilePhone
+                    Phone = profile.MobilePhone ?? string.Empty
                 };
 
                 await resourcesDb.Persons.AddAsync(person);
