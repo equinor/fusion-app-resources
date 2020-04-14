@@ -3,6 +3,8 @@ trigger:
     include:
     - master
   paths:
+    include:
+    - frontend/*
     exclude:
     - README.md
     - k8s/*
