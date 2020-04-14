@@ -11,7 +11,7 @@ const HelpPage: React.FC = () => {
     const githubApiClient = React.useMemo(
         () =>
             new GithubApiClient(
-                'https://raw.githubusercontent.com/equinor/fusion-app-resources/50a02e82a9115610a34510053c76cfd86a49b4e2'
+                'https://raw.githubusercontent.com/equinor/fusion-app-resources/master'
             ),
         []
     );
