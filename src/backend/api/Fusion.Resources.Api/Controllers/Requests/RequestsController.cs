@@ -315,7 +315,7 @@ namespace Fusion.Resources.Api.Controllers
         #region Comments
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments")]
-        public async Task<ActionResult> AddRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] CreateRequestComment create)
+        public async Task<ActionResult> AddRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
         {
             #region Authorization
 
@@ -335,14 +335,14 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            await DispatchAsync(new AddComment(requestId, create.Content, create.Origin.ToString()));
+            await DispatchAsync(new AddComment(requestId, create.Content));
 
             return NoContent();
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
         public async Task<ActionResult> UpdateRequestComment(
-            [FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] UpdateRequestComment update)
+            [FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
             #region Authorization
 

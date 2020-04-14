@@ -15,7 +15,7 @@ namespace Fusion.Resources.Domain
             UpdatedBy = comment.UpdatedBy != null ? new QueryPerson(comment.UpdatedBy) : null;
 
             Content = comment.Comment;
-            Origin = comment.Origin;
+            Origin = comment.Origin.ToString();
         }
 
         public Guid Id { get; set; }

@@ -1,16 +1,12 @@
 ﻿using FluentValidation;
-using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class CreateRequestComment
+    public class RequestCommentRequest
     {
         public string Content { get; set; } = null!;
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public CommentOrigin Origin { get; set; }
-
-        public class Validator : AbstractValidator<CreateRequestComment>
+        public class Validator : AbstractValidator<RequestCommentRequest>
         {
             public Validator()
             {
@@ -18,7 +14,5 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(c => c.Content).NotContainScriptTag().WithMessage("Detected dangerous content in comment");
             }
         }
-
-        public enum CommentOrigin { Contractor, Company }
     }
 }

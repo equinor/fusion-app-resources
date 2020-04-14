@@ -17,6 +17,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (Enum.TryParse<ApiCommentOrigin>(queryComment.Origin, true, out var result))
                 Origin = result;
+            else
+                Origin = ApiCommentOrigin.Unknown;
         }
 
         public DateTimeOffset Created { get; set; }
@@ -28,7 +30,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiCommentOrigin Origin { get; set; }
-        
-        public enum ApiCommentOrigin { Company, Contractor }
+
+        public enum ApiCommentOrigin { Company, Contractor, Unknown }
     }
 }

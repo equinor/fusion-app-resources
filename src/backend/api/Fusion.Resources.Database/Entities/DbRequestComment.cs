@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 
 namespace Fusion.Resources.Database.Entities
@@ -9,7 +10,7 @@ namespace Fusion.Resources.Database.Entities
 
         public string Comment { get; set; } = null!;
 
-        public string Origin { get; set; } = null!;
+        public DbOrigin Origin { get; set; }
 
         public DateTimeOffset Created { get; set; }
 
@@ -31,6 +32,9 @@ namespace Fusion.Resources.Database.Entities
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbRequestComment>(c => c.HasIndex(p => p.RequestId).IsClustered(false));
+            modelBuilder.Entity<DbRequestComment>(c => c.Property(e => e.Origin).HasConversion(new EnumToStringConverter<DbOrigin>()));
         }
+
+        public enum DbOrigin { Company, Contractor }
     }
 }

@@ -10,20 +10,15 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class AddComment : TrackableRequest
     {
-        public AddComment(Guid requestId, string comment, string origin)
+        public AddComment(Guid requestId, string comment)
         {
             RequestId = requestId;
             Comment = comment;
-            Origin = origin;
         }
 
         public Guid RequestId { get; }
 
         public string Comment { get; }
-
-        public string Origin { get; }
-
-        public Guid CreatedById { get; set; }
 
         public class Handler : AsyncRequestHandler<AddComment>
         {
@@ -41,11 +36,19 @@ namespace Fusion.Resources.Domain.Commands
                 if (contractorRequest == null)
                     throw new InvalidOperationException($"Contractor request with id '{command.RequestId}' was not found");
 
+                var origin = command.Editor.Person.AccountType.ToLower() switch
+                {
+                    "consultant" => DbRequestComment.DbOrigin.Company,
+                    "employee" => DbRequestComment.DbOrigin.Company,
+                    "external" => DbRequestComment.DbOrigin.Contractor,
+                    _ => throw new InvalidOperationException("Unable to resolve origin. Aborting add operation.")
+                };
+
                 var comment = new DbRequestComment
                 {
                     Id = Guid.NewGuid(),
                     Comment = command.Comment,
-                    Origin = command.Origin,
+                    Origin = origin,
                     Created = DateTimeOffset.UtcNow,
                     CreatedById = command.Editor.Person.Id,
                     RequestId = command.RequestId
