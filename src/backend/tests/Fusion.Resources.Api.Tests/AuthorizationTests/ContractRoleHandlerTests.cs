@@ -2,9 +2,9 @@ using Bogus;
 using FluentAssertions;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
+using Fusion.Integration.Org;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Api.Authorization.Handlers;
-using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Moq;
 using System;
@@ -32,7 +32,7 @@ namespace Fusion.Resources.Api.Tests
             project = new Controllers.ProjectIdentifier($"{projectId}", projectId, projectName);
         }
 
-        
+
 
         [Fact]
         public async Task AnyInternalRole_Should_HaveAccess_When_CompanyRep()
@@ -95,7 +95,7 @@ namespace Fusion.Resources.Api.Tests
                 return base.HandleRequirementAsync(context, requirement, resource);
             }
         }
-    
+
     }
 
     public static class ApiContractBuilder
@@ -104,7 +104,7 @@ namespace Fusion.Resources.Api.Tests
 
         public static ApiProjectContractV2 NewContract(Guid contractId)
         {
-            
+
 
             var contract = new ApiProjectContractV2()
             {
