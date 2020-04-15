@@ -6,6 +6,7 @@ import {
     Button,
     usePopoverRef,
     ErrorMessage,
+    Spinner,
 } from '@equinor/fusion-components';
 import { useNotificationCenter, useCurrentApp, useTelemetryLogger } from '@equinor/fusion';
 import { ServiceNowIncidentRequest } from '../../api/ServiceNowApiClient';
@@ -44,6 +45,7 @@ type ServiceNowFormProps = {
     isShowing: boolean;
     onSubmit: (request: ServiceNowIncidentRequest) => void;
     onCancel: () => void;
+    isSubmitting: boolean;
 };
 
 const ServiceNowForm: React.FC<ServiceNowFormProps> = ({
@@ -52,6 +54,7 @@ const ServiceNowForm: React.FC<ServiceNowFormProps> = ({
     isShowing,
     onSubmit,
     onCancel,
+    isSubmitting,
 }) => {
     const { formState, formFieldSetter, resetForm } = useForm<ServiceNowIncidentRequest>(
         createDefaultIncident,
@@ -93,8 +96,10 @@ const ServiceNowForm: React.FC<ServiceNowFormProps> = ({
                     />
                 </div>
                 <div className={styles.actions}>
-                    <Button onClick={handleSubmit}>Submit</Button>
-                    <Button onClick={onCancel} outlined>
+                    <Button onClick={handleSubmit}>
+                        {isSubmitting ? <Spinner inline /> : 'Submit'}
+                    </Button>
+                    <Button onClick={onCancel} outlined disabled={isSubmitting}>
                         Cancel
                     </Button>
                 </div>
@@ -106,12 +111,14 @@ const ServiceNowForm: React.FC<ServiceNowFormProps> = ({
 const useServiceNowPopoverRef = (metadata: any | null, popoverProps?: PopoverContainerProps) => {
     const [shouldShow, setShouldShow] = React.useState(false);
     const [error, setError] = React.useState<Error | null>(null);
+    const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
     const { serviceNowApiClient } = useAppContext();
     const sendNotification = useNotificationCenter();
     const currentApp = useCurrentApp();
     const handleSubmit = React.useCallback(
         async (request: ServiceNowIncidentRequest) => {
+            setIsSubmitting(true);
             try {
                 const requestWithMetadata = {
                     ...request,
@@ -132,6 +139,7 @@ const useServiceNowPopoverRef = (metadata: any | null, popoverProps?: PopoverCon
             } catch (e) {
                 setError(e);
             }
+            setIsSubmitting(false);
         },
         [serviceNowApiClient, metadata]
     );
@@ -151,6 +159,7 @@ const useServiceNowPopoverRef = (metadata: any | null, popoverProps?: PopoverCon
             isShowing={shouldShow}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
+            isSubmitting={isSubmitting}
         />,
         popoverProps
     );
