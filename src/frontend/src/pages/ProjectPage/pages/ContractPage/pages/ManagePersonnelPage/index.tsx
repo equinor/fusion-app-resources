@@ -41,8 +41,6 @@ const ManagePersonnelPage: React.FC = () => {
             collection: 'personnel',
             payload: result,
         });
-
-        return error;
     };
 
     const fetchPersonnelAsync = React.useCallback(async () => {
