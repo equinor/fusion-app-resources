@@ -12,8 +12,6 @@ namespace Fusion.Resources.Domain.Queries
 {
     public class GetContractPersonnelRequest : IRequest<QueryPersonnelRequest>
     {
-        private ODataQueryParams query = null!;
-
         public GetContractPersonnelRequest(Guid requestId)
         {
             RequestId = requestId;
@@ -21,22 +19,15 @@ namespace Fusion.Resources.Domain.Queries
 
         public Guid RequestId { get; }
 
-        public ODataQueryParams Query
-        {
-            get => query;
-            set
-            {
-                query = value;
-
-                if (value.ShoudExpand("comments"))
-                {
-                    Expands |= ExpandProperties.RequestComments;
-                }
-            }
-        }
+        public ODataQueryParams? Query { get; private set; }
 
         public GetContractPersonnelRequest WithQuery(ODataQueryParams query)
         {
+            if (query.ShoudExpand("comments"))
+            {
+                Expands |= ExpandProperties.RequestComments;
+            }
+
             Query = query;
 
             return this;
