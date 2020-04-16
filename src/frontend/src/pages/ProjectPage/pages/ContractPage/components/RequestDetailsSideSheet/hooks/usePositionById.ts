@@ -14,42 +14,39 @@ export default (positionId?: string) => {
     const currentOrgProject = currentContext as any;
 
     const getCachedPosition = React.useCallback(() => {
-        return appState.positions.data.find(pos => pos.id === positionId);
+        return appState.positions.data.find((pos) => pos.id === positionId);
     }, [positionId, appState]);
 
-    const fetchPositionAsync = React.useCallback(
-        async (projectId: string, posId: string) => {
-            setIsFetchingPosition(true);
-            setPositionError(null);
-            try {
-                const response = await apiClients.org.getPositionAsync(projectId, posId);
-                setPosition(response.data);
-                dispatchAppAction({
-                    verb: 'merge',
-                    collection: 'positions',
-                    payload: [response.data],
-                });
-            } catch (e) {
-                console.error(e);
-                setPositionError(e);
-            }finally {
-                setIsFetchingPosition(false);
-            }
-        },
-        []
-    );
+    const fetchPositionAsync = React.useCallback(async (projectId: string, posId: string) => {
+        setIsFetchingPosition(true);
+        setPositionError(null);
+        try {
+            const response = await apiClients.org.getPositionAsync(projectId, posId);
+            setPosition(response.data);
+            dispatchAppAction({
+                verb: 'merge',
+                collection: 'positions',
+                payload: [response.data],
+            });
+        } catch (e) {
+            console.error(e);
+            setPositionError(e);
+        } finally {
+            setIsFetchingPosition(false);
+        }
+    }, []);
 
     React.useEffect(() => {
         const cachedPosition = getCachedPosition();
         if (cachedPosition) {
             setPosition(cachedPosition);
         }
-        const projectId = currentOrgProject.externalId as string;
+        const projectId = currentOrgProject?.externalId;
 
         if (projectId && positionId) {
-            fetchPositionAsync(projectId, positionId);
+            fetchPositionAsync(projectId as string, positionId);
         }
-    }, [positionId, currentOrgProject.externalId]);
+    }, [positionId, currentOrgProject]);
 
     return { position, isFetchingPosition, positionError };
 };

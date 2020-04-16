@@ -15,13 +15,13 @@ export const getResourceApiBaseUrl = (env: FusionEnvironment) => {
 export const getFunctionsBaseUrl = (env: FusionEnvironment) => {
     switch (env.env) {
         case 'FQA':
-            return 'https://pro-f-common-FQA.azurewebsites.net';
+            return 'https://pro-f-utility-FQA.azurewebsites.net';
 
         case 'FPRD':
-            return 'https://pro-f-common-FPRD.azurewebsites.net';
+            return 'https://pro-f-utility-FPRD.azurewebsites.net';
     }
 
-    return 'https://pro-f-common-CI.azurewebsites.net';
+    return 'https://pro-f-utility-CI.azurewebsites.net';
 };
 
 export const getFusionAppId = () => {
