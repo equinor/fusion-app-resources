@@ -44,7 +44,8 @@ const ProvisioningRequestsPage: React.FC = () => {
         contractState,
         dispatchContractAction,
         'completedRequests',
-        fetchRequestsAsync
+        fetchRequestsAsync,
+        'set'
     );
     const provisioningRequests = React.useMemo(
         () =>

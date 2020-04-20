@@ -34,7 +34,8 @@ const CompletedRequestsPage: React.FC = () => {
         contractState,
         dispatchContractAction,
         'completedRequests',
-        fetchRequestsAsync
+        fetchRequestsAsync,
+        'set'
     );
 
     const completedRequests = React.useMemo(

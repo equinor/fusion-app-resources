@@ -67,7 +67,8 @@ const ActiveRequestsPage: React.FC = () => {
         contractState,
         dispatchContractAction,
         'activeRequests',
-        fetchRequestsAsync
+        fetchRequestsAsync,
+        'set'
     );
 
     React.useEffect(() => {
@@ -85,7 +86,7 @@ const ActiveRequestsPage: React.FC = () => {
     const editRequest = React.useCallback(
         (copy?: boolean) => {
             const requests: PersonnelRequest[] = copy
-                ? selectedRequests.map(s => ({
+                ? selectedRequests.map((s) => ({
                       ...s,
                       id: '',
                       originalPositionId: null,
@@ -110,7 +111,7 @@ const ActiveRequestsPage: React.FC = () => {
                             <IconButton onClick={requestPersonnel} ref={addRequestTooltipRef}>
                                 <AddIcon />
                             </IconButton>
-                            
+
                             <IconButton
                                 onClick={() => editRequest(true)}
                                 disabled={selectedRequests.length <= 0}
@@ -204,7 +205,7 @@ const ActiveRequestsPage: React.FC = () => {
                 <RejectPersonnelSideSheet
                     requests={rejectRequest}
                     setRequests={setRejectRequest}
-                    onReject={reason => reject(reason)}
+                    onReject={(reason) => reject(reason)}
                 />
             </ResourceErrorMessage>
         </div>

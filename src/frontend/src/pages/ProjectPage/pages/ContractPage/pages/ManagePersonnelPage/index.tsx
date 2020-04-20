@@ -37,7 +37,7 @@ const ManagePersonnelPage: React.FC = () => {
 
         const result = await apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
         dispatchContractAction({
-            verb: 'merge',
+            verb: 'set',
             collection: 'personnel',
             payload: result,
         });
@@ -59,7 +59,8 @@ const ManagePersonnelPage: React.FC = () => {
         contractState,
         dispatchContractAction,
         'personnel',
-        fetchPersonnelAsync
+        fetchPersonnelAsync,
+        'set'
     );
 
     const { sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(

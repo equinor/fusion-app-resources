@@ -52,7 +52,8 @@ const ActualMppPage: React.FC = () => {
         contractState,
         dispatchContractAction,
         'actualMpp',
-        fetchMppAsync
+        fetchMppAsync,
+        'set'
     );
 
     const getPersonnelWithPositionsAsync = async () => {
