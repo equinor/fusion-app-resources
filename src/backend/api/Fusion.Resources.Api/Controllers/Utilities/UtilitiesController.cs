@@ -37,7 +37,7 @@ namespace Fusion.Resources.Api.Controllers.Utilities
             if (request == null)
                 return FusionApiError.InvalidOperation("MissingBody", "Could not locate any body payload");
 
-            var url = $"https://pro-f-utility-{fusionOptions.Value.Environment}.azurewebsites.net";
+            var url = $"https://pro-f-utility-{fusionOptions.Value.ServiceDiscovery.Environment}.azurewebsites.net";
             var token = await tokenProvider.GetApplicationTokenAsync();
             var client = httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
