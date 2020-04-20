@@ -20,14 +20,12 @@ namespace Fusion.Resources.Api.Controllers.Utilities
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionTokenProvider tokenProvider;
-        private readonly IConfiguration configuration;
         private readonly IOptions<FusionIntegrationOptions> fusionOptions;
 
-        public UtilitiesController(IHttpClientFactory httpClientFactory, IFusionTokenProvider tokenProvider, IConfiguration configuration, IOptions<FusionIntegrationOptions> fusionOptions)
+        public UtilitiesController(IHttpClientFactory httpClientFactory, IFusionTokenProvider tokenProvider, IOptions<FusionIntegrationOptions> fusionOptions)
         {
             this.httpClientFactory = httpClientFactory;
             this.tokenProvider = tokenProvider;
-            this.configuration = configuration;
             this.fusionOptions = fusionOptions;
         }
 
