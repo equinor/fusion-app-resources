@@ -46,6 +46,7 @@ type EditableTableProps<T> = {
     isFetching?: boolean;
     componentState?: EditableTableComponentState;
     createCopyState?: (items: T) => T;
+    onItemChange?: (item: T, accessKey: keyof T) => T;
 };
 
 function EditableTable<T>({
@@ -57,6 +58,7 @@ function EditableTable<T>({
     isFetching,
     componentState,
     createCopyState,
+    onItemChange
 }: EditableTableProps<T>) {
     const [selectedItems, setSelectedItems] = React.useState<T[]>([]);
     const [activeTableCell, setActiveTableCell] = React.useState<HTMLTableCellElement | null>(null);
@@ -65,9 +67,17 @@ function EditableTable<T>({
     const onChange = (key: any, accessKey: keyof T, value: any) => {
         const updatedPersons = [...formState].map(stateItem => {
             const nullValue = typeof stateItem[accessKey] === 'string' ? '' : null;
-            return stateItem[rowIdentifier] === key
-                ? { ...stateItem, [accessKey]: value || nullValue }
-                : stateItem;
+
+            if(stateItem[rowIdentifier] !== key) {
+                return stateItem;
+            }
+
+            const mutatedItem = { ...stateItem, [accessKey]: value || nullValue };
+            if(onItemChange) {
+                return onItemChange(mutatedItem, accessKey);
+            }
+
+            return mutatedItem;
         });
         setFormState(updatedPersons);
     };
