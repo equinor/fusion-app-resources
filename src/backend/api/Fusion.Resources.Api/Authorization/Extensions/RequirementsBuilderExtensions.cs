@@ -26,35 +26,13 @@ namespace Fusion.Resources.Api.Controllers
 
         public static IAuthorizationRequirementRule BeContractorInProject(this IAuthorizationRequirementRule builder, ProjectIdentifier project)
         {
-            var policy = new AuthorizationPolicyBuilder()
-                .RequireAssertion(ctx =>
-                {
-                    var contractProjectIds = ctx.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey("projectId"))
-                        .Select(c => {Guid.TryParse(c.Properties["projectId"], out Guid projectId); return projectId; });
-
-                    return contractProjectIds.Any(pid => pid == project.ProjectId);
-
-                }).Build();
-
-            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
-
+            builder.AddRule(project, new ContractorInProjectRequirement());
             return builder;
         }
 
         public static IAuthorizationRequirementRule BeContractorInContract(this IAuthorizationRequirementRule builder, Guid orgContractId)
         {
-            var policy = new AuthorizationPolicyBuilder()
-                .RequireAssertion(ctx =>
-                {                    
-                    var contractContractIds = ctx.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey("contractId"))
-                        .Select(c => { Guid.TryParse(c.Properties["contractId"], out Guid projectId); return projectId; });
-
-                    return contractContractIds.Any(cid => cid == orgContractId);
-
-                }).Build();
-
-            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
-
+            builder.AddRule(new ContractorInContractRequirement(orgContractId));
             return builder;
         }
 
