@@ -39,5 +39,4 @@ namespace Fusion.Resources.Api.Authorization.Handlers
         }
         
     }
-
 }

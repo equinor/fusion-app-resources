@@ -35,16 +35,12 @@ const ManagePersonnelPage: React.FC = () => {
             return;
         }
 
-        try {
-            const result = await apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
-            dispatchContractAction({
-                verb: 'merge',
-                collection: 'personnel',
-                payload: result,
-            });
-        } catch (error) {
-            return error;
-        }
+        const result = await apiClient.getPersonnelWithPositionsAsync(projectId, contractId);
+        dispatchContractAction({
+            verb: 'merge',
+            collection: 'personnel',
+            payload: result,
+        });
     };
 
     const fetchPersonnelAsync = React.useCallback(async () => {
@@ -54,13 +50,9 @@ const ManagePersonnelPage: React.FC = () => {
             return [];
         }
 
-        try {
-            const result = await apiClient.getPersonnelAsync(projectId, contractId);
-            getPersonnelWithPositionsAsync();
-            return result;
-        } catch (error) {
-            return error;
-        }
+        const result = await apiClient.getPersonnelAsync(projectId, contractId);
+        getPersonnelWithPositionsAsync();
+        return result;
     }, [contract, currentContext]);
 
     const { data: personnel, isFetching, error } = useReducerCollection(
@@ -89,7 +81,7 @@ const ManagePersonnelPage: React.FC = () => {
 
     const personnelColumns = React.useMemo(() => PersonnelColumns(contract?.id), [contract]);
     const sortedByColumn = React.useMemo(
-        () => personnelColumns.find(c => c.accessor === sortBy) || null,
+        () => personnelColumns.find((c) => c.accessor === sortBy) || null,
         [sortBy]
     );
 
@@ -101,7 +93,7 @@ const ManagePersonnelPage: React.FC = () => {
             try {
                 const response = await Promise.all(
                     personnelToDelete.map(
-                        async person =>
+                        async (person) =>
                             await apiClient.deletePersonnelAsync(
                                 currentContext.id,
                                 contractId,

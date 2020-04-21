@@ -20,14 +20,12 @@ namespace Fusion.Resources.Api.Controllers.Utilities
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionTokenProvider tokenProvider;
-        private readonly IConfiguration configuration;
         private readonly IOptions<FusionIntegrationOptions> fusionOptions;
 
-        public UtilitiesController(IHttpClientFactory httpClientFactory, IFusionTokenProvider tokenProvider, IConfiguration configuration, IOptions<FusionIntegrationOptions> fusionOptions)
+        public UtilitiesController(IHttpClientFactory httpClientFactory, IFusionTokenProvider tokenProvider, IOptions<FusionIntegrationOptions> fusionOptions)
         {
             this.httpClientFactory = httpClientFactory;
             this.tokenProvider = tokenProvider;
-            this.configuration = configuration;
             this.fusionOptions = fusionOptions;
         }
 
@@ -37,7 +35,7 @@ namespace Fusion.Resources.Api.Controllers.Utilities
             if (request == null)
                 return FusionApiError.InvalidOperation("MissingBody", "Could not locate any body payload");
 
-            var url = $"https://pro-f-utility-{fusionOptions.Value.Environment}.azurewebsites.net";
+            var url = $"https://pro-f-utility-{fusionOptions.Value.ServiceDiscovery.Environment}.azurewebsites.net";
             var token = await tokenProvider.GetApplicationTokenAsync();
             var client = httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);

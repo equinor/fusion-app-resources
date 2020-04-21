@@ -34,8 +34,8 @@ const AccessDenied: React.FC<AccessDeniedProps> = ({ error }) => {
                             The reason you can not access the data is the following
                         </div>
                         <ul>
-                            {accessRequirements.map(req => (
-                                <li key={req.code} className={styles.requirement}>
+                            {accessRequirements.map((req, i) => (
+                                <li key={req.code + i} className={styles.requirement}>
                                     <div className={styles.outcome}>{req.outcome}</div>
                                     <div className={styles.description}>{req.description}</div>
                                 </li>
