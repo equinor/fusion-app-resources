@@ -117,7 +117,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
 
     return (
         <ModalSideSheet
-            header={`Disciplines`}
+            header={`${person.firstName} ${person.lastName}`}
             show={isOpen}
             size={'large'}
             safeClose={editMode && isFormDirty}
