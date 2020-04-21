@@ -322,7 +322,6 @@ namespace Fusion.Resources.Api.Controllers
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
-
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
@@ -354,13 +353,12 @@ namespace Fusion.Resources.Api.Controllers
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
-                r.AnyOf(r => r.BeCommentAuthor(comment));
+                r.Must().BeCommentAuthor(comment);
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
-
             });
 
             if (authResult.Unauthorized)
@@ -386,7 +384,7 @@ namespace Fusion.Resources.Api.Controllers
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
-                r.AnyOf(r => r.BeCommentAuthor(comment));
+                r.Must(r => r.BeCommentAuthor(comment));
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
