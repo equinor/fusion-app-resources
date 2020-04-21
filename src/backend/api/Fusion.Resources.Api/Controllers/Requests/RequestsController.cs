@@ -1,23 +1,14 @@
-﻿using Bogus;
-using Fusion.Integration.Profile;
+﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
+using Fusion.Authorization;
+using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Fusion.Integration;
-using Fusion.Resources.Domain.Queries;
-using Fusion.Resources.Domain;
-using Microsoft.Extensions.DependencyInjection;
-using MediatR;
-using Fusion.Resources.Domain.Commands;
-using Fusion.AspNetCore.OData;
-using Fusion.Resources.Api.Middleware;
-using Microsoft.AspNetCore.Http;
-using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Resources.Api.Authorization;
-using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -64,7 +55,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromQuery]ODataQueryParams query)
         {
             #region Authorization
 
@@ -85,7 +76,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId).WithQuery(query));
             return new ApiContractPersonnelRequest(request);
         }
 
@@ -223,7 +214,7 @@ namespace Fusion.Resources.Api.Controllers
             using (var scope = await BeginTransactionAsync())
             {
                 await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Approve(request.Id));
-                
+
                 await scope.CommitAsync();
             }
 
@@ -321,8 +312,101 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        #region Comments
+
+        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments")]
+        public async Task<ActionResult> AddRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new AddComment(requestId, create.Content));
+
+            return NoContent();
+        }
+
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> UpdateRequestComment(
+            [FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+        {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment == null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.Must().BeCommentAuthor(comment);
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new UpdateComment(commentId, update.Content));
+
+            return NoContent();
+        }
+
+        [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> DeleteRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId)
+        {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment == null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.Must(r => r.BeCommentAuthor(comment));
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
+                });
+
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new DeleteComment(commentId));
+
+            return NoContent();
+        }
+
+        #endregion Comments
 
         #region Options
+
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult> CheckAccessCreateRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
@@ -333,6 +417,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.BeContractorInContract(contractIdentifier);
                 });
             });
 
@@ -375,6 +460,31 @@ namespace Fusion.Resources.Api.Controllers
             if (request is null)
                 return FusionApiError.NotFound(requestId, "Could not locate request");
 
+            #region "Comment"
+
+            if (actionName.ToLower() == "comment")
+            {
+                var commentAuthResult = await Request.RequireAuthorizationAsync(r =>
+                {
+                    r.AlwaysAccessWhen().FullControl();
+
+                    r.AnyOf(or =>
+                    {
+                        or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                        or.BeContractorInContract(contractIdentifier);
+                    });
+                });
+
+                if (commentAuthResult.Success)
+                    Response.Headers.Add("Allow", "POST");
+                else
+                    Response.Headers.Add("Allow", "");
+
+                return NoContent();
+            }
+
+            #endregion
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
@@ -393,11 +503,8 @@ namespace Fusion.Resources.Api.Controllers
 
             return NoContent();
         }
+
         #endregion
 
-
-        
     }
-
-
 }

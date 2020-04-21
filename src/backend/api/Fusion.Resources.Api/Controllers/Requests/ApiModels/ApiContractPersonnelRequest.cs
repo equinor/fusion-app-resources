@@ -37,6 +37,8 @@ namespace Fusion.Resources.Api.Controllers
                 DbRequestCategory.NewRequest => ApiRequestCategory.NewRequest,
                 _ => throw new NotSupportedException($"Invalid request category {query.Category}")
             };
+
+            Comments = query.Comments?.Select(qc => new ApiRequestComment(qc)).ToList();
         }
 
         public Guid Id { get; set; }

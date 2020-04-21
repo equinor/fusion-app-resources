@@ -4,9 +4,7 @@ using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 
 namespace Fusion.Resources.Api.Controllers
@@ -53,6 +51,13 @@ namespace Fusion.Resources.Api.Controllers
         public static IAuthorizationRequirementRule RequestAccess(this IAuthorizationRequirementRule builder, RequestAccess level, QueryPersonnelRequest request)
         {
             builder.AddRule(request, level);
+
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule BeCommentAuthor(this IAuthorizationRequirementRule builder, QueryRequestComment comment)
+        {
+            builder.AddRule(comment, new RequestCommentAuthor());
 
             return builder;
         }
