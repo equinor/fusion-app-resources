@@ -1,5 +1,12 @@
 import * as React from 'react';
-import { ModalSideSheet, Button, Spinner, IconButton, HelpIcon, useTooltipRef } from '@equinor/fusion-components';
+import {
+    ModalSideSheet,
+    Button,
+    Spinner,
+    IconButton,
+    HelpIcon,
+    useTooltipRef,
+} from '@equinor/fusion-components';
 import { useContractContext } from '../../../../../../contractContex';
 import columns from './columns';
 import { BasePosition, Position } from '@equinor/fusion';
@@ -16,7 +23,7 @@ import useBasePositions from '../../../../../../hooks/useBasePositions';
 import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
 import { ReadonlyCollection } from '../../../../../../reducers/utils';
 import { Link } from 'react-router-dom';
-import * as styles from "./styles.less"
+import * as styles from './styles.less';
 
 export type EditRequest = {
     id: string;
@@ -77,12 +84,14 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
 
     const validateForm = React.useCallback((requests: EditRequest[]) => {
         return !requests.some(
-            state =>
+            (state) =>
                 !Boolean(
                     state.basePosition &&
                         state.positionName &&
                         state.workload &&
-                        state.taskOwner &&
+                        state.appliesFrom &&
+                        state.appliesTo &&
+                        state.person &&
                         !Boolean(isNaN(+state.workload))
                 )
         );
@@ -111,9 +120,9 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
     }, [setEditRequests, resetForm]);
 
     const onProgressSidesheetClose = React.useCallback(() => {
-        const editableFailedRequests = failedRequests.filter(r => r.isEditable);
+        const editableFailedRequests = failedRequests.filter((r) => r.isEditable);
         if (editableFailedRequests.length > 0) {
-            setFormState(editableFailedRequests.map(r => r.item));
+            setFormState(editableFailedRequests.map((r) => r.item));
             return;
         }
 
@@ -121,6 +130,20 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
     }, [failedRequests, closeSideSheet]);
 
     const isSubmitting = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
+
+    const onItemChange = React.useCallback((item: EditRequest, key: keyof EditRequest) => {
+        switch (key) {
+            case 'basePosition':
+                if (item.basePosition && !item.positionName) {
+                    return {
+                        ...item,
+                        positionName: item.basePosition.name,
+                    };
+                }
+        }
+
+        return item;
+    }, []);
 
     return (
         <ModalSideSheet
@@ -163,6 +186,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                     basePositions: basePositionState,
                 }}
                 createCopyState={createCopyState}
+                onItemChange={onItemChange}
             />
             <RequestProgressSidesheet
                 pendingRequests={pendingRequests}

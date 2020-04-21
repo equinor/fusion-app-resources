@@ -17,7 +17,7 @@ const columns: EditableTaleColumn<EditRequest>[] = [
     {
         accessor: item => item.taskOwner,
         accessKey: 'taskOwner',
-        label: 'Task owner',
+        label: 'Task owner (optional)',
         item: 'PositionPicker',
     },
     {
@@ -29,19 +29,19 @@ const columns: EditableTaleColumn<EditRequest>[] = [
     {
         accessor: item => item.appliesFrom,
         accessKey: 'appliesFrom',
-        label: 'Applies from (optional)',
+        label: 'Applies from',
         item: 'DatePicker',
     },
     {
         accessor: item => item.appliesTo,
         accessKey: 'appliesTo',
-        label: 'Applies to (optional)',
+        label: 'Applies to',
         item: 'DatePicker',
     },
     {
         accessor: item => item.workload,
         accessKey: 'workload',
-        label: 'Workload(%)',
+        label: 'Workload (%)',
         item: 'TextInput',
     },
     {
