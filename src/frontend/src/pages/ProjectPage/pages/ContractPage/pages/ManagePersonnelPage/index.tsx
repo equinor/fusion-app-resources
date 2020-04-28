@@ -12,6 +12,8 @@ import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
+import { v1 as uuid } from 'uuid';
+import ExcelParseReponse, { ExcelHeader } from '../../../../../../models/ExcelParseResponse';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
@@ -22,11 +24,79 @@ const ManagePersonnelPage: React.FC = () => {
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const notification = useNotificationCenter();
 
+    const [isUploadFileOpen, setIsUploadFileOpen] = React.useState<boolean>(false);
+    const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+
     React.useEffect(() => {
         if (!isAddPersonOpen) {
             setSelectedItems([]);
         }
     }, [isAddPersonOpen]);
+
+    type HeaderTextVariations = {
+        [key in keyof Personnel]?: string[];
+    };
+
+    type ColumnIndexes = {
+        [key in keyof Personnel]?: number;
+    };
+
+    const headerTextVariations: HeaderTextVariations = {
+        firstName: ['firstname', 'first name'],
+        lastName: ['lastname', 'last name'],
+        jobTitle: ['jobtitle', 'job title', 'job'],
+        phoneNumber: ['telephone number', 'telephonenumber', 'phonenumer', 'phone number'],
+        mail: ['mail', 'email', 'e-mail'],
+        dawinciCode: ['dawincicode', 'dawinci'],
+        disciplines: ['disicpline', 'disciplines'],
+    };
+
+    const formatExcelReponse = (reponse: ExcelParseReponse) => {
+        const { headers, data } = reponse;
+
+        const findColumnIndex = (column: keyof Personnel) => {
+            const columnVariations = headerTextVariations[column];
+            return columnVariations
+                ? headers.find((header) => header.title in columnVariations)?.colIndex || -1
+                : -1;
+        };
+        const columnIndexes:ColumnIndexes = {};
+
+        for(let [key as key in Personnel ,value] of Object.entries(headerTextVariations)){
+            columnIndexes[key] = findColumnIndex(key)
+        }
+
+        for (const a in headerTextVariations){
+            
+        }
+
+
+
+        const newPersonnel: Personnel[] = data.map(({ items }) => {
+            return {
+                personnelId: uuid(),
+                name: '',
+                firstName: findColumnText('firstName'),
+                lastName: findColumnText('lastName'),
+                phoneNumber: findColumnText('phoneNumber'),
+                mail: findColumnText('mail'),
+                jobTitle: findColumnText('jobTitle'),
+                disciplines: [{ name: findColumnText('disciplines') }],
+            };
+        });
+    };
+
+    const getExcelReponseAsync = async (file: File) => {
+        const excelReponse = await apiClient.ExcelImportParserAsync(file);
+
+        if (excelReponse) formatExcelReponse(excelReponse);
+    };
+
+    React.useEffect(() => {
+        if (selectedFile === null) return;
+
+        getExcelReponseAsync(selectedFile);
+    }, [selectedFile]);
 
     const getPersonnelWithPositionsAsync = async () => {
         const contractId = contract?.id;
@@ -140,6 +210,10 @@ const ManagePersonnelPage: React.FC = () => {
         }
     }, [selectedItems, deletePersonnelAsync]);
 
+    const onExcelImport = React.useCallback(async () => {
+        setIsUploadFileOpen(true);
+    }, []);
+
     const addButton = React.useMemo((): IconButtonProps => {
         return {
             onClick: () => {
@@ -158,6 +232,10 @@ const ManagePersonnelPage: React.FC = () => {
         return { onClick: onDeletePersonnel, disabled: !selectedItems.length };
     }, [selectedItems, onDeletePersonnel]);
 
+    const excelImportButton = React.useMemo((): IconButtonProps => {
+        return { onClick: onExcelImport };
+    }, []);
+
     return (
         <div className={styles.container}>
             <ResourceErrorMessage error={error}>
@@ -167,6 +245,7 @@ const ManagePersonnelPage: React.FC = () => {
                             addButton={addButton}
                             editButton={editButton}
                             deleteButton={deleteButton}
+                            excelImportButton={excelImportButton}
                         />
                     </div>
                     <div className={styles.table}>
@@ -191,6 +270,16 @@ const ManagePersonnelPage: React.FC = () => {
                             setIsOpen={setIsAddPersonOpen}
                             selectedPersonnel={selectedItems.length ? selectedItems : null}
                         />
+                    )}
+                    {isUploadFileOpen && (
+                        <div>
+                            <input
+                                type="file"
+                                onChange={(e) =>
+                                    setSelectedFile(e.target.files ? e.target.files[0] : null)
+                                }
+                            ></input>
+                        </div>
                     )}
                 </div>
                 <GenericFilter
