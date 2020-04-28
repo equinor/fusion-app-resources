@@ -32,6 +32,7 @@ export type RenderRequestProps<TRequest> = {
 };
 
 type RequestProgressSidesheetProps<TRequest, TResponse> = {
+    title: string;
     pendingRequests: TRequest[];
     failedRequests: FailedRequest<TRequest>[];
     successfulRequests: SuccessfulRequest<TRequest, TResponse>[];
@@ -139,6 +140,7 @@ function SuccesfulRequestProgressItem<TRequest, TResponse>({
 }
 
 function RequestProgressSidesheet<TRequest, TResponse>({
+    title,
     pendingRequests,
     failedRequests,
     successfulRequests,
@@ -184,7 +186,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     }, [failedRequests, closeSidesheet]);
 
     return (
-        <ModalSideSheet header="Saving requests" show={isShowing} onClose={onClose}>
+        <ModalSideSheet header={title} show={isShowing} onClose={onClose}>
             {invalidRequests.length > 0 && (
                 <div className={styles.failedRequests}>
                     <div className={styles.header}>
