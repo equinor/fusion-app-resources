@@ -83,4 +83,8 @@ export default class ResourceCollection {
             actionName
         );
     }
+
+    excelImportParser() {
+        return combineUrls(this.baseUrl, 'utilities', 'parse-spreadsheet');
+    }
 }

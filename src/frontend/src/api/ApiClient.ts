@@ -15,6 +15,7 @@ import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
 import Person from '../models/Person';
 import CreatePersonnelRequest from '../models/CreatePersonnelRequest';
+import ExcelParseReponse from '../models/ExcelParseResponse';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -186,7 +187,6 @@ export default class ApiClient {
         return response.data;
     }
 
- 
     async getPersonnelRequestsAsync(
         projectId: string,
         contractId: string,
@@ -208,17 +208,8 @@ export default class ApiClient {
         >(url);
         return response.data.value;
     }
-    async getPersonnelRequestAsync(
-        projectId: string,
-        contractId: string,
-        requestId: string
-    ) {
-       
-        const url = this.resourceCollection.personnelRequest(
-            projectId,
-            contractId,
-            requestId
-        );
+    async getPersonnelRequestAsync(projectId: string, contractId: string, requestId: string) {
+        const url = this.resourceCollection.personnelRequest(projectId, contractId, requestId);
         const response = await this.httpClient.getAsync<
             PersonnelRequest,
             FusionApiHttpErrorResponse
@@ -331,5 +322,16 @@ export default class ApiClient {
         } catch (e) {
             return false;
         }
+    }
+
+    public async ExcelImportParserAsync(file: File) {
+        const url = this.resourceCollection.excelImportParser();
+        const data = new FormData();
+        data.append('File', file);
+        const reponse = await this.httpClient.postFormAsync<
+            ExcelParseReponse,
+            FusionApiHttpErrorResponse
+        >(url, data);
+        return reponse.data;
     }
 }
