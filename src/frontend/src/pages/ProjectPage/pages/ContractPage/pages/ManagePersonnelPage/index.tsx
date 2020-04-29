@@ -12,12 +12,33 @@ import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
-import { v1 as uuid } from 'uuid';
-import ExcelParseReponse, { ExcelHeader } from '../../../../../../models/ExcelParseResponse';
+import useExcelImport, { Column } from '../../../../../../hooks/useExcelImport';
+
+const columns: Column<Personnel>[] = [
+    { title: 'firstName', variations: ['firstname', 'first name'] },
+    { title: 'lastName', variations: ['lastname', 'last name'] },
+    { title: 'jobTitle', variations: ['jobtitle', 'job title', 'job'] },
+    {
+        title: 'phoneNumber',
+        variations: ['telephone number', 'telephonenumber', 'phonenumber', 'phone number'],
+    },
+    { title: 'mail', variations: ['mail', 'email', 'e-mail'] },
+    { title: 'dawinciCode', variations: ['dawincicode', 'dawinci'] },
+    {
+        title: 'disciplines',
+        variations: ['disciplines', 'discipline'],
+        format: (item: string) => {
+            return [{ name: item }];
+        },
+    },
+];
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
+    const { setSelectedFile, isProccessingFile, processedFile } = useExcelImport<Personnel>(
+        columns
+    );
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
     const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
@@ -25,7 +46,6 @@ const ManagePersonnelPage: React.FC = () => {
     const notification = useNotificationCenter();
 
     const [isUploadFileOpen, setIsUploadFileOpen] = React.useState<boolean>(false);
-    const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
     React.useEffect(() => {
         if (!isAddPersonOpen) {
@@ -33,70 +53,15 @@ const ManagePersonnelPage: React.FC = () => {
         }
     }, [isAddPersonOpen]);
 
-    type HeaderTextVariations = {
-        [key in keyof Personnel]?: string[];
-    };
-
-    type ColumnIndexes = {
-        [key in keyof Personnel]?: number;
-    };
-
-    const headerTextVariations: HeaderTextVariations = {
-        firstName: ['firstname', 'first name'],
-        lastName: ['lastname', 'last name'],
-        jobTitle: ['jobtitle', 'job title', 'job'],
-        phoneNumber: ['telephone number', 'telephonenumber', 'phonenumer', 'phone number'],
-        mail: ['mail', 'email', 'e-mail'],
-        dawinciCode: ['dawincicode', 'dawinci'],
-        disciplines: ['disicpline', 'disciplines'],
-    };
-
-    const formatExcelReponse = (reponse: ExcelParseReponse) => {
-        const { headers, data } = reponse;
-
-        const findColumnIndex = (column: keyof Personnel) => {
-            const columnVariations = headerTextVariations[column];
-            return columnVariations
-                ? headers.find((header) => header.title in columnVariations)?.colIndex || -1
-                : -1;
-        };
-        const columnIndexes:ColumnIndexes = {};
-
-        for(let [key as key in Personnel ,value] of Object.entries(headerTextVariations)){
-            columnIndexes[key] = findColumnIndex(key)
-        }
-
-        for (const a in headerTextVariations){
-            
-        }
-
-
-
-        const newPersonnel: Personnel[] = data.map(({ items }) => {
-            return {
-                personnelId: uuid(),
-                name: '',
-                firstName: findColumnText('firstName'),
-                lastName: findColumnText('lastName'),
-                phoneNumber: findColumnText('phoneNumber'),
-                mail: findColumnText('mail'),
-                jobTitle: findColumnText('jobTitle'),
-                disciplines: [{ name: findColumnText('disciplines') }],
-            };
-        });
-    };
-
-    const getExcelReponseAsync = async (file: File) => {
-        const excelReponse = await apiClient.ExcelImportParserAsync(file);
-
-        if (excelReponse) formatExcelReponse(excelReponse);
-    };
-
     React.useEffect(() => {
-        if (selectedFile === null) return;
+        if (processedFile) {
+            console.log(processedFile);
 
-        getExcelReponseAsync(selectedFile);
-    }, [selectedFile]);
+            console.log(filteredPersonnel);
+            setSelectedItems([...processedFile]);
+            setIsAddPersonOpen(true);
+        }
+    }, [processedFile]);
 
     const getPersonnelWithPositionsAsync = async () => {
         const contractId = contract?.id;
@@ -271,16 +236,15 @@ const ManagePersonnelPage: React.FC = () => {
                             selectedPersonnel={selectedItems.length ? selectedItems : null}
                         />
                     )}
-                    {isUploadFileOpen && (
-                        <div>
-                            <input
-                                type="file"
-                                onChange={(e) =>
-                                    setSelectedFile(e.target.files ? e.target.files[0] : null)
-                                }
-                            ></input>
-                        </div>
-                    )}
+
+                    <div>
+                        <input
+                            type="file"
+                            onChange={(e) =>
+                                setSelectedFile(e.target.files ? e.target.files[0] : null)
+                            }
+                        ></input>
+                    </div>
                 </div>
                 <GenericFilter
                     data={personnel}
