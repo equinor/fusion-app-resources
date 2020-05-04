@@ -2,22 +2,34 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useAppContext } from '../appContext';
 import ExcelParseReponse, { ExcelHeader } from '../models/ExcelParseResponse';
 
+export type autoGenerateColumn<T> = {
+    title: keyof T;
+    format?: (item: string) => {};
+};
+
 export type Column<T> = {
     title: keyof T;
     variations?: string[];
     format?: (item: string) => {};
 };
+
+export type ExcelImportSettings<T> = {
+    columns: Column<T>[];
+    autoGenerateColumns?: autoGenerateColumn<T>[];
+};
+
 type ColumnIndex<T> = {
     [key in keyof T]: number;
 };
 
-const useExcelImport = <T>(columns: Column<T>[]) => {
+const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
     const { apiClient } = useAppContext();
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isProccessingFile, setIsProccessingFile] = useState<boolean>(false);
     const [processedFile, setProcessedFile] = useState<T[] | null>(null);
     const [error, setError] = useState<boolean>(false);
+    const { columns, autoGenerateColumns } = excelImportSettings;
 
     useEffect(() => {
         if (selectedFile === null) return;

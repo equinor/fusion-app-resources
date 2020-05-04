@@ -12,32 +12,35 @@ import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
-import useExcelImport, { Column } from '../../../../../../hooks/useExcelImport';
+import useExcelImport, { ExcelImportSettings } from '../../../../../../hooks/useExcelImport';
+import ExcelImportModal from './components/ExcelImportModal';
 
-const columns: Column<Personnel>[] = [
-    { title: 'firstName', variations: ['firstname', 'first name'] },
-    { title: 'lastName', variations: ['lastname', 'last name'] },
-    { title: 'jobTitle', variations: ['jobtitle', 'job title', 'job'] },
-    {
-        title: 'phoneNumber',
-        variations: ['telephone number', 'telephonenumber', 'phonenumber', 'phone number'],
-    },
-    { title: 'mail', variations: ['mail', 'email', 'e-mail'] },
-    { title: 'dawinciCode', variations: ['dawincicode', 'dawinci'] },
-    {
-        title: 'disciplines',
-        variations: ['disciplines', 'discipline'],
-        format: (item: string) => {
-            return [{ name: item }];
+const excelImportSettings: ExcelImportSettings<Personnel> = {
+    columns: [
+        { title: 'firstName', variations: ['firstname', 'first name'] },
+        { title: 'lastName', variations: ['lastname', 'last name'] },
+        { title: 'jobTitle', variations: ['jobtitle', 'job title', 'job'] },
+        {
+            title: 'phoneNumber',
+            variations: ['telephone number', 'telephonenumber', 'phonenumber', 'phone number'],
         },
-    },
-];
+        { title: 'mail', variations: ['mail', 'email', 'e-mail'] },
+        { title: 'dawinciCode', variations: ['dawincicode', 'dawinci'] },
+        {
+            title: 'disciplines',
+            variations: ['disciplines', 'discipline'],
+            format: (item: string) => {
+                return [{ name: item }];
+            },
+        },
+    ],
+};
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
     const { setSelectedFile, isProccessingFile, processedFile } = useExcelImport<Personnel>(
-        columns
+        excelImportSettings
     );
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
@@ -55,10 +58,8 @@ const ManagePersonnelPage: React.FC = () => {
 
     React.useEffect(() => {
         if (processedFile) {
-            console.log(processedFile);
-
-            console.log(filteredPersonnel);
             setSelectedItems([...processedFile]);
+            setIsUploadFileOpen(false);
             setIsAddPersonOpen(true);
         }
     }, [processedFile]);
@@ -236,20 +237,17 @@ const ManagePersonnelPage: React.FC = () => {
                             selectedPersonnel={selectedItems.length ? selectedItems : null}
                         />
                     )}
-
-                    <div>
-                        <input
-                            type="file"
-                            onChange={(e) =>
-                                setSelectedFile(e.target.files ? e.target.files[0] : null)
-                            }
-                        ></input>
-                    </div>
                 </div>
                 <GenericFilter
                     data={personnel}
                     filterSections={filterSections}
                     onFilter={setFilteredPersonnel}
+                />
+                <ExcelImportModal
+                    setSelectedFile={setSelectedFile}
+                    isProccessing={isProccessingFile}
+                    isOpen={isUploadFileOpen}
+                    close={setIsUploadFileOpen}
                 />
             </ResourceErrorMessage>
         </div>
