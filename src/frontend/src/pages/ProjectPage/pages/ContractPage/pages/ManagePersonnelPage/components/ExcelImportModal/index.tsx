@@ -19,7 +19,12 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     const fileInput = React.useRef<HTMLInputElement>(null);
     const [fileError, setFileError] = React.useState<string | null>(null);
 
-    const validateAndSetFile = (file: File) => {
+    React.useEffect(() => {
+        setSelectedFileForUpload(null);
+        setFileError(null);
+    }, [isOpen]);
+
+    const validateAndSetFile = React.useCallback((file: File) => {
         const fileExtension = file.name.substr(file.name.lastIndexOf('.') + 1).toLowerCase();
 
         if (fileExtension !== 'xlsx') {
@@ -29,39 +34,41 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         }
         setFileError(null);
         setSelectedFileForUpload(file);
-    };
+    }, []);
 
-    const dragDropFileUpload = (e: React.DragEvent<HTMLDivElement>) => {
+    const dragDropFileUpload = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         if (!e.dataTransfer.items || e.dataTransfer.items[0].kind !== 'file') return;
 
         const file = e.dataTransfer.items[0].getAsFile();
         if (!file) return;
         validateAndSetFile(file);
-    };
+    }, []);
 
-    const inputFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputFileUpload = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
 
         const file = e.target.files ? e.target.files[0] : null;
         if (!file) return;
         validateAndSetFile(file);
-    };
+    }, []);
 
     const fileInputClick = React.useCallback(() => {
         fileInput?.current?.click();
     }, [fileInput]);
 
-    const startProssessingSelectedFile = () => {
+    const startProssessingSelectedFile = React.useCallback(() => {
         setSelectedFile(selectedFileForUpload);
-    };
+    }, [selectedFileForUpload]);
 
-    const stopPropagationAndDefault = (e: React.DragEvent<HTMLDivElement>) => {
+    const stopPropagationAndDefault = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
         e.stopPropagation();
         e.preventDefault();
-    };
+    }, []);
 
-    const closeModal = () => !isProccessing && close(false);
+    const closeModal = React.useCallback(() => {
+        !isProccessing && close(false);
+    }, [isProccessing]);
 
     return (
         <OverlayPortal show={isOpen}>

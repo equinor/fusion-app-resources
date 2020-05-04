@@ -4,7 +4,7 @@ import ExcelParseReponse, { ExcelHeader } from '../models/ExcelParseResponse';
 
 export type autoGenerateColumn<T> = {
     title: keyof T;
-    format?: (item: string) => {};
+    format: (columns: Column<T>[]) => {};
 };
 
 export type Column<T> = {
@@ -80,10 +80,18 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
                 mappedRow = { ...mappedRow, [column.title]: formattedValue };
             }
 
+            if (autoGenerateColumns) {
+                for (const generateColumn of autoGenerateColumns) {
+                    mappedRow = {
+                        ...mappedRow,
+                        [generateColumn.title]: generateColumn.format(columns),
+                    };
+                }
+            }
+
             return mappedRow as T;
         });
 
-        console.log(mappedReponse);
         setProcessedFile(mappedReponse);
         setIsProccessingFile(false);
     };

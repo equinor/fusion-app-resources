@@ -14,6 +14,7 @@ import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePers
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 import useExcelImport, { ExcelImportSettings } from '../../../../../../hooks/useExcelImport';
 import ExcelImportModal from './components/ExcelImportModal';
+import { v1 as uuid } from 'uuid';
 
 const excelImportSettings: ExcelImportSettings<Personnel> = {
     columns: [
@@ -31,6 +32,14 @@ const excelImportSettings: ExcelImportSettings<Personnel> = {
             variations: ['disciplines', 'discipline'],
             format: (item: string) => {
                 return [{ name: item }];
+            },
+        },
+    ],
+    autoGenerateColumns: [
+        {
+            title: 'personnelId',
+            format: () => {
+                return uuid();
             },
         },
     ],
