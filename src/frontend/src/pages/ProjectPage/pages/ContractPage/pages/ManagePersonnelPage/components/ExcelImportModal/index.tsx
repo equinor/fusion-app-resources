@@ -57,7 +57,7 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         fileInput?.current?.click();
     }, [fileInput]);
 
-    const startProssessingSelectedFile = React.useCallback(() => {
+    const startProcessingSelectedFile = React.useCallback(() => {
         setSelectedFile(selectedFileForUpload);
     }, [selectedFileForUpload]);
 
@@ -75,8 +75,8 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
             <Scrim onClick={closeModal} show={isOpen}>
                 <div onClick={(e) => e.stopPropagation()} className={styles.excelImportModal}>
                     {isProccessing && (
-                        <div className={styles.prossessing}>
-                            <Spinner centered title="Prossessing Excel file" />
+                        <div className={styles.processing}>
+                            <Spinner centered title="Processing Excel file" />
                         </div>
                     )}
                     {!isProccessing && (
@@ -88,11 +88,13 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                                 onDragOver={(e) => stopPropagationAndDefault(e)}
                             >
                                 <div className={styles.dragDropText}>
-                                    <p>Drag and drop a excel file here</p>
+                                    <p>Drag and drop an excel file here</p>
                                     <p>or </p>
                                     <div className={styles.fileInput}>
                                         <div className={styles.inputButton}>
-                                            <Button onClick={fileInputClick}>Select a file</Button>
+                                            <Button onClick={fileInputClick}>
+                                                Select an excel file
+                                            </Button>
                                         </div>
                                         <input
                                             className={styles.inputField}
@@ -109,14 +111,12 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                                     {fileError && fileError}
                                 </div>
                             </div>
-                            <div className={styles.prossessButton}>
+                            <div className={styles.processButton}>
                                 <Button
                                     disabled={!selectedFileForUpload}
-                                    onClick={startProssessingSelectedFile}
+                                    onClick={startProcessingSelectedFile}
                                 >
-                                    <p className={styles.prossessButtonText}>
-                                        Process selected excel file
-                                    </p>
+                                    Process selected excel file
                                 </Button>
                             </div>
                         </div>
