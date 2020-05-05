@@ -39,7 +39,7 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
     }, [selectedFile]);
 
     const getExcelReponseAsync = async (file: File) => {
-        const excelReponse = await apiClient.ExcelImportParserAsync(file);
+        const excelReponse = await apiClient.parseExcelFileAsync(file);
         if (excelReponse) formatExcelReponse(excelReponse);
         setIsProccessingFile(false);
     };

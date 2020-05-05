@@ -324,8 +324,8 @@ export default class ApiClient {
         }
     }
 
-    public async ExcelImportParserAsync(file: File) {
-        const url = this.resourceCollection.excelImportParser();
+    public async parseExcelFileAsync(file: File) {
+        const url = this.resourceCollection.parseExcelFile();
         const data = new FormData();
         data.append('File', file);
         const reponse = await this.httpClient.postFormAsync<
