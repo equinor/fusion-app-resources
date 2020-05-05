@@ -13,8 +13,8 @@ import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 import useExcelImport from '../../../../../../hooks/useExcelImport';
-import ExcelImportModal from './components/ExcelImportModal';
 import personnelExcelImportSettings from './personnelExcelImportSettings';
+import ExcelImportSideSheet from './components/ExcelImportSideSheet';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
@@ -230,7 +230,7 @@ const ManagePersonnelPage: React.FC = () => {
                     filterSections={filterSections}
                     onFilter={setFilteredPersonnel}
                 />
-                <ExcelImportModal
+                <ExcelImportSideSheet
                     setSelectedFile={setSelectedFile}
                     isProccessing={isProccessingFile}
                     isOpen={isUploadFileOpen}
