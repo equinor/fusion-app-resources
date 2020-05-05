@@ -263,7 +263,7 @@ const ManagePersonnelPage: React.FC = () => {
                     setSelectedFile={setSelectedFile}
                     isProccessing={isProccessingFile}
                     isOpen={isUploadFileOpen}
-                    close={setIsUploadFileOpen}
+                    setIsOpen={setIsUploadFileOpen}
                 />
             </ResourceErrorMessage>
         </div>

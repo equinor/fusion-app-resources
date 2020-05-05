@@ -6,14 +6,14 @@ type ExcelImportModalProps = {
     setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
     isProccessing: boolean;
     isOpen: boolean;
-    close: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     setSelectedFile,
     isProccessing,
     isOpen,
-    close,
+    setIsOpen,
 }) => {
     const [selectedFileForUpload, setSelectedFileForUpload] = React.useState<File | null>(null);
     const fileInput = React.useRef<HTMLInputElement>(null);
