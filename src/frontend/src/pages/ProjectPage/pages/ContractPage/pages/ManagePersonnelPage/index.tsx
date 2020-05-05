@@ -54,6 +54,7 @@ const ManagePersonnelPage: React.FC = () => {
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
     const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
+    const [isExcelImport, setIsExcelImport] = React.useState<boolean>(false);
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const notification = useNotificationCenter();
 
@@ -61,6 +62,7 @@ const ManagePersonnelPage: React.FC = () => {
 
     React.useEffect(() => {
         if (!isAddPersonOpen) {
+            setIsExcelImport(false);
             setSelectedItems([]);
         }
     }, [isAddPersonOpen]);
@@ -68,6 +70,7 @@ const ManagePersonnelPage: React.FC = () => {
     React.useEffect(() => {
         if (processedFile) {
             setSelectedItems([...processedFile]);
+            setIsExcelImport(true);
             setIsUploadFileOpen(false);
             setIsAddPersonOpen(true);
         }
@@ -160,9 +163,8 @@ const ManagePersonnelPage: React.FC = () => {
                     payload: personnelToDelete,
                 });
                 setSelectedItems([]);
+                setIsExcelImport(false);
             } catch (e) {
-                console.log('exception', e);
-                //TODO: This could probably be more helpfull.
                 notification({
                     level: 'high',
                     title:
@@ -193,6 +195,7 @@ const ManagePersonnelPage: React.FC = () => {
         return {
             onClick: () => {
                 setSelectedItems([]);
+                setIsExcelImport(false);
                 setIsAddPersonOpen(true);
             },
             disabled: Boolean(selectedItems.length),
@@ -235,7 +238,10 @@ const ManagePersonnelPage: React.FC = () => {
                                 direction,
                             }}
                             isSelectable
-                            onSelectionChange={setSelectedItems}
+                            onSelectionChange={(item) => {
+                                setIsExcelImport(false);
+                                setSelectedItems(item);
+                            }}
                             selectedItems={selectedItems}
                         />
                     </div>
@@ -244,6 +250,7 @@ const ManagePersonnelPage: React.FC = () => {
                             isOpen={isAddPersonOpen}
                             setIsOpen={setIsAddPersonOpen}
                             selectedPersonnel={selectedItems.length ? selectedItems : null}
+                            excelImport={isExcelImport}
                         />
                     )}
                 </div>

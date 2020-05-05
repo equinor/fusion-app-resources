@@ -115,7 +115,7 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                                     onClick={startProssessingSelectedFile}
                                 >
                                     <p className={styles.prossessButtonText}>
-                                        Prossess selected excel file
+                                        Process selected excel file
                                     </p>
                                 </Button>
                             </div>
