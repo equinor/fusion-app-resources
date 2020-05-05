@@ -67,7 +67,7 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     }, []);
 
     const closeModal = React.useCallback(() => {
-        !isProccessing && close(false);
+        !isProccessing && setIsOpen(false);
     }, [isProccessing]);
 
     return (
