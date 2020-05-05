@@ -12,44 +12,15 @@ import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
-import useExcelImport, { ExcelImportSettings } from '../../../../../../hooks/useExcelImport';
+import useExcelImport from '../../../../../../hooks/useExcelImport';
 import ExcelImportModal from './components/ExcelImportModal';
-import { v1 as uuid } from 'uuid';
-
-const excelImportSettings: ExcelImportSettings<Personnel> = {
-    columns: [
-        { title: 'firstName', variations: ['firstname', 'first name'] },
-        { title: 'lastName', variations: ['lastname', 'last name'] },
-        { title: 'jobTitle', variations: ['jobtitle', 'job title', 'job'] },
-        {
-            title: 'phoneNumber',
-            variations: ['telephone number', 'telephonenumber', 'phonenumber', 'phone number'],
-        },
-        { title: 'mail', variations: ['mail', 'email', 'e-mail'] },
-        { title: 'dawinciCode', variations: ['dawincicode', 'dawinci'] },
-        {
-            title: 'disciplines',
-            variations: ['disciplines', 'discipline'],
-            format: (item: string) => {
-                return [{ name: item }];
-            },
-        },
-    ],
-    autoGenerateColumns: [
-        {
-            title: 'personnelId',
-            format: () => {
-                return uuid();
-            },
-        },
-    ],
-};
+import personnelExcelImportSettings from './personnelExcelImportSettings';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
     const { setSelectedFile, isProccessingFile, processedFile } = useExcelImport<Personnel>(
-        excelImportSettings
+        personnelExcelImportSettings
     );
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
