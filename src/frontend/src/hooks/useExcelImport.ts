@@ -34,14 +34,27 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
     useEffect(() => {
         if (selectedFile === null) return;
 
-        setIsProccessingFile(true);
-        getExcelReponseAsync(selectedFile);
+        processExcelFileAsync(selectedFile);
     }, [selectedFile]);
 
-    const getExcelReponseAsync = async (file: File) => {
-        const excelReponse = await apiClient.parseExcelFileAsync(file);
-        if (excelReponse) formatExcelReponse(excelReponse);
-        setIsProccessingFile(false);
+    const processExcelFileAsync = async (file: File) => {
+        setIsProccessingFile(true);
+        setError(false);
+
+        try {
+            const excelReponse = await apiClient.parseExcelFileAsync(file);
+
+            if (excelReponse) {
+                const formattedResponse = formatExcelReponse(excelReponse);
+                setProcessedFile(formattedResponse);
+            } else {
+                setProcessedFile(null);
+            }
+        } catch (e) {
+            setError(true);
+        } finally {
+            setIsProccessingFile(false);
+        }
     };
 
     const mapHeaderIndexesToColumns = (headers: ExcelHeader[]): ColumnIndex<T> => {
@@ -92,8 +105,7 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
             return mappedRow as T;
         });
 
-        setProcessedFile(mappedReponse);
-        setIsProccessingFile(false);
+        return mappedReponse;
     };
 
     return {
