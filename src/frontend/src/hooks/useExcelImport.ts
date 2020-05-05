@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useAppContext } from '../appContext';
 import ExcelParseReponse, { ExcelHeader } from '../models/ExcelParseResponse';
 
-export type autoGenerateColumn<T> = {
+export type AutoGenerateColumn<T> = {
     title: keyof T;
     format: (columns: Column<T>[]) => {};
 };
@@ -15,7 +15,7 @@ export type Column<T> = {
 
 export type ExcelImportSettings<T> = {
     columns: Column<T>[];
-    autoGenerateColumns?: autoGenerateColumn<T>[];
+    autoGenerateColumns?: AutoGenerateColumn<T>[];
 };
 
 type ColumnIndex<T> = {
