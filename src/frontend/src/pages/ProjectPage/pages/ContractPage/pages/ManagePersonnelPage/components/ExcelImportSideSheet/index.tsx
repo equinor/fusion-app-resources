@@ -1,12 +1,13 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { Spinner, OverlayPortal, Scrim, Button, ModalSideSheet } from '@equinor/fusion-components';
+import { Spinner, Button, ModalSideSheet } from '@equinor/fusion-components';
 
 type ExcelImportSideSheetProps = {
     setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
     isProccessing: boolean;
     isOpen: boolean;
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    processingError: boolean;
 };
 
 const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
@@ -14,6 +15,7 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
     isProccessing,
     isOpen,
     setIsOpen,
+    processingError,
 }) => {
     const [selectedFileForUpload, setSelectedFileForUpload] = React.useState<File | null>(null);
     const fileInput = React.useRef<HTMLInputElement>(null);
@@ -77,54 +79,56 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
             size={'medium'}
             onClose={closeSidesheet}
         >
-            <div onClick={(e) => e.stopPropagation()} className={styles.excelImportModal}>
-                {isProccessing && (
-                    <div className={styles.processing}>
-                        <Spinner centered title="Processing Excel file" />
-                    </div>
-                )}
-                {!isProccessing && (
-                    <div className={styles.inputs}>
-                        <div
-                            className={styles.dragDrop}
-                            onDrop={dragDropFileUpload}
-                            onDragEnter={(e) => stopPropagationAndDefault(e)}
-                            onDragOver={(e) => stopPropagationAndDefault(e)}
-                        >
-                            <div className={styles.dragDropText}>
-                                <p>Drag and drop an excel file here</p>
-                                <p>or </p>
-                                <div className={styles.fileInput}>
-                                    <div className={styles.inputButton}>
-                                        <Button onClick={fileInputClick}>
-                                            Select an excel file
-                                        </Button>
+            <div className={styles.container}>
+                <div onClick={(e) => e.stopPropagation()}>
+                    {isProccessing && <Spinner centered title="Processing Excel file" />}
+                    {!isProccessing && (
+                        <>
+                            <div
+                                className={styles.dragDropContainer}
+                                onDrop={dragDropFileUpload}
+                                onDragEnter={(e) => stopPropagationAndDefault(e)}
+                                onDragOver={(e) => stopPropagationAndDefault(e)}
+                            >
+                                <div>
+                                    <p>Drag and drop an excel file here</p>
+                                    <p>or </p>
+                                    <div className={styles.fileInput}>
+                                        <div className={styles.inputButton}>
+                                            <Button onClick={fileInputClick}>
+                                                Select an excel file
+                                            </Button>
+                                        </div>
+                                        <input
+                                            className={styles.inputField}
+                                            ref={fileInput}
+                                            type="file"
+                                            onChange={inputFileUpload}
+                                        ></input>
                                     </div>
-                                    <input
-                                        className={styles.inputField}
-                                        ref={fileInput}
-                                        type="file"
-                                        onChange={inputFileUpload}
-                                    ></input>
+                                </div>
+                                <div className={styles.errorMessageText}>
+                                    {selectedFileForUpload &&
+                                        !fileError &&
+                                        `Selected file: ${selectedFileForUpload.name}`}
+                                    {fileError && fileError}
+                                </div>
+                                <div className={styles.errorMessageText}>
+                                    {processingError &&
+                                        'Something went wrong, unable to process file'}
                                 </div>
                             </div>
-                            <div className={styles.selectedFileText}>
-                                {selectedFileForUpload &&
-                                    !fileError &&
-                                    `Selected file: ${selectedFileForUpload.name}`}
-                                {fileError && fileError}
+                            <div className={styles.processButton}>
+                                <Button
+                                    disabled={!selectedFileForUpload}
+                                    onClick={startProcessingSelectedFile}
+                                >
+                                    Process selected excel file
+                                </Button>
                             </div>
-                        </div>
-                        <div className={styles.processButton}>
-                            <Button
-                                disabled={!selectedFileForUpload}
-                                onClick={startProcessingSelectedFile}
-                            >
-                                Process selected excel file
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                        </>
+                    )}
+                </div>
             </div>
         </ModalSideSheet>
     );

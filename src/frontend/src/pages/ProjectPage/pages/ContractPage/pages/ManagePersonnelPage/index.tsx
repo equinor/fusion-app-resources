@@ -19,9 +19,10 @@ import ExcelImportSideSheet from './components/ExcelImportSideSheet';
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
-    const { setSelectedFile, isProccessingFile, processedFile } = useExcelImport<Personnel>(
-        personnelExcelImportSettings
-    );
+    const { setSelectedFile, isProccessingFile, processedFile, processingError } = useExcelImport<
+        Personnel
+    >(personnelExcelImportSettings);
+
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
     const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
@@ -235,6 +236,7 @@ const ManagePersonnelPage: React.FC = () => {
                     isProccessing={isProccessingFile}
                     isOpen={isUploadFileOpen}
                     setIsOpen={setIsUploadFileOpen}
+                    processingError={processingError}
                 />
             </ResourceErrorMessage>
         </div>

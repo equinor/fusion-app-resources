@@ -28,7 +28,7 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isProccessingFile, setIsProccessingFile] = useState<boolean>(false);
     const [processedFile, setProcessedFile] = useState<T[] | null>(null);
-    const [error, setError] = useState<boolean>(false);
+    const [processingError, setProcessingError] = useState<boolean>(false);
     const { columns, autoGenerateColumns } = excelImportSettings;
 
     useEffect(() => {
@@ -39,7 +39,7 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
 
     const processExcelFileAsync = async (file: File) => {
         setIsProccessingFile(true);
-        setError(false);
+        setProcessingError(false);
 
         try {
             const excelReponse = await apiClient.parseExcelFileAsync(file);
@@ -51,7 +51,7 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
                 setProcessedFile(null);
             }
         } catch (e) {
-            setError(true);
+            setProcessingError(true);
         } finally {
             setIsProccessingFile(false);
         }
@@ -112,7 +112,7 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
         setSelectedFile,
         isProccessingFile,
         processedFile,
-        error,
+        processingError,
     };
 };
 
