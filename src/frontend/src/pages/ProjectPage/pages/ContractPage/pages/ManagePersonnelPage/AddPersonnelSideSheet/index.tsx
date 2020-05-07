@@ -255,6 +255,124 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         setFailedRequests((fr) => fr.filter((r) => r !== request));
     }, []);
 
+    const renderTableHeader = React.useMemo(() => {
+        return (
+            <thead className={styles.tableBody}>
+                <tr className={styles.tableRow}>
+                    <th className={styles.tableRowHeaderSelectionCell}>
+                        <SelectionCell
+                            isSelected={
+                                !!selectedItems && selectedItems.length === formState.length
+                            }
+                            onChange={onSelectAll}
+                            indeterminate={
+                                !!selectedItems &&
+                                selectedItems.length > 0 &&
+                                selectedItems.length !== formState.length
+                            }
+                            ref={selectableTooltipRef}
+                        />
+                    </th>
+                    <th className={styles.tableRowHeaderSelectionCell}></th>
+                    <th className={styles.headerRowCell}>First Name</th>
+                    <th className={styles.headerRowCell}>Last Name</th>
+                    <th className={styles.headerRowCell}>E-Mail</th>
+                    <th className={styles.headerRowCell}>Phone Number</th>
+                    <th className={styles.headerRowCell}>Dawinci (optional)</th>
+                    <th className={styles.headerRowCell}>Disciplines (optional)</th>
+                </tr>
+            </thead>
+        );
+    }, [formState, selectedItems]);
+
+    const renderTableBody = React.useMemo(() => {
+        return (
+            <tbody className={styles.tableBody}>
+                {formState.map((person) => (
+                    <tr className={styles.tableRow} key={`person${person.personnelId}`}>
+                        <td className={styles.tableRowCell}>
+                            <SelectionCell
+                                isSelected={
+                                    !!selectedItems && selectedItems.some((i) => i === person)
+                                }
+                                onChange={() => onSelect(person)}
+                            />
+                        </td>
+                        <td className={styles.tableRowCellMenu}>
+                            <PopOverMenu person={person} />
+                        </td>
+                        <td className={styles.tableRowCell}>
+                            <AddPersonnelFormTextInput
+                                key={`firstname${person.personnelId}`}
+                                disabled={saveInProgress}
+                                item={person}
+                                onChange={onChange}
+                                field={'firstName'}
+                            />
+                        </td>
+                        <td className={styles.tableRowCell}>
+                            <AddPersonnelFormTextInput
+                                key={`lastname${person.personnelId}`}
+                                disabled={saveInProgress}
+                                item={person}
+                                onChange={onChange}
+                                field={'lastName'}
+                            />
+                        </td>
+                        <td className={styles.tableRowCell}>
+                            <AddPersonnelFormTextInput
+                                key={`mail${person.personnelId}`}
+                                disabled={Boolean(person.created || saveInProgress)}
+                                item={person}
+                                onChange={onChange}
+                                field={'mail'}
+                            />
+                        </td>
+
+                        <td className={styles.tableRowCell}>
+                            <AddPersonnelFormTextInput
+                                key={`phoneNumber${person.personnelId}`}
+                                disabled={saveInProgress}
+                                item={person}
+                                onChange={onChange}
+                                field={'phoneNumber'}
+                            />
+                        </td>
+                        <td className={styles.tableRowCell}>
+                            <AddPersonnelFormTextInput
+                                key={`dawinci${person.personnelId}`}
+                                disabled={saveInProgress}
+                                item={person}
+                                onChange={onChange}
+                                field={'dawinciCode'}
+                            />
+                        </td>
+                        <td className={styles.tableRowCell}>
+                            {isFetchingBasePositions ? (
+                                <SkeletonBar />
+                            ) : (
+                                <AddPersonnelFormDisciplinesDropDown
+                                    key={`disciplines${person.personnelId}`}
+                                    disabled={saveInProgress}
+                                    onChange={onChange}
+                                    item={person}
+                                    basePositions={basePositions}
+                                />
+                            )}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        );
+    }, [
+        formState,
+        selectedItems,
+        basePositions,
+        isFetchingBasePositions,
+        saveInProgress,
+        onChange,
+    ]);
+
     return (
         <ModalSideSheet
             header="Add Person"
@@ -287,109 +405,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 <div className={styles.container}>
                     <ManagePersonnelToolBar addButton={addButton} />
                     <table>
-                        <thead className={styles.tableBody}>
-                            <tr className={styles.tableRow}>
-                                <th className={styles.tableRowHeaderSelectionCell}>
-                                    <SelectionCell
-                                        isSelected={
-                                            !!selectedItems &&
-                                            selectedItems.length === formState.length
-                                        }
-                                        onChange={onSelectAll}
-                                        indeterminate={
-                                            !!selectedItems &&
-                                            selectedItems.length > 0 &&
-                                            selectedItems.length !== formState.length
-                                        }
-                                        ref={selectableTooltipRef}
-                                    />
-                                </th>
-                                <th className={styles.tableRowHeaderSelectionCell}></th>
-                                <th className={styles.headerRowCell}>First Name</th>
-                                <th className={styles.headerRowCell}>Last Name</th>
-                                <th className={styles.headerRowCell}>E-Mail</th>
-                                <th className={styles.headerRowCell}>Phone Number</th>
-                                <th className={styles.headerRowCell}>Dawinci (optional)</th>
-                                <th className={styles.headerRowCell}>Disciplines (optional)</th>
-                            </tr>
-                        </thead>
-                        <tbody className={styles.tableBody}>
-                            {formState.map((person) => (
-                                <tr className={styles.tableRow} key={`person${person.personnelId}`}>
-                                    <td className={styles.tableRowCell}>
-                                        <SelectionCell
-                                            isSelected={
-                                                !!selectedItems &&
-                                                selectedItems.some((i) => i === person)
-                                            }
-                                            onChange={() => onSelect(person)}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCellMenu}>
-                                        <PopOverMenu person={person} />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`firstname${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'firstName'}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`lastname${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'lastName'}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`mail${person.personnelId}`}
-                                            disabled={Boolean(person.created || saveInProgress)}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'mail'}
-                                        />
-                                    </td>
-
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`phoneNumber${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'phoneNumber'}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        <AddPersonnelFormTextInput
-                                            key={`dawinci${person.personnelId}`}
-                                            disabled={saveInProgress}
-                                            item={person}
-                                            onChange={onChange}
-                                            field={'dawinciCode'}
-                                        />
-                                    </td>
-                                    <td className={styles.tableRowCell}>
-                                        {isFetchingBasePositions ? (
-                                            <SkeletonBar />
-                                        ) : (
-                                            <AddPersonnelFormDisciplinesDropDown
-                                                key={`disciplines${person.personnelId}`}
-                                                disabled={saveInProgress}
-                                                onChange={onChange}
-                                                item={person}
-                                                basePositions={basePositions}
-                                            />
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
+                        {renderTableHeader}
+                        {renderTableBody}
                     </table>
                 </div>
             )}
