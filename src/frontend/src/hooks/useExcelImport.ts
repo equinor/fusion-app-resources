@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppContext } from '../appContext';
 import ExcelParseReponse, { ExcelHeader } from '../models/ExcelParseResponse';
 
@@ -57,55 +57,50 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
         }
     };
 
-    const mapHeaderIndexesToColumns = (headers: ExcelHeader[]): ColumnIndex<T> => {
-        let columnIndexes = {};
-
-        for (const column of columns) {
-            const header = headers.find((h) =>
-                column.variations
-                    ? column.variations.includes(h.title.toLocaleLowerCase())
-                    : h.title.toLocaleLowerCase() === column.title.toString().toLocaleLowerCase()
-            );
-
-            columnIndexes = {
-                ...columnIndexes,
-                [column.title]: header?.colIndex || header?.colIndex === 0 ? header.colIndex : -1,
-            };
-        }
-
-        return columnIndexes as ColumnIndex<T>;
-    };
-
     const formatExcelReponse = (response: ExcelParseReponse) => {
         const { headers, data } = response;
-
         const columnIndexes = mapHeaderIndexesToColumns(headers);
 
-        const mappedReponse: T[] = data.map((row) => {
+        return data.map((row) => {
             const { items } = row;
-            let mappedRow = {};
 
-            for (const column of columns) {
+            const mappedRow = columns.reduce((row, column) => {
                 const index = columnIndexes[column.title];
                 const value = index >= 0 ? items[index] : '';
                 const formattedValue = column.format ? column.format(value) : value;
 
-                mappedRow = { ...mappedRow, [column.title]: formattedValue };
-            }
+                return { ...row, [column.title]: formattedValue };
+            }, {} as T);
 
             if (autoGenerateColumns) {
-                for (const generateColumn of autoGenerateColumns) {
-                    mappedRow = {
-                        ...mappedRow,
-                        [generateColumn.title]: generateColumn.format(columns),
-                    };
-                }
+                const generatedColumns = autoGenerateColumns.reduce((row, column) => {
+                    return { ...row, [column.title]: column.format(columns) };
+                }, {} as T);
+
+                return { ...mappedRow, ...generatedColumns };
             }
 
-            return mappedRow as T;
+            return mappedRow;
         });
+    };
 
-        return mappedReponse;
+    const mapHeaderIndexesToColumns = (headers: ExcelHeader[]): ColumnIndex<T> => {
+        return columns.reduce((ci, column) => {
+            return {
+                ...ci,
+                [column.title]: findHeaderIndex(headers, column),
+            };
+        }, {} as ColumnIndex<T>);
+    };
+
+    const findHeaderIndex = (headers: ExcelHeader[], column: Column<T>) => {
+        const index = headers.find((h) =>
+            column.variations
+                ? column.variations.includes(h.title.toLowerCase())
+                : h.title.toLowerCase() === column.title.toString().toLowerCase()
+        )?.colIndex;
+
+        return index || index === 0 ? index : -1;
     };
 
     return {
