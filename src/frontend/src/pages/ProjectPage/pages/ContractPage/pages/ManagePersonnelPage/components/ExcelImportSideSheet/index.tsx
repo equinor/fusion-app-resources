@@ -87,8 +87,8 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
                             <div
                                 className={styles.dragDropContainer}
                                 onDrop={dragDropFileUpload}
-                                onDragEnter={(e) => stopPropagationAndDefault(e)}
-                                onDragOver={(e) => stopPropagationAndDefault(e)}
+                                onDragEnter={stopPropagationAndDefault}
+                                onDragOver={stopPropagationAndDefault}
                             >
                                 <div>
                                     <p>Drag and drop an excel file here</p>
