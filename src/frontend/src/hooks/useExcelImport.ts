@@ -43,7 +43,6 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
 
         try {
             const excelReponse = await apiClient.parseExcelFileAsync(file);
-
             if (excelReponse) {
                 const formattedResponse = formatExcelReponse(excelReponse);
                 setProcessedFile(formattedResponse);
@@ -61,8 +60,10 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
         const { headers, data } = response;
         const columnIndexes = mapHeaderIndexesToColumns(headers);
 
-        return data.map((row) => {
+        return data.reduce((rows, row) => {
             const { items } = row;
+
+            if (rowIsEmpty(items)) return rows;
 
             const mappedRow = columns.reduce((row, column) => {
                 const index = columnIndexes[column.title];
@@ -77,12 +78,16 @@ const useExcelImport = <T>(excelImportSettings: ExcelImportSettings<T>) => {
                     return { ...row, [column.title]: column.format(columns) };
                 }, {} as T);
 
-                return { ...mappedRow, ...generatedColumns };
+                rows.push({ ...mappedRow, ...generatedColumns });
+                return rows;
             }
 
-            return mappedRow;
-        });
+            rows.push(mappedRow);
+            return rows;
+        }, [] as Array<T>);
     };
+
+    const rowIsEmpty = (item: string[]) => !item.some((i) => i.length);
 
     const mapHeaderIndexesToColumns = (headers: ExcelHeader[]): ColumnIndex<T> => {
         return columns.reduce((ci, column) => {
