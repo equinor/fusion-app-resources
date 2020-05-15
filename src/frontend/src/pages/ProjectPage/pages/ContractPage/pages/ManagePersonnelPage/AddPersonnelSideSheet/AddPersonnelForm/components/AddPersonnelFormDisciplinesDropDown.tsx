@@ -4,11 +4,12 @@ import {
     TextInput,
     SearchableDropdownOption,
 } from '@equinor/fusion-components';
-import Personnel from '../../../../../../../models/Personnel';
 import { BasePosition } from '@equinor/fusion';
+import Personnel from '../../../../../../../../../models/Personnel';
+import PersonnelLine from '../../models/PersonnelLine';
 
 export type PersonnelFormDisciplinesDropDown = {
-    onChange: (changedPerson: Personnel) => void;
+    onChange: (person: PersonnelLine) => void;
     item: Personnel;
     disabled: boolean;
     basePositions: BasePosition[];
@@ -23,7 +24,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
     const options = React.useMemo(() => {
         const disciplines: SearchableDropdownOption[] = [];
         return basePositions.reduce((d, b): SearchableDropdownOption[] => {
-            if (d.some(d => d.key === b.discipline) || !b.discipline.length) return d;
+            if (d.some((d) => d.key === b.discipline) || !b.discipline.length) return d;
 
             d.push({
                 title: b.discipline,
@@ -37,11 +38,9 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
 
     const onSelect = React.useCallback(
         (newValue: SearchableDropdownOption) => {
-            const changedPerson = { ...item };
-            changedPerson.disciplines = [{ name: newValue.title }];
-            onChange(changedPerson);
+            onChange({ ...item, disciplines: [{ name: newValue.title }] });
         },
-        [item, onChange]
+        [item]
     );
 
     if (disabled)
@@ -49,7 +48,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
             <TextInput
                 key={`disciplinesDisabled${item.personnelId}`}
                 disabled={true}
-                placeholder={item.disciplines?.map(d => d.name).join('/') || ''}
+                placeholder={item.disciplines?.map((d) => d.name).join('/') || ''}
                 onChange={() => {}}
             />
         );
