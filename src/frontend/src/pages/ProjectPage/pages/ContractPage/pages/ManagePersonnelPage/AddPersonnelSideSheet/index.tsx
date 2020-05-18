@@ -18,6 +18,7 @@ import RequestProgressSidesheet, {
 } from '../../../../../../../components/RequestProgressSidesheet';
 import PersonnelRequest from './PersonnelRequest';
 import AddPersonnelForm from './AddPersonnelForm';
+import PersonnelLine from './models/PersonnelLine';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -131,6 +132,29 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         ]);
     }, [formState]);
 
+    const setPersonState = React.useCallback(
+        (person: PersonnelLine) => {
+            console.log('setPersonState:', formState);
+            const updatedPersons = formState.map((p) =>
+                p.personnelId === person.personnelId ? person : p
+            );
+            setFormState(updatedPersons);
+        },
+        [formState]
+    );
+
+    const onDeletePerson = React.useCallback(
+        (person: PersonnelLine) => {
+            const personFound = formState.findIndex((p) => p.personnelId === person.personnelId);
+            if (personFound < 0) return;
+
+            const newState = [...formState];
+            newState.splice(personFound, 1);
+            setFormState(newState);
+        },
+        [formState]
+    );
+
     const saveInProgress = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
     const addButton = React.useMemo((): IconButtonProps => {
@@ -190,8 +214,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                     formState={formState}
                     setFormState={setFormState}
                     saveInProgress={saveInProgress}
-                    isFormDirty={isDirty}
-                    isFormValid={isFormValid}
+                    setPersonState={setPersonState}
+                    onDeletePerson={onDeletePerson}
                 />
             </div>
             <RequestProgressSidesheet

@@ -9,41 +9,19 @@ type AddPersonnelFormProps = {
     formState: PersonnelLine[];
     setFormState: (state: PersonnelLine[]) => void;
     saveInProgress: boolean;
-    isFormValid: boolean;
-    isFormDirty: boolean;
+    setPersonState: (person: PersonnelLine) => void;
+    onDeletePerson: (person: PersonnelLine) => void;
 };
 
 const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
     formState,
     setFormState,
     saveInProgress,
-    isFormDirty,
-    isFormValid,
+    setPersonState,
+    onDeletePerson,
 }) => {
     const { basePositions, isFetchingBasePositions } = useBasePositions();
     const [selectAll, setSelectAll] = React.useState(false);
-
-    const setPersonState = React.useCallback(
-        (person: PersonnelLine) => {
-            const updatedPersons = formState.map((p) =>
-                p.personnelId === person.personnelId ? person : p
-            );
-            setFormState(updatedPersons);
-        },
-        [formState]
-    );
-
-    const onDeletePerson = React.useCallback(
-        (person: PersonnelLine) => {
-            const personFound = formState.findIndex((p) => p.personnelId === person.personnelId);
-            if (personFound < 0) return;
-
-            const newState = [...formState];
-            newState.splice(personFound, 1);
-            setFormState(newState);
-        },
-        [formState]
-    );
 
     const renderFormHeader = React.useMemo(
         () => (
