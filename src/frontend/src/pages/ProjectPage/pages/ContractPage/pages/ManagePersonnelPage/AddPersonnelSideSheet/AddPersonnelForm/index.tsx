@@ -31,7 +31,7 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
                 setSelectAll={setSelectAll}
             />
         ),
-        [formState]
+        [formState, selectAll]
     );
 
     const renderFormBody = React.useMemo(
@@ -50,7 +50,7 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
                 ))}
             </tbody>
         ),
-        [formState.length, selectAll]
+        [formState.length, saveInProgress, selectAll]
     );
 
     return (

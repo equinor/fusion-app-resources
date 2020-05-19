@@ -134,7 +134,6 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
 
     const setPersonState = React.useCallback(
         (person: PersonnelLine) => {
-            console.log('setPersonState:', formState);
             const updatedPersons = formState.map((p) =>
                 p.personnelId === person.personnelId ? person : p
             );
