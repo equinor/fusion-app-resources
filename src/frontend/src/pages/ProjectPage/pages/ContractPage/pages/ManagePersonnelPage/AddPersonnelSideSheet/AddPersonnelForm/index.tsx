@@ -43,7 +43,7 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
                 ))}
             </tbody>
         ),
-        [formState, saveInProgress]
+        [formState.length, saveInProgress]
     );
 
     return (
