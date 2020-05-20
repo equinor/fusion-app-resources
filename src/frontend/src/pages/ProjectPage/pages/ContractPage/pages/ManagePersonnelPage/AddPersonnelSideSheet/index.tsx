@@ -160,6 +160,26 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         return { onClick: onAddPerson, disabled: saveInProgress };
     }, [saveInProgress, onAddPerson]);
 
+    const saveButton = React.useMemo(() => {
+        return (
+            <Button
+                disabled={!(isDirty && isFormValid) || saveInProgress}
+                key={'save'}
+                outlined
+                onClick={savePersonnelChangesAsync}
+            >
+                {saveInProgress ? (
+                    <>
+                        <Spinner inline />
+                        Saving
+                    </>
+                ) : (
+                    'Save'
+                )}
+            </Button>
+        );
+    }, [isDirty, isFormValid, saveInProgress, savePersonnelChangesAsync]);
+
     const closeSidesheet = React.useCallback(() => {
         resetForm();
         setIsOpen(false);
@@ -189,23 +209,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             safeCloseTitle={`Close Add Person? Unsaved changes will be lost.`}
             safeCloseCancelLabel={'Continue editing'}
             safeCloseConfirmLabel={'Discard changes'}
-            headerIcons={[
-                <Button
-                    disabled={!(isDirty && isFormValid) || saveInProgress}
-                    key={'save'}
-                    outlined
-                    onClick={savePersonnelChangesAsync}
-                >
-                    {saveInProgress ? (
-                        <>
-                            <Spinner inline />
-                            Saving
-                        </>
-                    ) : (
-                        'Save'
-                    )}
-                </Button>,
-            ]}
+            headerIcons={[saveButton]}
         >
             <div className={styles.container}>
                 <ManagePersonnelToolBar addButton={addButton} />
