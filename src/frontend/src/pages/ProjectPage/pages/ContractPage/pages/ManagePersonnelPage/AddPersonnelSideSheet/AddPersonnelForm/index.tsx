@@ -21,17 +21,10 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
     onDeletePerson,
 }) => {
     const { basePositions, isFetchingBasePositions } = useBasePositions();
-    const [selectAll, setSelectAll] = React.useState(false);
 
     const renderFormHeader = React.useMemo(
-        () => (
-            <AddPersonnelFormHead
-                formState={formState}
-                setFormState={setFormState}
-                setSelectAll={setSelectAll}
-            />
-        ),
-        [formState, selectAll]
+        () => <AddPersonnelFormHead formState={formState} setFormState={setFormState} />,
+        [formState]
     );
 
     const renderFormBody = React.useMemo(
@@ -50,7 +43,7 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
                 ))}
             </tbody>
         ),
-        [formState.length, saveInProgress, selectAll]
+        [formState, saveInProgress]
     );
 
     return (
