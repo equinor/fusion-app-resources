@@ -6,12 +6,12 @@ import PersonnelLine from '../../models/PersonnelLine';
 
 type AddPersonnelFormHeadProps = {
     formState: PersonnelLine[];
-    setFormState: (state: PersonnelLine[]) => void;
+    setSelectionState: (state: boolean) => void;
 };
 
 export const AddPersonnelFormHead: React.FC<AddPersonnelFormHeadProps> = ({
     formState,
-    setFormState,
+    setSelectionState,
 }) => {
     const isAllSelected = React.useMemo(() => !formState.find((p) => !Boolean(p?.selected)), [
         formState,
@@ -23,8 +23,8 @@ export const AddPersonnelFormHead: React.FC<AddPersonnelFormHeadProps> = ({
     );
 
     const onSelectAll = React.useCallback(() => {
-        setFormState(formState.map((v) => ({ ...v, selected: !isAllSelected })));
-    }, [formState]);
+        setSelectionState(!isAllSelected);
+    }, [isAllSelected]);
 
     const selectableTooltipRef = useTooltipRef(
         isAllSelected ? 'Unselect all' : 'Select all',

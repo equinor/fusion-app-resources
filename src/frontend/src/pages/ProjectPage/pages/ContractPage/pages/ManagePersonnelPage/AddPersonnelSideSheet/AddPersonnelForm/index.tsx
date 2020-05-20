@@ -7,23 +7,25 @@ import useBasePositions from '../../../../../../../../hooks/useBasePositions';
 
 type AddPersonnelFormProps = {
     formState: PersonnelLine[];
-    setFormState: (state: PersonnelLine[]) => void;
     saveInProgress: boolean;
+    triggerSelectionUpdate: boolean;
+    setSelectionState: (setAll: boolean) => void;
     setPersonState: (person: PersonnelLine) => void;
     onDeletePerson: (person: PersonnelLine) => void;
 };
 
 const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
     formState,
-    setFormState,
     saveInProgress,
     setPersonState,
     onDeletePerson,
+    setSelectionState,
+    triggerSelectionUpdate,
 }) => {
     const { basePositions, isFetchingBasePositions } = useBasePositions();
 
     const renderFormHeader = React.useMemo(
-        () => <AddPersonnelFormHead formState={formState} setFormState={setFormState} />,
+        () => <AddPersonnelFormHead formState={formState} setSelectionState={setSelectionState} />,
         [formState]
     );
 
@@ -43,7 +45,7 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
                 ))}
             </tbody>
         ),
-        [formState.length, saveInProgress]
+        [formState.length, triggerSelectionUpdate, saveInProgress]
     );
 
     return (

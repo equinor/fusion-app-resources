@@ -36,6 +36,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
+    const [triggerSelectionUpdate, setTriggerSelectionUpdate] = React.useState(false);
     const { formState, setFormState, isFormValid, isFormDirty, resetForm } = useAddPersonnelForm(
         selectedPersonnel
     );
@@ -132,15 +133,20 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         ]);
     }, [formState]);
 
-    const setPersonState = React.useCallback(
-        (person: PersonnelLine) => {
-            const updatedPersons = formState.map((p) =>
-                p.personnelId === person.personnelId ? person : p
-            );
-            setFormState(updatedPersons);
-        },
-        [formState]
-    );
+    const setPersonState = React.useCallback((person: PersonnelLine) => {
+        setFormState((previousState) =>
+            previousState.map((p) => (p.personnelId === person.personnelId ? person : p))
+        );
+    }, []);
+
+    const setSelectionState = React.useCallback((setAll: boolean) => {
+        setFormState((previousState) =>
+            previousState.map((p) => {
+                return { ...p, selected: setAll };
+            })
+        );
+        setTriggerSelectionUpdate((previousState) => !previousState);
+    }, []);
 
     const onDeletePerson = React.useCallback(
         (person: PersonnelLine) => {
@@ -215,10 +221,11 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 <ManagePersonnelToolBar addButton={addButton} />
                 <AddPersonnelForm
                     formState={formState}
-                    setFormState={setFormState}
+                    setSelectionState={setSelectionState}
                     saveInProgress={saveInProgress}
                     setPersonState={setPersonState}
                     onDeletePerson={onDeletePerson}
+                    triggerSelectionUpdate={triggerSelectionUpdate}
                 />
             </div>
             <RequestProgressSidesheet
