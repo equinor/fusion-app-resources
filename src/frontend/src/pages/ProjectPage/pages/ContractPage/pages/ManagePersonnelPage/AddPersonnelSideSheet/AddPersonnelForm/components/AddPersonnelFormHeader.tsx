@@ -24,7 +24,7 @@ export const AddPersonnelFormHead: React.FC<AddPersonnelFormHeadProps> = ({
 
     const onSelectAll = React.useCallback(() => {
         setSelectionState(!isAllSelected);
-    }, [isAllSelected]);
+    }, [isAllSelected, setSelectionState]);
 
     const selectableTooltipRef = useTooltipRef(
         isAllSelected ? 'Unselect all' : 'Select all',

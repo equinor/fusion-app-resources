@@ -10,7 +10,7 @@ import { BasePosition } from '@equinor/fusion';
 import { PopOverMenu } from './AddPersonnelFormLinePopOverMenu';
 import PersonnelLine from '../../models/PersonnelLine';
 
-type AddPersonnelFormLineProps = {
+type AddPersonnelFormRowProps = {
     person: PersonnelLine;
     setPersonState: (person: PersonnelLine) => void;
     saveInProgress: boolean;
@@ -19,7 +19,7 @@ type AddPersonnelFormLineProps = {
     deletePerson: (person: PersonnelLine) => void;
 };
 
-export const AddPersonnelFormLine: React.FC<AddPersonnelFormLineProps> = ({
+export const AddPersonnelFormRow: React.FC<AddPersonnelFormRowProps> = ({
     person,
     setPersonState,
     saveInProgress,

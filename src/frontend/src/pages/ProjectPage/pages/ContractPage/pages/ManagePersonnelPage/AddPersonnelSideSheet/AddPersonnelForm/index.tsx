@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as styles from '../styles.less';
 import PersonnelLine from '../models/PersonnelLine';
 import { AddPersonnelFormHead } from './components/AddPersonnelFormHeader';
-import { AddPersonnelFormLine } from './components/AddPersonnelFormLine';
+import { AddPersonnelFormRow } from './components/AddPersonnelFormRow';
 import useBasePositions from '../../../../../../../../hooks/useBasePositions';
 
 type AddPersonnelFormProps = {
@@ -33,7 +33,7 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
         () => (
             <tbody>
                 {formState.map((person) => (
-                    <AddPersonnelFormLine
+                    <AddPersonnelFormRow
                         key={`PersonnelLine${person.personnelId}`}
                         person={person}
                         setPersonState={setPersonState}

@@ -40,7 +40,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
         (newValue: SearchableDropdownOption) => {
             onChange({ ...item, disciplines: [{ name: newValue.title }] });
         },
-        [item]
+        [item, onChange]
     );
 
     if (disabled)
