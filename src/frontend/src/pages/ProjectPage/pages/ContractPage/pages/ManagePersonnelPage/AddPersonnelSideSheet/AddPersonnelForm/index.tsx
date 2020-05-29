@@ -45,7 +45,13 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
                 ))}
             </tbody>
         ),
-        [formState.length, triggerSelectionUpdate, saveInProgress]
+        [
+            formState.length,
+            triggerSelectionUpdate,
+            saveInProgress,
+            basePositions,
+            isFetchingBasePositions,
+        ]
     );
 
     return (
