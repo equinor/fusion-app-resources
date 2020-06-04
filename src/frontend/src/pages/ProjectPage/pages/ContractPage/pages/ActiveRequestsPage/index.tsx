@@ -136,43 +136,36 @@ const ActiveRequestsPage: React.FC = () => {
                         </div>
 
                         <div className={styles.buttonContainer}>
-                            {canReject && (
-                                <Button
-                                    outlined
-                                    disabled={!canReject}
-                                    onClick={() => setRejectRequest(selectedRequests)}
-                                >
-                                    <div className={styles.buttonIcon}>
-                                        {isRejecting ? (
-                                            <Spinner small inline />
-                                        ) : (
-                                            <CloseCircleIcon
-                                                width={styling.numericalGrid(2)}
-                                                height={styling.numericalGrid(2)}
-                                            />
-                                        )}
-                                    </div>
-                                    Reject
-                                </Button>
-                            )}
-                            {canApprove && (
-                                <Button
-                                    disabled={!canApprove}
-                                    onClick={() => canApprove && approve()}
-                                >
-                                    <div className={styles.buttonIcon}>
-                                        {isApproving ? (
-                                            <Spinner small inline />
-                                        ) : (
-                                            <CheckCircleIcon
-                                                width={styling.numericalGrid(2)}
-                                                height={styling.numericalGrid(2)}
-                                            />
-                                        )}
-                                    </div>
-                                    Approve
-                                </Button>
-                            )}
+                            <Button
+                                outlined
+                                disabled={!canReject}
+                                onClick={() => setRejectRequest(selectedRequests)}
+                            >
+                                <div className={styles.buttonIcon}>
+                                    {isRejecting ? (
+                                        <Spinner small inline />
+                                    ) : (
+                                        <CloseCircleIcon
+                                            width={styling.numericalGrid(2)}
+                                            height={styling.numericalGrid(2)}
+                                        />
+                                    )}
+                                </div>
+                                Reject
+                            </Button>
+                            <Button disabled={!canApprove} onClick={() => canApprove && approve()}>
+                                <div className={styles.buttonIcon}>
+                                    {isApproving ? (
+                                        <Spinner small inline />
+                                    ) : (
+                                        <CheckCircleIcon
+                                            width={styling.numericalGrid(2)}
+                                            height={styling.numericalGrid(2)}
+                                        />
+                                    )}
+                                </div>
+                                Approve
+                            </Button>
                             <div className={styles.helpButton}>
                                 <Link target="_blank" to="/help">
                                     <IconButton ref={helpIconRef}>
