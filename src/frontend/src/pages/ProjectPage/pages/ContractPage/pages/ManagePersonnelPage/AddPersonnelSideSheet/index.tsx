@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
+import { ModalSideSheet, Button, Spinner, ArrowBackIcon } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
 import * as styles from './styles.less';
@@ -19,6 +19,8 @@ import RequestProgressSidesheet, {
 import PersonnelRequest from './PersonnelRequest';
 import AddPersonnelForm from './AddPersonnelForm';
 import PersonnelLine from './models/PersonnelLine';
+import useScrollToTop from '../../../../../../../hooks/useScrollToTop';
+import ScrollUpFab from '../../../../../../../components/ScrollUpFab';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -205,6 +207,8 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         setFailedRequests((fr) => fr.filter((r) => r !== request));
     }, []);
 
+    const { scrollRef, scrollToTop, hasScrolled } = useScrollToTop<HTMLDivElement>(500);
+
     return (
         <ModalSideSheet
             header="Add Person"
@@ -217,7 +221,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
             safeCloseConfirmLabel={'Discard changes'}
             headerIcons={[saveButton]}
         >
-            <div className={styles.container}>
+            {hasScrolled && (
+                <ScrollUpFab onClick={scrollToTop}>
+                    <ArrowBackIcon />
+                </ScrollUpFab>
+            )}
+
+            <div ref={scrollRef} className={styles.container}>
                 <ManagePersonnelToolBar addButton={addButton} />
                 <AddPersonnelForm
                     formState={formState}

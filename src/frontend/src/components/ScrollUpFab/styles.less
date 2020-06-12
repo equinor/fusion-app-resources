@@ -1,0 +1,46 @@
+.container {
+  background: var(--color-primary);
+  border: none;
+  outline: none;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  overflow: visible;
+  position: absolute; 
+  border-radius: 50%;
+  bottom: 25px ; 
+  right: 25px; 
+  z-Index: 10;
+
+  .iconContainer {
+      border:none;
+      border-radius: 0;
+      border-style: solid;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      border: 1px solid transparent;
+      border-radius: 50%;
+      color: var(--color-white);
+      transform: rotate(90deg);
+  }
+
+  
+  &:hover {
+      .iconContainer {
+          background-color: var(--color-primary-hover);
+
+      }
+  }
+
+  &:active {
+    .iconContainer {
+        background-color: var(--color-primary-alt1) !important;
+    }
+    }
+}
