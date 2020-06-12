@@ -43,6 +43,7 @@ export const AddPersonnelFormHead: React.FC<AddPersonnelFormHeadProps> = ({
                     />
                 </th>
                 <th className={styles.tableRowHeaderSelectionCell}></th>
+                <th className={styles.headerRowCell}>#</th>
                 <th className={styles.headerRowCell}>First Name</th>
                 <th className={styles.headerRowCell}>Last Name</th>
                 <th className={styles.headerRowCell}>E-Mail</th>

@@ -12,6 +12,7 @@ import PersonnelLine from '../../models/PersonnelLine';
 
 type AddPersonnelFormRowProps = {
     person: PersonnelLine;
+    rowNumber: number;
     setPersonState: (person: PersonnelLine) => void;
     saveInProgress: boolean;
     isFetchingBasePositions: Boolean;
@@ -26,6 +27,7 @@ export const AddPersonnelFormRow: React.FC<AddPersonnelFormRowProps> = ({
     isFetchingBasePositions,
     basePositions,
     deletePerson,
+    rowNumber,
 }) => {
     const validateForm = React.useCallback((formState: Personnel) => {
         return Boolean(
@@ -54,6 +56,9 @@ export const AddPersonnelFormRow: React.FC<AddPersonnelFormRowProps> = ({
             </td>
             <td className={styles.tableRowCellMenu}>
                 <PopOverMenu person={formState} onDeletePerson={deletePerson} />
+            </td>
+            <td className={styles.tableRowCell} style={{ textAlign: 'center' }}>
+                <p>{rowNumber}</p>
             </td>
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput

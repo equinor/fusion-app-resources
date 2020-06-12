@@ -32,10 +32,11 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
     const renderFormBody = React.useMemo(
         () => (
             <tbody>
-                {formState.map((person) => (
+                {formState.map((person, i) => (
                     <AddPersonnelFormRow
                         key={`PersonnelLine${person.personnelId}`}
                         person={person}
+                        rowNumber={i + 1}
                         setPersonState={setPersonState}
                         saveInProgress={saveInProgress}
                         isFetchingBasePositions={isFetchingBasePositions}
