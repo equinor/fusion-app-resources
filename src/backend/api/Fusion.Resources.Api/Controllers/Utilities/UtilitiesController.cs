@@ -1,6 +1,7 @@
 ﻿using Fusion.Integration.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -67,16 +68,23 @@ namespace Fusion.Resources.Api.Controllers.Utilities
         [HttpGet("/utilities/templates/import-personnel")]
         public async Task<FileResult> DownloadImportPersonnelTemplate()
         {
+            const string fileName = "fusion personnel import.xlsx";
             using var templateFile = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Data.personnel-import-template.xlsx");
             using var memoryStream = new MemoryStream();
 
             if (templateFile == null)
                 throw new FileNotFoundException("Could not locate template file");
 
-            
             await templateFile.CopyToAsync(memoryStream);
-           
-            return File(memoryStream.ToArray(), "application/vnd.ms-excel", "fusion personnel import.xlsx");
+
+            var provider = new FileExtensionContentTypeProvider();
+            string contentType;
+            if (!provider.TryGetContentType(fileName, out contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            return File(memoryStream.ToArray(), contentType, fileName);
         }
 
         #region Temporary models - should be moved to integration lib
