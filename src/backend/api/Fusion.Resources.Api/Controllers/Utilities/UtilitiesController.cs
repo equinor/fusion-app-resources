@@ -1,15 +1,18 @@
 ﻿using Fusion.Integration.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers.Utilities
@@ -60,6 +63,28 @@ namespace Fusion.Resources.Api.Controllers.Utilities
 
                 throw new InvalidOperationException($"Parser function returned non-successfull response ({response.StatusCode}).");
             }
+        }
+
+        [HttpGet("/utilities/templates/import-personnel")]
+        public async Task<FileResult> DownloadImportPersonnelTemplate()
+        {
+            const string fileName = "fusion personnel import.xlsx";
+            using var templateFile = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Data.personnel-import-template.xlsx");
+            using var memoryStream = new MemoryStream();
+
+            if (templateFile == null)
+                throw new FileNotFoundException("Could not locate template file");
+
+            await templateFile.CopyToAsync(memoryStream);
+
+            var provider = new FileExtensionContentTypeProvider();
+            string contentType;
+            if (!provider.TryGetContentType(fileName, out contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            return File(memoryStream.ToArray(), contentType, fileName);
         }
 
         #region Temporary models - should be moved to integration lib
