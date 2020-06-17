@@ -32,7 +32,7 @@ namespace Fusion.Resources.Api.Controllers
             public DateTime AppliesTo { get; set; }
             public string? Obs { get; set; } 
 
-            public TaskOwnerReference TaskOwner { get; set; } = null!;
+            public TaskOwnerReference? TaskOwner { get; set; }
             public double Workload { get; set; }
         }
 
@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.Position.BasePosition).BeValidBasePosition(projectOrgResolver)
                     .When(x => x.Position != null);
 
-                RuleFor(x => x.Position.TaskOwner.PositionId).BeExistingContractPositionId(projectOrgResolver)
+                RuleFor(x => x.Position.TaskOwner!.PositionId).BeExistingContractPositionId(projectOrgResolver)
                     .When(x => x.Position != null && x.Position.TaskOwner != null);
 
                 RuleFor(x => x.OriginalPositionId).BeValidChangeRequestPosition(projectOrgResolver)

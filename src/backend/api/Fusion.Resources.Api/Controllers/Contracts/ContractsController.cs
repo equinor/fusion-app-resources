@@ -69,7 +69,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var contractsToReturn = orgContracts
                 .Where(c => c != null)
-                .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c.Id))
+                .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c!.Id))
                 .ToList();
 
 
@@ -77,11 +77,11 @@ namespace Fusion.Resources.Api.Controllers
             switch (User.GetUserAccountType())
             {
                 case FusionAccountType.External:
-                    contractsToReturn.RemoveAll(c => User.IsInContract(c.ContractNumber) == false);
+                    contractsToReturn.RemoveAll(c => User.IsInContract(c!.ContractNumber) == false);
                     break;
             } 
 
-            var collection = new ApiCollection<ApiContract>(contractsToReturn.Select(c => new ApiContract(c)));
+            var collection = new ApiCollection<ApiContract>(contractsToReturn.Select(c => new ApiContract(c!)));
             return collection;
         }
 
