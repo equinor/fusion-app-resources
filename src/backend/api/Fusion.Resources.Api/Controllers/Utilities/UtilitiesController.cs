@@ -7,9 +7,11 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers.Utilities
@@ -60,6 +62,21 @@ namespace Fusion.Resources.Api.Controllers.Utilities
 
                 throw new InvalidOperationException($"Parser function returned non-successfull response ({response.StatusCode}).");
             }
+        }
+
+        [HttpGet("/utilities/templates/import-personnel")]
+        public async Task<FileResult> DownloadImportPersonnelTemplate()
+        {
+            using var templateFile = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Data.personnel-import-template.xlsx");
+            using var memoryStream = new MemoryStream();
+
+            if (templateFile == null)
+                throw new FileNotFoundException("Could not locate template file");
+
+            
+            await templateFile.CopyToAsync(memoryStream);
+           
+            return File(memoryStream.ToArray(), "application/vnd.ms-excel", "fusion personnel import.xlsx");
         }
 
         #region Temporary models - should be moved to integration lib
