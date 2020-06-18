@@ -159,7 +159,7 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
                                     Process selected excel file
                                 </Button>
                             </div>
-                            <div className={styles.help}>
+                            <div className={styles.tips}>
                                 <h3>Tips</h3>
                                 <ul>
                                     <li>
