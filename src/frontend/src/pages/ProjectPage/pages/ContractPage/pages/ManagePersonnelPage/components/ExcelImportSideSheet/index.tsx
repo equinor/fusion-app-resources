@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as styles from './styles.less';
 import { Spinner, Button, ModalSideSheet } from '@equinor/fusion-components';
+import { useAppContext } from '../../../../../../../../appContext';
 
 type ExcelImportSideSheetProps = {
     setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
@@ -20,6 +21,8 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
     const [selectedFileForUpload, setSelectedFileForUpload] = React.useState<File | null>(null);
     const fileInput = React.useRef<HTMLInputElement>(null);
     const [fileError, setFileError] = React.useState<string | null>(null);
+
+    const { apiClient } = useAppContext();
 
     React.useEffect(() => {
         setSelectedFileForUpload(null);
@@ -71,6 +74,36 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
     const closeSidesheet = React.useCallback(() => {
         !isProccessing && setIsOpen(false);
     }, [isProccessing]);
+
+    const downloadExcelTemplate = React.useCallback(async () => {
+        const file = await apiClient.getPersonnelExcelTemplate();
+        const reader = file.body.getReader();
+
+        const readableStream = new ReadableStream({
+            async start(controller) {
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) break;
+
+                    controller.enqueue(value);
+                }
+
+                controller.close();
+                reader.releaseLock();
+            },
+        });
+
+        new Response(readableStream)
+            .blob()
+            .then((blob) => URL.createObjectURL(blob))
+            .then((url) => {
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'Personnel import.xlsx';
+                link.click();
+            });
+    }, []);
 
     return (
         <ModalSideSheet
@@ -125,6 +158,35 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
                                 >
                                     Process selected excel file
                                 </Button>
+                            </div>
+                            <div className={styles.help}>
+                                <h3>Tips</h3>
+                                <ul>
+                                    <li>
+                                        <Button outlined onClick={downloadExcelTemplate}>
+                                            Get an empty excel template here
+                                        </Button>
+                                    </li>
+                                    <li>
+                                        Use the template to add information about the personnel you
+                                        want to import
+                                    </li>
+                                    <li>
+                                        Optional information can be left blank in the excel sheet
+                                    </li>
+                                    <li>
+                                        After processing the excel sheet. You will get a preview of
+                                        the data that is ready for import.
+                                    </li>
+                                    <li>
+                                        You will be able to edit the data in the preview, before
+                                        importing it.
+                                    </li>
+                                    <li>
+                                        No data is saved before you press "save" in the preview. You
+                                        can stop at any time before this.
+                                    </li>
+                                </ul>
                             </div>
                         </>
                     )}

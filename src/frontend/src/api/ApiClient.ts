@@ -3,7 +3,6 @@ import {
     FusionApiHttpErrorResponse,
     combineUrls,
     Position,
-    BasePosition,
     HttpClientParseError,
 } from '@equinor/fusion';
 import ResourceCollection from './ResourceCollection';
@@ -13,9 +12,20 @@ import ApiCollection from '../models/apiCollection';
 import AvailableContract from '../models/availableContract';
 import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
-import Person from '../models/Person';
 import CreatePersonnelRequest from '../models/CreatePersonnelRequest';
 import ExcelParseReponse from '../models/ExcelParseResponse';
+
+type ReadableStreamResponse = {
+    body: ReadableStream<Uint8Array>;
+    bodyUsed: boolean;
+    headers: any;
+    ok: boolean;
+    redirect: boolean;
+    status: number;
+    statusText: string;
+    tpye: string;
+    url: string;
+};
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -328,10 +338,20 @@ export default class ApiClient {
         const url = this.resourceCollection.parseExcelFile();
         const data = new FormData();
         data.append('File', file);
-        const reponse = await this.httpClient.postFormAsync<
+        const response = await this.httpClient.postFormAsync<
             ExcelParseReponse,
             FusionApiHttpErrorResponse
         >(url, data);
-        return reponse.data;
+        return response.data;
+    }
+
+    public async getPersonnelExcelTemplate() {
+        const url = this.resourceCollection.personnelExcelTemplate();
+        const responseParser = (r: any) => r;
+        const response = await this.httpClient.getAsync<
+            ReadableStreamResponse,
+            FusionApiHttpErrorResponse
+        >(url, null, responseParser);
+        return response.data;
     }
 }
