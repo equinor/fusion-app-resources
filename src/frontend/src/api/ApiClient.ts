@@ -104,7 +104,6 @@ export default class ApiClient {
             ApiCollectionRequest<Personnel>[],
             FusionApiHttpErrorResponse
         >(url, personnel);
-        console.log('createPersonnelCollectionAsync Response:', reponse);
         return reponse.data;
     }
 

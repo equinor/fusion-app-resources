@@ -110,15 +110,16 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const savePersonnelCollectionAsync = React.useCallback(
         async (personnel: Personnel[], contextId: string, contractId: string) => {
             try {
-                setPendingRequests(personnel);
+                setPendingRequests((r) => [...r, ...personnel]);
                 const response = await apiClient.createPersonnelCollectionAsync(
                     contextId,
                     contractId,
                     personnel
                 );
 
-                setFailedRequests(
-                    response.reduce<FailedRequest<Personnel>[]>((failedReqs, e, i) => {
+                setFailedRequests((f) => [
+                    ...f,
+                    ...response.reduce<FailedRequest<Personnel>[]>((failedReqs, e, i) => {
                         if (e.code === 'BadRequest')
                             failedReqs.push({
                                 item: personnel[i],
@@ -139,18 +140,18 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                             });
 
                         return failedReqs;
-                    }, [])
-                );
+                    }, []),
+                ]);
 
                 const createdPersonnel = response.filter((p) => p.code === 'Created');
 
-                setSuccessfullRequests(
-                    createdPersonnel.map<SuccessfulRequest<Personnel, Personnel>>((s) => ({
+                setSuccessfullRequests((s) => [
+                    ...s,
+                    ...createdPersonnel.map<SuccessfulRequest<Personnel, Personnel>>((s) => ({
                         item: s.value,
                         response: s.value,
-                    }))
-                );
-                setPendingRequests([]);
+                    })),
+                ]);
 
                 dispatchContractAction({
                     collection: 'personnel',
@@ -161,7 +162,9 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 //TODO: Need some generic error here.
                 //The fail here will be more in the case of connection issues etc...
                 setPendingRequests([]);
-                console.log(error);
+                console.log('error:', error);
+            } finally {
+                setPendingRequests((r) => r.filter((x) => !personnel.includes(x)));
             }
         },
         [apiClient]
@@ -176,11 +179,19 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         setFailedRequests([]);
         setSuccessfullRequests([]);
 
-        formState.length >= 10
-            ? savePersonnelCollectionAsync(formState, currentContext.id, contractId)
-            : formState.forEach((person) =>
-                  savePersonnelAsync(person, currentContext.id, contractId)
-              );
+        if (formState.length >= 10) {
+            for (let i = 0; formState.length >= i; i += 100) {
+                savePersonnelCollectionAsync(
+                    formState.slice(i, i + 100),
+                    currentContext.id,
+                    contractId
+                );
+            }
+        } else {
+            formState.forEach((person) =>
+                savePersonnelAsync(person, currentContext.id, contractId)
+            );
+        }
     }, [contract, formState, currentContext, savePersonnelAsync]);
 
     const onAddPerson = React.useCallback(() => {
