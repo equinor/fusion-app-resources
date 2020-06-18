@@ -8,7 +8,7 @@ import {
 import ResourceCollection from './ResourceCollection';
 import Personnel from '../models/Personnel';
 import Contract from '../models/contract';
-import ApiCollection from '../models/apiCollection';
+import ApiCollection, { ApiCollectionRequest } from '../models/apiCollection';
 import AvailableContract from '../models/availableContract';
 import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
@@ -101,9 +101,10 @@ export default class ApiClient {
         const url = this.resourceCollection.personnelCollection(projectId, contractId);
         const reponse = await this.httpClient.postAsync<
             Personnel[],
-            Personnel[],
+            ApiCollectionRequest<Personnel>[],
             FusionApiHttpErrorResponse
         >(url, personnel);
+        console.log('createPersonnelCollectionAsync Response:', reponse);
         return reponse.data;
     }
 
@@ -352,6 +353,7 @@ export default class ApiClient {
             ReadableStreamResponse,
             FusionApiHttpErrorResponse
         >(url, null, responseParser);
+
         return response.data;
     }
 }

@@ -107,6 +107,66 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         [apiClient]
     );
 
+    const savePersonnelCollectionAsync = React.useCallback(
+        async (personnel: Personnel[], contextId: string, contractId: string) => {
+            try {
+                setPendingRequests(personnel);
+                const response = await apiClient.createPersonnelCollectionAsync(
+                    contextId,
+                    contractId,
+                    personnel
+                );
+
+                setFailedRequests(
+                    response.reduce<FailedRequest<Personnel>[]>((failedReqs, e, i) => {
+                        if (e.code === 'BadRequest')
+                            failedReqs.push({
+                                item: personnel[i],
+                                isEditable: true,
+                                error: {
+                                    error: {
+                                        code: e.code,
+                                        message: e.message,
+                                        errors: [
+                                            {
+                                                message: e.message,
+                                                property: '',
+                                                attemptedValue: '',
+                                            },
+                                        ],
+                                    },
+                                },
+                            });
+
+                        return failedReqs;
+                    }, [])
+                );
+
+                const createdPersonnel = response.filter((p) => p.code === 'Created');
+
+                setSuccessfullRequests(
+                    createdPersonnel.map<SuccessfulRequest<Personnel, Personnel>>((s) => ({
+                        item: s.value,
+                        response: s.value,
+                    }))
+                );
+                setPendingRequests([]);
+
+                dispatchContractAction({
+                    collection: 'personnel',
+                    verb: 'merge',
+                    payload: createdPersonnel.map<Personnel>((p) => p.value),
+                });
+            } catch (error) {
+                //TODO: Need some generic error here.
+                //The fail here will be more in the case of connection issues etc...
+                setPendingRequests([]);
+                console.log(error);
+            }
+        },
+        [apiClient]
+    );
+
     const savePersonnelChangesAsync = React.useCallback(async () => {
         const contractId = contract?.id;
 
@@ -116,7 +176,11 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         setFailedRequests([]);
         setSuccessfullRequests([]);
 
-        formState.forEach((person) => savePersonnelAsync(person, currentContext.id, contractId));
+        formState.length >= 10
+            ? savePersonnelCollectionAsync(formState, currentContext.id, contractId)
+            : formState.forEach((person) =>
+                  savePersonnelAsync(person, currentContext.id, contractId)
+              );
     }, [contract, formState, currentContext, savePersonnelAsync]);
 
     const onAddPerson = React.useCallback(() => {
