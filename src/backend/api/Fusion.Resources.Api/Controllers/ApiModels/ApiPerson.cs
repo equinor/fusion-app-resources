@@ -13,8 +13,8 @@ namespace Fusion.Resources.Api.Controllers
             AzureUniquePersonId = profile.AzureUniqueId;
             Mail = profile.Mail;
             Name = profile.Name;
-            PhoneNumber = profile.MobilePhone;
-            JobTitle = profile.JobTitle;
+            PhoneNumber = profile.MobilePhone ?? string.Empty;
+            JobTitle = profile.JobTitle ?? string.Empty;
             AccountType = profile.AccountType;
         }
 
