@@ -314,6 +314,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                 />
             </div>
             <RequestProgressSidesheet
+                title="Saving personnel"
                 failedRequests={failedRequests}
                 successfulRequests={successfulRequests}
                 pendingRequests={pendingRequests}

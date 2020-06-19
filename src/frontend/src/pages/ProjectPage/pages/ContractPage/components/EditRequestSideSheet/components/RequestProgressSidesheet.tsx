@@ -39,6 +39,7 @@ const MppRequestProgressSidesheet: React.FC<RequestProgressSidesheetProps> = ({
 }) => {
     return (
         <RequestProgressSidesheet
+            title="Saving requests"
             failedRequests={failedRequests}
             pendingRequests={pendingRequests}
             successfulRequests={successfulRequests}
