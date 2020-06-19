@@ -14,18 +14,7 @@ import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
 import CreatePersonnelRequest from '../models/CreatePersonnelRequest';
 import ExcelParseReponse from '../models/ExcelParseResponse';
-
-type ReadableStreamResponse = {
-    body: ReadableStream<Uint8Array>;
-    bodyUsed: boolean;
-    headers: any;
-    ok: boolean;
-    redirect: boolean;
-    status: number;
-    statusText: string;
-    tpye: string;
-    url: string;
-};
+import ReadableStreamResponse from '../models/ReadableStreamResponse';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
