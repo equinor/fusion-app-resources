@@ -15,6 +15,10 @@ import Contract from '../../../../../../models/contract';
 import { getInstances, isInstanceFuture, isInstancePast } from '../../../../orgHelpers';
 import { Link } from 'react-router-dom';
 
+type AccordionOpenDictionary = {
+    [id: string]: boolean;
+};
+
 const createFieldWithSkeleton = (
     name: string,
     render: (contract: Contract) => React.ReactNode,
@@ -41,15 +45,15 @@ const createFieldWithSkeleton = (
 };
 
 const ContractNumber = () =>
-    createFieldWithSkeleton('Contract number', contract => contract.contractNumber);
+    createFieldWithSkeleton('Contract number', (contract) => contract.contractNumber);
 const Contractor = () =>
-    createFieldWithSkeleton('Contractor', contract => contract.company?.name || null);
+    createFieldWithSkeleton('Contractor', (contract) => contract.company?.name || null);
 const FromDate = () =>
-    createFieldWithSkeleton('From date', contract =>
+    createFieldWithSkeleton('From date', (contract) =>
         contract.startDate ? formatDate(contract.startDate) : 'N/A'
     );
 const ToDate = () =>
-    createFieldWithSkeleton('To date', contract =>
+    createFieldWithSkeleton('To date', (contract) =>
         contract.endDate ? formatDate(contract.endDate) : 'N/A'
     );
 
@@ -99,25 +103,25 @@ const renderPosition = (position: Position | null) => {
 const EquinorContractResponsible = () =>
     createFieldWithSkeleton(
         'Equinor contract responsible',
-        contract => renderPosition(contract.contractResponsible),
+        (contract) => renderPosition(contract.contractResponsible),
         () => <PositionCardSkeleton />
     );
 const EquinorCompanyRep = () =>
     createFieldWithSkeleton(
         'Equinor company rep',
-        contract => renderPosition(contract.companyRep),
+        (contract) => renderPosition(contract.companyRep),
         () => <PositionCardSkeleton />
     );
 const ExternalCompanyRep = () =>
     createFieldWithSkeleton(
         'External company rep',
-        contract => renderPosition(contract.externalCompanyRep),
+        (contract) => renderPosition(contract.externalCompanyRep),
         () => <PositionCardSkeleton />
     );
 const ExternalContractResponsible = () =>
     createFieldWithSkeleton(
         'External contract responsible',
-        contract => renderPosition(contract.externalContractResponsible),
+        (contract) => renderPosition(contract.externalContractResponsible),
         () => <PositionCardSkeleton />
     );
 
@@ -132,6 +136,7 @@ const ContractDetailsPage = () => {
     return (
         <div className={styles.container}>
             <div className={styles.contractDetails}>
+                <div className={styles.header}>Contract details</div>
                 <div className={styles.row}>
                     <ContractNumber />
                     <Contractor />
@@ -140,10 +145,12 @@ const ContractDetailsPage = () => {
                     <FromDate />
                     <ToDate />
                 </div>
+                <div className={styles.header}>Equinor responsible</div>
                 <div className={styles.row}>
                     <EquinorCompanyRep />
                     <EquinorContractResponsible />
                 </div>
+                <div className={styles.header}>External responsible</div>
                 <div className={styles.row}>
                     <ExternalCompanyRep />
                     <ExternalContractResponsible />
