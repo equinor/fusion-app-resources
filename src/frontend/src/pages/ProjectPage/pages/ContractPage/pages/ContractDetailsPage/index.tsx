@@ -14,6 +14,8 @@ import { formatDate, Position, useHistory, useCurrentContext } from '@equinor/fu
 import Contract from '../../../../../../models/contract';
 import { getInstances, isInstanceFuture, isInstancePast } from '../../../../orgHelpers';
 import { Link } from 'react-router-dom';
+import ContractAdminTable from '../../components/ContractAdminTable';
+import DelegateAccessSideSheet from '../../components/DelegateAccessSideSheet';
 
 type AccordionOpenDictionary = {
     [id: string]: boolean;
@@ -64,6 +66,12 @@ const PositionCardSkeleton = () => (
             <SkeletonBar />
             <SkeletonBar />
         </div>
+    </div>
+);
+
+const DelegateAdminTitle = () => (
+    <div className={styles.field}>
+        <label>Delegate admin access</label>
     </div>
 );
 
@@ -150,10 +158,19 @@ const ContractDetailsPage = () => {
                     <EquinorCompanyRep />
                     <EquinorContractResponsible />
                 </div>
+                <DelegateAdminTitle />
+
+                <div className={styles.row}>
+                    <ContractAdminTable company="Equinor" />
+                </div>
                 <div className={styles.header}>External responsible</div>
                 <div className={styles.row}>
                     <ExternalCompanyRep />
                     <ExternalContractResponsible />
+                </div>
+                <DelegateAdminTitle />
+                <div className={styles.row}>
+                    <ContractAdminTable company="External"/>
                 </div>
             </div>
             <div className={styles.aside}>
