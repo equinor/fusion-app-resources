@@ -12,21 +12,41 @@ import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ManagePersonnelToolBar, { IconButtonProps } from './components/ManagePersonnelToolBar';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
+import useExcelImport from '../../../../../../hooks/useExcelImport';
+import personnelExcelImportSettings from './personnelExcelImportSettings';
+import ExcelImportSideSheet from './components/ExcelImportSideSheet';
 
 const ManagePersonnelPage: React.FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
+    const { setSelectedFile, isProccessingFile, processedFile, processingError } = useExcelImport<
+        Personnel
+    >(personnelExcelImportSettings);
+
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
     const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
+    const [isExcelImport, setIsExcelImport] = React.useState<boolean>(false);
     const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
     const notification = useNotificationCenter();
 
+    const [isUploadFileOpen, setIsUploadFileOpen] = React.useState<boolean>(false);
+
     React.useEffect(() => {
         if (!isAddPersonOpen) {
+            setIsExcelImport(false);
             setSelectedItems([]);
         }
     }, [isAddPersonOpen]);
+
+    React.useEffect(() => {
+        if (processedFile) {
+            setSelectedItems([...processedFile]);
+            setIsExcelImport(true);
+            setIsUploadFileOpen(false);
+            setIsAddPersonOpen(true);
+        }
+    }, [processedFile]);
 
     const getPersonnelWithPositionsAsync = async () => {
         const contractId = contract?.id;
@@ -115,9 +135,8 @@ const ManagePersonnelPage: React.FC = () => {
                     payload: personnelToDelete,
                 });
                 setSelectedItems([]);
+                setIsExcelImport(false);
             } catch (e) {
-                console.log('exception', e);
-                //TODO: This could probably be more helpfull.
                 notification({
                     level: 'high',
                     title:
@@ -140,10 +159,15 @@ const ManagePersonnelPage: React.FC = () => {
         }
     }, [selectedItems, deletePersonnelAsync]);
 
+    const onExcelImport = React.useCallback(async () => {
+        setIsUploadFileOpen(true);
+    }, []);
+
     const addButton = React.useMemo((): IconButtonProps => {
         return {
             onClick: () => {
                 setSelectedItems([]);
+                setIsExcelImport(false);
                 setIsAddPersonOpen(true);
             },
             disabled: Boolean(selectedItems.length),
@@ -158,6 +182,10 @@ const ManagePersonnelPage: React.FC = () => {
         return { onClick: onDeletePersonnel, disabled: !selectedItems.length };
     }, [selectedItems, onDeletePersonnel]);
 
+    const excelImportButton = React.useMemo((): IconButtonProps => {
+        return { onClick: onExcelImport };
+    }, []);
+
     return (
         <div className={styles.container}>
             <ResourceErrorMessage error={error}>
@@ -167,6 +195,7 @@ const ManagePersonnelPage: React.FC = () => {
                             addButton={addButton}
                             editButton={editButton}
                             deleteButton={deleteButton}
+                            excelImportButton={excelImportButton}
                         />
                     </div>
                     <div className={styles.table}>
@@ -181,7 +210,10 @@ const ManagePersonnelPage: React.FC = () => {
                                 direction,
                             }}
                             isSelectable
-                            onSelectionChange={setSelectedItems}
+                            onSelectionChange={(item) => {
+                                setIsExcelImport(false);
+                                setSelectedItems(item);
+                            }}
                             selectedItems={selectedItems}
                         />
                     </div>
@@ -190,6 +222,7 @@ const ManagePersonnelPage: React.FC = () => {
                             isOpen={isAddPersonOpen}
                             setIsOpen={setIsAddPersonOpen}
                             selectedPersonnel={selectedItems.length ? selectedItems : null}
+                            excelImport={isExcelImport}
                         />
                     )}
                 </div>
@@ -197,6 +230,13 @@ const ManagePersonnelPage: React.FC = () => {
                     data={personnel}
                     filterSections={filterSections}
                     onFilter={setFilteredPersonnel}
+                />
+                <ExcelImportSideSheet
+                    setSelectedFile={setSelectedFile}
+                    isProccessing={isProccessingFile}
+                    isOpen={isUploadFileOpen}
+                    setIsOpen={setIsUploadFileOpen}
+                    processingError={processingError}
                 />
             </ResourceErrorMessage>
         </div>

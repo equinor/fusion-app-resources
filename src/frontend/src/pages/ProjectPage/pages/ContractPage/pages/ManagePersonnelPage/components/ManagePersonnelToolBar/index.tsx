@@ -7,6 +7,7 @@ import {
     DeleteIcon,
 } from '@equinor/fusion-components';
 import * as styles from './styles.less';
+import ExcelImportIcon from '../../../../../../../../components/ExcelImportIcon';
 
 export type IconButtonProps = {
     disabled?: boolean;
@@ -18,12 +19,14 @@ export type ToolBarProps = {
     addButton?: IconButtonProps;
     deleteButton?: IconButtonProps;
     editButton?: IconButtonProps;
+    excelImportButton?: IconButtonProps;
 };
 
 const ManagePersonnelToolBar: React.FC<ToolBarProps> = ({
     addButton,
     deleteButton,
     editButton,
+    excelImportButton,
 }) => {
     return (
         <div className={styles.container}>
@@ -34,6 +37,15 @@ const ManagePersonnelToolBar: React.FC<ToolBarProps> = ({
                     disabled={addButton?.disabled}
                 >
                     <AddIcon color={addButton?.iconColor} />
+                </IconButton>
+            )}
+            {excelImportButton && (
+                <IconButton
+                    ref={useTooltipRef('Import personnel from excel file')}
+                    onClick={excelImportButton?.onClick}
+                    disabled={excelImportButton?.disabled}
+                >
+                    <ExcelImportIcon color={excelImportButton?.iconColor} />
                 </IconButton>
             )}
             {deleteButton && (

@@ -3,6 +3,7 @@
 
     height: 100%;
     width: 100%;
+    overflow: auto;
     box-sizing: border-box;
     padding: calc(var(--grid-unit) * 3px);
     grid-template-rows: auto 1fr;
@@ -12,12 +13,13 @@
     .tableBody{
         width: 100%;
         display:grid;
-        grid-template-columns: auto;
+        height: min-content;
+        
        
         .tableRow {
             width: 100%;
             display:grid;
-            grid-template-columns: 48px 48px repeat(6,1fr);
+            grid-template-columns: 48px 48px 48px repeat(6,1fr);
           
 
             .headerRowCell {
