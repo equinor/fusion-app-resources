@@ -1,0 +1,24 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--grid-unit) * 2px) 0;
+
+    .personDetailsContainer {
+        display: flex;
+        align-items: center;
+    
+        .removeContainer {
+            padding-right: calc(var(--grid-unit) * 1px);
+        }
+        .details{
+            display: flex;
+            flex-direction: column;
+            padding-left: calc(var(--grid-unit) * 1px);
+        }
+    
+    }
+    .personPicker {
+        padding-top: calc(var(--grid-unit) * 2px);
+        max-width: calc(var(--grid-unit) * 60px);
+    }
+}

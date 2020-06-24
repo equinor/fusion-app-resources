@@ -161,7 +161,7 @@ const ContractDetailsPage = () => {
                 <DelegateAdminTitle />
 
                 <div className={styles.row}>
-                    <ContractAdminTable company="Equinor" />
+                    <ContractAdminTable accountType="local" />
                 </div>
                 <div className={styles.header}>External responsible</div>
                 <div className={styles.row}>
@@ -170,7 +170,7 @@ const ContractDetailsPage = () => {
                 </div>
                 <DelegateAdminTitle />
                 <div className={styles.row}>
-                    <ContractAdminTable company="External"/>
+                    <ContractAdminTable accountType="external"/>
                 </div>
             </div>
             <div className={styles.aside}>

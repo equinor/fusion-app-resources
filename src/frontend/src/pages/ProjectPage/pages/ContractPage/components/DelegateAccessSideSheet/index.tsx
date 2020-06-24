@@ -3,11 +3,14 @@ import * as styles from './styles.less';
 import { ModalSideSheet, Button } from '@equinor/fusion-components';
 import CertifyToPicker from '../CertifiyToPicker';
 import classNames from 'classnames';
+import { AccountType } from '../ContractAdminTable';
+import PeopleSelector from '../PeopleSelector';
+
 
 type DelegateAccessSideSheetProps = {
     showSideSheet: boolean;
     onSideSheetClose: () => void;
-    company: string;
+    accountType: AccountType;
 };
 
 type DelegationSectionProps = {
@@ -31,7 +34,7 @@ const DelegationSection: React.FC<DelegationSectionProps> = ({ title, strong, ch
 const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
     onSideSheetClose,
     showSideSheet,
-    company,
+    accountType,
 }) => {
     const [delegateTo, setDelegateTo] = React.useState<Date>();
     const onClose = React.useCallback(() => {
@@ -39,6 +42,17 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
     }, [onSideSheetClose]);
 
     const delegateButton = React.useMemo(() => <Button>Delegate</Button>, []);
+
+    const role = React.useMemo(() => {
+        switch (accountType) {
+            case 'external':
+                return 'External';
+            case 'local':
+                return 'Equinor';
+            default:
+                '';
+        }
+    }, [accountType]);
 
     return (
         <ModalSideSheet
@@ -50,12 +64,14 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
             <div className={styles.delegateContainer}>
                 <div className={styles.delegationForm}>
                     <DelegationSection title="Role">
-                        <span>{company} Admin Access</span>
+                        <span>{role} Admin Access</span>
                     </DelegationSection>
                     <DelegationSection title="Valid to">
                         <CertifyToPicker onChange={setDelegateTo} defaultSelected="12-months" />
                     </DelegationSection>
-                    <DelegationSection title="Add people" strong></DelegationSection>
+                    <DelegationSection title="Add people" strong>
+                        <PeopleSelector accountType={accountType} />
+                    </DelegationSection>
                 </div>
 
                 <div>

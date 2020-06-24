@@ -3,6 +3,8 @@ import * as styles from './styles.less';
 import { Button, AddIcon, SyncIcon, DeleteIcon } from '@equinor/fusion-components';
 import DelegateAccessSideSheet from '../DelegateAccessSideSheet';
 
+export type AccountType = 'local' | 'external';
+
 type ToolbarButtonProps = {
     icon: React.ReactNode;
     title: string;
@@ -10,7 +12,7 @@ type ToolbarButtonProps = {
 };
 
 type ContractAdminTableProps = {
-    company: string
+    accountType: AccountType
 }
 
 const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, title, onClick }) => (
@@ -23,7 +25,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, title, onClick }) =
     </Button>
 );
 
-const ContractAdminTable: React.FC<ContractAdminTableProps> = ({company}) => {
+const ContractAdminTable: React.FC<ContractAdminTableProps> = ({accountType}) => {
     const [showDelegateAccess, setShowDelegateAccess] = React.useState<boolean>(false);
     const closeDelegateAccess = React.useCallback(() => setShowDelegateAccess(false), []);
     const openDelegateAccess = React.useCallback(() => setShowDelegateAccess(true), [])
@@ -38,7 +40,7 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({company}) => {
             <DelegateAccessSideSheet
                 showSideSheet={showDelegateAccess}
                 onSideSheetClose={closeDelegateAccess}
-                company={company}
+                accountType={accountType}
             />
         </div>
     );
