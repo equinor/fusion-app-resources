@@ -3,18 +3,18 @@ import {
     FusionApiHttpErrorResponse,
     combineUrls,
     Position,
-    BasePosition,
     HttpClientParseError,
 } from '@equinor/fusion';
 import ResourceCollection from './ResourceCollection';
 import Personnel from '../models/Personnel';
 import Contract from '../models/contract';
-import ApiCollection from '../models/apiCollection';
+import ApiCollection, { ApiCollectionRequest } from '../models/apiCollection';
 import AvailableContract from '../models/availableContract';
 import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
-import Person from '../models/Person';
 import CreatePersonnelRequest from '../models/CreatePersonnelRequest';
+import ExcelParseReponse from '../models/ExcelParseResponse';
+import ReadableStreamResponse from '../models/ReadableStreamResponse';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -90,7 +90,7 @@ export default class ApiClient {
         const url = this.resourceCollection.personnelCollection(projectId, contractId);
         const reponse = await this.httpClient.postAsync<
             Personnel[],
-            Personnel[],
+            ApiCollectionRequest<Personnel>[],
             FusionApiHttpErrorResponse
         >(url, personnel);
         return reponse.data;
@@ -186,7 +186,6 @@ export default class ApiClient {
         return response.data;
     }
 
- 
     async getPersonnelRequestsAsync(
         projectId: string,
         contractId: string,
@@ -208,17 +207,8 @@ export default class ApiClient {
         >(url);
         return response.data.value;
     }
-    async getPersonnelRequestAsync(
-        projectId: string,
-        contractId: string,
-        requestId: string
-    ) {
-       
-        const url = this.resourceCollection.personnelRequest(
-            projectId,
-            contractId,
-            requestId
-        );
+    async getPersonnelRequestAsync(projectId: string, contractId: string, requestId: string) {
+        const url = this.resourceCollection.personnelRequest(projectId, contractId, requestId);
         const response = await this.httpClient.getAsync<
             PersonnelRequest,
             FusionApiHttpErrorResponse
@@ -331,5 +321,27 @@ export default class ApiClient {
         } catch (e) {
             return false;
         }
+    }
+
+    public async parseExcelFileAsync(file: File) {
+        const url = this.resourceCollection.parseExcelFile();
+        const data = new FormData();
+        data.append('File', file);
+        const response = await this.httpClient.postFormAsync<
+            ExcelParseReponse,
+            FusionApiHttpErrorResponse
+        >(url, data);
+        return response.data;
+    }
+
+    public async getPersonnelExcelTemplate() {
+        const url = this.resourceCollection.personnelExcelTemplate();
+        const responseParser = (r: any) => r;
+        const response = await this.httpClient.getAsync<
+            ReadableStreamResponse,
+            FusionApiHttpErrorResponse
+        >(url, null, responseParser);
+
+        return response.data;
     }
 }

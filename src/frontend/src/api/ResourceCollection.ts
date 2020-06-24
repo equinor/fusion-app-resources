@@ -83,4 +83,12 @@ export default class ResourceCollection {
             actionName
         );
     }
+
+    parseExcelFile() {
+        return combineUrls(this.baseUrl, 'utilities', 'parse-spreadsheet');
+    }
+
+    personnelExcelTemplate() {
+        return combineUrls(this.baseUrl, 'utilities', 'templates', 'import-personnel');
+    }
 }
