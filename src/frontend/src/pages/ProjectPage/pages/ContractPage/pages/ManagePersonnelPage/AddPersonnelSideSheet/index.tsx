@@ -117,31 +117,30 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
                     personnel
                 );
 
-                setFailedRequests((f) => [
-                    ...f,
-                    ...response.reduce<FailedRequest<Personnel>[]>((failedReqs, e, i) => {
-                        if (e.code === 'BadRequest')
-                            failedReqs.push({
-                                item: personnel[i],
-                                isEditable: true,
+                const failed = response.reduce<FailedRequest<Personnel>[]>((failedReqs, e, i) => {
+                    if (e.code === 'BadRequest')
+                        failedReqs.push({
+                            item: personnel[i],
+                            isEditable: true,
+                            error: {
                                 error: {
-                                    error: {
-                                        code: e.code,
-                                        message: e.message,
-                                        errors: [
-                                            {
-                                                message: e.message,
-                                                property: '',
-                                                attemptedValue: '',
-                                            },
-                                        ],
-                                    },
+                                    code: e.code,
+                                    message: e.message,
+                                    errors: [
+                                        {
+                                            message: e.message,
+                                            property: '',
+                                            attemptedValue: '',
+                                        },
+                                    ],
                                 },
-                            });
+                            },
+                        });
 
-                        return failedReqs;
-                    }, []),
-                ]);
+                    return failedReqs;
+                }, []);
+
+                failed.length && setFailedRequests((f) => [...f, ...failed]);
 
                 const createdPersonnel = response.filter((p) => p.code === 'Created');
 
