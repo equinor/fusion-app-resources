@@ -8,7 +8,7 @@ const CertifyToPopover: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <CertifyToPicker onChange={setSelectedDate} defaultSelected="12-months" />
+            <CertifyToPicker onChange={setSelectedDate} defaultSelected="12-months" isReCertification/>
             <div className={styles.certifyButtonContainer}>
                 <Button>
                     <div className={styles.syncButton}>

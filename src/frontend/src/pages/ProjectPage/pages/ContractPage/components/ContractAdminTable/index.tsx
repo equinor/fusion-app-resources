@@ -33,7 +33,7 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) 
     const closeDelegateAccess = React.useCallback(() => setShowDelegateAccess(false), []);
     const openDelegateAccess = React.useCallback(() => setShowDelegateAccess(true), []);
 
-    const {removeAccess} = useAccessRemoval(accountType, ["Eskil"])
+    const {removeAccess} = useAccessRemoval(accountType, [])
 
     const [reCertifyRef] = usePopoverRef(<CertifyToPopover />, {
         centered: true,
@@ -48,7 +48,6 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) 
                 <ToolbarButton
                     icon={<SyncIcon />}
                     title="Re-certify"
-                    onClick={() => {}}
                     ref={reCertifyRef}
                 />
                 <ToolbarButton icon={<DeleteIcon outline />} title="Remove" onClick={removeAccess} />
