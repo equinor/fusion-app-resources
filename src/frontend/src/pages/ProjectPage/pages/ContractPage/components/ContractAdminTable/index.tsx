@@ -2,15 +2,15 @@ import * as React from 'react';
 import * as styles from './styles.less';
 import { Button, AddIcon, SyncIcon, DeleteIcon, usePopoverRef } from '@equinor/fusion-components';
 import DelegateAccessSideSheet from '../DelegateAccessSideSheet';
-import CertifyToPicker from '../CertifiyToPicker';
 import CertifyToPopover from './components/CertifyToPopover';
+import useAccessRemoval from './useAccessRemoval';
 
 export type AccountType = 'local' | 'external';
 
 type ToolbarButtonProps = {
     icon: React.ReactNode;
     title: string;
-    onClick: () => void;
+    onClick?: () => void;
 };
 
 type ContractAdminTableProps = {
@@ -33,6 +33,8 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) 
     const closeDelegateAccess = React.useCallback(() => setShowDelegateAccess(false), []);
     const openDelegateAccess = React.useCallback(() => setShowDelegateAccess(true), []);
 
+    const {removeAccess} = useAccessRemoval(accountType, ["Eskil"])
+
     const [reCertifyRef] = usePopoverRef(<CertifyToPopover />, {
         centered: true,
         fillWithContent: true,
@@ -49,7 +51,7 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) 
                     onClick={() => {}}
                     ref={reCertifyRef}
                 />
-                <ToolbarButton icon={<DeleteIcon outline />} title="Remove" onClick={() => {}} />
+                <ToolbarButton icon={<DeleteIcon outline />} title="Remove" onClick={removeAccess} />
             </div>
             <DelegateAccessSideSheet
                 showSideSheet={showDelegateAccess}

@@ -9,5 +9,15 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        
+        .syncButton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            & > span {
+                padding-left: calc(var(--grid-unit) * 1px);
+            }
+        }
     }
 }
