@@ -192,7 +192,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
             onClose={onClose}
             safeClose={pendingRequests.length > 0}
             safeCloseTitle={`
-                Closing this sidesheet wont stop the saving routine, but you will not be able to verify the result. 
+                Closing this sidesheet won't stop the saving routine, but you will not be able to verify the result. 
                 Are you sure you want to close this sidesheet ? `}
             safeCloseCancelLabel={'Cancel'}
             safeCloseConfirmLabel={"I'm sure"}
