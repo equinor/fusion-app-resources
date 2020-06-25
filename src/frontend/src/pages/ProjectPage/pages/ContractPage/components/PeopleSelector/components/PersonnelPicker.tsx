@@ -7,12 +7,12 @@ import {
 } from '@equinor/fusion-components';
 import * as React from "react";
 
-type ExternalPickerProps = {
+type PersonnelPickerProps = {
     onSelect: (person: BareBonePerson) => void;
     selectedPersons: BareBonePerson[];
 };
 
-const ExternalPicker: React.FC<ExternalPickerProps> = ({ onSelect, selectedPersons }) => {
+const PersonnelPicker: React.FC<PersonnelPickerProps> = ({ onSelect, selectedPersons }) => {
     const { personnel, isFetchingPersonnel, personnelError } = usePersonnel();
 
     const options = React.useMemo((): SearchableDropdownOption[] => {
@@ -62,4 +62,4 @@ const ExternalPicker: React.FC<ExternalPickerProps> = ({ onSelect, selectedPerso
     );
 };
 
-export default ExternalPicker;
+export default PersonnelPicker;

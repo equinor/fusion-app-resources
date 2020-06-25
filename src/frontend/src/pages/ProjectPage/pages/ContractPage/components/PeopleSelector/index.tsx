@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as styles from './styles.less';
 import { AccountType } from '../ContractAdminTable';
-import ExternalPicker from './components/ExternalPicker';
+import PersonnelPicker from './components/PersonnelPicker';
 import RemovablePersonDetails from './components/RemovablePersonDetails';
 
 type PeopleSelectorProps = {
@@ -15,18 +15,7 @@ export type BareBonePerson = {
 };
 
 const PeopleSelector: React.FC<PeopleSelectorProps> = ({ accountType }) => {
-    const [selectedPersons, setSelectedPersons] = React.useState<BareBonePerson[]>([
-        {
-            azureUniqueId: '7ecc8cd2-077b-4a4a-953f-8e02c0f07c24',
-            mail: 'eslsa@equinor.com',
-            name: 'Eskil Sand',
-        },
-        {
-            azureUniqueId: '7ecc8cd2-077b-4a4a-953f-8e02c0f07c24',
-            mail: 'eslsa@equinor.com',
-            name: 'Eskil Sand',
-        },
-    ]);
+    const [selectedPersons, setSelectedPersons] = React.useState<BareBonePerson[]>([]);
 
     const removePerson = React.useCallback((person: BareBonePerson) => {
         setSelectedPersons((persons) =>
@@ -44,9 +33,7 @@ const PeopleSelector: React.FC<PeopleSelectorProps> = ({ accountType }) => {
                 <RemovablePersonDetails person={person} onRemove={removePerson} />
             ))}
             <div className={styles.personPicker}>
-                {accountType === 'external' ? (
-                    <ExternalPicker onSelect={addPerson} selectedPersons={selectedPersons} />
-                ) : null}
+                <PersonnelPicker onSelect={addPerson} selectedPersons={selectedPersons} />
             </div>
         </div>
     );
