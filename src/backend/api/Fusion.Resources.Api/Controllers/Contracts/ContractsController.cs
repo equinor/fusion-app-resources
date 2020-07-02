@@ -17,6 +17,9 @@ using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Integration.Org;
 using System.Threading;
+using FluentValidation;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -387,5 +390,106 @@ namespace Fusion.Resources.Api.Controllers
 
             return position;
         }
+
+        #region Role delegation
+
+
+        [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
+        public async Task<ActionResult<List<ApiDelegatedRole>>> GetContractDelegatedRoles([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier)
+        {
+
+            var delegatedRoles = await DispatchAsync(new GetContractDelegatedRoles(projectIdentifier.ProjectId, contractIdentifier));
+            return delegatedRoles.Select(r => new ApiDelegatedRole(r)).ToList();
+        }
+
+        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
+        public async Task<ActionResult<ApiDelegatedRole>> CreateContractDelegatedRole([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateDelegatedRoleRequest request)
+        {
+            try
+            {
+                using (var scope = await BeginTransactionAsync())
+                {
+                    var command = new Domain.Commands.CreateRoleDelegation(projectIdentifier.ProjectId, contractIdentifier)
+                        .ValidToDate(request.ValidTo)
+                        .ForPerson(request.Person)
+                        .SetIsInternal(request.Classification == ApiDelegatedRoleClassification.Internal);
+
+                    var newRole = await DispatchAsync(command);
+
+                    await scope.CommitAsync();
+
+                    return new ApiDelegatedRole(newRole);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+            catch (ValidationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+        }
+
+        [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}")]
+        public async Task<ActionResult> DeleteContractDelegatedRole([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid roleId)
+        {
+            var role = await DispatchAsync(new GetContractDelegatedRole(roleId));
+
+            if (role == null)
+                return ApiErrors.NotFound("Could not locate role", $"{roleId}");
+            if (role.Project.OrgProjectId != projectIdentifier.ProjectId || role.Contract.OrgContractId != contractIdentifier)
+                return ApiErrors.NotFound("Could not locate role", $"/projects/{projectIdentifier.OriginalIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}");
+
+            try
+            {
+                var command = new Domain.Commands.DeleteRoleDelegation(roleId);
+                await DispatchAsync(command);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+            catch (ValidationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+            return Ok();
+        }
+
+        [HttpPatch("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}")]
+        public async Task<ActionResult<ApiDelegatedRole>> UpdateContractDelegatedRole([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid roleId, [FromBody] PatchDelegatedRoleRequest request)
+        {
+            var role = await DispatchAsync(new GetContractDelegatedRole(roleId));
+
+            if (role == null)
+                return ApiErrors.NotFound("Could not locate role", $"{roleId}");
+            if (role.Project.OrgProjectId != projectIdentifier.ProjectId || role.Contract.OrgContractId != contractIdentifier)
+                return ApiErrors.NotFound("Could not locate role", $"/projects/{projectIdentifier.OriginalIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}");
+
+
+            if (request.ValidTo.HasValue)
+            {
+                var command = new Domain.Commands.RecertifyRoleDelegation(roleId, request.ValidTo.Value);
+                role = await DispatchAsync(command);
+            }
+
+            return new ApiDelegatedRole(role);
+
+        }
+
+        //[HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
+        //public async Task<ActionResult> CheckContractDelegationAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]string classification)
+        //{
+        //    if (!Enum.TryParse(classification, true, out ApiDelegatedRoleClassification roleClassification))
+        //    {
+        //        return FusionApiError.InvalidOperation("InvalidArgument", $"Invalid classification, allowed values: '{ApiDelegatedRoleClassification.Internal}', '{ApiDelegatedRoleClassification.External}'");
+        //    }
+
+        //    return Ok();
+        //}
+
+
+        #endregion
     }
 }

@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200702054752_Added unique on person azure id")]
+    partial class Addeduniqueonpersonazureid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -159,57 +161,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("ContractorRequests");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDelegatedRole", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Classification")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("ContractId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("PersonId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("RecertifiedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("RecertifiedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("ValidTo")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ContractId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("PersonId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("RecertifiedById");
-
-                    b.ToTable("DelegatedRoles");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", b =>
@@ -638,38 +589,6 @@ namespace Fusion.Resources.Database.Migrations
                                         .HasForeignKey("RequestPositionDbContractorRequestId");
                                 });
                         });
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDelegatedRole", b =>
-                {
-                    b.HasOne("Fusion.Resources.Database.Entities.DbContract", "Contract")
-                        .WithMany()
-                        .HasForeignKey("ContractId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "Person")
-                        .WithMany()
-                        .HasForeignKey("PersonId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "RecertifiedBy")
-                        .WithMany()
-                        .HasForeignKey("RecertifiedById")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonnelDiscipline", b =>

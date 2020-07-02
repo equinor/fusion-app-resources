@@ -5,6 +5,7 @@ using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -111,35 +112,52 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
-        public async Task<DbPerson?> EnsurePersonAsync(Guid azureUniqueId)
+        public async Task<DbPerson?> EnsurePersonAsync(PersonId personId)
         {
             await locker.WaitAsync();
 
             try
             {
-                var person = await resourcesDb.Persons.FirstOrDefaultAsync(p => p.AzureUniqueId == azureUniqueId);
-                if (person != null)
-                    return person;
+                FusionPersonProfile? profile;
+                Guid personAzureUniqueId = personId.UniqueId.GetValueOrDefault();
 
-                var profile = await ResolveProfileAsync(azureUniqueId);
+                if (personId.Type == PersonId.IdentifierType.Mail)
+                {
+                    profile = await ResolveProfileAsync(personId);
+
+                    if (profile != null) personAzureUniqueId = profile.AzureUniqueId.GetValueOrDefault();
+                }
+
+                if (personAzureUniqueId != Guid.Empty)
+                {
+                    var person = await resourcesDb.Persons.FirstOrDefaultAsync(p => p.AzureUniqueId == personAzureUniqueId);
+                    if (person != null)
+                        return person;
+                }
+
+                // Load profile into database
+                profile = await ResolveProfileAsync(personId);
 
                 if (profile == null)
                     return null;
 
-                person = new DbPerson
+                if (profile.AzureUniqueId == null)
+                    throw new InvalidOperationException("Cannot ensure a person without an azure unique id");
+
+                var newPerson = new DbPerson
                 {
                     AccountType = profile.AccountType.ToString(),
-                    AzureUniqueId = azureUniqueId,
+                    AzureUniqueId = profile.AzureUniqueId.Value,
                     JobTitle = profile.JobTitle,
                     Mail = profile.Mail,
                     Name = profile.Name,
                     Phone = profile.MobilePhone ?? string.Empty
                 };
 
-                await resourcesDb.Persons.AddAsync(person);
+                await resourcesDb.Persons.AddAsync(newPerson);
                 await resourcesDb.SaveChangesAsync();
 
-                return person;
+                return newPerson;
             }
             finally
             {

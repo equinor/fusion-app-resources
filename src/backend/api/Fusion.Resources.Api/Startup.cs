@@ -1,5 +1,6 @@
 using Bogus;
 using FluentValidation.AspNetCore;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api
@@ -61,7 +63,12 @@ namespace Fusion.Resources.Api
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
             services.AddControllers()
-                .AddFluentValidation(c => c.RegisterValidatorsFromAssemblyContaining<Startup>());
+                .AddFluentValidation(c =>
+                {
+                    c.RegisterValidatorsFromAssemblyContaining<Startup>(); 
+                    // Domain project
+                    c.RegisterValidatorsFromAssemblyContaining<PersonId>();
+                });
 
             #region Resource services
 

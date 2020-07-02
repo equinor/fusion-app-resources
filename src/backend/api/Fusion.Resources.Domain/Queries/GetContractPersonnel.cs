@@ -177,5 +177,4 @@ namespace Fusion.Resources.Domain
         }
     }
 
-
 }
