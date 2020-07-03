@@ -61,5 +61,20 @@ namespace Fusion.Resources.Api.Controllers
 
             return builder;
         }
+
+        #region Domain rules
+
+        public static IAuthorizationRequirementRule CanDelegateInternalRole(this IAuthorizationRequirementRule builder, ProjectIdentifier project, Guid contractOrgId)
+        {
+            return builder.ContractAccess(ContractRole.AnyInternalRole, project, contractOrgId);
+        }
+        public static IAuthorizationRequirementRule CanDelegateExternalRole(this IAuthorizationRequirementRule builder, ProjectIdentifier project, Guid contractOrgId)
+        {
+            return builder
+                .ContractAccess(ContractRole.AnyInternalRole, project, contractOrgId)
+                .ContractAccess(ContractRole.AnyExternalRole, project, contractOrgId);
+        }
+
+        #endregion
     }
 }

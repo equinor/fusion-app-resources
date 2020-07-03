@@ -101,7 +101,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeEmployee();
-                    or.BeContractorInProject(projectIdentifier);
+                    or.BeContractorInContract(contractId);
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractId);
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
                 });
@@ -397,6 +397,26 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
         public async Task<ActionResult<List<ApiDelegatedRole>>> GetContractDelegatedRoles([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier)
         {
+            // Not sure if there is any restrictions on listing contracts for a project.
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.BeEmployee();
+                    or.BeContractorInContract(contractIdentifier);
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
 
             var delegatedRoles = await DispatchAsync(new GetContractDelegatedRoles(projectIdentifier.ProjectId, contractIdentifier));
             return delegatedRoles.Select(r => new ApiDelegatedRole(r)).ToList();
@@ -405,6 +425,36 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
         public async Task<ActionResult<ApiDelegatedRole>> CreateContractDelegatedRole([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateDelegatedRoleRequest request)
         {
+
+            #region Authorization
+
+            // Must handle the different classifications differently
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    switch (request.Classification)
+                    {
+                        case ApiDelegatedRoleClassification.Internal:
+                            or.CanDelegateInternalRole(projectIdentifier, contractIdentifier);
+                            break;
+
+                        case ApiDelegatedRoleClassification.External:
+                            or.CanDelegateExternalRole(projectIdentifier, contractIdentifier);
+                            break;
+                    }
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
             try
             {
                 using (var scope = await BeginTransactionAsync())
@@ -441,6 +491,37 @@ namespace Fusion.Resources.Api.Controllers
             if (role.Project.OrgProjectId != projectIdentifier.ProjectId || role.Contract.OrgContractId != contractIdentifier)
                 return ApiErrors.NotFound("Could not locate role", $"/projects/{projectIdentifier.OriginalIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}");
 
+
+            #region Authorization
+
+            // Must handle the different classifications differently
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    switch (role.Classification)
+                    {
+                        case Database.Entities.DbDelegatedRoleClassification.Internal:
+                            or.CanDelegateInternalRole(projectIdentifier, contractIdentifier);
+                            break;
+
+                        case Database.Entities.DbDelegatedRoleClassification.External:
+                            or.CanDelegateExternalRole(projectIdentifier, contractIdentifier);
+                            break;
+                    }
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
+
             try
             {
                 var command = new Domain.Commands.DeleteRoleDelegation(roleId);
@@ -467,6 +548,32 @@ namespace Fusion.Resources.Api.Controllers
             if (role.Project.OrgProjectId != projectIdentifier.ProjectId || role.Contract.OrgContractId != contractIdentifier)
                 return ApiErrors.NotFound("Could not locate role", $"/projects/{projectIdentifier.OriginalIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}");
 
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    switch (role.Classification)
+                    {
+                        case Database.Entities.DbDelegatedRoleClassification.Internal:
+                            or.CanDelegateInternalRole(projectIdentifier, contractIdentifier);
+                            break;
+
+                        case Database.Entities.DbDelegatedRoleClassification.External:
+                            or.CanDelegateExternalRole(projectIdentifier, contractIdentifier);
+                            break;
+                    }
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
 
             if (request.ValidTo.HasValue)
             {
@@ -478,16 +585,40 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
-        //[HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
-        //public async Task<ActionResult> CheckContractDelegationAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]string classification)
-        //{
-        //    if (!Enum.TryParse(classification, true, out ApiDelegatedRoleClassification roleClassification))
-        //    {
-        //        return FusionApiError.InvalidOperation("InvalidArgument", $"Invalid classification, allowed values: '{ApiDelegatedRoleClassification.Internal}', '{ApiDelegatedRoleClassification.External}'");
-        //    }
+        [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
+        public async Task<ActionResult> CheckContractDelegationAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery] string classification)
+        {
+            if (!Enum.TryParse(classification, true, out ApiDelegatedRoleClassification roleClassification))
+            {
+                return FusionApiError.InvalidOperation("InvalidArgument", $"Invalid classification, allowed values: '{ApiDelegatedRoleClassification.Internal}', '{ApiDelegatedRoleClassification.External}'");
+            }
 
-        //    return Ok();
-        //}
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    switch (roleClassification)
+                    {
+                        case ApiDelegatedRoleClassification.Internal:
+                            or.CanDelegateInternalRole(projectIdentifier, contractIdentifier);
+                            break;
+
+                        case ApiDelegatedRoleClassification.External:
+                            or.CanDelegateExternalRole(projectIdentifier, contractIdentifier);
+                            break;
+                    }
+                });
+            });
+
+            if (authResult.Success)
+                Response.Headers.Add("Allow", "GET,POST,DELETE");
+            else
+                Response.Headers.Add("Allow", "GET");
+
+            return NoContent();
+        }
 
 
         #endregion
