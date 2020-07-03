@@ -337,7 +337,7 @@ export default class ApiClient {
         return response.data;
     }
 
-    public async getDelegationAccessHeader(
+    public async getDelegationAccessHeaderAsync(
         projectId: string,
         contractId: string,
         accountType: PersonDelegationClassification
@@ -358,7 +358,7 @@ export default class ApiClient {
         }
     }
 
-    public async createPersonRoleDelegation(
+    public async createPersonRoleDelegationAsync(
         projectId: string,
         contractId: string,
         personRequest: PersonDelegationRequest

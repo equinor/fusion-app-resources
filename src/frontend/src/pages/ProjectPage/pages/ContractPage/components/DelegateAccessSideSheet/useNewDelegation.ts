@@ -1,12 +1,15 @@
 import { PersonDetails, useCurrentContext } from '@equinor/fusion';
 import * as React from 'react';
-import { PersonDelegationClassification } from '../../../../../../models/PersonDelegation';
+import {
+    PersonDelegationClassification,
+    PersonDelegationRequest,
+} from '../../../../../../models/PersonDelegation';
 import { useAppContext } from '../../../../../../appContext';
 import { useContractContext } from '../../../../../../contractContex';
 
 export default (
     toDate: Date,
-    toPersons: PersonDetails,
+    persons: PersonDetails[],
     accountType: PersonDelegationClassification
 ) => {
     const { apiClient } = useAppContext();
@@ -16,19 +19,36 @@ export default (
     const [isDelegatingAccess, setIsDelegatingAccess] = React.useState<boolean>(false);
     const [delegateError, setDelegateError] = React.useState<Error | null>(null);
 
-    const delegateAccessAsync = React.useCallback((projectId: string, contractId: string) => {
+    const delegateAccessAsync = React.useCallback(async (projectId: string, contractId: string) => {
         setIsDelegatingAccess(true);
         setDelegateError(null);
         try {
-            const response = await apiClient.
+            const response = persons.map(async (person) => {
+                const payload: PersonDelegationRequest = {
+                    classification: accountType,
+                    person: {
+                        azureUniquePersonId: person.azureUniqueId,
+                    },
+                    type: 'cr',
+                    validTo: toDate,
+                };
+                return apiClient.createPersonRoleDelegationAsync(projectId, contractId, payload);
+            });
+            const delegatedPersons = await Promise.all(response);
+        } catch (e) {
+            setDelegateError(e);
+        } finally {
+            setIsDelegatingAccess(false);
         }
     }, []);
 
-    React.useEffect(() => {
+    const delegateAccess = React.useCallback(async() => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (contractId && projectId) {
-            delegateAccessAsync(contractId, projectId);
+            await delegateAccessAsync(contractId, projectId);
         }
     }, [contract, currentContext]);
+
+    return { isDelegatingAccess, delegateError, delegateAccess };
 };

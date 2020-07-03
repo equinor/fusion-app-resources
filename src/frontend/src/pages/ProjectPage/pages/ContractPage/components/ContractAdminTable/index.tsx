@@ -55,7 +55,7 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) 
         async (projectId: string, contractId: string) => {
             setCanDelete(false);
             setCanEdit(false);
-            const accessHeaders = await apiClient.getDelegationAccessHeader(
+            const accessHeaders = await apiClient.getDelegationAccessHeaderAsync(
                 projectId,
                 contractId,
                 accountType
