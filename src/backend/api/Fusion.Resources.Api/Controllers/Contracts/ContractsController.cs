@@ -103,6 +103,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeEmployee();
                     or.BeContractorInContract(contractId);
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractId);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractId);
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
                 });
             });
@@ -237,6 +238,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
                     or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -284,6 +286,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
                     or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -345,6 +348,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
                     or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -409,6 +413,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeEmployee();
                     or.BeContractorInContract(contractIdentifier);
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
                 });
             });
