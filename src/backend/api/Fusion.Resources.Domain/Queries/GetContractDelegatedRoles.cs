@@ -45,14 +45,19 @@ namespace Fusion.Resources.Domain
 
             public async Task<IEnumerable<QueryDelegatedRole>> Handle(GetContractDelegatedRoles request, CancellationToken cancellationToken)
             {
-                var dbRoles = await db.DelegatedRoles
+                var dbRolesQuery = db.DelegatedRoles
                     .Include(r => r.Person)
                     .Include(r => r.CreatedBy)
                     .Include(r => r.RecertifiedBy)
                     .Include(r => r.Project)
                     .Include(r => r.Contract)
-                    .Where(p => p.Project.OrgProjectId == request.OrgProjectId && p.Contract.OrgContractId == request.OrgContractId)
-                    .ToListAsync();
+                    .Where(p => p.Project.OrgProjectId == request.OrgProjectId)
+                    .AsQueryable();
+
+                if (request.OrgContractId.HasValue)
+                    dbRolesQuery = dbRolesQuery.Where(r => r.Contract.OrgContractId == request.OrgContractId.Value);
+
+                var dbRoles = await dbRolesQuery.ToListAsync();
 
                 var roles = dbRoles.Select(i => new QueryDelegatedRole(i))
                     .ToList();
