@@ -1,31 +1,33 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { AccountType } from '../ContractAdminTable';
-import PersonnelPicker from './components/PersonnelPicker';
 import RemovablePersonDetails from './components/RemovablePersonDetails';
+import { PersonPicker } from '@equinor/fusion-components';
+import { PersonDetails } from '@equinor/fusion';
 
 type PeopleSelectorProps = {
-    accountType: AccountType;
+    selectedPersons: PersonDetails[];
+    setSelectedPersons: (selectedPersons: PersonDetails[]) => void;
 };
 
-export type BareBonePerson = {
-    azureUniqueId: string;
-    name: string;
-    mail: string | null;
-};
+const PeopleSelector: React.FC<PeopleSelectorProps> = ({ selectedPersons, setSelectedPersons }) => {
+    const removePerson = React.useCallback(
+        (person: PersonDetails) => {
+            setSelectedPersons(
+                selectedPersons.filter((p) => p.azureUniqueId !== person.azureUniqueId)
+            );
+        },
+        [setSelectedPersons, selectedPersons]
+    );
 
-const PeopleSelector: React.FC<PeopleSelectorProps> = ({ accountType }) => {
-    const [selectedPersons, setSelectedPersons] = React.useState<BareBonePerson[]>([]);
-
-    const removePerson = React.useCallback((person: BareBonePerson) => {
-        setSelectedPersons((persons) =>
-            persons.filter((p) => p.azureUniqueId !== person.azureUniqueId)
-        );
-    }, []);
-
-    const addPerson = React.useCallback((person: BareBonePerson) => {
-        setSelectedPersons((persons) => [...persons, person]);
-    }, []);
+    const addPerson = React.useCallback(
+        (person: PersonDetails) => {
+            if (selectedPersons.some((p) => p.azureUniqueId === person.azureUniqueId)) {
+                return;
+            }
+            setSelectedPersons([...selectedPersons, person]);
+        },
+        [selectedPersons, setSelectedPersons]
+    );
 
     return (
         <div className={styles.container}>
@@ -33,7 +35,7 @@ const PeopleSelector: React.FC<PeopleSelectorProps> = ({ accountType }) => {
                 <RemovablePersonDetails person={person} onRemove={removePerson} />
             ))}
             <div className={styles.personPicker}>
-                <PersonnelPicker onSelect={addPerson} selectedPersons={selectedPersons} />
+                <PersonPicker onSelect={addPerson} selectedPerson={null} />
             </div>
         </div>
     );

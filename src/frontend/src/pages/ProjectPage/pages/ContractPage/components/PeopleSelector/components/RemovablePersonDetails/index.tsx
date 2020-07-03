@@ -1,11 +1,11 @@
-import { BareBonePerson } from "../..";
 import * as React from "react";
 import * as styles from "./styles.less";
 import { IconButton, DeleteIcon, PersonPhoto } from '@equinor/fusion-components';
+import { PersonDetails } from '@equinor/fusion';
 
 type RemovablePersonDetailsProps = {
-    person: BareBonePerson;
-    onRemove: (person: BareBonePerson) => void;
+    person: PersonDetails;
+    onRemove: (person: PersonDetails) => void;
 };
 
 const RemovablePersonDetails: React.FC<RemovablePersonDetailsProps> = ({ person, onRemove }) => {

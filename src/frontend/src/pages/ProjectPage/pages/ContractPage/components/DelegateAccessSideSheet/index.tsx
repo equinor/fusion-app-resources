@@ -3,14 +3,15 @@ import * as styles from './styles.less';
 import { ModalSideSheet, Button } from '@equinor/fusion-components';
 import CertifyToPicker from '../CertifiyToPicker';
 import classNames from 'classnames';
-import { AccountType } from '../ContractAdminTable';
 import PeopleSelector from '../PeopleSelector';
-
+import { PersonDetails } from '@equinor/fusion';
+import { PersonDelegationClassification } from '../../../../../../models/PersonDelegation';
 
 type DelegateAccessSideSheetProps = {
     showSideSheet: boolean;
     onSideSheetClose: () => void;
-    accountType: AccountType;
+    accountType: PersonDelegationClassification;
+    canEdit: boolean;
 };
 
 type DelegationSectionProps = {
@@ -35,19 +36,24 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
     onSideSheetClose,
     showSideSheet,
     accountType,
+    canEdit,
 }) => {
     const [delegateTo, setDelegateTo] = React.useState<Date>();
+    const [selectedPersons, setSelectedPersons] = React.useState<PersonDetails[]>([]);
+
     const onClose = React.useCallback(() => {
         onSideSheetClose();
     }, [onSideSheetClose]);
 
-    const delegateButton = React.useMemo(() => <Button>Delegate</Button>, []);
+    const delegateButton = React.useMemo(() => <Button disabled={!canEdit}>Delegate</Button>, [
+        canEdit,
+    ]);
 
     const role = React.useMemo(() => {
         switch (accountType) {
             case 'external':
                 return 'External';
-            case 'local':
+            case 'internal':
                 return 'Equinor';
             default:
                 '';
@@ -70,7 +76,10 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
                         <CertifyToPicker onChange={setDelegateTo} defaultSelected="12-months" />
                     </DelegationSection>
                     <DelegationSection title="Add people" strong>
-                        <PeopleSelector accountType={accountType} />
+                        <PeopleSelector
+                            selectedPersons={selectedPersons}
+                            setSelectedPersons={setSelectedPersons}
+                        />
                     </DelegationSection>
                 </div>
 

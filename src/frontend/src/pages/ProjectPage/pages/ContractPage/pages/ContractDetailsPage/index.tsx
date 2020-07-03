@@ -161,7 +161,7 @@ const ContractDetailsPage = () => {
                 <DelegateAdminTitle />
 
                 <div className={styles.row}>
-                    <ContractAdminTable accountType="local" />
+                    <ContractAdminTable accountType="internal" />
                 </div>
                 <div className={styles.header}>External responsible</div>
                 <div className={styles.row}>

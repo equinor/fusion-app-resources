@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { AccountType } from '.';
 import { useNotificationCenter } from '@equinor/fusion';
+import { PersonDelegationClassification } from '../../../../../../models/PersonDelegation';
 
-export default (accountType: AccountType, persons: string[]) => {
+export default (accountType: PersonDelegationClassification, persons: string[]) => {
     const removeAccessAsync = React.useCallback(async () => {}, [persons]);
 
     const sendNotification = useNotificationCenter();

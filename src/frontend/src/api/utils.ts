@@ -15,3 +15,9 @@ export const parseQueryString = (queryString: string) => {
 
     return parsed as ResourceQueryParams;
 };
+
+export const formatDateToYDMString = (date: Date)=> {
+    return new Date(date.getTime() - (date.getTimezoneOffset() * 60000 ))
+    .toISOString()
+    .split("T")[0]
+}
