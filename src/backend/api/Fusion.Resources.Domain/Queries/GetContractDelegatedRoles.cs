@@ -15,15 +15,24 @@ namespace Fusion.Resources.Domain
 {
     public class GetContractDelegatedRoles : IRequest<IEnumerable<QueryDelegatedRole>>
     {
-        public GetContractDelegatedRoles(Guid orgProjectId, Guid orgContractId)
+        private GetContractDelegatedRoles(Guid orgProjectId, Guid? orgContractId = null)
         {
             OrgProjectId = orgProjectId;
             OrgContractId = orgContractId;
         }
 
         public Guid OrgProjectId { get; set; }
-        public Guid OrgContractId { get; set; }
+        public Guid? OrgContractId { get; set; }
 
+        public static GetContractDelegatedRoles ForProject(Guid orgProjectId)
+        {
+            return new GetContractDelegatedRoles(orgProjectId);
+        }
+
+        public static GetContractDelegatedRoles ForContract(Guid orgProjectId, Guid contractId)
+        {
+            return new GetContractDelegatedRoles(orgProjectId, contractId);
+        }
 
         public class Handler : IRequestHandler<GetContractDelegatedRoles, IEnumerable<QueryDelegatedRole>>
         {

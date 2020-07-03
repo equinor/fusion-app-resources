@@ -39,7 +39,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts")]
         public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectAllocatedContract([FromRoute]ProjectIdentifier projectIdentifier)
         {
-            // Not sure if there is any restrictions on listing contracts for a project.
+            var hasLimitedAccess = false;
+            var limitedContractAccess = new List<Guid>();
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -55,10 +57,16 @@ namespace Fusion.Resources.Api.Controllers
             });
 
             if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
+            {
+                var delegatedAccess = await DispatchAsync(Domain.GetContractDelegatedRoles.ForProject(projectIdentifier.ProjectId));
+                limitedContractAccess = delegatedAccess.Select(r => r.Contract.OrgContractId).ToList();
+                hasLimitedAccess = limitedContractAccess.Any();
+
+                if (!hasLimitedAccess)
+                    return authResult.CreateForbiddenResponse();
+            }
 
             #endregion
-
 
             var allocatedContracts = await DispatchAsync(GetProjectContracts.ByOrgProjectId(projectIdentifier.ProjectId));
 
@@ -76,11 +84,19 @@ namespace Fusion.Resources.Api.Controllers
                 .ToList();
 
 
+            if (hasLimitedAccess)
+            {
+                contractsToReturn = contractsToReturn
+                    .Where(c => limitedContractAccess.Contains(c.Id))
+                    .ToList();
+            }
+
             // Trim contracts
             switch (User.GetUserAccountType())
             {
                 case FusionAccountType.External:
-                    contractsToReturn.RemoveAll(c => User.IsInContract(c!.ContractNumber) == false);
+                    var relevantContracts = contractsToReturn.Where(c => User.IsInContract(c!.ContractNumber) || limitedContractAccess.Contains(c!.Id));
+                    contractsToReturn.RemoveAll(c => !relevantContracts.Any(rc => rc!.Id == c!.Id));
                     break;
             } 
 
@@ -103,7 +119,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeEmployee();
                     or.BeContractorInContract(contractId);
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractId);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractId);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractId);
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
                 });
             });
@@ -423,7 +439,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var delegatedRoles = await DispatchAsync(new GetContractDelegatedRoles(projectIdentifier.ProjectId, contractIdentifier));
+            var delegatedRoles = await DispatchAsync(Domain.GetContractDelegatedRoles.ForContract(projectIdentifier.ProjectId, contractIdentifier));
             return delegatedRoles.Select(r => new ApiDelegatedRole(r)).ToList();
         }
 
