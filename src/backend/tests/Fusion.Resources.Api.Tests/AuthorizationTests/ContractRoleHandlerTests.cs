@@ -9,12 +9,14 @@ using Microsoft.AspNetCore.Authorization;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace Fusion.Resources.Api.Tests
 {
+
     public class ContractRoleHandlerTests
     {
         private readonly Guid userAzureUniqueId;

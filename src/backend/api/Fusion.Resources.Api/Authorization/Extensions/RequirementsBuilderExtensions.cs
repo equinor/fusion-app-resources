@@ -48,6 +48,14 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
+        public static IAuthorizationRequirementRule DelegatedContractAccess(this IAuthorizationRequirementRule builder, DelegatedContractRole role, ProjectIdentifier project, Guid contractOrgId)
+        {
+            var resource = new ContractResource(project, contractOrgId);
+            builder.AddRule(resource, role);
+
+            return builder;
+        }
+
         public static IAuthorizationRequirementRule RequestAccess(this IAuthorizationRequirementRule builder, RequestAccess level, QueryPersonnelRequest request)
         {
             builder.AddRule(request, level);
