@@ -15,6 +15,12 @@ import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
 import Person from '../models/Person';
 import CreatePersonnelRequest from '../models/CreatePersonnelRequest';
+import PersonDelegation, {
+    PersonDelegationClassification,
+    PersonDelegationRequest,
+    ReCertifyPersonDelegationRequest,
+} from '../models/PersonDelegation';
+import { formatDateToYDMString } from './utils';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -186,7 +192,6 @@ export default class ApiClient {
         return response.data;
     }
 
- 
     async getPersonnelRequestsAsync(
         projectId: string,
         contractId: string,
@@ -208,17 +213,8 @@ export default class ApiClient {
         >(url);
         return response.data.value;
     }
-    async getPersonnelRequestAsync(
-        projectId: string,
-        contractId: string,
-        requestId: string
-    ) {
-       
-        const url = this.resourceCollection.personnelRequest(
-            projectId,
-            contractId,
-            requestId
-        );
+    async getPersonnelRequestAsync(projectId: string, contractId: string, requestId: string) {
+        const url = this.resourceCollection.personnelRequest(projectId, contractId, requestId);
         const response = await this.httpClient.getAsync<
             PersonnelRequest,
             FusionApiHttpErrorResponse
@@ -331,5 +327,80 @@ export default class ApiClient {
         } catch (e) {
             return false;
         }
+    }
+    public async getPersonDelegationsAsync(projectId: string, contractId: string) {
+        const url = this.resourceCollection.delegateRoles(projectId, contractId);
+        const response = await this.httpClient.getAsync<
+            PersonDelegation[],
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data;
+    }
+
+    public async getDelegationAccessHeader(
+        projectId: string,
+        contractId: string,
+        accountType: PersonDelegationClassification
+    ) {
+        const search = `?classification=${accountType}`;
+        const url = this.resourceCollection.delegateRoles(projectId, contractId, search);
+
+        try {
+            const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(
+                url,
+                {},
+                () => Promise.resolve()
+            );
+            const allowHeader = response.headers.get('Allow');
+            return allowHeader || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    public async createPersonRoleDelegation(
+        projectId: string,
+        contractId: string,
+        personRequest: PersonDelegationRequest
+    ) {
+        const url = this.resourceCollection.delegateRoles(projectId, contractId);
+        const response = await this.httpClient.postAsync<
+            PersonDelegationRequest,
+            PersonDelegation,
+            FusionApiHttpErrorResponse
+        >(url, personRequest);
+        return response.data;
+    }
+
+    public async deletePersonRoleDelegationAsync(
+        projectId: string,
+        contractId: string,
+        roleId: string
+    ) {
+        const url = this.resourceCollection.delegateRole(projectId, contractId, roleId);
+        const response = await this.httpClient.deleteAsync<void, FusionApiHttpErrorResponse>(
+            url,
+            {},
+            () => Promise.resolve()
+        );
+        return response.data;
+    }
+
+    public async reCertifyRoleDelegationAsync(
+        projectId: string,
+        contractId: string,
+        roleId: string,
+        toDate: Date
+    ) {
+        const payload: ReCertifyPersonDelegationRequest = {
+            validTo: formatDateToYDMString(toDate),
+        };
+        const url = this.resourceCollection.delegateRole(projectId, contractId, roleId);
+        const response = await this.httpClient.patchAsync<
+            ReCertifyPersonDelegationRequest,
+            PersonDelegation,
+            FusionApiHttpErrorResponse
+        >(url, payload);
+        return response.data;
     }
 }
