@@ -47,7 +47,7 @@ namespace Fusion.Resources.Domain.Commands
                 dbContext.DelegatedRoles.Remove(role);
                 await dbContext.SaveChangesAsync();
 
-                await mediator.Publish(new Notifications.RemoveContractReadRoleAssignment(role.Id));
+                await mediator.Send(new RemoveContractReadRoleAssignment(role.Id));
 
             }
         }

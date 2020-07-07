@@ -101,7 +101,8 @@ namespace Fusion.Resources.Domain.Commands
                 await dbContext.AddAsync(role);
                 await dbContext.SaveChangesAsync();
 
-                await mediator.Publish(new Notifications.CreateContractReadRoleAssignment(role.Id));
+                await mediator.Send(new CreateContractReadRoleAssignment(role.Id));
+                await mediator.Publish(new Notifications.ContractRoleDelegated(role.Id));
 
                 return new QueryDelegatedRole(role);
             }

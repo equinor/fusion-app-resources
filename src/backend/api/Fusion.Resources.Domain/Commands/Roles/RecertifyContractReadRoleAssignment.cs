@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fusion.Resources.Domain.Notifications
+namespace Fusion.Resources.Domain.Commands
 {
     public class RecertifyContractReadRoleAssignment : IRequest
     {

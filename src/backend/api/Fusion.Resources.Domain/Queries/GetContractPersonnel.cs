@@ -163,7 +163,7 @@ namespace Fusion.Resources.Domain
                 var positions = requests.Select(p =>
                 {
                     var position = new QueryPositionRequest(p.Position)
-                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp.Id == p.Position.BasePositionId));
+                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp!.Id == p.Position.BasePositionId));
 
                     return new QueryPersonnelRequestReference(p, position);
                 }).ToList();

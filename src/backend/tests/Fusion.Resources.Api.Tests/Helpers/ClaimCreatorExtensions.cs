@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 
+#nullable enable
 namespace Fusion.Resources.Api.Tests
 {
     public static class ClaimCreatorExtensions

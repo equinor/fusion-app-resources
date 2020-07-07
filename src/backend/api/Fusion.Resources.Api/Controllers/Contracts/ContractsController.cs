@@ -20,6 +20,7 @@ using System.Threading;
 using FluentValidation;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -81,6 +82,7 @@ namespace Fusion.Resources.Api.Controllers
             var contractsToReturn = orgContracts
                 .Where(c => c != null)
                 .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c!.Id))
+                .Select(c => c!)
                 .ToList();
 
 
