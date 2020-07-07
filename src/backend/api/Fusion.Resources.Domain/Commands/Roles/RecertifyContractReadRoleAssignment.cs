@@ -54,6 +54,11 @@ namespace Fusion.Resources.Domain.Notifications
 
                     // If the role was not updated, it might have expired or not been created - ensure new exists.
                     await mediator.Publish(new CreateContractReadRoleAssignment(notification.DelegatedRoleId));
+                }                
+                catch (Exception ex)
+                {
+                    telemetryClient.TrackException(ex);
+                    throw new IntegrationError("Could not recertify role for person.", ex);
                 }
             }
         }
