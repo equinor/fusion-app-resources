@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
+using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -34,21 +36,29 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : IRequestHandler<RecertifyRoleDelegation, QueryDelegatedRole>
         {
             private readonly ResourcesDbContext dbContext;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext dbContext)
+            public Handler(ResourcesDbContext dbContext, IMediator mediator)
             {
                 this.dbContext = dbContext;
+                this.mediator = mediator;
             }
 
             public async Task<QueryDelegatedRole> Handle(RecertifyRoleDelegation request, CancellationToken cancellationToken)
             {
-                var role = await dbContext.DelegatedRoles.FirstAsync(c => c.Id == request.RoleId);
+                var role = await dbContext.DelegatedRoles
+                    .Include(r => r.Person)
+                    .Include(r => r.Contract)
+                    .FirstAsync(c => c.Id == request.RoleId);
 
                 role.ValidTo = request.NewValidToDate;
                 role.RecertifiedDate = DateTime.UtcNow;
                 role.RecertifiedBy = request.Editor.Person;
 
                 await dbContext.SaveChangesAsync();
+
+                // Update assignment
+                await mediator.Publish(new Notifications.RecertifyContractReadRoleAssignment(role.Id));
 
                 return new QueryDelegatedRole(role);
             }

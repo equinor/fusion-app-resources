@@ -47,6 +47,8 @@ namespace Fusion.Resources.Api
             {
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
+                options.AddFusionRoles();
+                options.AddFusionNotifications();
 
                 options.UseDefaultEndpointResolver(Configuration["FUSION_ENVIRONMENT"] ?? "ci");
                 options.UseDefaultTokenProvider(opts =>

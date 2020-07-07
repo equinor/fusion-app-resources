@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
@@ -66,11 +67,13 @@ namespace Fusion.Resources.Domain.Commands
         {
             private readonly ResourcesDbContext dbContext;
             private readonly IProfileService profileService;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext dbContext, IProfileService profileService)
+            public Handler(ResourcesDbContext dbContext, IProfileService profileService, IMediator mediator)
             {
                 this.dbContext = dbContext;
                 this.profileService = profileService;
+                this.mediator = mediator;
             }
 
             public async Task<QueryDelegatedRole> Handle(CreateRoleDelegation request, CancellationToken cancellationToken)
@@ -94,17 +97,22 @@ namespace Fusion.Resources.Domain.Commands
                     CreatedById = request.Editor.Person.Id,
                     ValidTo = request.ValidTo
                 };
-                dbContext.Add(role);
+
+                await dbContext.AddAsync(role);
                 await dbContext.SaveChangesAsync();
+
+                await mediator.Publish(new Notifications.CreateContractReadRoleAssignment(role.Id));
 
                 return new QueryDelegatedRole(role);
             }
 
-            private async Task ValidateAsync(CreateRoleDelegation request)
+            private ValueTask ValidateAsync(CreateRoleDelegation request)
             {
                 // Check that the user does not have currently have a role
 
                 // Check that an internal role is not granted to an external account
+
+                return new ValueTask();
             }
         }
     }

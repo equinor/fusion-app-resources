@@ -32,10 +32,12 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<DeleteRoleDelegation>
         {
             private readonly ResourcesDbContext dbContext;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext dbContext)
+            public Handler(ResourcesDbContext dbContext, IMediator mediator)
             {
                 this.dbContext = dbContext;
+                this.mediator = mediator;
             }
 
             protected override async Task Handle(DeleteRoleDelegation request, CancellationToken cancellationToken)
@@ -44,6 +46,9 @@ namespace Fusion.Resources.Domain.Commands
 
                 dbContext.DelegatedRoles.Remove(role);
                 await dbContext.SaveChangesAsync();
+
+                await mediator.Publish(new Notifications.RemoveContractReadRoleAssignment(role.Id));
+
             }
         }
     }
