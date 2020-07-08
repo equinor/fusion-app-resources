@@ -59,6 +59,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 // Update assignment
                 await mediator.Send(new RecertifyContractReadRoleAssignment(role.Id));
+                await mediator.Publish(new Notifications.DelegatedContractRoleRecertified(role.Id));
 
                 return new QueryDelegatedRole(role);
             }

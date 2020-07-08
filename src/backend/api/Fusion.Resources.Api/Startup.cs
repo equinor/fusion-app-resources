@@ -1,6 +1,7 @@
 using Bogus;
 using FluentValidation.AspNetCore;
 using Fusion.Resources.Domain;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -80,6 +81,7 @@ namespace Fusion.Resources.Api
             services.AddResourcesApplicationServices();
 
             services.AddResourcesAuthorizationHandlers();
+            services.AddMediatR(typeof(Startup));   // Add notification handlers in api project
 
             #endregion
 

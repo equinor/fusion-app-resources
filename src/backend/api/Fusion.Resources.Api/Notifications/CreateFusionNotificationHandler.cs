@@ -12,7 +12,9 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Notifications
 {
-    public class CreateFusionNotificationHandler : INotificationHandler<ContractRoleDelegated>
+    public class CreateFusionNotificationHandler : 
+        INotificationHandler<ContractRoleDelegated>,
+        INotificationHandler<DelegatedContractRoleRecertified>
     {
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
@@ -33,12 +35,29 @@ namespace Fusion.Resources.Api.Notifications
 
             await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(delegatedRole.Person.AzureUniqueId)
-                    .WithTitle(NotificationTitle(delegatedRole))
+                    .WithTitle($"You were delegated {delegatedRole.Type} role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name}")
                     .WithDescriptionMarkdown(NotificationDescription(delegatedRole)));
         }
 
-        private string NotificationTitle(QueryDelegatedRole role) => $"You were delegated {role.Type} role in {role.Contract.ContractNumber} - {role.Project.Name}";
+        public async Task Handle(DelegatedContractRoleRecertified notification, CancellationToken cancellationToken)
+        {
+            var delegatedRole = await mediator.Send(new Domain.GetContractDelegatedRole(notification.RoleId));
+
+            if (delegatedRole == null)
+                return;
+
+
+            await notificationClient.CreateNotificationAsync(notification => notification
+                    .WithRecipient(delegatedRole.Person.AzureUniqueId)
+                    .WithTitle($"Your delegated role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name} was recertified")
+                    .WithDescriptionMarkdown(NotificationRecertifiedDescription(delegatedRole)));
+        }
+
         private string NotificationDescription(QueryDelegatedRole role) => $"{role.CreatedBy.Name} ({role.CreatedBy.Mail}) delegated you {role.Type} role in " +
-            $"{role.Contract.ContractNumber} - {role.Project.Name}.";
+            $"{role.Contract.ContractNumber} - {role.Project.Name}. The role is valid to {role.ValidTo:dd/MM yyyy}.";
+
+        private string NotificationRecertifiedDescription(QueryDelegatedRole role) => $"{role.RecertifiedBy?.Name} ({role.RecertifiedBy?.Mail}) recertified your {role.Type} role in " +
+            $"{role.Contract.ContractNumber} - {role.Project.Name}. The role is now valid to {role.ValidTo:dd/MM yyyy}.";
     }
+
 }
