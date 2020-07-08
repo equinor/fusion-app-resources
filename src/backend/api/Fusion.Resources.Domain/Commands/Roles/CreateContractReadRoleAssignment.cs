@@ -54,7 +54,7 @@ namespace Fusion.Resources.Domain.Commands
                     {
                         r.RoleName = "Fusion.Contract.Read";
                         r.Identifier = $"{roleAssignment.Id}";
-                        r.Scope = ("Contract.Id", $"{roleAssignment.Contract.OrgContractId}");
+                        r.Scope = ("Contract", $"{roleAssignment.Contract.OrgContractId}");
                         r.ValidTo = roleAssignment.ValidTo;
                     });
                 }
