@@ -547,8 +547,13 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                var command = new Domain.Commands.DeleteRoleDelegation(roleId);
-                await DispatchAsync(command);
+                using (var scope = await BeginTransactionAsync())
+                {
+                    var command = new Domain.Commands.DeleteRoleDelegation(roleId);
+                    await DispatchAsync(command);
+
+                    await scope.CommitAsync();
+                }
             }
             catch (InvalidOperationException ex)
             {
@@ -597,15 +602,18 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-
-            if (request.ValidTo.HasValue)
+            using (var scope = await BeginTransactionAsync())
             {
-                var command = new Domain.Commands.RecertifyRoleDelegation(roleId, request.ValidTo.Value);
-                role = await DispatchAsync(command);
+                if (request.ValidTo.HasValue)
+                {
+                    var command = new Domain.Commands.RecertifyRoleDelegation(roleId, request.ValidTo.Value);
+                    role = await DispatchAsync(command);
+                }
+
+                await scope.CommitAsync();
             }
 
             return new ApiDelegatedRole(role);
-
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
