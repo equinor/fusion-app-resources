@@ -17,7 +17,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid DelegatedRoleId { get; }
 
 
-        public class Handler : AsyncRequestHandler<CreateContractReadRoleAssignment>
+        public class Handler : AsyncRequestHandler<RemoveContractReadRoleAssignment>
         {
             private readonly IFusionRolesClient fusionRolesClient;
             private readonly TelemetryClient telemetryClient;
@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.telemetryClient = telemetryClient;
             }
 
-            protected override async Task Handle(CreateContractReadRoleAssignment notification, CancellationToken cancellationToken)
+            protected override async Task Handle(RemoveContractReadRoleAssignment notification, CancellationToken cancellationToken)
             {
                 try 
                 {                    
