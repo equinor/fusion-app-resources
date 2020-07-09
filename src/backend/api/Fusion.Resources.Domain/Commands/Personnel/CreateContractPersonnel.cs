@@ -43,12 +43,14 @@ namespace Fusion.Resources.Domain.Commands
             private readonly IProfileService profileService;
             private readonly ResourcesDbContext resourcesDb;
             private readonly IProjectOrgResolver resolver;
+            private readonly IMediator mediator;
 
-            public Handler(IProfileService profileService, ResourcesDbContext resourcesDb, IProjectOrgResolver resolver)
+            public Handler(IProfileService profileService, ResourcesDbContext resourcesDb, IProjectOrgResolver resolver, IMediator mediator)
             {
                 this.profileService = profileService;
                 this.resourcesDb = resourcesDb;
                 this.resolver = resolver;
+                this.mediator = mediator;
             }
 
             public async Task<QueryContractPersonnel> Handle(CreateContractPersonnel request, CancellationToken cancellationToken)
@@ -90,6 +92,8 @@ namespace Fusion.Resources.Domain.Commands
                 await resourcesDb.ContractPersonnel.AddAsync(newItem);
 
                 await resourcesDb.SaveChangesAsync();
+
+                await mediator.Publish(new Notifications.PersonnelAddedToContract(newItem.Id));
 
                 return new QueryContractPersonnel(newItem);
             }
