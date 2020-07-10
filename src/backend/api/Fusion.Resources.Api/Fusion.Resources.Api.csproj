@@ -23,8 +23,7 @@
     <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.2" />
     
     <PackageReference Include="Bogus" Version="29.0.1" />
-    <PackageReference Include="Fusion.Integration" Version="3.4.0" />
-    <PackageReference Include="Fusion.Integration.Core" Version="3.2.4" />
+    <PackageReference Include="Fusion.Integration" Version="3.5.0" />
     <PackageReference Include="Fusion.Integration.Authorization" Version="3.2.1" />
     <PackageReference Include="Fusion.Integration.Org" Version="3.2.2" />
     <PackageReference Include="Fusion.Integration.Roles" Version="1.1.1" />
