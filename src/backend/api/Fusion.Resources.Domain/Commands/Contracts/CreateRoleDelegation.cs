@@ -1,10 +1,12 @@
 ﻿using FluentValidation;
+using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +26,8 @@ namespace Fusion.Resources.Domain.Commands
         public bool? IsInternal { get; private set; }
         public DateTimeOffset ValidTo { get; private set; } = DateTimeOffset.UtcNow.AddYears(1);
 
+        public DbDelegatedRoleType Type { get; private set; }
+
         public CreateRoleDelegation ForPerson(PersonId person)
         {
             Person = person;
@@ -42,6 +46,11 @@ namespace Fusion.Resources.Domain.Commands
             return this;
         }
 
+        public CreateRoleDelegation SetType(DbDelegatedRoleType type)
+        {
+            Type = type;
+            return this;
+        }
 
         public class Validator : AbstractValidator<CreateRoleDelegation>
         {
@@ -78,7 +87,6 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryDelegatedRole> Handle(CreateRoleDelegation request, CancellationToken cancellationToken)
             {
-                await ValidateAsync(request);
 
                 var contract = await dbContext.Contracts.FirstAsync(c => c.OrgContractId == request.OrgContractId);
                 var project = await dbContext.Projects.FirstAsync(c => c.OrgProjectId == request.OrgProjectId);
@@ -87,12 +95,17 @@ namespace Fusion.Resources.Domain.Commands
                 if (person == null)
                     throw new InvalidOperationException($"Person could not be resolved with identifier '{request.Person.OriginalIdentifier}'");
 
+                var classification = request.IsInternal.GetValueOrDefault(false) ? DbDelegatedRoleClassification.Internal : DbDelegatedRoleClassification.External;
+
+                await ValidateAsync(request, person, classification);
+
                 var role = new DbDelegatedRole
                 {
                     ProjectId = project.Id,
                     ContractId = contract.Id,
+                    Type = request.Type,
                     PersonId = person.Id,
-                    Classification = request.IsInternal.GetValueOrDefault(false) ? DbDelegatedRoleClassification.Internal : DbDelegatedRoleClassification.External,
+                    Classification = classification,
                     Created = DateTimeOffset.UtcNow,
                     CreatedById = request.Editor.Person.Id,
                     ValidTo = request.ValidTo
@@ -107,11 +120,24 @@ namespace Fusion.Resources.Domain.Commands
                 return new QueryDelegatedRole(role);
             }
 
-            private ValueTask ValidateAsync(CreateRoleDelegation request)
+            private async Task<ValueTask> ValidateAsync(CreateRoleDelegation request, DbPerson person, DbDelegatedRoleClassification classification)
             {
-                // Check that the user does not have currently have a role
+                // Check that the person does not already have an exact match of the delegate role.
+                if (await dbContext.DelegatedRoles.AnyAsync(r => r.Type == request.Type 
+                    && r.Contract.OrgContractId == request.OrgContractId 
+                    && r.PersonId == person.Id
+                    && r.Classification == classification))
+                    throw new RoleDelegationExistsError();
+
 
                 // Check that an internal role is not granted to an external account
+                if (classification == DbDelegatedRoleClassification.Internal)
+                {
+                    if (string.Equals(person.AccountType, $"{FusionAccountType.External}", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("Cannot delegate internal roles to external accounts");
+                    }
+                }
 
                 return new ValueTask();
             }

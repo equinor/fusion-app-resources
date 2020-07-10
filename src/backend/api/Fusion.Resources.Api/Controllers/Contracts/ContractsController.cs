@@ -502,6 +502,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.InvalidOperation(ex);
             }
+            catch (RoleDelegationExistsError ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
         }
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}")]
