@@ -9,6 +9,23 @@ namespace Fusion.Resources.Api.Controllers
     {
         private const string rfcProblemDetails = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
 
+        public static ActionResult InvalidOperation(FluentValidation.ValidationException error)
+        {
+            var problem = new ProblemDetails()
+            {
+                Type = rfcProblemDetails,
+                Detail = error.Message,
+                Title = "Invalid Operation",
+                Status = (int)System.Net.HttpStatusCode.BadRequest
+            };
+            problem.Extensions.Add("error", new ApiProblem.ApiError(error.GetType().Name, error.Message));
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
         public static ActionResult InvalidOperation(Exception error)
         {
             var problem = new ProblemDetails()

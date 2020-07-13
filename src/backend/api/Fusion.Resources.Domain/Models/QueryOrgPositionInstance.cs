@@ -40,8 +40,8 @@ namespace Fusion.Resources.Domain
         /// </summary>
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string Obs { get; set; }
-        public string ExternalPositionId { get; set; }
+        public string? Obs { get; set; }
+        public string? ExternalPositionId { get; set; }
         public DateTime? AppliesFrom { get; set; }
         public DateTime? AppliesTo { get; set; }
         public double? Workload { get; set; }

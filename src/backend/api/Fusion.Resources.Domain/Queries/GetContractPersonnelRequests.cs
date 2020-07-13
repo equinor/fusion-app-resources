@@ -139,7 +139,7 @@ namespace Fusion.Resources.Domain.Queries
                 var positions = dbRequest.Select(p =>
                 {
                     var position = new QueryPositionRequest(p.Position)
-                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp.Id == p.Position.BasePositionId));
+                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp!.Id == p.Position.BasePositionId));
                     var workflow = workflows.FirstOrDefault(wf => wf.RequestId == p.Id);
 
                     var personnelRequest = new QueryPersonnelRequest(p, position, workflow);

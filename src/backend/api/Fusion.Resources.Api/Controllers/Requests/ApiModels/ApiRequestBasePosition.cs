@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Controllers
             WasResolved = basePosition.Resolved;
         }
 
-        public ApiRequestBasePosition(ApiBasePositionV2 basePosition)
+        public ApiRequestBasePosition(ApiPositionBasePositionV2 basePosition)
         {
             Id = basePosition.Id;
             Name = basePosition.Name;
