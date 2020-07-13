@@ -1,7 +1,9 @@
 ﻿using Fusion.Integration.Roles;
 using MediatR;
 using Microsoft.ApplicationInsights;
+using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,7 +34,8 @@ namespace Fusion.Resources.Domain.Commands
             {
                 try 
                 {                    
-                    await fusionRolesClient.DeleteRoleByIdentifierAsync($"{notification.DelegatedRoleId}");
+                    var deletedRoles = await fusionRolesClient.DeleteRoleByIdentifierAsync($"{notification.DelegatedRoleId}");
+                    telemetryClient.TrackTrace($"Deleted roles: {JsonConvert.SerializeObject(deletedRoles, Formatting.Indented)}");
                 }
                 catch (Exception ex)
                 {
