@@ -16,7 +16,7 @@ namespace Fusion.Resources.Domain.Queries
 
         public Guid CommentId { get; }
 
-        public class Handler : IRequestHandler<GetRequestComment, QueryRequestComment>
+        public class Handler : IRequestHandler<GetRequestComment, QueryRequestComment?>
         {
             private readonly ResourcesDbContext db;
 

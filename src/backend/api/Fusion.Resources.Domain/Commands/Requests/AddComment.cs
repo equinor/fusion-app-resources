@@ -23,10 +23,12 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<AddComment>
         {
             private readonly ResourcesDbContext db;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IMediator mediator)
             {
                 this.db = db;
+                this.mediator = mediator;
             }
 
             protected override async Task Handle(AddComment command, CancellationToken cancellationToken)
@@ -56,6 +58,8 @@ namespace Fusion.Resources.Domain.Commands
 
                 await db.RequestComments.AddAsync(comment);
                 await db.SaveChangesAsync();
+
+                await mediator.Publish(new Notifications.CommentAdded(comment.Id));
             }
         }
     }

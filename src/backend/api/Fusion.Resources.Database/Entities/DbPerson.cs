@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Text;
 
 namespace Fusion.Resources.Database.Entities
@@ -20,6 +21,16 @@ namespace Fusion.Resources.Database.Entities
 
         public string AccountType { get; set; } = null!;
         public string? JobTitle { get; set; }
+
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<DbPerson>(entity =>
+            {
+                entity.HasIndex(e => e.AzureUniqueId).IsUnique();
+                entity.HasIndex(e => e.Mail).IsClustered(false);
+            });
+
+        }
     }
 
 }

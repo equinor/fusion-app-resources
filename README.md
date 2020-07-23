@@ -22,16 +22,27 @@ The personnel added will be verified against Azure AD, giving the reps an overvi
 
 After the personnel is defined, they can be used when creating requests. The external reps can create request to create positions and assign persons to these. When a person is assign a position in a contract, this person will start to get access to different systems automatically.
 
+## Role delegation
+[Documentation](docs/role-delegation.md)
+
+Access given to the internal and external CR can be delegated to specific persons. This delegation is time-limited and must be recertified, with a max time span of 1 year.
+
 # Technical
 
 Initial POC / MVP service design:
 https://github.com/equinor/fusion/blob/technical/resource-service/services/resources.md
+
+[Role delegation](https://github.com/equinor/fusion/blob/master/docs/technical-design/resources/role-delegation.md)
+
+
 
 ## Infrastructure
 The app will manage it's own infrastructure. This includes separate Azure AD App Registration.
 This makes the app transferable to other teams.
 
 ### Azure AD
+> For now the fusion ad app is backing the resources api.
+
 Test app: [GUID]
 Production app: [GUID]
 

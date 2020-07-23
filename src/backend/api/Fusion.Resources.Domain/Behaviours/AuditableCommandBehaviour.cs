@@ -3,7 +3,6 @@ using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,4 +46,6 @@ namespace Fusion.Resources.Domain.Behaviours
             return await next();
         }
     }
+
+
 }
