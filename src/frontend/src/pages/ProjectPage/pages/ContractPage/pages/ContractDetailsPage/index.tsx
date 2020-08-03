@@ -15,7 +15,8 @@ import Contract from '../../../../../../models/contract';
 import { getInstances, isInstanceFuture, isInstancePast } from '../../../../orgHelpers';
 import { Link } from 'react-router-dom';
 import ContractAdminTable from '../../components/ContractAdminTable';
-import DelegateAccessSideSheet from '../../components/DelegateAccessSideSheet';
+import { useAppContext } from '../../../../../../appContext';
+import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 
 type AccordionOpenDictionary = {
     [id: string]: boolean;
@@ -138,8 +139,35 @@ const ContractDetailsPage = () => {
     const helpIconRef = useTooltipRef('Help page', 'left');
 
     const history = useHistory();
-    const contractContext = useContractContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
+    const { apiClient } = useAppContext();
+
+    const fetchRequestsAsync = React.useCallback(async () => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        if (!contractId || !projectId) {
+            return [];
+        }
+
+        return await apiClient.getPersonDelegationsAsync(projectId, contractId);
+    }, [contract, currentContext, apiClient]);
+    const { data, isFetching, error } = useReducerCollection(
+        contractState,
+        dispatchContractAction,
+        'administrators',
+        fetchRequestsAsync,
+        'set'
+    );
+
+    const internalAdministrators = React.useMemo(
+        () => data.filter((d) => d.classification === 'Internal'),
+        [data]
+    );
+    const externalAdministrators = React.useMemo(
+        () => data.filter((d) => d.classification === 'External'),
+        [data]
+    );
 
     return (
         <div className={styles.container}>
@@ -161,7 +189,11 @@ const ContractDetailsPage = () => {
                 <DelegateAdminTitle />
 
                 <div className={styles.row}>
-                    <ContractAdminTable accountType="internal" />
+                    <ContractAdminTable
+                        accountType="Internal"
+                        admins={internalAdministrators}
+                        isFetchingAdmins={isFetching}
+                    />
                 </div>
                 <div className={styles.header}>External responsible</div>
                 <div className={styles.row}>
@@ -170,15 +202,17 @@ const ContractDetailsPage = () => {
                 </div>
                 <DelegateAdminTitle />
                 <div className={styles.row}>
-                    <ContractAdminTable accountType="external"/>
+                    <ContractAdminTable
+                        accountType="External"
+                        admins={externalAdministrators}
+                        isFetchingAdmins={isFetching}
+                    />
                 </div>
             </div>
             <div className={styles.aside}>
                 <IconButton
                     ref={editTooltipRef}
-                    onClick={() =>
-                        history.push(`/${currentContext?.id}/${contractContext.contract?.id}/edit`)
-                    }
+                    onClick={() => history.push(`/${currentContext?.id}/${contract?.id}/edit`)}
                 >
                     <EditIcon />
                 </IconButton>

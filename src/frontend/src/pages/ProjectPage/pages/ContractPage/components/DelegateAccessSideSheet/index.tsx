@@ -1,11 +1,12 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { ModalSideSheet, Button } from '@equinor/fusion-components';
+import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
 import CertifyToPicker from '../CertifiyToPicker';
 import classNames from 'classnames';
 import PeopleSelector from '../PeopleSelector';
 import { PersonDetails } from '@equinor/fusion';
 import { PersonDelegationClassification } from '../../../../../../models/PersonDelegation';
+import useNewDelegation from './useNewDelegation';
 
 type DelegateAccessSideSheetProps = {
     showSideSheet: boolean;
@@ -38,27 +39,38 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
     accountType,
     canEdit,
 }) => {
-    const [delegateTo, setDelegateTo] = React.useState<Date>();
+    const [delegateTo, setDelegateTo] = React.useState<Date | null>(null);
     const [selectedPersons, setSelectedPersons] = React.useState<PersonDetails[]>([]);
+    const { delegateAccess, isDelegatingAccess } = useNewDelegation(
+        delegateTo,
+        selectedPersons,
+        accountType
+    );
 
     const onClose = React.useCallback(() => {
         onSideSheetClose();
     }, [onSideSheetClose]);
 
-    const delegateButton = React.useMemo(() => <Button disabled={!canEdit}>Delegate</Button>, [
-        canEdit,
-    ]);
+    const onDelegateClick = React.useCallback(
+        () => canEdit && !isDelegatingAccess && delegateAccess(),
+        [canEdit, isDelegatingAccess, delegateAccess]
+    );
 
-    const role = React.useMemo(() => {
-        switch (accountType) {
-            case 'external':
-                return 'External';
-            case 'internal':
-                return 'Equinor';
-            default:
-                '';
-        }
-    }, [accountType]);
+    const delegateButton = React.useMemo(
+        () => (
+            <Button
+                disabled={!canEdit || isDelegatingAccess || selectedPersons.length <= 0}
+                onClick={onDelegateClick}
+            >
+                {isDelegatingAccess ? <Spinner inline /> : 'Delegate'}
+            </Button>
+        ),
+        [canEdit, isDelegatingAccess, selectedPersons, onDelegateClick]
+    );
+
+    const role = React.useMemo(() => (accountType === 'Internal' ? 'Equinor' : accountType), [
+        accountType,
+    ]);
 
     return (
         <ModalSideSheet

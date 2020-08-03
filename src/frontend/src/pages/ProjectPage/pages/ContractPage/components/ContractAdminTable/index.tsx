@@ -1,13 +1,23 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { Button, AddIcon, SyncIcon, DeleteIcon, usePopoverRef } from '@equinor/fusion-components';
+import {
+    Button,
+    AddIcon,
+    SyncIcon,
+    DeleteIcon,
+    usePopoverRef,
+    DataTable,
+} from '@equinor/fusion-components';
 import DelegateAccessSideSheet from '../DelegateAccessSideSheet';
 import CertifyToPopover from './components/CertifyToPopover';
 import useAccessRemoval from './useAccessRemoval';
 import { useAppContext } from '../../../../../../appContext';
-import { PersonDelegationClassification } from '../../../../../../models/PersonDelegation';
+import PersonDelegation, {
+    PersonDelegationClassification,
+} from '../../../../../../models/PersonDelegation';
 import { useContractContext } from '../../../../../../contractContex';
 import { useCurrentContext } from '@equinor/fusion';
+import columns from './columns';
 
 type ToolbarButtonProps = {
     icon: React.ReactNode;
@@ -18,6 +28,8 @@ type ToolbarButtonProps = {
 
 type ContractAdminTableProps = {
     accountType: PersonDelegationClassification;
+    admins: PersonDelegation[];
+    isFetchingAdmins: boolean;
 };
 
 const ToolbarButton = React.forwardRef<HTMLElement, ToolbarButtonProps>(
@@ -31,11 +43,16 @@ const ToolbarButton = React.forwardRef<HTMLElement, ToolbarButtonProps>(
     )
 );
 
-const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) => {
+const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
+    accountType,
+    admins,
+    isFetchingAdmins,
+}) => {
     const { apiClient } = useAppContext();
     const { contract } = useContractContext();
     const currentContext = useCurrentContext();
 
+    const [selectedAdmins, setSelectedAdmins] = React.useState<PersonDelegation[]>([]);
     const [canEdit, setCanEdit] = React.useState<boolean>(false);
     const [canDelete, setCanDelete] = React.useState<boolean>(false);
 
@@ -78,7 +95,7 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) 
         }
     }, [contract, currentContext]);
 
-    const [reCertifyRef] = usePopoverRef(<CertifyToPopover canEdit={canEdit} />, {
+    const [reCertifyRef] = usePopoverRef(<CertifyToPopover canEdit={canEdit} admins={selectedAdmins} />, {
         centered: true,
         fillWithContent: true,
         justify: 'center',
@@ -106,6 +123,15 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({ accountType }) 
                     disabled={!canDelete}
                 />
             </div>
+            <DataTable
+                data={admins}
+                isFetching={isFetchingAdmins}
+                rowIdentifier="id"
+                columns={columns}
+                isSelectable
+                onSelectionChange={setSelectedAdmins}
+                selectedItems={selectedAdmins}
+            />
             <DelegateAccessSideSheet
                 showSideSheet={showDelegateAccess}
                 onSideSheetClose={closeDelegateAccess}

@@ -2,9 +2,9 @@ import Person from './Person';
 import Project from './Project';
 import { ContractReference } from './contract';
 
-export type PersonDelegationType = 'cr';
+export type PersonDelegationType = 'CR';
 
-export type PersonDelegationClassification = 'external' | 'internal';
+export type PersonDelegationClassification = 'External' | 'Internal';
 
 export type ReCertifyPersonDelegationRequest = {
     validTo: string;
@@ -20,6 +20,7 @@ export type PersonDelegationRequest = {
 };
 
 type PersonDelegation = {
+    id: string;
     type: PersonDelegationType;
     person: Person;
     classification: PersonDelegationClassification;

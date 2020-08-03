@@ -13,7 +13,7 @@ export default (accountType: PersonDelegationClassification, persons: string[]) 
             confirmLabel: "Yes, I'm sure",
             cancelLabel: 'Cancel',
             body: `Are you sure you want to delegated role of ${
-                accountType === 'external' ? 'External' : 'Equinor'
+                accountType === 'Internal' ? 'Equinor' : accountType
             } admin for ${persons.join(', ')}?`,
         });
         if (response.confirmed) {
