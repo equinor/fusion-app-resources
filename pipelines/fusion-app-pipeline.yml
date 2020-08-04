@@ -67,7 +67,7 @@ stages:
           runOnce:
             deploy:
               steps: 
-              - task: FusionApp@1
+              - task: FusionApp@2
                 displayName: 'Deploying app bundle for resources'
                 condition: succeeded()
                 inputs:
@@ -79,7 +79,7 @@ stages:
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
                   ignoreVersionConflict: true
                   forceReplaceExisting: true
-              - task: FusionApp@1
+              - task: FusionApp@2
                 displayName: 'Publish app bundle for resources'
                 condition: succeeded()
                 inputs:
@@ -109,7 +109,7 @@ stages:
           runOnce:
             deploy:
               steps: 
-              - task: FusionApp@1
+              - task: FusionApp@2
                 displayName: 'Deploying app bundle for resources'
                 condition: succeeded()
                 inputs:
@@ -121,7 +121,7 @@ stages:
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
                   ignoreVersionConflict: true
                   forceReplaceExisting: true
-              - task: FusionApp@1
+              - task: FusionApp@2
                 displayName: 'Publish app bundle for resources'
                 condition: succeeded()
                 inputs:
@@ -151,7 +151,7 @@ stages:
           runOnce:
             deploy:
               steps: 
-              - task: FusionApp@1
+              - task: FusionApp@2
                 displayName: 'Deploying app bundle for resources'
                 condition: succeeded()
                 inputs:
@@ -161,7 +161,7 @@ stages:
                   action: deploy
                   appKey: resources
                   bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
-              - task: FusionApp@1
+              - task: FusionApp@2
                 displayName: 'Publish app bundle for resources'
                 condition: succeeded()
                 inputs:

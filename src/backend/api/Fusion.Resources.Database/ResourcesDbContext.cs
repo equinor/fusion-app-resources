@@ -33,6 +33,8 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbWorkflow> Workflows { get; set; }
 
+        public DbSet<DbDelegatedRole> DelegatedRoles { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +44,8 @@ namespace Fusion.Resources.Database
             DbWorkflow.OnModelCreating(modelBuilder);
             DbWorkflowStep.OnModelCreating(modelBuilder);
             DbRequestComment.OnModelCreating(modelBuilder);
+            DbPerson.OnModelCreating(modelBuilder);
+            DbDelegatedRole.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

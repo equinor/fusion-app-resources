@@ -151,10 +151,10 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     const [isPendingRequestsOpen, setIsPendingRequestsOpen] = React.useState(true);
     const [isSuccessfulRequestsOpen, setIsSuccessfulRequestsOpen] = React.useState(true);
 
-    const invalidRequests = React.useMemo(() => failedRequests.filter(fr => fr.isEditable), [
+    const invalidRequests = React.useMemo(() => failedRequests.filter((fr) => fr.isEditable), [
         failedRequests,
     ]);
-    const requestsWithError = React.useMemo(() => failedRequests.filter(fr => !fr.isEditable), [
+    const requestsWithError = React.useMemo(() => failedRequests.filter((fr) => !fr.isEditable), [
         failedRequests,
     ]);
 
@@ -186,7 +186,17 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     }, [failedRequests, closeSidesheet]);
 
     return (
-        <ModalSideSheet header={title} show={isShowing} onClose={onClose}>
+        <ModalSideSheet
+            header={title}
+            show={isShowing}
+            onClose={onClose}
+            safeClose={pendingRequests.length > 0}
+            safeCloseTitle={`
+                Closing this sidesheet won't stop the saving routine, but you will not be able to verify the result. 
+                Are you sure you want to close this sidesheet ? `}
+            safeCloseCancelLabel={'Cancel'}
+            safeCloseConfirmLabel={"I'm sure"}
+        >
             {invalidRequests.length > 0 && (
                 <div className={styles.failedRequests}>
                     <div className={styles.header}>
@@ -214,7 +224,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                             Open ticked for failed requests in{' '}
                             <a
                                 href="#"
-                                onClick={e => e.preventDefault()}
+                                onClick={(e) => e.preventDefault()}
                                 ref={serviceNowPopoverRef as React.RefObject<HTMLAnchorElement>}
                             >
                                 Service Now

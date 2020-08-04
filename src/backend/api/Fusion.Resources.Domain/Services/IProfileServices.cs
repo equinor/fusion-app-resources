@@ -11,9 +11,9 @@ namespace Fusion.Resources.Domain
         /// The person entity is a user that can sign in and perform actions. 
         /// In this case using the mail can be ambigous, due to reuse with x-amount of years etc.
         /// </summary>
-        /// <param name="azureUniqueId"></param>
+        /// <param name="personId">The person identifier. Can be either mail or azure unique id. If mail, the profile will be resolved to an azure unique id.</param>
         /// <returns></returns>
-        Task<DbPerson?> EnsurePersonAsync(Guid azureUniqueId);
+        Task<DbPerson?> EnsurePersonAsync(PersonId personId);
 
         Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId);
 

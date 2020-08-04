@@ -95,4 +95,12 @@ export default class ResourceCollection {
     delegateRole(projectId: string, contractId: string, roleId: string) {
         return combineUrls(this.delegateRoles(projectId, contractId), roleId)
     }
+    
+    parseExcelFile() {
+        return combineUrls(this.baseUrl, 'utilities', 'parse-spreadsheet');
+    }
+
+    personnelExcelTemplate() {
+        return combineUrls(this.baseUrl, 'utilities', 'templates', 'import-personnel');
+    }
 }

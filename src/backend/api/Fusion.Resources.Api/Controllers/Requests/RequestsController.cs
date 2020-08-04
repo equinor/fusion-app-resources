@@ -37,8 +37,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -65,8 +65,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyInternalRole, projectIdentifier, contractIdentifier);
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -108,6 +108,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -158,6 +159,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -276,6 +278,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -325,6 +328,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -354,9 +358,13 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
                 r.Must().BeCommentAuthor(comment);
+                
+                // Not sure if these are even evaluated, if the comment author req is not successfull.
+                // Should be looked at when testing comment functionality.                
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -417,6 +425,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -440,6 +449,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -471,6 +481,7 @@ namespace Fusion.Resources.Api.Controllers
                     r.AnyOf(or =>
                     {
                         or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                        or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                         or.BeContractorInContract(contractIdentifier);
                     });
                 });
