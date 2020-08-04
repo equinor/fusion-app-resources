@@ -29,6 +29,11 @@ export default (accountType: PersonDelegationClassification, admins: PersonDeleg
                 });
             } catch (e) {
                 setRemovalError(e);
+                sendNotification({
+                    level: 'high',
+                    title: 'Unable to remove new person(s)',
+                    body: e?.response?.error?.message || ""
+                });
             } finally {
                 setIsRemoving(false);
             }

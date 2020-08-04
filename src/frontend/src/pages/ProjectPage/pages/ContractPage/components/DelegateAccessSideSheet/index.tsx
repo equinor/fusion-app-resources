@@ -41,15 +41,18 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
 }) => {
     const [delegateTo, setDelegateTo] = React.useState<Date | null>(null);
     const [selectedPersons, setSelectedPersons] = React.useState<PersonDetails[]>([]);
+
+   const onClose = React.useCallback(() => {
+        onSideSheetClose();
+        setSelectedPersons([])
+    }, [onSideSheetClose]);
+
     const { delegateAccess, isDelegatingAccess } = useNewDelegation(
         delegateTo,
         selectedPersons,
-        accountType
+        accountType,
+        onClose
     );
-
-    const onClose = React.useCallback(() => {
-        onSideSheetClose();
-    }, [onSideSheetClose]);
 
     const onDelegateClick = React.useCallback(
         () => canEdit && !isDelegatingAccess && delegateAccess(),

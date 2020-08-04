@@ -47,6 +47,13 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
         canEdit,
     ]);
 
+    React.useEffect(() => {
+        const updatedAdmins = admins.filter((admin) =>
+            selectedAdmins.some((selectedAdmin) => admin.id === selectedAdmin.id)
+        );
+        setSelectedAdmins(updatedAdmins);
+    }, [admins]);
+
     const { removeAccess, isRemoving } = useAccessRemoval(accountType, selectedAdmins);
 
     const removeDelegateAccess = React.useCallback(() => canDelete && removeAccess(), [

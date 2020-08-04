@@ -11,7 +11,7 @@ import {
 import PersonDelegation from '../../../../../../../../models/PersonDelegation';
 import { useAppContext } from '../../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../../contractContex';
-import { useCurrentContext } from '@equinor/fusion';
+import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import ToolbarButton from '../ToolbarButton';
 
 type CertifyToPopoverProps = {
@@ -27,6 +27,7 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins, ch
     const { apiClient } = useAppContext();
     const { dispatchContractAction, contract } = useContractContext();
     const currentContext = useCurrentContext();
+    const sendNotification = useNotificationCenter();
 
     const controller = useDropdownController((ref, isOpen, setIsOpen) => (
         <ToolbarButton
@@ -44,7 +45,7 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins, ch
             setReCertificationError(null);
 
             try {
-                const requests = admins.map((a) =>
+                const requests = admins.map(async (a) =>
                     apiClient.reCertifyRoleDelegationAsync(projectId, contractId, a.id, date)
                 );
                 const response = await Promise.all(requests);
@@ -55,6 +56,11 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins, ch
                 });
             } catch (e) {
                 setReCertificationError(e);
+                sendNotification({
+                    level: 'high',
+                    title: 'Unable to re-certify new person(s)',
+                    body: e?.response?.error?.message || ""
+                });
             } finally {
                 setIsReCertifying(false);
             }

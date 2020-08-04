@@ -10,7 +10,8 @@ import { useContractContext } from '../../../../../../contractContex';
 export default (
     toDate: Date | null,
     persons: PersonDetails[],
-    accountType: PersonDelegationClassification
+    accountType: PersonDelegationClassification,
+    onSuccessfullyDelegated?: () => void,
 ) => {
     const { apiClient } = useAppContext();
     const { contract, dispatchContractAction } = useContractContext();
@@ -46,18 +47,23 @@ export default (
                     collection: 'administrators',
                     payload: delegatedPersons,
                 });
+                sendNotification({
+                    level: 'low',
+                    title: 'Delegation was successful and the person(s) has been notified',
+                });
+                onSuccessfullyDelegated && onSuccessfullyDelegated();
             } catch (e) {
                 setDelegateError(e);
                 sendNotification({
                     level: 'high',
                     title: 'Unable to delegate new person(s)',
-                    body: e,
+                    body: e?.response?.error?.message || ""
                 });
             } finally {
                 setIsDelegatingAccess(false);
             }
         },
-        [persons, accountType, apiClient, sendNotification]
+        [persons, accountType, apiClient, sendNotification, onSuccessfullyDelegated]
     );
 
     const delegateAccess = React.useCallback(async () => {
