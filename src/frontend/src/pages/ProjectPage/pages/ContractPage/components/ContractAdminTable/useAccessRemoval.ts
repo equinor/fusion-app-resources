@@ -1,9 +1,40 @@
 import * as React from 'react';
-import { useNotificationCenter } from '@equinor/fusion';
-import { PersonDelegationClassification } from '../../../../../../models/PersonDelegation';
+import { useNotificationCenter, useCurrentContext } from '@equinor/fusion';
+import PersonDelegation, {
+    PersonDelegationClassification,
+} from '../../../../../../models/PersonDelegation';
+import { useAppContext } from '../../../../../../appContext';
+import { useContractContext } from '../../../../../../contractContex';
 
-export default (accountType: PersonDelegationClassification, persons: string[]) => {
-    const removeAccessAsync = React.useCallback(async () => {}, [persons]);
+export default (accountType: PersonDelegationClassification, admins: PersonDelegation[]) => {
+    const { apiClient } = useAppContext();
+    const { dispatchContractAction, contract } = useContractContext();
+    const currentContext = useCurrentContext();
+    const [isRemoving, setIsRemoving] = React.useState<boolean>(false);
+    const [removalError, setRemovalError] = React.useState<Error | null>(null);
+
+    const removeAccessAsync = React.useCallback(
+        async (projectId: string, contractId: string) => {
+            setIsRemoving(true);
+            setRemovalError(null);
+            try {
+                const requests = admins.map((a) =>
+                    apiClient.deletePersonRoleDelegationAsync(projectId, contractId, a.id)
+                );
+                await Promise.all(requests);
+                dispatchContractAction({
+                    collection: 'administrators',
+                    verb: 'delete',
+                    payload: admins,
+                });
+            } catch (e) {
+                setRemovalError(e);
+            } finally {
+                setIsRemoving(false);
+            }
+        },
+        [admins, dispatchContractAction, apiClient]
+    );
 
     const sendNotification = useNotificationCenter();
     const removeAccess = React.useCallback(async () => {
@@ -14,12 +45,15 @@ export default (accountType: PersonDelegationClassification, persons: string[]) 
             cancelLabel: 'Cancel',
             body: `Are you sure you want to delegated role of ${
                 accountType === 'Internal' ? 'Equinor' : accountType
-            } admin for ${persons.join(', ')}?`,
+            } admin for ${admins.map((a) => a.person.name).join(', ')}?`,
         });
-        if (response.confirmed) {
-            await removeAccessAsync();
-        }
-    }, [accountType, persons, sendNotification]);
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
 
-    return { removeAccess };
+        if (response.confirmed && contractId && projectId) {
+            await removeAccessAsync(projectId, contractId);
+        }
+    }, [accountType, admins, sendNotification, contract, currentContext]);
+
+    return { removeAccess, isRemoving, removalError };
 };

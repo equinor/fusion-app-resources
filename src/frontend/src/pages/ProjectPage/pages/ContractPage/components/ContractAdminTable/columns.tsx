@@ -29,7 +29,7 @@ const columns: DataTableColumn<PersonDelegation>[] = [
     {
         key: 're-certification-date',
         label: 'Re-certification date',
-        accessor: (d) => (d.recertified ? formatDate(d.recertified) : '-'),
+        accessor: (d) => (d.recertifiedDate ? formatDate(d.recertifiedDate) : '-'),
     },
     {
         key: 'Certified by',

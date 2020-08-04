@@ -29,7 +29,7 @@ type PersonDelegation = {
     validTo: Date;
     project: Project;
     contract: ContractReference;
-    recertified: Date | null;
+    recertifiedDate: Date | null;
     recertifiedBy: PersonDelegationClassification | null;
 };
 

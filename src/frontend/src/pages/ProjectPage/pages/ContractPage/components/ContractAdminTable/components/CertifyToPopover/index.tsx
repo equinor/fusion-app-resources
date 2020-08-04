@@ -1,18 +1,25 @@
 import * as React from 'react';
 import * as styles from './styles.less';
 import CertifyToPicker from '../../../CertifiyToPicker';
-import { Button, SyncIcon, Spinner } from '@equinor/fusion-components';
+import {
+    Button,
+    SyncIcon,
+    Spinner,
+    useDropdownController,
+    Dropdown,
+} from '@equinor/fusion-components';
 import PersonDelegation from '../../../../../../../../models/PersonDelegation';
 import { useAppContext } from '../../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../../contractContex';
 import { useCurrentContext } from '@equinor/fusion';
+import ToolbarButton from '../ToolbarButton';
 
 type CertifyToPopoverProps = {
     canEdit: boolean;
     admins: PersonDelegation[];
 };
 
-const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins }) => {
+const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins, children }) => {
     const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
 
     const [isReCertifying, setIsReCertifying] = React.useState<boolean>(false);
@@ -20,11 +27,20 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins }) 
     const { apiClient } = useAppContext();
     const { dispatchContractAction, contract } = useContractContext();
     const currentContext = useCurrentContext();
-    console.log(contract)
+
+    const controller = useDropdownController((ref, isOpen, setIsOpen) => (
+        <ToolbarButton
+            ref={ref}
+            onClick={() => setIsOpen(!isOpen)}
+            icon={<SyncIcon />}
+            title="Re-certify"
+            disabled={!canEdit || admins.length <= 0}
+        />
+    ));
 
     const reCertifyAdminsAsync = React.useCallback(
         async (projectId: string, contractId: string, date: Date) => {
-            setIsReCertifying(false);
+            setIsReCertifying(true);
             setReCertificationError(null);
 
             try {
@@ -49,7 +65,6 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins }) 
     const onReCertifyClick = React.useCallback(() => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
-        console.log(contractId , projectId , selectedDate , canEdit)
 
         if (contractId && projectId && selectedDate && canEdit) {
             reCertifyAdminsAsync(projectId, contractId, selectedDate);
@@ -57,27 +72,29 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins }) 
     }, [currentContext, contract, canEdit, reCertifyAdminsAsync, selectedDate]);
 
     return (
-        <div className={styles.container}>
-            <CertifyToPicker
-                onChange={setSelectedDate}
-                defaultSelected="12-months"
-                isReCertification
-            />
-            <div className={styles.certifyButtonContainer}>
-                <Button disabled={!canEdit} onClick={onReCertifyClick}>
-                    <div className={styles.syncButton}>
-                        {isReCertifying ? (
-                            <Spinner inline />
-                        ) : (
-                            <>
-                                <SyncIcon />
-                                <span>Re-Certify</span>
-                            </>
-                        )}
-                    </div>
-                </Button>
+        <Dropdown controller={controller}>
+            <div className={styles.container}>
+                <CertifyToPicker
+                    onChange={setSelectedDate}
+                    defaultSelected="12-months"
+                    isReCertification
+                />
+                <div className={styles.certifyButtonContainer}>
+                    <Button disabled={!canEdit} onClick={onReCertifyClick}>
+                        <div className={styles.syncButton}>
+                            {isReCertifying ? (
+                                <Spinner inline />
+                            ) : (
+                                <>
+                                    <SyncIcon />
+                                    <span>Re-Certify</span>
+                                </>
+                            )}
+                        </div>
+                    </Button>
+                </div>
             </div>
-        </div>
+        </Dropdown>
     );
 };
 

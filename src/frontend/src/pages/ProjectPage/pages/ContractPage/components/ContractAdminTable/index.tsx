@@ -7,6 +7,7 @@ import {
     DeleteIcon,
     usePopoverRef,
     DataTable,
+    Spinner,
 } from '@equinor/fusion-components';
 import DelegateAccessSideSheet from '../DelegateAccessSideSheet';
 import CertifyToPopover from './components/CertifyToPopover';
@@ -18,30 +19,14 @@ import PersonDelegation, {
 import { useContractContext } from '../../../../../../contractContex';
 import { useCurrentContext } from '@equinor/fusion';
 import columns from './columns';
-
-type ToolbarButtonProps = {
-    icon: React.ReactNode;
-    title: string;
-    onClick?: () => void;
-    disabled?: boolean;
-};
+import ToolbarButton from './components/ToolbarButton';
+import classNames from 'classnames';
 
 type ContractAdminTableProps = {
     accountType: PersonDelegationClassification;
     admins: PersonDelegation[];
     isFetchingAdmins: boolean;
 };
-
-const ToolbarButton = React.forwardRef<HTMLElement, ToolbarButtonProps>(
-    ({ icon, title, onClick, disabled }, ref) => (
-        <Button frameless onClick={onClick} ref={ref} disabled={!!disabled}>
-            <div className={styles.toolbarButton}>
-                {icon}
-                <span>{title}</span>
-            </div>
-        </Button>
-    )
-);
 
 const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
     accountType,
@@ -62,7 +47,7 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
         canEdit,
     ]);
 
-    const { removeAccess } = useAccessRemoval(accountType, []);
+    const { removeAccess, isRemoving } = useAccessRemoval(accountType, selectedAdmins);
 
     const removeDelegateAccess = React.useCallback(() => canDelete && removeAccess(), [
         removeAccess,
@@ -88,19 +73,16 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
     );
 
     React.useEffect(() => {
-        const contractId = contract?.id;
         const projectId = currentContext?.id;
+        const contractId = contract?.id;
         if (contractId && projectId) {
             getPersonAccess(projectId, contractId);
         }
     }, [contract, currentContext]);
 
-    const [reCertifyRef] = usePopoverRef(<CertifyToPopover canEdit={canEdit} admins={selectedAdmins} />, {
-        centered: true,
-        fillWithContent: true,
-        justify: 'center',
+    const tableClasses = classNames(styles.table, {
+        [styles.emptyTable]: admins.length <= 0 && !isFetchingAdmins,
     });
-
     return (
         <div className={styles.container}>
             <div className={styles.toolbar}>
@@ -108,30 +90,28 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
                     icon={<AddIcon />}
                     title="Delegate"
                     onClick={openDelegateAccess}
-                    disabled={!canEdit}
+                    disabled={!canEdit || selectedAdmins.length > 0}
                 />
+                <CertifyToPopover canEdit={canEdit} admins={selectedAdmins} />
                 <ToolbarButton
-                    icon={<SyncIcon />}
-                    title="Re-certify"
-                    ref={reCertifyRef}
-                    disabled={!canEdit}
-                />
-                <ToolbarButton
-                    icon={<DeleteIcon outline />}
+                    icon={isRemoving ? <Spinner inline /> : <DeleteIcon outline />}
                     title="Remove"
                     onClick={removeDelegateAccess}
-                    disabled={!canDelete}
+                    disabled={!canDelete || selectedAdmins.length <= 0}
                 />
             </div>
-            <DataTable
-                data={admins}
-                isFetching={isFetchingAdmins}
-                rowIdentifier="id"
-                columns={columns}
-                isSelectable
-                onSelectionChange={setSelectedAdmins}
-                selectedItems={selectedAdmins}
-            />
+            <div className={tableClasses}>
+                <DataTable
+                    data={admins}
+                    isFetching={isFetchingAdmins}
+                    rowIdentifier="id"
+                    columns={columns}
+                    isSelectable
+                    onSelectionChange={setSelectedAdmins}
+                    selectedItems={selectedAdmins}
+                />
+            </div>
+
             <DelegateAccessSideSheet
                 showSideSheet={showDelegateAccess}
                 onSideSheetClose={closeDelegateAccess}

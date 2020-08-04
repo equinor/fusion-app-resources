@@ -5,16 +5,13 @@
 
     .toolbar {
         display: flex;
-        
-        .toolbarButton {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-right: calc(var(--grid-unit) * 2px);
-            
-            & > span {
-                padding-left: calc(var(--grid-unit) * 1px);
-            }
-        }
     }
+    .table {
+        &.emptyTable {
+            > div {
+               height: calc(var(--grid-unit) * 7px);
+           }
+       }
+    }
+   
 }
