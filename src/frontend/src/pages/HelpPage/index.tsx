@@ -29,7 +29,6 @@ const HelpPage: React.FC = () => {
                     : await githubApiClient.getContractManagementAsync();
             setHelpPageMarkdown(response);
         } catch (e) {
-            console.log(e);
             setHelpPageError(e);
         } finally {
             setIsFetchingHelpPage(false);
