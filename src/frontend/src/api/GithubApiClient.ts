@@ -9,4 +9,11 @@ export default class GithubApiClient {
 
         return response.text();
     }
+
+    async getRoleDelegationAsync() {
+        const url = combineUrls(this.baseUrl, 'docs', 'role-delegation.md');
+        const response = await fetch(url);
+
+        return response.text();
+    }
 }
