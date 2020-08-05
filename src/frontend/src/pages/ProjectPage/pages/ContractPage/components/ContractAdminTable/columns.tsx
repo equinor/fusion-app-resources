@@ -30,11 +30,6 @@ const ValidToComponent: React.FC<ColumnProps> = ({ item }) => {
 
 const columns: DataTableColumn<PersonDelegation>[] = [
     {
-        key: 'role',
-        label: 'Role',
-        accessor: 'classification',
-    },
-    {
         key: 'delegated-to-person',
         label: 'Delegated to person',
         accessor: (d) => d.person.name,
