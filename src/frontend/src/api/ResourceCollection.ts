@@ -84,6 +84,18 @@ export default class ResourceCollection {
         );
     }
 
+    delegateRoles(projectId: string, contractId: string, queryString?: string) {
+       const url = combineUrls(this.contract(projectId, contractId), 'delegated-roles');
+       if(!queryString) {
+           return url
+       }
+       return url + queryString
+    }
+
+    delegateRole(projectId: string, contractId: string, roleId: string) {
+        return combineUrls(this.delegateRoles(projectId, contractId), roleId)
+    }
+    
     parseExcelFile() {
         return combineUrls(this.baseUrl, 'utilities', 'parse-spreadsheet');
     }

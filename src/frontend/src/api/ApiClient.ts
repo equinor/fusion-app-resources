@@ -13,6 +13,12 @@ import AvailableContract from '../models/availableContract';
 import CreatePositionRequest from '../models/createPositionRequest';
 import PersonnelRequest from '../models/PersonnelRequest';
 import CreatePersonnelRequest from '../models/CreatePersonnelRequest';
+import PersonDelegation, {
+    PersonDelegationClassification,
+    PersonDelegationRequest,
+    ReCertifyPersonDelegationRequest,
+} from '../models/PersonDelegation';
+import { formatDateToYDMString } from './utils';
 import ExcelParseReponse from '../models/ExcelParseResponse';
 import ReadableStreamResponse from '../models/ReadableStreamResponse';
 
@@ -322,7 +328,82 @@ export default class ApiClient {
             return false;
         }
     }
+    public async getPersonDelegationsAsync(projectId: string, contractId: string) {
+        const url = this.resourceCollection.delegateRoles(projectId, contractId);
+        const response = await this.httpClient.getAsync<
+            PersonDelegation[],
+            FusionApiHttpErrorResponse
+        >(url);
+        return response.data;
+    }
 
+    public async getDelegationAccessHeaderAsync(
+        projectId: string,
+        contractId: string,
+        accountType: PersonDelegationClassification
+    ) {
+        const queryString = `?classification=${accountType}`;
+        const url = this.resourceCollection.delegateRoles(projectId, contractId, queryString);
+
+        try {
+            const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(
+                url,
+                {},
+                () => Promise.resolve()
+            );
+            const allowHeader = response.headers.get('Allow');
+            return allowHeader || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    public async createPersonRoleDelegationAsync(
+        projectId: string,
+        contractId: string,
+        personRequest: PersonDelegationRequest
+    ) {
+        const url = this.resourceCollection.delegateRoles(projectId, contractId);
+        const response = await this.httpClient.postAsync<
+            PersonDelegationRequest,
+            PersonDelegation,
+            FusionApiHttpErrorResponse
+        >(url, personRequest);
+        return response.data;
+    }
+
+    public async deletePersonRoleDelegationAsync(
+        projectId: string,
+        contractId: string,
+        roleId: string
+    ) {
+        const url = this.resourceCollection.delegateRole(projectId, contractId, roleId);
+        const response = await this.httpClient.deleteAsync<void, FusionApiHttpErrorResponse>(
+            url,
+            {},
+            () => Promise.resolve()
+        );
+        return response.data;
+    }
+
+    public async reCertifyRoleDelegationAsync(
+        projectId: string,
+        contractId: string,
+        roleId: string,
+        toDate: Date
+    ) {
+        const payload: ReCertifyPersonDelegationRequest = {
+            validTo: formatDateToYDMString(toDate),
+        };
+        const url = this.resourceCollection.delegateRole(projectId, contractId, roleId);
+        const response = await this.httpClient.patchAsync<
+            ReCertifyPersonDelegationRequest,
+            PersonDelegation,
+            FusionApiHttpErrorResponse
+        >(url, payload);
+        return response.data
+    }
+    
     public async parseExcelFileAsync(file: File) {
         const url = this.resourceCollection.parseExcelFile();
         const data = new FormData();

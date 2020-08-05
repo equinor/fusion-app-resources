@@ -1,0 +1,33 @@
+.delegateContainer{
+    display: flex;
+    padding: calc(var(--grid-unit) * 3px) calc(var(--grid-unit) * 4px);
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100% - calc(var(--grid-unit) * 12px));
+
+    .delegationForm {
+        display: flex;
+        flex-direction: column;
+
+        .delegationSection {
+            display: flex;
+            flex-direction: column;
+            padding-top: calc(var(--grid-unit) * 3px);
+
+            .delegationTitle {
+                font-size: 14px;
+                line-height: 16px;
+                color: var(--color-black-alt3);
+                padding-bottom: calc(var(--grid-unit) * 0.5px);
+                
+                &.strong {
+                    font-size: 16px;
+                    color: var(--color-black-alt1);
+                    font-weight: 500;
+                }
+            }
+        }
+
+       
+    }
+}

@@ -1,3 +1,5 @@
+import { PersonAccountType } from '@equinor/fusion';
+
 type Person = {
     personnelId: string;
     azureUniquePersonId?: string;
@@ -8,6 +10,7 @@ type Person = {
     phoneNumber: string;
     jobTitle: string;
     created?: Date | null;
+    accountType: PersonAccountType
 };
 
 export default Person;
