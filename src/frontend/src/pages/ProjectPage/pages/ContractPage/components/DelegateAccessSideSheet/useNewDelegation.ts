@@ -11,7 +11,7 @@ export default (
     toDate: Date | null,
     persons: PersonDetails[],
     accountType: PersonDelegationClassification,
-    onSuccessfullyDelegated?: () => void,
+    onSuccessfullyDelegated?: () => void
 ) => {
     const { apiClient } = useAppContext();
     const { contract, dispatchContractAction } = useContractContext();
@@ -26,7 +26,7 @@ export default (
             setIsDelegatingAccess(true);
             setDelegateError(null);
             try {
-                const response = persons.map(async (person) => {
+                const response = persons.map((person) => {
                     const payload: PersonDelegationRequest = {
                         classification: accountType,
                         person: {
@@ -57,7 +57,7 @@ export default (
                 sendNotification({
                     level: 'high',
                     title: 'Unable to delegate new person(s)',
-                    body: e?.response?.error?.message || ""
+                    body: e?.response?.error?.message || '',
                 });
             } finally {
                 setIsDelegatingAccess(false);

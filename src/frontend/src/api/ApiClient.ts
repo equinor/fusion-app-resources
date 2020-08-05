@@ -342,8 +342,8 @@ export default class ApiClient {
         contractId: string,
         accountType: PersonDelegationClassification
     ) {
-        const search = `?classification=${accountType}`;
-        const url = this.resourceCollection.delegateRoles(projectId, contractId, search);
+        const queryString = `?classification=${accountType}`;
+        const url = this.resourceCollection.delegateRoles(projectId, contractId, queryString);
 
         try {
             const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(

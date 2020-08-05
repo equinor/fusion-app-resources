@@ -84,12 +84,12 @@ export default class ResourceCollection {
         );
     }
 
-    delegateRoles(projectId: string, contractId: string, search?: string) {
+    delegateRoles(projectId: string, contractId: string, queryString?: string) {
        const url = combineUrls(this.contract(projectId, contractId), 'delegated-roles');
-       if(!search) {
+       if(!queryString) {
            return url
        }
-       return url + search
+       return url + queryString
     }
 
     delegateRole(projectId: string, contractId: string, roleId: string) {

@@ -18,10 +18,6 @@ import ContractAdminTable from '../../components/ContractAdminTable';
 import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 
-type AccordionOpenDictionary = {
-    [id: string]: boolean;
-};
-
 const createFieldWithSkeleton = (
     name: string,
     render: (contract: Contract) => React.ReactNode,
