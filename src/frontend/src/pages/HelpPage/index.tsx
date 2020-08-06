@@ -4,13 +4,12 @@ import { Spinner, MarkdownViewer, ErrorMessage, Tabs, Tab } from '@equinor/fusio
 
 import GithubApiClient from '../../api/GithubApiClient';
 
-type TabKeys = 'resource-management' | 'role-delegation' | string;
-
 const HelpPage: React.FC = () => {
     const [isFetchingHelpPage, setIsFetchingHelpPage] = React.useState<boolean>(false);
     const [helpPageError, setHelpPageError] = React.useState<Error | null>(null);
-    const [helpPageMarkdown, setHelpPageMarkdown] = React.useState<string>('');
-    const [selectedTab, setSelectedTab] = React.useState<TabKeys>('resource-management');
+    const [cmMarkdown, setCmMarkdown] = React.useState<string>('');
+    const [rdMarkdown, setRdMarkdown] = React.useState<string>('');
+    const [selectedTab, setSelectedTab] = React.useState<string>('contract-management');
     const githubApiClient = React.useMemo(
         () =>
             new GithubApiClient(
@@ -23,23 +22,22 @@ const HelpPage: React.FC = () => {
         setIsFetchingHelpPage(true);
         setHelpPageError(null);
         try {
-            const response =
-                selectedTab === 'role-delegation'
-                    ? await githubApiClient.getRoleDelegationAsync()
-                    : await githubApiClient.getContractManagementAsync();
-            setHelpPageMarkdown(response);
+            const contractManagement = await githubApiClient.getContractManagementAsync();
+            const roleDelegation = await githubApiClient.getRoleDelegationAsync();
+            setCmMarkdown(contractManagement);
+            setRdMarkdown(roleDelegation);
         } catch (e) {
             setHelpPageError(e);
         } finally {
             setIsFetchingHelpPage(false);
         }
-    }, [githubApiClient, selectedTab]);
+    }, [githubApiClient]);
 
     React.useEffect(() => {
-        if (githubApiClient && selectedTab) {
+        if (githubApiClient) {
             fetchHelpPageAsync();
         }
-    }, [githubApiClient, selectedTab]);
+    }, [githubApiClient]);
 
     if (helpPageError) {
         return <ErrorMessage hasError title="Unable to fetch help page" />;
@@ -52,17 +50,17 @@ const HelpPage: React.FC = () => {
     return (
         <div className={styles.helpContainer}>
             <Tabs activeTabKey={selectedTab} onChange={setSelectedTab}>
-                <Tab tabKey="resource-management" title="Resource management">
+                <Tab tabKey="contract-management" title="Contract management">
                     <div className={styles.contentContainer}>
                         <div className={styles.content}>
-                            <MarkdownViewer markdown={helpPageMarkdown} />
+                            <MarkdownViewer markdown={cmMarkdown} />
                         </div>
                     </div>
                 </Tab>
                 <Tab tabKey="role-delegation" title="Role delegation">
                     <div className={styles.contentContainer}>
                         <div className={styles.content}>
-                            <MarkdownViewer markdown={helpPageMarkdown} />
+                            <MarkdownViewer markdown={rdMarkdown} />
                         </div>
                     </div>
                 </Tab>
