@@ -11,6 +11,11 @@ const AssignedPersonComponent: React.FC<ColumnProps> = ({ item }) => {
     return <PersonCard personId={item.person.azureUniquePersonId} photoSize="medium" inline />;
 };
 
+const CertifiedByComponent: React.FC<ColumnProps> = ({ item }) => {
+    const certifiedBy = item.recertifiedBy || item.person
+    return <PersonCard personId={certifiedBy.azureUniquePersonId} photoSize="medium" inline />;
+};
+
 const ValidToComponent: React.FC<ColumnProps> = ({ item }) => {
     const oneDay = 24 * 60 * 60 * 1000;
     const today = new Date();
@@ -29,11 +34,6 @@ const ValidToComponent: React.FC<ColumnProps> = ({ item }) => {
 };
 
 const columns: DataTableColumn<PersonDelegation>[] = [
-    {
-        key: 'role',
-        label: 'Role',
-        accessor: 'classification',
-    },
     {
         key: 'delegated-to-person',
         label: 'Delegated to person',
@@ -54,8 +54,8 @@ const columns: DataTableColumn<PersonDelegation>[] = [
     {
         key: 'Certified by',
         label: 'Certified by',
-        accessor: (d) => d.createdBy.name,
-        component: AssignedPersonComponent,
+        accessor: (d) => d.recertifiedBy ? d.recertifiedBy.name : d.createdBy.name,
+        component: CertifiedByComponent,
     },
 ];
 

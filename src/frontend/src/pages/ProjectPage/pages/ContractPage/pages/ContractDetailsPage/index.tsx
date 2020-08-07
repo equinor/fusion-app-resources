@@ -156,13 +156,15 @@ const ContractDetailsPage = () => {
         'set'
     );
 
+    const crAdministrators = React.useMemo(() => data.filter((d) => d.type === 'CR'), [data]);
+
     const internalAdministrators = React.useMemo(
-        () => data.filter((d) => d.classification === 'Internal'),
-        [data]
+        () => crAdministrators.filter((d) => d.classification === 'Internal'),
+        [crAdministrators]
     );
     const externalAdministrators = React.useMemo(
-        () => data.filter((d) => d.classification === 'External'),
-        [data]
+        () => crAdministrators.filter((d) => d.classification === 'External'),
+        [crAdministrators]
     );
 
     return (

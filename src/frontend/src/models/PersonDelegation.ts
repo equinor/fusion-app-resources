@@ -30,7 +30,7 @@ type PersonDelegation = {
     project: Project;
     contract: ContractReference;
     recertifiedDate: Date | null;
-    recertifiedBy: PersonDelegationClassification | null;
+    recertifiedBy: Person | null;
 };
 
 export default PersonDelegation;

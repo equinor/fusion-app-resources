@@ -71,10 +71,6 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
         [canEdit, isDelegatingAccess, selectedPersons, onDelegateClick]
     );
 
-    const role = React.useMemo(() => (accountType === 'Internal' ? 'Equinor' : accountType), [
-        accountType,
-    ]);
-
     return (
         <ModalSideSheet
             show={showSideSheet}
@@ -84,9 +80,6 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
         >
             <div className={styles.delegateContainer}>
                 <div className={styles.delegationForm}>
-                    <DelegationSection title="Role">
-                        <span>{role} Admin Access</span>
-                    </DelegationSection>
                     <DelegationSection title="Valid to">
                         <CertifyToPicker onChange={setDelegateTo} defaultSelected="12-months" />
                     </DelegationSection>

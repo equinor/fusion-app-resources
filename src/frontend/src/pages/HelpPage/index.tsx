@@ -1,13 +1,15 @@
 import * as React from 'react';
 import * as styles from './styles.less';
-import { Spinner, MarkdownViewer, ErrorMessage } from '@equinor/fusion-components';
+import { Spinner, MarkdownViewer, ErrorMessage, Tabs, Tab } from '@equinor/fusion-components';
 
 import GithubApiClient from '../../api/GithubApiClient';
 
 const HelpPage: React.FC = () => {
     const [isFetchingHelpPage, setIsFetchingHelpPage] = React.useState<boolean>(false);
     const [helpPageError, setHelpPageError] = React.useState<Error | null>(null);
-    const [helpPageMarkdown, setHelpPageMarkdown] = React.useState<string>('');
+    const [cmMarkdown, setCmMarkdown] = React.useState<string>('');
+    const [rdMarkdown, setRdMarkdown] = React.useState<string>('');
+    const [selectedTab, setSelectedTab] = React.useState<string>('contract-management');
     const githubApiClient = React.useMemo(
         () =>
             new GithubApiClient(
@@ -20,8 +22,10 @@ const HelpPage: React.FC = () => {
         setIsFetchingHelpPage(true);
         setHelpPageError(null);
         try {
-            const response = await githubApiClient.getContractManagementAsync();
-            setHelpPageMarkdown(response);
+            const contractManagement = await githubApiClient.getContractManagementAsync();
+            const roleDelegation = await githubApiClient.getRoleDelegationAsync();
+            setCmMarkdown(contractManagement);
+            setRdMarkdown(roleDelegation);
         } catch (e) {
             setHelpPageError(e);
         } finally {
@@ -30,7 +34,9 @@ const HelpPage: React.FC = () => {
     }, [githubApiClient]);
 
     React.useEffect(() => {
-        fetchHelpPageAsync();
+        if (githubApiClient) {
+            fetchHelpPageAsync();
+        }
     }, [githubApiClient]);
 
     if (helpPageError) {
@@ -43,9 +49,22 @@ const HelpPage: React.FC = () => {
 
     return (
         <div className={styles.helpContainer}>
-            <div className={styles.content}>
-                <MarkdownViewer markdown={helpPageMarkdown} />
-            </div>
+            <Tabs activeTabKey={selectedTab} onChange={setSelectedTab}>
+                <Tab tabKey="contract-management" title="Contract management">
+                    <div className={styles.contentContainer}>
+                        <div className={styles.content}>
+                            <MarkdownViewer markdown={cmMarkdown} />
+                        </div>
+                    </div>
+                </Tab>
+                <Tab tabKey="role-delegation" title="Role delegation">
+                    <div className={styles.contentContainer}>
+                        <div className={styles.content}>
+                            <MarkdownViewer markdown={rdMarkdown} />
+                        </div>
+                    </div>
+                </Tab>
+            </Tabs>
         </div>
     );
 };
