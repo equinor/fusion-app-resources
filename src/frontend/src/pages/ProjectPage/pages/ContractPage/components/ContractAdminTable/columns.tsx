@@ -12,7 +12,7 @@ const AssignedPersonComponent: React.FC<ColumnProps> = ({ item }) => {
 };
 
 const CertifiedByComponent: React.FC<ColumnProps> = ({ item }) => {
-    const certifiedBy = item.recertifiedBy || item.person
+    const certifiedBy = item.recertifiedBy || item.createdBy
     return <PersonCard personId={certifiedBy.azureUniquePersonId} photoSize="medium" inline />;
 };
 
