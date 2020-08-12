@@ -14,7 +14,7 @@ const ContractNumberPicker: React.FC<ContractNumberSelectorProps> = ({
     const { availableContracts } = useAvailableContracts();
 
     const options = React.useMemo(() => {
-        return availableContracts.map(ac => ({
+        return availableContracts.map((ac) => ({
             title: ac.contractNumber,
             key: ac.contractNumber,
             isSelected: ac.contractNumber === selectedContractNumber,
@@ -29,7 +29,7 @@ const ContractNumberPicker: React.FC<ContractNumberSelectorProps> = ({
     );
 
     return (
-        <SearchableDropdown label="Contract Nr." options={options} onSelect={onDropdownSelect} />
+        <SearchableDropdown label="Contract No." options={options} onSelect={onDropdownSelect} />
     );
 };
 
