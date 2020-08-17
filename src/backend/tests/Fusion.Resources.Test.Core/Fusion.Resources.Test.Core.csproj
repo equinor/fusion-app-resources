@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\api\Fusion.Resources.Api\Fusion.Resources.Api.csproj" />
+    <ProjectReference Include="..\..\api\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
   </ItemGroup>
 
 </Project>
