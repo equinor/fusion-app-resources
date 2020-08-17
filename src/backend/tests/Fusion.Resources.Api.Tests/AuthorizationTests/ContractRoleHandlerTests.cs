@@ -1,15 +1,12 @@
-using Bogus;
 using FluentAssertions;
-using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Api.Authorization.Handlers;
+using Fusion.Resources.Test;
 using Microsoft.AspNetCore.Authorization;
 using Moq;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Xunit;
@@ -98,65 +95,5 @@ namespace Fusion.Resources.Api.Tests
             }
         }
 
-    }
-
-    public static class ApiContractBuilder
-    {
-        private static Faker faker = new Faker();
-
-        public static ApiProjectContractV2 NewContract(Guid contractId)
-        {
-
-
-            var contract = new ApiProjectContractV2()
-            {
-                Id = contractId,
-                ContractNumber = faker.Finance.Account(10),
-                Name = faker.Hacker.Phrase()
-            };
-
-            return contract;
-        }
-
-        public static ApiProjectContractV2 WithCompanyRep(this ApiProjectContractV2 contract, Guid userId)
-        {
-            contract.ContractRep = new ApiPositionV2()
-            {
-                Id = Guid.NewGuid(),
-                Instances = new List<ApiPositionInstanceV2>
-                {
-                    new ApiPositionInstanceV2
-                    {
-                        AppliesFrom = faker.Date.Past(),
-                        AppliesTo = faker.Date.Future(),
-                        AssignedPerson = new ApiPersonV2()
-                        {
-                            AzureUniqueId = userId
-                        }
-                    }
-                }
-            };
-            return contract;
-        }
-        public static ApiProjectContractV2 WithExternalCompanyRep(this ApiProjectContractV2 contract, Guid userId)
-        {
-            contract.ExternalCompanyRep = new ApiPositionV2()
-            {
-                Id = Guid.NewGuid(),
-                Instances = new List<ApiPositionInstanceV2>
-                {
-                    new ApiPositionInstanceV2
-                    {
-                        AppliesFrom = faker.Date.Past(),
-                        AppliesTo = faker.Date.Future(),
-                        AssignedPerson = new ApiPersonV2()
-                        {
-                            AzureUniqueId = userId
-                        }
-                    }
-                }
-            };
-            return contract;
-        }
     }
 }
