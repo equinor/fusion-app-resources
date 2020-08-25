@@ -60,7 +60,7 @@ namespace Fusion.Resources.Functions.Functions
         /// </summary>
         [Singleton]
         [FunctionName("profile-sync")]
-        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
             log.LogInformation("Profile sync starting run");
 
