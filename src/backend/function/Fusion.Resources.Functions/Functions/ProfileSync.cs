@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -59,7 +60,7 @@ namespace Fusion.Resources.Functions.Functions
         /// </summary>
         [Singleton]
         [FunctionName("profile-sync")]
-        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
             log.LogInformation("Profile sync starting run");
 
@@ -82,6 +83,8 @@ namespace Fusion.Resources.Functions.Functions
 
             log.LogInformation($"Succesfully ensured {ensuredPeople.Count} people");
 
+            bool refreshFailed = false;
+
             foreach (var person in ensuredPeople)
             {
                 log.LogInformation($"Processing person '{person.Identifier}'");
@@ -91,11 +94,24 @@ namespace Fusion.Resources.Functions.Functions
                 {
                     log.LogInformation($"Detected change in profile '{resourcesPerson.Mail}'. Initiating refresh.");
                     var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { });
-                    refreshResponse.EnsureSuccessStatusCode();
+
+                    if (refreshResponse.StatusCode == HttpStatusCode.NotFound) //not found should only be warning
+                    {
+                        log.LogWarning($"Person '{person.Identifier}' was not found in Azure AD");
+                    }
+                    else if (!refreshResponse.IsSuccessStatusCode)
+                    {
+                        body = await refreshResponse.Content.ReadAsStringAsync();
+                        log.LogError($"Failed to refresh '{person.Identifier}': {refreshResponse.StatusCode} - {body}");
+                        refreshFailed = true;
+                    }
                 }
             }
 
-            log.LogInformation("Profiles sync run completed");
+            if (refreshFailed)
+                throw new Exception("Failed to refresh all personell successfully. See log for details.");
+
+            log.LogInformation("Profiles sync run successfully completed");
         }
 
         private async Task<List<PersonValidationResult>> EnsurePeople(List<string> mailsToEnsure)
