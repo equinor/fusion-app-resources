@@ -77,7 +77,7 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
             (p) => p.azureUniquePersonId === currentRequest?.person?.azureUniquePersonId
         );
         return personnelPerson || currentRequest?.person;
-    }, [currentRequest]);
+    }, [currentRequest, personnel]);
 
     const isRequestCompleted = React.useMemo(
         () => !!(currentRequest?.state === 'ApprovedByCompany'),
