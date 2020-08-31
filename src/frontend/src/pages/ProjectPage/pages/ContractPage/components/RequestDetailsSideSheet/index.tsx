@@ -72,6 +72,13 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
         (p) => p.mail === currentRequest?.originalPerson?.mail
     );
 
+    const currentPerson = React.useMemo(() => {
+        const personnelPerson = personnel.find(
+            (p) => p.azureUniquePersonId === currentRequest?.person?.azureUniquePersonId
+        );
+        return personnelPerson || currentRequest?.person;
+    }, [currentRequest]);
+
     const isRequestCompleted = React.useMemo(
         () => !!(currentRequest?.state === 'ApprovedByCompany'),
         [currentRequest]
@@ -214,10 +221,10 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
                 <Tab tabKey="person" title="Person">
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
-                            {currentRequest.person ? (
+                            {currentPerson ? (
                                 <>
-                                    <EditablePositionDetails person={currentRequest.person} />
-                                    <PersonPositionsDetails person={currentRequest.person} />
+                                    <EditablePositionDetails person={currentPerson} />
+                                    <PersonPositionsDetails person={currentPerson} />
                                 </>
                             ) : (
                                 <ErrorMessage
