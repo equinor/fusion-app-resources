@@ -126,7 +126,7 @@ export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePerso
         id: req.positionId || null,
         name: req.positionName,
         obs: req.obs,
-        workload: +req.workload,
+        workload: +req.workload.split('%')[0],
         taskOwner: req.taskOwner ? { positionId: req.taskOwner.id } : null,
     },
     originalPositionId: req.originalPositionId,

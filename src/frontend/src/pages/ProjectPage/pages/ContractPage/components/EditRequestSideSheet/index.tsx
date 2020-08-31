@@ -92,7 +92,7 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
                         state.appliesFrom &&
                         state.appliesTo &&
                         state.person &&
-                        !Boolean(isNaN(+state.workload))
+                        !Boolean(isNaN(+state.workload.split('%')[0]))
                 )
         );
     }, []);
