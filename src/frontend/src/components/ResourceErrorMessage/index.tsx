@@ -65,7 +65,7 @@ const ResourceErrorMessage: React.FC<ResourceErrorMessageProps> = ({ error, chil
     if (error && (error.statusCode === 403 || error.statusCode === 401)) {
         return <AccessDenied error={error} />;
     }
-    console.log('error:', error);
+
     return (
         <ErrorMessage
             hasError={Boolean(error)}
