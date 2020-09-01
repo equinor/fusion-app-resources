@@ -44,7 +44,6 @@ namespace Fusion.Resources.Logic.Commands
                     if (request.Editor.AzureUniqueId == null)
                         return false;
 
-
                     var dbRequest = await resourcesDb.ContractorRequests
                         .Where(r => r.Id == request.RequestId)
                         .Select(r => new { r.State, r.Project.OrgProjectId, r.Contract.OrgContractId })
@@ -60,16 +59,26 @@ namespace Fusion.Resources.Logic.Commands
 
                     var userAzureId = request.Editor.AzureUniqueId.Value;
 
+                    var delegatedRoles = await resourcesDb.DelegatedRoles
+                        .Where(r => r.Person.AzureUniqueId == userAzureId && r.Contract.OrgContractId == contract.Id)
+                        .ToListAsync();
+
+                    delegatedRoles = delegatedRoles.Where(r => r.ValidTo.UtcDateTime.Date >= DateTime.UtcNow.Date).ToList();
+
                     return dbRequest.State switch
                     {
-                        DbRequestState.Created => contract.ExternalCompanyRep.HasActiveAssignment(userAzureId) || contract.ExternalContractRep.HasActiveAssignment(userAzureId),
-                        DbRequestState.SubmittedToCompany => contract.CompanyRep.HasActiveAssignment(userAzureId) || contract.ContractRep.HasActiveAssignment(userAzureId),
+                        DbRequestState.Created => contract.ExternalCompanyRep.HasActiveAssignment(userAzureId) ||
+                                                  contract.ExternalContractRep.HasActiveAssignment(userAzureId) ||
+                                                  delegatedRoles.Any(r => r.Classification == DbDelegatedRoleClassification.External),
+
+                        DbRequestState.SubmittedToCompany => contract.CompanyRep.HasActiveAssignment(userAzureId) ||
+                                                             contract.ContractRep.HasActiveAssignment(userAzureId) ||
+                                                             delegatedRoles.Any(r => r.Classification == DbDelegatedRoleClassification.Internal),
+
                         _ => false,
                     };
                 }
             }
         }
     }
-
-    
 }

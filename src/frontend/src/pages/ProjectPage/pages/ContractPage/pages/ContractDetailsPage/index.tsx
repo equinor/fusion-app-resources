@@ -14,6 +14,9 @@ import { formatDate, Position, useHistory, useCurrentContext } from '@equinor/fu
 import Contract from '../../../../../../models/contract';
 import { getInstances, isInstanceFuture, isInstancePast } from '../../../../orgHelpers';
 import { Link } from 'react-router-dom';
+import ContractAdminTable from '../../components/ContractAdminTable';
+import { useAppContext } from '../../../../../../appContext';
+import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 
 const createFieldWithSkeleton = (
     name: string,
@@ -41,15 +44,15 @@ const createFieldWithSkeleton = (
 };
 
 const ContractNumber = () =>
-    createFieldWithSkeleton('Contract number', contract => contract.contractNumber);
+    createFieldWithSkeleton('Contract number', (contract) => contract.contractNumber);
 const Contractor = () =>
-    createFieldWithSkeleton('Contractor', contract => contract.company?.name || null);
+    createFieldWithSkeleton('Contractor', (contract) => contract.company?.name || null);
 const FromDate = () =>
-    createFieldWithSkeleton('From date', contract =>
+    createFieldWithSkeleton('From date', (contract) =>
         contract.startDate ? formatDate(contract.startDate) : 'N/A'
     );
 const ToDate = () =>
-    createFieldWithSkeleton('To date', contract =>
+    createFieldWithSkeleton('To date', (contract) =>
         contract.endDate ? formatDate(contract.endDate) : 'N/A'
     );
 
@@ -60,6 +63,12 @@ const PositionCardSkeleton = () => (
             <SkeletonBar />
             <SkeletonBar />
         </div>
+    </div>
+);
+
+const DelegateAdminTitle = () => (
+    <div className={styles.field}>
+        <label>Delegate admin access</label>
     </div>
 );
 
@@ -99,25 +108,25 @@ const renderPosition = (position: Position | null) => {
 const EquinorContractResponsible = () =>
     createFieldWithSkeleton(
         'Equinor contract responsible',
-        contract => renderPosition(contract.contractResponsible),
+        (contract) => renderPosition(contract.contractResponsible),
         () => <PositionCardSkeleton />
     );
 const EquinorCompanyRep = () =>
     createFieldWithSkeleton(
         'Equinor company rep',
-        contract => renderPosition(contract.companyRep),
+        (contract) => renderPosition(contract.companyRep),
         () => <PositionCardSkeleton />
     );
 const ExternalCompanyRep = () =>
     createFieldWithSkeleton(
         'External company rep',
-        contract => renderPosition(contract.externalCompanyRep),
+        (contract) => renderPosition(contract.externalCompanyRep),
         () => <PositionCardSkeleton />
     );
 const ExternalContractResponsible = () =>
     createFieldWithSkeleton(
         'External contract responsible',
-        contract => renderPosition(contract.externalContractResponsible),
+        (contract) => renderPosition(contract.externalContractResponsible),
         () => <PositionCardSkeleton />
     );
 
@@ -126,12 +135,42 @@ const ContractDetailsPage = () => {
     const helpIconRef = useTooltipRef('Help page', 'left');
 
     const history = useHistory();
-    const contractContext = useContractContext();
+    const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
+    const { apiClient } = useAppContext();
+
+    const fetchRequestsAsync = React.useCallback(async () => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        if (!contractId || !projectId) {
+            return [];
+        }
+
+        return await apiClient.getPersonDelegationsAsync(projectId, contractId);
+    }, [contract, currentContext, apiClient]);
+    const { data, isFetching, error } = useReducerCollection(
+        contractState,
+        dispatchContractAction,
+        'administrators',
+        fetchRequestsAsync,
+        'set'
+    );
+
+    const crAdministrators = React.useMemo(() => data.filter((d) => d.type === 'CR'), [data]);
+
+    const internalAdministrators = React.useMemo(
+        () => crAdministrators.filter((d) => d.classification === 'Internal'),
+        [crAdministrators]
+    );
+    const externalAdministrators = React.useMemo(
+        () => crAdministrators.filter((d) => d.classification === 'External'),
+        [crAdministrators]
+    );
 
     return (
         <div className={styles.container}>
             <div className={styles.contractDetails}>
+                <div className={styles.header}>Contract details</div>
                 <div className={styles.row}>
                     <ContractNumber />
                     <Contractor />
@@ -140,21 +179,38 @@ const ContractDetailsPage = () => {
                     <FromDate />
                     <ToDate />
                 </div>
+                <div className={styles.header}>Equinor responsible</div>
                 <div className={styles.row}>
                     <EquinorCompanyRep />
                     <EquinorContractResponsible />
                 </div>
+                <DelegateAdminTitle />
+
+                <div className={styles.row}>
+                    <ContractAdminTable
+                        accountType="Internal"
+                        admins={internalAdministrators}
+                        isFetchingAdmins={isFetching}
+                    />
+                </div>
+                <div className={styles.header}>External responsible</div>
                 <div className={styles.row}>
                     <ExternalCompanyRep />
                     <ExternalContractResponsible />
+                </div>
+                <DelegateAdminTitle />
+                <div className={styles.row}>
+                    <ContractAdminTable
+                        accountType="External"
+                        admins={externalAdministrators}
+                        isFetchingAdmins={isFetching}
+                    />
                 </div>
             </div>
             <div className={styles.aside}>
                 <IconButton
                     ref={editTooltipRef}
-                    onClick={() =>
-                        history.push(`/${currentContext?.id}/${contractContext.contract?.id}/edit`)
-                    }
+                    onClick={() => history.push(`/${currentContext?.id}/${contract?.id}/edit`)}
                 >
                     <EditIcon />
                 </IconButton>
