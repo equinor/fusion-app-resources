@@ -29,6 +29,15 @@ const ColumnPersonnelInfoSideSheetLink: React.FC<ColumnPersonnelInfoSideSheetLin
 
 const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel>[] => [
     {
+        key: 'azureAdStatus',
+        accessor: 'azureAdStatus',
+        label: 'AD',
+        priority: 20,
+        component: p => AzureAdStatusIcon(p.item?.azureAdStatus || 'NoAccount'),
+        sortable: true,
+        width: '20px',
+    },
+    {
         key: 'Mail',
         accessor: 'mail',
         label: 'E-Mail',
@@ -85,16 +94,6 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         priority: 15,
         sortable: true,
     },
-    {
-        key: 'azureAdStatus',
-        accessor: 'azureAdStatus',
-        label: 'AD',
-        priority: 20,
-        component: p => AzureAdStatusIcon(p.item?.azureAdStatus || 'NoAccount'),
-        sortable: true,
-        width: '20px',
-    },
-
     {
         key: 'Workload',
         accessor: r => '-',
