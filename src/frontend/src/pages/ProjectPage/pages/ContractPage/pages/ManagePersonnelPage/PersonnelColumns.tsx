@@ -32,7 +32,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         key: 'azureAdStatus',
         accessor: 'azureAdStatus',
         label: 'AD',
-        priority: 20,
+        priority: 2,
         component: p => AzureAdStatusIcon(p.item?.azureAdStatus || 'NoAccount'),
         sortable: true,
         width: '20px',
@@ -58,7 +58,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
                 {item.firstName || ''}
             </ColumnPersonnelInfoSideSheetLink>
         ),
-        priority: 5,
+        priority: 3,
         sortable: true,
     },
     {
@@ -70,35 +70,35 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
                 {item.lastName || ''}
             </ColumnPersonnelInfoSideSheetLink>
         ),
-        priority: 6,
+        priority: 4,
         sortable: true,
     },
     {
         key: 'Disciplines',
         accessor: p => p.disciplines.map(d => d.name)?.join('/') || '',
         label: 'Discipline',
-        priority: 10,
+        priority: 5,
         sortable: true,
     },
     {
         key: 'dawinciCode',
         accessor: p => p.dawinciCode || '',
         label: 'Dawinci',
-        priority: 12,
+        priority: 6,
         sortable: true,
     },
     {
         key: 'Phone',
         accessor: 'phoneNumber',
         label: 'Phone Number',
-        priority: 15,
+        priority: 7,
         sortable: true,
     },
     {
         key: 'Workload',
         accessor: r => '-',
         label: 'Workload',
-        priority: 25,
+        priority: 8,
         component: p => (
             <span>{`${(
                 p.item.positions?.reduce((val, pos) => {
@@ -113,7 +113,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         key: 'positions',
         accessor: 'personnelId',
         label: 'Nr Positions',
-        priority: 30,
+        priority: 9,
         component: p => <span>{(p.item.positions?.length || 0).toString()}</span>,
         sortable: true,
         width: '20px',
