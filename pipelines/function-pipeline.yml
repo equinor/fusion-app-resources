@@ -112,6 +112,7 @@ stages:
                   parameters:
                     envName: $(environment)
                     clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
+                    fusionResource: '97978493-9777-4d48-b38a-67b0b9cd88d2'
                     fusionEnvironment: fprd
                     
                 - task: AzureFunctionApp@1
@@ -121,8 +122,3 @@ stages:
                     appName: $(functionServiceName)
                     package: $(webPackage)
                     deploymentMethod: 'runFromPackage'
-
-
-                    
-                    
-  
