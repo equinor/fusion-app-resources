@@ -21,6 +21,7 @@ import { useCurrentContext, useHistory } from '@equinor/fusion';
 import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 import ProvisioningRequestsPage from './pages/ProvisioningRequestsPage';
+import ResourceErrorMessage from '../../../../components/ResourceErrorMessage';
 
 type ContractPageMatch = {
     contractId: string;
@@ -33,7 +34,6 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     const { contract, isFetchingContract, contractError } = useContractFromId(
         match.params.contractId
     );
-    
 
     const [contractState, dispatchContractAction] = useCollectionReducer(
         match.params.contractId,
@@ -50,7 +50,10 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
         };
     }, [contract, isFetchingContract, contractState, dispatchContractAction]);
 
-    const { structure, setStructure } = useContractPageNavigationStructure(match.params.contractId, contractContext);
+    const { structure, setStructure } = useContractPageNavigationStructure(
+        match.params.contractId,
+        contractContext
+    );
 
     const history = useHistory();
     const onClose = React.useCallback(() => {
@@ -66,7 +69,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                     </IconButton>
                 </header>
                 <div className={styles.content}>
-                    <ErrorMessage hasError errorType="notFound" resourceName="contract" />
+                    <ResourceErrorMessage error={contractError} />
                 </div>
             </div>
         );
@@ -104,7 +107,10 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
                             <Route path="/manage-personnel" component={ManagePersonellPage} />
                             <Route path="/actual-mpp" component={ActualMppPage} />
                             <Route path="/active-requests" component={ActiveRequestsPage} />
-                            <Route path="/provisioning-requests" component={ProvisioningRequestsPage} />
+                            <Route
+                                path="/provisioning-requests"
+                                component={ProvisioningRequestsPage}
+                            />
                             <Route path="/completed-requests" component={CompletedRequestsPage} />
                         </ScopedSwitch>
                     </div>
