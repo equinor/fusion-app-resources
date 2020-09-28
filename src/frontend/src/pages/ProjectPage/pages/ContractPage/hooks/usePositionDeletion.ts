@@ -37,6 +37,7 @@ export default (selectedPositions: Position[]) => {
                 sendNotification({
                     level: 'high',
                     title: 'Failed to delete positions(s)',
+                    body: e?.response?.error?.message || '',
                 });
             } finally {
                 setIsDeleting(false);
