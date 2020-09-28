@@ -3,14 +3,17 @@ import Contract from '../../../../../models/contract';
 import { useAppContext } from '../../../../../appContext';
 import { useCurrentContext, useDebouncedAbortable } from '@equinor/fusion';
 import useReducerCollection from '../../../../../hooks/useReducerCollection';
+import ResourceError from '../../../../../reducers/ResourceError';
 
 const useContractFromId = (id: string) => {
     const { apiClient, appState, dispatchAppAction } = useAppContext();
     const { data } = useReducerCollection(appState, dispatchAppAction, 'contracts');
 
-    const [contract, setContract] = useState<Contract | null>(data.find(c => c.id === id) || null);
+    const [contract, setContract] = useState<Contract | null>(
+        data.find((c) => c.id === id) || null
+    );
     const [isFetchingContract, setIsFetchingContract] = useState(false);
-    const [contractError, setContractError] = useState<Error | null>(null);
+    const [contractError, setContractError] = useState<ResourceError | null>(null);
 
     const currentContext = useCurrentContext();
     const fetchContract = useCallback(async () => {
