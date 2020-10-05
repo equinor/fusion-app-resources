@@ -7,12 +7,12 @@ import {
     usePopoverRef,
     ErrorMessage,
     Spinner,
+    PopoverContainerProps,
 } from '@equinor/fusion-components';
-import { useNotificationCenter, useCurrentApp, useTelemetryLogger } from '@equinor/fusion';
+import { useNotificationCenter, useCurrentApp } from '@equinor/fusion';
 import { ServiceNowIncidentRequest } from '../../api/ServiceNowApiClient';
 import { useAppContext } from '../../appContext';
 import * as styles from './styles.less';
-import { PopoverContainerProps } from '@equinor/fusion-components/dist/hooks/usePopoverRef/components/Container';
 
 const serializeLocalStorage = () => {
     const store: Record<string, string | null> = {};
