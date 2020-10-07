@@ -67,5 +67,19 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
             return NotFound();
         }
+
+        [MapToApiVersion("2.0")]
+        [HttpDelete("/projects/{projectId}/contracts/{contractId}/positions/{positionId}")]
+        public ActionResult<ApiPositionV2> DeleteContractPosition([FromRoute] ProjectIdentifier projectIdentifier, Guid contractId, Guid positionId)
+        {
+            var position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Id == positionId);
+
+            if (position == null)
+                return NotFound();
+
+            OrgServiceMock.contractPositions.Remove(position);
+
+            return NoContent();
+        }
     }
 }

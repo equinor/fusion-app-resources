@@ -55,5 +55,10 @@ namespace Fusion.Testing.Mocks.OrgService
         {
             companies.Add(new ApiCompanyV2 { Id = id, Name = name });
         }
+
+        //public static ApiPositionV2 ResolveContractPosition(Guid position)
+        //{
+
+        //}
     }
 }

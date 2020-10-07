@@ -109,6 +109,8 @@ namespace Fusion.Testing
             return this;
         }
 
+        public ApiPersonProfileV3 Profile => CurrentUser.Value;
+
         public void Dispose()
         {
             CurrentUser.Value = null;

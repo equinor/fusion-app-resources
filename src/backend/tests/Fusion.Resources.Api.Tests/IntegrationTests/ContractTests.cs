@@ -1,23 +1,19 @@
 ﻿using FluentAssertions;
 using Fusion.Integration;
+using Fusion.Integration.Org;
 using Fusion.Integration.Profile;
+using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks.ContextService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
-using Newtonsoft.Json;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -28,6 +24,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
+        /// <summary>
+        /// Will be generated new for each test
+        /// </summary>
+        private readonly ApiPersonProfileV3 testUser;
 
 
         // Created by the async lifetime
@@ -43,6 +43,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
+
+            // Generate random test user
+            testUser = fixture.AddProfile(FusionAccountType.External);
         }
 
         [Fact]
@@ -106,6 +109,56 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/contracts", new { value = new[] { new { id = Guid.Empty } } });
             response.Should().BeSuccessfull();
         }
+
+
+        #region Delete contract position
+        [Fact]
+        public async Task DeletePosition_ShouldBeOk_WhenOnlyDelegatedAdmin()
+        {
+            // Create position in test contract
+            var positionToDelete = testProject.AddContractPosition(contractId);
+
+            using (var delegatedScope = await fixture.CreateExternalDelegatedAdminScopeAsync(projectId, contractId))
+            { 
+                var contractResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/mpp/positions/{positionToDelete.Id}");
+                contractResp.Should().BeSuccessfull();
+
+                // Check that the position has been deleted from the org service
+                var resolver = fixture.ApiFactory.Services.GetRequiredService<IProjectOrgResolver>();
+                var positionCheck = await resolver.ResolvePositionAsync(positionToDelete.Id);
+                positionCheck.Should().BeNull();
+            }
+        }
+
+        [Fact]
+        public async Task DeletePosition_ShouldBeBadRequest_WhenPositionDoesNotExist()
+        {
+            using (var authScope = fixture.AdminScope())
+            {
+                var contractResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/mpp/positions/{Guid.NewGuid()}");
+                contractResp.Should().BeBadRequest();
+            }
+        }
+
+        [Fact]
+        public async Task DeletePosition_ShouldBeAccessDenied_WhenRandomUser()
+        {
+            // Create position in test contract
+            var positionToDelete = testProject.AddContractPosition(contractId);
+
+            using (var userScope = fixture.UserScope(testUser))
+            {
+                var contractResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/mpp/positions/{positionToDelete.Id}");
+                contractResp.Should().BeUnauthorized();
+
+                // Ensure position still exists
+                var resolver = fixture.ApiFactory.Services.GetRequiredService<IProjectOrgResolver>();
+                var positionCheck = await resolver.ResolvePositionAsync(positionToDelete.Id);
+                positionCheck.Should().NotBeNull();
+            }
+        }
+        #endregion
+
 
         [Fact]
         public async Task AllocateContract()
