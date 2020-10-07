@@ -21,27 +21,11 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
         /// <summary>
         /// Will use the admin account to delegate admin to the provided account, then returns a 'auth' scope for the delegated admin.
-        /// Delegates access to the specified account.
-        /// </summary>
-        public async Task<TestClientScope> CreateExternalDelegatedAdminScopeAsync(Guid projectId, Guid contractId, ApiPersonProfileV3 delegatedAdmin)
-        {
-            var client = ApiFactory.CreateClient();
-
-            using (var adminScope = AdminScope())
-            {
-                await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
-            }
-
-            return UserScope(delegatedAdmin);
-        }
-
-        /// <summary>
-        /// Will use the admin account to delegate admin to the provided account, then returns a 'auth' scope for the delegated admin.
         /// Creats a new random user that will get the delegated role.
         /// 
         /// This new profile can be accessed through scope.Profile.
         /// </summary>
-        public async Task<TestClientScope> CreateExternalDelegatedAdminScopeAsync(Guid projectId, Guid contractId)
+        public async Task<ApiPersonProfileV3> NewDelegatedAdminAsync(Guid projectId, Guid contractId)
         {
             var delegatedAdmin = AddProfile(FusionAccountType.External);
 
@@ -52,7 +36,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
             }
 
-            return UserScope(delegatedAdmin);
+            return delegatedAdmin;
         }
 
         public ResourceApiFixture()

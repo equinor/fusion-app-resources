@@ -52,5 +52,27 @@ namespace Fusion.Resources.Api.Controllers.Mpp
             return NoContent();
         }
 
+        [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/mpp/positions")]
+        public async Task<ActionResult> CheckDeleteAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier)
+        {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Success)
+                Response.Headers.Add("Allow", "DELETE");
+            else
+                Response.Headers.Add("Allow", "");
+
+            return NoContent();
+        }
+
     }
 }

@@ -118,7 +118,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create position in test contract
             var positionToDelete = testProject.AddContractPosition(contractId);
 
-            using (var delegatedScope = await fixture.CreateExternalDelegatedAdminScopeAsync(projectId, contractId))
+            var delegatedAdmin = await fixture.NewDelegatedAdminAsync(projectId, contractId);
+
+            using (var delegatedScope = fixture.UserScope(delegatedAdmin))
             { 
                 var contractResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/mpp/positions/{positionToDelete.Id}");
                 contractResp.Should().BeSuccessfull();
@@ -127,6 +129,18 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 var resolver = fixture.ApiFactory.Services.GetRequiredService<IProjectOrgResolver>();
                 var positionCheck = await resolver.ResolvePositionAsync(positionToDelete.Id);
                 positionCheck.Should().BeNull();
+            }
+        }
+
+        [Fact]
+        public async Task DeletePosition_ShouldBeAllowed_WhenOnlyDelegatedAdmin()
+        {
+            var delegatedAdmin = await fixture.NewDelegatedAdminAsync(projectId, contractId);
+
+            using (var delegatedScope = fixture.UserScope(delegatedAdmin))
+            {
+                var contractResp = await client.TestClientOptionsAsync($"/projects/{projectId}/contracts/{contractId}/mpp/positions");
+                contractResp.Should().HaveAllowHeaders(HttpMethod.Delete);
             }
         }
 

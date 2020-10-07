@@ -539,7 +539,7 @@ namespace Fusion.Testing
             var resp = await client.SendAsync(message);
             var respObj = await TestClientHttpResponse<dynamic>.CreateResponseAsync<dynamic>(resp);
 
-            TestLogger.TryLog($"PATCH {resp.RequestMessage.RequestUri} -> {resp.StatusCode}");
+            TestLogger.TryLog($"OPTIONS {resp.RequestMessage.RequestUri} -> {resp.StatusCode}");
             if (!resp.IsSuccessStatusCode)
             {
                 var respContent = await resp.Content.ReadAsStringAsync();
