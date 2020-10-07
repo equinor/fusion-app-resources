@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Data\BasePositions.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\BasePositions.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="30.0.4" />
+    <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="3.2.2" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="3.5.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.2" />
+    <PackageReference Include="Fusion.AspNetCore" Version="3.1.7" />
+  </ItemGroup>
+  
+</Project>

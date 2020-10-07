@@ -1,0 +1,227 @@
+﻿using FluentAssertions;
+using Fusion.Integration;
+using Fusion.Integration.Profile;
+using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Testing;
+using Fusion.Testing.Authentication.User;
+using Fusion.Testing.Mocks.ContextService;
+using Fusion.Testing.Mocks.OrgService;
+using Fusion.Testing.Mocks.ProfileService;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Fusion.Resources.Api.Tests.IntegrationTests
+{
+    public class ContractTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
+    {
+        private readonly ResourceApiFixture fixture;
+        private readonly TestLoggingScope loggingScope;
+
+
+        // Created by the async lifetime
+        private FusionTestProjectBuilder testProject = null;
+        private Guid projectId => testProject.Project.ProjectId;
+        private Guid contractId => testProject.ContractsWithPositions.First().Item1.Id;
+
+        private HttpClient client => fixture.ApiFactory.CreateClient();
+
+        public ContractTests(ResourceApiFixture fixture, ITestOutputHelper output)
+        {
+            this.fixture = fixture;
+
+            // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
+            loggingScope = new TestLoggingScope(output);
+        }
+
+        [Fact]
+        public async Task ListContracts_ShouldDisplayContract_WhenOnlyDelegatedAdmin()
+        {
+            var delegatedAdmin = fixture.AddProfile(FusionAccountType.External);
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
+            }
+
+            using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
+            {
+                var contractResp = await client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/contracts", new { value = new[] { new { id = Guid.Empty } } });
+                contractResp.Should().BeSuccessfull();
+
+                contractResp.Value.value.Count().Should().Be(1);
+            }
+        }
+
+        [Fact]
+        public async Task ManagePersonnel_WhenDelegatedAdmin()
+        {
+            var delegatedAdmin = fixture.AddProfile(FusionAccountType.External);
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
+            }
+
+
+            using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
+            {
+                var createResp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel", new
+                {
+                    Mail = "someone@mail.com",
+                    FirstName = "Some",
+                    LastName = "Person",
+                });
+                createResp.Should().BeSuccessfull();
+
+                var deleteResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/someone@mail.com");
+                deleteResp.Should().BeSuccessfull();
+            }
+        }
+
+        [Fact]
+        public async Task GetContractsForProject_ShouldReturnNoContracts_WhenNoneAllocated()
+        {
+            var testProject = new FusionTestProjectBuilder()
+               .WithContractAndPositions()
+               .WithContractAndPositions()
+               .WithPositions()
+               .AddToMockService();
+
+            fixture.ContextResolver.AddContext(testProject.Project);
+
+            using var adminScope = fixture.AdminScope();
+
+            var response = await client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/contracts", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task AllocateContract()
+        {
+            using var adminScope = fixture.AdminScope();
+            
+            var response = await client.TestClientPostAsync($"/projects/{testProject.Project.ProjectId}/contracts", new {
+                ContractNumber = "12345",
+                Name = $"New contract {Guid.NewGuid()}"
+            });
+            response.Should().BeSuccessfull();
+        }
+
+
+        #region Poc tests
+
+        [Fact]
+        public async Task ContextResolver()
+        {
+            var testProject = new FusionTestProjectBuilder();
+
+            var contextResolver = new ContextResolverMock()
+                .AddContext(testProject.Project);
+
+            var context = await contextResolver.QueryContextsAsync(q => q.WhereExternalId($"{testProject.Project.ProjectId}", QueryOperator.Equals));
+            context.Should().Contain(c => c.ExternalId == $"{testProject.Project.ProjectId}");
+        }
+
+
+        [Fact]
+        public async Task PeopleMock()
+        {
+
+            var testProfile = PeopleServiceMock.AddTestProfile()
+                .SaveProfile();
+                
+
+            var pplService = new PeopleServiceMock()
+                .CreateHttpClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"/persons/{testProfile.AzureUniqueId}");
+            request.Headers.Add("api-version", "3.0");
+            var resp = await pplService.SendAsync(request);
+
+            var content = await resp.Content.ReadAsStringAsync();
+            resp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        }
+
+        [Fact]
+        public async Task OrgMock()
+        {
+
+            var testProject = new FusionTestProjectBuilder()
+                .WithContractAndPositions()
+                .WithPositions()
+                .AddToMockService();
+
+
+            var orgService = new OrgServiceMock()
+                .CreateHttpClient();
+
+
+            var resp = await orgService.GetAsync($"/projects/{testProject.Project.ProjectId}");
+            var content = await resp.Content.ReadAsStringAsync();
+            resp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        }
+
+        #endregion
+
+
+        public async Task InitializeAsync()
+        {
+
+            testProject = new FusionTestProjectBuilder()
+               .WithContractAndPositions()               
+               .WithPositions()
+               .AddToMockService();
+
+            fixture.ContextResolver
+                .AddContext(testProject.Project);
+
+            var client = fixture.ApiFactory.CreateClient()
+                .WithTestUser(fixture.AdminUser)
+                .AddTestAuthToken();
+
+            (var contract, var positions) = testProject.ContractsWithPositions.First();
+
+
+
+            // Make the company available in the ppl service
+            if (contract.Company != null)
+                PeopleServiceMock.AddCompany(contract.Company.Id, contract.Company.Name);
+
+            var response = await client.PostAsJsonAsync($"/projects/{testProject.Project.ProjectId}/contracts", new
+            {
+                ContractNumber = contract.ContractNumber,
+                Name = contract.Name,
+                Description = contract.Description,
+                StartDate = contract.StartDate,
+                EndDate = contract.EndDate,
+                Company = new { id = contract.Company.Id },
+                CompanyRepPositionId = testProject.Positions.Skip(1).First().Id,
+                ExternalCompanyRepPositionId = positions.First().Id
+            });
+
+            var content = await response.Content.ReadAsStringAsync();
+            response.EnsureSuccessStatusCode();
+        }
+
+        public Task DisposeAsync()
+        {
+            loggingScope.Dispose();
+
+            return Task.CompletedTask;
+        }
+    }
+}

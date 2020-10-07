@@ -20,13 +20,16 @@ namespace Fusion.Resources.Api
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((ctx, configBuilder) =>
                 {
-                    configBuilder.AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true);
+                    if (ShouldLoadConfiguration())
+                    {
+                        configBuilder.AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true);
 
-                    AddKeyVault(ctx, configBuilder);
+                        AddKeyVault(ctx, configBuilder);
 
-                    // Override key vault
-                    if (ctx.HostingEnvironment.IsDevelopment())
-                        configBuilder.AddUserSecrets<Program>(); 
+                        // Override key vault
+                        if (ctx.HostingEnvironment.IsDevelopment())
+                            configBuilder.AddUserSecrets<Program>();
+                    }
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
@@ -51,6 +54,19 @@ namespace Fusion.Resources.Api
             {
                 Console.WriteLine("Skipping key vault as url is empty.");
             }
+        }
+
+        private static bool ShouldLoadConfiguration()
+        {
+            var integrationTestMarker = Environment.GetEnvironmentVariable("INTEGRATION_TEST_RUN");
+            
+            if (string.IsNullOrEmpty(integrationTestMarker))
+                return true;
+
+            if (string.Equals(integrationTestMarker, "true", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
         }
 
     }

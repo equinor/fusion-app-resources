@@ -42,7 +42,7 @@ namespace Fusion.Resources.Database.Authentication
         {
             var connection = new SqlConnection(connectionString);
 
-            if (connectionMode == ConnectionMode.Tokens)
+            if (connection.ConnectionString.Contains("database.windows.net") && connectionMode == ConnectionMode.Tokens)
             {
                 if (accessToken == null)
                 {
