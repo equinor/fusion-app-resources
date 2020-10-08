@@ -1,16 +1,30 @@
 import * as React from 'react';
-import { Position, useApiClients, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
+import { Position, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useContractContext } from '../../../../../contractContex';
+import { useAppContext } from '../../../../../appContext';
 
 export default (selectedPositions: Position[]) => {
     const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
     const [deleteError, setDeleteError] = React.useState<Error | null>(null);
+    const [canDeletePosition, setCanDeletePosition] = React.useState<boolean>(false);
+
     const sendNotification = useNotificationCenter();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
     const currentProjectId = currentContext?.externalId;
     const currentContractId = contract?.id;
-    const apiClients = useApiClients();
+    const { apiClient } = useAppContext();
+
+    const canDeletePositionAsync = async (projectId: string, contractId: string) => {
+        const response = await apiClient.canDeleteMppPositionsAsync(projectId, contractId);
+        setCanDeletePosition(response);
+    };
+
+    React.useEffect(() => {
+        if (currentContractId && currentProjectId) {
+            canDeletePositionAsync(currentProjectId, currentContractId);
+        }
+    }, [currentContractId, currentProjectId]);
 
     const deletePositionsAsync = React.useCallback(
         async (projectId: string, contractId: string, positions: Position[]) => {
@@ -18,7 +32,7 @@ export default (selectedPositions: Position[]) => {
             setIsDeleting(true);
             try {
                 const responses = positions.map((position) =>
-                    apiClients.org.deleteContractPositionAsync(projectId, contractId, position.id)
+                    apiClient.deleteMppPositionAsync(projectId, contractId, position.id)
                 );
                 await Promise.all(responses);
 
@@ -43,7 +57,7 @@ export default (selectedPositions: Position[]) => {
                 setIsDeleting(false);
             }
         },
-        [apiClients]
+        [apiClient]
     );
 
     const deletePositions = React.useCallback(async () => {
@@ -59,5 +73,5 @@ export default (selectedPositions: Position[]) => {
         }
     }, [currentProjectId, currentContractId, selectedPositions]);
 
-    return { deletePositions, isDeleting, deleteError };
+    return { deletePositions, isDeleting, deleteError, canDeletePosition };
 };

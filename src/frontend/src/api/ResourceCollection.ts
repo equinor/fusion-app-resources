@@ -85,22 +85,30 @@ export default class ResourceCollection {
     }
 
     delegateRoles(projectId: string, contractId: string, queryString?: string) {
-       const url = combineUrls(this.contract(projectId, contractId), 'delegated-roles');
-       if(!queryString) {
-           return url
-       }
-       return url + queryString
+        const url = combineUrls(this.contract(projectId, contractId), 'delegated-roles');
+        if (!queryString) {
+            return url;
+        }
+        return url + queryString;
     }
 
     delegateRole(projectId: string, contractId: string, roleId: string) {
-        return combineUrls(this.delegateRoles(projectId, contractId), roleId)
+        return combineUrls(this.delegateRoles(projectId, contractId), roleId);
     }
-    
+
     parseExcelFile() {
         return combineUrls(this.baseUrl, 'utilities', 'parse-spreadsheet');
     }
 
     personnelExcelTemplate() {
         return combineUrls(this.baseUrl, 'utilities', 'templates', 'import-personnel');
+    }
+
+    mppPositions(projectId: string, contractId: string) {
+        return combineUrls(this.contract(projectId, contractId), 'mpp', 'positions');
+    }
+
+    mppPosition(projectId: string, contractId: string, positionId: string) {
+        return combineUrls(this.mppPositions(projectId, contractId), positionId);
     }
 }
