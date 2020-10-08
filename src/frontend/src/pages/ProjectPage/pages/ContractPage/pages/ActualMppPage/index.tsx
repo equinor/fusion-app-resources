@@ -58,7 +58,9 @@ const ActualMppPage: React.FC = () => {
         'set'
     );
 
-    const { deletePositions, isDeleting } = usePositionDeletion(selectedPositions);
+    const { deletePositions, isDeleting, canDeletePosition } = usePositionDeletion(
+        selectedPositions
+    );
 
     const getPersonnelWithPositionsAsync = async () => {
         const contractId = contract?.id;
@@ -146,7 +148,7 @@ const ActualMppPage: React.FC = () => {
                         </IconButton>
                         <IconButton
                             onClick={deletePositions}
-                            disabled={selectedPositions.length === 0}
+                            disabled={selectedPositions.length === 0 || !canDeletePosition}
                         >
                             {isDeleting ? <Spinner inline /> : <DeleteIcon outline />}
                         </IconButton>
