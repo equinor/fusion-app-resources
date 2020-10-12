@@ -40,8 +40,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/contracts")]
         public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectAllocatedContract([FromRoute]ProjectIdentifier projectIdentifier)
         {
-            var hasLimitedAccess = false;
-            var limitedContractAccess = new List<Guid>();
+            var delegatedAccess = await DispatchAsync(Domain.GetContractDelegatedRoles.ForProject(projectIdentifier.ProjectId));
+            var limitedContractAccess = delegatedAccess.Select(r => r.Contract.OrgContractId).ToList();
+            var hasLimitedAccess = limitedContractAccess.Any();
 
             #region Authorization
 
@@ -59,9 +60,6 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
             {
-                var delegatedAccess = await DispatchAsync(Domain.GetContractDelegatedRoles.ForProject(projectIdentifier.ProjectId));
-                limitedContractAccess = delegatedAccess.Select(r => r.Contract.OrgContractId).ToList();
-                hasLimitedAccess = limitedContractAccess.Any();
 
                 if (!hasLimitedAccess)
                     return authResult.CreateForbiddenResponse();
@@ -84,14 +82,6 @@ namespace Fusion.Resources.Api.Controllers
                 .Where(c => allocatedContracts.Any(ac => ac.OrgContractId == c!.Id))
                 .Select(c => c!)
                 .ToList();
-
-
-            if (hasLimitedAccess)
-            {
-                contractsToReturn = contractsToReturn
-                    .Where(c => limitedContractAccess.Contains(c.Id))
-                    .ToList();
-            }
 
             // Trim contracts
             switch (User.GetUserAccountType())
