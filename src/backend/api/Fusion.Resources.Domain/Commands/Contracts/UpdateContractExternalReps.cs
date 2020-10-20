@@ -1,9 +1,6 @@
 ﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,12 +26,12 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<UpdateContractExternalReps>
         {
             private readonly IOrgApiClient orgClient;
-            private readonly ResourcesDbContext resourcesDb;
+            private readonly IMediator mediator;
 
-            public Handler(IOrgApiClientFactory orgApiClientFactory, ResourcesDbContext resourcesDb)
+            public Handler(IOrgApiClientFactory orgApiClientFactory, IMediator mediator)
             {
                 orgClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-                this.resourcesDb = resourcesDb;
+                this.mediator = mediator;
             }
 
             protected override async Task Handle(UpdateContractExternalReps request, CancellationToken cancellationToken)
@@ -58,17 +55,21 @@ namespace Fusion.Resources.Domain.Commands
 
 
                 if (request.CompanyRepPositionId.HasBeenSet)
+                {
                     contract.ExternalCompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
 
+                    if (contract.ExternalCompanyRep != null)
+                        await mediator.Publish(new Notifications.ExternalCompanyRepUpdated(contract.ExternalCompanyRep.Id));
+                }
+
                 if (request.ContractResponsiblePositionId.HasBeenSet)
+                {
                     contract.ExternalContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
 
-
-                var updatedContract = await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
-
+                    if (contract.ExternalContractRep != null)
+                        await mediator.Publish(new Notifications.ExternalContractRepUpdated(contract.ExternalContractRep.Id));
+                }
             }
         }
-
     }
-
 }

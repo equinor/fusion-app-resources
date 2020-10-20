@@ -1,5 +1,4 @@
 ﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database;
 using MediatR;
 using System;
 using System.Threading;
@@ -28,12 +27,12 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<UpdateContractReps>
         {
             private readonly IOrgApiClient orgClient;
-            private readonly ResourcesDbContext resourcesDb;
+            private readonly IMediator mediator;
 
-            public Handler(IOrgApiClientFactory orgApiClientFactory, ResourcesDbContext resourcesDb)
+            public Handler(IOrgApiClientFactory orgApiClientFactory, IMediator mediator)
             {
                 orgClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-                this.resourcesDb = resourcesDb;
+                this.mediator = mediator;
             }
 
             protected override async Task Handle(UpdateContractReps request, CancellationToken cancellationToken)
@@ -56,16 +55,21 @@ namespace Fusion.Resources.Domain.Commands
                 }
 
                 if (request.CompanyRepPositionId.HasBeenSet)
+                {
                     contract.CompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
 
+                    if (contract.CompanyRep != null)
+                        await mediator.Publish(new Notifications.CompanyRepUpdated(contract.CompanyRep.Id));
+                }
+
                 if (request.ContractResponsiblePositionId.HasBeenSet)
+                {
                     contract.ContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
 
-
-                var updatedContract = await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
+                    if (contract.ContractRep != null)
+                        await mediator.Publish(new Notifications.ContractRepUpdated(contract.ContractRep.Id));
+                }
             }
         }
-
     }
-
 }
