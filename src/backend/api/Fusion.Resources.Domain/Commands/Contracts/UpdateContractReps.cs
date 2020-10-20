@@ -69,6 +69,8 @@ namespace Fusion.Resources.Domain.Commands
                     if (contract.ContractRep != null)
                         await mediator.Publish(new Notifications.ContractRepUpdated(contract.ContractRep.Id));
                 }
+
+                await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
             }
         }
     }

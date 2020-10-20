@@ -66,7 +66,7 @@ namespace Fusion.Resources.Api.Notifications
 
             await notificationClient.CreateNotificationAsync(notification => notification
                 .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle($"You were allocated as Company Rep in contract '{position.Contract.Name} ({position.Contract.ContractNumber})'")
+                .WithTitle("You were allocated as Company Rep")
                 .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
         }
 
@@ -80,7 +80,7 @@ namespace Fusion.Resources.Api.Notifications
 
             await notificationClient.CreateNotificationAsync(notification => notification
                 .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle($"You were allocated as Contract Rep in contract '{position.Contract.Name} ({position.Contract.ContractNumber})'")
+                .WithTitle("You were allocated as Contract Rep")
                 .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
         }
 
@@ -94,7 +94,7 @@ namespace Fusion.Resources.Api.Notifications
 
             await notificationClient.CreateNotificationAsync(notification => notification
                 .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle($"You were allocated as External Company Rep in contract '{position.Contract.Name} ({position.Contract.ContractNumber})'")
+                .WithTitle("You were allocated as External Company Rep")
                 .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
         }
 
@@ -108,7 +108,7 @@ namespace Fusion.Resources.Api.Notifications
 
             await notificationClient.CreateNotificationAsync(notification => notification
                 .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle($"You were allocated as External Contract Rep in contract '{position.Contract.Name} ({position.Contract.ContractNumber})'")
+                .WithTitle($"You were allocated as External Contract Rep")
                 .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
         }
 
@@ -131,12 +131,12 @@ namespace Fusion.Resources.Api.Notifications
                 .Build();
 
             public static string PositionAssigned(ApiPositionV2 position, ApiPositionInstanceV2 instance) => new MarkdownDocument()
-                .Paragraph($"You were assigned responsibility as '{position.BasePosition}'.")
+                .Paragraph($"You were assigned responsibility as '{position.Name} ({position.BasePosition.Name})'.")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {position.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Contract:")} {position.Contract.ContractNumber}")
-                    .ListItem($"{MdToken.Bold("Position title:")} {position.Name}"))
-                .Paragraph($"Position is active from **{instance.AppliesFrom:dd/MM yyyy}** to **{instance.AppliesTo:dd/MM yyyy}.")
+                    .ListItem($"{MdToken.Bold("Contract name:")} {position.Contract.Name}")
+                    .ListItem($"{MdToken.Bold("Contract number:")} {position.Contract.ContractNumber}"))
+                .Paragraph($"Position is active from **{instance.AppliesFrom:dd/MM yyyy}** to **{instance.AppliesTo:dd/MM yyyy}**.")
                 .Build();
         }
     }
