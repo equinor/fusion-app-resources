@@ -54,23 +54,32 @@ namespace Fusion.Resources.Domain.Commands
                     throw new InvalidOperationException($"Error trying to get error from org service. Received {ex.Response.StatusCode}, {ex.Error?.Message} ({ex.Error?.ErrorCode})", ex);
                 }
 
+                bool notifyCompanyRep = false;
+                bool notifyContractRep = false;
+
                 if (request.CompanyRepPositionId.HasBeenSet)
                 {
-                    contract.CompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
+                    if (request.CompanyRepPositionId.Value.HasValue && contract.CompanyRep?.Id != request.CompanyRepPositionId.Value.Value)
+                        notifyCompanyRep = true;
 
-                    if (contract.CompanyRep != null)
-                        await mediator.Publish(new Notifications.CompanyRepUpdated(contract.CompanyRep.Id));
+                    contract.CompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
                 }
 
                 if (request.ContractResponsiblePositionId.HasBeenSet)
                 {
-                    contract.ContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
+                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.CompanyRep?.Id != request.ContractResponsiblePositionId.Value.Value)
+                        notifyContractRep = true;
 
-                    if (contract.ContractRep != null)
-                        await mediator.Publish(new Notifications.ContractRepUpdated(contract.ContractRep.Id));
+                    contract.ContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
                 }
 
                 await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
+
+                if (notifyCompanyRep && contract.CompanyRep != null)
+                    await mediator.Publish(new Notifications.CompanyRepUpdated(contract.CompanyRep.Id));
+
+                if (notifyContractRep && contract.ContractRep != null)
+                    await mediator.Publish(new Notifications.ContractRepUpdated(contract.ContractRep.Id));
             }
         }
     }

@@ -53,24 +53,32 @@ namespace Fusion.Resources.Domain.Commands
                     throw new InvalidOperationException($"Error trying to get error from org service. Received {ex.Response.StatusCode}, {ex.Error?.Message} ({ex.Error?.ErrorCode})", ex);
                 }
 
+                bool notifyCompanyRep = false;
+                bool notifyContractRep = false;
 
                 if (request.CompanyRepPositionId.HasBeenSet)
                 {
-                    contract.ExternalCompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
+                    if (request.CompanyRepPositionId.Value.HasValue && contract.CompanyRep?.Id != request.CompanyRepPositionId.Value.Value)
+                        notifyCompanyRep = true;
 
-                    if (contract.ExternalCompanyRep != null)
-                        await mediator.Publish(new Notifications.ExternalCompanyRepUpdated(contract.ExternalCompanyRep.Id));
+                    contract.ExternalCompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
                 }
 
                 if (request.ContractResponsiblePositionId.HasBeenSet)
                 {
-                    contract.ExternalContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
+                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.CompanyRep?.Id != request.ContractResponsiblePositionId.Value.Value)
+                        notifyContractRep = true;
 
-                    if (contract.ExternalContractRep != null)
-                        await mediator.Publish(new Notifications.ExternalContractRepUpdated(contract.ExternalContractRep.Id));
+                    contract.ExternalContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
                 }
 
                 await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
+
+                if (notifyCompanyRep && contract.ExternalCompanyRep != null)
+                    await mediator.Publish(new Notifications.ExternalCompanyRepUpdated(contract.ExternalCompanyRep.Id));
+
+                if (notifyContractRep && contract.ExternalContractRep != null)
+                    await mediator.Publish(new Notifications.ExternalContractRepUpdated(contract.ExternalContractRep.Id));
             }
         }
     }
