@@ -133,9 +133,9 @@ namespace Fusion.Resources.Api.Notifications
             public static string PositionAssigned(ApiPositionV2 position, ApiPositionInstanceV2 instance) => new MarkdownDocument()
                 .Paragraph($"You were assigned responsibility as '{position.Name} ({position.BasePosition.Name})'.")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {position.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Contract name:")} {position.Contract.Name}")
-                    .ListItem($"{MdToken.Bold("Contract number:")} {position.Contract.ContractNumber}"))
+                    .ListItem($"{MdToken.Bold("Project:")} {position.Project?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract name:")} {position.Contract?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract number:")} {position.Contract?.ContractNumber}"))
                 .Paragraph($"Position is active from **{instance.AppliesFrom:dd/MM yyyy}** to **{instance.AppliesTo:dd/MM yyyy}**.")
                 .Build();
         }
