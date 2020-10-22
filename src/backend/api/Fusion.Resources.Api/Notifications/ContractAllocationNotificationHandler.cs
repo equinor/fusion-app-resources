@@ -115,23 +115,25 @@ namespace Fusion.Resources.Api.Notifications
         private static class NotificationDescription
         {
             public static string DelegateRecertified(QueryDelegatedRole role) => new MarkdownDocument()
-                .Paragraph($"{MdToken.Bold(role.RecertifiedBy?.Name)} ({role.RecertifiedBy?.Mail}) recertified your {role.Type} role in the contract '{role.Contract.Name}'.")
+                .Paragraph($"{MdToken.Bold(role.RecertifiedBy?.Name)} ({role.RecertifiedBy?.Mail}) recertified your {role.Type} role.")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {role.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Contract:")} {role.Contract.ContractNumber}"))
+                    .ListItem($"{MdToken.Bold("Project:")} {role.Project?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract name:")} {role.Contract?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract number:")} {role.Contract?.ContractNumber}"))
                 .Paragraph($"The role is **now valid** to **{role.ValidTo:dd/MM yyyy}**.")
                 .Build();
 
             public static string DelegateAssigned(QueryDelegatedRole role) => new MarkdownDocument()
-                .Paragraph($"{MdToken.Bold(role.CreatedBy.Name)} ({role.CreatedBy.Mail}) delegated you the {role.Type} role in the contract '{role.Contract.Name}'.")
+                .Paragraph($"{MdToken.Bold(role.CreatedBy.Name)} ({role.CreatedBy.Mail}) delegated you the {role.Type} role.")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {role.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Contract:")} {role.Contract.ContractNumber}"))
+                    .ListItem($"{MdToken.Bold("Project:")} {role.Project?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract name:")} {role.Contract?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract number:")} {role.Contract?.ContractNumber}"))
                 .Paragraph($"The role is valid to **{role.ValidTo:dd/MM yyyy}**.")
                 .Build();
 
             public static string PositionAssigned(ApiPositionV2 position, ApiPositionInstanceV2 instance) => new MarkdownDocument()
-                .Paragraph($"You were assigned responsibility as '{position.Name} ({position.BasePosition.Name})'.")
+                .Paragraph($"You were assigned responsibility as {position.Name}.")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {position.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {position.Contract?.Name}")
