@@ -3,9 +3,9 @@ using System;
 
 namespace Fusion.Resources.Domain.Notifications.Request
 {
-    public class RequestDeclined : INotification
+    public class RequestDeclinedByContractor : INotification
     {
-        public RequestDeclined(Guid requestId, string reason)
+        public RequestDeclinedByContractor(Guid requestId, string reason)
         {
             RequestId = requestId;
             Reason = reason;

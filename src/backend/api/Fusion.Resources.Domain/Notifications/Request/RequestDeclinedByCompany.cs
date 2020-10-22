@@ -3,13 +3,15 @@ using System;
 
 namespace Fusion.Resources.Domain.Notifications.Request
 {
-    public class RequestApproved : INotification
+    public class RequestDeclinedByCompany : INotification
     {
-        public RequestApproved(Guid requestId)
+        public RequestDeclinedByCompany(Guid requestId, string reason)
         {
             RequestId = requestId;
+            Reason = reason;
         }
 
         public Guid RequestId { get; }
+        public string Reason { get; }
     }
 }

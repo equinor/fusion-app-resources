@@ -4,6 +4,7 @@ using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Domain.Notifications;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -71,7 +72,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
                     else
                     {
-                        // Send notification to external reps
+                        await mediator.Publish(new RequestCreated(request.RequestId));
                     }
                 }
 

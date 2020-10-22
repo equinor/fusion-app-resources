@@ -14,8 +14,8 @@ namespace Fusion.Resources.Api.Notifications
 {
     public class RequestsNotificationHandler :
         INotificationHandler<RequestCreated>,
-        INotificationHandler<RequestApproved>,
-        INotificationHandler<RequestDeclined>
+        INotificationHandler<RequestApprovedByCompany>,
+        INotificationHandler<RequestDeclinedByCompany>
     {
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
@@ -38,12 +38,12 @@ namespace Fusion.Resources.Api.Notifications
 
         }
 
-        public Task Handle(RequestApproved notification, CancellationToken cancellationToken)
+        public Task Handle(RequestApprovedByCompany notification, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task Handle(RequestDeclined notification, CancellationToken cancellationToken)
+        public Task Handle(RequestDeclinedByCompany notification, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
