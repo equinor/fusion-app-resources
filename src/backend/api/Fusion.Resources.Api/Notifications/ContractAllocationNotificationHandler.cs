@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Notifications
 {
-    public class CreateFusionNotificationHandler :
+    public class ContractAllocationNotificationHandler :
         INotificationHandler<ContractRoleDelegated>,
         INotificationHandler<DelegatedContractRoleRecertified>,
         INotificationHandler<CompanyRepUpdated>,
@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Notifications
         private readonly IFusionNotificationClient notificationClient;
         private readonly IOrgApiClient orgApiClient;
 
-        public CreateFusionNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IOrgApiClientFactory apiClientFactory)
+        public ContractAllocationNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IOrgApiClientFactory apiClientFactory)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
