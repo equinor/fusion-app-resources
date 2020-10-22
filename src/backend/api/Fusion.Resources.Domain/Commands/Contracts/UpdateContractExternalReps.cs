@@ -66,7 +66,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (request.ContractResponsiblePositionId.HasBeenSet)
                 {
-                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.CompanyRep?.Id != request.ContractResponsiblePositionId.Value.Value)
+                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.ContractRep?.Id != request.ContractResponsiblePositionId.Value.Value)
                         notifyContractRep = true;
 
                     contract.ExternalContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
