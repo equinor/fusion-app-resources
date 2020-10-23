@@ -58,7 +58,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (request.CompanyRepPositionId.HasBeenSet)
                 {
-                    if (request.CompanyRepPositionId.Value.HasValue && contract.CompanyRep?.Id != request.CompanyRepPositionId.Value.Value)
+                    if (request.CompanyRepPositionId.Value.HasValue && contract.ExternalCompanyRep?.Id != request.CompanyRepPositionId.Value.Value)
                         notifyCompanyRep = true;
 
                     contract.ExternalCompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
@@ -66,7 +66,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (request.ContractResponsiblePositionId.HasBeenSet)
                 {
-                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.ContractRep?.Id != request.ContractResponsiblePositionId.Value.Value)
+                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.ExternalContractRep?.Id != request.ContractResponsiblePositionId.Value.Value)
                         notifyContractRep = true;
 
                     contract.ExternalContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
