@@ -92,7 +92,7 @@ namespace Fusion.Resources.Logic.Commands
                     await resourcesDb.SaveChangesAsync();
 
                     if (notifyOnSave != null)
-                        await mediator.Send(notifyOnSave);
+                        await mediator.Publish(notifyOnSave);
                 }
 
                 private async ValueTask HandleWhenSubmittedToCompanyAsync(SetState request)
