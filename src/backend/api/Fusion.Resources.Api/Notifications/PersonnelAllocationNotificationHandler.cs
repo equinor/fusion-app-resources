@@ -1,13 +1,9 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Integration.Notification;
-using Fusion.Integration.Org;
 using Fusion.Resources.Api.Notifications.Markdown;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Notifications;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 

@@ -92,7 +92,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 await resourcesDb.ContractPersonnel.AddAsync(newItem);
                 await resourcesDb.SaveChangesAsync();
-                await mediator.Publish(new Notifications.PersonnelAddedToContract(project.OrgProjectId, contract.OrgContractId, newItem.Id));
+                await mediator.Publish(new Notifications.PersonnelAddedToContract(project.OrgProjectId, contract.OrgContractId, newItem.PersonId));
 
                 return new QueryContractPersonnel(newItem);
             }
