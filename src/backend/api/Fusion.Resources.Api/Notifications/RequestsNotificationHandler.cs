@@ -72,6 +72,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(extCompanyRep.AssignedPerson.Mail)
+                    .WithTitle("New request was approved by Equinor CR")
                     .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
             }
 
@@ -81,12 +82,14 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(extContractRep.AssignedPerson.Mail)
+                    .WithTitle("New request was approved by Equinor CR")
                     .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
             }
 
             //to creator of request
             await notificationClient.CreateNotificationAsync(notification => notification
                    .WithRecipient(request.CreatedBy.AzureUniqueId)
+                   .WithTitle("New request was approved by Equinor CR")
                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
         }
 
@@ -104,6 +107,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(extCompanyRep.AssignedPerson.Mail)
+                    .WithTitle("Your request was declined by Equinor CR")
                     .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
             }
 
@@ -113,14 +117,15 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(extContractRep.AssignedPerson.Mail)
+                    .WithTitle("Your request was declined by Equinor CR")
                     .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
             }
 
             //to creator of request
             await notificationClient.CreateNotificationAsync(n => n
                    .WithRecipient(request.CreatedBy.AzureUniqueId)
+                   .WithTitle("Your request was declined by Equinor CR")
                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
-
         }
 
         public async Task Handle(RequestApprovedByContractor notification, CancellationToken cancellationToken)
@@ -137,6 +142,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(companyRep.AssignedPerson.Mail)
+                    .WithTitle("New request was approved by External CR")
                     .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request)));
             }
 
@@ -146,13 +152,15 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(contractRep.AssignedPerson.Mail)
+                    .WithTitle("New request was approved by External CR")
                     .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request)));
             }
 
             //to creator of request
             await notificationClient.CreateNotificationAsync(n => n
-                   .WithRecipient(request.CreatedBy.AzureUniqueId)
-                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request)));
+                .WithRecipient(request.CreatedBy.AzureUniqueId)
+                .WithTitle("New request was approved by External CR")
+                .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request)));
         }
 
         public async Task Handle(RequestDeclinedByContractor notification, CancellationToken cancellationToken)
@@ -164,8 +172,9 @@ namespace Fusion.Resources.Api.Notifications
 
             //to creator of request
             await notificationClient.CreateNotificationAsync(n => n
-                   .WithRecipient(request.CreatedBy.AzureUniqueId)
-                   .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason)));
+                .WithRecipient(request.CreatedBy.AzureUniqueId)
+                .WithTitle("Your request was declined by External CR")
+                .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason)));
         }
 
         private async Task<QueryPersonnelRequest> GetRequestAsync(Guid requestId)
