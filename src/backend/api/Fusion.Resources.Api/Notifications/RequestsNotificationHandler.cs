@@ -45,6 +45,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(extCompanyRep.AssignedPerson.Mail)
+                    .WithTitle("New request created")
                     .WithDescriptionMarkdown(NotificationDescription.RequestCreated(request)));
             }
 
@@ -54,6 +55,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(extContractRep.AssignedPerson.Mail)
+                    .WithTitle("New request created")
                     .WithDescriptionMarkdown(NotificationDescription.RequestCreated(request)));
             }
         }
