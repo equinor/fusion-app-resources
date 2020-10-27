@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Api.Configuration;
+using Fusion.Resources.Api.Notifications;
 using Polly;
 using Polly.Timeout;
 using System;
@@ -34,6 +35,13 @@ namespace Microsoft.Extensions.DependencyInjection
                     TimeSpan.FromSeconds(60)
             }))
             .AddPolicyHandler(timeoutPolicy);
+
+            return services;
+        }
+
+        public static IServiceCollection AddApiUtilities(this IServiceCollection services)
+        {
+            services.AddScoped<IUrlResolver, UrlResolver>();
 
             return services;
         }

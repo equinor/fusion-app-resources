@@ -103,7 +103,7 @@ namespace Fusion.Resources.Api.Notifications
             var position = await orgApiClient.GetPositionV2Async(notification.PositionId);
             var instance = position?.GetActiveInstance();
 
-            if (position == null || instance == null || instance.AssignedPerson == null || instance.AssignedPerson.AzureUniqueId == null)
+            if (position == null || instance?.AssignedPerson?.AzureUniqueId == null)
                 return;
 
             await notificationClient.CreateNotificationAsync(notification => notification

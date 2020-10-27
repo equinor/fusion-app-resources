@@ -12,7 +12,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api
@@ -68,7 +67,7 @@ namespace Fusion.Resources.Api
             services.AddControllers()
                 .AddFluentValidation(c =>
                 {
-                    c.RegisterValidatorsFromAssemblyContaining<Startup>(); 
+                    c.RegisterValidatorsFromAssemblyContaining<Startup>();
                     // Domain project
                     c.RegisterValidatorsFromAssemblyContaining<PersonId>();
                 });
@@ -79,6 +78,7 @@ namespace Fusion.Resources.Api
             services.AddResourceDomain();
             services.AddResourceLogic();
             services.AddResourcesApplicationServices();
+            services.AddApiUtilities();
 
             services.AddResourcesAuthorizationHandlers();
             services.AddMediatR(typeof(Startup));   // Add notification handlers in api project

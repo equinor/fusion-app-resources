@@ -23,6 +23,22 @@ namespace Fusion.Resources.Api.Notifications.Markdown
             return this;
         }
 
+        /// <summary>
+        /// Generates a hyperlink paragraph if link is provided, with spacing before and after
+        /// </summary> 
+        /// <param name="text">The text to display</param>
+        /// <param name="url">The url. Can be null, if so the paragraph will be empty</param>
+        /// <returns>Doc with updated content</returns>
+        public MarkdownDocument LinkParagraph(string text, string? url)
+        {
+            if (url is null)
+                return this;
+
+            mdString += $"{MdToken.Newline()} {MdToken.Hyperlink(text, url)} {MdToken.Newline()}";
+
+            return this;
+        }
+
         public string Build() => mdString;
 
         public class MdList

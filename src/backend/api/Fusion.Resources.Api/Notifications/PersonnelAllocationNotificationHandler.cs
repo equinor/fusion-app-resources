@@ -21,6 +21,7 @@ namespace Fusion.Resources.Api.Notifications
             this.notificationClient = notificationClient;
             orgClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
         }
+
         public async Task Handle(PersonnelAddedToContract notification, CancellationToken cancellationToken)
         {
             var personnelItem = await mediator.Send(new GetContractPersonnelItem(notification.OrgContractId, notification.ContractPersonnelId));

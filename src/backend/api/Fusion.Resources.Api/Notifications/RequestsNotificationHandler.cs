@@ -8,6 +8,7 @@ using Fusion.Resources.Domain.Notifications.Request;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,12 +24,14 @@ namespace Fusion.Resources.Api.Notifications
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
+        private readonly IUrlResolver urlResolver;
 
-        public RequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
+        public RequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver, IUrlResolver urlResolver)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
             this.orgResolver = orgResolver;
+            this.urlResolver = urlResolver;
         }
 
         public async Task Handle(RequestCreated notification, CancellationToken cancellationToken)
@@ -39,24 +42,24 @@ namespace Fusion.Resources.Api.Notifications
                 return;
 
             var contract = await ResolveContractAsync(request);
-            var extCompanyRep = contract.ExternalCompanyRep.GetActiveInstance();
+            var companyRep = contract.CompanyRep.GetActiveInstance();
+            var contractRep = contract.ContractRep.GetActiveInstance();
+            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
 
-            if (extCompanyRep != null && extCompanyRep.AssignedPerson != null)
-            {
+            var recipients = new List<Guid>();
+
+            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
+
+            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+
+            foreach (var recipient in recipients)
+            { 
                 await notificationClient.CreateNotificationAsync(notification => notification
-                    .WithRecipient(extCompanyRep.AssignedPerson.Mail)
-                    .WithTitle("New request created")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestCreated(request)));
-            }
-
-            var extContractRep = contract.ExternalContractRep.GetActiveInstance();
-
-            if (extContractRep != null && extContractRep.AssignedPerson != null)
-            {
-                await notificationClient.CreateNotificationAsync(notification => notification
-                    .WithRecipient(extContractRep.AssignedPerson.Mail)
-                    .WithTitle("New request created")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestCreated(request)));
+                    .WithRecipient(recipient)
+                    .WithTitle($"Request for {request.Position.Name} was created")
+                    .WithDescriptionMarkdown(NotificationDescription.RequestCreatedAsync(request, requestsUrl)));
             }
         }
 
@@ -68,31 +71,28 @@ namespace Fusion.Resources.Api.Notifications
                 return;
 
             var contract = await ResolveContractAsync(request);
-            var extCompanyRep = contract.ExternalCompanyRep.GetActiveInstance();
+            var companyRep = contract.CompanyRep.GetActiveInstance();
+            var contractRep = contract.ContractRep.GetActiveInstance();
+            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
 
-            if (extCompanyRep != null && extCompanyRep.AssignedPerson != null)
+            var recipients = new List<Guid>()
+            {
+                request.CreatedBy.AzureUniqueId
+            };
+
+            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
+
+            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+
+            foreach (var recipient in recipients)
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
-                    .WithRecipient(extCompanyRep.AssignedPerson.Mail)
-                    .WithTitle("New request was approved by Equinor CR")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
+                   .WithRecipient(recipient)
+                   .WithTitle($"Request for {request.Position.Name} was approved by Equinor CR")
+                   .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request, requestsUrl)));
             }
-
-            var extContractRep = contract.ExternalContractRep.GetActiveInstance();
-
-            if (extContractRep != null && extContractRep.AssignedPerson != null)
-            {
-                await notificationClient.CreateNotificationAsync(notification => notification
-                    .WithRecipient(extContractRep.AssignedPerson.Mail)
-                    .WithTitle("New request was approved by Equinor CR")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
-            }
-
-            //to creator of request
-            await notificationClient.CreateNotificationAsync(notification => notification
-                   .WithRecipient(request.CreatedBy.AzureUniqueId)
-                   .WithTitle("New request was approved by Equinor CR")
-                   .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
         }
 
         public async Task Handle(RequestDeclinedByCompany notification, CancellationToken cancellationToken)
@@ -103,31 +103,28 @@ namespace Fusion.Resources.Api.Notifications
                 return;
 
             var contract = await ResolveContractAsync(request);
-            var extCompanyRep = contract.ExternalCompanyRep.GetActiveInstance();
+            var companyRep = contract.CompanyRep.GetActiveInstance();
+            var contractRep = contract.ContractRep.GetActiveInstance();
+            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
 
-            if (extCompanyRep != null && extCompanyRep.AssignedPerson != null)
+            var recipients = new List<Guid>()
+            {
+                request.CreatedBy.AzureUniqueId
+            };
+
+            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
+
+            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+
+            foreach (var recipient in recipients)
             {
                 await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(extCompanyRep.AssignedPerson.Mail)
-                    .WithTitle("Your request was declined by Equinor CR")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
-            }
-
-            var extContractRep = contract.ExternalContractRep.GetActiveInstance();
-
-            if (extContractRep != null && extContractRep.AssignedPerson != null)
-            {
-                await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(extContractRep.AssignedPerson.Mail)
-                    .WithTitle("Your request was declined by Equinor CR")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
-            }
-
-            //to creator of request
-            await notificationClient.CreateNotificationAsync(n => n
-                   .WithRecipient(request.CreatedBy.AzureUniqueId)
-                   .WithTitle("Your request was declined by Equinor CR")
+                   .WithRecipient(recipient)
+                   .WithTitle($"Request for {request.Position.Name} was declined by Equinor CR")
                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
+            }
         }
 
         public async Task Handle(RequestApprovedByContractor notification, CancellationToken cancellationToken)
@@ -139,30 +136,27 @@ namespace Fusion.Resources.Api.Notifications
 
             var contract = await ResolveContractAsync(request);
             var companyRep = contract.CompanyRep.GetActiveInstance();
-
-            if (companyRep != null && companyRep.AssignedPerson != null)
-            {
-                await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(companyRep.AssignedPerson.Mail)
-                    .WithTitle("New request was approved by External CR")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request)));
-            }
-
             var contractRep = contract.ContractRep.GetActiveInstance();
+            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
 
-            if (contractRep != null && contractRep.AssignedPerson != null)
+            var recipients = new List<Guid>()
+            {
+                request.CreatedBy.AzureUniqueId
+            };
+
+            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
+
+            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+
+            foreach (var recipient in recipients)
             {
                 await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(contractRep.AssignedPerson.Mail)
-                    .WithTitle("New request was approved by External CR")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request)));
+                    .WithRecipient(recipient)
+                    .WithTitle($"Request for {request.Position.Name} was approved by External CR")
+                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request, requestsUrl)));
             }
-
-            //to creator of request
-            await notificationClient.CreateNotificationAsync(n => n
-                .WithRecipient(request.CreatedBy.AzureUniqueId)
-                .WithTitle("New request was approved by External CR")
-                .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request)));
         }
 
         public async Task Handle(RequestDeclinedByContractor notification, CancellationToken cancellationToken)
@@ -175,7 +169,7 @@ namespace Fusion.Resources.Api.Notifications
             //to creator of request
             await notificationClient.CreateNotificationAsync(n => n
                 .WithRecipient(request.CreatedBy.AzureUniqueId)
-                .WithTitle("Your request was declined by External CR")
+                .WithTitle($"Request for {request.Position.Name} was declined by External CR")
                 .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason)));
         }
 
@@ -199,28 +193,31 @@ namespace Fusion.Resources.Api.Notifications
 
         private class NotificationDescription
         {
-            public static string RequestCreated(QueryPersonnelRequest request) => new MarkdownDocument()
-                .Paragraph($"New request was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail})")
-                .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
-                    .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
-                    .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
-                .Build();
+            public static string RequestCreatedAsync(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
+                    .Paragraph($"New request was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail})")
+                    .List(l => l
+                        .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
+                        .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
+                        .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
+                    .LinkParagraph("Open active requests", activeRequestsUrl)
+                    .Build();
 
-            public static string RequestApprovedByExternal(QueryPersonnelRequest request) => new MarkdownDocument()
+            public static string RequestApprovedByExternal(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
                 .Paragraph($"New request was approved by External CR")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
+                .LinkParagraph("Open active requests", activeRequestsUrl)
                 .Build();
 
-            public static string RequestApprovedByCompany(QueryPersonnelRequest request) => new MarkdownDocument()
+            public static string RequestApprovedByCompany(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
                 .Paragraph($"New request was approved by Equinor CR")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
+                .LinkParagraph("Open active requests", activeRequestsUrl)
                 .Build();
 
             public static string RequestDeclinedByCompany(QueryPersonnelRequest request, string reason) => new MarkdownDocument()
