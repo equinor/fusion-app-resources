@@ -46,11 +46,14 @@ namespace Fusion.Resources.Api.Notifications
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateExternalCRRecipientsAsync(request);
 
+            //don't need to notify the person who created request, if person also is approver.
+            recipients.RemoveAll(r => r == request.CreatedBy.AzureUniqueId);
+
             foreach (var recipient in recipients)
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail})")
+                    .WithTitle($"Request for {request.Position.Name} created")
                     .WithDescriptionMarkdown(NotificationDescription.RequestCreatedAsync(request, requestsUrl)));
             }
         }
@@ -73,7 +76,7 @@ namespace Fusion.Resources.Api.Notifications
                 await notificationClient.CreateNotificationAsync(n => n
                    .WithRecipient(recipient)
                    .WithTitle($"Request for {request.Position.Name} was approved by {notification.ApprovedBy.Name} ({notification.ApprovedBy.Mail})")
-                   .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
+                   .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request, notification.ApprovedBy)));
             }
         }
 
@@ -95,7 +98,7 @@ namespace Fusion.Resources.Api.Notifications
                 await notificationClient.CreateNotificationAsync(n => n
                    .WithRecipient(recipient)
                    .WithTitle($"Request for {request.Position.Name} was declined by {notification.DeclinedBy.Name} ({notification.DeclinedBy.Mail})")
-                   .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
+                   .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason, notification.DeclinedBy)));
             }
         }
 
@@ -108,7 +111,7 @@ namespace Fusion.Resources.Api.Notifications
 
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateInternalCRRecipientsAsync(request);
-
+                        
             //only notify creator if not CR and if not the person that approved the request
             if (!recipients.Contains(request.CreatedBy.AzureUniqueId) && notification.ApprovedBy.AzureUniqueId != request.CreatedBy.AzureUniqueId)
                 recipients.Add(request.CreatedBy.AzureUniqueId);
@@ -118,7 +121,7 @@ namespace Fusion.Resources.Api.Notifications
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(recipient)
                     .WithTitle($"Request for {request.Position.Name} was approved by {notification.ApprovedBy.Name} ({notification.ApprovedBy.Mail})")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request, requestsUrl)));
+                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request, requestsUrl, notification.ApprovedBy)));
             }
         }
 
@@ -126,14 +129,15 @@ namespace Fusion.Resources.Api.Notifications
         {
             var request = await GetRequestAsync(notification.RequestId);
 
-            if (request == null)
+            //don't need to notify the person who created request, if person also is decliner.
+            if (request == null || request.CreatedBy.AzureUniqueId == notification.DeclinedBy.AzureUniqueId)
                 return;
 
             //to creator of request
             await notificationClient.CreateNotificationAsync(n => n
                 .WithRecipient(request.CreatedBy.AzureUniqueId)
                 .WithTitle($"Request for {request.Position.Name} was declined by {notification.DeclinedBy.Name} ({notification.DeclinedBy.Mail})")
-                .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason)));
+                .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy)));
         }
 
         private async Task<QueryPersonnelRequest> GetRequestAsync(Guid requestId)
@@ -177,6 +181,9 @@ namespace Fusion.Resources.Api.Notifications
 
             recipients.AddRange(externalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId)).Select(d => d.Person.AzureUniqueId));
 
+            //the creator will be notified 
+            recipients.RemoveAll(r => r == request.CreatedBy.AzureUniqueId);
+
             return recipients;
         }
 
@@ -210,40 +217,45 @@ namespace Fusion.Resources.Api.Notifications
             public static string RequestCreatedAsync(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
                 .Paragraph($"Please review and follow up request in Resources")
                 .List(l => l
+                    .ListItem($"{MdToken.Bold("Created by:")} {request.CreatedBy?.Name} ({request.CreatedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
                 .LinkParagraph("Open Resources active requests", activeRequestsUrl)
                 .Build();
 
-            public static string RequestApprovedByExternal(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
+            public static string RequestApprovedByExternal(QueryPersonnelRequest request, string? activeRequestsUrl, DbPerson approvedBy) => new MarkdownDocument()
                 .Paragraph($"Please review and follow up request in Resources")
                 .List(l => l
+                    .ListItem($"{MdToken.Bold("Approved by:")} {approvedBy?.Name} ({approvedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
                 .LinkParagraph("Open Resources active requests", activeRequestsUrl)
                 .Build();
 
-            public static string RequestApprovedByCompany(QueryPersonnelRequest request) => new MarkdownDocument()
+            public static string RequestApprovedByCompany(QueryPersonnelRequest request, DbPerson approvedBy) => new MarkdownDocument()
                 .Paragraph($"Request is now completed")
                 .List(l => l
+                    .ListItem($"{MdToken.Bold("Approved by:")} {approvedBy?.Name} ({approvedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
                 .Build();
 
-            public static string RequestDeclinedByCompany(QueryPersonnelRequest request, string reason) => new MarkdownDocument()
+            public static string RequestDeclinedByCompany(QueryPersonnelRequest request, string reason, DbPerson declinedBy) => new MarkdownDocument()
                 .Paragraph($"{MdToken.Bold("Reason")}: {reason}")
                 .List(l => l
+                    .ListItem($"{MdToken.Bold("Declined by:")} {declinedBy?.Name} ({declinedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
                 .Build();
 
-            public static string RequestDeclinedByExternal(QueryPersonnelRequest request, string reason) => new MarkdownDocument()
+            public static string RequestDeclinedByExternal(QueryPersonnelRequest request, string reason, DbPerson declinedBy) => new MarkdownDocument()
                 .Paragraph($"{MdToken.Bold("Reason")}: {reason}")
                 .List(l => l
+                    .ListItem($"{MdToken.Bold("Declined by:")} {declinedBy?.Name} ({declinedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
