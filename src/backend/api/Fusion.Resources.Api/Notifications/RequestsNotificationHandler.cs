@@ -63,13 +63,16 @@ namespace Fusion.Resources.Api.Notifications
                 return;
 
             var recipients = await CalculateExternalCRRecipientsAsync(request);
-            recipients.Add(request.CreatedBy.AzureUniqueId);
+
+            //only notify creator if not CR and if not the person that approved the request
+            if (!recipients.Contains(request.CreatedBy.AzureUniqueId) && notification.ApprovedBy.AzureUniqueId != request.CreatedBy.AzureUniqueId)
+                recipients.Add(request.CreatedBy.AzureUniqueId);
 
             foreach (var recipient in recipients)
             {
-                await notificationClient.CreateNotificationAsync(notification => notification
+                await notificationClient.CreateNotificationAsync(n => n
                    .WithRecipient(recipient)
-                   .WithTitle($"Request for {request.Position.Name} was approved by Equinor CR")
+                   .WithTitle($"Request for {request.Position.Name} was approved by {notification.ApprovedBy.Name} ({notification.ApprovedBy.Mail})")
                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
             }
         }
@@ -82,13 +85,16 @@ namespace Fusion.Resources.Api.Notifications
                 return;
 
             var recipients = await CalculateExternalCRRecipientsAsync(request);
-            recipients.Add(request.CreatedBy.AzureUniqueId);
+
+            //only notify creator if not CR and if not the person that declined request
+            if (!recipients.Contains(request.CreatedBy.AzureUniqueId) && notification.DeclinedBy.AzureUniqueId != request.CreatedBy.AzureUniqueId)
+                recipients.Add(request.CreatedBy.AzureUniqueId);
 
             foreach (var recipient in recipients)
             {
                 await notificationClient.CreateNotificationAsync(n => n
                    .WithRecipient(recipient)
-                   .WithTitle($"Request for {request.Position.Name} was declined by Equinor CR")
+                   .WithTitle($"Request for {request.Position.Name} was declined by {notification.DeclinedBy.Name} ({notification.DeclinedBy.Mail})")
                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason)));
             }
         }
@@ -102,13 +108,16 @@ namespace Fusion.Resources.Api.Notifications
 
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateInternalCRRecipientsAsync(request);
-            recipients.Add(request.CreatedBy.AzureUniqueId);
+
+            //only notify creator if not CR and if not the person that approved the request
+            if (!recipients.Contains(request.CreatedBy.AzureUniqueId) && notification.ApprovedBy.AzureUniqueId != request.CreatedBy.AzureUniqueId)
+                recipients.Add(request.CreatedBy.AzureUniqueId);
 
             foreach (var recipient in recipients)
             {
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} was approved by External CR")
+                    .WithTitle($"Request for {request.Position.Name} was approved by {notification.ApprovedBy.Name} ({notification.ApprovedBy.Mail})")
                     .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request, requestsUrl)));
             }
         }
@@ -123,7 +132,7 @@ namespace Fusion.Resources.Api.Notifications
             //to creator of request
             await notificationClient.CreateNotificationAsync(n => n
                 .WithRecipient(request.CreatedBy.AzureUniqueId)
-                .WithTitle($"Request for {request.Position.Name} was declined by External CR")
+                .WithTitle($"Request for {request.Position.Name} was declined by {notification.DeclinedBy.Name} ({notification.DeclinedBy.Mail})")
                 .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason)));
         }
 
@@ -199,13 +208,13 @@ namespace Fusion.Resources.Api.Notifications
         private class NotificationDescription
         {
             public static string RequestCreatedAsync(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
-                    .Paragraph($"Please review and follow up request in Resources")
-                    .List(l => l
-                        .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
-                        .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
-                        .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
-                    .LinkParagraph("Open Resources active requests", activeRequestsUrl)
-                    .Build();
+                .Paragraph($"Please review and follow up request in Resources")
+                .List(l => l
+                    .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
+                    .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
+                .LinkParagraph("Open Resources active requests", activeRequestsUrl)
+                .Build();
 
             public static string RequestApprovedByExternal(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
                 .Paragraph($"Please review and follow up request in Resources")
@@ -225,7 +234,7 @@ namespace Fusion.Resources.Api.Notifications
                 .Build();
 
             public static string RequestDeclinedByCompany(QueryPersonnelRequest request, string reason) => new MarkdownDocument()
-                .Paragraph($"Your request was declined by Equinor CR. Reason: {reason}")
+                .Paragraph($"{MdToken.Bold("Reason")}: {reason}")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
@@ -233,7 +242,7 @@ namespace Fusion.Resources.Api.Notifications
                 .Build();
 
             public static string RequestDeclinedByExternal(QueryPersonnelRequest request, string reason) => new MarkdownDocument()
-                .Paragraph($"Your request was declined by External CR. Reason: {reason}")
+                .Paragraph($"{MdToken.Bold("Reason")}: {reason}")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")

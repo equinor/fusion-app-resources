@@ -102,7 +102,7 @@ namespace Fusion.Resources.Logic.Commands
                         case DbRequestState.ApprovedByCompany:
                             workflow.CompanyApproved(request.Editor.Person);
                             await mediator.Send(QueueRequestProvisioning.ContractorPersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId, dbItem.Contract.OrgContractId));
-                            notifyOnSave = new RequestApprovedByCompany(request.RequestId);
+                            notifyOnSave = new RequestApprovedByCompany(request.RequestId, request.Editor.Person);
                             break;
 
                         case DbRequestState.RejectedByCompany:
@@ -110,7 +110,7 @@ namespace Fusion.Resources.Logic.Commands
                                 throw new ArgumentException("Reason", "Reason must be specified when rejecting request");
 
                             workflow.CompanyRejected(request.Editor.Person, request.Reason);
-                            notifyOnSave = new RequestDeclinedByCompany(request.RequestId, request.Reason);
+                            notifyOnSave = new RequestDeclinedByCompany(request.RequestId, request.Reason, request.Editor.Person);
                             break;
 
                         default:
@@ -124,7 +124,7 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         case DbRequestState.SubmittedToCompany:
                             workflow.ContractorApproved(request.Editor.Person);
-                            notifyOnSave = new RequestApprovedByContractor(request.RequestId);
+                            notifyOnSave = new RequestApprovedByContractor(request.RequestId, request.Editor.Person);
                             break;
 
                         case DbRequestState.RejectedByContractor:
@@ -132,7 +132,7 @@ namespace Fusion.Resources.Logic.Commands
                                 throw new ArgumentException("Reason", "Reason must be specified when rejecting request");
 
                             workflow.ContractorRejected(request.Editor.Person, request.Reason);
-                            notifyOnSave = new RequestDeclinedByContractor(request.RequestId, request.Reason);
+                            notifyOnSave = new RequestDeclinedByContractor(request.RequestId, request.Reason, request.Editor.Person);
                             break;
 
                         default:

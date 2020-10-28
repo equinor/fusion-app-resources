@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using MediatR;
+﻿using MediatR;
 using System;
 
 namespace Fusion.Resources.Domain.Notifications
