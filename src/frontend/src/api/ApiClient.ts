@@ -401,9 +401,9 @@ export default class ApiClient {
             PersonDelegation,
             FusionApiHttpErrorResponse
         >(url, payload);
-        return response.data
+        return response.data;
     }
-    
+
     public async parseExcelFileAsync(file: File) {
         const url = this.resourceCollection.parseExcelFile();
         const data = new FormData();
@@ -424,5 +424,31 @@ export default class ApiClient {
         >(url, null, responseParser);
 
         return response.data;
+    }
+
+    public async deleteMppPositionAsync(projectId: string, contractId: string, positionId: string) {
+        const url = this.resourceCollection.mppPosition(projectId, contractId, positionId);
+        return await this.httpClient.deleteAsync<void, FusionApiHttpErrorResponse>(url, {}, () =>
+            Promise.resolve()
+        );
+    }
+    public async canDeleteMppPositionsAsync(projectId: string, contractId: string) {
+        const url = this.resourceCollection.mppPositions(projectId, contractId);
+        try {
+            const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(
+                url,
+                {},
+                () => Promise.resolve()
+            );
+
+            const allowHeader = response.headers.get('Allow');
+            if (allowHeader !== null && allowHeader.toLowerCase().indexOf('delete') !== -1) {
+                return true;
+            }
+
+            return false;
+        } catch (e) {
+            return false;
+        }
     }
 }

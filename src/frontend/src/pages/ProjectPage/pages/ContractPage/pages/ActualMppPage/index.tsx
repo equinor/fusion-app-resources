@@ -7,6 +7,7 @@ import {
     AddIcon,
     useTooltipRef,
     CopyIcon,
+    Spinner,
 } from '@equinor/fusion-components';
 import { Position, useApiClients, useCurrentContext } from '@equinor/fusion';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -24,6 +25,7 @@ import {
 } from '../../components/EditRequestSideSheet/utils';
 import { useAppContext } from '../../../../../../appContext';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
+import usePositionDeletion from '../../hooks/usePositionDeletion';
 
 const ActualMppPage: React.FC = () => {
     const [filteredContractPositions, setFilteredContractPositions] = React.useState<Position[]>(
@@ -54,6 +56,10 @@ const ActualMppPage: React.FC = () => {
         'actualMpp',
         fetchMppAsync,
         'set'
+    );
+
+    const { deletePositions, isDeleting, canDeletePosition } = usePositionDeletion(
+        selectedPositions
     );
 
     const getPersonnelWithPositionsAsync = async () => {
@@ -140,8 +146,11 @@ const ActualMppPage: React.FC = () => {
                         >
                             <EditIcon outline />
                         </IconButton>
-                        <IconButton disabled>
-                            <DeleteIcon outline />
+                        <IconButton
+                            onClick={deletePositions}
+                            disabled={selectedPositions.length === 0 || !canDeletePosition}
+                        >
+                            {isDeleting ? <Spinner inline /> : <DeleteIcon outline />}
                         </IconButton>
                     </div>
                     <SortableTable
@@ -157,7 +166,7 @@ const ActualMppPage: React.FC = () => {
                 <GenericFilter
                     data={contractPositions}
                     filterSections={filterSections}
-                    onFilter={filteredRequests => setFilteredContractPositions(filteredRequests)}
+                    onFilter={(filteredRequests) => setFilteredContractPositions(filteredRequests)}
                 />
                 <EditRequestSideSheet
                     initialRequests={editRequests}

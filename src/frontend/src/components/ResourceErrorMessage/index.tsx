@@ -71,7 +71,7 @@ const ResourceErrorMessage: React.FC<ResourceErrorMessageProps> = ({ error, chil
             hasError={Boolean(error)}
             errorType={getErrorType(error?.statusCode)}
             resourceName="contracts"
-            title={error?.response.error.message}
+            title={error?.response?.error?.message || ''}
         >
             {children}
         </ErrorMessage>

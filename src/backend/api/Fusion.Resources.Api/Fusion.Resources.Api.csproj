@@ -21,9 +21,10 @@
   <ItemGroup>
     <!--<PackageReference Include="FluentValidation" Version="8.5.0" />-->
     <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.2" />
-    
+
     <PackageReference Include="Bogus" Version="30.0.4" />
-    <PackageReference Include="Fusion.Integration" Version="3.5.0" />
+    <PackageReference Include="Fusion.Integration" Version="3.5.6" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="3.5.4" />
     <PackageReference Include="Fusion.Integration.Authorization" Version="3.2.1" />
     <PackageReference Include="Fusion.Integration.Org" Version="3.2.2" />
     <PackageReference Include="Fusion.Integration.Roles" Version="1.1.2" />
@@ -42,7 +43,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />    
 
-    <PackageReference Include="Fusion.AspNetCore" Version="3.1.6" />
+    <PackageReference Include="Fusion.AspNetCore" Version="3.1.7" />
     
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="5.0.0" />
     <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="5.0.0" />
