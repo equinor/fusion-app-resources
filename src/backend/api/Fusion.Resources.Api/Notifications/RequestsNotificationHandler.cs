@@ -50,7 +50,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} was created")
+                    .WithTitle($"Request for {request.Position.Name} was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail})")
                     .WithDescriptionMarkdown(NotificationDescription.RequestCreatedAsync(request, requestsUrl)));
             }
         }
@@ -62,7 +62,6 @@ namespace Fusion.Resources.Api.Notifications
             if (request == null)
                 return;
 
-            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateExternalCRRecipientsAsync(request);
             recipients.Add(request.CreatedBy.AzureUniqueId);
 
@@ -71,7 +70,7 @@ namespace Fusion.Resources.Api.Notifications
                 await notificationClient.CreateNotificationAsync(notification => notification
                    .WithRecipient(recipient)
                    .WithTitle($"Request for {request.Position.Name} was approved by Equinor CR")
-                   .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request, requestsUrl)));
+                   .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request)));
             }
         }
 
@@ -82,7 +81,6 @@ namespace Fusion.Resources.Api.Notifications
             if (request == null)
                 return;
 
-            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateExternalCRRecipientsAsync(request);
             recipients.Add(request.CreatedBy.AzureUniqueId);
 
@@ -201,30 +199,29 @@ namespace Fusion.Resources.Api.Notifications
         private class NotificationDescription
         {
             public static string RequestCreatedAsync(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
-                    .Paragraph($"New request was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail})")
+                    .Paragraph($"Please review and follow up request in Resources")
                     .List(l => l
                         .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                         .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                         .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
-                    .LinkParagraph("Open active requests", activeRequestsUrl)
+                    .LinkParagraph("Open Resources active requests", activeRequestsUrl)
                     .Build();
 
             public static string RequestApprovedByExternal(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
-                .Paragraph($"New request was approved by External CR")
+                .Paragraph($"Please review and follow up request in Resources")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
-                .LinkParagraph("Open active requests", activeRequestsUrl)
+                .LinkParagraph("Open Resources active requests", activeRequestsUrl)
                 .Build();
 
-            public static string RequestApprovedByCompany(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
-                .Paragraph($"New request was approved by Equinor CR")
+            public static string RequestApprovedByCompany(QueryPersonnelRequest request) => new MarkdownDocument()
+                .Paragraph($"Request is now completed")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
-                .LinkParagraph("Open active requests", activeRequestsUrl)
                 .Build();
 
             public static string RequestDeclinedByCompany(QueryPersonnelRequest request, string reason) => new MarkdownDocument()
