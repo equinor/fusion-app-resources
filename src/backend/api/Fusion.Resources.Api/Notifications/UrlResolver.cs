@@ -27,7 +27,7 @@ namespace Fusion.Resources.Api.Notifications
         {
             string? url = await GetResourcesBaseAsync(orgProjectId, orgContractId);
 
-            return url is null ? null : $"{url}/active-request";
+            return url is null ? null : $"{url}/active-requests";
         }
 
         private async Task<string?> GetResourcesBaseAsync(Guid orgProjectId, Guid orgContractId)
