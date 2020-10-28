@@ -111,7 +111,7 @@ namespace Fusion.Resources.Api.Notifications
 
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateInternalCRRecipientsAsync(request);
-                        
+
             //only notify creator if not CR and if not the person that approved the request
             if (!recipients.Contains(request.CreatedBy.AzureUniqueId) && notification.ApprovedBy.AzureUniqueId != request.CreatedBy.AzureUniqueId)
                 recipients.Add(request.CreatedBy.AzureUniqueId);
@@ -169,8 +169,6 @@ namespace Fusion.Resources.Api.Notifications
             var externalContractRep = contract.ExternalContractRep.GetActiveInstance();
             var delegates = await mediator.Send(GetContractDelegatedRoles.ForContract(request.Project.OrgProjectId, contract.Id));
             var externalDelegates = delegates.Where(o => o.Classification == DbDelegatedRoleClassification.External).ToList();
-            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
-
             var recipients = new List<Guid>();
 
             if (externalCompanyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(externalCompanyRep.AssignedPerson.AzureUniqueId.Value))
@@ -179,10 +177,11 @@ namespace Fusion.Resources.Api.Notifications
             if (externalContractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(externalContractRep.AssignedPerson.AzureUniqueId.Value))
                 recipients.Add(externalContractRep.AssignedPerson.AzureUniqueId.Value);
 
-            recipients.AddRange(externalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId)).Select(d => d.Person.AzureUniqueId));
+            var distinctDelegates = externalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId))
+                .Select(d => d.Person.AzureUniqueId)
+                .Distinct();
 
-            //the creator will be notified 
-            recipients.RemoveAll(r => r == request.CreatedBy.AzureUniqueId);
+            recipients.AddRange(distinctDelegates);
 
             return recipients;
         }
@@ -194,12 +193,8 @@ namespace Fusion.Resources.Api.Notifications
             var contractRep = contract.ContractRep.GetActiveInstance();
             var delegates = await mediator.Send(GetContractDelegatedRoles.ForContract(request.Project.OrgProjectId, contract.Id));
             var internalDelegates = delegates.Where(o => o.Classification == DbDelegatedRoleClassification.Internal).ToList();
-            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
 
-            var recipients = new List<Guid>()
-            {
-                request.CreatedBy.AzureUniqueId
-            };
+            var recipients = new List<Guid>();
 
             if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
                 recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
@@ -207,7 +202,11 @@ namespace Fusion.Resources.Api.Notifications
             if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
                 recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
 
-            recipients.AddRange(internalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId)).Select(d => d.Person.AzureUniqueId));
+            var distinctDelegates = internalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId))
+                .Select(d => d.Person.AzureUniqueId)
+                .Distinct();
+
+            recipients.AddRange(distinctDelegates);
 
             return recipients;
         }
