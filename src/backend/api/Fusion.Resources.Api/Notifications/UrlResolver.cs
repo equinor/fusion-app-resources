@@ -30,16 +30,16 @@ namespace Fusion.Resources.Api.Notifications
             return url is null ? null : $"{url}/active-request";
         }
 
-        private string? Host => $"{contextAccessor.HttpContext?.Request?.Scheme}:{contextAccessor.HttpContext?.Request?.Host.ToString()}";
-
         private async Task<string?> GetResourcesBaseAsync(Guid orgProjectId, Guid orgContractId)
         {
+            var referer = contextAccessor.HttpContext?.Request?.GetTypedHeaders().Referer;
             var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(orgProjectId), FusionContextType.OrgChart);
 
-            if (Host is null || context is null)
+            if (referer is null || context is null)
                 return null;
 
-            return $"{Host}/apps/resources/{context.Id}/{orgContractId}";
+            //Referer.Authority will contain both dns and port
+            return $"{referer.Scheme}://{referer.Authority}/apps/resources/{context.Id}/{orgContractId}";
         }
     }
 }

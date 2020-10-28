@@ -2,6 +2,7 @@
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.Notifications.Markdown;
+using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Notifications;
 using Fusion.Resources.Domain.Notifications.Request;
@@ -9,6 +10,7 @@ using Fusion.Resources.Domain.Queries;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,21 +43,11 @@ namespace Fusion.Resources.Api.Notifications
             if (request == null)
                 return;
 
-            var contract = await ResolveContractAsync(request);
-            var companyRep = contract.CompanyRep.GetActiveInstance();
-            var contractRep = contract.ContractRep.GetActiveInstance();
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
-
-            var recipients = new List<Guid>();
-
-            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
-
-            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+            var recipients = await CalculateExternalCRRecipientsAsync(request);
 
             foreach (var recipient in recipients)
-            { 
+            {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(recipient)
                     .WithTitle($"Request for {request.Position.Name} was created")
@@ -70,21 +62,9 @@ namespace Fusion.Resources.Api.Notifications
             if (request == null)
                 return;
 
-            var contract = await ResolveContractAsync(request);
-            var companyRep = contract.CompanyRep.GetActiveInstance();
-            var contractRep = contract.ContractRep.GetActiveInstance();
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
-
-            var recipients = new List<Guid>()
-            {
-                request.CreatedBy.AzureUniqueId
-            };
-
-            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
-
-            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+            var recipients = await CalculateExternalCRRecipientsAsync(request);
+            recipients.Add(request.CreatedBy.AzureUniqueId);
 
             foreach (var recipient in recipients)
             {
@@ -102,21 +82,9 @@ namespace Fusion.Resources.Api.Notifications
             if (request == null)
                 return;
 
-            var contract = await ResolveContractAsync(request);
-            var companyRep = contract.CompanyRep.GetActiveInstance();
-            var contractRep = contract.ContractRep.GetActiveInstance();
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
-
-            var recipients = new List<Guid>()
-            {
-                request.CreatedBy.AzureUniqueId
-            };
-
-            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
-
-            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+            var recipients = await CalculateExternalCRRecipientsAsync(request);
+            recipients.Add(request.CreatedBy.AzureUniqueId);
 
             foreach (var recipient in recipients)
             {
@@ -134,21 +102,9 @@ namespace Fusion.Resources.Api.Notifications
             if (request == null)
                 return;
 
-            var contract = await ResolveContractAsync(request);
-            var companyRep = contract.CompanyRep.GetActiveInstance();
-            var contractRep = contract.ContractRep.GetActiveInstance();
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
-
-            var recipients = new List<Guid>()
-            {
-                request.CreatedBy.AzureUniqueId
-            };
-
-            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
-
-            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+            var recipients = await CalculateInternalCRRecipientsAsync(request);
+            recipients.Add(request.CreatedBy.AzureUniqueId);
 
             foreach (var recipient in recipients)
             {
@@ -189,6 +145,57 @@ namespace Fusion.Resources.Api.Notifications
                 throw new InvalidOperationException($"Cannot resolve contract for request {request.Id}");
 
             return resolvedContract;
+        }
+
+        private async Task<List<Guid>> CalculateExternalCRRecipientsAsync(QueryPersonnelRequest request)
+        {
+            var contract = await orgResolver.ResolveContractAsync(request.Project.OrgProjectId, request.Contract.OrgContractId);
+
+            if (contract == null)
+                throw new InvalidOperationException($"Cannot resolve contract for request {request.Id}");
+
+            var externalCompanyRep = contract.ExternalCompanyRep.GetActiveInstance();
+            var externalContractRep = contract.ExternalContractRep.GetActiveInstance();
+            var delegates = await mediator.Send(GetContractDelegatedRoles.ForContract(request.Project.OrgProjectId, contract.Id));
+            var externalDelegates = delegates.Where(o => o.Classification == DbDelegatedRoleClassification.External).ToList();
+            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
+
+            var recipients = new List<Guid>();
+
+            if (externalCompanyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(externalCompanyRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(externalCompanyRep.AssignedPerson.AzureUniqueId.Value);
+
+            if (externalContractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(externalContractRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(externalContractRep.AssignedPerson.AzureUniqueId.Value);
+
+            recipients.AddRange(externalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId)).Select(d => d.Person.AzureUniqueId));
+
+            return recipients;
+        }
+
+        private async Task<List<Guid>> CalculateInternalCRRecipientsAsync(QueryPersonnelRequest request)
+        {
+            var contract = await ResolveContractAsync(request);
+            var companyRep = contract.CompanyRep.GetActiveInstance();
+            var contractRep = contract.ContractRep.GetActiveInstance();
+            var delegates = await mediator.Send(GetContractDelegatedRoles.ForContract(request.Project.OrgProjectId, contract.Id));
+            var internalDelegates = delegates.Where(o => o.Classification == DbDelegatedRoleClassification.Internal).ToList();
+            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
+
+            var recipients = new List<Guid>()
+            {
+                request.CreatedBy.AzureUniqueId
+            };
+
+            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
+
+            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
+
+            recipients.AddRange(internalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId)).Select(d => d.Person.AzureUniqueId));
+
+            return recipients;
         }
 
         private class NotificationDescription
