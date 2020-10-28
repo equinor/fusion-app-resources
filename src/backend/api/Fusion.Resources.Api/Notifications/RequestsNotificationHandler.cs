@@ -75,7 +75,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                    .WithRecipient(recipient)
-                   .WithTitle($"Request for {request.Position.Name} was approved by {notification.ApprovedBy.Name} ({notification.ApprovedBy.Mail})")
+                   .WithTitle($"Request for {request.Position.Name} was approved")
                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request, notification.ApprovedBy)));
             }
         }
@@ -97,7 +97,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                    .WithRecipient(recipient)
-                   .WithTitle($"Request for {request.Position.Name} was declined by {notification.DeclinedBy.Name} ({notification.DeclinedBy.Mail})")
+                   .WithTitle($"Request for {request.Position.Name} was declined")
                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason, notification.DeclinedBy)));
             }
         }
@@ -120,7 +120,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} was approved by {notification.ApprovedBy.Name} ({notification.ApprovedBy.Mail})")
+                    .WithTitle($"Request for {request.Position.Name} was approved")
                     .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request, requestsUrl, notification.ApprovedBy)));
             }
         }
@@ -136,7 +136,7 @@ namespace Fusion.Resources.Api.Notifications
             //to creator of request
             await notificationClient.CreateNotificationAsync(n => n
                 .WithRecipient(request.CreatedBy.AzureUniqueId)
-                .WithTitle($"Request for {request.Position.Name} was declined by {notification.DeclinedBy.Name} ({notification.DeclinedBy.Mail})")
+                .WithTitle($"Request for {request.Position.Name} was declined")
                 .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy)));
         }
 
@@ -224,9 +224,9 @@ namespace Fusion.Resources.Api.Notifications
                 .Build();
 
             public static string RequestApprovedByExternal(QueryPersonnelRequest request, string? activeRequestsUrl, DbPerson approvedBy) => new MarkdownDocument()
+                .Paragraph($"Request was approved by {approvedBy?.Name} ({approvedBy?.Mail}).")
                 .Paragraph($"Please review and follow up request in Resources")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Approved by:")} {approvedBy?.Name} ({approvedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
@@ -234,27 +234,26 @@ namespace Fusion.Resources.Api.Notifications
                 .Build();
 
             public static string RequestApprovedByCompany(QueryPersonnelRequest request, DbPerson approvedBy) => new MarkdownDocument()
-                .Paragraph($"Request is now completed")
+                .Paragraph($"Request was approved by {approvedBy?.Name} ({approvedBy?.Mail}) and is now completed")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Approved by:")} {approvedBy?.Name} ({approvedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
                 .Build();
 
             public static string RequestDeclinedByCompany(QueryPersonnelRequest request, string reason, DbPerson declinedBy) => new MarkdownDocument()
+                .Paragraph($"Request was declined by {declinedBy?.Name} ({declinedBy?.Mail})")
                 .Paragraph($"{MdToken.Bold("Reason")}: {reason}")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Declined by:")} {declinedBy?.Name} ({declinedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
                 .Build();
 
             public static string RequestDeclinedByExternal(QueryPersonnelRequest request, string reason, DbPerson declinedBy) => new MarkdownDocument()
+                .Paragraph($"Request was declined by {declinedBy?.Name} ({declinedBy?.Mail})")
                 .Paragraph($"{MdToken.Bold("Reason")}: {reason}")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Declined by:")} {declinedBy?.Name} ({declinedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
