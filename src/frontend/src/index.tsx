@@ -38,13 +38,9 @@ const App: React.FC = () => {
     );
 
     React.useEffect(() => {
-        fusionContext.auth.container.registerAppAsync(getFusionAppId(), [
-            resourceBaseUrl,
-        ]);
+        fusionContext.auth.container.registerAppAsync(getFusionAppId(), [resourceBaseUrl]);
 
-        fusionContext.auth.container.registerAppAsync(getFusionAppId(), [
-            functionsBaseUrl,
-        ]);
+        fusionContext.auth.container.registerAppAsync(getFusionAppId(), [functionsBaseUrl]);
     }, []);
 
     const currentContext = useCurrentContext();
@@ -92,9 +88,7 @@ registerApp('resources', {
                 ? url
                 : context?.id || '';
         },
-        getContextFromUrl: (url: string) => {
-            return url.split('/')[0];
-        },
+        getContextFromUrl: (url: string) => url.split('/').filter(Boolean)[0],
     },
 });
 
