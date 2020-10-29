@@ -1,9 +1,6 @@
 ﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,12 +26,12 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<UpdateContractExternalReps>
         {
             private readonly IOrgApiClient orgClient;
-            private readonly ResourcesDbContext resourcesDb;
+            private readonly IMediator mediator;
 
-            public Handler(IOrgApiClientFactory orgApiClientFactory, ResourcesDbContext resourcesDb)
+            public Handler(IOrgApiClientFactory orgApiClientFactory, IMediator mediator)
             {
                 orgClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-                this.resourcesDb = resourcesDb;
+                this.mediator = mediator;
             }
 
             protected override async Task Handle(UpdateContractExternalReps request, CancellationToken cancellationToken)
@@ -56,19 +53,33 @@ namespace Fusion.Resources.Domain.Commands
                     throw new InvalidOperationException($"Error trying to get error from org service. Received {ex.Response.StatusCode}, {ex.Error?.Message} ({ex.Error?.ErrorCode})", ex);
                 }
 
+                bool notifyCompanyRep = false;
+                bool notifyContractRep = false;
 
                 if (request.CompanyRepPositionId.HasBeenSet)
+                {
+                    if (request.CompanyRepPositionId.Value.HasValue && contract.ExternalCompanyRep?.Id != request.CompanyRepPositionId.Value.Value)
+                        notifyCompanyRep = true;
+
                     contract.ExternalCompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
+                }
 
                 if (request.ContractResponsiblePositionId.HasBeenSet)
+                {
+                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.ExternalContractRep?.Id != request.ContractResponsiblePositionId.Value.Value)
+                        notifyContractRep = true;
+
                     contract.ExternalContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
+                }
 
+                await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
 
-                var updatedContract = await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
+                if (notifyCompanyRep && contract.ExternalCompanyRep != null)
+                    await mediator.Publish(new Notifications.ExternalCompanyRepUpdated(contract.ExternalCompanyRep.Id));
 
+                if (notifyContractRep && contract.ExternalContractRep != null)
+                    await mediator.Publish(new Notifications.ExternalContractRepUpdated(contract.ExternalContractRep.Id));
             }
         }
-
     }
-
 }

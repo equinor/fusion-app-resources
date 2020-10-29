@@ -1,5 +1,4 @@
 ﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Database;
 using MediatR;
 using System;
 using System.Threading;
@@ -28,12 +27,12 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<UpdateContractReps>
         {
             private readonly IOrgApiClient orgClient;
-            private readonly ResourcesDbContext resourcesDb;
+            private readonly IMediator mediator;
 
-            public Handler(IOrgApiClientFactory orgApiClientFactory, ResourcesDbContext resourcesDb)
+            public Handler(IOrgApiClientFactory orgApiClientFactory, IMediator mediator)
             {
                 orgClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
-                this.resourcesDb = resourcesDb;
+                this.mediator = mediator;
             }
 
             protected override async Task Handle(UpdateContractReps request, CancellationToken cancellationToken)
@@ -55,17 +54,33 @@ namespace Fusion.Resources.Domain.Commands
                     throw new InvalidOperationException($"Error trying to get error from org service. Received {ex.Response.StatusCode}, {ex.Error?.Message} ({ex.Error?.ErrorCode})", ex);
                 }
 
+                bool notifyCompanyRep = false;
+                bool notifyContractRep = false;
+
                 if (request.CompanyRepPositionId.HasBeenSet)
+                {
+                    if (request.CompanyRepPositionId.Value.HasValue && contract.CompanyRep?.Id != request.CompanyRepPositionId.Value.Value)
+                        notifyCompanyRep = true;
+
                     contract.CompanyRep = request.CompanyRepPositionId.Value.HasValue ? new ApiPositionV2 { Id = request.CompanyRepPositionId.Value.Value } : null;
+                }
 
                 if (request.ContractResponsiblePositionId.HasBeenSet)
+                {
+                    if (request.ContractResponsiblePositionId.Value.HasValue && contract.CompanyRep?.Id != request.ContractResponsiblePositionId.Value.Value)
+                        notifyContractRep = true;
+
                     contract.ContractRep = request.ContractResponsiblePositionId.Value.HasValue ? new ApiPositionV2 { Id = request.ContractResponsiblePositionId.Value.Value } : null;
+                }
 
+                await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
 
-                var updatedContract = await orgClient.UpdateContractV2Async(request.OrgProjectId, contract);
+                if (notifyCompanyRep && contract.CompanyRep != null)
+                    await mediator.Publish(new Notifications.CompanyRepUpdated(contract.CompanyRep.Id));
+
+                if (notifyContractRep && contract.ContractRep != null)
+                    await mediator.Publish(new Notifications.ContractRepUpdated(contract.ContractRep.Id));
             }
         }
-
     }
-
 }

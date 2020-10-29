@@ -89,11 +89,10 @@ namespace Fusion.Resources.Domain.Commands
                     Created = DateTimeOffset.UtcNow,
                     CreatedBy = request.Editor.Person
                 };
+
                 await resourcesDb.ContractPersonnel.AddAsync(newItem);
-
                 await resourcesDb.SaveChangesAsync();
-
-                await mediator.Publish(new Notifications.PersonnelAddedToContract(newItem.Id));
+                await mediator.Publish(new Notifications.PersonnelAddedToContract(project.OrgProjectId, contract.OrgContractId, newItem.PersonId));
 
                 return new QueryContractPersonnel(newItem);
             }

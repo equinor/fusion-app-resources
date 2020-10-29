@@ -1,10 +1,13 @@
 ﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Domain.Notifications.Request;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,6 +39,7 @@ namespace Fusion.Resources.Logic.Commands
             {
                 private readonly ResourcesDbContext resourcesDb;
                 private readonly IMediator mediator;
+                private INotification? notifyOnSave = null;
 
                 public Handler(ResourcesDbContext resourcesDb, IMediator mediator)
                 {
@@ -86,6 +90,9 @@ namespace Fusion.Resources.Logic.Commands
                     workflow.SaveChanges();
 
                     await resourcesDb.SaveChangesAsync();
+
+                    if (notifyOnSave != null)
+                        await mediator.Publish(notifyOnSave);
                 }
 
                 private async ValueTask HandleWhenSubmittedToCompanyAsync(SetState request)
@@ -94,18 +101,16 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         case DbRequestState.ApprovedByCompany:
                             workflow.CompanyApproved(request.Editor.Person);
-
-                            // Send notifications
                             await mediator.Send(QueueRequestProvisioning.ContractorPersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId, dbItem.Contract.OrgContractId));
-
+                            notifyOnSave = new RequestApprovedByCompany(request.RequestId, request.Editor.Person);
                             break;
+
                         case DbRequestState.RejectedByCompany:
                             if (request.Reason is null)
                                 throw new ArgumentException("Reason", "Reason must be specified when rejecting request");
 
                             workflow.CompanyRejected(request.Editor.Person, request.Reason);
-
-                            // Send notifications
+                            notifyOnSave = new RequestDeclinedByCompany(request.RequestId, request.Reason, request.Editor.Person);
                             break;
 
                         default:
@@ -119,12 +124,15 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         case DbRequestState.SubmittedToCompany:
                             workflow.ContractorApproved(request.Editor.Person);
+                            notifyOnSave = new RequestApprovedByContractor(request.RequestId, request.Editor.Person);
                             break;
+
                         case DbRequestState.RejectedByContractor:
                             if (request.Reason is null)
                                 throw new ArgumentException("Reason", "Reason must be specified when rejecting request");
 
                             workflow.ContractorRejected(request.Editor.Person, request.Reason);
+                            notifyOnSave = new RequestDeclinedByContractor(request.RequestId, request.Reason, request.Editor.Person);
                             break;
 
                         default:

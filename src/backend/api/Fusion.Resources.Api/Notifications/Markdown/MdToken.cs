@@ -6,5 +6,6 @@
         public static string Italic(string text) => $"*{text.Trim()}*";
         public static string ListItem(string text) => $" - {text.Trim()}";
         public static string Newline() => "  \n";
+        public static string Hyperlink(string text, string url) => $"[{text}]({url})";
     }
 }

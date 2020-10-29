@@ -398,7 +398,7 @@ namespace Fusion.Resources.Api.Controllers
                 position = await DispatchAsync(createNewPositionCommand);
             }
 
-            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { CompanyRepPositionId = position.Id });
+            await DispatchAsync(new UpdateContractExternalReps(projectIdentifier.ProjectId, contractIdentifier) { ContractResponsiblePositionId = position.Id });
 
             return position;
         }
