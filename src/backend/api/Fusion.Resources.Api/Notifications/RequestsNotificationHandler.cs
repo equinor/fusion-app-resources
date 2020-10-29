@@ -39,12 +39,8 @@ namespace Fusion.Resources.Api.Notifications
         public async Task Handle(RequestCreated notification, CancellationToken cancellationToken)
         {
             var request = await GetRequestAsync(notification.RequestId);
-
-            if (request == null)
-                return;
-
-            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateExternalCRRecipientsAsync(request);
+            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
 
             //don't need to notify the person who created request, if person also is approver.
             recipients.RemoveAll(r => r == request.CreatedBy.AzureUniqueId);
@@ -61,10 +57,6 @@ namespace Fusion.Resources.Api.Notifications
         public async Task Handle(RequestApprovedByCompany notification, CancellationToken cancellationToken)
         {
             var request = await GetRequestAsync(notification.RequestId);
-
-            if (request == null)
-                return;
-
             var recipients = await CalculateExternalCRRecipientsAsync(request);
 
             //only notify creator if not CR and if not the person that approved the request
@@ -83,10 +75,6 @@ namespace Fusion.Resources.Api.Notifications
         public async Task Handle(RequestDeclinedByCompany notification, CancellationToken cancellationToken)
         {
             var request = await GetRequestAsync(notification.RequestId);
-
-            if (request == null)
-                return;
-
             var recipients = await CalculateExternalCRRecipientsAsync(request);
 
             //only notify creator if not CR and if not the person that declined request
@@ -105,9 +93,6 @@ namespace Fusion.Resources.Api.Notifications
         public async Task Handle(RequestApprovedByContractor notification, CancellationToken cancellationToken)
         {
             var request = await GetRequestAsync(notification.RequestId);
-
-            if (request == null)
-                return;
 
             var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
             var recipients = await CalculateInternalCRRecipientsAsync(request);
@@ -129,15 +114,14 @@ namespace Fusion.Resources.Api.Notifications
         {
             var request = await GetRequestAsync(notification.RequestId);
 
-            //don't need to notify the person who created request, if person also is decliner.
-            if (request == null || request.CreatedBy.AzureUniqueId == notification.DeclinedBy.AzureUniqueId)
-                return;
-
-            //to creator of request
-            await notificationClient.CreateNotificationAsync(n => n
-                .WithRecipient(request.CreatedBy.AzureUniqueId)
-                .WithTitle($"Request for {request.Position.Name} was declined")
-                .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy)));
+            //don't need to notify the person who created request if person also is decliner.
+            if (request.CreatedBy.AzureUniqueId != notification.DeclinedBy.AzureUniqueId)
+            {
+                await notificationClient.CreateNotificationAsync(n => n
+                    .WithRecipient(request.CreatedBy.AzureUniqueId)
+                    .WithTitle($"Request for {request.Position.Name} was declined")
+                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy)));
+            }
         }
 
         private async Task<QueryPersonnelRequest> GetRequestAsync(Guid requestId)

@@ -72,6 +72,9 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.Contract)
                     .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
+                if (dbRequest is null)
+                    throw new RequestNotFoundError(request.RequestId);
+
                 var basePosition = await orgResolver.ResolveBasePositionAsync(dbRequest.Position.BasePositionId);
 
                 var position = new QueryPositionRequest(dbRequest.Position)
