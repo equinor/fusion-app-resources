@@ -4,6 +4,7 @@ using Fusion.Resources.Api.Notifications.Markdown;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Notifications;
 using MediatR;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,13 +31,12 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(ContractRoleDelegated notification, CancellationToken cancellationToken)
         {
-            var delegatedRole = await mediator.Send(new Domain.GetContractDelegatedRole(notification.RoleId));
+            var delegatedRole = await mediator.Send(new GetContractDelegatedRole(notification.RoleId));
 
             if (delegatedRole == null)
                 return;
 
-
-            await notificationClient.CreateNotificationAsync(notification => notification
+            await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(delegatedRole.Person.AzureUniqueId)
                     .WithTitle($"You were delegated {delegatedRole.Type} role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name}")
                     .WithDescriptionMarkdown(NotificationDescription.DelegateAssigned(delegatedRole)));
@@ -44,13 +44,12 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(DelegatedContractRoleRecertified notification, CancellationToken cancellationToken)
         {
-            var delegatedRole = await mediator.Send(new Domain.GetContractDelegatedRole(notification.RoleId));
+            var delegatedRole = await mediator.Send(new GetContractDelegatedRole(notification.RoleId));
 
             if (delegatedRole == null)
                 return;
 
-
-            await notificationClient.CreateNotificationAsync(notification => notification
+            await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(delegatedRole.Person.AzureUniqueId)
                     .WithTitle($"Your delegated role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name} was recertified")
                     .WithDescriptionMarkdown(NotificationDescription.DelegateRecertified(delegatedRole)));
@@ -58,57 +57,35 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(CompanyRepUpdated notification, CancellationToken cancellationToken)
         {
-            var position = await orgApiClient.GetPositionV2Async(notification.PositionId);
-            var instance = position?.GetActiveInstance();
-
-            if (position == null || instance == null || instance.AssignedPerson == null || instance.AssignedPerson.AzureUniqueId == null)
-                return;
-
-            await notificationClient.CreateNotificationAsync(notification => notification
-                .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle("You were allocated as Company Rep")
-                .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
+            await CreateNotificationForPositionAsync(notification.PositionId, "You were allocated as Company Rep");
         }
 
         public async Task Handle(ContractRepUpdated notification, CancellationToken cancellationToken)
         {
-            var position = await orgApiClient.GetPositionV2Async(notification.PositionId);
-            var instance = position?.GetActiveInstance();
-
-            if (position == null || instance == null || instance.AssignedPerson == null || instance.AssignedPerson.AzureUniqueId == null)
-                return;
-
-            await notificationClient.CreateNotificationAsync(notification => notification
-                .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle("You were allocated as Contract Rep")
-                .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
+            await CreateNotificationForPositionAsync(notification.PositionId, "You were allocated as Contract Rep");
         }
 
         public async Task Handle(ExternalCompanyRepUpdated notification, CancellationToken cancellationToken)
         {
-            var position = await orgApiClient.GetPositionV2Async(notification.PositionId);
-            var instance = position?.GetActiveInstance();
-
-            if (position == null || instance == null || instance.AssignedPerson == null || instance.AssignedPerson.AzureUniqueId == null)
-                return;
-
-            await notificationClient.CreateNotificationAsync(notification => notification
-                .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle("You were allocated as External Company Rep")
-                .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
+            await CreateNotificationForPositionAsync(notification.PositionId, "You were allocated as External Company Rep");
         }
 
         public async Task Handle(ExternalContractRepUpdated notification, CancellationToken cancellationToken)
         {
-            var position = await orgApiClient.GetPositionV2Async(notification.PositionId);
+            await CreateNotificationForPositionAsync(notification.PositionId, "You were allocated as External Contract Rep");
+        }
+
+        private async Task CreateNotificationForPositionAsync(Guid positionId, string title)
+        {
+            var position = await orgApiClient.GetPositionV2Async(positionId);
             var instance = position?.GetActiveInstance();
 
             if (position == null || instance?.AssignedPerson?.AzureUniqueId == null)
                 return;
 
-            await notificationClient.CreateNotificationAsync(notification => notification
+            await notificationClient.CreateNotificationAsync(n => n
                 .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle($"You were allocated as External Contract Rep")
+                .WithTitle(title)
                 .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
         }
 
