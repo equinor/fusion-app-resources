@@ -48,7 +48,7 @@ namespace Fusion.Resources.Api
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
                 options.AddFusionRoles();
-                options.AddFusionNotifications();
+                options.AddFusionNotifications(options => options.OriginatingAppKey = "resources");
 
                 options.UseDefaultEndpointResolver(Configuration["FUSION_ENVIRONMENT"] ?? "ci");
                 options.UseDefaultTokenProvider(opts =>
