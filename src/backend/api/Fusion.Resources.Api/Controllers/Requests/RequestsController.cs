@@ -16,7 +16,6 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class RequestsController : ResourceControllerBase
     {
-
         /// <summary>
         /// 
         /// OData:
@@ -25,6 +24,7 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         /// <param name="projectIdentifier"></param>
         /// <param name="contractIdentifier"></param>
+        /// <param name="query"></param>
         /// <returns></returns>
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query)
@@ -283,6 +283,10 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
 
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+
             using (var scope = await BeginTransactionAsync())
             {
                 await DispatchAsync(new Logic.Commands.ContractorPersonnelRequest.Delete(requestId));
@@ -304,6 +308,9 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControl();
                 });
             });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
 
             using (var scope = await BeginTransactionAsync())
             {
