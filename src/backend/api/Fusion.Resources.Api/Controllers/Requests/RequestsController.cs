@@ -16,7 +16,6 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class RequestsController : ResourceControllerBase
     {
-
         /// <summary>
         /// 
         /// OData:
@@ -25,6 +24,7 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         /// <param name="projectIdentifier"></param>
         /// <param name="contractIdentifier"></param>
+        /// <param name="query"></param>
         /// <returns></returns>
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query)
