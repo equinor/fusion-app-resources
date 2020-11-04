@@ -198,9 +198,9 @@ namespace Fusion.Resources.Api.Notifications
         private class NotificationDescription
         {
             public static string RequestCreatedAsync(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
+                .Paragraph($"Request was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail}.")
                 .Paragraph($"Please review and follow up request in Resources")
                 .List(l => l
-                    .ListItem($"{MdToken.Bold("Created by:")} {request.CreatedBy?.Name} ({request.CreatedBy?.Mail}")
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")
                     .ListItem($"{MdToken.Bold("Contract name:")} {request.Contract?.Name}")
                     .ListItem($"{MdToken.Bold("Contract number:")} {request.Contract?.ContractNumber}"))
