@@ -8,6 +8,11 @@
             public const string People = "App.People";
             public const string Resources = "App.Resources";
         }
+
+        public static class Microsoft
+        {
+            public static string Graph = "Graph.App";
+        }
     }
 
 }

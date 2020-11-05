@@ -13,7 +13,7 @@ namespace Fusion.Resources.Functions.Integration.Http.Handlers
     public class FunctionHttpMessageHandler : DelegatingHandler
     {
         protected readonly ILogger logger;
-        private readonly ITokenProvider tokenProvider;
+        protected readonly ITokenProvider tokenProvider;
         private readonly IServiceDiscovery serviceDiscovery;
 
         public FunctionHttpMessageHandler(ILogger logger, ITokenProvider tokenProvider, IServiceDiscovery serviceDiscovery)

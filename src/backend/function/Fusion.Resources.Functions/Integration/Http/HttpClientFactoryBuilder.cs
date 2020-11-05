@@ -71,6 +71,19 @@ namespace Fusion.Resources.Functions.Integration.Http
 
             return this;
         }
+        public HttpClientFactoryBuilder AddGraphClient()
+        {
+            services.AddTransient<GraphAppMessageHandler>();
+            services.AddHttpClient(HttpClientNames.Microsoft.Graph, client =>
+                {
+                    client.BaseAddress = new Uri("https://graph.microsoft.com");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<GraphAppMessageHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
 
 
         private readonly TimeSpan[] DefaultSleepDurations = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) };

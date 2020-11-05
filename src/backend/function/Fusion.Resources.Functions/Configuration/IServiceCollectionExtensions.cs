@@ -41,6 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddOrgClient();
             builder.AddPeopleClient();
             builder.AddResourcesClient();
+            builder.AddGraphClient();
 
             return services;
         }

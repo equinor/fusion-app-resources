@@ -18,11 +18,13 @@ namespace Fusion.Resources.Functions.Functions
     {
         private readonly HttpClient peopleClient;
         private readonly HttpClient resourcesClient;
+        private readonly HttpClient graphClient;
 
         public ProfileSync(IHttpClientFactory httpClientFactory)
         {
             peopleClient = httpClientFactory.CreateClient(HttpClientNames.Application.People);
             resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
+            graphClient = httpClientFactory.CreateClient(HttpClientNames.Microsoft.Graph);
         }
 
         [FunctionName("profile-sync-event")]
@@ -39,7 +41,7 @@ namespace Fusion.Resources.Functions.Functions
 
             var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new { });
 
-            if (refreshResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (refreshResponse.StatusCode == HttpStatusCode.NotFound)
             {
                 log.LogWarning($"Person with email '{body.Person.Mail}' not found in Resources");
                 return;
@@ -66,12 +68,97 @@ namespace Fusion.Resources.Functions.Functions
 
             log.LogInformation("Reading external person personnel with NoAccount or InviteSent from Resources API");
 
-            var response = await resourcesClient.GetAsync($"resources/personnel?$filter=azureAdStatus in ('NoAccount','InviteSent')");
+            var response = await resourcesClient.GetAsync($"resources/personnel?$filter=azureAdStatus in ('NoAccount','InviteSent')", cancellationToken);
             response.EnsureSuccessStatusCode();
-
             var body = await response.Content.ReadAsStringAsync();
-            var personnel = JsonConvert.DeserializeAnonymousType(body, new { Value = new List<ApiPersonnel>() });
-            var mailsToEnsure = personnel.Value
+            var personnel = JsonConvert.DeserializeAnonymousType(body, new { Value = new List<ApiPersonnel>() }).Value;
+
+            if (personnel.Any())
+            {
+                var refreshFailed = await SynchronizeProfiles(log, personnel);
+
+                if (refreshFailed)
+                    throw new Exception("Failed to refresh all profiles successfully. See log for details.");
+            }
+
+            log.LogInformation("Profiles sync run successfully completed");
+        }
+
+        /// <summary>
+        /// Syncing invited profiles every 30 minute, checking for change in external user state
+        /// </summary>
+        [Singleton]
+        [FunctionName("profile-invited-sync")]
+        public async Task SyncInvitedProfiles([TimerTrigger("0 */30 * * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        {
+            log.LogInformation("Profile invited sync starting run");
+            log.LogInformation("Reading external person personnel with InviteSent from Resources API");
+
+            var filter = $"?$filter=azureAdStatus in ('{ApiAccountStatus.InviteSent}')";
+            var response = await resourcesClient.GetAsync($"resources/personnel{filter}", cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            var personnel = JsonConvert.DeserializeAnonymousType(body, new { Value = new List<ApiPersonnel>() }).Value;
+
+            if (personnel.Any())
+            {
+                log.LogInformation("Looking up personnel in MS-Graph API");
+                var acceptedGraphUsers = await GetGraphGuestUsersWithAcceptedUserState(personnel, log, cancellationToken);
+
+                log.LogInformation("Identify changed users to be refreshed");
+                var toBeSynced = IdentifyUsersToBeSynchronized(personnel, acceptedGraphUsers);
+
+                if (toBeSynced.Any())
+                {
+                    var refreshFailed = await SynchronizeProfiles(log, toBeSynced);
+
+                    if (refreshFailed)
+                        throw new Exception("Failed to refresh all profiles successfully. See log for details.");
+                }
+            }
+
+            log.LogInformation("Profiles sync run successfully completed");
+        }
+
+        private static List<ApiPersonnel> IdentifyUsersToBeSynchronized(IEnumerable<ApiPersonnel> personnel, List<GraphUser> userList)
+        {
+            var list = new List<ApiPersonnel>();
+            foreach (var apiPersonnel in personnel)
+            {
+                var userToBeSynced = userList.FirstOrDefault(x => x.Mail.Equals(apiPersonnel.Mail, StringComparison.InvariantCultureIgnoreCase));
+                if (userToBeSynced != null)
+                {
+                    list.Add(apiPersonnel);
+                }
+            }
+            return list;
+        }
+
+        private async Task<List<GraphUser>> GetGraphGuestUsersWithAcceptedUserState(IEnumerable<ApiPersonnel> personnel, ILogger log, CancellationToken cancellationToken)
+        {
+            var graphUsers = new List<GraphUser>();
+            foreach (var apiPersonnel in personnel)
+            {
+                var resp = await graphClient.GetAsync($"/beta/users/{apiPersonnel.Mail}?$select=id,mail,userType,externalUserState", cancellationToken);
+                var respData = await resp.Content.ReadAsStringAsync();
+                if (!resp.IsSuccessStatusCode)
+                {
+                    log.LogWarning(respData);
+                    continue;
+                }
+                var user = JsonConvert.DeserializeObject<GraphUser>(respData);
+
+                if (user.ExternalUserState.Equals($"{InvitationStatus.Accepted}", StringComparison.InvariantCultureIgnoreCase) && user.UserType.Equals("Guest", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    graphUsers.Add(user);
+                }
+            }
+            return graphUsers;
+        }
+
+        private async Task<bool> SynchronizeProfiles(ILogger log, List<ApiPersonnel> personnel)
+        {
+            var mailsToEnsure = personnel
                 .Where(p => !string.IsNullOrWhiteSpace(p.Mail))
                 .Select(p => p.Mail)
                 .Distinct()
@@ -88,12 +175,13 @@ namespace Fusion.Resources.Functions.Functions
             foreach (var person in ensuredPeople)
             {
                 log.LogInformation($"Processing person '{person.Identifier}'");
-                var resourcesPerson = personnel.Value.FirstOrDefault(p => p.Mail == person.Identifier);
+                var resourcesPerson = personnel.FirstOrDefault(p => p.Mail == person.Identifier);
 
-                if (!InvitationStatusMatches(person.Person.InvitationStatus, resourcesPerson.AzureAdStatus))
+                if (resourcesPerson != null && !InvitationStatusMatches(person.Person.InvitationStatus, resourcesPerson.AzureAdStatus))
                 {
                     log.LogInformation($"Detected change in profile '{resourcesPerson.Mail}'. Initiating refresh.");
-                    var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { });
+                    var refreshResponse =
+                        await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { });
 
                     if (refreshResponse.StatusCode == HttpStatusCode.NotFound) //not found should only be warning
                     {
@@ -101,17 +189,14 @@ namespace Fusion.Resources.Functions.Functions
                     }
                     else if (!refreshResponse.IsSuccessStatusCode)
                     {
-                        body = await refreshResponse.Content.ReadAsStringAsync();
+                        var body = await refreshResponse.Content.ReadAsStringAsync();
                         log.LogError($"Failed to refresh '{person.Identifier}': {refreshResponse.StatusCode} - {body}");
                         refreshFailed = true;
                     }
                 }
             }
 
-            if (refreshFailed)
-                throw new Exception("Failed to refresh all personell successfully. See log for details.");
-
-            log.LogInformation("Profiles sync run successfully completed");
+            return refreshFailed;
         }
 
         private async Task<List<PersonValidationResult>> EnsurePeople(List<string> mailsToEnsure)
@@ -142,6 +227,14 @@ namespace Fusion.Resources.Functions.Functions
             return false;
         }
 
+        internal class GraphUser
+        {
+            public Guid Id { get; set; }
+            public string Mail { get; set; }
+            public string UserType { get; set; }
+            public string ExternalUserState { get; set; }
+        }
+
         public class PersonValidationResult
         {
             public bool Success { get; set; }
@@ -167,8 +260,5 @@ namespace Fusion.Resources.Functions.Functions
 
         public enum InvitationStatus { Accepted, Pending, NotSent }
         public enum ApiAccountStatus { Available, InviteSent, NoAccount }
-
-
-
     }
 }
