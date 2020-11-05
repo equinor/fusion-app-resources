@@ -89,7 +89,7 @@ namespace Fusion.Resources.Functions.Functions
         /// </summary>
         [Singleton]
         [FunctionName("profile-invited-sync")]
-        public async Task SyncInvitedProfiles([TimerTrigger("0 */30 * * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        public async Task SyncInvitedProfiles([TimerTrigger("0 */30 * * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
             log.LogInformation("Profile invited sync starting run");
             log.LogInformation("Reading external person personnel with InviteSent from Resources API");
