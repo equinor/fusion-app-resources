@@ -148,7 +148,10 @@ namespace Fusion.Resources.Functions.Functions
                 }
                 var user = JsonConvert.DeserializeObject<GraphUser>(respData);
 
-                if (user.ExternalUserState.Equals($"{InvitationStatus.Accepted}", StringComparison.InvariantCultureIgnoreCase) && user.UserType.Equals("Guest", StringComparison.InvariantCultureIgnoreCase))
+                if (user.UserType != null && 
+                    user.ExternalUserState != null && 
+                    user.ExternalUserState.Equals($"{InvitationStatus.Accepted}", StringComparison.InvariantCultureIgnoreCase) && 
+                    user.UserType.Equals("Guest", StringComparison.InvariantCultureIgnoreCase))
                 {
                     graphUsers.Add(user);
                 }
