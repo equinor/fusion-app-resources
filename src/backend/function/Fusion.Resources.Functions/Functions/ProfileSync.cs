@@ -139,7 +139,14 @@ namespace Fusion.Resources.Functions.Functions
             var graphUsers = new List<GraphUser>();
             foreach (var apiPersonnel in personnel)
             {
-                var resp = await graphClient.GetAsync($"/beta/users/{apiPersonnel.Mail}?$select=id,mail,userType,externalUserState", cancellationToken);
+                // External affiliate users should be identified by azure unique id, email doesn't work.
+                var identifier = apiPersonnel.AzureUniquePersonId.HasValue ? apiPersonnel.AzureUniquePersonId.Value.ToString() : apiPersonnel.Mail;
+                if (string.IsNullOrEmpty(identifier))
+                {
+                    log.LogError($"Unable to resolve personnel without valid identifier. Observed for personnel with id {apiPersonnel.Id}");
+                }
+
+                var resp = await graphClient.GetAsync($"/beta/users/{identifier}?$select=id,mail,userType,externalUserState", cancellationToken);
                 var respData = await resp.Content.ReadAsStringAsync();
                 if (!resp.IsSuccessStatusCode)
                 {
@@ -148,9 +155,9 @@ namespace Fusion.Resources.Functions.Functions
                 }
                 var user = JsonConvert.DeserializeObject<GraphUser>(respData);
 
-                if (user.UserType != null && 
-                    user.ExternalUserState != null && 
-                    user.ExternalUserState.Equals($"{InvitationStatus.Accepted}", StringComparison.InvariantCultureIgnoreCase) && 
+                if (user.UserType != null &&
+                    user.ExternalUserState != null &&
+                    user.ExternalUserState.Equals($"{InvitationStatus.Accepted}", StringComparison.InvariantCultureIgnoreCase) &&
                     user.UserType.Equals("Guest", StringComparison.InvariantCultureIgnoreCase))
                 {
                     graphUsers.Add(user);
