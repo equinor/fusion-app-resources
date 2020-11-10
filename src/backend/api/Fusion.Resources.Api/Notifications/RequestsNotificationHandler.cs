@@ -18,8 +18,8 @@ namespace Fusion.Resources.Api.Notifications
 {
     public class RequestsNotificationHandler :
         INotificationHandler<RequestCreated>,
-        INotificationHandler<RequestApprovedByCompany>,
-        INotificationHandler<RequestApprovedByContractor>,
+        //INotificationHandler<RequestApprovedByCompany>,
+        //INotificationHandler<RequestApprovedByContractor>,
         INotificationHandler<RequestDeclinedByCompany>,
         INotificationHandler<RequestDeclinedByContractor>
     {
@@ -49,7 +49,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(notification => notification
                     .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} created")
+                    .WithTitle($"Request for {request.Position.Name} is pending your approval")
                     .WithDescriptionMarkdown(NotificationDescription.RequestCreatedAsync(request, requestsUrl)));
             }
         }
@@ -105,7 +105,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 await notificationClient.CreateNotificationAsync(n => n
                     .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} was approved")
+                    .WithTitle($"Request for {request.Position.Name} is pending your approval")
                     .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request, requestsUrl, notification.ApprovedBy)));
             }
         }
@@ -198,7 +198,7 @@ namespace Fusion.Resources.Api.Notifications
         private class NotificationDescription
         {
             public static string RequestCreatedAsync(QueryPersonnelRequest request, string? activeRequestsUrl) => new MarkdownDocument()
-                .Paragraph($"Request was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail}.")
+                .Paragraph($"Request was created by {request.CreatedBy?.Name} ({request.CreatedBy?.Mail}).")
                 .Paragraph($"Please review and follow up request in Resources")
                 .List(l => l
                     .ListItem($"{MdToken.Bold("Project:")} {request.Project?.Name}")

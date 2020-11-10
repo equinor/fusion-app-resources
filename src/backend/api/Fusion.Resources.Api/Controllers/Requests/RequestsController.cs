@@ -2,10 +2,13 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Database;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +19,44 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class RequestsController : ResourceControllerBase
     {
+        //[HttpGet("/resources/requests")]
+        //public async Task<ActionResult> GetRequests([FromQuery] ODataQueryParams queryParams, [FromServices] ResourcesDbContext dbContext)
+        //{
+        //    if (!queryParams.HasFilter)
+        //    {
+        //        return FusionApiError.IllegalAction("FilterIsMandatory", "OData filter must be applied to limit number of rows returned");
+        //    }
+
+        //    var authResult = await Request.RequireAuthorizationAsync(r =>
+        //    {
+        //        r.AlwaysAccessWhen().FullControl();
+        //        r.AnyOf(or => or.BeTrustedApplication());
+        //    });
+
+        //    if (authResult.Unauthorized)
+        //        return authResult.CreateForbiddenResponse();
+
+        //    var results = await dbContext.ContractorRequests
+        //        .AsQueryable()
+        //        .ApplyODataFilters(queryParams, m =>
+        //        {
+        //            m.MapField("lastActivity", m => m.LastActivity);
+        //            m.MapField("state", m => m.State);
+        //            m.MapField("category", e => e.Category);
+
+        //            m.MapField("createdBy.azureUniquePersonId", e => e.CreatedBy.AzureUniqueId);
+        //            m.MapField("createdBy.mail", e => e.CreatedBy.Mail);
+        //            m.MapField("created", e => e.Created);
+        //            m.MapField("updatedBy.azureUniquePersonId", e => e.CreatedBy.AzureUniqueId);
+        //            m.MapField("updatedBy.mail", e => e.CreatedBy.Mail);
+        //            m.MapField("updated", e => e.Created);
+        //        })
+        //        .ToListAsync();
+
+        //    var queryResults =  results.Select(r => new QueryPersonnelRequest(r))
+        //    return Ok(results.Select(r => new ApiContractPersonnelRequest()))
+        //}
+
         /// <summary>
         /// 
         /// OData:
@@ -27,7 +68,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="query"></param>
         /// <returns></returns>
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -55,7 +96,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromQuery]ODataQueryParams query)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -96,7 +137,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
         {
 
             #region Authorization
@@ -148,7 +189,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
         {
             #region Authorization
 
@@ -186,7 +227,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> ApproveContractorPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> ApproveContractorPersonnelRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
 
@@ -226,7 +267,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/reject")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractorPersonnelRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RejectRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractorPersonnelRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RejectRequestRequest request)
         {
             if (request == null)
                 return await FusionApiError.NoBodyFoundAsync(Request);
@@ -269,7 +310,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractorRequestById([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractorRequestById([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -298,7 +339,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/provision")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> ProvisionContractorRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> ProvisionContractorRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -325,7 +366,7 @@ namespace Fusion.Resources.Api.Controllers
         #region Comments
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments")]
-        public async Task<ActionResult> AddRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
+        public async Task<ActionResult> AddRequestComment([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
         {
             #region Authorization
 
@@ -352,7 +393,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
         public async Task<ActionResult> UpdateRequestComment(
-            [FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+            [FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -365,7 +406,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
                 r.Must().BeCommentAuthor(comment);
-                
+
                 // Not sure if these are even evaluated, if the comment author req is not successfull.
                 // Should be looked at when testing comment functionality.                
                 r.AnyOf(or =>
@@ -387,7 +428,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult> DeleteRequestComment([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId)
+        public async Task<ActionResult> DeleteRequestComment([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -423,7 +464,7 @@ namespace Fusion.Resources.Api.Controllers
         #region Options
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult> CheckAccessCreateRequests([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult> CheckAccessCreateRequests([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -447,7 +488,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult> CheckAccessUpdateRequest([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult> CheckAccessUpdateRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -470,7 +511,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/actions/{actionName}")]
-        public async Task<ActionResult> CheckAccessRequestAction([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, string actionName)
+        public async Task<ActionResult> CheckAccessRequestAction([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, string actionName)
         {
             var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
 
