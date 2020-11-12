@@ -16,6 +16,11 @@
     "Endpoints_org": "https://pro-s-org-ci.azurewebsites.net",
     "Endpoints_resources": "https://localhost:44330",
 
-    "Endpoints:Resources:Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
+    "Endpoints:Resources:Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b",
+
+    "AzureWebJobs.profile-sync.Disabled": "true",
+    "AzureWebJobs.profile-sync-event.Disabled": "true",
+    "AzureWebJobs.provision-position-request.Disabled": "true"
+    //"AzureWebJobs.request-summary-notification.Disabled": "true"
   }
 }

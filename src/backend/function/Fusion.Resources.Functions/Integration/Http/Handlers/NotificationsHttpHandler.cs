@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Functions.Integration.Http.Handlers
 {
-    public class ResourcesHttpHandler : FunctionHttpMessageHandler
+    public class NotificationsHttpHandler : FunctionHttpMessageHandler
     {
         private readonly IOptions<HttpClientsOptions> options;
 
-        public ResourcesHttpHandler(ILoggerFactory logger, ITokenProvider tokenProvider, IServiceDiscovery serviceDiscovery, IOptions<HttpClientsOptions> options)
-            : base(logger.CreateLogger<ResourcesHttpHandler>(), tokenProvider, serviceDiscovery)
+        public NotificationsHttpHandler(ILoggerFactory loggerFactory, ITokenProvider tokenProvider, IServiceDiscovery serviceDiscovery, IOptions<HttpClientsOptions> options)
+        : base(loggerFactory.CreateLogger<NotificationsHttpHandler>(), tokenProvider, serviceDiscovery)
         {
             this.options = options;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            await SetEndpointUriForRequestAsync(request, ServiceEndpoint.Resources);
+            await SetEndpointUriForRequestAsync(request, ServiceEndpoint.Org);
             await AddAuthHeaderForRequestAsync(request, options.Value.Fusion);
 
             return await base.SendAsync(request, cancellationToken);

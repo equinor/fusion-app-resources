@@ -86,6 +86,7 @@ namespace Fusion.Resources.Domain.Queries
                     {
                         m.MapField("state", e => e.State);
                         m.MapField("category", e => e.Category);
+                        m.MapField("lastActivity", e => e.LastActivity);
 
                         m.MapField("createdBy.azureUniquePersonId", e => e.CreatedBy.AzureUniqueId);
                         m.MapField("createdBy.mail", e => e.CreatedBy.Mail);

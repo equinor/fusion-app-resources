@@ -81,6 +81,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
                     or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
+                    or.BeTrustedApplication();
                 });
             });
 

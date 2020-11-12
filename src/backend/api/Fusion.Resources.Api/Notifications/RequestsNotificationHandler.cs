@@ -17,8 +17,8 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Api.Notifications
 {
     public class RequestsNotificationHandler :
-        INotificationHandler<RequestCreated>,
-        //INotificationHandler<RequestApprovedByCompany>,
+        //INotificationHandler<RequestCreated>,
+        INotificationHandler<RequestApprovedByCompany>,
         //INotificationHandler<RequestApprovedByContractor>,
         INotificationHandler<RequestDeclinedByCompany>,
         INotificationHandler<RequestDeclinedByContractor>
