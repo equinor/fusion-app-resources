@@ -1,4 +1,6 @@
-﻿using Fusion.Resources.Functions.TableStorage;
+﻿using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.Functions.Notifications;
+using Fusion.Resources.Functions.TableStorage;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,10 @@ namespace Fusion.Resources.Functions
             });
 
             builder.Services.AddSingleton<TableStorageClient>();
+            builder.Services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
+            builder.Services.AddScoped<INotificationApiClient, NotificationApiClient>();
+            builder.Services.AddScoped<ISentNotificationsTableClient, SentNotificationsTableClient>();
+            builder.Services.AddScoped<RequestNotificationSender>();
             builder.Services.AddServiceResolver();
             builder.Services.AddHttpClients();
             builder.Services.AddOrgApiClient(HttpClientNames.Application.Org);

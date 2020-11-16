@@ -18,7 +18,7 @@ namespace Fusion.Resources.Functions.Integration.Http.Handlers
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            await SetEndpointUriForRequestAsync(request, ServiceEndpoint.Org);
+            await SetEndpointUriForRequestAsync(request, ServiceEndpoint.Notifications);
             await AddAuthHeaderForRequestAsync(request, options.Value.Fusion);
 
             return await base.SendAsync(request, cancellationToken);

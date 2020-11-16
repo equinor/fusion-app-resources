@@ -31,4 +31,9 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Fusion.Resources.Functions.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>
