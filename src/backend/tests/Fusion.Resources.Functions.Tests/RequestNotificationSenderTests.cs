@@ -9,21 +9,57 @@ namespace Fusion.Resources.Functions.Test
     public class RequestNotificationSenderTests
     {
         [Fact]
-        public async Task ProcessNotifications_ShouldNotifyDelegateRole_WhenCreatedRequestIsPending()
+        public async Task ProcessNotifications_ShouldNotifyCompanyRep_IfSet_WhenApprovedByExternalRequestIsPending()
         {
             var senderWithMocks = new IsolatedNotificationSender();
             var testContract = senderWithMocks.CreateTestContract();
 
-            //add a test request with last activity 3 hours ago
-            var testRequest = senderWithMocks.CreateTestRequest(testContract, DateTime.Now.AddHours(-3), "Created");
+            _ = senderWithMocks.CreateTestRequest(testContract, DateTime.UtcNow.AddHours(-2), "SubmittedToCompany");
+            var companyRepInstance = testContract.CompanyRep.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
 
-            //set delay to 2 hours, the requests should be processed
-            var delegatedRole = senderWithMocks.CreateExternalDelegate(testContract, 120);
+            //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
+            if (companyRepInstance?.AssignedPerson?.AzureUniqueId != null)
+            {
+                senderWithMocks.SetDelayForUser(companyRepInstance.AssignedPerson.AzureUniqueId.Value, 60);
 
-            await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
 
-            senderWithMocks.NotificationsMock.Verify(n => n
-                .PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                senderWithMocks.NotificationsMock.Verify(n => n
+                    .PostNewNotificationAsync(companyRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            }
+            else
+            {
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
+                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            }
+        }
+
+        [Fact]
+        public async Task ProcessNotifications_ShouldNotifyContractRep_IfSet_WhenApprovedByExternalRequestIsPending()
+        {
+            var senderWithMocks = new IsolatedNotificationSender();
+            var testContract = senderWithMocks.CreateTestContract();
+
+            _ = senderWithMocks.CreateTestRequest(testContract, DateTime.UtcNow.AddHours(-2), "SubmittedToCompany");
+            var contractRepInstance = testContract.ContractRep.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
+
+            //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
+            if (contractRepInstance?.AssignedPerson?.AzureUniqueId != null)
+            {
+                senderWithMocks.SetDelayForUser(contractRepInstance.AssignedPerson.AzureUniqueId.Value, 60);
+
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
+                senderWithMocks.NotificationsMock.Verify(n => n
+                    .PostNewNotificationAsync(contractRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            }
+            else
+            {
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
+                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            }
         }
 
         [Theory]
@@ -126,6 +162,25 @@ namespace Fusion.Resources.Functions.Test
 
             senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
+
+        [Fact]
+        public async Task ProcessNotifications_ShouldNotifyDelegateRole_WhenCreatedRequestIsPending()
+        {
+            var senderWithMocks = new IsolatedNotificationSender();
+            var testContract = senderWithMocks.CreateTestContract();
+
+            //add a test request with last activity 3 hours ago
+            var testRequest = senderWithMocks.CreateTestRequest(testContract, DateTime.Now.AddHours(-3), "Created");
+
+            //set delay to 2 hours, the requests should be processed
+            var delegatedRole = senderWithMocks.CreateExternalDelegate(testContract, 120);
+
+            await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
+            senderWithMocks.NotificationsMock.Verify(n => n
+                .PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
     }
 }
 

@@ -40,32 +40,6 @@ namespace Fusion.Resources.Functions.Test
             NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, loggerFactoryMock.Object);
         }
 
-        internal ApiPositionV2 CreateExternalCRPosition(Guid? activeAssignedPersonId = null)
-        {
-            activeAssignedPersonId ??= Guid.NewGuid();
-            var testPosition = PositionBuilder.NewPosition();
-
-            //randomize assigned person on position, only need the Id in this test
-            testPosition.Instances.ForEach(i => i.AssignedPerson = new ApiPersonV2 { AzureUniqueId = activeAssignedPersonId });
-            var activeInstance = testPosition.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
-
-            //no active instances, we need this to identify who to notify
-            if (activeInstance is null)
-            {
-                var instance = PositionInstanceBuilder.CreateInstance().Generate();
-                instance.AppliesFrom = DateTime.Now.AddYears(-1);
-                instance.AppliesTo = DateTime.Now.AddYears(1);
-                instance.AssignedPerson = new ApiPersonV2 { AzureUniqueId = activeAssignedPersonId };
-                testPosition.Instances.Add(instance);
-            }
-
-            NotificationsMock
-                .Setup(n => n.PostNewNotificationAsync(activeInstance.AssignedPerson.AzureUniqueId.GetValueOrDefault(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(true);
-
-            return testPosition;
-        }
-
         internal IResourcesApiClient.DelegatedRole CreateExternalDelegate(ApiProjectContractV2 testContract, int delayInMinutes)
         {
             var delegatedRole = new IResourcesApiClient.DelegatedRole
@@ -82,11 +56,6 @@ namespace Fusion.Resources.Functions.Test
             return delegatedRole;
         }
 
-        internal void SetDelayForUser(Guid azureId, int delayInMinutes)
-        {
-            NotificationsMock.Setup(n => n.GetDelayForUserAsync(azureId)).ReturnsAsync(delayInMinutes);
-        }
-
         internal IResourcesApiClient.DelegatedRole CreateInternalDelegate(IResourcesApiClient.ProjectContract testContract, int delayInMinutes)
         {
             var delegatedRole = new IResourcesApiClient.DelegatedRole
@@ -101,6 +70,11 @@ namespace Fusion.Resources.Functions.Test
             SetDelayForUser(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), delayInMinutes);
 
             return delegatedRole;
+        }
+
+        internal void SetDelayForUser(Guid azureId, int delayInMinutes)
+        {
+            NotificationsMock.Setup(n => n.GetDelayForUserAsync(azureId)).ReturnsAsync(delayInMinutes);
         }
 
         internal void SetRequestNotificationSent(Guid requestId, Guid personAzureId)
