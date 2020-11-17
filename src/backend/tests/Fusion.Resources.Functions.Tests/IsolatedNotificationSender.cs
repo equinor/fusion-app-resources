@@ -1,4 +1,5 @@
 ﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications;
 using Fusion.Testing.Mocks.OrgService;
@@ -76,10 +77,14 @@ namespace Fusion.Resources.Functions.Test
             ResourcesMock.Setup(r => r.RetrieveDelegatesForContractAsync(It.Is<IResourcesApiClient.ProjectContract>(c => c.Id == testContract.Id)))
                 .ReturnsAsync(new List<IResourcesApiClient.DelegatedRole> { delegatedRole });
 
-            NotificationsMock.Setup(n => n.GetDelayForUserAsync(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault()))
-                .ReturnsAsync(delayInMinutes);
+            SetDelayForUser(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), delayInMinutes);
 
             return delegatedRole;
+        }
+
+        internal void SetDelayForUser(Guid azureId, int delayInMinutes)
+        {
+            NotificationsMock.Setup(n => n.GetDelayForUserAsync(azureId)).ReturnsAsync(delayInMinutes);
         }
 
         internal IResourcesApiClient.DelegatedRole CreateInternalDelegate(IResourcesApiClient.ProjectContract testContract, int delayInMinutes)
@@ -93,8 +98,7 @@ namespace Fusion.Resources.Functions.Test
             ResourcesMock.Setup(r => r.RetrieveDelegatesForContractAsync(testContract))
                 .ReturnsAsync(new List<IResourcesApiClient.DelegatedRole> { delegatedRole });
 
-            NotificationsMock.Setup(n => n.GetDelayForUserAsync(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault()))
-                .ReturnsAsync(delayInMinutes);
+            SetDelayForUser(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), delayInMinutes);
 
             return delegatedRole;
         }
@@ -135,9 +139,16 @@ namespace Fusion.Resources.Functions.Test
                 .FirstOrDefault()
                 .Item1;
 
+            //make sure a dummy person is assigned to the instances of the Rep position, to be able to send notifications
+            contract.CompanyRep.Instances.ForEach(i => i.SetAssignedPerson(new ApiPersonProfileV3 { AzureUniqueId = Guid.NewGuid() }));
+            contract.ContractRep.Instances.ForEach(i => i.SetAssignedPerson(new ApiPersonProfileV3 { AzureUniqueId = Guid.NewGuid() }));
+            contract.ExternalCompanyRep.Instances.ForEach(i => i.SetAssignedPerson(new ApiPersonProfileV3 { AzureUniqueId = Guid.NewGuid() }));
+            contract.ExternalContractRep.Instances.ForEach(i => i.SetAssignedPerson(new ApiPersonProfileV3 { AzureUniqueId = Guid.NewGuid() }));
+
             var testContract = new IResourcesApiClient.ProjectContract
             {
                 Id = contract.Id,
+                ProjectId = projectBuilder.Project.ProjectId,
                 ProjectName = projectBuilder.Project.Name,
                 ContractNumber = contract.ContractNumber,
                 Name = contract.Name,
@@ -148,7 +159,7 @@ namespace Fusion.Resources.Functions.Test
             };
 
             ResourcesMock.Setup(r => r.GetProjectContractsAsync()).ReturnsAsync(new List<IResourcesApiClient.ProjectContract> { testContract });
-            OrgClientMock.Setup(r => r.GetContractV2Async(projectBuilder.Project.ProjectId, contract.Id))
+            OrgClientMock.Setup(r => r.GetContractV2Async(It.Is<OrgProjectId>(op => op.ProjectId == projectBuilder.Project.ProjectId), contract.Id))
                 .ReturnsAsync(contract);
 
             return contract;

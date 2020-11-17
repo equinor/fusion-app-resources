@@ -26,58 +26,81 @@ namespace Fusion.Resources.Functions.Test
                 .PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
-        [Fact]
-        public async Task ProcessNotifications_ShouldNotifyExternalCompanyRep_IfSet_WhenCreatedRequestIsPending()
+        [Theory]
+        [InlineData(90, 60)]
+        [InlineData(21, 20)]
+        [InlineData(900, 5)]
+        public async Task ProcessNotifications_ShouldNotifyExternalCompanyRep_IfSet_WhenCreatedRequestIsPending(int minutesSinceLastActivity, int delay)
         {
             var senderWithMocks = new IsolatedNotificationSender();
             var testContract = senderWithMocks.CreateTestContract();
 
+            _ = senderWithMocks.CreateTestRequest(testContract, DateTime.Now.AddMinutes(-minutesSinceLastActivity), "Created");
             var extCompRepInstance = testContract.ExternalCompanyRep.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
 
-            await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
+            //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
             if (extCompRepInstance?.AssignedPerson?.AzureUniqueId != null)
             {
+                senderWithMocks.SetDelayForUser(extCompRepInstance.AssignedPerson.AzureUniqueId.Value, delay);
+
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
                 senderWithMocks.NotificationsMock.Verify(n => n
                     .PostNewNotificationAsync(extCompRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             }
             else
             {
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
                 senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             }
         }
 
-        [Fact]
-        public async Task ProcessNotifications_ShouldNotifyExternalContractRep_IfSet_WhenCreatedRequestIsPending()
-        {
-            var senderWithMocks = new IsolatedNotificationSender();
-            var testContract = senderWithMocks.CreateTestContract();
-            var extContractRepInstance = testContract.ExternalContractRep.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
-
-            await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
-            if (extContractRepInstance?.AssignedPerson?.AzureUniqueId != null)
-            {
-                senderWithMocks.NotificationsMock.Verify(n => n
-                    .PostNewNotificationAsync(extContractRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            }
-            else
-            {
-                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            }
-        }
-
-        [Fact]
-        public async Task ProcessNotifications_ShouldNOTNotifyDelegateRole_WhenRequestsAreNewerThanDelay()
+        [Theory]
+        [InlineData(90, 60)]
+        [InlineData(21, 20)]
+        [InlineData(900, 5)]
+        public async Task ProcessNotifications_ShouldNotifyExternalContractRep_IfSet_WhenCreatedRequestIsPending(int minutesSinceLastActivity, int delay)
         {
             var senderWithMocks = new IsolatedNotificationSender();
             var testContract = senderWithMocks.CreateTestContract();
 
             //add a test request with last activity 2 hours ago
-            _ = senderWithMocks.CreateTestRequest(testContract, DateTime.Now.AddHours(-2), "Created");
+            _ = senderWithMocks.CreateTestRequest(testContract, DateTime.Now.AddMinutes(-minutesSinceLastActivity), "Created");
+            var extContractRepInstance = testContract.ExternalContractRep.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
+
+            //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
+            if (extContractRepInstance?.AssignedPerson?.AzureUniqueId != null)
+            {
+                senderWithMocks.SetDelayForUser(extContractRepInstance.AssignedPerson.AzureUniqueId.Value, delay);
+
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
+                senderWithMocks.NotificationsMock.Verify(n => n
+                    .PostNewNotificationAsync(extContractRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            }
+            else
+            {
+                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
+                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            }
+        }
+
+        [Theory]
+        [InlineData(90, 120)]
+        [InlineData(1, 2)]
+        [InlineData(2, 850)]
+        public async Task ProcessNotifications_ShouldNOTNotifyDelegateRole_WhenRequestsAreNewerThanDelay(int minutesSinceLastActivity, int delay)
+        {
+            var senderWithMocks = new IsolatedNotificationSender();
+            var testContract = senderWithMocks.CreateTestContract();
+
+            //add a test request with last activity 2 hours ago
+            _ = senderWithMocks.CreateTestRequest(testContract, DateTime.Now.AddMinutes(-minutesSinceLastActivity), "Created");
 
             //set delay to 2.5 hours, the requests should NOT be processed
-            _ = senderWithMocks.CreateExternalDelegate(testContract, 150);
+            _ = senderWithMocks.CreateExternalDelegate(testContract, delay);
 
             await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
 
