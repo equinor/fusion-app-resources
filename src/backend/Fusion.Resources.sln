@@ -43,7 +43,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.OrgSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Testing.Mocks.ContextService", "tests\Fusion.Testing.Mocks.ContextService\Fusion.Testing.Mocks.ContextService.csproj", "{77835023-8755-4A75-B395-7CBD6BAA3D70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fusion.Resources.Functions.Test", "tests\Fusion.Resources.Functions.Test\Fusion.Resources.Functions.Test.csproj", "{A3F3DA56-16A1-4ABA-9D4F-FE53F2D01216}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fusion.Resources.Functions.Tests", "tests\Fusion.Resources.Functions.Tests\Fusion.Resources.Functions.Tests.csproj", "{328044CD-FA1F-46FE-B273-108B157A9D41}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,10 +115,10 @@ Global
 		{77835023-8755-4A75-B395-7CBD6BAA3D70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77835023-8755-4A75-B395-7CBD6BAA3D70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77835023-8755-4A75-B395-7CBD6BAA3D70}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A3F3DA56-16A1-4ABA-9D4F-FE53F2D01216}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A3F3DA56-16A1-4ABA-9D4F-FE53F2D01216}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A3F3DA56-16A1-4ABA-9D4F-FE53F2D01216}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A3F3DA56-16A1-4ABA-9D4F-FE53F2D01216}.Release|Any CPU.Build.0 = Release|Any CPU
+		{328044CD-FA1F-46FE-B273-108B157A9D41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{328044CD-FA1F-46FE-B273-108B157A9D41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{328044CD-FA1F-46FE-B273-108B157A9D41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{328044CD-FA1F-46FE-B273-108B157A9D41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -140,7 +140,7 @@ Global
 		{471EBA1F-067D-44D5-92B8-FB80016D7290} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 		{A54602CE-2240-40AC-9B7C-CB47BC9EF999} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 		{77835023-8755-4A75-B395-7CBD6BAA3D70} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
-		{A3F3DA56-16A1-4ABA-9D4F-FE53F2D01216} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
+		{328044CD-FA1F-46FE-B273-108B157A9D41} = {D12DC33D-BB83-40E4-9F36-18F59351A21D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F47D8FDB-3919-45C8-8C08-486405ECEC01}

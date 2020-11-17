@@ -124,12 +124,13 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                 recipients.Add(externalContractRep.AssignedPerson.AzureUniqueId.Value);
 
             var delegates = await resourcesApiClient.RetrieveDelegatesForContractAsync(projectContract);
-            var distinctDelegates = delegates
+            var distinctDelegates = delegates?
                 .Where(d => d.Person?.AzureUniquePersonId != null && d.Classification == "External" && !recipients.Contains(d.Person.AzureUniquePersonId.Value))
                 .Select(d => d.Person.AzureUniquePersonId.Value)
                 .Distinct();
 
-            recipients.AddRange(distinctDelegates);
+            if (distinctDelegates != null)
+                recipients.AddRange(distinctDelegates);
 
             log.LogInformation($"Calculated the following recipients: [{string.Join(",", recipients)}]");
 

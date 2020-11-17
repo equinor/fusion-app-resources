@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\function\Fusion.Resources.Functions\Fusion.Resources.Functions.csproj" />
+    <ProjectReference Include="..\Fusion.Testing.Mocks.OrgService\Fusion.Testing.Mocks.OrgService.csproj" />
   </ItemGroup>
 
 </Project>

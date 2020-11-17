@@ -26,8 +26,8 @@ namespace Fusion.Testing.Mocks.OrgService
         }
 
         public ApiProjectContractV2 Contract => contract;
-        public IEnumerable<ApiPositionV2> Positions 
-        { 
+        public IEnumerable<ApiPositionV2> Positions
+        {
             get
             {
                 var serialized = JsonConvert.SerializeObject(positions);
@@ -54,7 +54,7 @@ namespace Fusion.Testing.Mocks.OrgService
                 });
 
                 return deserialized;
-            } 
+            }
         }
 
         public FusionTestContractBuilder(ApiProjectContractV2 contract)
@@ -108,15 +108,15 @@ namespace Fusion.Testing.Mocks.OrgService
         public FusionTestContractBuilder WithExternalCompanyRep(ApiPositionV2 position = null)
         {
             contract.ExternalCompanyRep = position ?? OrgTestData.Position();
-            positions.Add(position);            
+            positions.Add(contract.ExternalCompanyRep);
 
             return this;
         }
 
         public FusionTestContractBuilder WithExternalContractRep(ApiPositionV2 position = null)
         {
-            contract.ExternalContractRep= position ?? OrgTestData.Position();
-            positions.Add(position);
+            contract.ExternalContractRep = position ?? OrgTestData.Position();
+            positions.Add(contract.ExternalContractRep);
             return this;
         }
     }

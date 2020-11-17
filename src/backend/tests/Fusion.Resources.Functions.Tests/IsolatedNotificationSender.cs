@@ -1,9 +1,12 @@
-﻿using Fusion.Resources.Functions.ApiClients;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications;
+using Fusion.Testing.Mocks.OrgService;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Fusion.Resources.Functions.Test
 {
@@ -36,7 +39,33 @@ namespace Fusion.Resources.Functions.Test
             NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, loggerFactoryMock.Object);
         }
 
-        internal IResourcesApiClient.DelegatedRole CreateExternalDelegate(IResourcesApiClient.ProjectContract testContract, int delayInMinutes)
+        internal ApiPositionV2 CreateExternalCRPosition(Guid? activeAssignedPersonId = null)
+        {
+            activeAssignedPersonId ??= Guid.NewGuid();
+            var testPosition = PositionBuilder.NewPosition();
+
+            //randomize assigned person on position, only need the Id in this test
+            testPosition.Instances.ForEach(i => i.AssignedPerson = new ApiPersonV2 { AzureUniqueId = activeAssignedPersonId });
+            var activeInstance = testPosition.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
+
+            //no active instances, we need this to identify who to notify
+            if (activeInstance is null)
+            {
+                var instance = PositionInstanceBuilder.CreateInstance().Generate();
+                instance.AppliesFrom = DateTime.Now.AddYears(-1);
+                instance.AppliesTo = DateTime.Now.AddYears(1);
+                instance.AssignedPerson = new ApiPersonV2 { AzureUniqueId = activeAssignedPersonId };
+                testPosition.Instances.Add(instance);
+            }
+
+            NotificationsMock
+                .Setup(n => n.PostNewNotificationAsync(activeInstance.AssignedPerson.AzureUniqueId.GetValueOrDefault(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(true);
+
+            return testPosition;
+        }
+
+        internal IResourcesApiClient.DelegatedRole CreateExternalDelegate(ApiProjectContractV2 testContract, int delayInMinutes)
         {
             var delegatedRole = new IResourcesApiClient.DelegatedRole
             {
@@ -44,7 +73,7 @@ namespace Fusion.Resources.Functions.Test
                 Person = new IResourcesApiClient.Person { AzureUniquePersonId = Guid.NewGuid(), Mail = "external.user@contractor.com" }
             };
 
-            ResourcesMock.Setup(r => r.RetrieveDelegatesForContractAsync(testContract))
+            ResourcesMock.Setup(r => r.RetrieveDelegatesForContractAsync(It.Is<IResourcesApiClient.ProjectContract>(c => c.Id == testContract.Id)))
                 .ReturnsAsync(new List<IResourcesApiClient.DelegatedRole> { delegatedRole });
 
             NotificationsMock.Setup(n => n.GetDelayForUserAsync(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault()))
@@ -75,7 +104,7 @@ namespace Fusion.Resources.Functions.Test
             TableMock.Setup(tm => tm.NotificationWasSentAsync(requestId, personAzureId)).ReturnsAsync(true);
         }
 
-        internal IResourcesApiClient.PersonnelRequest CreateTestRequest(IResourcesApiClient.ProjectContract testContract, DateTimeOffset lastActivity, string state)
+        internal IResourcesApiClient.PersonnelRequest CreateTestRequest(ApiProjectContractV2 testContract, DateTimeOffset lastActivity, string state)
         {
             var testRequest = new IResourcesApiClient.PersonnelRequest
             {
@@ -86,30 +115,43 @@ namespace Fusion.Resources.Functions.Test
                 Position = new IResourcesApiClient.PersonnelRequest.RequestPosition { AppliesFrom = DateTime.Now.AddYears(-1), AppliesTo = DateTime.Now.AddYears(1), Name = "Unit tester" }
             };
 
-            ResourcesMock.Setup(r => r.GetTodaysContractRequests(testContract, state))
+            ResourcesMock.Setup(r => r.GetTodaysContractRequests(It.Is<IResourcesApiClient.ProjectContract>(c => c.Id == testContract.Id), state))
                 .ReturnsAsync(new IResourcesApiClient.PersonnelRequestList { Value = new List<IResourcesApiClient.PersonnelRequest> { testRequest } });
 
             return testRequest;
         }
 
-        internal IResourcesApiClient.ProjectContract CreateTestContract()
+        internal ApiProjectContractV2 CreateTestContract()
         {
+            var projectBuilder = new FusionTestProjectBuilder()
+                .WithContract(c => c
+                    .WithPositions()
+                    .WithCompanyRep()
+                    .WithContractRep()
+                    .WithExternalCompanyRep()
+                    .WithExternalContractRep());
+
+            var contract = projectBuilder.ContractsWithPositions
+                .FirstOrDefault()
+                .Item1;
+
             var testContract = new IResourcesApiClient.ProjectContract
             {
-                Id = Guid.NewGuid(),
-                ProjectId = Guid.NewGuid(),
-                ProjectName = "Test notifications project",
-                ContractNumber = "123456",
-                Name = "Test notifications contract",
-                CompanyRepPositionId = Guid.NewGuid(),
-                ContractResponsiblePositionId = Guid.NewGuid(),
-                ExternalCompanyRepPositionId = Guid.NewGuid(),
-                ExternalContractResponsiblePositionId = Guid.NewGuid()
+                Id = contract.Id,
+                ProjectName = projectBuilder.Project.Name,
+                ContractNumber = contract.ContractNumber,
+                Name = contract.Name,
+                CompanyRepPositionId = contract.CompanyRep?.Id,
+                ContractResponsiblePositionId = contract.ContractRep?.Id,
+                ExternalCompanyRepPositionId = contract.ExternalCompanyRep?.Id,
+                ExternalContractResponsiblePositionId = contract.ExternalContractRep?.Id
             };
 
             ResourcesMock.Setup(r => r.GetProjectContractsAsync()).ReturnsAsync(new List<IResourcesApiClient.ProjectContract> { testContract });
+            OrgClientMock.Setup(r => r.GetContractV2Async(projectBuilder.Project.ProjectId, contract.Id))
+                .ReturnsAsync(contract);
 
-            return testContract;
+            return contract;
         }
     }
 }
