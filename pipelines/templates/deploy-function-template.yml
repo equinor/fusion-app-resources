@@ -44,7 +44,7 @@ steps:
               org = "https://pro-s-org-$fusionEnvironment.azurewebsites.net"
               people = "https://pro-s-people-$fusionEnvironment.azurewebsites.net"
               resources = "https://resources-api.$environment.fusion-dev.net/"
-              notification = "https://pro-s-notificatons-$fusionEnvironment.azurewebsites.net"
+              notifications = "https://pro-s-notificatons-$fusionEnvironment.azurewebsites.net"
               context = "https://pro-s-context-$fusionEnvironment.azurewebsites.net"
               portal = "https://pro-s-portal-$fusionEnvironment.azurewebsites.net"
           }
