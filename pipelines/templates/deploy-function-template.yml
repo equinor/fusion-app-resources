@@ -44,6 +44,9 @@ steps:
               org = "https://pro-s-org-$fusionEnvironment.azurewebsites.net"
               people = "https://pro-s-people-$fusionEnvironment.azurewebsites.net"
               resources = "https://resources-api.$environment.fusion-dev.net/"
+              notification = "https://pro-s-notificatons-$fusionEnvironment.azurewebsites.net"
+              context = "https://pro-s-context-$fusionEnvironment.azurewebsites.net",
+              portal = "https://pro-s-portal-$fusionEnvironment.azurewebsites.net"
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
@@ -51,6 +54,10 @@ steps:
           queues = @{
               provisionPosition = "provision-position"
           }
+      }
+
+      if ($fusionEnvironment -eq "fprd") {
+            $settings.endpoints.portal = "https://fusion.equinor.com"
       }
 
       New-AzResourceGroupDeployment -Mode Incremental -Name "resources-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `

@@ -14,7 +14,10 @@
             "endpoints": {
                 "org": "https://pro-s-org-ci.azurewebsites.net",
                 "people": "https://pro-s-people-ci.azurewebsites.net",
-                "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]"
+                "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
+                "notifications": "https://pro-s-notification-ci.azurewebsites.net",
+                "context": "https://pro-s-context-ci.azurewebsites.net",
+                "portal": "https://pro-s-portal-ci.azurewebsites.net"
             },
             "resources": {
                 "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
@@ -109,6 +112,18 @@
             {
               "name": "Endpoints_resources",
               "value": "[parameters('settings').endpoints.resources]"
+            },
+            {
+              "name": "Endpoints_notifications",
+              "value": "[parameters('settings').endpoints.notifications]"
+            },            
+            {
+              "name": "Endpoints_context",
+              "value": "[parameters('settings').endpoints.context]"
+            },
+            {
+              "name": "Endpoints_portal",
+              "value": "[parameters('settings').endpoints.portal]"
             },
             {
               "name": "Endpoints_Resources_Fusion",
