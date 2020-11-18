@@ -24,7 +24,10 @@ namespace Fusion.Resources.Functions
             builder.Services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
             builder.Services.AddScoped<INotificationApiClient, NotificationApiClient>();
             builder.Services.AddScoped<ISentNotificationsTableClient, SentNotificationsTableClient>();
+            builder.Services.AddScoped<IContextApiClient, ContextApiClient>();
+            builder.Services.AddScoped<IUrlResolver, UrlResolver>();
             builder.Services.AddScoped<RequestNotificationSender>();
+
             builder.Services.AddServiceResolver();
             builder.Services.AddHttpClients();
             builder.Services.AddOrgApiClient(HttpClientNames.Application.Org);

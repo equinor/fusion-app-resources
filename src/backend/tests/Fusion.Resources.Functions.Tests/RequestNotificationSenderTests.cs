@@ -17,21 +17,13 @@ namespace Fusion.Resources.Functions.Test
             _ = senderWithMocks.CreateTestRequest(testContract, DateTime.UtcNow.AddHours(-2), "SubmittedToCompany");
             var companyRepInstance = testContract.CompanyRep.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
 
+            await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
             //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
             if (companyRepInstance?.AssignedPerson?.AzureUniqueId != null)
             {
-                senderWithMocks.SetDelayForUser(companyRepInstance.AssignedPerson.AzureUniqueId.Value, 60);
-
-                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
                 senderWithMocks.NotificationsMock.Verify(n => n
                     .PostNewNotificationAsync(companyRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            }
-            else
-            {
-                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
-                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             }
         }
 
@@ -44,21 +36,13 @@ namespace Fusion.Resources.Functions.Test
             _ = senderWithMocks.CreateTestRequest(testContract, DateTime.UtcNow.AddHours(-2), "SubmittedToCompany");
             var contractRepInstance = testContract.ContractRep.Instances.FirstOrDefault(i => i.AppliesFrom < DateTime.UtcNow.Date && i.AppliesTo > DateTime.UtcNow.Date);
 
+            await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
+
             //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
             if (contractRepInstance?.AssignedPerson?.AzureUniqueId != null)
             {
-                senderWithMocks.SetDelayForUser(contractRepInstance.AssignedPerson.AzureUniqueId.Value, 60);
-
-                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
                 senderWithMocks.NotificationsMock.Verify(n => n
                     .PostNewNotificationAsync(contractRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            }
-            else
-            {
-                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
-                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             }
         }
 
@@ -83,12 +67,6 @@ namespace Fusion.Resources.Functions.Test
 
                 senderWithMocks.NotificationsMock.Verify(n => n
                     .PostNewNotificationAsync(extCompRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            }
-            else
-            {
-                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
-                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             }
         }
 
@@ -115,12 +93,6 @@ namespace Fusion.Resources.Functions.Test
                 senderWithMocks.NotificationsMock.Verify(n => n
                     .PostNewNotificationAsync(extContractRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             }
-            else
-            {
-                await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
-                senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            }
         }
 
         [Theory]
@@ -136,11 +108,11 @@ namespace Fusion.Resources.Functions.Test
             _ = senderWithMocks.CreateTestRequest(testContract, DateTime.Now.AddMinutes(-minutesSinceLastActivity), "Created");
 
             //set delay to 2.5 hours, the requests should NOT be processed
-            _ = senderWithMocks.CreateExternalDelegate(testContract, delay);
+            var delegatedRole = senderWithMocks.CreateExternalDelegate(testContract, delay);
 
             await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
 
-            senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -160,7 +132,7 @@ namespace Fusion.Resources.Functions.Test
 
             await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
 
-            senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]

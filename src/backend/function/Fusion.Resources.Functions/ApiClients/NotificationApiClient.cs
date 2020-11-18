@@ -38,15 +38,15 @@ namespace Fusion.Resources.Functions.ApiClients
             return true;
         }
 
-        public async Task<int?> GetDelayForUserAsync(Guid azureUniqueId)
+        public async Task<int> GetDelayForUserAsync(Guid azureUniqueId)
         {
             var settingsResponse = await notificationsClient.GetAsync($"persons/{azureUniqueId}/notifications/settings");
             var body = await settingsResponse.Content.ReadAsStringAsync();
 
             if (!settingsResponse.IsSuccessStatusCode)
             {
-                log.LogWarning($"Unable to retrieve settings for '{azureUniqueId}'");
-                return null;
+                log.LogWarning($"Unable to retrieve settings for '{azureUniqueId}'. Defaulting to 60 minutes");
+                return 60;
             }
 
             var bodyJson = JsonConvert.DeserializeAnonymousType(body, new { Delay = 0 });

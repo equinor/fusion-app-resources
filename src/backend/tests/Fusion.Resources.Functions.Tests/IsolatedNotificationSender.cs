@@ -31,13 +31,15 @@ namespace Fusion.Resources.Functions.Test
 
             ResourcesMock = new Mock<IResourcesApiClient>();
             NotificationsMock = new Mock<INotificationApiClient>();
+            NotificationsMock.Setup(n => n.GetDelayForUserAsync(It.IsAny<Guid>())).ReturnsAsync(60); //default delay to 60 for all users unless bypassed
             TableMock = new Mock<ISentNotificationsTableClient>();
+            var urlResolverMock = new Mock<IUrlResolver>();
 
             var loggerMock = new Mock<ILogger>();
             var loggerFactoryMock = new Mock<ILoggerFactory>();
             loggerFactoryMock.Setup(m => m.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
 
-            NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, loggerFactoryMock.Object);
+            NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, urlResolverMock.Object, loggerFactoryMock.Object);
         }
 
         internal IResourcesApiClient.DelegatedRole CreateExternalDelegate(ApiProjectContractV2 testContract, int delayInMinutes)

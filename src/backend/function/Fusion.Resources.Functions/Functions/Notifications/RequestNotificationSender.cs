@@ -1,13 +1,10 @@
 ﻿using Fusion.Resources.Functions.ApiClients;
-using Fusion.Resources.Functions.TableStorage;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
+
 
 namespace Fusion.Resources.Functions.Functions.Notifications
 {
@@ -17,18 +14,21 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         private readonly IResourcesApiClient resourcesApiClient;
         private readonly INotificationApiClient notificationApiClient;
         private readonly ISentNotificationsTableClient sentNotificationsClient;
+        private readonly IUrlResolver urlResolver;
         private readonly ILogger<RequestNotificationSender> log;
 
         public RequestNotificationSender(IOrgApiClientFactory orgApiClientFactory,
             IResourcesApiClient resourcesApiClient,
             INotificationApiClient notificationApiClient,
             ISentNotificationsTableClient sentNotificationsClient,
+            IUrlResolver urlResolver,
             ILoggerFactory loggerFactory)
         {
             orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             this.resourcesApiClient = resourcesApiClient;
             this.notificationApiClient = notificationApiClient;
             this.sentNotificationsClient = sentNotificationsClient;
+            this.urlResolver = urlResolver;
             log = loggerFactory.CreateLogger<RequestNotificationSender>();
         }
 
@@ -38,76 +38,120 @@ namespace Fusion.Resources.Functions.Functions.Notifications
 
             foreach (var projectContract in projectContracts)
             {
+                log.LogInformation($"Proccessing contract '{projectContract.Name}' ({projectContract.Id}) in project '{projectContract.ProjectName}' ({projectContract.ProjectId})");
+
                 var approvers = await CalculateExternalCRRecipientsAsync(projectContract);
+                var requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, "Created");
 
-                foreach (var recipient in approvers)
+                if (requestList?.Value?.Any() ?? false)
+                    await NotifyApprovers(projectContract, approvers, requestList);
+
+                approvers = await CalculateInternalCRRecipientsAsync(projectContract);
+                requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, "SubmittedToCompany");
+
+                if (requestList?.Value?.Any() ?? false)
+                    await NotifyApprovers(projectContract, approvers, requestList);
+            }
+        }
+
+        private async Task NotifyApprovers(IResourcesApiClient.ProjectContract projectContract, List<Guid> approvers, IResourcesApiClient.PersonnelRequestList requestList)
+        {
+            foreach (var recipient in approvers)
+            {
+                var delay = await notificationApiClient.GetDelayForUserAsync(recipient);
+
+                log.LogInformation($"Current delay is '{delay}' mins");
+
+                var pendingRequests = new List<IResourcesApiClient.PersonnelRequest>();
+
+                foreach (var request in requestList?.Value)
                 {
-                    var delay = await notificationApiClient.GetDelayForUserAsync(recipient);
-
-                    if (delay is null)
+                    if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < delay)
                     {
-                        log.LogWarning($"Skipping notification");
+                        log.LogInformation($"Skipping request '{request.Id}' with lastActivity = '{request.LastActivity}'");
                         continue;
                     }
 
-                    log.LogInformation($"Current delay is '{delay}' mins");
-
-                    var pendingRequests = new List<IResourcesApiClient.PersonnelRequest>();
-                    var requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, "Created");
-
-                    foreach (var request in requestList.Value)
+                    if (await sentNotificationsClient.NotificationWasSentAsync(request.Id, recipient))
                     {
-                        if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < delay)
-                        {
-                            log.LogInformation($"Skipping request '{request.Id}' with lastActivity = '{request.LastActivity}'");
-                            continue;
-                        }
-
-                        if (await sentNotificationsClient.NotificationWasSentAsync(request.Id, recipient))
-                        {
-                            log.LogInformation($"Request '{request.Id}' was already notified for '{recipient}'");
-                            continue;
-                        }
-
-                        pendingRequests.Add(request);
+                        log.LogInformation($"Request '{request.Id}' was already notified for '{recipient}'");
+                        continue;
                     }
 
-                    var notificationBody = new MarkdownDocument()
-                    .Paragraph($"Please review and follow up request in Resources")
-                    .List(l => l
-                        .ListItem($"{MdToken.Bold("Project:")} {projectContract.ProjectName}")
-                        .ListItem($"{MdToken.Bold("Contract name:")} {projectContract.Name}")
-                        .ListItem($"{MdToken.Bold("Contract number:")} {projectContract.ContractNumber}"))
-                    .LinkParagraph("Open Resources active requests", "InsertUrlHere")
-                    .Paragraph(MdToken.Newline())
-                    .Paragraph("These are the pending requests:")
-                    .List(list =>
+                    pendingRequests.Add(request);
+                }
+
+                var notificationBody = CreateNotificationBody(projectContract, pendingRequests);
+
+                if (pendingRequests.Any())
+                {
+                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody);
+
+                    //add to "sent" table when successfully notified
+                    if (successfull)
                     {
                         foreach (var request in pendingRequests)
                         {
-                            //{person} as {postitle} from {fromdate} to {toDate}
-                            list.ListItem($"{MdToken.Bold($"{request.Person.Name} ({request.Person.Mail})")} " +
-                                $"as {MdToken.Bold($"{request.Position.Name}")} " +
-                                $"from {request.Position.AppliesFrom} to {request.Position.AppliesTo}");
-                        }
-                    })
-                    .Build();
-
-                    if (pendingRequests.Any())
-                    {
-                        var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody);
-
-                        //add to "sent" table when successfully notified
-                        if (successfull)
-                        {
-                            foreach (var request in pendingRequests)
-                            {
-                                await sentNotificationsClient.AddToSentNotifications(request.Id, recipient);
-                            }
+                            await sentNotificationsClient.AddToSentNotifications(request.Id, recipient);
                         }
                     }
                 }
             }
+
+        }
+
+        private string CreateNotificationBody(IResourcesApiClient.ProjectContract projectContract, List<IResourcesApiClient.PersonnelRequest> pendingRequests)
+        {
+            var url = urlResolver.ResolveActiveRequests(projectContract);
+
+            var notificationBody = new MarkdownDocument()
+            .Paragraph($"Please review and follow up request in Resources")
+            .List(l => l
+                .ListItem($"{MdToken.Bold("Project:")} {projectContract.ProjectName}")
+                .ListItem($"{MdToken.Bold("Contract name:")} {projectContract.Name}")
+                .ListItem($"{MdToken.Bold("Contract number:")} {projectContract.ContractNumber}"))
+            .LinkParagraph("Open Resources active requests", url)
+            .Paragraph(MdToken.Newline())
+            .Paragraph("These are the pending requests:")
+            .List(list =>
+            {
+                foreach (var request in pendingRequests)
+                {
+                    //{person} as {postitle} from {fromdate} to {toDate}
+                    list.ListItem($"{MdToken.Bold($"{request.Person.Name} ({request.Person.Mail})")} " +
+                $"as {MdToken.Bold($"{request.Position.Name}")} " +
+                $"from {request.Position.AppliesFrom} to {request.Position.AppliesTo}");
+                }
+            })
+            .Build();
+            return notificationBody;
+        }
+
+        private async Task<List<Guid>> CalculateInternalCRRecipientsAsync(IResourcesApiClient.ProjectContract projectContract)
+        {
+            var recipients = new List<Guid>();
+            var orgContract = await orgApiClient.GetContractV2Async(projectContract.ProjectId, projectContract.Id);
+            var internalCompanyRep = orgContract?.CompanyRep?.Instances?.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
+            var internalContractRep = orgContract?.ContractRep?.Instances?.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
+
+            if (internalCompanyRep?.AssignedPerson?.AzureUniqueId != null)
+                recipients.Add(internalCompanyRep.AssignedPerson.AzureUniqueId.Value);
+
+            if (internalContractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(internalContractRep.AssignedPerson.AzureUniqueId.Value))
+                recipients.Add(internalContractRep.AssignedPerson.AzureUniqueId.Value);
+
+            var delegates = await resourcesApiClient.RetrieveDelegatesForContractAsync(projectContract);
+            var distinctDelegates = delegates?
+                .Where(d => d.Person?.AzureUniquePersonId != null && d.Classification == "Internal" && !recipients.Contains(d.Person.AzureUniquePersonId.Value))
+                .Select(d => d.Person.AzureUniquePersonId.Value)
+                .Distinct();
+
+            if (distinctDelegates != null)
+                recipients.AddRange(distinctDelegates);
+
+            log.LogInformation($"Calculated the following internal CR recipients: [{string.Join(",", recipients)}]");
+
+            return recipients;
         }
 
         private async Task<List<Guid>> CalculateExternalCRRecipientsAsync(IResourcesApiClient.ProjectContract projectContract)
@@ -132,11 +176,10 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             if (distinctDelegates != null)
                 recipients.AddRange(distinctDelegates);
 
-            log.LogInformation($"Calculated the following recipients: [{string.Join(",", recipients)}]");
+            log.LogInformation($"Calculated the following external CR recipients: [{string.Join(",", recipients)}]");
 
             return recipients;
         }
-
     }
 }
 
