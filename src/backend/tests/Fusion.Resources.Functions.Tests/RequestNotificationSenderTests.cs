@@ -22,8 +22,7 @@ namespace Fusion.Resources.Functions.Test
             //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
             if (companyRepInstance?.AssignedPerson?.AzureUniqueId != null)
             {
-                senderWithMocks.NotificationsMock.Verify(n => n
-                    .PostNewNotificationAsync(companyRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                senderWithMocks.AssertNotificationSent(companyRepInstance.AssignedPerson.AzureUniqueId.Value, Times.Once);
             }
         }
 
@@ -41,8 +40,7 @@ namespace Fusion.Resources.Functions.Test
             //since we use bogus data, we might not get an active instance. If so, then no notification should be sent.
             if (contractRepInstance?.AssignedPerson?.AzureUniqueId != null)
             {
-                senderWithMocks.NotificationsMock.Verify(n => n
-                    .PostNewNotificationAsync(contractRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                senderWithMocks.AssertNotificationSent(contractRepInstance.AssignedPerson.AzureUniqueId.Value, Times.Once);
             }
         }
 
@@ -65,8 +63,7 @@ namespace Fusion.Resources.Functions.Test
 
                 await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
 
-                senderWithMocks.NotificationsMock.Verify(n => n
-                    .PostNewNotificationAsync(extCompRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                senderWithMocks.AssertNotificationSent(extCompRepInstance.AssignedPerson.AzureUniqueId.Value, Times.Once);
             }
         }
 
@@ -90,8 +87,7 @@ namespace Fusion.Resources.Functions.Test
 
                 await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
 
-                senderWithMocks.NotificationsMock.Verify(n => n
-                    .PostNewNotificationAsync(extContractRepInstance.AssignedPerson.AzureUniqueId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                senderWithMocks.AssertNotificationSent(extContractRepInstance.AssignedPerson.AzureUniqueId.Value, Times.Once);
             }
         }
 
@@ -112,7 +108,7 @@ namespace Fusion.Resources.Functions.Test
 
             await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
 
-            senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            senderWithMocks.AssertNotificationSent(delegatedRole.Person.AzureUniquePersonId.Value, Times.Never);
         }
 
         [Fact]
@@ -131,8 +127,7 @@ namespace Fusion.Resources.Functions.Test
             senderWithMocks.SetRequestNotificationSent(request.Id, delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault());
 
             await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
-            senderWithMocks.NotificationsMock.Verify(n => n.PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.Value, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            senderWithMocks.AssertNotificationSent(delegatedRole.Person.AzureUniquePersonId.Value, Times.Never);
         }
 
         [Fact]
@@ -148,11 +143,8 @@ namespace Fusion.Resources.Functions.Test
             var delegatedRole = senderWithMocks.CreateExternalDelegate(testContract, 120);
 
             await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
-
-            senderWithMocks.NotificationsMock.Verify(n => n
-                .PostNewNotificationAsync(delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            senderWithMocks.AssertNotificationSent(delegatedRole.Person.AzureUniquePersonId.Value, Times.Once);
         }
-
     }
 }
 

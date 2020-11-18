@@ -5,18 +5,18 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Functions.Functions
 {
-    public class RequestSummaryNotification
+    public class NotificationSender
     {
         private readonly RequestNotificationSender requestNotificationSender;
 
-        public RequestSummaryNotification(RequestNotificationSender requestNotificationSender)
+        public NotificationSender(RequestNotificationSender requestNotificationSender)
         {
             this.requestNotificationSender = requestNotificationSender;
         }
 
-
+        [Singleton]
         [FunctionName("request-summary-notification")]
-        public async Task SendRequestSummaryNotification([TimerTrigger("*/5 * * * *", RunOnStartup = true)] TimerInfo timer, ILogger log)
+        public async Task SendRequestSummaryNotification([TimerTrigger("*/55 * * * *", RunOnStartup = false)] TimerInfo timer, ILogger log)
         {
             log.LogInformation("Request notification summary starting");
 

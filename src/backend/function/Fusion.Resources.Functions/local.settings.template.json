@@ -15,6 +15,7 @@
     "Endpoints_people": "https://pro-s-people-ci.azurewebsites.net",
     "Endpoints_org": "https://pro-s-org-ci.azurewebsites.net",
     "Endpoints_resources": "https://localhost:44330",
+    "Endpoints_context": "https://pro-s-context-ci.azurewebsites.net",
     "Endpoints_Resources_Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b",
 
     "Fusion_base_url": "https://pro-s-portal-ci",

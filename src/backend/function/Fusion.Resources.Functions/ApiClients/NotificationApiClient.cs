@@ -17,12 +17,12 @@ namespace Fusion.Resources.Functions.ApiClients
             log = loggerFactory.CreateLogger<NotificationApiClient>();
         }
 
-        public async Task<bool> PostNewNotificationAsync(Guid recipientAzureId, string title, string bodyMarkdown)
+        public async Task<bool> PostNewNotificationAsync(Guid recipientAzureId, string title, string bodyMarkdown, INotificationApiClient.EmailPriority priority = INotificationApiClient.EmailPriority.Default)
         {
             var notification = new
             {
                 AppKey = "resources",
-                Priority = "Default",
+                Priority = priority,
                 Title = title,
                 Description = bodyMarkdown
             };
@@ -54,5 +54,6 @@ namespace Fusion.Resources.Functions.ApiClients
 
             return delay;
         }
+
     }
 }

@@ -42,6 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddPeopleClient();
             builder.AddResourcesClient();
             builder.AddNotificationsClient();
+            builder.AddContextClient();
 
             return services;
         }

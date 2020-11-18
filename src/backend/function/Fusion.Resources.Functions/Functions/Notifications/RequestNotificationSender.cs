@@ -85,11 +85,11 @@ namespace Fusion.Resources.Functions.Functions.Notifications
 
                 if (pendingRequests.Any())
                 {
-                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody);
+                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody, INotificationApiClient.EmailPriority.High);
 
-                    //add to "sent" table when successfully notified
                     if (successfull)
                     {
+                        //add to "sent" table when successfully notified
                         foreach (var request in pendingRequests)
                         {
                             await sentNotificationsClient.AddToSentNotifications(request.Id, recipient);
@@ -97,7 +97,6 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                     }
                 }
             }
-
         }
 
         private string CreateNotificationBody(IResourcesApiClient.ProjectContract projectContract, List<IResourcesApiClient.PersonnelRequest> pendingRequests)

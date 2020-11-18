@@ -7,6 +7,13 @@ namespace Fusion.Resources.Functions.ApiClients
     {
         Task<int> GetDelayForUserAsync(Guid azureUniqueId);
 
-        Task<bool> PostNewNotificationAsync(Guid recipientAzureId, string title, string bodyMarkdown);
+        Task<bool> PostNewNotificationAsync(Guid recipientAzureId, string title, string bodyMarkdown, EmailPriority priority = EmailPriority.Default);
+
+        public enum EmailPriority
+        {
+            High,
+            Default,
+            Low
+        }
     }
 }
