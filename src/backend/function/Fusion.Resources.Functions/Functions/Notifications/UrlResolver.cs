@@ -1,7 +1,7 @@
 ﻿using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Integration.Http;
 using Microsoft.Extensions.Configuration;
-using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Functions.Functions.Notifications
 {
@@ -16,10 +16,10 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             this.configuration = configuration;
         }
 
-        public string ResolveActiveRequests(ProjectContract projectContract)
+        public async Task<string> ResolveActiveRequestsAsync(IResourcesApiClient.ProjectContract projectContract)
         {
             var fusionBaseUrl = configuration.GetValue<string>("Endpoints_portal");
-            var contextId = contextApiClient.ResolveContextIdByExternalId(projectContract.ProjectId.ToString(), "OrgChart");
+            var contextId = await contextApiClient.ResolveContextIdByExternalIdAsync(projectContract.ProjectId.ToString(), "OrgChart");
 
             var url = UrlUtility.CombineUrls(fusionBaseUrl, "apps", "resources", contextId.ToString(), projectContract.Id.ToString());
 

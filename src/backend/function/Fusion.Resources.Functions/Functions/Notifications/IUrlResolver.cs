@@ -1,9 +1,10 @@
 ﻿using Fusion.Resources.Functions.ApiClients;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Functions.Functions.Notifications
 {
     public interface IUrlResolver
     {
-        string ResolveActiveRequests(IResourcesApiClient.ProjectContract projectContract);
+        Task<string> ResolveActiveRequestsAsync(IResourcesApiClient.ProjectContract projectContract);
     }
 }

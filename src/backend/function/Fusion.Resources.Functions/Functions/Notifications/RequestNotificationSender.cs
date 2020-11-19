@@ -81,7 +81,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                     pendingRequests.Add(request);
                 }
 
-                var notificationBody = CreateNotificationBody(projectContract, pendingRequests);
+                var notificationBody = await CreateNotificationBodyAsync(projectContract, pendingRequests);
 
                 if (pendingRequests.Any())
                 {
@@ -99,19 +99,19 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             }
         }
 
-        private string CreateNotificationBody(IResourcesApiClient.ProjectContract projectContract, List<IResourcesApiClient.PersonnelRequest> pendingRequests)
+        private async Task<string> CreateNotificationBodyAsync(IResourcesApiClient.ProjectContract projectContract, List<IResourcesApiClient.PersonnelRequest> pendingRequests)
         {
-            var url = urlResolver.ResolveActiveRequests(projectContract);
+            var url = await urlResolver.ResolveActiveRequestsAsync(projectContract);
 
             var notificationBody = new MarkdownDocument()
             .Paragraph($"Please review and follow up request in Resources")
+            .LinkParagraph("Open Resources active requests", url)
             .List(l => l
                 .ListItem($"{MdToken.Bold("Project:")} {projectContract.ProjectName}")
                 .ListItem($"{MdToken.Bold("Contract name:")} {projectContract.Name}")
                 .ListItem($"{MdToken.Bold("Contract number:")} {projectContract.ContractNumber}"))
-            .LinkParagraph("Open Resources active requests", url)
             .Paragraph(MdToken.Newline())
-            .Paragraph("These are the pending requests:")
+            .Paragraph("Pending requests:")
             .List(list =>
             {
                 foreach (var request in pendingRequests)
@@ -119,7 +119,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                     //{person} as {postitle} from {fromdate} to {toDate}
                     list.ListItem($"{MdToken.Bold($"{request.Person.Name} ({request.Person.Mail})")} " +
                 $"as {MdToken.Bold($"{request.Position.Name}")} " +
-                $"from {request.Position.AppliesFrom} to {request.Position.AppliesTo}");
+                $"from {request.Position.AppliesFrom:dd.MM.yyyy} to {request.Position.AppliesTo:dd.MM.yyyy}");
                 }
             })
             .Build();

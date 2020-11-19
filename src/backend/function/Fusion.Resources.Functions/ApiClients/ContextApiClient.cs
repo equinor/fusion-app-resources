@@ -15,7 +15,7 @@ namespace Fusion.Resources.Functions.ApiClients
             client = httpClientFactory.CreateClient(HttpClientNames.Application.Context);
         }
 
-        public async Task<Guid?> ResolveContextIdByExternalId(string externalId, string contextType = null)
+        public async Task<Guid?> ResolveContextIdByExternalIdAsync(string externalId, string contextType = null)
         {
             var url = $"contexts?$filter=externalId eq '{externalId}'";
 

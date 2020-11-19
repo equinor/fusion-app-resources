@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,18 +7,16 @@ namespace Fusion.Resources.Functions.Integration.Http.Handlers
 {
     public class ResourcesHttpHandler : FunctionHttpMessageHandler
     {
-        private readonly IOptions<HttpClientsOptions> options;
 
-        public ResourcesHttpHandler(ILoggerFactory logger, ITokenProvider tokenProvider, IServiceDiscovery serviceDiscovery, IOptions<HttpClientsOptions> options)
+        public ResourcesHttpHandler(ILoggerFactory logger, ITokenProvider tokenProvider, IServiceDiscovery serviceDiscovery)
             : base(logger.CreateLogger<ResourcesHttpHandler>(), tokenProvider, serviceDiscovery)
         {
-            this.options = options;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             await SetEndpointUriForRequestAsync(request, ServiceEndpoint.Resources);
-            await AddAuthHeaderForRequestAsync(request, options.Value.Fusion);
+            await AddAuthHeaderForRequestAsync(request);
 
             return await base.SendAsync(request, cancellationToken);
         }
