@@ -49,11 +49,9 @@ namespace Fusion.Resources.Functions.ApiClients
                 return 60;
             }
 
-            var bodyJson = JsonConvert.DeserializeAnonymousType(body, new { Delay = 0 });
-            int delay = Math.Max(bodyJson.Delay, 60); //minimum frequency is 60 minutes, otherwise as-configured.
+            var delaySettings = JsonConvert.DeserializeAnonymousType(body, new { Delay = 0 });
 
-            return delay;
+            return delaySettings.Delay;
         }
-
     }
 }

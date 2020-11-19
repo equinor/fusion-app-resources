@@ -16,7 +16,7 @@ namespace Fusion.Resources.Functions.Functions
 
         [Singleton]
         [FunctionName("request-summary-notification")]
-        public async Task SendRequestSummaryNotification([TimerTrigger("*/55 * * * *", RunOnStartup = false)] TimerInfo timer, ILogger log)
+        public async Task SendRequestSummaryNotification([TimerTrigger("*/5 * * * *", RunOnStartup = false)] TimerInfo timer, ILogger log)
         {
             log.LogInformation("Request notification summary starting");
 
