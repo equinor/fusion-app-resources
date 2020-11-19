@@ -104,8 +104,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             var url = await urlResolver.ResolveActiveRequestsAsync(projectContract);
 
             var notificationBody = new MarkdownDocument()
-            .Paragraph($"Please review and follow up request in Resources")
-            .LinkParagraph("Open Resources active requests", url)
+            .LinkParagraph($"Please review and follow up in Resources", url)
             .List(l => l
                 .ListItem($"{MdToken.Bold("Project:")} {projectContract.ProjectName}")
                 .ListItem($"{MdToken.Bold("Contract name:")} {projectContract.Name}")
