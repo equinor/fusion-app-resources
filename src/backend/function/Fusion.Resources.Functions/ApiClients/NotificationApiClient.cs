@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -38,20 +39,28 @@ namespace Fusion.Resources.Functions.ApiClients
             return true;
         }
 
-        public async Task<int> GetDelayForUserAsync(Guid azureUniqueId)
+        public async Task<INotificationApiClient.NotificationSettings> GetSettingsForUser(Guid azureUniqueId)
         {
             var settingsResponse = await notificationsClient.GetAsync($"persons/{azureUniqueId}/notifications/settings");
             var body = await settingsResponse.Content.ReadAsStringAsync();
 
             if (!settingsResponse.IsSuccessStatusCode)
             {
-                log.LogWarning($"Unable to retrieve settings for '{azureUniqueId}'. Defaulting to 60 minutes");
-                return 60;
+                log.LogWarning($"Unable to retrieve settings for '{azureUniqueId}'. Using default settings (enabled, 60 min delay)");
+                return new INotificationApiClient.NotificationSettings(true, 60, true);
             }
 
-            var delaySettings = JsonConvert.DeserializeAnonymousType(body, new { Delay = 0 });
+            var settings = JsonConvert.DeserializeAnonymousType(body, new
+            {
+                Enabled = false,
+                Delay = 0,
+                AppSettings = new[]
+                {
+                    new { AppKey = string.Empty, Enabled = false }
+                }
+            });
 
-            return delaySettings.Delay;
+            return new INotificationApiClient.NotificationSettings(settings.Enabled, settings.Delay, settings.AppSettings.Any(app => app.AppKey == "resources" && app.Enabled));
         }
     }
 }

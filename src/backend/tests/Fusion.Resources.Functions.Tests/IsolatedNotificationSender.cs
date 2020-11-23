@@ -31,7 +31,8 @@ namespace Fusion.Resources.Functions.Test
 
             ResourcesMock = new Mock<IResourcesApiClient>();
             NotificationsMock = new Mock<INotificationApiClient>();
-            NotificationsMock.Setup(n => n.GetDelayForUserAsync(It.IsAny<Guid>())).ReturnsAsync(60); //default delay to 60 for all users unless bypassed
+            NotificationsMock.Setup(n => n.GetSettingsForUser(It.IsAny<Guid>()))
+                .ReturnsAsync(new INotificationApiClient.NotificationSettings(true, 60, true)); //default delay to 60 for all users unless bypassed
             TableMock = new Mock<ISentNotificationsTableClient>();
             var urlResolverMock = new Mock<IUrlResolver>();
 
@@ -76,7 +77,8 @@ namespace Fusion.Resources.Functions.Test
 
         internal void SetDelayForUser(Guid azureId, int delayInMinutes)
         {
-            NotificationsMock.Setup(n => n.GetDelayForUserAsync(azureId)).ReturnsAsync(delayInMinutes);
+            NotificationsMock.Setup(n => n.GetSettingsForUser(azureId))
+                .ReturnsAsync(new INotificationApiClient.NotificationSettings(true, delayInMinutes, true));
         }
 
         internal void SetRequestNotificationSent(Guid requestId, Guid personAzureId)

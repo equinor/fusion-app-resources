@@ -21,7 +21,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             var fusionBaseUrl = configuration.GetValue<string>("Endpoints_portal");
             var contextId = await contextApiClient.ResolveContextIdByExternalIdAsync(projectContract.ProjectId.ToString(), "OrgChart");
 
-            var url = UrlUtility.CombineUrls(fusionBaseUrl, "apps", "resources", contextId.ToString(), projectContract.Id.ToString());
+            var url = UrlUtility.CombineUrls(fusionBaseUrl, "apps", "resources", contextId.ToString(), projectContract.Id.ToString(), "active-requests");
 
             return url;
         }

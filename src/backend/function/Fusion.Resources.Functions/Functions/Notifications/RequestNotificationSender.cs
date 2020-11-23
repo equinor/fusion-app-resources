@@ -58,15 +58,15 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         {
             foreach (var recipient in approvers)
             {
-                var delay = await notificationApiClient.GetDelayForUserAsync(recipient);
+                var settings = await notificationApiClient.GetSettingsForUser(recipient);
 
-                log.LogInformation($"Current delay is '{delay}' mins");
+                log.LogInformation($"Current delay is '{settings}' mins");
 
                 var pendingRequests = new List<IResourcesApiClient.PersonnelRequest>();
 
                 foreach (var request in requestList?.Value)
                 {
-                    if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < delay)
+                    if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < settings.Delay)
                     {
                         log.LogInformation($"Skipping request '{request.Id}' with lastActivity = '{request.LastActivity}'");
                         continue;
@@ -116,9 +116,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                 foreach (var request in pendingRequests)
                 {
                     //{person} as {postitle} from {fromdate} to {toDate}
-                    list.ListItem($"{MdToken.Bold($"{request.Person.Name} ({request.Person.Mail})")} " +
-                $"as {MdToken.Bold($"{request.Position.Name}")} " +
-                $"from {request.Position.AppliesFrom:dd.MM.yyyy} to {request.Position.AppliesTo:dd.MM.yyyy}");
+                    list.ListItem($"{MdToken.Bold($"{request.Person.Name} ({request.Person.Mail})")} as {MdToken.Bold($"{request.Position.Name}")}");
                 }
             })
             .Build();
