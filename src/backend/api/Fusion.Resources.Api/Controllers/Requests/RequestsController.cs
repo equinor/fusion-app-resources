@@ -2,13 +2,10 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
-using Fusion.Resources.Database;
-using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,44 +16,6 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class RequestsController : ResourceControllerBase
     {
-        //[HttpGet("/resources/requests")]
-        //public async Task<ActionResult> GetRequests([FromQuery] ODataQueryParams queryParams, [FromServices] ResourcesDbContext dbContext)
-        //{
-        //    if (!queryParams.HasFilter)
-        //    {
-        //        return FusionApiError.IllegalAction("FilterIsMandatory", "OData filter must be applied to limit number of rows returned");
-        //    }
-
-        //    var authResult = await Request.RequireAuthorizationAsync(r =>
-        //    {
-        //        r.AlwaysAccessWhen().FullControl();
-        //        r.AnyOf(or => or.BeTrustedApplication());
-        //    });
-
-        //    if (authResult.Unauthorized)
-        //        return authResult.CreateForbiddenResponse();
-
-        //    var results = await dbContext.ContractorRequests
-        //        .AsQueryable()
-        //        .ApplyODataFilters(queryParams, m =>
-        //        {
-        //            m.MapField("lastActivity", m => m.LastActivity);
-        //            m.MapField("state", m => m.State);
-        //            m.MapField("category", e => e.Category);
-
-        //            m.MapField("createdBy.azureUniquePersonId", e => e.CreatedBy.AzureUniqueId);
-        //            m.MapField("createdBy.mail", e => e.CreatedBy.Mail);
-        //            m.MapField("created", e => e.Created);
-        //            m.MapField("updatedBy.azureUniquePersonId", e => e.CreatedBy.AzureUniqueId);
-        //            m.MapField("updatedBy.mail", e => e.CreatedBy.Mail);
-        //            m.MapField("updated", e => e.Created);
-        //        })
-        //        .ToListAsync();
-
-        //    var queryResults =  results.Select(r => new QueryPersonnelRequest(r))
-        //    return Ok(results.Select(r => new ApiContractPersonnelRequest()))
-        //}
-
         /// <summary>
         /// 
         /// OData:
