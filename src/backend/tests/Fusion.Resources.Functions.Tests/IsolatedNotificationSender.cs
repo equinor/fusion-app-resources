@@ -42,7 +42,9 @@ namespace Fusion.Resources.Functions.Test
             loggerFactoryMock.Setup(m => m.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
 
             var configMock = new Mock<IConfiguration>();
-            configMock.Setup(c => c["RequestNotifications_min_delay"]).Returns("60");
+            var sectionMock = new Mock<IConfigurationSection>();
+            sectionMock.SetupGet(sm => sm.Value).Returns("0");
+            configMock.Setup(c => c.GetSection(It.IsAny<string>())).Returns(sectionMock.Object);
 
             NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, urlResolverMock.Object, loggerFactoryMock.Object, configMock.Object);
         }
@@ -85,9 +87,9 @@ namespace Fusion.Resources.Functions.Test
                 .ReturnsAsync(new INotificationApiClient.NotificationSettings(true, delayInMinutes, true));
         }
 
-        internal void SetRequestNotificationSent(Guid requestId, Guid personAzureId)
+        internal void SetRequestNotificationSent(Guid requestId, Guid personAzureId, string state)
         {
-            TableMock.Setup(tm => tm.NotificationWasSentAsync(requestId, personAzureId)).ReturnsAsync(true);
+            TableMock.Setup(tm => tm.NotificationWasSentAsync(requestId, personAzureId, state)).ReturnsAsync(true);
         }
 
         internal IResourcesApiClient.PersonnelRequest CreateTestRequest(ApiProjectContractV2 testContract, DateTimeOffset lastActivity, string state)

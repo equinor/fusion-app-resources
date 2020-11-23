@@ -29,17 +29,17 @@ namespace Fusion.Resources.Functions.ApiClients
                 throw new Exception($"Failed to retrieve projects from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}"); //don't display all if body is very large
             }
 
-            var projectList = JsonConvert.DeserializeAnonymousType(body, new[] { new { Id = Guid.Empty, OrgProjectId = Guid.Empty, Name = string.Empty } });
-            var projectContracts = new List<IResourcesApiClient.ProjectContract>();
+            var projectList = JsonConvert.DeserializeAnonymousType(body, new[] { new { Id = Guid.Empty, Name = string.Empty } }); //maps to API model ApiProjectReference in Resources API
+            var projectContracts = new List<ProjectContract>();
 
             foreach (var project in projectList)
             {
-                var contractResponse = await resourcesClient.GetAsync($"projects/{project.OrgProjectId}/contracts");
+                var contractResponse = await resourcesClient.GetAsync($"projects/{project.Id}/contracts");
                 body = await contractResponse.Content.ReadAsStringAsync();
 
                 if (!contractResponse.IsSuccessStatusCode)
                 {
-                    log.LogWarning($"Failed to retrieve contracts for project '{project.OrgProjectId}' from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}. " +
+                    log.LogWarning($"Failed to retrieve contracts for project '{project.Id}' from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}. " +
                         $"Skipping notifications for this project.");
                     continue;
                 }
@@ -47,7 +47,7 @@ namespace Fusion.Resources.Functions.ApiClients
                 var contractList = JsonConvert.DeserializeAnonymousType(body, new { value = new List<ProjectContract>() });
                 contractList.value.ForEach(c =>
                 {
-                    c.ProjectId = project.OrgProjectId;
+                    c.ProjectId = project.Id;
                     c.ProjectName = project.Name;
                 });
 

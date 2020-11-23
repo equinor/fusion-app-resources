@@ -13,7 +13,7 @@ namespace Fusion.Resources.Api.Controllers.Projects
     public class ProjectsController : ResourceControllerBase
     {
         [HttpGet("projects")]
-        public async Task<ActionResult<ApiProject>> GetProjects()
+        public async Task<ActionResult<ApiProjectReference>> GetProjects()
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers.Projects
                 return authResult.CreateForbiddenResponse();
 
             var projectList = await DispatchAsync(new GetProjects());
-            var apiResult = projectList.Select(p => new ApiProject(p));
+            var apiResult = projectList.Select(p => new ApiProjectReference(p));
 
             return Ok(apiResult);
         }

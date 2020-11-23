@@ -124,7 +124,7 @@ namespace Fusion.Resources.Functions.Test
             var delegatedRole = senderWithMocks.CreateExternalDelegate(testContract, 60);
 
             //add it to the already sent list
-            senderWithMocks.SetRequestNotificationSent(request.Id, delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault());
+            senderWithMocks.SetRequestNotificationSent(request.Id, delegatedRole.Person.AzureUniquePersonId.GetValueOrDefault(), "Created");
 
             await senderWithMocks.NotificationSender.ProcessNotificationsAsync();
             senderWithMocks.AssertNotificationSent(delegatedRole.Person.AzureUniquePersonId.Value, Times.Never);
