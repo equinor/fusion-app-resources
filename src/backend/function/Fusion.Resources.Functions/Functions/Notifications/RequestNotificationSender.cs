@@ -59,14 +59,15 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             foreach (var recipient in approvers)
             {
                 var settings = await notificationApiClient.GetSettingsForUser(recipient);
+                var delay = Math.Max(settings.Delay, 60); //apply a minimum delay of 60 minutes.
 
-                log.LogInformation($"Current delay is '{settings}' mins");
+                log.LogInformation($"Current delay is '{delay}' mins");
 
                 var pendingRequests = new List<IResourcesApiClient.PersonnelRequest>();
 
                 foreach (var request in requestList?.Value)
                 {
-                    if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < settings.Delay)
+                    if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < delay)
                     {
                         log.LogInformation($"Skipping request '{request.Id}' with lastActivity = '{request.LastActivity}'");
                         continue;
