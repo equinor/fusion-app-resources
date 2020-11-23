@@ -12,6 +12,13 @@ namespace Fusion.Resources.Functions.ApiClients
 
         #region Models
 
+        public static class RequestState
+        {
+            public const string Created = "Created";
+            public const string SubmittedToCompany = "SubmittedToCompany";
+            public const string ApprovedByCompany = "ApprovedByCompany";
+        }
+
         public class ProjectContract
         {
             public Guid Id { get; set; }

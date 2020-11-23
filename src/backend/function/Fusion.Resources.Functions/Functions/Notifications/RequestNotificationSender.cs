@@ -44,14 +44,21 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             {
                 log.LogInformation($"Proccessing contract '{projectContract.Name}' ({projectContract.Id}) in project '{projectContract.ProjectName}' ({projectContract.ProjectId})");
 
+                //notify external CR approvers for newly created requests.
                 var approvers = await CalculateExternalCRRecipientsAsync(projectContract);
-                var requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, "Created");
+                var requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.Created);
 
                 if (requestList?.Value?.Any() ?? false)
                     await NotifyApprovers(projectContract, approvers, requestList);
 
+                //notify external CR approvers for requests that were approved. Rejections are handled immediately.
+                requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.ApprovedByCompany);
+                if (requestList?.Value?.Any() ?? false)
+                    await NotifyRequestsCompleted(projectContract, approvers, requestList);
+
+                //notify equinor CR approvers for requests recently submitted to company.
                 approvers = await CalculateInternalCRRecipientsAsync(projectContract);
-                requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, "SubmittedToCompany");
+                requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.SubmittedToCompany);
 
                 if (requestList?.Value?.Any() ?? false)
                     await NotifyApprovers(projectContract, approvers, requestList);
@@ -62,32 +69,9 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         {
             foreach (var recipient in approvers)
             {
-                var settings = await notificationApiClient.GetSettingsForUser(recipient);
-                var minDelay = configuration.GetValue("RequestNotifications_min_delay", 60); //apply a minimum delay of 60 minutes if not configured
-                var delay = Math.Max(settings.Delay, minDelay);
-
-                log.LogInformation($"Current delay is '{delay}' mins");
-
-                var pendingRequests = new List<IResourcesApiClient.PersonnelRequest>();
-
-                foreach (var request in requestList?.Value)
-                {
-                    if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < delay)
-                    {
-                        log.LogInformation($"Skipping request '{request.Id}' with lastActivity = '{request.LastActivity}'");
-                        continue;
-                    }
-
-                    if (await sentNotificationsClient.NotificationWasSentAsync(request.Id, recipient))
-                    {
-                        log.LogInformation($"Request '{request.Id}' was already notified for '{recipient}'");
-                        continue;
-                    }
-
-                    pendingRequests.Add(request);
-                }
-
-                var notificationBody = await CreateNotificationBodyAsync(projectContract, pendingRequests);
+                var delay = await ResolveDelayAsync(recipient);
+                var pendingRequests = await ResolvePendingRequests(requestList, recipient, delay);
+                var notificationBody = await CreatePendingApprovalBodyAsync(projectContract, pendingRequests);
 
                 if (pendingRequests.Any())
                 {
@@ -105,7 +89,65 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             }
         }
 
-        private async Task<string> CreateNotificationBodyAsync(IResourcesApiClient.ProjectContract projectContract, List<IResourcesApiClient.PersonnelRequest> pendingRequests)
+        private async Task NotifyRequestsCompleted(IResourcesApiClient.ProjectContract projectContract, List<Guid> approvers, IResourcesApiClient.PersonnelRequestList requestList)
+        {
+            foreach (var recipient in approvers)
+            {
+                var delay = await ResolveDelayAsync(recipient);
+                var pendingRequests = await ResolvePendingRequests(requestList, recipient, delay);
+                var notificationBody = await CreateRequestsApprovedBodyAsync(projectContract, pendingRequests);
+
+                if (pendingRequests.Any())
+                {
+                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody, INotificationApiClient.EmailPriority.High);
+
+                    if (successfull)
+                    {
+                        //add to "sent" table when successfully notified
+                        foreach (var request in pendingRequests)
+                        {
+                            await sentNotificationsClient.AddToSentNotifications(request.Id, recipient);
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task<List<IResourcesApiClient.PersonnelRequest>> ResolvePendingRequests(IResourcesApiClient.PersonnelRequestList requestList, Guid recipient, int delay)
+        {
+            var pendingRequests = new List<IResourcesApiClient.PersonnelRequest>();
+
+            foreach (var request in requestList?.Value)
+            {
+                if ((DateTime.UtcNow - request.LastActivity).TotalMinutes < delay)
+                {
+                    log.LogInformation($"Skipping request '{request.Id}' with lastActivity = '{request.LastActivity}'");
+                    continue;
+                }
+
+                if (await sentNotificationsClient.NotificationWasSentAsync(request.Id, recipient))
+                {
+                    log.LogInformation($"Request '{request.Id}' was already notified for '{recipient}'");
+                    continue;
+                }
+
+                pendingRequests.Add(request);
+            }
+
+            return pendingRequests;
+        }
+
+        private async Task<int> ResolveDelayAsync(Guid recipient)
+        {
+            var settings = await notificationApiClient.GetSettingsForUser(recipient);
+            var minDelay = configuration.GetValue("RequestNotifications_min_delay", 60); //apply a minimum delay of 60 minutes if not configured
+            var delay = Math.Max(settings.Delay, minDelay);
+
+            log.LogInformation($"Current delay is '{delay}' mins");
+            return delay;
+        }
+
+        private async Task<string> CreatePendingApprovalBodyAsync(IResourcesApiClient.ProjectContract projectContract, List<IResourcesApiClient.PersonnelRequest> requests)
         {
             var url = await urlResolver.ResolveActiveRequestsAsync(projectContract);
 
@@ -119,7 +161,31 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             .Paragraph("Pending requests:")
             .List(list =>
             {
-                foreach (var request in pendingRequests)
+                foreach (var request in requests)
+                {
+                    //{person} as {postitle} from {fromdate} to {toDate}
+                    list.ListItem($"{MdToken.Bold($"{request.Person.Name} ({request.Person.Mail})")} as {MdToken.Bold($"{request.Position.Name}")}");
+                }
+            })
+            .Build();
+            return notificationBody;
+        }
+
+        private async Task<string> CreateRequestsApprovedBodyAsync(IResourcesApiClient.ProjectContract projectContract, List<IResourcesApiClient.PersonnelRequest> requests)
+        {
+            var url = await urlResolver.ResolveActiveRequestsAsync(projectContract);
+
+            var notificationBody = new MarkdownDocument()
+            .Paragraph("Request(s) were approved and are now completed")
+            .List(l => l
+                .ListItem($"{MdToken.Bold("Project:")} {projectContract.ProjectName}")
+                .ListItem($"{MdToken.Bold("Contract name:")} {projectContract.Name}")
+                .ListItem($"{MdToken.Bold("Contract number:")} {projectContract.ContractNumber}"))
+            .Paragraph(MdToken.Newline())
+            .Paragraph("Requests:")
+            .List(list =>
+            {
+                foreach (var request in requests)
                 {
                     //{person} as {postitle} from {fromdate} to {toDate}
                     list.ListItem($"{MdToken.Bold($"{request.Person.Name} ({request.Person.Mail})")} as {MdToken.Bold($"{request.Position.Name}")}");
