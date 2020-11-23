@@ -99,7 +99,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
 
                 if (pendingRequests.Any())
                 {
-                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody, INotificationApiClient.EmailPriority.High);
+                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are approved", notificationBody, INotificationApiClient.EmailPriority.High);
 
                     if (successfull)
                     {
