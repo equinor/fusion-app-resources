@@ -52,15 +52,15 @@ namespace Fusion.Resources.Functions.ApiClients
 
             var settings = JsonConvert.DeserializeAnonymousType(body, new
             {
-                Enabled = false,
-                Delay = 0,
-                AppSettings = new[]
+                Email = false,
+                DelayInMinutes = 0,
+                AppConfig = new[]
                 {
                     new { AppKey = string.Empty, Enabled = false }
                 }
             });
 
-            return new INotificationApiClient.NotificationSettings(settings.Enabled, settings.Delay, settings.AppSettings.Any(app => app.AppKey == "resources" && app.Enabled));
+            return new INotificationApiClient.NotificationSettings(settings.Email, settings.DelayInMinutes, settings.AppConfig.Any(app => app.AppKey == "resources" && app.Enabled));
         }
     }
 }

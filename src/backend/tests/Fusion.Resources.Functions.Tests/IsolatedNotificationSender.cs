@@ -3,6 +3,7 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications;
 using Fusion.Testing.Mocks.OrgService;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
@@ -40,7 +41,10 @@ namespace Fusion.Resources.Functions.Test
             var loggerFactoryMock = new Mock<ILoggerFactory>();
             loggerFactoryMock.Setup(m => m.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
 
-            NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, urlResolverMock.Object, loggerFactoryMock.Object);
+            var configMock = new Mock<IConfiguration>();
+            configMock.Setup(c => c["RequestNotifications_min_delay"]).Returns("60");
+
+            NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, urlResolverMock.Object, loggerFactoryMock.Object, configMock.Object);
         }
 
         internal IResourcesApiClient.DelegatedRole CreateExternalDelegate(ApiProjectContractV2 testContract, int delayInMinutes)

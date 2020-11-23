@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Functions.ApiClients;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         private readonly INotificationApiClient notificationApiClient;
         private readonly ISentNotificationsTableClient sentNotificationsClient;
         private readonly IUrlResolver urlResolver;
+        private readonly IConfiguration configuration;
         private readonly ILogger<RequestNotificationSender> log;
 
         public RequestNotificationSender(IOrgApiClientFactory orgApiClientFactory,
@@ -22,13 +24,15 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             INotificationApiClient notificationApiClient,
             ISentNotificationsTableClient sentNotificationsClient,
             IUrlResolver urlResolver,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            IConfiguration configuration)
         {
             orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             this.resourcesApiClient = resourcesApiClient;
             this.notificationApiClient = notificationApiClient;
             this.sentNotificationsClient = sentNotificationsClient;
             this.urlResolver = urlResolver;
+            this.configuration = configuration;
             log = loggerFactory.CreateLogger<RequestNotificationSender>();
         }
 
@@ -59,7 +63,8 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             foreach (var recipient in approvers)
             {
                 var settings = await notificationApiClient.GetSettingsForUser(recipient);
-                var delay = Math.Max(settings.Delay, 60); //apply a minimum delay of 60 minutes.
+                var minDelay = configuration.GetValue("RequestNotifications_min_delay", 60); //apply a minimum delay of 60 minutes if not configured
+                var delay = Math.Max(settings.Delay, minDelay);
 
                 log.LogInformation($"Current delay is '{delay}' mins");
 
