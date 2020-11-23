@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Functions.TableStorage;
 using Microsoft.Azure.Cosmos.Table;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Functions.Functions.Notifications
@@ -15,25 +16,28 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             this.tableStorageClient = tableStorageClient;
         }
 
-        public async Task<SentNotifications> GetSentNotificationsAsync(Guid requestId, Guid recipientId)
+        public async Task<SentNotification> GetSentNotificationsAsync(Guid requestId, Guid recipientId, string state)
         {
             //check if particular request was notified already using table storage
+            var queryFilter = $"PartitionKey eq '{requestId}' and RowKey eq '{recipientId}' and State eq '{state}'";
             var table = await tableStorageClient.GetTableAsync(TableName);
-            var result = await table.GetByKeysAsync<SentNotifications>(requestId.ToString(), recipientId.ToString());
 
-            return result;
+            var query = new TableQuery<SentNotification>().Where(queryFilter);
+            var result = table.ExecuteQuery(query);
+
+            return result?.FirstOrDefault();
         }
 
-        public async Task<bool> NotificationWasSentAsync(Guid requestId, Guid recipientId)
+        public async Task<bool> NotificationWasSentAsync(Guid requestId, Guid recipientId, string state)
         {
-            var result = await GetSentNotificationsAsync(requestId, recipientId);
+            var result = await GetSentNotificationsAsync(requestId, recipientId, state);
             return result != null;
         }
 
-        public async Task AddToSentNotifications(Guid requestId, Guid recipientId)
+        public async Task AddToSentNotifications(Guid requestId, Guid recipientId, string state)
         {
             var table = await tableStorageClient.GetTableAsync(TableName);
-            var operation = TableOperation.InsertOrReplace(new SentNotifications { PartitionKey = requestId.ToString(), RowKey = recipientId.ToString() });
+            var operation = TableOperation.InsertOrReplace(new SentNotification { PartitionKey = requestId.ToString(), RowKey = recipientId.ToString(), State = state });
             await table.ExecuteAsync(operation);
         }
     }

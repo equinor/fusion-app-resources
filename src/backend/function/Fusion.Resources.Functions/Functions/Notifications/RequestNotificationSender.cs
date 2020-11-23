@@ -82,7 +82,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                         //add to "sent" table when successfully notified
                         foreach (var request in pendingRequests)
                         {
-                            await sentNotificationsClient.AddToSentNotifications(request.Id, recipient);
+                            await sentNotificationsClient.AddToSentNotifications(request.Id, recipient, request.State);
                         }
                     }
                 }
@@ -106,7 +106,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                         //add to "sent" table when successfully notified
                         foreach (var request in pendingRequests)
                         {
-                            await sentNotificationsClient.AddToSentNotifications(request.Id, recipient);
+                            await sentNotificationsClient.AddToSentNotifications(request.Id, recipient, request.State);
                         }
                     }
                 }
@@ -125,7 +125,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                     continue;
                 }
 
-                if (await sentNotificationsClient.NotificationWasSentAsync(request.Id, recipient))
+                if (await sentNotificationsClient.NotificationWasSentAsync(request.Id, recipient, request.State))
                 {
                     log.LogInformation($"Request '{request.Id}' was already notified for '{recipient}'");
                     continue;
