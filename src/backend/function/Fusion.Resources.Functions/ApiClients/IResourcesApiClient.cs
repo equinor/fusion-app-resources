@@ -12,7 +12,6 @@ namespace Fusion.Resources.Functions.ApiClients
 
         #region Models
 
-
         public class ProjectContract
         {
             public Guid Id { get; set; }

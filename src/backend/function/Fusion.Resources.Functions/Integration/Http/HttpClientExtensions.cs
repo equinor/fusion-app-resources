@@ -12,7 +12,7 @@ namespace Fusion.Resources.Functions.Integration
             var body = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-                throw new ContextIntegrationError(url, response.StatusCode);
+                throw new IntegrationError(url, response.StatusCode);
 
             T deserialized = JsonConvert.DeserializeObject<T>(body);
             return deserialized;
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Functions.Integration
             var body = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-                throw new ContextIntegrationError(url, response.StatusCode);
+                throw new IntegrationError(url, response.StatusCode);
 
             T deserialized = JsonConvert.DeserializeObject<T>(body);
             return deserialized;

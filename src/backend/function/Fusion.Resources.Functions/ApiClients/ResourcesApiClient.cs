@@ -26,7 +26,7 @@ namespace Fusion.Resources.Functions.ApiClients
 
             if (!projectResponse.IsSuccessStatusCode)
             {
-                throw new Exception($"Failed to retrieve projects from Resources API [{projectResponse.StatusCode}]. Body: {body}");
+                throw new Exception($"Failed to retrieve projects from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}"); //don't display all if body is very large
             }
 
             var projectList = JsonConvert.DeserializeAnonymousType(body, new[] { new { Id = Guid.Empty, OrgProjectId = Guid.Empty, Name = string.Empty } });
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Functions.ApiClients
 
                 if (!contractResponse.IsSuccessStatusCode)
                 {
-                    log.LogWarning($"Failed to retrieve contracts for project '{project.OrgProjectId}' from Resources API [{projectResponse.StatusCode}]. Body: {body}. " +
+                    log.LogWarning($"Failed to retrieve contracts for project '{project.OrgProjectId}' from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}. " +
                         $"Skipping notifications for this project.");
                     continue;
                 }
