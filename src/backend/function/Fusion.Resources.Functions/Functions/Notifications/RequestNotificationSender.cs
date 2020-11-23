@@ -1,4 +1,6 @@
 ﻿using Fusion.Resources.Functions.ApiClients;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,6 +19,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         private readonly ISentNotificationsTableClient sentNotificationsClient;
         private readonly IUrlResolver urlResolver;
         private readonly IConfiguration configuration;
+        private readonly TelemetryClient telemetryClient;
         private readonly ILogger<RequestNotificationSender> log;
 
         public RequestNotificationSender(IOrgApiClientFactory orgApiClientFactory,
@@ -25,7 +28,8 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             ISentNotificationsTableClient sentNotificationsClient,
             IUrlResolver urlResolver,
             ILoggerFactory loggerFactory,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            TelemetryClient telemetryClient)
         {
             orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             this.resourcesApiClient = resourcesApiClient;
@@ -33,6 +37,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
             this.sentNotificationsClient = sentNotificationsClient;
             this.urlResolver = urlResolver;
             this.configuration = configuration;
+            this.telemetryClient = telemetryClient;
             log = loggerFactory.CreateLogger<RequestNotificationSender>();
         }
 
@@ -42,26 +47,43 @@ namespace Fusion.Resources.Functions.Functions.Notifications
 
             foreach (var projectContract in projectContracts)
             {
+                var operation = telemetryClient.StartOperation<DependencyTelemetry>($"Process contract '{projectContract.Name}' ({projectContract.Id}) in project '{projectContract.ProjectName}' ({projectContract.ProjectId})");
+                operation.Telemetry.Type = "ASYNC";
+
                 log.LogInformation($"Proccessing contract '{projectContract.Name}' ({projectContract.Id}) in project '{projectContract.ProjectName}' ({projectContract.ProjectId})");
 
-                //notify external CR approvers for newly created requests.
-                var approvers = await CalculateExternalCRRecipientsAsync(projectContract);
-                var requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.Created);
+                try
+                {
+                    //notify external CR approvers for newly created requests.
+                    var approvers = await CalculateExternalCRRecipientsAsync(projectContract);
+                    var requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.Created);
 
-                if (requestList?.Value?.Any() ?? false)
-                    await NotifyApprovers(projectContract, approvers, requestList);
+                    if (requestList?.Value?.Any() ?? false)
+                        await NotifyApprovers(projectContract, approvers, requestList);
 
-                //notify external CR approvers for requests that were approved. Rejections are handled immediately.
-                requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.ApprovedByCompany);
-                if (requestList?.Value?.Any() ?? false)
-                    await NotifyRequestsCompleted(projectContract, approvers, requestList);
+                    //notify external CR approvers for requests that were approved. Rejections are handled immediately.
+                    requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.ApprovedByCompany);
+                    if (requestList?.Value?.Any() ?? false)
+                        await NotifyRequestsCompleted(projectContract, approvers, requestList);
 
-                //notify equinor CR approvers for requests recently submitted to company.
-                approvers = await CalculateInternalCRRecipientsAsync(projectContract);
-                requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.SubmittedToCompany);
+                    //notify equinor CR approvers for requests recently submitted to company.
+                    approvers = await CalculateInternalCRRecipientsAsync(projectContract);
+                    requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.SubmittedToCompany);
 
-                if (requestList?.Value?.Any() ?? false)
-                    await NotifyApprovers(projectContract, approvers, requestList);
+                    if (requestList?.Value?.Any() ?? false)
+                        await NotifyApprovers(projectContract, approvers, requestList);
+                }
+                catch (Exception ex)
+                {
+                    operation.Telemetry.Success = false;
+                    telemetryClient.TrackException(ex);
+
+                    throw;
+                }
+                finally
+                {
+                    telemetryClient.StopOperation(operation);
+                }
             }
         }
 

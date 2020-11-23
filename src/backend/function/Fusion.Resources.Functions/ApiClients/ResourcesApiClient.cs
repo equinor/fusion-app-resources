@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Fusion.Resources.Functions.Integration;
+using Fusion.Resources.Functions.Telemetry;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,49 +16,69 @@ namespace Fusion.Resources.Functions.ApiClients
     {
         private readonly HttpClient resourcesClient;
         private readonly ILogger<ResourcesApiClient> log;
+        private readonly TelemetryClient telemetryClient;
 
-        public ResourcesApiClient(IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory)
+        public ResourcesApiClient(IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory, TelemetryClient telemetryClient)
         {
             resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
             log = loggerFactory.CreateLogger<ResourcesApiClient>();
+            this.telemetryClient = telemetryClient;
         }
 
         public async Task<List<ProjectContract>> GetProjectContractsAsync()
         {
-            var projectResponse = await resourcesClient.GetAsync($"projects");
-            var body = await projectResponse.Content.ReadAsStringAsync();
+            var operation = telemetryClient.StartOperation<DependencyTelemetry>("Get project contracts");
+            operation.Telemetry.Type = "ASYNC";
 
-            if (!projectResponse.IsSuccessStatusCode)
+            try
             {
-                throw new Exception($"Failed to retrieve projects from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}"); //don't display all if body is very large
-            }
+                var projectResponse = await resourcesClient.GetAsync($"projects");
+                var body = await projectResponse.Content.ReadAsStringAsync();
 
-            var projectList = JsonConvert.DeserializeAnonymousType(body, new[] { new { Id = Guid.Empty, Name = string.Empty } }); //maps to API model ApiProjectReference in Resources API
-            var projectContracts = new List<ProjectContract>();
-
-            foreach (var project in projectList)
-            {
-                var contractResponse = await resourcesClient.GetAsync($"projects/{project.Id}/contracts");
-                body = await contractResponse.Content.ReadAsStringAsync();
-
-                if (!contractResponse.IsSuccessStatusCode)
+                if (!projectResponse.IsSuccessStatusCode)
                 {
-                    log.LogWarning($"Failed to retrieve contracts for project '{project.Id}' from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}. " +
-                        $"Skipping notifications for this project.");
-                    continue;
+                    telemetryClient.TrackCritical($"Failed to retrieve projects from Resources API");
+                    throw new ApiError(projectResponse.RequestMessage.RequestUri.ToString(), projectResponse.StatusCode, body, $"Failed to retrieve projects from Resources API");
                 }
 
-                var contractList = JsonConvert.DeserializeAnonymousType(body, new { value = new List<ProjectContract>() });
-                contractList.value.ForEach(c =>
+                var projectList = JsonConvert.DeserializeAnonymousType(body, new[] { new { Id = Guid.Empty, Name = string.Empty } }); //maps to API model ApiProjectReference in Resources API
+                var projectContracts = new List<ProjectContract>();
+
+                foreach (var project in projectList)
                 {
-                    c.ProjectId = project.Id;
-                    c.ProjectName = project.Name;
-                });
+                    var contractResponse = await resourcesClient.GetAsync($"projects/{project.Id}/contracts");
+                    body = await contractResponse.Content.ReadAsStringAsync();
 
-                projectContracts.AddRange(contractList.value);
+                    if (!contractResponse.IsSuccessStatusCode)
+                    {
+                        log.LogWarning($"Failed to retrieve contracts for project '{project.Id}' from Resources API [{projectResponse.StatusCode}]. Body: {body.Substring(0, 500)}. " +
+                            $"Skipping notifications for this project.");
+                        continue;
+                    }
+
+                    var contractList = JsonConvert.DeserializeAnonymousType(body, new { value = new List<ProjectContract>() });
+                    contractList.value.ForEach(c =>
+                    {
+                        c.ProjectId = project.Id;
+                        c.ProjectName = project.Name;
+                    });
+
+                    projectContracts.AddRange(contractList.value);
+                }
+
+                return projectContracts;
             }
+            catch (Exception ex)
+            {
+                operation.Telemetry.Success = false;
+                telemetryClient.TrackException(ex);
 
-            return projectContracts;
+                throw;
+            }
+            finally
+            {
+                telemetryClient.StopOperation(operation);
+            }
         }
 
         public async Task<PersonnelRequestList> GetTodaysContractRequests(ProjectContract projectContract, string state)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Fusion.Resources.Functions.Test
+namespace Fusion.Resources.Functions.Tests
 {
     public class RequestNotificationSenderTests
     {

@@ -3,6 +3,8 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications;
 using Fusion.Testing.Mocks.OrgService;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -10,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Fusion.Resources.Functions.Test
+namespace Fusion.Resources.Functions.Tests
 {
     /// <summary>
     /// Contains mocks of services for the sender and the sender itself with those mocks constructed.
@@ -46,7 +48,23 @@ namespace Fusion.Resources.Functions.Test
             sectionMock.SetupGet(sm => sm.Value).Returns("0");
             configMock.Setup(c => c.GetSection(It.IsAny<string>())).Returns(sectionMock.Object);
 
-            NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, urlResolverMock.Object, loggerFactoryMock.Object, configMock.Object);
+            var telemetryMock = InitializeMockTelemetryChannel();
+
+            NotificationSender = new RequestNotificationSender(orgApiClientFactoryMock.Object, ResourcesMock.Object, NotificationsMock.Object, TableMock.Object, urlResolverMock.Object, loggerFactoryMock.Object, configMock.Object, telemetryMock);
+        }
+
+        private TelemetryClient InitializeMockTelemetryChannel()
+        {
+            // Application Insights TelemetryClient doesn't have an interface (and is sealed), need our own mock
+            MockTelemetryChannel mockTelemetryChannel = new MockTelemetryChannel();
+            TelemetryConfiguration mockTelemetryConfig = new TelemetryConfiguration
+            {
+                TelemetryChannel = mockTelemetryChannel,
+                InstrumentationKey = Guid.NewGuid().ToString(),
+            };
+
+            TelemetryClient mockTelemetryClient = new TelemetryClient(mockTelemetryConfig);
+            return mockTelemetryClient;
         }
 
         internal IResourcesApiClient.DelegatedRole CreateExternalDelegate(ApiProjectContractV2 testContract, int delayInMinutes)
