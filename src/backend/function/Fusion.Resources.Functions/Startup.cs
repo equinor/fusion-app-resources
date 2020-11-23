@@ -1,7 +1,4 @@
-﻿using Fusion.Resources.Functions.ApiClients;
-using Fusion.Resources.Functions.Functions.Notifications;
-using Fusion.Resources.Functions.TableStorage;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,13 +17,7 @@ namespace Fusion.Resources.Functions
                 opts.TenantId = cfg.GetValue<string>("AzureAd_TenantId");
             });
 
-            builder.Services.AddSingleton<TableStorageClient>();
-            builder.Services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
-            builder.Services.AddScoped<INotificationApiClient, NotificationApiClient>();
-            builder.Services.AddScoped<ISentNotificationsTableClient, SentNotificationsTableClient>();
-            builder.Services.AddScoped<IContextApiClient, ContextApiClient>();
-            builder.Services.AddScoped<IUrlResolver, UrlResolver>();
-            builder.Services.AddScoped<RequestNotificationSender>();
+            builder.Services.AddNotificationServices();
 
             builder.Services.AddServiceResolver();
             builder.Services.AddHttpClients();

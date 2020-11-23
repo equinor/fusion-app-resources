@@ -78,7 +78,6 @@ namespace Fusion.Resources.Api
             services.AddResourceDomain();
             services.AddResourceLogic();
             services.AddResourcesApplicationServices();
-            services.AddApiUtilities();
 
             services.AddResourcesAuthorizationHandlers();
             services.AddMediatR(typeof(Startup));   // Add notification handlers in api project

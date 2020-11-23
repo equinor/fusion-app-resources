@@ -38,12 +38,5 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return services;
         }
-
-        public static IServiceCollection AddApiUtilities(this IServiceCollection services)
-        {
-            services.AddScoped<IUrlResolver, UrlResolver>();
-
-            return services;
-        }
     }
 }

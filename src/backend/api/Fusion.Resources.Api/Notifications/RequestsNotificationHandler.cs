@@ -4,7 +4,6 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Api.Notifications.Markdown;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Notifications;
 using Fusion.Resources.Domain.Notifications.Request;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
@@ -17,59 +16,18 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Api.Notifications
 {
     public class RequestsNotificationHandler :
-        //INotificationHandler<RequestCreated>,
-        INotificationHandler<RequestApprovedByCompany>,
-        //INotificationHandler<RequestApprovedByContractor>,
         INotificationHandler<RequestDeclinedByCompany>,
         INotificationHandler<RequestDeclinedByContractor>
     {
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
-        private readonly IUrlResolver urlResolver;
 
-        public RequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver, IUrlResolver urlResolver)
+        public RequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
             this.orgResolver = orgResolver;
-            this.urlResolver = urlResolver;
-        }
-
-        public async Task Handle(RequestCreated notification, CancellationToken cancellationToken)
-        {
-            var request = await GetRequestAsync(notification.RequestId);
-            var recipients = await CalculateExternalCRRecipientsAsync(request);
-            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
-
-            //don't need to notify the person who created request, if person also is approver.
-            recipients.RemoveAll(r => r == request.CreatedBy.AzureUniqueId);
-
-            foreach (var recipient in recipients)
-            {
-                await notificationClient.CreateNotificationAsync(notification => notification
-                    .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} is pending your approval")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestCreatedAsync(request, requestsUrl)));
-            }
-        }
-
-        public async Task Handle(RequestApprovedByCompany notification, CancellationToken cancellationToken)
-        {
-            var request = await GetRequestAsync(notification.RequestId);
-            var recipients = await CalculateExternalCRRecipientsAsync(request);
-
-            //only notify creator if not CR and if not the person that approved the request
-            if (!recipients.Contains(request.CreatedBy.AzureUniqueId) && notification.ApprovedBy.AzureUniqueId != request.CreatedBy.AzureUniqueId)
-                recipients.Add(request.CreatedBy.AzureUniqueId);
-
-            foreach (var recipient in recipients)
-            {
-                await notificationClient.CreateNotificationAsync(n => n
-                   .WithRecipient(recipient)
-                   .WithTitle($"Request for {request.Position.Name} was approved")
-                   .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByCompany(request, notification.ApprovedBy)));
-            }
         }
 
         public async Task Handle(RequestDeclinedByCompany notification, CancellationToken cancellationToken)
@@ -87,26 +45,6 @@ namespace Fusion.Resources.Api.Notifications
                    .WithRecipient(recipient)
                    .WithTitle($"Request for {request.Position.Name} was declined")
                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason, notification.DeclinedBy)));
-            }
-        }
-
-        public async Task Handle(RequestApprovedByContractor notification, CancellationToken cancellationToken)
-        {
-            var request = await GetRequestAsync(notification.RequestId);
-
-            var requestsUrl = await urlResolver.ResolveActiveRequests(request.Project.OrgProjectId, request.Contract.OrgContractId);
-            var recipients = await CalculateInternalCRRecipientsAsync(request);
-
-            //only notify creator if not CR and if not the person that approved the request
-            if (!recipients.Contains(request.CreatedBy.AzureUniqueId) && notification.ApprovedBy.AzureUniqueId != request.CreatedBy.AzureUniqueId)
-                recipients.Add(request.CreatedBy.AzureUniqueId);
-
-            foreach (var recipient in recipients)
-            {
-                await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(recipient)
-                    .WithTitle($"Request for {request.Position.Name} is pending your approval")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestApprovedByExternal(request, requestsUrl, notification.ApprovedBy)));
             }
         }
 
@@ -162,31 +100,6 @@ namespace Fusion.Resources.Api.Notifications
                 recipients.Add(externalContractRep.AssignedPerson.AzureUniqueId.Value);
 
             var distinctDelegates = externalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId))
-                .Select(d => d.Person.AzureUniqueId)
-                .Distinct();
-
-            recipients.AddRange(distinctDelegates);
-
-            return recipients;
-        }
-
-        private async Task<List<Guid>> CalculateInternalCRRecipientsAsync(QueryPersonnelRequest request)
-        {
-            var contract = await ResolveContractAsync(request);
-            var companyRep = contract.CompanyRep.GetActiveInstance();
-            var contractRep = contract.ContractRep.GetActiveInstance();
-            var delegates = await mediator.Send(GetContractDelegatedRoles.ForContract(request.Project.OrgProjectId, contract.Id));
-            var internalDelegates = delegates.Where(o => o.Classification == DbDelegatedRoleClassification.Internal).ToList();
-
-            var recipients = new List<Guid>();
-
-            if (companyRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(companyRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(companyRep.AssignedPerson.AzureUniqueId.Value);
-
-            if (contractRep?.AssignedPerson?.AzureUniqueId != null && !recipients.Contains(contractRep.AssignedPerson.AzureUniqueId.Value))
-                recipients.Add(contractRep.AssignedPerson.AzureUniqueId.Value);
-
-            var distinctDelegates = internalDelegates.Where(d => !recipients.Contains(d.Person.AzureUniqueId))
                 .Select(d => d.Person.AzureUniqueId)
                 .Distinct();
 

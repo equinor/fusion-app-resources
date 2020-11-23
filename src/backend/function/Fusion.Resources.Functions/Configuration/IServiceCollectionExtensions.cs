@@ -1,7 +1,10 @@
 ﻿using Fusion.Resources.Functions;
+using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.Functions.Notifications;
 using Fusion.Resources.Functions.Integration.Authentication;
 using Fusion.Resources.Functions.Integration.Http;
 using Fusion.Resources.Functions.Integration.ServiceDiscovery;
+using Fusion.Resources.Functions.TableStorage;
 using Microsoft.Extensions.Configuration;
 using System;
 
@@ -43,6 +46,19 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddResourcesClient();
             builder.AddNotificationsClient();
             builder.AddContextClient();
+
+            return services;
+        }
+
+        public static IServiceCollection AddNotificationServices(this IServiceCollection services)
+        {
+            services.AddSingleton<TableStorageClient>();
+            services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
+            services.AddScoped<INotificationApiClient, NotificationApiClient>();
+            services.AddScoped<ISentNotificationsTableClient, SentNotificationsTableClient>();
+            services.AddScoped<IContextApiClient, ContextApiClient>();
+            services.AddScoped<IUrlResolver, UrlResolver>();
+            services.AddScoped<RequestNotificationSender>();
 
             return services;
         }
