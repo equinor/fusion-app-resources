@@ -52,6 +52,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
+                    or.BeTrustedApplication();
                     or.BeEmployee();
                     or.BeContractorInProject(projectIdentifier);
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
@@ -423,6 +424,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
                     or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                    or.BeTrustedApplication();
                 });
             });
 

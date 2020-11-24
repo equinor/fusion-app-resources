@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,6 +7,7 @@ namespace Fusion.Resources.Functions.Integration.Http.Handlers
 {
     public class ResourcesHttpHandler : FunctionHttpMessageHandler
     {
+
         public ResourcesHttpHandler(ILoggerFactory logger, ITokenProvider tokenProvider, IServiceDiscovery serviceDiscovery)
             : base(logger.CreateLogger<ResourcesHttpHandler>(), tokenProvider, serviceDiscovery)
         {
@@ -22,5 +21,4 @@ namespace Fusion.Resources.Functions.Integration.Http.Handlers
             return await base.SendAsync(request, cancellationToken);
         }
     }
-
 }

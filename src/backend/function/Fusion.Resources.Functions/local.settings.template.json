@@ -15,7 +15,13 @@
     "Endpoints_people": "https://pro-s-people-ci.azurewebsites.net",
     "Endpoints_org": "https://pro-s-org-ci.azurewebsites.net",
     "Endpoints_resources": "https://localhost:44330",
+    "Endpoints_context": "https://pro-s-context-ci.azurewebsites.net",
+    "Endpoints_Resources_Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b",
+    "Endpoints_portal": "https://pro-s-portal-ci.azurewebsites.net",
 
-    "Endpoints:Resources:Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
+    "AzureWebJobs.profile-sync.Disabled": "true",
+    "AzureWebJobs.profile-sync-event.Disabled": "true",
+    "AzureWebJobs.provision-position-request.Disabled": "true",
+    "AzureWebJobs.request-summary-notification.Disabled": "true"
   }
 }

@@ -72,6 +72,33 @@ namespace Fusion.Resources.Functions.Integration.Http
             return this;
         }
 
+        public HttpClientFactoryBuilder AddNotificationsClient()
+        {
+            services.AddTransient<NotificationsHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Notifications, client =>
+            {
+                client.BaseAddress = new Uri("https://fusion-notifications");
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            })
+            .AddHttpMessageHandler<NotificationsHttpHandler>()
+            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+
+        public HttpClientFactoryBuilder AddContextClient()
+        {
+            services.AddTransient<ContextHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Context, client =>
+            {
+                client.BaseAddress = new Uri("https://fusion-context");
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            })
+            .AddHttpMessageHandler<ContextHttpHandler>()
+            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
 
         private readonly TimeSpan[] DefaultSleepDurations = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) };
 

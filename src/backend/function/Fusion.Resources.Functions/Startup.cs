@@ -17,8 +17,11 @@ namespace Fusion.Resources.Functions
                 opts.TenantId = cfg.GetValue<string>("AzureAd_TenantId");
             });
 
+            builder.Services.AddNotificationServices();
+
             builder.Services.AddServiceResolver();
             builder.Services.AddHttpClients();
+            builder.Services.AddOrgApiClient(HttpClientNames.Application.Org);
         }
     }
 }
