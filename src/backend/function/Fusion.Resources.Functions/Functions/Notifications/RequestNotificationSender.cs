@@ -55,20 +55,27 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                 try
                 {
                     //notify external CR approvers for newly created requests.
+                    log.LogInformation($"Getting {IResourcesApiClient.RequestState.Created} requests for notifying External CRs");
                     var approvers = await CalculateExternalCRRecipientsAsync(projectContract);
                     var requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.Created);
+                    log.LogInformation($"Found {requestList?.Value?.Count} requests");
 
                     if (requestList?.Value?.Any() ?? false)
                         await NotifyApprovers(projectContract, approvers, requestList);
 
                     //notify external CR approvers for requests that were approved. Rejections are handled immediately.
+                    log.LogInformation($"Getting {IResourcesApiClient.RequestState.ApprovedByCompany} requests for notifying External CRs");
                     requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.ApprovedByCompany);
+                    log.LogInformation($"Found {requestList?.Value?.Count} requests");
+
                     if (requestList?.Value?.Any() ?? false)
                         await NotifyRequestsCompleted(projectContract, approvers, requestList);
 
                     //notify equinor CR approvers for requests recently submitted to company.
+                    log.LogInformation($"Getting {IResourcesApiClient.RequestState.SubmittedToCompany} requests for notifying Internal CRs");
                     approvers = await CalculateInternalCRRecipientsAsync(projectContract);
                     requestList = await resourcesApiClient.GetTodaysContractRequests(projectContract, IResourcesApiClient.RequestState.SubmittedToCompany);
+                    log.LogInformation($"Found {requestList?.Value?.Count} requests");
 
                     if (requestList?.Value?.Any() ?? false)
                         await NotifyApprovers(projectContract, approvers, requestList);
@@ -97,6 +104,8 @@ namespace Fusion.Resources.Functions.Functions.Notifications
 
                 if (pendingRequests.Any())
                 {
+                    //use email priority = high to send immediately. Since we are already delaying notifications, no need to delay email.
+                    log.LogInformation($"Notifying '{recipient}' that requests are pending approval on contract '{projectContract.Name}'");
                     var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody, INotificationApiClient.EmailPriority.High);
 
                     if (successfull)
@@ -121,6 +130,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
 
                 if (pendingRequests.Any())
                 {
+                    log.LogInformation($"Notifying '{recipient}' that requests are approved on contract '{projectContract.Name}'");
                     var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are approved", notificationBody, INotificationApiClient.EmailPriority.High);
 
                     if (successfull)

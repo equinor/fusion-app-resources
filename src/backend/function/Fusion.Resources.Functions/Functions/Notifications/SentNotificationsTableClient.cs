@@ -1,4 +1,6 @@
 ﻿using Fusion.Resources.Functions.TableStorage;
+using Fusion.Resources.Functions.Telemetry;
+using Microsoft.ApplicationInsights;
 using Microsoft.Azure.Cosmos.Table;
 using System;
 using System.Linq;
@@ -9,11 +11,13 @@ namespace Fusion.Resources.Functions.Functions.Notifications
     public class SentNotificationsTableClient : ISentNotificationsTableClient
     {
         private readonly TableStorageClient tableStorageClient;
+        private readonly TelemetryClient telemetryClient;
         private const string TableName = "ResourcesSentNotifications";
 
-        public SentNotificationsTableClient(TableStorageClient tableStorageClient)
+        public SentNotificationsTableClient(TableStorageClient tableStorageClient, TelemetryClient telemetryClient)
         {
             this.tableStorageClient = tableStorageClient;
+            this.telemetryClient = telemetryClient;
         }
 
         public async Task<SentNotification> GetSentNotificationsAsync(Guid requestId, Guid recipientId, string state)
@@ -38,7 +42,17 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         {
             var table = await tableStorageClient.GetTableAsync(TableName);
             var operation = TableOperation.InsertOrReplace(new SentNotification { PartitionKey = requestId.ToString(), RowKey = recipientId.ToString(), State = state });
-            await table.ExecuteAsync(operation);
+
+            try
+            {
+                await table.ExecuteAsync(operation);
+            }
+            catch (Exception ex)
+            {
+                telemetryClient.TrackException(ex);
+                telemetryClient.TrackCritical($"Error occured when adding to Resouces sent notifications. Request: '{requestId}', Recipient: '{recipientId}', State: '{state}'");
+                throw;
+            }
         }
     }
 }
