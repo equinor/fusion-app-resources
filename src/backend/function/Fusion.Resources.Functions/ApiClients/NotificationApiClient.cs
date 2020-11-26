@@ -23,7 +23,7 @@ namespace Fusion.Resources.Functions.ApiClients
             var notification = new
             {
                 AppKey = "resources",
-                Priority = priority.ToString(),
+                EmailPriority = priority.ToString(),
                 Title = title,
                 Description = bodyMarkdown
             };
