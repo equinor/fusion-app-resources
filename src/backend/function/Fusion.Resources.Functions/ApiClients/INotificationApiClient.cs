@@ -7,7 +7,7 @@ namespace Fusion.Resources.Functions.ApiClients
     {
         Task<NotificationSettings> GetSettingsForUser(Guid azureUniqueId);
 
-        Task<bool> PostNewNotificationAsync(Guid recipientAzureId, string title, string bodyMarkdown, EmailPriority priority = EmailPriority.Default);
+        Task<bool> PostNewNotificationAsync(Guid recipientAzureId, string title, string bodyMarkdown, Priority priority = Priority.Default);
 
         public class NotificationSettings
         {
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Functions.ApiClients
             public int Delay { get; set; }
         }
 
-        public enum EmailPriority
+        public enum Priority
         {
             High,
             Default,

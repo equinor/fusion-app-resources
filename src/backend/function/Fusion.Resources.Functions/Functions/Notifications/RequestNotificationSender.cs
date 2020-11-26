@@ -106,7 +106,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                 {
                     //use email priority = high to send immediately. Since we are already delaying notifications, no need to delay email.
                     log.LogInformation($"Notifying '{recipient}' that requests are pending approval on contract '{projectContract.Name}'");
-                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody, INotificationApiClient.EmailPriority.High);
+                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are pending your approval", notificationBody, INotificationApiClient.Priority.High);
 
                     if (successfull)
                     {
@@ -131,7 +131,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications
                 if (pendingRequests.Any())
                 {
                     log.LogInformation($"Notifying '{recipient}' that requests are approved on contract '{projectContract.Name}'");
-                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are approved", notificationBody, INotificationApiClient.EmailPriority.High);
+                    var successfull = await notificationApiClient.PostNewNotificationAsync(recipient, $"Request(s) are approved", notificationBody, INotificationApiClient.Priority.High);
 
                     if (successfull)
                     {
