@@ -62,5 +62,26 @@ namespace Fusion.Resources.Test
             };
             return contract;
         }
+
+        public static ApiProjectContractV2 WithExternalContractRep(this ApiProjectContractV2 contract, Guid userId)
+        {
+            contract.ExternalContractRep = new ApiPositionV2()
+            {
+                Id = Guid.NewGuid(),
+                Instances = new List<ApiPositionInstanceV2>
+                {
+                    new ApiPositionInstanceV2
+                    {
+                        AppliesFrom = faker.Date.Past(),
+                        AppliesTo = faker.Date.Future(),
+                        AssignedPerson = new ApiPersonV2()
+                        {
+                            AzureUniqueId = userId
+                        }
+                    }
+                }
+            };
+            return contract;
+        }
     }
 }
