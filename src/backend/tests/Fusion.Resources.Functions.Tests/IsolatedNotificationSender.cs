@@ -169,7 +169,7 @@ namespace Fusion.Resources.Functions.Tests
 
         public void AssertNotificationSent(Guid azureUniqueId, Func<Times> times)
         {
-            NotificationsMock.Verify(n => n.PostNewNotificationAsync(azureUniqueId, It.IsAny<string>(), It.IsAny<string>(), INotificationApiClient.EmailPriority.High), times);
+            NotificationsMock.Verify(n => n.PostNewNotificationAsync(azureUniqueId, It.IsAny<string>(), It.IsAny<string>(), INotificationApiClient.Priority.High), times);
         }
     }
 }

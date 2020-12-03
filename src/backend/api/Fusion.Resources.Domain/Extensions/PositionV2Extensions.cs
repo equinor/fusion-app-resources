@@ -17,7 +17,8 @@ namespace Fusion.Resources.Domain
             if (position.Instances == null)
                 return false;
 
-            return position.Instances.Any(i => i.AssignedPerson?.AzureUniqueId == azureUniqueId && (i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today));
+            var activeInstance = GetActiveInstance(position);
+            return activeInstance != null;
         }
 
         public static ApiPositionInstanceV2? GetActiveInstance(this ApiPositionV2? position)
@@ -28,7 +29,7 @@ namespace Fusion.Resources.Domain
             if (position.Instances == null)
                 return null;
 
-            return position.Instances.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
+            return position.Instances.FirstOrDefault(i => i.AppliesFrom.Date <= DateTime.Today && i.AppliesTo.Date >= DateTime.Today);
         }
     }
 }
