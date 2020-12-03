@@ -68,7 +68,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ManagePersonnel_WhenDelegatedAdmin()
+        public async Task ManagePersonnel_ShouldCreateSuccessfully_WhenExternalDelegatedAdmin()
         {
             var delegatedAdmin = fixture.AddProfile(FusionAccountType.External);
 
@@ -77,6 +77,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
             }
 
+
+            using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
+            {
+                var createResp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel", new
+                {
+                    Mail = "someone@mail.com",
+                    FirstName = "Some",
+                    LastName = "Person",
+                });
+                createResp.Should().BeSuccessfull();
+
+                var deleteResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/someone@mail.com");
+                deleteResp.Should().BeSuccessfull();
+            }
+        }
+
+        [Fact]
+        public async Task ManagePersonnel_ShouldCreateSuccessfully_WhenInternalDelegatedAdmin()
+        {
+            var delegatedAdmin = fixture.AddProfile(FusionAccountType.Employee);
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
+            }
 
             using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
             {
@@ -121,7 +146,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var delegatedAdmin = await fixture.NewDelegatedAdminAsync(projectId, contractId);
 
             using (var delegatedScope = fixture.UserScope(delegatedAdmin))
-            { 
+            {
                 var contractResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/mpp/positions/{positionToDelete.Id}");
                 contractResp.Should().BeSuccessfull();
 
@@ -178,8 +203,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task AllocateContract()
         {
             using var adminScope = fixture.AdminScope();
-            
-            var response = await client.TestClientPostAsync($"/projects/{testProject.Project.ProjectId}/contracts", new {
+
+            var response = await client.TestClientPostAsync($"/projects/{testProject.Project.ProjectId}/contracts", new
+            {
                 ContractNumber = "12345",
                 Name = $"New contract {Guid.NewGuid()}"
             });
@@ -208,7 +234,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var testProfile = PeopleServiceMock.AddTestProfile()
                 .SaveProfile();
-                
+
 
             var pplService = new PeopleServiceMock()
                 .CreateHttpClient();
@@ -249,7 +275,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
 
             testProject = new FusionTestProjectBuilder()
-               .WithContractAndPositions()               
+               .WithContractAndPositions()
                .WithPositions()
                .AddToMockService();
 
