@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain
             if (position.Instances == null)
                 return null;
 
-            return position.Instances.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
+            return position.Instances.FirstOrDefault(i => i.AppliesFrom.Date <= DateTime.Today && i.AppliesTo.Date >= DateTime.Today);
         }
     }
 }
