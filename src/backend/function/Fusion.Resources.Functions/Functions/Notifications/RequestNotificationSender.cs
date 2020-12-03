@@ -231,8 +231,8 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         {
             var recipients = new List<Guid>();
             var orgContract = await orgApiClient.GetContractV2Async(projectContract.ProjectId, projectContract.Id);
-            var internalCompanyRep = orgContract?.CompanyRep?.Instances?.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
-            var internalContractRep = orgContract?.ContractRep?.Instances?.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
+            var internalCompanyRep = orgContract?.CompanyRep?.GetActiveInstance();
+            var internalContractRep = orgContract?.ContractRep?.GetActiveInstance();
 
             if (internalCompanyRep?.AssignedPerson?.AzureUniqueId != null)
                 recipients.Add(internalCompanyRep.AssignedPerson.AzureUniqueId.Value);
@@ -258,8 +258,9 @@ namespace Fusion.Resources.Functions.Functions.Notifications
         {
             var recipients = new List<Guid>();
             var orgContract = await orgApiClient.GetContractV2Async(projectContract.ProjectId, projectContract.Id);
-            var externalCompanyRep = orgContract?.ExternalCompanyRep?.Instances?.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
-            var externalContractRep = orgContract?.ExternalContractRep?.Instances?.FirstOrDefault(i => i.AppliesFrom <= DateTime.Today && i.AppliesTo >= DateTime.Today);
+
+            var externalCompanyRep = orgContract?.ExternalCompanyRep?.GetActiveInstance();
+            var externalContractRep = orgContract?.ExternalContractRep?.GetActiveInstance();
 
             if (externalCompanyRep?.AssignedPerson?.AzureUniqueId != null)
                 recipients.Add(externalCompanyRep.AssignedPerson.AzureUniqueId.Value);
