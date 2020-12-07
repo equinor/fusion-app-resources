@@ -20,6 +20,8 @@ using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Roles;
 using Fusion.Testing;
+using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Services;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -87,6 +89,10 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("PeopleEventReceiver");
                 services.TryRemoveImplementationService("OrgEventReceiver");
                 services.TryRemoveImplementationService("ContextEventReceiver");
+                services.TryRemoveImplementationService<ICompanyResolver>();
+
+                //make it transient in the tests, to make sure that test contracts are added to in-memory collection
+                services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
                 
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
                 services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);

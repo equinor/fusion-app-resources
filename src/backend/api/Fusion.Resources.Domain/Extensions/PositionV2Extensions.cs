@@ -18,7 +18,8 @@ namespace Fusion.Resources.Domain
                 return false;
 
             var activeInstance = GetActiveInstance(position);
-            return activeInstance != null;
+
+            return activeInstance?.AssignedPerson?.AzureUniqueId == azureUniqueId;
         }
 
         public static ApiPositionInstanceV2? GetActiveInstance(this ApiPositionV2? position)
