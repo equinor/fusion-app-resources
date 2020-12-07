@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonnel([FromQuery]ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonnel([FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -53,7 +53,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery]ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> GetContractPersonnel([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -64,7 +64,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);                    
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -83,7 +83,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
-        public async Task<ActionResult<ApiContractPersonnel>> GetContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
+        public async Task<ActionResult<ApiContractPersonnel>> GetContractPersonnel([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
         {
             #region Authorization
 
@@ -150,7 +150,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
-        public async Task<ActionResult<ApiContractPersonnel>> CreateContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateContractPersonnelRequest request)
+        public async Task<ActionResult<ApiContractPersonnel>> CreateContractPersonnel([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateContractPersonnelRequest request)
         {
             #region Authorization
 
@@ -160,8 +160,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -192,7 +192,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel-collection")]
-        public async Task<ActionResult<ApiBatchResponse<ApiContractPersonnel>>> CreateContractPersonnelBatch([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] IEnumerable<CreateContractPersonnelRequest> requests)
+        public async Task<ActionResult<ApiBatchResponse<ApiContractPersonnel>>> CreateContractPersonnelBatch([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] IEnumerable<CreateContractPersonnelRequest> requests)
         {
             #region Authorization
 
@@ -242,7 +242,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/refresh")]
-        public async Task<ActionResult> RefreshContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier)
+        public async Task<ActionResult> RefreshContractPersonnel([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier)
         {
             #region Authorization
 
@@ -274,7 +274,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
-        public async Task<ActionResult<ApiContractPersonnel>> UpdateContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier, [FromBody] UpdateContractPersonnelRequest request)
+        public async Task<ActionResult<ApiContractPersonnel>> UpdateContractPersonnel([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier, [FromBody] UpdateContractPersonnelRequest request)
         {
             #region Authorization
 
@@ -310,7 +310,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}")]
-        public async Task<ActionResult> DeleteContractPersonnel([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
+        public async Task<ActionResult> DeleteContractPersonnel([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
         {
             #region Authorization
 
@@ -320,8 +320,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                 });
             });
 
