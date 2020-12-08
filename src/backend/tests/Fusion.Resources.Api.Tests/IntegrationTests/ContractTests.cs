@@ -141,31 +141,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ManagePersonnel_ShouldCreateSuccessfully_WhenInternalDelegatedAdmin()
-        {
-            var delegatedAdmin = fixture.AddProfile(FusionAccountType.Employee);
-
-            using (var adminScope = fixture.AdminScope())
-            {
-                await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
-            }
-
-            using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
-            {
-                var createResp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel", new
-                {
-                    Mail = "someone@mail.com",
-                    FirstName = "Some",
-                    LastName = "Person",
-                });
-                createResp.Should().BeSuccessfull();
-
-                var deleteResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/someone@mail.com");
-                deleteResp.Should().BeSuccessfull();
-            }
-        }
-
-        [Fact]
         public async Task GetContractsForProject_ShouldReturnNoContracts_WhenNoneAllocated()
         {
             var testProject = new FusionTestProjectBuilder()
