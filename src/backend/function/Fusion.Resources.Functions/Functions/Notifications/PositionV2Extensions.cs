@@ -2,14 +2,14 @@
 using System;
 using System.Linq;
 
-namespace Fusion.Resources.Domain
+namespace Fusion.Resources.Functions.Functions.Notifications
 {
     /// <summary>
     /// Should move to integration lib.
     /// </summary>
     public static class PositionV2Extensions
     {
-        public static bool HasActiveAssignment(this ApiPositionV2? position, Guid azureUniqueId)
+        public static bool HasActiveAssignment(this ApiPositionV2 position, Guid azureUniqueId)
         {
             if (position == null)
                 return false;
@@ -17,12 +17,11 @@ namespace Fusion.Resources.Domain
             if (position.Instances == null)
                 return false;
 
-            var activeInstance = GetActiveInstance(position);
-
-            return activeInstance?.AssignedPerson?.AzureUniqueId == azureUniqueId;
+            var activeInstance = position.GetActiveInstance();
+            return activeInstance != null;
         }
 
-        public static ApiPositionInstanceV2? GetActiveInstance(this ApiPositionV2? position)
+        public static ApiPositionInstanceV2 GetActiveInstance(this ApiPositionV2 position)
         {
             if (position == null)
                 return null;
