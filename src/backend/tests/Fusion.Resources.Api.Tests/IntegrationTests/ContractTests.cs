@@ -77,6 +77,53 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
             }
 
+            using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
+            {
+                var createResp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel", new
+                {
+                    Mail = "someone@mail.com",
+                    FirstName = "Some",
+                    LastName = "Person",
+                });
+                createResp.Should().BeSuccessfull();
+
+                var deleteResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/someone@mail.com");
+                deleteResp.Should().BeSuccessfull();
+            }
+        }
+
+        [Theory]
+        [InlineData(FusionAccountType.External)]
+        [InlineData(FusionAccountType.Employee)]
+        [InlineData(FusionAccountType.Consultant)]
+        public async Task ManagePersonnel_ShouldNOTCreateSuccessfully_WhenNoDelegation(FusionAccountType accountType)
+        {
+            var external = fixture.AddProfile(accountType);
+
+            using (var delegatedAdminScope = fixture.UserScope(external))
+            {
+                var createResp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel", new
+                {
+                    Mail = "someone@mail.com",
+                    FirstName = "Some",
+                    LastName = "Person",
+                });
+                createResp.Should().BeUnauthorized();
+
+                var deleteResp = await client.TestClientDeleteAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/someone@mail.com");
+                deleteResp.Should().BeUnauthorized();
+            }
+        }
+
+        [Fact]
+        public async Task ManagePersonnel_ShouldCreateSuccessfully_WhenInternalDelegatedAdmin()
+        {
+            var delegatedAdmin = fixture.AddProfile(FusionAccountType.Employee);
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                await client.DelegateInternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
+            }
 
             using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
             {

@@ -1,8 +1,6 @@
 ﻿using Fusion.Testing;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Tests
@@ -16,6 +14,18 @@ namespace Fusion.Resources.Api.Tests
             {
                 person = new { AzureUniquePersonId = peronUniqueId },
                 classification = "External",
+                type = "CR"
+            });
+
+            resp.Should().BeSuccessfull();
+        }
+
+        public static async Task DelegateInternalAdminAccessAsync(this HttpClient client, Guid projectId, Guid contractId, Guid peronUniqueId)
+        {
+            var resp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/delegated-roles", new
+            {
+                person = new { AzureUniquePersonId = peronUniqueId },
+                classification = "Internal",
                 type = "CR"
             });
 
