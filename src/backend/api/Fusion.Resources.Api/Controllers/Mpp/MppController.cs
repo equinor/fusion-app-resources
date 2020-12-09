@@ -4,8 +4,6 @@ using Fusion.Resources.Api.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers.Mpp
@@ -14,7 +12,6 @@ namespace Fusion.Resources.Api.Controllers.Mpp
     [ApiController]
     public class MppController : ResourceControllerBase
     {
-
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/mpp/positions/{positionId}")]
         public async Task<ActionResult> DeleteContractPosition([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid positionId)
         {
@@ -26,8 +23,8 @@ namespace Fusion.Resources.Api.Controllers.Mpp
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -61,8 +58,8 @@ namespace Fusion.Resources.Api.Controllers.Mpp
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                 });
             });
 
@@ -73,6 +70,5 @@ namespace Fusion.Resources.Api.Controllers.Mpp
 
             return NoContent();
         }
-
     }
 }
