@@ -140,6 +140,44 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }
         }
 
+        [Theory]
+        [InlineData(AccountClassification.Internal)]
+        [InlineData(AccountClassification.External)]
+        public async Task ManagePersonnel_ShouldUpdateSuccessfully(AccountClassification classification)
+        {
+            var delegatedAdmin = fixture.AddProfile(classification == AccountClassification.Internal ? FusionAccountType.Employee : FusionAccountType.External);
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                switch (classification)
+                {
+                    case AccountClassification.Internal:
+                        await client.DelegateInternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
+                        break;
+                    case AccountClassification.External:
+                        await client.DelegateExternalAdminAccessAsync(projectId, contractId, delegatedAdmin.AzureUniqueId.Value);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Invalid classification");
+                };
+            }
+
+            using (var delegatedAdminScope = fixture.UserScope(delegatedAdmin))
+            {
+                var personnel = new
+                {
+                    Mail = "someone@mail.com",
+                    FirstName = "Some",
+                    LastName = "Person",
+                };
+                var createResp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel", personnel, personnel);
+                createResp.Should().BeSuccessfull();
+
+                var updateResp = await client.TestClientPutAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/someone@mail.com", createResp.Value, personnel);
+                updateResp.Should().BeSuccessfull();
+            }
+        }
+
         [Fact]
         public async Task GetContractsForProject_ShouldReturnNoContracts_WhenNoneAllocated()
         {
