@@ -108,8 +108,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -147,7 +147,6 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
-
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
         {
@@ -159,8 +158,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -183,8 +182,6 @@ namespace Fusion.Resources.Api.Controllers
                 return new ApiContractPersonnelRequest(query);
             }
         }
-
-
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> ApproveContractorPersonnelRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
@@ -268,7 +265,6 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiContractPersonnelRequest(contractorRequest);
         }
 
-
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractorRequestById([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
@@ -278,8 +274,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -432,8 +428,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                     or.BeContractorInContract(contractIdentifier);
                 });
             });
@@ -456,8 +452,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
-                    or.ContractAccess(ContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
-                    or.DelegatedContractAccess(DelegatedContractRole.AnyExternalRole, projectIdentifier, contractIdentifier);
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
                 });
             });
 
