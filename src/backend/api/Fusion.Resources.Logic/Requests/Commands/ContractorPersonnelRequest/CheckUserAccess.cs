@@ -67,9 +67,12 @@ namespace Fusion.Resources.Logic.Commands
 
                     return dbRequest.State switch
                     {
+                        //any company rep, contract rep or delegate can approve Created requests
                         DbRequestState.Created => contract.ExternalCompanyRep.HasActiveAssignment(userAzureId) ||
                                                   contract.ExternalContractRep.HasActiveAssignment(userAzureId) ||
-                                                  delegatedRoles.Any(r => r.Classification == DbDelegatedRoleClassification.External),
+                                                  contract.CompanyRep.HasActiveAssignment(userAzureId) ||
+                                                  contract.ContractRep.HasActiveAssignment(userAzureId) ||
+                                                  delegatedRoles.Any(),
 
                         DbRequestState.SubmittedToCompany => contract.CompanyRep.HasActiveAssignment(userAzureId) ||
                                                              contract.ContractRep.HasActiveAssignment(userAzureId) ||

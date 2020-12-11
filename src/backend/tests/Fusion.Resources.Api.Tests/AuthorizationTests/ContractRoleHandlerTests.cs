@@ -71,6 +71,43 @@ namespace Fusion.Resources.Api.Tests
             context.HasSucceeded.Should().BeFalse();
         }
 
+        [Fact]
+        public async Task AnyRole_Should_HaveAccess_When_ExternalCompanyRep()
+        {
+            var contract = ApiContractBuilder.NewContract(contractId)
+                .WithExternalCompanyRep(userAzureUniqueId);
+
+            var orgResolver = new Mock<IProjectOrgResolver>();
+            orgResolver.Setup(r => r.ResolveContractAsync(projectId, contractId)).ReturnsAsync(contract);
+
+            var requirement = ContractRole.Any;
+            var resource = new ContractResource(project, contractId);
+            var context = GetContext(requirement, resource, GetClaimsUser(userAzureUniqueId));
+            var handler = new ContractRoleAuthHandlerTester(orgResolver.Object);
+
+            await handler.HandleAsync(context);
+
+            context.HasSucceeded.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task AnyRole_Should_HaveAccess_When_ExternalContractRep()
+        {
+            var contract = ApiContractBuilder.NewContract(contractId)
+                .WithExternalContractRep(userAzureUniqueId);
+
+            var orgResolver = new Mock<IProjectOrgResolver>();
+            orgResolver.Setup(r => r.ResolveContractAsync(projectId, contractId)).ReturnsAsync(contract);
+
+            var requirement = ContractRole.Any;
+            var resource = new ContractResource(project, contractId);
+            var context = GetContext(requirement, resource, GetClaimsUser(userAzureUniqueId));
+            var handler = new ContractRoleAuthHandlerTester(orgResolver.Object);
+
+            await handler.HandleAsync(context);
+
+            context.HasSucceeded.Should().BeTrue();
+        }
 
         private AuthorizationHandlerContext GetContext(IAuthorizationRequirement requirement, object resource, ClaimsPrincipal user)
             => new AuthorizationHandlerContext(new[] { requirement }, user, resource);
