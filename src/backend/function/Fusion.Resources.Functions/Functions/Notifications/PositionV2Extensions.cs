@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Fusion.Resources.Functions.Functions.Notifications
+namespace Fusion.Resources.Functions.Notifications
 {
     /// <summary>
     /// Should move to integration lib.

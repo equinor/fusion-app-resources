@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Fusion.Resources.Functions.Functions.Notifications
+namespace Fusion.Resources.Functions.Notifications
 {
     public class MarkdownDocument
     {
