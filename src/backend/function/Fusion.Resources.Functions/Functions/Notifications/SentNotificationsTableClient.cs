@@ -60,6 +60,8 @@ namespace Fusion.Resources.Functions.Notifications
 
         public async Task CleanupSentNotifications(DateTime dateCutoff)
         {
+            log.LogInformation($"Cleaning up sent notifications older than '{dateCutoff:g}'");
+
             var table = await tableStorageClient.GetTableAsync(TableName);
             var filter = TableQuery.GenerateFilterConditionForDate("Timestamp", QueryComparisons.LessThan, dateCutoff);
 
@@ -83,6 +85,7 @@ namespace Fusion.Resources.Functions.Notifications
                 try
                 {
                     await table.ExecuteBatchAsync(deleteBatch);
+                    log.LogInformation($"Successfully cleaned items with partition key '{group.Key}'");
                 }
                 catch (Exception ex) //Continue attemting to delete other batches, issue might be transient. Error will be thrown to indicate non-success for function.
                 {
