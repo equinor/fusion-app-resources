@@ -26,7 +26,7 @@ namespace Fusion.Resources.Functions
 
         [Singleton]
         [FunctionName("sent-notifications-cleanup")]
-        public async Task CleanupSentNotifications([TimerTrigger("0 0 0 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log)
+        public async Task CleanupSentNotifications([TimerTrigger("0 0 0 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log)
         {
             var dateCutoff = DateTime.Today.AddDays(-1);
 
