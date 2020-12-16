@@ -1,7 +1,7 @@
 ﻿using Fusion.Resources.Functions.ApiClients;
 using System.Threading.Tasks;
 
-namespace Fusion.Resources.Functions.Functions.Notifications
+namespace Fusion.Resources.Functions.Notifications
 {
     public interface IUrlResolver
     {

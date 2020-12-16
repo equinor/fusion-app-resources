@@ -3,7 +3,7 @@ using Fusion.Resources.Functions.Integration.Http;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 
-namespace Fusion.Resources.Functions.Functions.Notifications
+namespace Fusion.Resources.Functions.Notifications
 {
     public class UrlResolver : IUrlResolver
     {

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Fusion.Resources.Functions.Functions.Notifications
+namespace Fusion.Resources.Functions.Notifications
 {
     public class RequestNotificationSender
     {

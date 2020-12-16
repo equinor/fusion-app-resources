@@ -1,7 +1,7 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Functions.ApiClients;
-using Fusion.Resources.Functions.Functions.Notifications;
+using Fusion.Resources.Functions.Notifications;
 using Fusion.Testing.Mocks.OrgService;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
