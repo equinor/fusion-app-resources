@@ -6,6 +6,8 @@ pr:
     - '*' #include all for now, to avoid having to trigger manually
     #- src/backend/api/*
 
+# dummy for triggering pipeline 1
+
 trigger: none
   
 variables:
