@@ -102,13 +102,13 @@ stages:
                 Inline: |
                     Import-Module FusionPS
                     New-DefaultServiceSqlDatabaseV2 `
-                      -InfraEnv 'fusion-test' `
+                      -InfraEnv 'Test' `
                       -Environment 'pr' `
                       -DatabasePrefixName 'fusion-app-resources' `
                       -PullRequest '$($env:prNumber)'
 
                     Set-FusionAzSqlDatabaseAccess `
-                      -InfraEnv 'fusion-test' `
+                      -InfraEnv 'Test' `
                       -Environment 'pr' `
                       -DatabaseName '$(fusion-app-resources-db-pr-$env:prNumber)'
 
