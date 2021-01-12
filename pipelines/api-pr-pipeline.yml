@@ -103,14 +103,14 @@ stages:
                     Import-Module FusionPS
                     New-DefaultServiceSqlDatabaseV2 `
                       -InfraEnv 'Test' `
-                      -Environment 'pr' `
-                      -DatabasePrefixName 'fusion-app-resources' `
+                      -Environment 'PR' `
+                      -DatabasePrefixName 'Fusion-Apps-Resources' `
                       -PullRequest '$(prNumber)'
 
                     Set-FusionAzSqlDatabaseAccess `
                       -InfraEnv 'Test' `
                       -Environment 'pr' `
-                      -DatabaseName '$(fusion-app-resources-db-pr-$env:prNumber)'
+                      -DatabaseName 'Fusion-Apps-Resources-DB-PR-$(prNumber)'
 
             - template: templates/get-appinsights-key.yml
               parameters:
