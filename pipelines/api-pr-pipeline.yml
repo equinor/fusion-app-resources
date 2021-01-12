@@ -1,0 +1,114 @@
+name: $(date:yyyyMMdd)$(rev:.r)
+
+pr: 
+  paths:
+    include:
+    - '*' #include all for now, to avoid having to trigger manually
+    #- src/backend/api/*
+
+trigger: none
+  
+variables:
+    prNumber: $(System.PullRequest.PullRequestNumber)
+    fusionAcr: 'fusioncr.azurecr.io'
+    imageName: resources/fusion-resouces-api:$(prNumber)
+    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
+    fullImageName: $(fusionAcr)/$(imageName)
+  
+stages:
+  - stage: BuildDockerImage
+    displayName: 'Build docker image'
+    jobs:
+    - job: BuildImage
+      pool: Private Docker
+      steps:
+      - task: Docker@1
+        displayName: 'Build an image'
+        inputs:
+          azureSubscriptionEndpoint: $(subscriptionService)
+          azureContainerRegistry: '$(fusionAcr)'
+          dockerFile: 'src/backend/api/Fusion.Resources.Api/Dockerfile'
+          imageName: '$(imageName)'
+          includeSourceTags: true
+          includeLatestTag: false
+          useDefaultContext: false
+          buildContext: ./src/backend
+  
+      - task: Docker@1
+        displayName: 'Push an image'
+        inputs:
+          azureSubscriptionEndpoint: $(subscriptionService)
+          azureContainerRegistry: '$(fusionAcr)'
+          command: 'Push an image'
+          imageName: '$(imageName)'
+  
+      - script: |
+          docker run --rm --entrypoint cat $(fullImageName) /app/migration.sql > $(Build.ArtifactStagingDirectory)/db-migration.sql
+        displayName: "Copy EF migration file from container"
+
+      - task: CopyFiles@2
+        displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+        inputs:
+          SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
+          Contents: |
+            deployment-pr-env.yml
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
+  
+      - publish: $(Build.ArtifactStagingDirectory)
+        artifact: 'k8s-deployment'
+  
+  - stage: DeployPR
+    displayName: 'Deploy API to PR'
+    dependsOn: BuildDockerImage
+    condition: succeeded()
+    variables: 
+      envName: 'pr'
+      fusionEnvironment: 'ci'
+      clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+  
+    jobs:
+    - deployment: DeployPR
+      displayName: 'Deploy API to PR'
+      pool: Private Docker
+      environment: fusion-pr.fusion-resources-app-pr
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - task: AzurePowerShell@4
+              displayName: 'Get secrets'
+              inputs:
+                azureSubscription: $(subscriptionService)
+                ScriptType: 'InlineScript'
+                FailOnStandardError: true
+                azurePowerShellVersion: 'LatestVersion'
+                Inline: |
+                    $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
+
+            - template: templates/get-appinsights-key.yml
+              parameters:
+                environment: $(envName)
+
+            # Load the key vault url into variable, so it can be used when replacing tokens.
+            - template: templates/get-keyvault-url.yml
+              parameters:
+                environment: $(envName)
+                variableName: envKeyVaultUrl
+                
+
+            - template: templates/replace-tokens.yml
+              parameters:
+                targetFiles: '$(deploymentManifest)'
+
+            - template: templates/execute-sql-migration.yml
+              parameters:
+                artifact: 'k8s-deployment'
+                environment: $(envName)                
+  
+            - task: KubernetesManifest@0
+              displayName: Deploy to Kubernetes cluster
+              inputs:
+                action: deploy
+                manifests: $(deploymentManifest) 
