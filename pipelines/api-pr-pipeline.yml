@@ -72,7 +72,7 @@ stages:
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      pool: Private Docker
+      pool: Default
       environment: fusion-resources-pr.fusion-app-resources-pr
       strategy:
         runOnce:
