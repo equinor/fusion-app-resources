@@ -78,6 +78,9 @@ stages:
         runOnce:
           deploy:
             steps:
+            - task: InstallFusionPowershell@1
+              displayName: 'Install Fusion PS Modules'
+
             - task: AzurePowerShell@4
               displayName: 'Get secrets'
               inputs:
@@ -89,6 +92,26 @@ stages:
                     $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
 
+            - task: AzurePowerShell@4
+              displayName: 'Provision database'
+              inputs: 
+                azureSubscription: $(subscriptionService)
+                ScriptType: 'InlineScript'
+                FailOnStandardError: true
+                azurePowerShellVersion: 'LatestVersion'
+                Inline: |
+                    Import-Module FusionPS
+                    New-DefaultServiceSqlDatabaseV2 `
+                      -InfraEnv 'fusion-test' `
+                      -Environment 'pr' `
+                      -DatabasePrefixName 'fusion-app-resources' `
+                      -PullRequest '$($env:prNumber)'
+
+                    Set-FusionAzSqlDatabaseAccess `
+                      -InfraEnv 'fusion-test' `
+                      -Environment 'pr' `
+                      -DatabaseName '$(fusion-app-resources-db-pr-$env:prNumber)'
+
             - template: templates/get-appinsights-key.yml
               parameters:
                 environment: $(envName)
@@ -98,7 +121,6 @@ stages:
               parameters:
                 environment: $(envName)
                 variableName: envKeyVaultUrl
-                
 
             - template: templates/replace-tokens.yml
               parameters:
