@@ -105,7 +105,7 @@ stages:
                       -InfraEnv 'Test' `
                       -Environment 'pr' `
                       -DatabasePrefixName 'fusion-app-resources' `
-                      -PullRequest '$($env:prNumber)'
+                      -PullRequest '$(prNumber)'
 
                     Set-FusionAzSqlDatabaseAccess `
                       -InfraEnv 'Test' `
