@@ -125,7 +125,7 @@ stages:
                 azurePowerShellVersion: 'LatestVersion'
                 Inline: |
                     Import-Module FusionPS
-                    $dbName = "Fusion-Apps-Resources-DB-PR-$(prNumber)"
+                    $dbName = Fusion-Apps-Resources-PR-$(prNumber)-DB
 
                     New-DefaultServiceSqlDatabaseV2 `
                       -InfraEnv Test `
