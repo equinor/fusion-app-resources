@@ -40,7 +40,7 @@ spec:
           secretName: env-secrets
 
       containers:
-      - name: resources-api-{{prNumber}}
+      - name: resources-api-pr-{{prNumber}}
         image: {{fusionAcr}}/{{imageName}}
         ports:
         - containerPort: 80
