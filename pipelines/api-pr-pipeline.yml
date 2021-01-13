@@ -3,10 +3,7 @@ name: $(date:yyyyMMdd)$(rev:.r)
 pr: 
   paths:
     include:
-    - '*' #include all for now, to avoid having to trigger manually
-    #- src/backend/api/*
-
-# dummy for triggering pipeline 2
+    - src/backend/api/*
 
 trigger: none
   
@@ -73,7 +70,7 @@ stages:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
       pool: Private Docker
-      environment: fusion-resources-pr.fusion-app-resources-pr
+      environment: fusion-resources-pr.fusion-resources-app-pr
       strategy:
         runOnce:
           deploy:
