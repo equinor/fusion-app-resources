@@ -18,7 +18,7 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: resources-api-pr-{{prNumber}}
+  name: 'resources-api-pr-{{prNumber}}'
 spec:
   replicas: 1
   strategy:
@@ -28,11 +28,11 @@ spec:
       maxUnavailable: 50%
   selector:
     matchLabels:
-      app: resources-api-pr-{{prNumber}}
+      app: 'resources-api-pr-{{prNumber}}'
   template:
     metadata:
       labels:
-        app: resources-api-pr-{{prNumber}}
+        app: 'resources-api-pr-{{prNumber}}'
     spec:
       volumes:
       - name: env-secrets-volumes
