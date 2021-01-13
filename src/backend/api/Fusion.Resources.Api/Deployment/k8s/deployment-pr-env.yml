@@ -123,5 +123,5 @@ spec:
         paths:
         - path: /
           backend:
-            serviceName: resources-api-{{prNumber}}
+            serviceName: resources-api-pr-{{prNumber}}
             servicePort: 80
