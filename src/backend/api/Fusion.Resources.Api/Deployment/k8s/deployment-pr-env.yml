@@ -28,11 +28,11 @@ spec:
       maxUnavailable: 50%
   selector:
     matchLabels:
-      app: resources-api
+      app: resources-api-pr-{{prNumber}}
   template:
     metadata:
       labels:
-        app: resources-api
+        app: resources-api-pr-{{prNumber}}
     spec:
       volumes:
       - name: env-secrets-volumes
