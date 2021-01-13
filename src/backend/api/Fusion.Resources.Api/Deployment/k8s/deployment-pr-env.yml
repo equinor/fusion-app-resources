@@ -4,7 +4,7 @@ metadata:
   name: env-secrets
   labels: 
     environment: pr
-    prNumber: '{{prNumber}}' #need quotes because of integer to string
+    prNumber: '{{prNumber}}' #need quotes since it is an integer
 type: Opaque
 stringData:
   appsettings.secrets.yaml: |
