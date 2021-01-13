@@ -125,16 +125,18 @@ stages:
                 azurePowerShellVersion: 'LatestVersion'
                 Inline: |
                     Import-Module FusionPS
+                    $dbName = "Fusion-Apps-Resources-DB-PR-$(prNumber)"
+
                     New-DefaultServiceSqlDatabaseV2 `
-                      -InfraEnv 'Test' `
-                      -Environment 'PR' `
-                      -DatabasePrefixName 'Fusion-Apps-Resources' `
-                      -PullRequest '$(prNumber)'
+                      -InfraEnv Test `
+                      -DatabaseName $dbName `
+                      -SourceDatabase Fusion-Apps-Resources-CI-DB `
+                      -Tags @{ "pr" = $(prNumber) }
 
                     Set-FusionAzSqlDatabaseAccess `
-                      -InfraEnv 'Test' `
-                      -Environment 'PR' `
-                      -DatabaseName 'Fusion-Apps-Resources-DB-PR-$(prNumber)'
+                      -InfraEnv Test `
+                      -Environment PR `
+                      -DatabaseName $dbName
 
             - template: templates/get-appinsights-key.yml
               parameters:
