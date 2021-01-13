@@ -88,10 +88,10 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: resources-api
+  name: resources-api-pr-{{prNumber}}
 spec:
   selector:
-    app: resources-api
+    app: resources-api-pr-{{prNumber}}
   ports:
   - port: 80
     targetPort: 80
