@@ -4,7 +4,7 @@ metadata:
   name: env-secrets
   labels: 
     environment: pr
-    prNumber: {{prNumber}}
+    prNumber: '{{prNumber}}'
 type: Opaque
 stringData:
   appsettings.secrets.yaml: |
