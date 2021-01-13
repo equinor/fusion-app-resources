@@ -126,7 +126,7 @@ stages:
                 Inline: |
                     Import-Module FusionPS
 
-                    New-DefaultServiceSqlDatabaseV2 `
+                    New-FusionSqlDatabaseV2 `
                       -InfraEnv Test `
                       -DatabaseName Fusion-Apps-Resources-PR-$(prNumber)-DB `
                       -SourceDatabase Fusion-Apps-Resources-CI-DB `
