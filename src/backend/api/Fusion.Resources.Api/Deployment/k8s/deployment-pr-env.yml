@@ -58,6 +58,8 @@ spec:
           value: "{{fusionEnvironment}}"
         - name: AzureAd__ClientId
           value: "{{clientId}}"
+        - name: ConnectionStrings__ResourcesDbContext
+          value: "{{dbConnectionString}}"
         resources:
           requests:
             memory: "250Mi"

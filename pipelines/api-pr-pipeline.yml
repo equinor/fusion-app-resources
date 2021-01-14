@@ -126,16 +126,22 @@ stages:
                 Inline: |
                     Import-Module FusionPS
 
+                    $dbName = "Fusion-Apps-Resources-PR-$(prNumber)-DB"
+
                     New-FusionSqlDatabaseV2 `
                       -InfraEnv Test `
-                      -DatabaseName Fusion-Apps-Resources-PR-$(prNumber)-DB `
+                      -DatabaseName $dbName `
                       -SourceDatabase Fusion-Apps-Resources-CI-DB `
                       -Tags @{ "pr" = $(prNumber) }
 
                     Set-FusionAzSqlDatabaseAccess `
                       -InfraEnv Test `
                       -Environment PR `
-                      -DatabaseName Fusion-Apps-Resources-PR-$(prNumber)-DB
+                      -DatabaseName $dbName
+                    
+                    $connectonString = "Server=tcp:fusion-test-sqlserver.database.windows.net,1433;Initial Catalog=$($dbName);Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
+                    Write-Output "##vso[task.setvariable variable=dbConnectionString]$($connectionString)"
 
             - template: templates/get-appinsights-key.yml
               parameters:
