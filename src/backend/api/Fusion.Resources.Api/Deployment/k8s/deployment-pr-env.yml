@@ -4,7 +4,7 @@ metadata:
   name: env-secrets
   labels: 
     environment: pr
-    prNumber: '{{prNumber}}' #need quotes since it is an integer, k8s needs string
+    prNumber: '{{prNumber}}' #need quotes since it is an integer, k8s demands string
 type: Opaque
 stringData:
   appsettings.secrets.yaml: |
