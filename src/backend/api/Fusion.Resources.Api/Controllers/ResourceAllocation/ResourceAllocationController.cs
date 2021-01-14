@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
@@ -15,7 +17,7 @@ namespace Fusion.Resources.Api.Controllers
     public class ResourceAllocationController : ResourceControllerBase
     {
         [HttpPost("/projects/{projectIdentifier}/requests")]
-        public async Task<ActionResult<ApiRequest>> AllocateProjectRequest(
+        public async Task<ActionResult<ApiResourceAllocationRequest>> AllocateProjectRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateProjectAllocationRequest request)
         {
             #region Authorization
@@ -27,17 +29,19 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var result = await DispatchAsync(new GetProjectAllocationRequest(request.RequestNumber));
+            throw new NotImplementedException();
+            var result = new object();
+            //await DispatchAsync(new CreateProjectResourceAllocationRequest(request));
 
-            return Created($"/projects/{projectIdentifier}/requests/{request.RequestNumber}", new ApiRequest(result));
+            return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(null));
         }
 
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiRequest>> PatchProjectAllocationRequest(
+        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
             [FromBody] PatchProjectAllocationRequest request)
         {
-            var result = await DispatchAsync(new GetProjectAllocationRequest(requestId));
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -53,19 +57,20 @@ namespace Fusion.Resources.Api.Controllers
 
             await using (var scope = await BeginTransactionAsync())
             {
-                result = await DispatchAsync(new ProcessProjectAllocationCommand(requestId, requestId));
+                throw new NotImplementedException();
+                //result = await DispatchAsync(new Domain.Commands.PatchProjectAllocationRequestCommand(requestId, request));
                 await scope.CommitAsync();
             }
 
-            return new ApiRequest(result);
+            return new ApiResourceAllocationRequest(result);
         }
 
         [HttpPut("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiRequest>> UpdateProjectAllocationRequest(
+        public async Task<ActionResult<ApiResourceAllocationRequest>> UpdateProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
             [FromBody] CreateProjectAllocationRequest request)
         {
-            var result = await DispatchAsync(new GetProjectAllocationRequest(requestId));
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -81,19 +86,36 @@ namespace Fusion.Resources.Api.Controllers
 
             await using (var scope = await BeginTransactionAsync())
             {
-                result = await DispatchAsync(new ProcessProjectAllocationCommand(requestId, requestId));
-
+                throw new NotImplementedException();
+                //result = await DispatchAsync(new Domain.Commands.PutProjectAllocationRequestCommand(requestId, request));
                 await scope.CommitAsync();
             }
 
-            return new ApiRequest(result);
+            return new ApiResourceAllocationRequest(result);
         }
 
+        [HttpGet("/projects/{projectIdentifier}/requests")]
+        public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetProjectAllocationRequests(
+            [FromRoute] ProjectIdentifier projectIdentifier)
+        {
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequests(projectIdentifier.ProjectId));
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            return result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+        }
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiRequest>> GetProjectAllocationRequest(
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
-            var result = await DispatchAsync(new GetProjectAllocationRequest(requestId));
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -107,14 +129,14 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            return new ApiRequest(result);
+            return new ApiResourceAllocationRequest(result);
         }
 
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult> DeleteProjectAllocationRequest([FromRoute] ProjectIdentifier projectIdentifier,
             Guid requestId)
         {
-            var result = await DispatchAsync(new GetProjectAllocationRequest(requestId));
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -139,7 +161,7 @@ namespace Fusion.Resources.Api.Controllers
             try
             {
                 await using var scope = await BeginTransactionAsync();
-                await DispatchAsync(new DeleteProjectAllocationRequest(requestId));
+                await DispatchAsync(new DeleteProjectAllocationRequestCommand(requestId));
 
                 await scope.CommitAsync();
             }
@@ -156,7 +178,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiRequest>> ApproveProjectAllocationRequest(
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
             [FromBody] ApproveProjectAllocationRequest request)
         {
@@ -172,13 +194,14 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
+                throw new NotImplementedException();
                 await using var scope = await BeginTransactionAsync();
-                var result =
-                    await DispatchAsync(new ProcessProjectAllocationCommand(projectIdentifier.ProjectId, requestId));
+                var result = new object();
+                //await DispatchAsync(new CreateProjectAllocationRequestCommand(projectIdentifier.ProjectId, requestId));
 
                 await scope.CommitAsync();
 
-                return new ApiRequest(result);
+                return new ApiResourceAllocationRequest(null);
             }
             catch (InvalidOperationException ex)
             {
@@ -187,7 +210,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/terminate")]
-        public async Task<ActionResult<ApiRequest>> TerminateProjectAllocationRequest(
+        public async Task<ActionResult<ApiResourceAllocationRequest>> TerminateProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
             [FromBody] TerminateProjectAllocationRequest request)
         {
@@ -202,13 +225,14 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
+                throw new NotImplementedException();
                 await using var scope = await BeginTransactionAsync();
-                var result =
-                    await DispatchAsync(new ProcessProjectAllocationCommand(projectIdentifier.ProjectId, requestId));
+                var result = new object();
+                //await DispatchAsync(new ProcessProjectAllocationCommand(projectIdentifier.ProjectId, requestId));
 
                 await scope.CommitAsync();
 
-                return new ApiRequest(result);
+                return new ApiResourceAllocationRequest(null);
             }
             catch (InvalidOperationException ex)
             {
