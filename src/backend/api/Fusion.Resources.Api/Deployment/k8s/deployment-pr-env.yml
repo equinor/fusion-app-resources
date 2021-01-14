@@ -1,10 +1,10 @@
-﻿apiVersion: v1
+﻿#PS! secret pr.fusion-dev.net-tls must exist for this deployment to work. Since it contains secret information, it cannot be added to source control.
+apiVersion: v1
 kind: Secret
 metadata:
   name: env-secrets
   labels: 
     environment: pr
-    prNumber: '{{prNumber}}' #need quotes since it is an integer, k8s expects a string
 type: Opaque
 stringData:
   appsettings.secrets.yaml: |

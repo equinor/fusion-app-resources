@@ -1,0 +1,32 @@
+parameters:
+
+steps:
+- task: AzurePowershell@4
+  displayName: 'Install Fusion PS Modules'
+  inputs: 
+    azureSubscription: $(subscriptionService)
+    ScriptType: 'InlineScript'
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    Inline: |
+      Write-Host "Registering Fusion PowerShell Repository"
+
+      if ($null -eq (Get-PSRepository -Name Fusion -ErrorAction SilentlyContinue)) {
+        Register-PSRepository -Name Fusion -SourceLocation "https://statoil-proview.pkgs.visualstudio.com/5309109e-a734-4064-a84c-fbce45336913/_packaging/Fusion-Public/nuget/v2" -InstallationPolicy Trusted -ErrorAction Stop
+        Write-Host "Ok"
+      } else {
+        Write-Host "Fusion already added as a repository..."
+      }	
+
+      Write-Host "Installing FusionPS module for CurrentUser"
+      Install-Module FusionPS -Repository Fusion -Force -Scope CurrentUser
+
+      Write-Output (Get-Module -ListAvailable -Name FusionPS)
+
+      ## Remove repository
+      if ($null -ne (Get-PSRepository -Name Fusion -ErrorAction SilentlyContinue)) {
+        Unregister-PSRepository -Name Fusion -ErrorAction Stop		
+        Write-Host "Ok"
+      } else {
+        Write-Host "Was not able to remove the fusion ps repo... This can cause problems on hosted agents."
+      }	
