@@ -139,8 +139,7 @@ stages:
                       -Environment PR `
                       -DatabaseName $dbName
                     
-                    $connectionString = "Server=tcp:fusion-test-sqlserver.database.windows.net,1433;Initial Catalog=$($dbName);Persist Security Info=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-
+                    $connectionString = Get-FusionSqlServerConnectionString `-InfraEnv Test -DatabaseName $dbName
                     Write-Output "##vso[task.setvariable variable=dbConnectionString]$($connectionString)"
 
             - template: templates/get-appinsights-key.yml
