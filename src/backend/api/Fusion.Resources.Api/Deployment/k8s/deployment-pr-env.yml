@@ -1,9 +1,10 @@
-﻿apiVersion: v1
+﻿#PS! secret pr.fusion-dev.net-tls must exist for this deployment to work. Since it contains secret information, it cannot be added to source control.
+apiVersion: v1
 kind: Secret
 metadata:
   name: env-secrets
   labels: 
-    environment: {{ENVNAME}}
+    environment: pr
 type: Opaque
 stringData:
   appsettings.secrets.yaml: |
@@ -17,7 +18,10 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: resources-api
+  name: 'resources-api-pr-{{prNumber}}'
+  labels: 
+    environment: pr
+    prNumber: '{{prNumber}}'
 spec:
   replicas: 1
   strategy:
@@ -27,11 +31,11 @@ spec:
       maxUnavailable: 50%
   selector:
     matchLabels:
-      app: resources-api
+      app: 'resources-api-pr-{{prNumber}}'
   template:
     metadata:
       labels:
-        app: resources-api
+        app: 'resources-api-pr-{{prNumber}}'
     spec:
       volumes:
       - name: env-secrets-volumes
@@ -39,7 +43,7 @@ spec:
           secretName: env-secrets
 
       containers:
-      - name: resources-api
+      - name: resources-api-pr-{{prNumber}}
         image: {{fusionAcr}}/{{imageName}}
         ports:
         - containerPort: 80
@@ -57,10 +61,12 @@ spec:
           value: "{{fusionEnvironment}}"
         - name: AzureAd__ClientId
           value: "{{clientId}}"
+        - name: ConnectionStrings__ResourcesDbContext
+          value: "{{dbConnectionString}}"
         resources:
           requests:
             memory: "250Mi"
-            cpu: "120m"
+            cpu: "50m"
           limits:
             memory: "500Mi"
             cpu: "200m"
@@ -87,10 +93,14 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: resources-api
+  name: resources-api-pr-{{prNumber}}
+  labels: 
+    environment: pr
+    prNumber: '{{prNumber}}'
+
 spec:
   selector:
-    app: resources-api
+    app: resources-api-pr-{{prNumber}}
   ports:
   - port: 80
     targetPort: 80
@@ -99,26 +109,31 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: resources-api-fusion-ingress
+  name: resources-api-fusion-ingress-{{prNumber}}
+  labels: 
+    environment: pr
+    prNumber: '{{prNumber}}'
   annotations:
-    kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: nginx
-    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
     nginx.org/client-max-body-size: "50m"
     nginx.ingress.kubernetes.io/client-max-body-size: "50m"
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    fusion-health/environment: 'pr'
+    fusion-health/application: 'Fusion Resources'
+    fusion-health/url: /_health/ready
 spec:
   tls:
   - hosts:
-    - resources-api.{{ENVNAME}}.fusion-dev.net
-    secretName: {{ENVNAME}}.fusion-dev.net-tls
+    - resources-api-pr-{{prNumber}}.fusion-dev.net
+    secretName: pr.fusion-dev.net-tls
+
   rules:
-    - host: resources-api.{{ENVNAME}}.fusion-dev.net
+    - host: resources-api-pr-{{prNumber}}.fusion-dev.net
       http:
         paths:
         - path: /
           backend:
-            serviceName: resources-api
+            serviceName: resources-api-pr-{{prNumber}}
             servicePort: 80
