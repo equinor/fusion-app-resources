@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
+using Fusion.Resources.Api.Middleware;
 
 namespace Fusion.Resources.Api
 {
@@ -109,6 +110,7 @@ namespace Fusion.Resources.Api
             }
 
             //app.UseMiddleware<Middleware.RequestResponseLoggingMiddleware>();
+            app.UseMiddleware<TraceMiddleware>();
             app.UseMiddleware<Middleware.ExceptionMiddleware>();
             app.UseMiddleware<ChaosMonkeyMiddleware>();
 
