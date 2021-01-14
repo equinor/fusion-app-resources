@@ -19,6 +19,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: 'resources-api-pr-{{prNumber}}'
+  labels: 
+    environment: pr
+    prNumber: '{{prNumber}}'
 spec:
   replicas: 1
   strategy:
@@ -91,6 +94,10 @@ kind: Service
 apiVersion: v1
 metadata:
   name: resources-api-pr-{{prNumber}}
+  labels: 
+    environment: pr
+    prNumber: '{{prNumber}}'
+
 spec:
   selector:
     app: resources-api-pr-{{prNumber}}
@@ -103,6 +110,9 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: resources-api-fusion-ingress-{{prNumber}}
+  labels: 
+    environment: pr
+    prNumber: '{{prNumber}}'
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
