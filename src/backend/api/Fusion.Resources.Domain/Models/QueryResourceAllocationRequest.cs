@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain
 
         public QueryProject Project { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public QueryResourceAllocationRequestOrgPositionInstance OrgPositionInstance { get; set; }
+        public QueryResourceAllocationRequestOrgPositionInstance? OrgPositionInstance { get; set; }
 
         public QueryPerson ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }

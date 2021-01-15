@@ -5,8 +5,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryResourceAllocationRequestOrgPositionInstance
     {
-        public QueryResourceAllocationRequestOrgPositionInstance(
-            DbResourceAllocationRequest.DbResourceAllocationOrgPositionInstance entity)
+        public QueryResourceAllocationRequestOrgPositionInstance(DbResourceAllocationRequest.DbResourceAllocationOrgPositionInstance entity)
         {
             Id = entity.Id;
             Workload = entity.Workload;

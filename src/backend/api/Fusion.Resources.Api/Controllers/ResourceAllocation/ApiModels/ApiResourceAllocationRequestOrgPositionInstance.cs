@@ -5,6 +5,9 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiResourceAllocationRequestOrgPositionInstance
     {
+        public ApiResourceAllocationRequestOrgPositionInstance()
+        {
+        }
         public ApiResourceAllocationRequestOrgPositionInstance(QueryResourceAllocationRequestOrgPositionInstance query)
         {
             Id = query.Id;

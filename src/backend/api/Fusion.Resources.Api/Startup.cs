@@ -110,7 +110,6 @@ namespace Fusion.Resources.Api
             }
 
             //app.UseMiddleware<Middleware.RequestResponseLoggingMiddleware>();
-            app.UseMiddleware<TraceMiddleware>();
             app.UseMiddleware<Middleware.ExceptionMiddleware>();
             app.UseMiddleware<ChaosMonkeyMiddleware>();
 

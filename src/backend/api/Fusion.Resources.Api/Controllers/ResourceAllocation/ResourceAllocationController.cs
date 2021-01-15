@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -29,11 +30,29 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            throw new NotImplementedException();
-            var result = new object();
-            //await DispatchAsync(new CreateProjectResourceAllocationRequest(request));
+            var command = new CreateProjectAllocationRequestCommand(User.GetAzureUniqueIdOrThrow())
+            {
+                Discipline = request.Discipline,
+                Type = Enum.Parse<QueryResourceAllocationRequest.QueryAllocationRequestType>($"{request.Type}"),
+                OrgProjectId = projectIdentifier.ProjectId,
+                OrgPositionId = request.OrgPositionId,
+                /*OrgPositionInstance = new QueryResourceAllocationRequestOrgPositionInstance()
+                {
+                    Id = request.OrgPositionInstance.Id,
+                    Workload = request.OrgPositionInstance.Workload,
+                    Obs = request.OrgPositionInstance.Obs,
+                    AppliesFrom = request.OrgPositionInstance.AppliesFrom,
+                    AppliesTo = request.OrgPositionInstance.AppliesTo,
+                    Location = request.OrgPositionInstance.Location
+                },*/
 
-            return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(null));
+                ProposedPersonId = request.ProposedPersonId,
+                AdditionalNote = request.AdditionalNote,
+                IsDraft = request.IsDraft,
+            };
+
+            var result = await DispatchAsync(command);
+            return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(result));
         }
 
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
@@ -122,6 +141,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
+            var usrInControl = this.User.IsInRole("Fusion.Resources.FullControl");
             var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
 
             if (authResult.Unauthorized)

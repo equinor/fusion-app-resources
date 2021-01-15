@@ -13,12 +13,12 @@ namespace Fusion.Resources.Api.Controllers
         public string? Discipline { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
-        public ApiProjectReference Project { get; set; }
         public Guid? OrgPositionId { get; set; }
         public ApiResourceAllocationRequestOrgPositionInstance? OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
         public IEnumerable<ApiProposedChange>? ProposedChanges { get; set; }
-        public ApiPerson? ProposedPerson { get; set; }
+        public Guid ProposedPersonId { get; set; }
+        public bool IsDraft { get; set; }
 
 
         #region Validator
