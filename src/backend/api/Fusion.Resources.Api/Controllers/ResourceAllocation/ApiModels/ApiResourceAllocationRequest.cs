@@ -9,9 +9,8 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiResourceAllocationRequest
     {
-        public ApiResourceAllocationRequest()
-        {
-        }
+        //Required for integration testing
+        public  ApiResourceAllocationRequest() { }
 
         public ApiResourceAllocationRequest(QueryResourceAllocationRequest query)
         {

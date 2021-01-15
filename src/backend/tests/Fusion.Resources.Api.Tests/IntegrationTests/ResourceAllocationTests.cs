@@ -41,7 +41,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser = fixture.AddProfile(FusionAccountType.External);
         }
 
-        private HttpClient client => fixture.ApiFactory.CreateClient();
+        private HttpClient Client => fixture.ApiFactory.CreateClient();
 
         public async Task InitializeAsync()
         {
@@ -85,23 +85,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DeleteRequest_RandomRole_ShouldBe_Unauthorized()
         {
             using var userScope = fixture.UserScope(testUser);
-            var response = await client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
+            var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeUnauthorized();
         }
-        
+
         [Fact]
         public async Task DeleteRequest_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
+            var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
         }
-        
+
         [Fact]
         public async Task GetRequest_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await client.TestClientGetAsync<ApiResourceAllocationRequest>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
+            var response = await Client.TestClientGetAsync<ApiResourceAllocationRequest>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
 
             AssertPropsAreEqual(response.Value, testRequest);
@@ -111,19 +111,18 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             response.Discipline.Should().Be(request.Request.Discipline);
             response.Project.ProjectId.Should().Be(request.Project.ProjectId);
-
             response.Discipline.Should().Be(request.Request.Discipline);
             response.Type.Should().Be(request.Request.Type);
+            response.Project.ProjectId.Should().Be(request.Project.ProjectId);
+            response.OrgPositionId.Should().Be(request.Request.OrgPositionId);
+            response.ProposedPerson.AzureUniqueId.Should().Be(request.Request.ProposedPersonId);
+            response.AdditionalNote.Should().Be(request.Request.AdditionalNote);
+            response.IsDraft.Should().Be(request.Request.IsDraft);
+
             //response.Workflow.Should().Be(request.Request.Workflow);
             //response.State.Should().Be(request.Request.State;
 
-            response.Project.ProjectId.Should().Be(request.Project.ProjectId);
-            response.OrgPositionId.Should().Be(request.Request.OrgPositionId);
             //response.OrgPositionInstance.Id.Should().Be(request.Request.OrgPositionInstance.Id);
-
-            response.ProposedPerson.AzureUniqueId.Should().Be(request.Request.ProposedPersonId);
-
-            response.AdditionalNote.Should().Be(request.Request.AdditionalNote);
 
             //response.ProposedChanges
 
@@ -132,7 +131,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //response.CreatedBy.Should().Be(request.Request.CreatedBy);
             //response.UpdatedBy.Should().Be(request.Request.UpdatedBy);
             //response.LastActivity.Should().Be(request.Request.LastActivity);
-            response.IsDraft.Should().Be(request.Request.IsDraft);
 
             //response.ProvisioningStatus.Should().Be(request.Request.ProvisioningStatus);
         }

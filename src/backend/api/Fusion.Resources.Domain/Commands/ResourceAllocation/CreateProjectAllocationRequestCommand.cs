@@ -58,7 +58,7 @@ namespace Fusion.Resources.Domain.Commands
                     throw new ProfileNotFoundError("ProfileNotFound", null);
                 }
 
-                var project = await EnsureProject(request);
+                var project = await EnsureProjectAsync(request);
                 if (project == null)
                 {
                     //TODO: Make this better...
@@ -94,21 +94,18 @@ namespace Fusion.Resources.Domain.Commands
                 return new QueryResourceAllocationRequest(item);
             }
 
-            private async Task<DbProject?> EnsureProject(CreateProjectAllocationRequestCommand request)
+            private async Task<DbProject?> EnsureProjectAsync(CreateProjectAllocationRequestCommand request)
             {
                 var orgProject = await orgClient.GetProjectOrDefaultV2Async(request.OrgProjectId);
                 if (orgProject == null)
                     return null;
-                var project = await db.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId);
-                if (project == null)
+                
+                var project = await db.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ?? new DbProject
                 {
-                    project = new DbProject
-                    {
-                        Name = orgProject.Name,
-                        OrgProjectId = orgProject.ProjectId,
-                        DomainId = orgProject.DomainId
-                    };
-                }
+                    Name = orgProject.Name,
+                    OrgProjectId = orgProject.ProjectId,
+                    DomainId = orgProject.DomainId
+                };
 
                 return project;
             }
