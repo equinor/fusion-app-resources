@@ -14,7 +14,7 @@ namespace Fusion.Resources.Api.Authorization
             this.code = code;
             this.description = description;
         }
-        
+
         public AccessType Type { get; }
 
         public override string Description => description;
@@ -22,9 +22,12 @@ namespace Fusion.Resources.Api.Authorization
         public override string Code => code;
 
 
-        public static ProjectAccess ManageContracts = new ProjectAccess(AccessType.ManageContracts, "Project.Contract.Manage", 
+        public static ProjectAccess ManageContracts = new ProjectAccess(AccessType.ManageContracts, "Project.Contract.Manage",
             "You need permission to manage contracts in context of the project. This is typically granted to procurement personnel.");
 
-        public enum AccessType { ManageContracts }
+        public static ProjectAccess ManageRequests = new ProjectAccess(AccessType.ManageRequests, "Project.Request.Manage",
+            "You need permission to manage requests in context of the project. This is typically granted to procurement personnel.");
+
+        public enum AccessType { ManageContracts, ManageRequests }
     }
 }

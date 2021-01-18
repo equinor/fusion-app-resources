@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain.Queries;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +22,15 @@ namespace Fusion.Resources.Api.Controllers
         {
             #region Authorization
 
-            var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                });
+            });
+
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
@@ -31,25 +39,20 @@ namespace Fusion.Resources.Api.Controllers
 
             var command = new Logic.Commands.ResourceAllocationRequest.Create(projectIdentifier.ProjectId)
                 .WithDiscipline(request.Discipline)
-                .WithOrgPosition(request.OrgPositionId)
                 .WithType($"{request.Type}")
                 .WithProposedPerson(request.ProposedPersonId)
+                .WithOrgPosition(request.OrgPositionId)
                 .WithAdditionalNode(request.AdditionalNote)
-                ;
+                .WithPosition(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                              request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 
-            if (request.OrgPositionInstance != null)
-            {
-                command.WithPosition(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                    request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                    request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 
-            }
-            
             var result = await DispatchAsync(command);
             return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(result));
         }
 
-        [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
+        /*[HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> PatchProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
             [FromBody] PatchProjectAllocationRequest request)
@@ -105,7 +108,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             return new ApiResourceAllocationRequest(result);
-        }
+        }*/
 
         [HttpGet("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetProjectAllocationRequests(
@@ -115,7 +118,15 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
-            var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+                    or.BeEmployee();
+                    or.BeTrustedApplication();
+                });
+            });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
@@ -135,8 +146,15 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
-            var usrInControl = this.User.IsInRole("Fusion.Resources.FullControl");
-            var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+                    or.BeEmployee();
+                    or.BeTrustedApplication();
+                });
+            });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
@@ -162,7 +180,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.ProjectAccess(ProjectAccess.ManageContracts, projectIdentifier);
+                    or.BeTrustedApplication();
+                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
             });
@@ -190,7 +209,7 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok();
         }
-
+        /*
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
@@ -198,7 +217,16 @@ namespace Fusion.Resources.Api.Controllers
         {
             #region Authorization
 
-            var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
+                });
+
+            });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
@@ -230,7 +258,16 @@ namespace Fusion.Resources.Api.Controllers
         {
             #region Authorization
 
-            var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
+                });
+
+            });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
@@ -253,12 +290,21 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation(ex);
             }
         }
-
+        */
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
-            var authResult = await Request.RequireAuthorizationAsync(r => { r.AlwaysAccessWhen().FullControl(); });
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
+                });
+
+            });
 
             if (authResult.Success)
                 Response.Headers.Add("Allow", "GET,PUT,POST,DELETE");

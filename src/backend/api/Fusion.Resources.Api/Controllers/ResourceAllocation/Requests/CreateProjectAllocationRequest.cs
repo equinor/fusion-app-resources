@@ -1,6 +1,4 @@
 ﻿using FluentValidation;
-using Fusion.Integration.Org;
-using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -13,10 +11,10 @@ namespace Fusion.Resources.Api.Controllers
         public string? Discipline { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
-        public Guid? OrgPositionId { get; set; }
-        public ApiPositionInstance? OrgPositionInstance { get; set; }
+        public Guid OrgPositionId { get; set; }
+        public ApiPositionInstance OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
-        //public IEnumerable<ApiProposedChange>? ProposedChanges { get; set; }
+        public IEnumerable<ApiProposedChange> ProposedChanges { get; set; }
         public Guid ProposedPersonId { get; set; }
         public bool IsDraft { get; set; }
 
@@ -25,15 +23,15 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<CreateProjectAllocationRequest>
         {
-            public Validator(ICompanyResolver companyResolver, IProjectOrgResolver orgResolver)
+            public Validator()
             {
-                RuleFor(x => x.Id).NotEmptyIfProvided().WithName("id");
-                RuleFor(x => x.Discipline).NotContainScriptTag();
-                RuleFor(x => x.Discipline).MaximumLength(5000);
+                RuleFor(x => x.Id).NotEmptyIfProvided();
+                RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(5000);
+                RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
-               /* RuleFor(x => x.ToDate).GreaterThan(x => x.FromDate)
-                    .WithMessage("From date cannot be after end date")
-                    .When(x => x.FromDate.HasValue && x.ToDate.HasValue);*/
+                RuleFor(x => x.OrgPositionInstance.AppliesTo)
+                    .GreaterThan(x => x.OrgPositionInstance.AppliesFrom)
+                    .WithMessage("From date cannot be after end date");
 
             }
         }
