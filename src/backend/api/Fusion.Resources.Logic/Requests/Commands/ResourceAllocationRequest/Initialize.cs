@@ -1,65 +1,65 @@
-﻿using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain.Commands;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿//using Fusion.Resources.Database;
+//using Fusion.Resources.Database.Entities;
+//using Fusion.Resources.Domain.Commands;
+//using MediatR;
+//using Microsoft.EntityFrameworkCore;
+//using System;
+//using System.Threading;
+//using System.Threading.Tasks;
 
-namespace Fusion.Resources.Logic.Commands
-{
-    public partial class ResourceAllocationRequest
-    {
+//namespace Fusion.Resources.Logic.Commands
+//{
+//    public partial class ResourceAllocationRequest
+//    {
 
-        internal class Initialize : TrackableRequest
-        {
-            public Initialize(Guid requestId)
-            {
-                RequestId = requestId;
-            }
+//        internal class Initialize : TrackableRequest
+//        {
+//            public Initialize(Guid requestId)
+//            {
+//                RequestId = requestId;
+//            }
 
-            public Guid RequestId { get; }
-
-
-            public class Handler : AsyncRequestHandler<Initialize>
-            {
-                private readonly ResourcesDbContext resourcesDb;
-                private readonly IMediator mediator;
-
-                public Handler(ResourcesDbContext resourcesDb, IMediator mediator)
-                {
-                    this.resourcesDb = resourcesDb;
-                    this.mediator = mediator;
-                }
-
-                private DbResourceAllocationRequest dbItem = null!;
-
-                private async Task ValidateAsync(Initialize request)
-                {
-                    dbItem = await resourcesDb.ResourceAllocationRequests
-                        .Include(r => r.Project)
-                        .FirstOrDefaultAsync(r => r.Id == request.RequestId);
+//            public Guid RequestId { get; }
 
 
-                    if (dbItem == null)
-                    {
-                        throw new InvalidOperationException($"Cannot resolve request {request.RequestId}");
-                    }
+//            public class Handler : AsyncRequestHandler<Initialize>
+//            {
+//                private readonly ResourcesDbContext resourcesDb;
+//                private readonly IMediator mediator;
 
-                }
+//                public Handler(ResourcesDbContext resourcesDb, IMediator mediator)
+//                {
+//                    this.resourcesDb = resourcesDb;
+//                    this.mediator = mediator;
+//                }
 
-                protected override async Task Handle(Initialize request, CancellationToken cancellationToken)
-                {
-                    await ValidateAsync(request);
+//                private DbResourceAllocationRequest dbItem = null!;
+
+//                private async Task ValidateAsync(Initialize request)
+//                {
+//                    dbItem = await resourcesDb.ResourceAllocationRequests
+//                        .Include(r => r.Project)
+//                        .FirstOrDefaultAsync(r => r.Id == request.RequestId);
+
+
+//                    if (dbItem == null)
+//                    {
+//                        throw new InvalidOperationException($"Cannot resolve request {request.RequestId}");
+//                    }
+
+//                }
+
+//                protected override async Task Handle(Initialize request, CancellationToken cancellationToken)
+//                {
+//                    await ValidateAsync(request);
                     
-                    // Set state to submitted
-                    await mediator.Send(new SetState(request.RequestId, DbRequestState.SubmittedToCompany));
+//                    // Set state to submitted
+//                    await mediator.Send(new SetState(request.RequestId, DbRequestState.SubmittedToCompany));
 
-                }
-            }
-        }
-    }
+//                }
+//            }
+//        }
+//    }
 
 
-}
+//}

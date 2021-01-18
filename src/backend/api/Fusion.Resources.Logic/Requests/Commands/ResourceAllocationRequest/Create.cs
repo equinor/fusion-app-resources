@@ -134,6 +134,7 @@ namespace Fusion.Resources.Logic.Commands
                         OriginalPositionId = request.OrgPositionId,
                         ResourceAllocationOrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)
                     };
+                    
                     await db.ResourceAllocationRequests.AddAsync(item);
                     await db.SaveChangesAsync();
 
