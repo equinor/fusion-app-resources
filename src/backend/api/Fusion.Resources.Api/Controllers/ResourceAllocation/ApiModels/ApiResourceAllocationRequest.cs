@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiResourceAllocationRequest
     {
-        //Required for integration testing
-        public  ApiResourceAllocationRequest() { }
-
         public ApiResourceAllocationRequest(QueryResourceAllocationRequest query)
         {
             Id = query.RequestId;
@@ -20,31 +16,23 @@ namespace Fusion.Resources.Api.Controllers
             if (query.Workflow != null)
                 Workflow = new ApiWorkflow(query.Workflow);
 
-            ProposedPerson = new ApiPersonV2
-            {
-                //query.ProposedPerson
-                AzureUniqueId = query.ProposedPerson.AzureUniqueId,
-                Mail = query.ProposedPerson.Mail
-            };
+            ProposedPerson = new ApiPerson(query.ProposedPerson);
 
-            Project = new ApiProjectReferenceV2
-            {
-                Name = query.Project.Name,
-                ProjectId = query.Project.OrgProjectId,
-            };
+            Project = new ApiProjectReference(query.Project);
 
             OrgPositionId = query.OrgPositionId;
             if (query.OrgPositionInstance != null)
-                OrgPositionInstance = new ApiResourceAllocationRequestOrgPositionInstance(query.OrgPositionInstance);
+                OrgPositionInstance = new ApiPositionInstance(query.OrgPositionInstance);
 
             AdditionalNote = query.AdditionalNote;
             ProposedChanges = query.ProposedChanges?.Select(x => new ApiProposedChange(x));
 
             Created = query.Created;
             Updated = query.Updated;
-            CreatedBy = new ApiPersonV2 { AzureUniqueId = query.CreatedBy.AzureUniqueId, Mail = query.CreatedBy.Mail };
+            CreatedBy = new ApiPerson(query.CreatedBy);
+
             if (query.UpdatedBy != null)
-                UpdatedBy = new ApiPersonV2 { AzureUniqueId = query.CreatedBy.AzureUniqueId, Mail = query.CreatedBy.Mail };
+                UpdatedBy = ApiPerson.FromEntityOrDefault(query.UpdatedBy);
 
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
@@ -57,18 +45,18 @@ namespace Fusion.Resources.Api.Controllers
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAllocationRequestType Type { get; set; }
         public ApiWorkflow Workflow { get; set; }
-        public ApiProjectReferenceV2 Project { get; set; }
+        public ApiProjectReference Project { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public ApiResourceAllocationRequestOrgPositionInstance OrgPositionInstance { get; set; }
+        public ApiPositionInstance OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
         public IEnumerable<ApiProposedChange>? ProposedChanges { get; set; }
-        public ApiPersonV2 ProposedPerson { get; set; }
+        public ApiPerson ProposedPerson { get; set; }
 
         public DateTimeOffset Created { get; set; }
-        public ApiPersonV2 CreatedBy { get; set; }
+        public ApiPerson CreatedBy { get; set; }
 
         public DateTimeOffset? Updated { get; set; }
-        public ApiPersonV2? UpdatedBy { get; set; }
+        public ApiPerson? UpdatedBy { get; set; }
 
         public DateTimeOffset LastActivity { get; set; }
         public bool IsDraft { get; set; }

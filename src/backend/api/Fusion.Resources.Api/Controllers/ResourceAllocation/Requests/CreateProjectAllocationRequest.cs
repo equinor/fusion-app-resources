@@ -14,9 +14,9 @@ namespace Fusion.Resources.Api.Controllers
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public ApiResourceAllocationRequestOrgPositionInstance? OrgPositionInstance { get; set; }
+        public ApiPositionInstance? OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
-        public IEnumerable<ApiProposedChange>? ProposedChanges { get; set; }
+        //public IEnumerable<ApiProposedChange>? ProposedChanges { get; set; }
         public Guid ProposedPersonId { get; set; }
         public bool IsDraft { get; set; }
 

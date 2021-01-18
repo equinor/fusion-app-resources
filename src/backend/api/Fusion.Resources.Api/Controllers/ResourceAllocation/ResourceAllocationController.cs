@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Resources.Api.Authorization;
-using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,27 +29,22 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var command = new CreateProjectAllocationRequestCommand(User.GetAzureUniqueIdOrThrow())
+            var command = new Logic.Commands.ResourceAllocationRequest.Create(projectIdentifier.ProjectId)
+                .WithDiscipline(request.Discipline)
+                .WithOrgPosition(request.OrgPositionId)
+                .WithType($"{request.Type}")
+                .WithProposedPerson(request.ProposedPersonId)
+                .WithAdditionalNode(request.AdditionalNote)
+                ;
+
+            if (request.OrgPositionInstance != null)
             {
-                Discipline = request.Discipline,
-                Type = Enum.Parse<QueryResourceAllocationRequest.QueryAllocationRequestType>($"{request.Type}"),
-                OrgProjectId = projectIdentifier.ProjectId,
-                OrgPositionId = request.OrgPositionId,
-                /*OrgPositionInstance = new QueryResourceAllocationRequestOrgPositionInstance()
-                {
-                    Id = request.OrgPositionInstance.Id,
-                    Workload = request.OrgPositionInstance.Workload,
-                    Obs = request.OrgPositionInstance.Obs,
-                    AppliesFrom = request.OrgPositionInstance.AppliesFrom,
-                    AppliesTo = request.OrgPositionInstance.AppliesTo,
-                    Location = request.OrgPositionInstance.Location
-                },*/
+                command.WithPosition(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                    request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                    request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 
-                ProposedPersonId = request.ProposedPersonId,
-                AdditionalNote = request.AdditionalNote,
-                IsDraft = request.IsDraft,
-            };
-
+            }
+            
             var result = await DispatchAsync(command);
             return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(result));
         }
@@ -181,7 +175,7 @@ namespace Fusion.Resources.Api.Controllers
             try
             {
                 await using var scope = await BeginTransactionAsync();
-                await DispatchAsync(new DeleteProjectAllocationRequestCommand(requestId));
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Delete(requestId));
 
                 await scope.CommitAsync();
             }

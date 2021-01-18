@@ -19,7 +19,7 @@ namespace Fusion.Resources.Domain
             Project = new QueryProject(entity.Project);
             OrgPositionId = entity.OriginalPositionId;
             OrgPositionInstance =
-                new QueryResourceAllocationRequestOrgPositionInstance(entity.ResourceAllocationOrgPositionInstance);
+                new ResourceAllocationRequest.QueryPositionInstance(entity.ResourceAllocationOrgPositionInstance);
 
             ProposedPerson = new QueryPerson(entity.ProposedPerson);
 
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain
 
         public QueryProject Project { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public QueryResourceAllocationRequestOrgPositionInstance? OrgPositionInstance { get; set; }
+        public ResourceAllocationRequest.QueryPositionInstance? OrgPositionInstance { get; set; }
 
         public QueryPerson ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }

@@ -15,7 +15,7 @@ namespace Fusion.Resources.Database.Entities
 
         public Guid? OriginalPositionId { get; set; }
         
-        public DbResourceAllocationOrgPositionInstance ResourceAllocationOrgPositionInstance { get; set; } = new DbResourceAllocationOrgPositionInstance();
+        public DbPositionInstance ResourceAllocationOrgPositionInstance { get; set; } = new DbPositionInstance();
 
         public string? AdditionalNote { get; set; }
         public string? ProposedChanges { get; set; }
@@ -59,7 +59,7 @@ namespace Fusion.Resources.Database.Entities
             });
         }
 
-        public class DbResourceAllocationOrgPositionInstance
+        public class DbPositionInstance
         {
             public Guid Id { get; set; }
             public double Workload { get; set; }

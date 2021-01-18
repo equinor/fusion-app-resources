@@ -3,11 +3,9 @@ using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class ApiResourceAllocationRequestOrgPositionInstance
+    public class ApiPositionInstance
     {
-        //Required for integration testing
-        public ApiResourceAllocationRequestOrgPositionInstance() { }
-        public ApiResourceAllocationRequestOrgPositionInstance(QueryResourceAllocationRequestOrgPositionInstance query)
+        public ApiPositionInstance(ResourceAllocationRequest.QueryPositionInstance query)
         {
             Id = query.Id;
             Workload = query.Workload;
