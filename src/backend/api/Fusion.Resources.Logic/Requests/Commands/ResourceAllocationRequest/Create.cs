@@ -103,7 +103,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     var item = await PersistChangesAsync(request);
 
-                    // Start the workflow
+                    //TODO: Start the workflow. Workflow support to be implemented later...
                     //await mediator.Send(new Initialize(item.Id));
 
 
@@ -132,7 +132,7 @@ namespace Fusion.Resources.Logic.Commands
                         LastActivity = created,
 
                         OriginalPositionId = request.OrgPositionId,
-                        ResourceAllocationOrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)
+                        OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)
                     };
                     
                     await db.ResourceAllocationRequests.AddAsync(item);
@@ -148,10 +148,6 @@ namespace Fusion.Resources.Logic.Commands
                     if (proposed is null) throw new ProfileNotFoundError("ProfileNotFound", null);
 
                     ProposedPerson = proposed;
-
-                    /*var project = await db.Projects.FirstOrDefaultAsync(p => p.OrgProjectId == request.OrgProjectId);
-                    if (project is null) throw new InvalidOperationException("Could not locate the project!");
-                    */
 
                     var project = await EnsureProjectAsync(request);
                     if (project is null)

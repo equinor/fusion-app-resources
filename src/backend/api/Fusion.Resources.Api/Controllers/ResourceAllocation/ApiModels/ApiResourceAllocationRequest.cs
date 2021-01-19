@@ -37,7 +37,7 @@ namespace Fusion.Resources.Api.Controllers
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
 
-            //ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
+            ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
 
         public Guid Id { get; set; }
@@ -61,7 +61,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset LastActivity { get; set; }
         public bool IsDraft { get; set; }
 
-        //public ApiProvisioningStatus ProvisioningStatus { get; set; }
+        public ApiProvisioningStatus ProvisioningStatus { get; set; }
 
         public enum ApiAllocationRequestType { Normal, JointVenture, Direct }
     }

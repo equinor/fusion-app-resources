@@ -112,10 +112,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             public ObjectWithId Project { get; set; }
             public object Type { get; set; }
             public Guid? OrgPositionId { get; set; }
+            public ObjectWithId OrgPositionInstance { get; set; }
             public string AdditionalNote { get; set; }
             public bool IsDraft { get; set; }
             public ObjectWithAzureUniquePerson ProposedPerson { get; set; }
-            
+
             public class ObjectWithAzureUniquePerson
             {
                 public Guid AzureUniquePersonId { get; set; }
@@ -130,23 +131,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response, FusionTestResourceAllocationBuilder request)
         {
 
-             response.Discipline.Should().Be(request.Request.Discipline);
-            
+            response.Discipline.Should().Be(request.Request.Discipline);
+
             response.Project.Id.Should().Be(request.Project.ProjectId);
             response.Discipline.Should().Be(request.Request.Discipline);
-            //response.Type.Should().Be(request.Request.Type);
             response.Project.Id.Should().Be(request.Project.ProjectId);
             response.OrgPositionId.Should().Be(request.Request.OrgPositionId);
+            response.OrgPositionInstance.Id.Should().Be(request.Request.OrgPositionInstance.Id);
             response.ProposedPerson.AzureUniquePersonId.Should().Be(request.Request.ProposedPersonId);
             response.AdditionalNote.Should().Be(request.Request.AdditionalNote);
             response.IsDraft.Should().Be(request.Request.IsDraft);
+            //response.ProposedChanges
+
+            //response.Type.Should().Be(request.Request.Type);
 
             //response.Workflow.Should().Be(request.Request.Workflow);
             //response.State.Should().Be(request.Request.State;
-
-            //response.OrgPositionInstance.Id.Should().Be(request.Request.OrgPositionInstance.Id);
-
-            //response.ProposedChanges
 
             //response.Created.Should().Be(request.Request.Created);
             //response.Updated.Should().Be(request.Request.Updated);

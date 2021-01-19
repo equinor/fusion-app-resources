@@ -15,7 +15,7 @@ namespace Fusion.Resources.Database.Entities
 
         public Guid? OriginalPositionId { get; set; }
         
-        public DbPositionInstance ResourceAllocationOrgPositionInstance { get; set; } = new DbPositionInstance();
+        public DbPositionInstance OrgPositionInstance { get; set; } = new DbPositionInstance();
 
         public string? AdditionalNote { get; set; }
         public string? ProposedChanges { get; set; }
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Database.Entities
                 {
                     op.Property(ps => ps.State).HasConversion(new EnumToStringConverter<DbProvisionState>());
                 });
-                entity.OwnsOne(e => e.ResourceAllocationOrgPositionInstance);
+                entity.OwnsOne(e => e.OrgPositionInstance);
 
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAllocationRequestType>());
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
