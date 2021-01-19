@@ -14,7 +14,7 @@ namespace Fusion.Resources.Api.Controllers
         public Guid OrgPositionId { get; set; }
         public ApiPositionInstance OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
-        public IEnumerable<ApiProposedChange> ProposedChanges { get; set; }
+        public IEnumerable<ApiProposedChange> ProposedChanges { get; set; } = new List<ApiProposedChange>();
         public Guid ProposedPersonId { get; set; }
         public bool IsDraft { get; set; }
 
@@ -29,9 +29,9 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(5000);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
-                RuleFor(x => x.OrgPositionInstance.AppliesTo)
+               /* RuleFor(x => x.OrgPositionInstance.AppliesTo)
                     .GreaterThan(x => x.OrgPositionInstance.AppliesFrom)
-                    .WithMessage("From date cannot be after end date");
+                    .WithMessage("From date cannot be after end date");*/
 
             }
         }

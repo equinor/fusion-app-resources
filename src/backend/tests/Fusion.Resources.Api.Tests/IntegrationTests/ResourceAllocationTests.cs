@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -50,10 +51,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Mock project
             var testProject = new FusionTestProjectBuilder()
+                .WithPositions(1)
                 .AddToMockService();
 
             // Prepare project with mocks
             testRequest = new FusionTestResourceAllocationBuilder()
+                    .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testProfile)
                     .WithProject(testProject.Project)
                 ;

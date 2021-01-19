@@ -64,15 +64,15 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Create WithPosition(Guid basePositionId, DateTime from, DateTime to, double workload, string? obs,
-                string? location)
+            public Create WithPosition(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs,
+                string location)
             {
                 OrgPositionInstance.Id = basePositionId;
                 OrgPositionInstance.Workload = workload;
                 OrgPositionInstance.AppliesFrom = from;
                 OrgPositionInstance.AppliesTo = to;
                 OrgPositionInstance.Obs = obs ?? string.Empty;
-                OrgPositionInstance.Location = location ?? string.Empty;
+                OrgPositionInstance.Location = location;
 
                 return this;
             }
@@ -134,7 +134,7 @@ namespace Fusion.Resources.Logic.Commands
                         OriginalPositionId = request.OrgPositionId,
                         OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)
                     };
-                    
+
                     await db.ResourceAllocationRequests.AddAsync(item);
                     await db.SaveChangesAsync();
 
@@ -145,7 +145,10 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     var proposed = await profileService.EnsurePersonAsync(request.ProposedPersonId);
 
-                    if (proposed is null) throw new ProfileNotFoundError("ProfileNotFound", null);
+                    if (proposed is null)
+                    {
+                        throw new ProfileNotFoundError("ProfileNotFound", null);
+                    }
 
                     ProposedPerson = proposed;
 
@@ -167,7 +170,7 @@ namespace Fusion.Resources.Logic.Commands
                         AppliesTo = position.AppliesTo,
                         Id = position.Id,
                         Location = position.Location,
-                        Workload = position.Workload,
+                        Workload = position.Workload ?? 0,
                         Obs = position.Obs
                     };
                 }
@@ -197,6 +200,7 @@ namespace Fusion.Resources.Logic.Commands
                         OrgProjectId = orgProject.ProjectId,
                         DomainId = orgProject.DomainId
                     };
+
 
                     return project;
                 }

@@ -1,4 +1,6 @@
-﻿using Bogus;
+﻿using System;
+using System.Linq;
+using Bogus;
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
@@ -23,6 +25,12 @@ namespace Fusion.Testing.Mocks
             this.Request = request;
         }
 
+        public FusionTestResourceAllocationBuilder WithOrgPositionId(ApiPositionV2 position)
+        {
+            this.Request.OrgPositionId = position.Id;
+            this.Request.OrgPositionInstance.Id = position.Instances.First().Id;
+            return this;
+        }
         public FusionTestResourceAllocationBuilder WithProject(ApiProjectV2 project)
         {
             Project = project;

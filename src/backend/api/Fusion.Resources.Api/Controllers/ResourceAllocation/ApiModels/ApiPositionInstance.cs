@@ -5,6 +5,10 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPositionInstance
     {
+        public ApiPositionInstance()
+        {
+            
+        }
         public ApiPositionInstance(ResourceAllocationRequest.QueryPositionInstance query)
         {
             Id = query.Id;
@@ -17,10 +21,10 @@ namespace Fusion.Resources.Api.Controllers
         }
         
         public Guid Id { get; set; }
-        public double Workload { get; set; }
+        public double? Workload { get; set; }
         public string Obs { get; set; } = null!;
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
-        public string? Location { get; set; }
+        public string Location { get; set; }
     }
 }

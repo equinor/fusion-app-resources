@@ -21,8 +21,7 @@ namespace Fusion.Resources.Api.Controllers
             Project = new ApiProjectReference(query.Project);
 
             OrgPositionId = query.OrgPositionId;
-            if (query.OrgPositionInstance != null)
-                OrgPositionInstance = new ApiPositionInstance(query.OrgPositionInstance);
+            OrgPositionInstance = new ApiPositionInstance(query.OrgPositionInstance);
 
             AdditionalNote = query.AdditionalNote;
             ProposedChanges = query.ProposedChanges?.Select(x => new ApiProposedChange(x));
@@ -31,8 +30,7 @@ namespace Fusion.Resources.Api.Controllers
             Updated = query.Updated;
             CreatedBy = new ApiPerson(query.CreatedBy);
 
-            if (query.UpdatedBy != null)
-                UpdatedBy = ApiPerson.FromEntityOrDefault(query.UpdatedBy);
+            UpdatedBy = ApiPerson.FromEntityOrDefault(query.UpdatedBy);
 
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;

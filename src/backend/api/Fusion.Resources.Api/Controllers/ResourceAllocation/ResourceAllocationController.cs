@@ -27,7 +27,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeTrustedApplication();
+                    
                 });
             });
 
@@ -124,7 +124,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeEmployee();
-                    or.BeTrustedApplication();
+                    
                 });
             });
 
@@ -152,7 +152,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeEmployee();
-                    or.BeTrustedApplication();
+                    
                 });
             });
 
@@ -180,7 +180,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeTrustedApplication();
                     or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
@@ -222,7 +221,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeTrustedApplication();
+                    
                     or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
@@ -263,7 +262,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeTrustedApplication();
+                    
                     or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
@@ -300,7 +299,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeTrustedApplication();
                     or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
