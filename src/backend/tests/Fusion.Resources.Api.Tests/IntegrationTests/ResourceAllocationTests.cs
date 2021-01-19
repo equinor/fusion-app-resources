@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
@@ -56,8 +58,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Prepare project with mocks
             testRequest = new FusionTestResourceAllocationBuilder()
+                    .WithRequestType(ApiResourceAllocationRequest.ApiAllocationRequestType.Direct)
                     .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testProfile)
+                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -84,6 +88,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task CreateRequest_Invalid_Request_InvalidArguments_ShouldBe_BadRequest()
+        {
+            testRequest.Request.OrgPositionInstance = null;
+            
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request , new { Id = Guid.Empty });
+
+            response.Should().BeBadRequest();
+        }
+        
+        [Fact]
         public async Task DeleteRequest_RandomRole_ShouldBe_Unauthorized()
         {
             using var userScope = fixture.UserScope(testUser);
@@ -98,7 +113,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
         }
-
+        
         [Fact]
         public async Task GetRequest_AdminRole_ShouldBe_Authorized()
         {
@@ -106,23 +121,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
 
-            AssertPropsAreEqual(response.Value, testRequest);
+            AssertPropsAreEqual(response.Value, testRequest, adminScope);
         }
 
         public class ResourceAllocationRequestTestModel
         {
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
-            public object Type { get; set; }
+            public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
             public Guid? OrgPositionId { get; set; }
             public ObjectWithId OrgPositionInstance { get; set; }
             public string AdditionalNote { get; set; }
             public bool IsDraft { get; set; }
+            public Dictionary<string, object> ProposedChanges { get; set; }
             public ObjectWithAzureUniquePerson ProposedPerson { get; set; }
+
+            public ObjectWithAzureUniquePerson CreatedBy { get; set; }
+            public ObjectWithAzureUniquePerson UpdatedBy { get; set; }
+            
+            public DateTimeOffset? Created { get; set; }
+            public DateTimeOffset? Updated { get; set; }
+            public DateTimeOffset? LastActivity { get; set; }
 
             public class ObjectWithAzureUniquePerson
             {
-                public Guid AzureUniquePersonId { get; set; }
+                public Guid? AzureUniquePersonId { get; set; }
             }
 
             public class ObjectWithId
@@ -131,33 +154,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }
         }
 
-        private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response, FusionTestResourceAllocationBuilder request)
+        private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response,
+            FusionTestResourceAllocationBuilder request, TestClientScope scope)
         {
 
+            response.Type.Should().Be(request.Request.Type);
             response.Discipline.Should().Be(request.Request.Discipline);
 
-            response.Project.Id.Should().Be(request.Project.ProjectId);
-            response.Discipline.Should().Be(request.Request.Discipline);
             response.Project.Id.Should().Be(request.Project.ProjectId);
             response.OrgPositionId.Should().Be(request.Request.OrgPositionId);
             response.OrgPositionInstance.Id.Should().Be(request.Request.OrgPositionInstance.Id);
             response.ProposedPerson.AzureUniquePersonId.Should().Be(request.Request.ProposedPersonId);
             response.AdditionalNote.Should().Be(request.Request.AdditionalNote);
             response.IsDraft.Should().Be(request.Request.IsDraft);
-            //response.ProposedChanges
+            foreach (var (key, value) in request.Request.ProposedChanges)
+            {
+                response.ProposedChanges.Should().ContainKey(key.ToLower());
+                response.ProposedChanges.Should().ContainValue(value);
+            }
 
-            //response.Type.Should().Be(request.Request.Type);
+            response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
+            response.Created.Should().NotBeNull();
+            response.Updated.Should().BeNull();
+            response.UpdatedBy.Should().BeNull();
+            response.LastActivity.Should().NotBeNull();
 
-            //response.Workflow.Should().Be(request.Request.Workflow);
-            //response.State.Should().Be(request.Request.State;
-
-            //response.Created.Should().Be(request.Request.Created);
-            //response.Updated.Should().Be(request.Request.Updated);
-            //response.CreatedBy.Should().Be(request.Request.CreatedBy);
-            //response.UpdatedBy.Should().Be(request.Request.UpdatedBy);
-            //response.LastActivity.Should().Be(request.Request.LastActivity);
-
-            //response.ProvisioningStatus.Should().Be(request.Request.ProvisioningStatus);
+            //Workflow/state & provisioning status to be added.
         }
     }
 }

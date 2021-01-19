@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
 using Fusion.Resources.Domain;
 
@@ -24,7 +22,7 @@ namespace Fusion.Resources.Api.Controllers
             OrgPositionInstance = new ApiPositionInstance(query.OrgPositionInstance);
 
             AdditionalNote = query.AdditionalNote;
-            ProposedChanges = query.ProposedChanges?.Select(x => new ApiProposedChange(x));
+            ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
             Created = query.Created;
             Updated = query.Updated;
@@ -47,7 +45,7 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? OrgPositionId { get; set; }
         public ApiPositionInstance OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
-        public IEnumerable<ApiProposedChange>? ProposedChanges { get; set; }
+        public ApiPropertiesCollection ProposedChanges { get; set; }
         public ApiPerson ProposedPerson { get; set; }
 
         public DateTimeOffset Created { get; set; }

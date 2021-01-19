@@ -1,6 +1,5 @@
 ﻿using Bogus;
 using System;
-using System.Collections.Generic;
 using Fusion.Resources.Api.Controllers;
 
 namespace Fusion.Testing.Mocks
@@ -14,9 +13,10 @@ namespace Fusion.Testing.Mocks
                     {
                         Id = Guid.NewGuid(),
                         Discipline = f.Hacker.Phrase(),
+                        AdditionalNote = f.Hacker.Phrase(),
                         Type = ApiResourceAllocationRequest.ApiAllocationRequestType.Normal,
                         IsDraft = false,
-                        ProposedChanges = new List<ApiProposedChange>(),
+                        ProposedChanges = new ApiPropertiesCollection(),
                         OrgPositionInstance = new ApiPositionInstance
                         {
                             AppliesFrom = f.Date.Past(),

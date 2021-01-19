@@ -18,19 +18,13 @@ namespace Fusion.Resources.Domain
 
             Project = new QueryProject(entity.Project);
             OrgPositionId = entity.OriginalPositionId;
-            OrgPositionInstance =
-                new ResourceAllocationRequest.QueryPositionInstance(entity.OrgPositionInstance);
+            OrgPositionInstance = new ResourceAllocationRequest.QueryPositionInstance(entity.OrgPositionInstance);
 
             ProposedPerson = new QueryPerson(entity.ProposedPerson);
 
             AdditionalNote = entity.AdditionalNote;
 
-            if (entity.ProposedChanges != null)
-                ProposedChanges =
-                    JsonConvert
-                        .DeserializeObject<
-                            IEnumerable<QueryProposedChange>>(
-                            entity.ProposedChanges);
+            ProposedChangesJson = entity.ProposedChanges;
 
             Created = entity.Created;
             Updated = entity.Updated;
@@ -55,7 +49,25 @@ namespace Fusion.Resources.Domain
         public QueryPerson ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
 
-        public IEnumerable<QueryProposedChange>? ProposedChanges { get; set; }
+        public string? ProposedChangesJson { get; set; }
+
+        public Dictionary<string, object> ProposedChanges
+        {
+            get
+            {
+                if (ProposedChangesJson == null)
+                    return new Dictionary<string, object>();
+
+                try
+                {
+                    return JsonConvert.DeserializeObject<Dictionary<string, object>>(ProposedChangesJson);
+                }
+                catch
+                {
+                    return new Dictionary<string, object>();
+                }
+            }
+        }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }

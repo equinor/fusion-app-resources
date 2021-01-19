@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
+using Fusion.Integration;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    
+
                 });
             });
 
@@ -42,14 +43,26 @@ namespace Fusion.Resources.Api.Controllers
                 .WithType($"{request.Type}")
                 .WithProposedPerson(request.ProposedPersonId)
                 .WithOrgPosition(request.OrgPositionId)
+                .WithProposedChanges(request.ProposedChanges)
                 .WithAdditionalNode(request.AdditionalNote)
                 .WithPosition(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
                               request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 
 
-            var result = await DispatchAsync(command);
-            return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(result));
+            try
+            {
+                var result = await DispatchAsync(command);
+                return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(result));
+            }
+            catch (ProfileNotFoundError pef)
+            {
+                return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
+            }
+            catch (InvalidOperationException ioe)
+            {
+                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+            }
         }
 
         /*[HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
@@ -124,7 +137,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeEmployee();
-                    
+
                 });
             });
 
@@ -152,7 +165,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeEmployee();
-                    
+
                 });
             });
 

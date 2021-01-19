@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using Bogus;
+﻿using System.Linq;
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
@@ -39,6 +37,17 @@ namespace Fusion.Testing.Mocks
         public FusionTestResourceAllocationBuilder WithProposedPerson(ApiPersonProfileV3 profile)
         {
             Request.ProposedPersonId = profile.AzureUniqueId.Value;
+            return this;
+        }
+        public FusionTestResourceAllocationBuilder WithProposedChanges(ApiPropertiesCollection changes)
+        {
+            Request.ProposedChanges = changes;
+            return this;
+        }
+
+        public FusionTestResourceAllocationBuilder WithRequestType(ApiResourceAllocationRequest.ApiAllocationRequestType type)
+        {
+            Request.Type = type;
             return this;
         }
     }

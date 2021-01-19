@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration;
@@ -10,6 +11,8 @@ using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -33,6 +36,7 @@ namespace Fusion.Resources.Logic.Commands
 
             private Guid ProposedPersonId { get; set; }
             private string? AdditionalNote { get; set; }
+            private Dictionary<string, object> ProposedChanges { get; set; }
 
             public Create WithDiscipline(string? discipline)
             {
@@ -61,6 +65,11 @@ namespace Fusion.Resources.Logic.Commands
             public Create WithAdditionalNode(string? note)
             {
                 AdditionalNote = note;
+                return this;
+            }
+            public Create WithProposedChanges(Dictionary<string, object> changes)
+            {
+                ProposedChanges = changes;
                 return this;
             }
 
@@ -118,13 +127,15 @@ namespace Fusion.Resources.Logic.Commands
                     var item = new DbResourceAllocationRequest
                     {
                         Discipline = request.Discipline,
-                        Type = Enum.Parse<DbResourceAllocationRequest.DbAllocationRequestType>($"{request.Type}"),
+                        Type = ParseRequestType(request),
                         State = DbRequestState.Created,
 
                         Project = Project,
 
                         ProposedPersonId = ProposedPerson.Id,
                         AdditionalNote = request.AdditionalNote,
+
+                        ProposedChanges = SerializeToString(request.ProposedChanges),
 
                         Created = created,
                         CreatedBy = request.Editor.Person,
@@ -141,6 +152,20 @@ namespace Fusion.Resources.Logic.Commands
                     return item;
                 }
 
+                private static DbResourceAllocationRequest.DbAllocationRequestType ParseRequestType(Create request)
+                {
+                    return Enum.Parse<DbResourceAllocationRequest.DbAllocationRequestType>($"{request.Type}");
+                }
+
+                private static string SerializeToString(Dictionary<string, object>? properties)
+                {
+                    var propertiesJson = JsonConvert.SerializeObject(properties ?? new Dictionary<string, object>(), Formatting.Indented, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    });
+
+                    return propertiesJson;
+                }
                 private async Task ValidateAsync(Create request)
                 {
                     var proposed = await profileService.EnsurePersonAsync(request.ProposedPersonId);
