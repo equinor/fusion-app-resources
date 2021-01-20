@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration;
@@ -11,8 +12,6 @@ using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -159,10 +158,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 private static string SerializeToString(Dictionary<string, object>? properties)
                 {
-                    var propertiesJson = JsonConvert.SerializeObject(properties ?? new Dictionary<string, object>(), Formatting.Indented, new JsonSerializerSettings
-                    {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    });
+                    var propertiesJson = JsonSerializer.Serialize(properties ?? new Dictionary<string, object>(), new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
                     return propertiesJson;
                 }

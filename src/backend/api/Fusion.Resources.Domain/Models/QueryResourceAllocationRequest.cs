@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Fusion.Resources.Database.Entities;
-using Newtonsoft.Json;
 
 namespace Fusion.Resources.Domain
 {
@@ -60,7 +60,7 @@ namespace Fusion.Resources.Domain
 
                 try
                 {
-                    return JsonConvert.DeserializeObject<Dictionary<string, object>>(ProposedChangesJson);
+                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson);
                 }
                 catch
                 {
