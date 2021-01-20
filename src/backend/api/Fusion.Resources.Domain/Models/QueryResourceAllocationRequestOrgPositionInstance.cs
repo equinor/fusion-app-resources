@@ -19,15 +19,15 @@ namespace Fusion.Resources.Domain
                 Obs = entity.Obs;
                 AppliesFrom = entity.AppliesFrom;
                 AppliesTo = entity.AppliesTo;
-                Location = entity.Location;
+                Location = entity.Location ?? string.Empty;
             }
 
             public Guid Id { get; set; }
-            public double? Workload { get; set; }
+            public double Workload { get; set; }
             public string Obs { get; set; } = null!;
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
-            public string? Location { get; set; }
+            public string Location { get; set; }
 
         }
     }

@@ -73,8 +73,7 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Create WithPosition(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs,
-                string location)
+            public Create WithPosition(Guid basePositionId, DateTime from, DateTime to, double workload, string? obs, string location)
             {
                 OrgPositionInstance.Id = basePositionId;
                 OrgPositionInstance.Workload = workload;
@@ -126,6 +125,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     var item = new DbResourceAllocationRequest
                     {
+                        Id = Guid.NewGuid(),
                         Discipline = request.Discipline,
                         Type = ParseRequestType(request),
                         State = DbRequestState.Created,
@@ -195,7 +195,7 @@ namespace Fusion.Resources.Logic.Commands
                         AppliesTo = position.AppliesTo,
                         Id = position.Id,
                         Location = position.Location,
-                        Workload = position.Workload ?? 0,
+                        Workload = position.Workload,
                         Obs = position.Obs
                     };
                 }

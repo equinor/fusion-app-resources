@@ -11,8 +11,7 @@ namespace Fusion.Resources.Api.Controllers
             Id = query.RequestId;
             Discipline = query.Discipline;
             Type = Enum.Parse<ApiAllocationRequestType>($"{query.Type}");
-            if (query.Workflow != null)
-                Workflow = new ApiWorkflow(query.Workflow);
+            
 
             ProposedPerson = new ApiPerson(query.ProposedPerson);
 
@@ -22,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers
             OrgPositionInstance = new ApiPositionInstance(query.OrgPositionInstance);
 
             AdditionalNote = query.AdditionalNote;
-            ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
+            //ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
             Created = query.Created;
             Updated = query.Updated;
@@ -33,6 +32,7 @@ namespace Fusion.Resources.Api.Controllers
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
 
+            if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
 
@@ -45,7 +45,8 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? OrgPositionId { get; set; }
         public ApiPositionInstance OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
-        public ApiPropertiesCollection ProposedChanges { get; set; }
+        
+        //public ApiPropertiesCollection ProposedChanges { get; set; }
         public ApiPerson ProposedPerson { get; set; }
 
         public DateTimeOffset Created { get; set; }

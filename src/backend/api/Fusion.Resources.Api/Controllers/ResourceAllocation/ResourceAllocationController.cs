@@ -53,13 +53,18 @@ namespace Fusion.Resources.Api.Controllers
             try
             {
                 var result = await DispatchAsync(command);
-                return Created($"/projects/{projectIdentifier}/requests/{request.Id}", new ApiResourceAllocationRequest(result));
+                return Created($"/projects/{projectIdentifier}/requests/{result.RequestId}",
+                    new ApiResourceAllocationRequest(result));
             }
             catch (ProfileNotFoundError pef)
             {
                 return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
             }
             catch (InvalidOperationException ioe)
+            {
+                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+            }
+            catch (InvalidOrgChartPositionError ioe)
             {
                 return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
             }

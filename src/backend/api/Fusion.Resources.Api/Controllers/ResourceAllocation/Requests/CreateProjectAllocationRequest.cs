@@ -6,7 +6,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class CreateProjectAllocationRequest
     {
-        public Guid? Id { get; set; }
+        internal Guid? Id { get; set; }
         public string? Discipline { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
@@ -24,13 +24,17 @@ namespace Fusion.Resources.Api.Controllers
         {
             public Validator()
             {
-                RuleFor(x => x.Id).NotEmptyIfProvided();
                 RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(5000);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
-                /* RuleFor(x => x.OrgPositionInstance.AppliesTo)
-                     .GreaterThan(x => x.OrgPositionInstance.AppliesFrom)
-                     .WithMessage("From date cannot be after end date");*/
+                RuleFor(x => x.OrgPositionId).NotEmpty();
+                RuleFor(x => x.OrgPositionInstance).NotNull();
+
+                RuleFor(x => x.OrgPositionInstance.AppliesTo)
+                    .GreaterThan(x => x.OrgPositionInstance.AppliesFrom)
+                    .WithMessage("From date cannot be after end date");
+
+                RuleFor(x => x.ProposedPersonId).NotEmpty();
 
             }
         }

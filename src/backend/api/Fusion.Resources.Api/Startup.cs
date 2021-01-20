@@ -66,7 +66,6 @@ namespace Fusion.Resources.Api
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
             services.AddControllers()
-                .AddNewtonsoftJson()
                 .AddFluentValidation(c =>
                 {
                     c.RegisterValidatorsFromAssemblyContaining<Startup>();
