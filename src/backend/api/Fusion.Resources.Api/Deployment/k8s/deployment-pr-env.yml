@@ -1,4 +1,6 @@
-﻿#PS! secret pr.fusion-dev.net-tls must exist for this deployment to work. Since it contains secret information, it cannot be added to source control.
+﻿#PS! 
+#secret pr.fusion-dev.net-tls must exist for this deployment to work. Since it contains secret information, it cannot be added to source control.
+
 apiVersion: v1
 kind: Secret
 metadata:
