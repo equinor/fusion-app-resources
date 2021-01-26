@@ -1,4 +1,6 @@
-﻿#PS! secret pr.fusion-dev.net-tls must exist for this deployment to work. Since it contains secret information, it cannot be added to source control.
+﻿#PS! 
+#secret pr.fusion-dev.net-tls must exist for this deployment to work. Since it contains secret information, it cannot be added to source control.
+
 apiVersion: v1
 kind: Secret
 metadata:
@@ -45,6 +47,7 @@ spec:
       containers:
       - name: resources-api-pr-{{prNumber}}
         image: {{fusionAcr}}/{{imageName}}
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         volumeMounts:
@@ -63,6 +66,8 @@ spec:
           value: "{{clientId}}"
         - name: ConnectionStrings__ResourcesDbContext
           value: "{{dbConnectionString}}"
+        - name: BuildNr
+          value: "{{buildNr}}"
         resources:
           requests:
             memory: "250Mi"
