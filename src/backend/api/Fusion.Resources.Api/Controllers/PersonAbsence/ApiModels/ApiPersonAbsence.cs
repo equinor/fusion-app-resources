@@ -1,5 +1,6 @@
 ﻿using Fusion.Resources.Domain;
 using System;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -22,6 +23,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? Comment { get; set; }
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAbsenceType Type { get; set; }
 
         public enum ApiAbsenceType
