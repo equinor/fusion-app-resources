@@ -36,24 +36,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             loggingScope = new TestLoggingScope(output);
 
             // Generate random test user
-            testUser = fixture.AddProfile(FusionAccountType.External);
+            testUser = fixture.AddProfile(FusionAccountType.Employee);
         }
 
         [Fact]
         public async Task ListAbsence_ShouldBeOk_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await client.TestClientGetAsync($"/persons/{testUser}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
             response.Should().BeSuccessfull();
 
-            response.Value.value.Count().Should().BeGreaterThan(1);
+            response.Value.value.Count().Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
         public async Task GetAbsence_ShouldBeOk_WhenAdmin()
         {
             using var authScope = fixture.AdminScope();
-            var response = await client.TestClientGetAsync<TestAbsence>($"/persons/{testUser}/absence/{TestAbsenceId}");
+            var response = await client.TestClientGetAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}");
             response.Should().BeSuccessfull();
 
             response.Value.Id.Should().NotBeEmpty();
@@ -71,7 +71,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             };
             
             using var authScope = fixture.AdminScope();
-            var response = await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser}/absence/{TestAbsenceId}", request);
+            var response = await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", request);
             response.Should().BeSuccessfull();
 
             response.Value.Id.Should().NotBeEmpty();
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DeleteAbsence_ShouldBeOk_WhenAdmin()
         {
             using var authScope = fixture.AdminScope();
-            var response = await client.TestClientDeleteAsync($"/persons/{testUser}/absence/{TestAbsenceId}");
+            var response = await client.TestClientDeleteAsync($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}");
             response.Should().BeSuccessfull();
         }
 
@@ -100,7 +100,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Type = QueryAbsenceType.Absence
             };
 
-            var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser}/absence", request);
+            var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence", request);
 
             TestAbsenceId = response.Value.Id;
         }

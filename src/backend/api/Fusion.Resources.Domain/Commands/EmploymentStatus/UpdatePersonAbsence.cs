@@ -8,7 +8,7 @@ using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class UpdatePersonAbsence : TrackableRequest<QueryEmploymentStatus>
+    public class UpdatePersonAbsence : TrackableRequest<QueryPersonAbsence>
     {
         public UpdatePersonAbsence(PersonId personId, Guid id)
         {
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain.Commands
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
 
-        public class Handler : IRequestHandler<UpdatePersonAbsence, QueryEmploymentStatus>
+        public class Handler : IRequestHandler<UpdatePersonAbsence, QueryPersonAbsence>
         {
             private readonly ResourcesDbContext resourcesDb;
             private readonly IMediator mediator;
@@ -35,7 +35,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.mediator = mediator;
             }
 
-            public async Task<QueryEmploymentStatus> Handle(UpdatePersonAbsence request, CancellationToken cancellationToken)
+            public async Task<QueryPersonAbsence> Handle(UpdatePersonAbsence request, CancellationToken cancellationToken)
             {
                 var status = await resourcesDb.PersonAbsences
                     .GetById(request.PersonId, request.Id)

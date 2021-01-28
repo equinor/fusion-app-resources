@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Fusion.Resources.Domain
 {
-    public static class EmploymentStatusQueries
+    public static class PersonAbsenceQueries
     {
         public static IQueryable<DbPersonAbsence> GetById(this DbSet<DbPersonAbsence> table, PersonId identifier)
         {

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Domain.Commands
 {
 
-    public class CreatePersonAbsence : TrackableRequest<QueryEmploymentStatus>
+    public class CreatePersonAbsence : TrackableRequest<QueryPersonAbsence>
     {
         public CreatePersonAbsence(PersonId personId)
         {
@@ -23,22 +23,27 @@ namespace Fusion.Resources.Domain.Commands
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
 
-        public class Handler : IRequestHandler<CreatePersonAbsence, QueryEmploymentStatus>
+        public class Handler : IRequestHandler<CreatePersonAbsence, QueryPersonAbsence>
         {
             private readonly ResourcesDbContext resourcesDb;
+            private readonly IProfileService profileService;
 
-            public Handler(ResourcesDbContext resourcesDb)
+            public Handler(ResourcesDbContext resourcesDb, IProfileService profileService)
             {
                 this.resourcesDb = resourcesDb;
+                this.profileService = profileService;
             }
 
-            public async Task<QueryEmploymentStatus> Handle(CreatePersonAbsence request, CancellationToken cancellationToken)
+            public async Task<QueryPersonAbsence> Handle(CreatePersonAbsence request, CancellationToken cancellationToken)
             {
-
+                var profile = await profileService.EnsurePersonAsync(request.PersonId);
+                if (profile == null)
+                    throw new ArgumentException("Cannot create personnel without either a valid azure unique id or mail address");
 
                 var newItem = new DbPersonAbsence
                 {
                     Id = Guid.NewGuid(),
+                    Person = profile,
                     Created = DateTimeOffset.UtcNow,
                     CreatedBy = request.Editor.Person,
                     Comment = request.Comment,
@@ -50,7 +55,7 @@ namespace Fusion.Resources.Domain.Commands
                 await resourcesDb.PersonAbsences.AddAsync(newItem);
                 await resourcesDb.SaveChangesAsync();
 
-                return new QueryEmploymentStatus(newItem);
+                return new QueryPersonAbsence(newItem);
             }
 
         }

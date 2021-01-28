@@ -3,9 +3,9 @@ using System;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class ApiEmploymentStatus
+    public class ApiPersonAbsence
     {
-        public ApiEmploymentStatus(QueryEmploymentStatus absence)
+        public ApiPersonAbsence(QueryPersonAbsence absence)
         {
             Id = absence.Id;
             Created = absence.Created;

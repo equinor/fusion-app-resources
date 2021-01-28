@@ -9,8 +9,8 @@ namespace Fusion.Resources.Database.Entities
     public class DbPersonAbsence
     {
         public Guid Id { get; set; }
-        public DbPerson Person { get; set; } = null!;
         public Guid PersonId { get; set; }
+        public DbPerson Person { get; set; } = null!;
         public DateTimeOffset Created { get; set; }
         public DbPerson CreatedBy { get; set; } = null!;
         public string? Comment { get; set; }

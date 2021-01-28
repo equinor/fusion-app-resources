@@ -11,10 +11,10 @@ namespace Fusion.Resources.Api.Controllers
 {
     [Authorize]
     [ApiController]
-    public class EmploymentStatusController : ResourceControllerBase
+    public class PersonAbsenceController : ResourceControllerBase
     {
         [HttpGet("/persons/{personId}/absence")]
-        public async Task<ActionResult<ApiCollection<ApiEmploymentStatus>>> GetPersonAbsence(
+        public async Task<ActionResult<ApiCollection<ApiPersonAbsence>>> GetPersonAbsence(
             [FromRoute] string personId)
         {
             #region Authorization
@@ -34,14 +34,14 @@ namespace Fusion.Resources.Api.Controllers
             var id = new PersonId(personId);
             var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
 
-            var returnItems = personAbsence.Select(p => new ApiEmploymentStatus(p));
+            var returnItems = personAbsence.Select(p => new ApiPersonAbsence(p));
 
-            var collection = new ApiCollection<ApiEmploymentStatus>(returnItems);
+            var collection = new ApiCollection<ApiPersonAbsence>(returnItems);
             return collection;
         }
 
         [HttpGet("/persons/{personId}/absence/{absenceId}")]
-        public async Task<ActionResult<ApiEmploymentStatus>> GetPersonAbsence([FromRoute] string personId,
+        public async Task<ActionResult<ApiPersonAbsence>> GetPersonAbsence([FromRoute] string personId,
             Guid absenceId)
         {
             #region Authorization
@@ -65,12 +65,12 @@ namespace Fusion.Resources.Api.Controllers
             if (personAbsence == null)
                 return FusionApiError.NotFound(absenceId, "Could not locate absence registration");
 
-            var returnItem = new ApiEmploymentStatus(personAbsence);
+            var returnItem = new ApiPersonAbsence(personAbsence);
             return returnItem;
         }
 
         [HttpPost("/persons/{personId}/absence")]
-        public async Task<ActionResult<ApiEmploymentStatus>> CreatePersonAbsence([FromRoute] string personId,
+        public async Task<ActionResult<ApiPersonAbsence>> CreatePersonAbsence([FromRoute] string personId,
             [FromBody] CreateEmploymentStatusRequest request)
         {
             #region Authorization
@@ -98,7 +98,7 @@ namespace Fusion.Resources.Api.Controllers
                     var newAbsence = await DispatchAsync(createCommand);
                     await scope.CommitAsync();
 
-                    var item = new ApiEmploymentStatus(newAbsence);
+                    var item = new ApiPersonAbsence(newAbsence);
                     return Created($"/persons/{personId}/absence/{item.Id}", item);
                 }
             }
@@ -109,7 +109,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/persons/{personId}/absence/{absenceId}")]
-        public async Task<ActionResult<ApiEmploymentStatus>> UpdatePersonAbsence([FromRoute] string personId,
+        public async Task<ActionResult<ApiPersonAbsence>> UpdatePersonAbsence([FromRoute] string personId,
             Guid absenceId, [FromBody] UpdateEmploymentStatusRequest request)
         {
             #region Authorization
@@ -136,7 +136,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 await scope.CommitAsync();
 
-                var item = new ApiEmploymentStatus(updatedAbsence);
+                var item = new ApiPersonAbsence(updatedAbsence);
                 return item;
             }
         }

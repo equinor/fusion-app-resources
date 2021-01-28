@@ -3,9 +3,9 @@ using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {
-    public class QueryEmploymentStatus
+    public class QueryPersonAbsence
     {
-        public QueryEmploymentStatus(DbPersonAbsence absence)
+        public QueryPersonAbsence(DbPersonAbsence absence)
         {
             Id = absence.Id;
             Created = absence.Created;
@@ -23,14 +23,7 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
-
-        public static QueryEmploymentStatus? FromEntityOrDefault(DbPersonAbsence? updatedBy)
-        {
-            if (updatedBy != null)
-                return new QueryEmploymentStatus(updatedBy);
-
-            return null;
-        }
+        
     }
 
     public enum QueryAbsenceType

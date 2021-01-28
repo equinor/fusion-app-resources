@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetPersonAbsence : IRequest<IEnumerable<QueryEmploymentStatus>>
+    public class GetPersonAbsence : IRequest<IEnumerable<QueryPersonAbsence>>
     {
         private ODataQueryParams query = null!;
 
@@ -21,7 +21,7 @@ namespace Fusion.Resources.Domain
         private PersonId PersonId { get; set; }
 
 
-        public class Handler : IRequestHandler<GetPersonAbsence, IEnumerable<QueryEmploymentStatus>>
+        public class Handler : IRequestHandler<GetPersonAbsence, IEnumerable<QueryPersonAbsence>>
         {
             private readonly ResourcesDbContext db;
 
@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain
                 this.db = db;
             }
 
-            public async Task<IEnumerable<QueryEmploymentStatus>> Handle(GetPersonAbsence request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryPersonAbsence>> Handle(GetPersonAbsence request, CancellationToken cancellationToken)
             {
                 var items = await db.PersonAbsences.GetById(request.PersonId)
                     .Include(x => x.Person)
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain
 
 
 
-                var returnItems = items.Select(i => new QueryEmploymentStatus(i))
+                var returnItems = items.Select(i => new QueryPersonAbsence(i))
                     .ToList();
 
                 return returnItems;
