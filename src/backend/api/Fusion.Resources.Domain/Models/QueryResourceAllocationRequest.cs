@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Fusion.ApiClients.Org;
 using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
@@ -44,6 +45,8 @@ namespace Fusion.Resources.Domain
 
         public QueryProject Project { get; set; }
         public Guid? OrgPositionId { get; set; }
+        public string OrgPositionName { get; set; }
+
         public ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; set; }
 
         public QueryPerson ProposedPerson { get; set; }
@@ -83,5 +86,14 @@ namespace Fusion.Resources.Domain
             JointVenture,
             Direct
         }
+
+        internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 originalPosition)
+        {
+            OrgPositionId = originalPosition.Id;
+            OrgPositionName = originalPosition.Name;
+
+            return this;
+        }
+
     }
 }

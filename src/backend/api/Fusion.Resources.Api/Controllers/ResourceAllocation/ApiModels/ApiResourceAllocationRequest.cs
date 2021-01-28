@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.Json.Serialization;
+using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
@@ -11,13 +12,14 @@ namespace Fusion.Resources.Api.Controllers
             Id = query.RequestId;
             Discipline = query.Discipline;
             Type = Enum.Parse<ApiAllocationRequestType>($"{query.Type}");
-            
+
 
             ProposedPerson = new ApiPerson(query.ProposedPerson);
 
             Project = new ApiProjectReference(query.Project);
 
             OrgPositionId = query.OrgPositionId;
+            OrgPositionName = query.OrgPositionName;
             OrgPositionInstance = new ApiPositionInstance(query.OrgPositionInstance);
 
             AdditionalNote = query.AdditionalNote;
@@ -43,9 +45,10 @@ namespace Fusion.Resources.Api.Controllers
         public ApiWorkflow Workflow { get; set; }
         public ApiProjectReference Project { get; set; }
         public Guid? OrgPositionId { get; set; }
+        public string OrgPositionName { get; set; }
         public ApiPositionInstance OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
-        
+
         public ApiPropertiesCollection ProposedChanges { get; set; }
         public ApiPerson ProposedPerson { get; set; }
 

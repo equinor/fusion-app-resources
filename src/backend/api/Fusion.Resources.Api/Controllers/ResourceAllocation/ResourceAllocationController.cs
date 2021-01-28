@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Integration;
 using Fusion.Resources.Api.Authorization;
@@ -44,6 +45,7 @@ namespace Fusion.Resources.Api.Controllers
                 .WithProposedPerson(request.ProposedPersonId)
                 .WithOrgPosition(request.OrgPositionId)
                 .WithProposedChanges(request.ProposedChanges)
+                .WithIsDraft(request.IsDraft)
                 .WithAdditionalNode(request.AdditionalNote)
                 .WithPosition(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
@@ -130,9 +132,9 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetProjectAllocationRequests(
-            [FromRoute] ProjectIdentifier projectIdentifier)
+            [FromRoute] ProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequests(projectIdentifier.ProjectId));
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequests(projectIdentifier.ProjectId, query));
 
             #region Authorization
 

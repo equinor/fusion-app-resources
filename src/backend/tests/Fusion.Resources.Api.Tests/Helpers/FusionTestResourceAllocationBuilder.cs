@@ -34,6 +34,11 @@ namespace Fusion.Testing.Mocks
             Project = project;
             return this;
         }
+        public FusionTestResourceAllocationBuilder WithIsDraft(bool isDraft)
+        {
+            this.Request.IsDraft = isDraft;
+            return this;
+        }
         public FusionTestResourceAllocationBuilder WithProposedPerson(ApiPersonProfileV3 profile)
         {
             Request.ProposedPersonId = profile.AzureUniqueId.Value;

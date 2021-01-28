@@ -36,6 +36,14 @@ namespace Fusion.Resources.Logic.Commands
             private Guid ProposedPersonId { get; set; }
             private string? AdditionalNote { get; set; }
             private Dictionary<string, object> ProposedChanges { get; set; }
+            private bool IsDraft { get; set; }
+
+
+            public Create WithIsDraft(bool isDraft)
+            {
+                IsDraft = isDraft;
+                return this;
+            }
 
             public Create WithDiscipline(string? discipline)
             {
@@ -142,7 +150,9 @@ namespace Fusion.Resources.Logic.Commands
                         LastActivity = created,
 
                         OriginalPositionId = request.OrgPositionId,
-                        OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)
+                        OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance),
+
+                        IsDraft = request.IsDraft
                     };
 
                     await db.ResourceAllocationRequests.AddAsync(item);

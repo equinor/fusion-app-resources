@@ -61,6 +61,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithRequestType(ApiResourceAllocationRequest.ApiAllocationRequestType.Direct)
                     .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testProfile)
+                    .WithIsDraft(true)
                     .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
                     .WithProject(testProject.Project)
                 ;
@@ -91,13 +92,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task CreateRequest_Invalid_Request_InvalidArguments_ShouldBe_BadRequest()
         {
             testRequest.Request.OrgPositionId = Guid.Empty;
-            
+
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request , new { Id = Guid.Empty });
+            var response = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
 
             response.Should().BeBadRequest();
         }
-        
+
         [Fact]
         public async Task DeleteRequest_RandomRole_ShouldBe_Unauthorized()
         {
@@ -113,7 +114,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
         }
-        
+
         [Fact]
         public async Task GetRequest_AdminRole_ShouldBe_Authorized()
         {
@@ -124,12 +125,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             AssertPropsAreEqual(response.Value, testRequest, adminScope);
         }
 
+        [Fact]
+        public async Task GetRequests_AdminRole_ShouldBe_Authorized()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Count().Should().BeGreaterThan(0);
+
+        }
+
         public class ResourceAllocationRequestTestModel
         {
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
             public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
             public Guid? OrgPositionId { get; set; }
+            public string OrgPositionName { get; set; }
             public ObjectWithId OrgPositionInstance { get; set; }
             public string AdditionalNote { get; set; }
             public bool IsDraft { get; set; }
@@ -138,7 +151,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             public ObjectWithAzureUniquePerson CreatedBy { get; set; }
             public ObjectWithAzureUniquePerson UpdatedBy { get; set; }
-            
+
             public DateTimeOffset? Created { get; set; }
             public DateTimeOffset? Updated { get; set; }
             public DateTimeOffset? LastActivity { get; set; }
@@ -152,6 +165,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 public Guid Id { get; set; }
             }
+            public class ObjectWithIdAndName
+            {
+                public Guid Id { get; set; }
+                public string Name { get; set; }
+            }
         }
 
         private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response,
@@ -163,6 +181,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response.Project.Id.Should().Be(request.Project.ProjectId);
             response.OrgPositionId.Should().Be(request.Request.OrgPositionId);
+            response.OrgPositionName.Should().NotBeNullOrEmpty();
             response.OrgPositionInstance.Id.Should().Be(request.Request.OrgPositionInstance.Id);
             response.ProposedPerson.AzureUniquePersonId.Should().Be(request.Request.ProposedPersonId);
             response.AdditionalNote.Should().Be(request.Request.AdditionalNote);

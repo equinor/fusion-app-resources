@@ -3,6 +3,8 @@ using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.ApiClients.Org;
+using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Commands;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,10 +22,12 @@ namespace Fusion.Resources.Domain.Queries
         public class Handler : IRequestHandler<GetProjectResourceAllocationRequestItem, QueryResourceAllocationRequest?>
         {
             private readonly ResourcesDbContext db;
+            private readonly IProjectOrgResolver orgResolver;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver)
             {
                 this.db = db;
+                this.orgResolver = orgResolver;
             }
 
             public async Task<QueryResourceAllocationRequest?> Handle(GetProjectResourceAllocationRequestItem request, CancellationToken cancellationToken)
@@ -35,7 +39,19 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.Project)
                     .Include(r => r.ProposedPerson)
                     .FirstOrDefaultAsync(c => c.Id == request.RequestId);
-                return row != null ? new QueryResourceAllocationRequest(row) : null;
+
+                var requestItem = row != null ? new QueryResourceAllocationRequest(row) : null;
+
+                if (requestItem?.OrgPositionId != null)
+                {
+                    var position = await orgResolver.ResolvePositionAsync(requestItem.OrgPositionId.Value);
+                    if (position != null)
+                    {
+                        requestItem.WithResolvedOriginalPosition(position);
+                    }
+                }
+
+                return requestItem;
             }
         }
     }
