@@ -24,7 +24,8 @@ namespace Fusion.Resources.Database.Entities
             {
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAbsenceType>());
                 entity.HasOne(e => e.Person).WithMany().OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.CreatedBy).WithOne().OnDelete(DeleteBehavior.Restrict);
+
             });
 
         }

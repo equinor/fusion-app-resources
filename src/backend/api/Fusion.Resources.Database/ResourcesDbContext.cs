@@ -47,6 +47,7 @@ namespace Fusion.Resources.Database
             DbRequestComment.OnModelCreating(modelBuilder);
             DbPerson.OnModelCreating(modelBuilder);
             DbDelegatedRole.OnModelCreating(modelBuilder);
+            DbPersonAbsence.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

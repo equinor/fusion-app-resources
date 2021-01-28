@@ -1,22 +1,21 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Resources.Domain;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Resources.Api.Controllers
 {
-
     [Authorize]
     [ApiController]
     public class EmploymentStatusController : ResourceControllerBase
     {
-
         [HttpGet("/persons/{personId}/absence")]
-        public async Task<ActionResult<ApiCollection<ApiEmploymentStatus>>> GetPersonAbsence([FromRoute] string personId)
+        public async Task<ActionResult<ApiCollection<ApiEmploymentStatus>>> GetPersonAbsence(
+            [FromRoute] string personId)
         {
             #region Authorization
 
@@ -24,15 +23,14 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or =>
-                {
-                });
+                r.AnyOf(or => { });
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
             var id = new PersonId(personId);
             var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
 
@@ -43,7 +41,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/persons/{personId}/absence/{absenceId}")]
-        public async Task<ActionResult<ApiEmploymentStatus>> GetPersonAbsence([FromRoute] string personId, Guid absenceId)
+        public async Task<ActionResult<ApiEmploymentStatus>> GetPersonAbsence([FromRoute] string personId,
+            Guid absenceId)
         {
             #region Authorization
 
@@ -51,10 +50,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or =>
-                {
-
-                });
+                r.AnyOf(or => { });
             });
 
             if (authResult.Unauthorized)
@@ -67,16 +63,15 @@ namespace Fusion.Resources.Api.Controllers
             var personAbsence = await DispatchAsync(new GetPersonAbsenceItem(id, absenceId));
 
             if (personAbsence == null)
-            {
                 return FusionApiError.NotFound(absenceId, "Could not locate absence registration");
-            }
 
             var returnItem = new ApiEmploymentStatus(personAbsence);
             return returnItem;
         }
 
         [HttpPost("/persons/{personId}/absence")]
-        public async Task<ActionResult<ApiEmploymentStatus>> CreatePersonAbsence([FromRoute] string personId, [FromBody] CreateEmploymentStatusRequest request)
+        public async Task<ActionResult<ApiEmploymentStatus>> CreatePersonAbsence([FromRoute] string personId,
+            [FromBody] CreateEmploymentStatusRequest request)
         {
             #region Authorization
 
@@ -84,10 +79,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or =>
-                {
-
-                });
+                r.AnyOf(or => { });
             });
 
             if (authResult.Unauthorized)
@@ -103,11 +95,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 using (var scope = await BeginTransactionAsync())
                 {
-
-                    var newPersonnel = await DispatchAsync(createCommand);
+                    var newAbsence = await DispatchAsync(createCommand);
                     await scope.CommitAsync();
 
-                    var item = new ApiEmploymentStatus(newPersonnel);
+                    var item = new ApiEmploymentStatus(newAbsence);
                     return Created($"/persons/{personId}/absence/{item.Id}", item);
                 }
             }
@@ -118,7 +109,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/persons/{personId}/absence/{absenceId}")]
-        public async Task<ActionResult<ApiEmploymentStatus>> UpdatePersonAbsence([FromRoute] string personId, Guid absenceId, [FromBody] UpdateEmploymentStatusRequest request)
+        public async Task<ActionResult<ApiEmploymentStatus>> UpdatePersonAbsence([FromRoute] string personId,
+            Guid absenceId, [FromBody] UpdateEmploymentStatusRequest request)
         {
             #region Authorization
 
@@ -126,26 +118,25 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or =>
-                {
-                });
+                r.AnyOf(or => { });
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
             var id = new PersonId(personId);
             var updateCommand = new UpdatePersonAbsence(id, absenceId);
             request.LoadCommand(updateCommand);
 
             using (var scope = await BeginTransactionAsync())
             {
-                var updatedPersonnel = await DispatchAsync(updateCommand);
+                var updatedAbsence = await DispatchAsync(updateCommand);
 
                 await scope.CommitAsync();
 
-                var item = new ApiEmploymentStatus(updatedPersonnel);
+                var item = new ApiEmploymentStatus(updatedAbsence);
                 return item;
             }
         }
@@ -160,9 +151,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or =>
-                {
-                });
+                r.AnyOf(or => { });
             });
 
             if (authResult.Unauthorized)
@@ -176,8 +165,5 @@ namespace Fusion.Resources.Api.Controllers
 
             return NoContent();
         }
-
     }
-
-
 }

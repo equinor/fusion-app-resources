@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Domain;
+using Fusion.Testing.Authentication.User;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -87,6 +88,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public async Task InitializeAsync()
         {
+            var client = fixture.ApiFactory.CreateClient()
+                .WithTestUser(fixture.AdminUser)
+                .AddTestAuthToken();
+            
             var request = new CreateEmploymentStatusRequest
             {
                 AppliesFrom = DateTimeOffset.UtcNow,
