@@ -19,7 +19,7 @@
         "shortName": "Resources"
     },
     "dependencies": {
-        "@equinor/fusion": "^2.3.10",
+        "@equinor/fusion": "^2.4.14",
         "@equinor/fusion-components": "^1.4.5",
         "@types/classnames": "^2.2.9",
         "@types/deep-equal": "^1.0.1",
