@@ -1,0 +1,183 @@
+﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Resources.Domain;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Fusion.Resources.Domain.Commands;
+
+namespace Fusion.Resources.Api.Controllers
+{
+
+    [Authorize]
+    [ApiController]
+    public class EmploymentStatusController : ResourceControllerBase
+    {
+
+        [HttpGet("/persons/{personId}/absence")]
+        public async Task<ActionResult<ApiCollection<ApiEmploymentStatus>>> GetPersonAbsence([FromRoute] string personId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+            var id = new PersonId(personId);
+            var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
+
+            var returnItems = personAbsence.Select(p => new ApiEmploymentStatus(p));
+
+            var collection = new ApiCollection<ApiEmploymentStatus>(returnItems);
+            return collection;
+        }
+
+        [HttpGet("/persons/{personId}/absence/{absenceId}")]
+        public async Task<ActionResult<ApiEmploymentStatus>> GetPersonAbsence([FromRoute] string personId, Guid absenceId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var id = new PersonId(personId);
+
+            var personAbsence = await DispatchAsync(new GetPersonAbsenceItem(id, absenceId));
+
+            if (personAbsence == null)
+            {
+                return FusionApiError.NotFound(absenceId, "Could not locate absence registration");
+            }
+
+            var returnItem = new ApiEmploymentStatus(personAbsence);
+            return returnItem;
+        }
+
+        [HttpPost("/persons/{personId}/absence")]
+        public async Task<ActionResult<ApiEmploymentStatus>> CreatePersonAbsence([FromRoute] string personId, [FromBody] CreateEmploymentStatusRequest request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var id = new PersonId(personId);
+            var createCommand = new CreatePersonAbsence(id);
+            request.LoadCommand(createCommand);
+
+            try
+            {
+                using (var scope = await BeginTransactionAsync())
+                {
+
+                    var newPersonnel = await DispatchAsync(createCommand);
+                    await scope.CommitAsync();
+
+                    var item = new ApiEmploymentStatus(newPersonnel);
+                    return Created($"/persons/{personId}/absence/{item.Id}", item);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+        }
+
+        [HttpPut("/persons/{personId}/absence/{absenceId}")]
+        public async Task<ActionResult<ApiEmploymentStatus>> UpdatePersonAbsence([FromRoute] string personId, Guid absenceId, [FromBody] UpdateEmploymentStatusRequest request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+            var id = new PersonId(personId);
+            var updateCommand = new UpdatePersonAbsence(id, absenceId);
+            request.LoadCommand(updateCommand);
+
+            using (var scope = await BeginTransactionAsync())
+            {
+                var updatedPersonnel = await DispatchAsync(updateCommand);
+
+                await scope.CommitAsync();
+
+                var item = new ApiEmploymentStatus(updatedPersonnel);
+                return item;
+            }
+        }
+
+
+        [HttpDelete("/persons/{personId}/absence/{absenceId}")]
+        public async Task<ActionResult> DeletePersonAbsence([FromRoute] string personId, Guid absenceId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var id = new PersonId(personId);
+
+            await DispatchAsync(new DeletePersonAbsence(id, absenceId));
+
+            return NoContent();
+        }
+
+    }
+
+
+}

@@ -35,6 +35,7 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbDelegatedRole> DelegatedRoles { get; set; }
 
+        public DbSet<DbPersonAbsence> PersonAbsences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

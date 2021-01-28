@@ -1,0 +1,120 @@
+﻿using FluentAssertions;
+using Fusion.Integration.Profile;
+using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Testing;
+using System;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Fusion.Resources.Api.Controllers;
+using Fusion.Resources.Domain;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Fusion.Resources.Api.Tests.IntegrationTests
+{
+    public class PersonAbsenceTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
+    {
+        private readonly ResourceApiFixture fixture;
+        private readonly TestLoggingScope loggingScope;
+        /// <summary>
+        /// Will be generated new for each test
+        /// </summary>
+        private readonly ApiPersonProfileV3 testUser;
+
+        private Guid TestAbsenceId;
+        
+        private HttpClient client => fixture.ApiFactory.CreateClient();
+
+        public PersonAbsenceTests(ResourceApiFixture fixture, ITestOutputHelper output)
+        {
+            this.fixture = fixture;
+
+            // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
+            loggingScope = new TestLoggingScope(output);
+
+            // Generate random test user
+            testUser = fixture.AddProfile(FusionAccountType.External);
+        }
+
+        [Fact]
+        public async Task ListAbsence_ShouldBeOk_WhenAdmin()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await client.TestClientGetAsync($"/persons/{testUser}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeSuccessfull();
+
+            response.Value.value.Count().Should().BeGreaterThan(1);
+        }
+
+        [Fact]
+        public async Task GetAbsence_ShouldBeOk_WhenAdmin()
+        {
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientGetAsync<TestAbsence>($"/persons/{testUser}/absence/{TestAbsenceId}");
+            response.Should().BeSuccessfull();
+
+            response.Value.Id.Should().NotBeEmpty();
+        }
+        
+        [Fact]
+        public async Task PutAbsence_ShouldBeOk_WhenAdmin()
+        {
+            var request = new CreateEmploymentStatusRequest
+            {
+                AppliesFrom = DateTimeOffset.UtcNow,
+                AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
+                Comment = "A comment",
+                Type = QueryAbsenceType.Absence
+            };
+            
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser}/absence/{TestAbsenceId}", request);
+            response.Should().BeSuccessfull();
+
+            response.Value.Id.Should().NotBeEmpty();
+        }
+
+        [Fact]
+        public async Task DeleteAbsence_ShouldBeOk_WhenAdmin()
+        {
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientDeleteAsync($"/persons/{testUser}/absence/{TestAbsenceId}");
+            response.Should().BeSuccessfull();
+        }
+
+
+        public async Task InitializeAsync()
+        {
+            var request = new CreateEmploymentStatusRequest
+            {
+                AppliesFrom = DateTimeOffset.UtcNow,
+                AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
+                Comment = "A comment",
+                Type = QueryAbsenceType.Absence
+            };
+
+            var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser}/absence", request);
+
+            TestAbsenceId = response.Value.Id;
+        }
+
+
+        public Task DisposeAsync()
+        {
+            loggingScope.Dispose();
+
+            return Task.CompletedTask;
+        }
+    }
+
+    public class TestAbsence
+    {
+        public Guid Id { get; set; }
+        public string? Comment { get; set; }
+        public DateTimeOffset AppliesFrom { get; set; }
+        public DateTimeOffset? AppliesTo { get; set; }
+        public QueryAbsenceType Type { get; set; }
+    }
+}
