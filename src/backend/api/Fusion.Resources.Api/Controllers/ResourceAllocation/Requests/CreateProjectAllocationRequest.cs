@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using FluentValidation.Results;
 using FluentValidation.Validators;
-using Newtonsoft.Json;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -12,7 +11,7 @@ namespace Fusion.Resources.Api.Controllers
     {
         internal Guid? Id { get; set; }
         public string? Discipline { get; set; }
-        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
         public Guid OrgPositionId { get; set; }
         public ApiPositionInstance OrgPositionInstance { get; set; } = new ApiPositionInstance();
