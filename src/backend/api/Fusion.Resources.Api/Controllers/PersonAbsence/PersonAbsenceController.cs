@@ -71,7 +71,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/persons/{personId}/absence")]
         public async Task<ActionResult<ApiPersonAbsence>> CreatePersonAbsence([FromRoute] string personId,
-            [FromBody] CreateEmploymentStatusRequest request)
+            [FromBody] CreatePersonAbsenceRequest request)
         {
             #region Authorization
 
@@ -110,7 +110,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPut("/persons/{personId}/absence/{absenceId}")]
         public async Task<ActionResult<ApiPersonAbsence>> UpdatePersonAbsence([FromRoute] string personId,
-            Guid absenceId, [FromBody] UpdateEmploymentStatusRequest request)
+            Guid absenceId, [FromBody] UpdatePersonAbsenceRequest request)
         {
             #region Authorization
 

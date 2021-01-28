@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private readonly ApiPersonProfileV3 testUser;
 
         private Guid TestAbsenceId;
-        
+
         private HttpClient client => fixture.ApiFactory.CreateClient();
 
         public PersonAbsenceTests(ResourceApiFixture fixture, ITestOutputHelper output)
@@ -58,18 +58,18 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response.Value.Id.Should().NotBeEmpty();
         }
-        
+
         [Fact]
         public async Task PutAbsence_ShouldBeOk_WhenAdmin()
         {
-            var request = new CreateEmploymentStatusRequest
+            var request = new CreatePersonAbsenceRequest
             {
                 AppliesFrom = DateTimeOffset.UtcNow,
                 AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
                 Comment = "A comment",
-                Type = QueryAbsenceType.Absence
+                Type = ApiPersonAbsence.ApiAbsenceType.Vacation
             };
-            
+
             using var authScope = fixture.AdminScope();
             var response = await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", request);
             response.Should().BeSuccessfull();
@@ -91,13 +91,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var client = fixture.ApiFactory.CreateClient()
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
-            
-            var request = new CreateEmploymentStatusRequest
+
+            var request = new CreatePersonAbsenceRequest
             {
                 AppliesFrom = DateTimeOffset.UtcNow,
                 AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
                 Comment = "A comment",
-                Type = QueryAbsenceType.Absence
+                Type = ApiPersonAbsence.ApiAbsenceType.Absence
             };
 
             var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence", request);
