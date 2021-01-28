@@ -24,10 +24,11 @@ namespace Fusion.Resources.Logic.Commands
                 OrgProjectId = orgProjectId;
             }
 
+            private Guid OrgProjectId { get; }
+
             private string? Discipline { get; set; }
             private QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; set; }
 
-            private Guid OrgProjectId { get; }
             private Guid? OrgPositionId { get; set; }
 
             private Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; } =
@@ -39,9 +40,9 @@ namespace Fusion.Resources.Logic.Commands
             private bool IsDraft { get; set; }
 
 
-            public Create WithIsDraft(bool isDraft)
+            public Create WithIsDraft(bool? isDraft)
             {
-                IsDraft = isDraft;
+                IsDraft = isDraft.GetValueOrDefault(true);
                 return this;
             }
 
@@ -99,6 +100,7 @@ namespace Fusion.Resources.Logic.Commands
                 private readonly IMediator mediator;
                 private readonly IProjectOrgResolver orgResolver;
                 private readonly IProfileService profileService;
+                private DbPerson ProposedPerson { get; set; }
 
                 public Handler(IProfileService profileService, IProjectOrgResolver orgResolver, ResourcesDbContext db, IMediator mediator)
                 {
@@ -109,7 +111,6 @@ namespace Fusion.Resources.Logic.Commands
                 }
 
                 private DbProject Project { get; set; }
-                private DbPerson ProposedPerson { get; set; }
 
                 public async Task<QueryResourceAllocationRequest> Handle(Create request, CancellationToken cancellationToken)
                 {
@@ -139,20 +140,19 @@ namespace Fusion.Resources.Logic.Commands
 
                         Project = Project,
 
-                        ProposedPersonId = ProposedPerson.Id,
+                        ProposedPerson = ProposedPerson,
                         AdditionalNote = request.AdditionalNote,
 
                         ProposedChanges = SerializeToString(request.ProposedChanges),
 
-                        Created = created,
-                        CreatedBy = request.Editor.Person,
-
-                        LastActivity = created,
-
                         OriginalPositionId = request.OrgPositionId,
                         OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance),
 
-                        IsDraft = request.IsDraft
+                        IsDraft = request.IsDraft,
+
+                        Created = created,
+                        CreatedBy = request.Editor.Person,
+                        LastActivity = created
                     };
 
                     await db.ResourceAllocationRequests.AddAsync(item);
@@ -175,20 +175,10 @@ namespace Fusion.Resources.Logic.Commands
                 private async Task ValidateAsync(Create request)
                 {
                     var proposed = await profileService.EnsurePersonAsync(request.ProposedPersonId);
-
-                    if (proposed is null)
-                    {
-                        throw new ProfileNotFoundError("ProfileNotFound", null);
-                    }
-
-                    ProposedPerson = proposed;
+                    ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
 
                     var project = await EnsureProjectAsync(request);
-                    if (project is null)
-                    {
-                        throw new InvalidOperationException("Could not locate the project!");
-                    }
-                    Project = project;
+                    Project = project ?? throw new InvalidOperationException("Could not locate the project!");
 
                     await ValidateOriginalPositionAsync(request);
                 }

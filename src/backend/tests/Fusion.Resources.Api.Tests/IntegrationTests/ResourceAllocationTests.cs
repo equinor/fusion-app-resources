@@ -135,6 +135,46 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Count().Should().BeGreaterThan(0);
 
         }
+        [Fact]
+        public async Task PutRequest_AdminRole_ShouldBe_Authorized()
+        {
+            using var adminScope = fixture.AdminScope();
+            var beforeUpdate = DateTimeOffset.UtcNow;
+
+            testRequest.Request.Discipline += "upd";
+            testRequest.Request.IsDraft = false;
+            testRequest.Request.AdditionalNote += "upd";
+            testRequest.Request.ProposedChanges?.Add("propUpd", "Updated");
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", testRequest.Request);
+            response.Should().BeSuccessfull();
+
+            AssertPropsAreEqual(response.Value, testRequest, adminScope);
+            response.Value.Updated?.Should().BeAfter(beforeUpdate);
+        }
+
+        [Fact]
+        public async Task PutRequest_InvalidRequest_ShouldBe_Unsuccessful()
+        {
+            using var adminScope = fixture.AdminScope();
+            var beforeUpdate = DateTimeOffset.UtcNow;
+
+            testRequest.Request.OrgPositionInstance.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
+            testRequest.Request.ProposedPersonId = Guid.Empty;
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", testRequest.Request);
+            response.Should().BeBadRequest("Invalid arguments passed");
+
+        }
+
+        [Fact]
+        public async Task PostRequest_InvalidRequest_ShouldBe_Unsuccessful()
+        {
+            using var adminScope = fixture.AdminScope();
+            testRequest.Request.OrgPositionInstance.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
+            testRequest.Request.ProposedPersonId = Guid.Empty;
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request);
+            response.Should().BeBadRequest("Invalid arguments passed");
+
+        }
 
         public class ResourceAllocationRequestTestModel
         {
@@ -145,7 +185,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             public string OrgPositionName { get; set; }
             public ObjectWithId OrgPositionInstance { get; set; }
             public string AdditionalNote { get; set; }
-            public bool IsDraft { get; set; }
+            public bool? IsDraft { get; set; }
             public Dictionary<string, object> ProposedChanges { get; set; }
             public ObjectWithAzureUniquePerson ProposedPerson { get; set; }
 
@@ -165,11 +205,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 public Guid Id { get; set; }
             }
-            public class ObjectWithIdAndName
-            {
-                public Guid Id { get; set; }
-                public string Name { get; set; }
-            }
         }
 
         private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response,
@@ -186,16 +221,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.ProposedPerson.AzureUniquePersonId.Should().Be(request.Request.ProposedPersonId);
             response.AdditionalNote.Should().Be(request.Request.AdditionalNote);
             response.IsDraft.Should().Be(request.Request.IsDraft);
-            /*foreach (var (key, value) in request.Request.ProposedChanges)
+            foreach (var (key, value) in request.Request.ProposedChanges)
             {
-                response.ProposedChanges.Should().ContainKey(key.ToLower());
                 response.ProposedChanges.Should().ContainValue(value);
-            }*/
+            }
 
             response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
             response.Created.Should().NotBeNull();
-            response.Updated.Should().BeNull();
-            response.UpdatedBy.Should().BeNull();
             response.LastActivity.Should().NotBeNull();
 
             //Workflow/state & provisioning status to be added.
