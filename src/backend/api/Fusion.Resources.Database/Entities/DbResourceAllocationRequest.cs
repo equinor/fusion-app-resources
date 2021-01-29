@@ -14,14 +14,14 @@ namespace Fusion.Resources.Database.Entities
         public Guid ProjectId { get; set; }
 
         public Guid? OriginalPositionId { get; set; }
-        
+
         public DbPositionInstance OrgPositionInstance { get; set; } = new DbPositionInstance();
 
         public string? AdditionalNote { get; set; }
         public string? ProposedChanges { get; set; }
         public DbPerson ProposedPerson { get; set; } = null!;
         public Guid ProposedPersonId { get; set; }
-
+        public bool ProposedPersonWasNotified { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public DbPerson CreatedBy { get; set; } = null!;

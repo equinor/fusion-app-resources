@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fusion.Resources.Database.Migrations
 {
-    public partial class AddedResourceAllocationRequest : Migration
+    public partial class ResourceAllocationmodel : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,16 +17,17 @@ namespace Fusion.Resources.Database.Migrations
                     State = table.Column<string>(nullable: false),
                     ProjectId = table.Column<Guid>(nullable: false),
                     OriginalPositionId = table.Column<Guid>(nullable: true),
-                    ResourceAllocationOrgPositionInstance_Id = table.Column<Guid>(nullable: true),
-                    ResourceAllocationOrgPositionInstance_Workload = table.Column<double>(nullable: true),
-                    ResourceAllocationOrgPositionInstance_Obs = table.Column<string>(nullable: true),
-                    ResourceAllocationOrgPositionInstance_AppliesFrom = table.Column<DateTime>(nullable: true),
-                    ResourceAllocationOrgPositionInstance_AppliesTo = table.Column<DateTime>(nullable: true),
-                    ResourceAllocationOrgPositionInstance_Location = table.Column<string>(nullable: true),
+                    OrgPositionInstance_Id = table.Column<Guid>(nullable: true),
+                    OrgPositionInstance_Workload = table.Column<double>(nullable: true),
+                    OrgPositionInstance_Obs = table.Column<string>(nullable: true),
+                    OrgPositionInstance_AppliesFrom = table.Column<DateTime>(nullable: true),
+                    OrgPositionInstance_AppliesTo = table.Column<DateTime>(nullable: true),
+                    OrgPositionInstance_Location = table.Column<string>(nullable: true),
                     AdditionalNote = table.Column<string>(nullable: true),
                     ProposedChanges = table.Column<string>(nullable: true),
                     ProposedPersonId = table.Column<Guid>(nullable: false),
-                    Created = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 14, 15, 30, 28, 655, DateTimeKind.Unspecified).AddTicks(2798), new TimeSpan(0, 0, 0, 0, 0))),
+                    ProposedPersonWasNotified = table.Column<bool>(nullable: false),
+                    Created = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 10, 45, 0, 704, DateTimeKind.Unspecified).AddTicks(8851), new TimeSpan(0, 0, 0, 0, 0))),
                     Updated = table.Column<DateTimeOffset>(nullable: true),
                     CreatedById = table.Column<Guid>(nullable: false),
                     UpdatedById = table.Column<Guid>(nullable: true),

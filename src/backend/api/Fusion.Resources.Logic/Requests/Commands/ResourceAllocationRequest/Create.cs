@@ -152,7 +152,10 @@ namespace Fusion.Resources.Logic.Commands
 
                         Created = created,
                         CreatedBy = request.Editor.Person,
-                        LastActivity = created
+                        LastActivity = created,
+                        
+                        ProposedPersonWasNotified = false, // Should be set/reset during update when/if when notifications are enabled
+
                     };
 
                     await db.ResourceAllocationRequests.AddAsync(item);

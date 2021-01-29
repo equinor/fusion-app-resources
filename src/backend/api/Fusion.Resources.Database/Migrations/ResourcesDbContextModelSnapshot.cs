@@ -290,9 +290,6 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("WasNotified")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AzureUniqueId")
@@ -402,7 +399,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<DateTimeOffset>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 19, 9, 32, 15, 152, DateTimeKind.Unspecified).AddTicks(8511), new TimeSpan(0, 0, 0, 0, 0)));
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 10, 45, 0, 704, DateTimeKind.Unspecified).AddTicks(8851), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
@@ -429,6 +426,9 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<Guid>("ProposedPersonId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("ProposedPersonWasNotified")
+                        .HasColumnType("bit");
 
                     b.Property<string>("State")
                         .IsRequired()

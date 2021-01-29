@@ -188,6 +188,13 @@ namespace Fusion.Resources.Logic.Commands
                         modified = true;
                     }
 
+                    /*
+                    {
+                        dbItem.ProposedPersonWasNotified =  // Should be set/reset during update when/if when notifications are enabled
+                        modified = true;
+                    }
+                    */
+
                     if (modified)
                     {
                         dbItem.Updated = updated;
@@ -216,7 +223,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     var proposed = await profileService.EnsurePersonAsync(request.ProposedPersonId.Value);
                     ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
-                    
+
                     await ValidateOriginalPositionAsync(request);
                 }
 

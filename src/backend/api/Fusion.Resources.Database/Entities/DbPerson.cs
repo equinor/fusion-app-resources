@@ -18,7 +18,6 @@ namespace Fusion.Resources.Database.Entities
 
         public string AccountType { get; set; } = null!;
         public string? JobTitle { get; set; }
-        public bool WasNotified { get; set; }
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
