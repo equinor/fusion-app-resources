@@ -54,7 +54,7 @@ namespace Fusion.Resources.Database.Entities
 
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAllocationRequestType>());
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
-                entity.Property(e => e.LastActivity).HasDefaultValue(DateTimeOffset.MinValue);
+                entity.Property(e => e.LastActivity).HasDefaultValue(DateTimeOffset.UtcNow);
                 entity.HasIndex(e => e.LastActivity).IsClustered(false);
             });
         }
