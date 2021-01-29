@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fusion.Resources.Database.Migrations
 {
-    public partial class ResourceAllocationmodel : Migration
+    public partial class ResourceAllocationRequestentity : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -27,11 +27,11 @@ namespace Fusion.Resources.Database.Migrations
                     ProposedChanges = table.Column<string>(nullable: true),
                     ProposedPersonId = table.Column<Guid>(nullable: false),
                     ProposedPersonWasNotified = table.Column<bool>(nullable: false),
-                    Created = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 10, 45, 0, 704, DateTimeKind.Unspecified).AddTicks(8851), new TimeSpan(0, 0, 0, 0, 0))),
+                    Created = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 12, 25, 46, 144, DateTimeKind.Unspecified).AddTicks(1336), new TimeSpan(0, 0, 0, 0, 0))),
                     Updated = table.Column<DateTimeOffset>(nullable: true),
                     CreatedById = table.Column<Guid>(nullable: false),
                     UpdatedById = table.Column<Guid>(nullable: true),
-                    LastActivity = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))),
+                    LastActivity = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 12, 25, 46, 150, DateTimeKind.Unspecified).AddTicks(7241), new TimeSpan(0, 0, 0, 0, 0))),
                     IsDraft = table.Column<bool>(nullable: false),
                     ProvisioningStatus_State = table.Column<string>(nullable: true),
                     ProvisioningStatus_PositionId = table.Column<Guid>(nullable: true),

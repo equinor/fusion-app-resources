@@ -47,7 +47,7 @@ namespace Fusion.Resources.Api.Controllers
                 .WithProposedChanges(request.ProposedChanges)
                 .WithIsDraft(request.IsDraft)
                 .WithAdditionalNode(request.AdditionalNote)
-                .WithPosition(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                .WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
                               request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 
@@ -102,7 +102,7 @@ namespace Fusion.Resources.Api.Controllers
                 .WithProposedChanges(request.ProposedChanges)
                 .WithIsDraft(request.IsDraft)
                 .WithAdditionalNode(request.AdditionalNote)
-                .WithPosition(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                .WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
                               request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 

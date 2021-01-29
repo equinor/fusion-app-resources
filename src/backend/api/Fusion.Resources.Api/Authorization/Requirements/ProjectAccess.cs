@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Authorization
             "You need permission to manage contracts in context of the project. This is typically granted to procurement personnel.");
 
         public static ProjectAccess ManageRequests = new ProjectAccess(AccessType.ManageRequests, "Project.Request.Manage",
-            "You need permission to manage requests in context of the project. This is typically granted to procurement personnel.");
+            "You need permission to manage requests in context of the project. This is typically granted to request responsible.");
 
         public enum AccessType { ManageContracts, ManageRequests }
     }

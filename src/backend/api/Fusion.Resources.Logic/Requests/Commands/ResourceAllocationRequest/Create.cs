@@ -81,7 +81,7 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Create WithPosition(Guid basePositionId, DateTime from, DateTime to, double workload, string? obs, string location)
+            public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double workload, string? obs, string location)
             {
                 OrgPositionInstance.Id = basePositionId;
                 OrgPositionInstance.Workload = workload;
