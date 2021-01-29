@@ -6,23 +6,25 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class UpdateResponsibilityMatrixRequest
     {
-        public Guid Id { get; set; }
-        public DateTimeOffset Created { get; set; }
-        public ApiPerson CreatedBy { get; set; } = null!;
-        public ApiProjectReference Project { get; set; } = null!;
-        public ApiLocation Location { get; set; }
+        public Guid ProjectId { get; set; }
+        public Guid LocationId { get; set; }
         public string? Discipline { get; set; }
-        public ApiBasePosition BasePosition { get; set; }
+        public Guid BasePositionId { get; set; } 
         public string? Sector { get; set; }
         public string? Unit { get; set; }
-        public ApiPerson Responsible { get; set; } = null!;
+        public Guid ResponsibleId { get; set; }
 
 
 
         public void LoadCommand(UpdateResponsibilityMatrix command)
         {
-            command.Id = Id;
-
+            command.ProjectId = ProjectId;
+            command.LocationId = LocationId;
+            command.Discipline = Discipline;
+            command.BasePositionId = BasePositionId;
+            command.Sector = Sector;
+            command.Unit = Unit;
+            command.ResponsibleId = ResponsibleId;
         }
 
         #region Validation

@@ -14,8 +14,7 @@ namespace Fusion.Resources.Api.Controllers
     public class ResponsibilityMatrixController : ResourceControllerBase
     {
         [HttpGet("/internal-resources/responsibility-matrix")]
-        public async Task<ActionResult<ApiCollection<ApiResponsibilityMatrix>>> GetResponsibilityMatrix(
-            [FromRoute] string personId)
+        public async Task<ActionResult<ApiCollection<ApiResponsibilityMatrix>>> GetResponsibilityMatrix()
         {
             #region Authorization
 
@@ -31,18 +30,16 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var id = new PersonId(personId);
-            var ResponsibilityMatrix = await DispatchAsync(new GetResponsibilityMatrices());
+            var responsibilityMatrix = await DispatchAsync(new GetResponsibilityMatrices());
 
-            var returnItems = ResponsibilityMatrix.Select(p => new ApiResponsibilityMatrix(p));
+            var returnItems = responsibilityMatrix.Select(p => new ApiResponsibilityMatrix(p));
 
             var collection = new ApiCollection<ApiResponsibilityMatrix>(returnItems);
             return collection;
         }
 
         [HttpGet("/internal-resources/responsibility-matrix/{matrixId}")]
-        public async Task<ActionResult<ApiResponsibilityMatrix>> GetResponsibilityMatrix(
-            Guid matrixId)
+        public async Task<ActionResult<ApiResponsibilityMatrix>> GetResponsibilityMatrix(Guid matrixId)
         {
             #region Authorization
 
@@ -58,18 +55,17 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var ResponsibilityMatrix = await DispatchAsync(new GetResponsibilityMatrixItem(matrixId));
+            var responsibilityMatrix = await DispatchAsync(new GetResponsibilityMatrixItem(matrixId));
 
-            if (ResponsibilityMatrix == null)
+            if (responsibilityMatrix == null)
                 return FusionApiError.NotFound(matrixId, "Could not locate responsibility matrix");
 
-            var returnItem = new ApiResponsibilityMatrix(ResponsibilityMatrix);
+            var returnItem = new ApiResponsibilityMatrix(responsibilityMatrix);
             return returnItem;
         }
 
         [HttpPost("/internal-resources/responsibility-matrix")]
-        public async Task<ActionResult<ApiResponsibilityMatrix>> CreateResponsibilityMatrix(
-            [FromBody] CreateResponsibilityMatrixRequest request)
+        public async Task<ActionResult<ApiResponsibilityMatrix>> CreateResponsibilityMatrix([FromBody] CreateResponsibilityMatrixRequest request)
         {
             #region Authorization
 

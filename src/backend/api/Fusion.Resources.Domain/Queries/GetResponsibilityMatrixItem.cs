@@ -32,6 +32,7 @@ namespace Fusion.Resources.Domain
                 var item = await db.ResponsibilityMatrices
                     .Include(x => x.CreatedBy)
                     .Include(x=>x.Responsible)
+                    .Include(x=>x.Project)
                     .FirstOrDefaultAsync(x=>x.Id==request.Id);
 
                 return item != null ? new QueryResponsibilityMatrix(item) : null;
