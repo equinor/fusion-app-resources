@@ -1,5 +1,4 @@
-﻿using Fusion.AspNetCore.OData;
-using Fusion.Resources.Database;
+﻿using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -11,8 +10,6 @@ namespace Fusion.Resources.Domain
 {
     public class GetPersonAbsence : IRequest<IEnumerable<QueryPersonAbsence>>
     {
-        private ODataQueryParams query = null!;
-
         public GetPersonAbsence(PersonId personId)
         {
             PersonId = personId;

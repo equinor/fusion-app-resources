@@ -1,5 +1,4 @@
 ﻿using System;
-using Fusion.AspNetCore.OData;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +9,6 @@ namespace Fusion.Resources.Domain
 {
     public class GetPersonAbsenceItem : IRequest<QueryPersonAbsence?>
     {
-        private ODataQueryParams query = null!;
-
         public GetPersonAbsenceItem(PersonId personId, Guid id)
         {
             PersonId = personId;

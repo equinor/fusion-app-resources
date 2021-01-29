@@ -57,7 +57,7 @@ namespace Fusion.Resources.Domain.Commands
                 await resourcesDb.SaveChangesAsync();
 
                 var returnItem = await mediator.Send(new GetPersonAbsenceItem(request.PersonId, request.Id));
-                return returnItem;
+                return returnItem!;
             }
         }
     }

@@ -117,7 +117,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     public class TestAbsence
     {
         public Guid Id { get; set; }
-        public string? Comment { get; set; }
+        public string Comment { get; set; }
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
