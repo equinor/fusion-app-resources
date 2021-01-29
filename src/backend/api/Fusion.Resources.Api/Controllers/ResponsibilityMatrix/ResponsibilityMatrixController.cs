@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Microsoft.AspNetCore.Authorization;
@@ -22,7 +23,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    or.ScopeAccess(ScopeAccess.ManageMatrices);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -41,20 +45,6 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/internal-resources/responsibility-matrix/{matrixId}")]
         public async Task<ActionResult<ApiResponsibilityMatrix>> GetResponsibilityMatrix(Guid matrixId)
         {
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl();
-
-                r.AnyOf(or => { });
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion
-
             var responsibilityMatrix = await DispatchAsync(new GetResponsibilityMatrixItem(matrixId));
 
             if (responsibilityMatrix == null)
@@ -73,7 +63,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    or.ScopeAccess(ScopeAccess.ManageMatrices);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -110,7 +103,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    or.ScopeAccess(ScopeAccess.ManageMatrices);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -134,7 +130,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpDelete("/internal-resources/responsibility-matrix/{matrixId}")]
-        public async Task<ActionResult> DeleteResponsibilityMatrix( Guid matrixId)
+        public async Task<ActionResult> DeleteResponsibilityMatrix(Guid matrixId)
         {
             #region Authorization
 
@@ -142,7 +138,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 r.AlwaysAccessWhen().FullControl();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    or.ScopeAccess(ScopeAccess.ManageMatrices);
+                });
             });
 
             if (authResult.Unauthorized)

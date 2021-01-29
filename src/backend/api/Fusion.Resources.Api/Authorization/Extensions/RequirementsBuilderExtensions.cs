@@ -39,6 +39,11 @@ namespace Fusion.Resources.Api.Controllers
             builder.AddRule(project, level);
             return builder;
         }
+        public static IAuthorizationRequirementRule ScopeAccess(this IAuthorizationRequirementRule builder, ScopeAccess level)
+        {
+            builder.AddRule(level);
+            return builder;
+        }
 
         public static IAuthorizationRequirementRule ContractAccess(this IAuthorizationRequirementRule builder, ContractRole role, ProjectIdentifier project, Guid contractOrgId)
         {
