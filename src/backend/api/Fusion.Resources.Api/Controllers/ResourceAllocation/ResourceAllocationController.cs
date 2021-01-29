@@ -51,7 +51,7 @@ namespace Fusion.Resources.Api.Controllers
             if (request.OrgPositionInstance != null)
                 command.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location.Id);
+                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
 
 
             try
@@ -108,7 +108,7 @@ namespace Fusion.Resources.Api.Controllers
             if (request.OrgPositionInstance != null)
                 command.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location.Id);
+                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
 
 
             try

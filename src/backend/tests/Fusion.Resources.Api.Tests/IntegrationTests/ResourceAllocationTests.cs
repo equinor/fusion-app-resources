@@ -181,8 +181,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
             public string Type { get; set; }
-            public Guid? OrgPositionId { get; set; }
-            public string OrgPositionName { get; set; }
+            public ObjectWithId OrgPosition { get; set; }
             public ObjectWithId OrgPositionInstance { get; set; }
             public string AdditionalNote { get; set; }
             public bool? IsDraft { get; set; }
@@ -203,7 +202,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             public class ObjectWithId
             {
-                public Guid Id { get; set; }
+                public Guid? Id { get; set; }
             }
         }
 
@@ -215,16 +214,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Discipline.Should().Be(request.Request.Discipline);
 
             response.Project.Id.Should().Be(request.Project.ProjectId);
-            response.OrgPositionId.Should().Be(request.Request.OrgPositionId);
-            response.OrgPositionName.Should().NotBeNullOrEmpty();
-            response.OrgPositionInstance.Id.Should().Be(request.Request.OrgPositionInstance.Id);
+            response.OrgPosition?.Id.Should().Be(request.Request.OrgPositionId);
+            response.OrgPositionInstance?.Id.Should().Be(request.Request.OrgPositionInstance?.Id);
             response.ProposedPerson.AzureUniquePersonId.Should().Be(request.Request.ProposedPersonAzureUniqueId);
             response.AdditionalNote.Should().Be(request.Request.AdditionalNote);
             response.IsDraft.Should().Be(request.Request.IsDraft);
-            foreach (var (key, value) in request.Request.ProposedChanges)
-            {
-                response.ProposedChanges.Should().ContainValue(value);
-            }
+            if (request.Request.ProposedChanges != null)
+                foreach (var (key, value) in request.Request.ProposedChanges)
+                {
+                    response.ProposedChanges.Should().ContainValue(value);
+                }
 
             response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
             response.Created.Should().NotBeNull();

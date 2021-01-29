@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Fusion.ApiClients.Org;
 using Fusion.Resources.Database.Entities;
@@ -19,10 +20,8 @@ namespace Fusion.Resources.Domain
 
             Project = new QueryProject(entity.Project);
 
-            entity.OriginalPositionId = entity.OriginalPositionId;
-
-            if (entity.OrgPositionInstance != null)
-                OrgPositionInstance = new ResourceAllocationRequest.QueryPositionInstance(entity.OrgPositionInstance);
+            OriginalPositionId = entity.OriginalPositionId;
+            OrgPositionInstanceId = entity.OrgPositionInstance?.Id;
 
             if (entity.ProposedPerson != null)
                 ProposedPerson = new QueryPerson(entity.ProposedPerson);
@@ -41,6 +40,9 @@ namespace Fusion.Resources.Domain
             ProvisioningStatus = new QueryProvisioningStatus(entity.ProvisioningStatus);
         }
 
+        internal Guid? OriginalPositionId { get; set; }
+        internal Guid? OrgPositionInstanceId { get; set; }
+
         public Guid RequestId { get; set; }
         public string? Discipline { get; set; }
         public QueryAllocationRequestType Type { get; set; }
@@ -50,7 +52,7 @@ namespace Fusion.Resources.Domain
         public QueryProject Project { get; set; }
         public ApiPositionV2? OrgPosition { get; set; }
 
-        public ResourceAllocationRequest.QueryPositionInstance? OrgPositionInstance { get; set; }
+        public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
 
         public QueryPerson? ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
@@ -90,9 +92,11 @@ namespace Fusion.Resources.Domain
             Direct
         }
 
-        internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position)
+        internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {
             OrgPosition = position;
+            if (positionInstanceId.HasValue)
+                OrgPositionInstance = position.Instances.FirstOrDefault(x => x.Id == positionInstanceId);
             return this;
         }
 

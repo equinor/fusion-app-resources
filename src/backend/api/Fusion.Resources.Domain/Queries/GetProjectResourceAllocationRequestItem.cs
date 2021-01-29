@@ -42,12 +42,12 @@ namespace Fusion.Resources.Domain.Queries
 
                 var requestItem = row != null ? new QueryResourceAllocationRequest(row) : null;
 
-                if (requestItem?.OrgPosition != null)
+                if (requestItem?.OriginalPositionId != null)
                 {
-                    var position = await orgResolver.ResolvePositionAsync(requestItem.OrgPosition.Id);
+                    var position = await orgResolver.ResolvePositionAsync(requestItem.OriginalPositionId.Value);
                     if (position != null)
                     {
-                        requestItem.WithResolvedOriginalPosition(position);
+                        requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
                     }
                 }
 

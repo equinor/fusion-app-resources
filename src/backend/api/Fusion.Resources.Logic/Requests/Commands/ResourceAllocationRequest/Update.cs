@@ -84,7 +84,7 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Update WithPositionInstance(Guid id, DateTime from, DateTime to, double? workload, string? obs, Guid locationId)
+            public Update WithPositionInstance(Guid id, DateTime from, DateTime to, double? workload, string? obs, Guid? locationId)
             {
                 var queryPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                 {

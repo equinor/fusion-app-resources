@@ -19,10 +19,10 @@ namespace Fusion.Resources.Api.Controllers
             Project = new ApiProjectReference(query.Project);
 
             if (query.OrgPosition != null)
-                OrgPosition = new ApiPositionV2() { Id = query.OrgPosition.Id };
+                OrgPosition = query.OrgPosition;
 
             if (query.OrgPositionInstance != null)
-                OrgPositionInstance = new ApiPositionInstanceV2 {Id = query.OrgPositionInstance.Id};
+                OrgPositionInstance = query.OrgPositionInstance;
 
             AdditionalNote = query.AdditionalNote;
             ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);

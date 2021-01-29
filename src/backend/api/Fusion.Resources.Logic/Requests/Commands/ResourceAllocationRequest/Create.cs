@@ -80,7 +80,7 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs, Guid locationId)
+            public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs, Guid? locationId)
             {
                 OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                 {

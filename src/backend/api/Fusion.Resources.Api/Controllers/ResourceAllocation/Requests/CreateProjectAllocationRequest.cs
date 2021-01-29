@@ -15,7 +15,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiAllocationRequestType Type { get; set; }
         public string? Discipline { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
+        public ApiPositionInstance? OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }

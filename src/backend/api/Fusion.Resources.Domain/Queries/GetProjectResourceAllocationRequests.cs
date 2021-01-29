@@ -67,7 +67,7 @@ namespace Fusion.Resources.Domain.Queries
                 var resolvedOrgChartPositions =
                     (await orgResolver.ResolvePositionsAsync(row.Where(r => r.OriginalPositionId.HasValue)
                         .Select(r => r.OriginalPositionId!.Value))).ToList();
-
+                
                 // If none resolved, return.
                 if (!resolvedOrgChartPositions.Any())
                     return requestItems;
@@ -79,7 +79,7 @@ namespace Fusion.Resources.Domain.Queries
                     var originalPosition = resolvedOrgChartPositions.FirstOrDefault(p =>
                         p.Id == queryResourceAllocationRequest.OrgPosition.Id);
                     if (originalPosition != null)
-                        queryResourceAllocationRequest.WithResolvedOriginalPosition(originalPosition);
+                        queryResourceAllocationRequest.WithResolvedOriginalPosition(queryResourceAllocationRequest.OrgPosition, queryResourceAllocationRequest.OrgPositionInstanceId);
                 }
 
                 return requestItems;

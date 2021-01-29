@@ -26,7 +26,7 @@ namespace Fusion.Testing.Mocks
         public FusionTestResourceAllocationBuilder WithOrgPositionId(ApiPositionV2 position)
         {
             this.Request.OrgPositionId = position.Id;
-            this.Request.OrgPositionInstance.Id = position.Instances.First().Id;
+            this.Request.OrgPositionInstance = new ApiPositionInstance(position.Instances.First());
             return this;
         }
         public FusionTestResourceAllocationBuilder WithProject(ApiProjectV2 project)

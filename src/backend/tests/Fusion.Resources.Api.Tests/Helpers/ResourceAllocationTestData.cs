@@ -19,12 +19,13 @@ namespace Fusion.Testing.Mocks
                         IsDraft = false,
                         ProposedChanges = new ApiPropertiesCollection(),
                         OrgPositionId = Guid.NewGuid(),
-                        OrgPositionInstance = new ApiPositionInstanceV2
+                        OrgPositionInstance = new ApiPositionInstance
                         {
+                            Id = Guid.NewGuid(),
                             AppliesFrom = f.Date.Past(),
                             AppliesTo = f.Date.Future(),
                             Workload = f.Random.Double(0, 100),
-                            Location = new ApiPositionLocationV2 { Id = Guid.NewGuid(), Country = f.Address.Country(), Code = f.Address.CountryCode(), Name = f.Address.BuildingNumber() },
+                            LocationId = f.Random.Guid(),
                             Obs = f.Hacker.Adjective()
                         }
                     };

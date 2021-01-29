@@ -1,10 +1,21 @@
 ﻿using System;
+using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPositionInstance
     {
+        public ApiPositionInstance(ApiPositionInstanceV2 instance)
+        {
+            Id = instance.Id;
+            Workload = instance.Workload;
+            Obs = instance.Obs;
+            AppliesFrom = instance.AppliesFrom;
+            AppliesTo = instance.AppliesTo;
+            LocationId = instance.Location?.Id;
+
+        }
         public ApiPositionInstance(ResourceAllocationRequest.QueryPositionInstance query)
         {
             Id = query.Id;
@@ -14,6 +25,10 @@ namespace Fusion.Resources.Api.Controllers
             AppliesTo = query.AppliesTo;
             LocationId = query.LocationId;
 
+        }
+
+        public ApiPositionInstance()
+        {
         }
 
         public Guid Id { get; set; }
