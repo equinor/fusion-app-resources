@@ -100,15 +100,16 @@ stages:
                     Import-Module FusionPS
 
                     $dbName = "Fusion-Apps-Resources-PR-$(prNumber)-DB"
+                    $tags = @{ 
+                        pr = "$(prNumber)"
+                        fusion-app-component-id = "resources-api-db-pr-$(prNumber)"
+                    }
 
                     New-FusionSqlDatabaseV2 `
                       -InfraEnv Test `
                       -DatabaseName $dbName `
                       -SourceDatabase Fusion-Apps-Resources-CI-DB `
-                      -Tags @{ `
-                        "pr" = "$(prNumber)"" `
-                        "fusion-app-component-id" = "resources-api-db-pr-$(prNumber)" `
-                      }
+                      -Tags $tags
 
                     Set-FusionAzSqlDatabaseAccess `
                       -InfraEnv Test `
