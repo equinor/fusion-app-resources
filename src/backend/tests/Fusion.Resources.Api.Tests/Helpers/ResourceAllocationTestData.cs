@@ -14,14 +14,14 @@ namespace Fusion.Testing.Mocks
                         Id = Guid.NewGuid(),
                         Discipline = f.Hacker.Phrase(),
                         AdditionalNote = f.Hacker.Phrase(),
-                        Type = ApiResourceAllocationRequest.ApiAllocationRequestType.Normal,
+                        Type = ApiAllocationRequestType.Normal,
                         IsDraft = false,
                         ProposedChanges = new ApiPropertiesCollection(),
                         OrgPositionInstance = new ApiPositionInstance
                         {
                             AppliesFrom = f.Date.Past(),
                             AppliesTo = f.Date.Future(),
-                            Workload = f.Random.Double(0,100),
+                            Workload = f.Random.Double(0, 100),
                             Location = f.Address.City(),
                             Obs = f.Hacker.Adjective()
                         }

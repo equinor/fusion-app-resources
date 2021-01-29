@@ -399,7 +399,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<DateTimeOffset>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 12, 25, 46, 144, DateTimeKind.Unspecified).AddTicks(1336), new TimeSpan(0, 0, 0, 0, 0)));
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 15, 18, 13, 284, DateTimeKind.Unspecified).AddTicks(9013), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
@@ -413,7 +413,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<DateTimeOffset>("LastActivity")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 12, 25, 46, 150, DateTimeKind.Unspecified).AddTicks(7241), new TimeSpan(0, 0, 0, 0, 0)));
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 15, 18, 13, 292, DateTimeKind.Unspecified).AddTicks(1793), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid?>("OriginalPositionId")
                         .HasColumnType("uniqueidentifier");
@@ -424,10 +424,10 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<string>("ProposedChanges")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ProposedPersonId")
+                    b.Property<Guid?>("ProposedPersonId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("ProposedPersonWasNotified")
+                    b.Property<bool?>("ProposedPersonWasNotified")
                         .HasColumnType("bit");
 
                     b.Property<string>("State")
@@ -782,9 +782,7 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "ProposedPerson")
                         .WithMany()
-                        .HasForeignKey("ProposedPersonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ProposedPersonId");
 
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
                         .WithMany()
@@ -809,6 +807,7 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<string>("Obs")
+                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<double>("Workload")

@@ -27,21 +27,20 @@ namespace Fusion.Resources.Logic.Commands
             private Guid OrgProjectId { get; }
             private Guid RequestId { get; }
 
-            private MonitorableProperty<string?> Discipline { get; set; } = new MonitorableProperty<string?>();
+            public MonitorableProperty<string?> Discipline { get; private set; } = new MonitorableProperty<string?>();
 
-            private MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType> Type { get; set; } =
-                new MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>();
-            private MonitorableProperty<Guid?> OrgPositionId { get; set; } = new MonitorableProperty<Guid?>();
+            public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType> Type { get; private set; } = new MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>();
+            public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new MonitorableProperty<Guid?>();
 
-            private MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance { get; set; } = new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance>();
+            public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance { get; private set; }
 
-            private MonitorableProperty<Guid> ProposedPersonId { get; set; } = new MonitorableProperty<Guid>();
-            private MonitorableProperty<string?> AdditionalNote { get; set; } = new MonitorableProperty<string?>();
+            public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new MonitorableProperty<Guid?>();
+            public MonitorableProperty<string?> AdditionalNote { get; private set; } = new MonitorableProperty<string?>();
 
-            private MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; set; } =
+            public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; private set; } =
                 new MonitorableProperty<Dictionary<string, object>?>();
 
-            private MonitorableProperty<bool> IsDraft { get; set; } = new MonitorableProperty<bool>();
+            public MonitorableProperty<bool> IsDraft { get; private set; } = new MonitorableProperty<bool>();
 
 
             public Update WithIsDraft(bool? isDraft)
@@ -68,9 +67,9 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Update WithProposedPerson(Guid proposedPersonId)
+            public Update WithProposedPerson(Guid? proposedPersonAzureUniqueId)
             {
-                ProposedPersonId = proposedPersonId;
+                ProposedPersonAzureUniqueId = proposedPersonAzureUniqueId;
                 return this;
             }
 
@@ -98,7 +97,8 @@ namespace Fusion.Resources.Logic.Commands
                 };
 
 
-                OrgPositionInstance = queryPositionInstance;
+                OrgPositionInstance =
+                    new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance>(queryPositionInstance);
                 return this;
             }
 
@@ -220,9 +220,11 @@ namespace Fusion.Resources.Logic.Commands
                 }
                 private async Task ValidateAsync(Update request)
                 {
-
-                    var proposed = await profileService.EnsurePersonAsync(request.ProposedPersonId.Value);
-                    ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                    if (request.ProposedPersonAzureUniqueId?.Value != null)
+                    {
+                        var proposed = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value.Value));
+                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                    }
 
                     await ValidateOriginalPositionAsync(request);
                 }

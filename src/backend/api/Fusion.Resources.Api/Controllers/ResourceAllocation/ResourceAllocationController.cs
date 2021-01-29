@@ -42,12 +42,14 @@ namespace Fusion.Resources.Api.Controllers
             var command = new Logic.Commands.ResourceAllocationRequest.Create(projectIdentifier.ProjectId)
                 .WithDiscipline(request.Discipline)
                 .WithType($"{request.Type}")
-                .WithProposedPerson(request.ProposedPersonId)
+                .WithProposedPerson(request.ProposedPersonAzureUniqueId)
                 .WithOrgPosition(request.OrgPositionId)
                 .WithProposedChanges(request.ProposedChanges)
                 .WithIsDraft(request.IsDraft)
-                .WithAdditionalNode(request.AdditionalNote)
-                .WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                .WithAdditionalNode(request.AdditionalNote);
+
+            if (request.OrgPositionInstance != null)
+                command.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
                               request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 
@@ -97,7 +99,7 @@ namespace Fusion.Resources.Api.Controllers
             var command = new Logic.Commands.ResourceAllocationRequest.Update(projectIdentifier.ProjectId, requestId)
                 .WithDiscipline(request.Discipline)
                 .WithType($"{request.Type}")
-                .WithProposedPerson(request.ProposedPersonId)
+                .WithProposedPerson(request.ProposedPersonAzureUniqueId)
                 .WithOrgPosition(request.OrgPositionId)
                 .WithProposedChanges(request.ProposedChanges)
                 .WithIsDraft(request.IsDraft)

@@ -41,7 +41,7 @@ namespace Fusion.Testing.Mocks
         }
         public FusionTestResourceAllocationBuilder WithProposedPerson(ApiPersonProfileV3 profile)
         {
-            Request.ProposedPersonId = profile.AzureUniqueId.Value;
+            Request.ProposedPersonAzureUniqueId = profile.AzureUniqueId.Value;
             return this;
         }
         public FusionTestResourceAllocationBuilder WithProposedChanges(ApiPropertiesCollection changes)
@@ -50,7 +50,7 @@ namespace Fusion.Testing.Mocks
             return this;
         }
 
-        public FusionTestResourceAllocationBuilder WithRequestType(ApiResourceAllocationRequest.ApiAllocationRequestType type)
+        public FusionTestResourceAllocationBuilder WithRequestType(ApiAllocationRequestType type)
         {
             Request.Type = type;
             return this;

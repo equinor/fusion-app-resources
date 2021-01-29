@@ -26,18 +26,17 @@ namespace Fusion.Resources.Logic.Commands
 
             private Guid OrgProjectId { get; }
 
-            private string? Discipline { get; set; }
-            private QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; set; }
+            public string? Discipline { get; private set; }
+            public QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; private set; }
 
-            private Guid? OrgPositionId { get; set; }
+            public Guid? OrgPositionId { get; private set; }
 
-            private Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; } =
-                new Domain.ResourceAllocationRequest.QueryPositionInstance();
+            public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; }
 
-            private Guid ProposedPersonId { get; set; }
-            private string? AdditionalNote { get; set; }
-            private Dictionary<string, object> ProposedChanges { get; set; }
-            private bool IsDraft { get; set; }
+            public Guid? ProposedPersonAzureUniqueId { get; private set; }
+            public string? AdditionalNote { get; private set; }
+            public Dictionary<string, object> ProposedChanges { get; private set; }
+            public bool IsDraft { get; private set; }
 
 
             public Create WithIsDraft(bool? isDraft)
@@ -64,9 +63,9 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Create WithProposedPerson(Guid proposedPersonId)
+            public Create WithProposedPerson(Guid? proposedPersonAzureUniqueId)
             {
-                ProposedPersonId = proposedPersonId;
+                ProposedPersonAzureUniqueId = proposedPersonAzureUniqueId;
                 return this;
             }
 
@@ -75,7 +74,7 @@ namespace Fusion.Resources.Logic.Commands
                 AdditionalNote = note;
                 return this;
             }
-            public Create WithProposedChanges(Dictionary<string, object> changes)
+            public Create WithProposedChanges(Dictionary<string, object>? changes)
             {
                 ProposedChanges = changes;
                 return this;
@@ -83,12 +82,15 @@ namespace Fusion.Resources.Logic.Commands
 
             public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double workload, string? obs, string location)
             {
-                OrgPositionInstance.Id = basePositionId;
-                OrgPositionInstance.Workload = workload;
-                OrgPositionInstance.AppliesFrom = from;
-                OrgPositionInstance.AppliesTo = to;
-                OrgPositionInstance.Obs = obs ?? string.Empty;
-                OrgPositionInstance.Location = location;
+                OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
+                {
+                    Id = basePositionId,
+                    Workload = workload,
+                    AppliesFrom = @from,
+                    AppliesTo = to,
+                    Obs = obs ?? string.Empty,
+                    Location = location
+                };
 
                 return this;
             }
@@ -153,7 +155,7 @@ namespace Fusion.Resources.Logic.Commands
                         Created = created,
                         CreatedBy = request.Editor.Person,
                         LastActivity = created,
-                        
+
                         ProposedPersonWasNotified = false, // Should be set/reset during update when/if when notifications are enabled
 
                     };
@@ -177,8 +179,11 @@ namespace Fusion.Resources.Logic.Commands
                 }
                 private async Task ValidateAsync(Create request)
                 {
-                    var proposed = await profileService.EnsurePersonAsync(request.ProposedPersonId);
-                    ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                    if (request.ProposedPersonAzureUniqueId != null)
+                    {
+                        var proposed = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value));
+                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                    }
 
                     var project = await EnsureProjectAsync(request);
                     Project = project ?? throw new InvalidOperationException("Could not locate the project!");

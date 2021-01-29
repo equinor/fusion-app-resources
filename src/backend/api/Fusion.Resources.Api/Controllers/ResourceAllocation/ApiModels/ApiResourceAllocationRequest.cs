@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Text.Json.Serialization;
-using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
@@ -11,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             Id = query.RequestId;
             Discipline = query.Discipline;
-            Type = Enum.Parse<ApiAllocationRequestType>($"{query.Type}");
+            Type = $"{query.Type}";
 
 
             ProposedPerson = new ApiPerson(query.ProposedPerson);
@@ -40,8 +38,10 @@ namespace Fusion.Resources.Api.Controllers
 
         public Guid Id { get; set; }
         public string? Discipline { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ApiAllocationRequestType Type { get; set; }
+        /// <summary>Type of request
+        /// <para>Check valid values used in request model <see cref="ApiAllocationRequestType"/> for information.</para>
+        /// </summary>
+        public string Type { get; set; }
         public ApiWorkflow Workflow { get; set; }
         public ApiProjectReference Project { get; set; }
         public Guid? OrgPositionId { get; set; }
@@ -63,6 +63,5 @@ namespace Fusion.Resources.Api.Controllers
 
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
 
-        public enum ApiAllocationRequestType { Normal, JointVenture, Direct }
     }
 }

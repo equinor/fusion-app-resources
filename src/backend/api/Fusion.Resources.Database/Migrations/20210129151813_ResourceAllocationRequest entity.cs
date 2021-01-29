@@ -25,13 +25,13 @@ namespace Fusion.Resources.Database.Migrations
                     OrgPositionInstance_Location = table.Column<string>(nullable: true),
                     AdditionalNote = table.Column<string>(nullable: true),
                     ProposedChanges = table.Column<string>(nullable: true),
-                    ProposedPersonId = table.Column<Guid>(nullable: false),
-                    ProposedPersonWasNotified = table.Column<bool>(nullable: false),
-                    Created = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 12, 25, 46, 144, DateTimeKind.Unspecified).AddTicks(1336), new TimeSpan(0, 0, 0, 0, 0))),
+                    ProposedPersonId = table.Column<Guid>(nullable: true),
+                    ProposedPersonWasNotified = table.Column<bool>(nullable: true),
+                    Created = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 15, 18, 13, 284, DateTimeKind.Unspecified).AddTicks(9013), new TimeSpan(0, 0, 0, 0, 0))),
                     Updated = table.Column<DateTimeOffset>(nullable: true),
                     CreatedById = table.Column<Guid>(nullable: false),
                     UpdatedById = table.Column<Guid>(nullable: true),
-                    LastActivity = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 12, 25, 46, 150, DateTimeKind.Unspecified).AddTicks(7241), new TimeSpan(0, 0, 0, 0, 0))),
+                    LastActivity = table.Column<DateTimeOffset>(nullable: false, defaultValue: new DateTimeOffset(new DateTime(2021, 1, 29, 15, 18, 13, 292, DateTimeKind.Unspecified).AddTicks(1793), new TimeSpan(0, 0, 0, 0, 0))),
                     IsDraft = table.Column<bool>(nullable: false),
                     ProvisioningStatus_State = table.Column<string>(nullable: true),
                     ProvisioningStatus_PositionId = table.Column<Guid>(nullable: true),
@@ -59,7 +59,7 @@ namespace Fusion.Resources.Database.Migrations
                         column: x => x.ProposedPersonId,
                         principalTable: "Persons",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ResourceAllocationRequests_Persons_UpdatedById",
                         column: x => x.UpdatedById,

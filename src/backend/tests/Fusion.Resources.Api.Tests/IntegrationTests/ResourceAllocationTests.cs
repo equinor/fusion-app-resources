@@ -58,7 +58,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Prepare project with mocks
             testRequest = new FusionTestResourceAllocationBuilder()
-                    .WithRequestType(ApiResourceAllocationRequest.ApiAllocationRequestType.Direct)
+                    .WithRequestType(ApiAllocationRequestType.Direct)
                     .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testProfile)
                     .WithIsDraft(true)
@@ -159,7 +159,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var beforeUpdate = DateTimeOffset.UtcNow;
 
             testRequest.Request.OrgPositionInstance.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
-            testRequest.Request.ProposedPersonId = Guid.Empty;
+            testRequest.Request.ProposedPersonAzureUniqueId = Guid.Empty;
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", testRequest.Request);
             response.Should().BeBadRequest("Invalid arguments passed");
 
@@ -170,7 +170,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             testRequest.Request.OrgPositionInstance.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
-            testRequest.Request.ProposedPersonId = Guid.Empty;
+            testRequest.Request.ProposedPersonAzureUniqueId = Guid.Empty;
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request);
             response.Should().BeBadRequest("Invalid arguments passed");
 
@@ -180,7 +180,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
-            public ApiResourceAllocationRequest.ApiAllocationRequestType Type { get; set; }
+            public string Type { get; set; }
             public Guid? OrgPositionId { get; set; }
             public string OrgPositionName { get; set; }
             public ObjectWithId OrgPositionInstance { get; set; }
@@ -211,14 +211,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             FusionTestResourceAllocationBuilder request, TestClientScope scope)
         {
 
-            response.Type.Should().Be(request.Request.Type);
+            response.Type.Should().Be(request.Request.Type.ToString());
             response.Discipline.Should().Be(request.Request.Discipline);
 
             response.Project.Id.Should().Be(request.Project.ProjectId);
             response.OrgPositionId.Should().Be(request.Request.OrgPositionId);
             response.OrgPositionName.Should().NotBeNullOrEmpty();
             response.OrgPositionInstance.Id.Should().Be(request.Request.OrgPositionInstance.Id);
-            response.ProposedPerson.AzureUniquePersonId.Should().Be(request.Request.ProposedPersonId);
+            response.ProposedPerson.AzureUniquePersonId.Should().Be(request.Request.ProposedPersonAzureUniqueId);
             response.AdditionalNote.Should().Be(request.Request.AdditionalNote);
             response.IsDraft.Should().Be(request.Request.IsDraft);
             foreach (var (key, value) in request.Request.ProposedChanges)
