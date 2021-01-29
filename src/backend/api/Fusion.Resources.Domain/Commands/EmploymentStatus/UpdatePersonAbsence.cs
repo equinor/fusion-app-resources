@@ -46,8 +46,6 @@ namespace Fusion.Resources.Domain.Commands
                 if (absences is null)
                     throw new ArgumentException($"Cannot locate status using identifier '{request.Id}'");
 
-                await CheckOverlappingTimeSpanAsync(request);
-
                 absences.Comment = request.Comment;
                 absences.AppliesFrom = request.AppliesFrom;
                 absences.AppliesTo = request.AppliesTo;
@@ -60,22 +58,6 @@ namespace Fusion.Resources.Domain.Commands
 
                 var returnItem = await mediator.Send(new GetPersonAbsenceItem(request.PersonId, request.Id));
                 return returnItem;
-            }
-            private async Task CheckOverlappingTimeSpanAsync(UpdatePersonAbsence request)
-            {
-                var absences = await resourcesDb.PersonAbsences
-                    .GetById(request.PersonId)
-                    .Include(cp => cp.Person)
-                    .ToListAsync();
-
-                foreach (var row in from row
-                        in absences
-                                    let overlap = request.AppliesFrom <= row.AppliesTo && row.AppliesFrom <= request.AppliesTo
-                                    where overlap
-                                    select row)
-                {
-                    throw new RequestAlreadyExistsError($"Overlapping timespan exists with id {row.Id}");
-                }
             }
         }
     }
