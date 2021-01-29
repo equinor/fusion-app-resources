@@ -141,10 +141,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public object CreatedBy { get; set; } = null!;
         public object Project { get; set; } = null!;
         public object Location { get; set; }
-        public string? Discipline { get; set; }
+        public string Discipline { get; set; }
         public object BasePosition { get; set; }
-        public string? Sector { get; set; }
-        public string? Unit { get; set; }
+        public string Sector { get; set; }
+        public string Unit { get; set; }
         public object Responsible { get; set; } = null!;
     }
 }

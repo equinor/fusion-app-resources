@@ -77,7 +77,7 @@ namespace Fusion.Resources.Domain.Commands
                 await resourcesDb.SaveChangesAsync();
 
                 var returnItem = await mediator.Send(new GetResponsibilityMatrixItem(request.Id));
-                return returnItem;
+                return returnItem!;
             }
             private async Task<DbProject?> EnsureProjectAsync(Guid projectId)
             {
