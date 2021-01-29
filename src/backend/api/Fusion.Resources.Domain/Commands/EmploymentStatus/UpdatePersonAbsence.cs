@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database.Entities;
@@ -37,26 +38,44 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryPersonAbsence> Handle(UpdatePersonAbsence request, CancellationToken cancellationToken)
             {
-                var status = await resourcesDb.PersonAbsences
+                var absences = await resourcesDb.PersonAbsences
                     .GetById(request.PersonId, request.Id)
                     .Include(cp => cp.Person)
                     .FirstOrDefaultAsync(x => x.Id == request.Id);
 
-                if (status is null)
+                if (absences is null)
                     throw new ArgumentException($"Cannot locate status using identifier '{request.Id}'");
 
-                status.Comment = request.Comment;
-                status.AppliesFrom = request.AppliesFrom;
-                status.AppliesTo = request.AppliesTo;
-                status.Created = DateTimeOffset.UtcNow;
-                status.CreatedBy = request.Editor.Person;
-                status.Type = Enum.Parse<DbAbsenceType>($"{request.Type}");
+                await CheckOverlappingTimeSpanAsync(request);
+
+                absences.Comment = request.Comment;
+                absences.AppliesFrom = request.AppliesFrom;
+                absences.AppliesTo = request.AppliesTo;
+                absences.Created = DateTimeOffset.UtcNow;
+                absences.CreatedBy = request.Editor.Person;
+                absences.Type = Enum.Parse<DbAbsenceType>($"{request.Type}");
 
 
                 await resourcesDb.SaveChangesAsync();
 
                 var returnItem = await mediator.Send(new GetPersonAbsenceItem(request.PersonId, request.Id));
                 return returnItem;
+            }
+            private async Task CheckOverlappingTimeSpanAsync(UpdatePersonAbsence request)
+            {
+                var absences = await resourcesDb.PersonAbsences
+                    .GetById(request.PersonId)
+                    .Include(cp => cp.Person)
+                    .ToListAsync();
+
+                foreach (var row in from row
+                        in absences
+                                    let overlap = request.AppliesFrom <= row.AppliesTo && row.AppliesFrom <= request.AppliesTo
+                                    where overlap
+                                    select row)
+                {
+                    throw new RequestAlreadyExistsError($"Overlapping timespan exists with id {row.Id}");
+                }
             }
         }
     }

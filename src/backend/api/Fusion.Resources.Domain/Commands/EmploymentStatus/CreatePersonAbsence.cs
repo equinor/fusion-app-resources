@@ -2,8 +2,10 @@
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 #nullable enable 
 
@@ -40,6 +42,8 @@ namespace Fusion.Resources.Domain.Commands
                 if (profile == null)
                     throw new ArgumentException("Cannot create personnel without either a valid azure unique id or mail address");
 
+                await CheckOverlappingTimeSpanAsync(request);
+
                 var newItem = new DbPersonAbsence
                 {
                     Id = Guid.NewGuid(),
@@ -57,7 +61,22 @@ namespace Fusion.Resources.Domain.Commands
 
                 return new QueryPersonAbsence(newItem);
             }
+            private async Task CheckOverlappingTimeSpanAsync(CreatePersonAbsence request)
+            {
+                var absences = await resourcesDb.PersonAbsences
+                    .GetById(request.PersonId)
+                    .Include(cp => cp.Person)
+                    .ToListAsync();
 
+                foreach (var row in from row
+                                             in absences
+                                    let overlap = request.AppliesFrom <= row.AppliesTo && row.AppliesFrom <= request.AppliesTo
+                                    where overlap
+                                    select row)
+                {
+                    throw new RequestAlreadyExistsError($"Overlapping timespan on row with id {row.Id}");
+                }
+            }
         }
     }
 }
