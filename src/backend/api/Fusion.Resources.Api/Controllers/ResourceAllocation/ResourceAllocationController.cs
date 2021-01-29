@@ -103,8 +103,10 @@ namespace Fusion.Resources.Api.Controllers
                 .WithOrgPosition(request.OrgPositionId)
                 .WithProposedChanges(request.ProposedChanges)
                 .WithIsDraft(request.IsDraft)
-                .WithAdditionalNode(request.AdditionalNote)
-                .WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                .WithAdditionalNode(request.AdditionalNote);
+
+            if (request.OrgPositionInstance != null)
+                command.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
                               request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
                               request.OrgPositionInstance.Obs, request.OrgPositionInstance.Location);
 
