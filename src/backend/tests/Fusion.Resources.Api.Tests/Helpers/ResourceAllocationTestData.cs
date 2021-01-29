@@ -1,5 +1,6 @@
 ﻿using Bogus;
 using System;
+using Fusion.ApiClients.Org;
 using Fusion.Resources.Api.Controllers;
 
 namespace Fusion.Testing.Mocks
@@ -17,12 +18,13 @@ namespace Fusion.Testing.Mocks
                         Type = ApiAllocationRequestType.Normal,
                         IsDraft = false,
                         ProposedChanges = new ApiPropertiesCollection(),
-                        OrgPositionInstance = new ApiPositionInstance
+                        OrgPositionId = Guid.NewGuid(),
+                        OrgPositionInstance = new ApiPositionInstanceV2
                         {
                             AppliesFrom = f.Date.Past(),
                             AppliesTo = f.Date.Future(),
                             Workload = f.Random.Double(0, 100),
-                            Location = f.Address.City(),
+                            Location = new ApiPositionLocationV2 { Id = Guid.NewGuid(), Country = f.Address.Country(), Code = f.Address.CountryCode(), Name = f.Address.BuildingNumber() },
                             Obs = f.Hacker.Adjective()
                         }
                     };

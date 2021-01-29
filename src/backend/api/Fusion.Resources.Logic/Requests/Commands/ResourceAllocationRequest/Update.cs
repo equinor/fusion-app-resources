@@ -32,7 +32,7 @@ namespace Fusion.Resources.Logic.Commands
             public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType> Type { get; private set; } = new MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>();
             public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new MonitorableProperty<Guid?>();
 
-            public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance { get; private set; }
+            public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?> OrgPositionInstance { get; private set; } = null!;
 
             public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new MonitorableProperty<Guid?>();
             public MonitorableProperty<string?> AdditionalNote { get; private set; } = new MonitorableProperty<string?>();
@@ -84,7 +84,7 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Update WithPositionInstance(Guid id, DateTime from, DateTime to, double workload, string? obs, string location)
+            public Update WithPositionInstance(Guid id, DateTime from, DateTime to, double? workload, string? obs, Guid locationId)
             {
                 var queryPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                 {
@@ -93,12 +93,11 @@ namespace Fusion.Resources.Logic.Commands
                     AppliesFrom = @from,
                     AppliesTo = to,
                     Obs = obs ?? string.Empty,
-                    Location = location
+                    LocationId = locationId
                 };
 
 
-                OrgPositionInstance =
-                    new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance>(queryPositionInstance);
+                OrgPositionInstance = new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>(queryPositionInstance);
                 return this;
             }
 
@@ -109,7 +108,7 @@ namespace Fusion.Resources.Logic.Commands
                 private readonly IMediator mediator;
                 private readonly IProjectOrgResolver orgResolver;
                 private readonly IProfileService profileService;
-                private DbPerson ProposedPerson { get; set; }
+                private DbPerson? ProposedPerson { get; set; }
                 public Handler(IProfileService profileService, IProjectOrgResolver orgResolver, ResourcesDbContext db, IMediator mediator)
                 {
                     this.profileService = profileService;
@@ -178,8 +177,12 @@ namespace Fusion.Resources.Logic.Commands
 
                     if (request.OrgPositionInstance.HasBeenSet)
                     {
-                        dbItem.OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance.Value);
-                        modified = true;
+                        if (request.OrgPositionInstance.Value != null)
+                        {
+                            dbItem.OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance.Value);
+                            modified = true;
+                        }
+
                     }
 
                     if (request.IsDraft.HasBeenSet)
@@ -236,7 +239,7 @@ namespace Fusion.Resources.Logic.Commands
                         AppliesFrom = position.AppliesFrom,
                         AppliesTo = position.AppliesTo,
                         Id = position.Id,
-                        Location = position.Location,
+                        LocationId = position.LocationId,
                         Workload = position.Workload,
                         Obs = position.Obs
                     };

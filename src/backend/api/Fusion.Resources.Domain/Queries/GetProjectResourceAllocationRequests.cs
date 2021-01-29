@@ -74,10 +74,10 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var queryResourceAllocationRequest in requestItems)
                 {
-                    if (!queryResourceAllocationRequest.OrgPositionId.HasValue) continue;
+                    if (queryResourceAllocationRequest.OrgPosition == null) continue;
 
                     var originalPosition = resolvedOrgChartPositions.FirstOrDefault(p =>
-                        p.Id == queryResourceAllocationRequest.OrgPositionId.Value);
+                        p.Id == queryResourceAllocationRequest.OrgPosition.Id);
                     if (originalPosition != null)
                         queryResourceAllocationRequest.WithResolvedOriginalPosition(originalPosition);
                 }

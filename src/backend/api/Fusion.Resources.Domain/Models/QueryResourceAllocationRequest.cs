@@ -18,10 +18,14 @@ namespace Fusion.Resources.Domain
             State = entity.State;
 
             Project = new QueryProject(entity.Project);
-            OrgPositionId = entity.OriginalPositionId;
-            OrgPositionInstance = new ResourceAllocationRequest.QueryPositionInstance(entity.OrgPositionInstance);
 
-            ProposedPerson = new QueryPerson(entity.ProposedPerson);
+            entity.OriginalPositionId = entity.OriginalPositionId;
+
+            if (entity.OrgPositionInstance != null)
+                OrgPositionInstance = new ResourceAllocationRequest.QueryPositionInstance(entity.OrgPositionInstance);
+
+            if (entity.ProposedPerson != null)
+                ProposedPerson = new QueryPerson(entity.ProposedPerson);
 
             AdditionalNote = entity.AdditionalNote;
 
@@ -44,12 +48,11 @@ namespace Fusion.Resources.Domain
         public DbRequestState State { get; set; }
 
         public QueryProject Project { get; set; }
-        public Guid? OrgPositionId { get; set; }
-        public string OrgPositionName { get; set; }
+        public ApiPositionV2? OrgPosition { get; set; }
 
-        public ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; set; }
+        public ResourceAllocationRequest.QueryPositionInstance? OrgPositionInstance { get; set; }
 
-        public QueryPerson ProposedPerson { get; set; }
+        public QueryPerson? ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
 
         public string? ProposedChangesJson { get; set; }
@@ -87,11 +90,9 @@ namespace Fusion.Resources.Domain
             Direct
         }
 
-        internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 originalPosition)
+        internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position)
         {
-            OrgPositionId = originalPosition.Id;
-            OrgPositionName = originalPosition.Name;
-
+            OrgPosition = position;
             return this;
         }
 

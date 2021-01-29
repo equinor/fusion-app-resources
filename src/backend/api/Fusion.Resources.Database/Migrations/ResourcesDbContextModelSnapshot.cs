@@ -399,7 +399,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<DateTimeOffset>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 15, 18, 13, 284, DateTimeKind.Unspecified).AddTicks(9013), new TimeSpan(0, 0, 0, 0, 0)));
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 15, 51, 10, 112, DateTimeKind.Unspecified).AddTicks(4321), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
@@ -413,7 +413,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<DateTimeOffset>("LastActivity")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 15, 18, 13, 292, DateTimeKind.Unspecified).AddTicks(1793), new TimeSpan(0, 0, 0, 0, 0)));
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 1, 29, 15, 51, 10, 119, DateTimeKind.Unspecified).AddTicks(3155), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid?>("OriginalPositionId")
                         .HasColumnType("uniqueidentifier");
@@ -803,14 +803,13 @@ namespace Fusion.Resources.Database.Migrations
                             b1.Property<Guid>("Id")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<string>("Location")
-                                .HasColumnType("nvarchar(max)");
+                            b1.Property<Guid?>("LocationId")
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<string>("Obs")
-                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<double>("Workload")
+                            b1.Property<double?>("Workload")
                                 .HasColumnType("float");
 
                             b1.HasKey("DbResourceAllocationRequestId");

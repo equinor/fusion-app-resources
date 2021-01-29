@@ -1,4 +1,5 @@
 ﻿using System;
+using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
@@ -12,13 +13,16 @@ namespace Fusion.Resources.Api.Controllers
             Type = $"{query.Type}";
 
 
-            ProposedPerson = new ApiPerson(query.ProposedPerson);
+            if (query.ProposedPerson != null)
+                ProposedPerson = new ApiPerson(query.ProposedPerson);
 
             Project = new ApiProjectReference(query.Project);
 
-            OrgPositionId = query.OrgPositionId;
-            OrgPositionName = query.OrgPositionName;
-            OrgPositionInstance = new ApiPositionInstance(query.OrgPositionInstance);
+            if (query.OrgPosition != null)
+                OrgPosition = new ApiPositionV2() { Id = query.OrgPosition.Id };
+
+            if (query.OrgPositionInstance != null)
+                OrgPositionInstance = new ApiPositionInstanceV2 {Id = query.OrgPositionInstance.Id};
 
             AdditionalNote = query.AdditionalNote;
             ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
@@ -42,15 +46,14 @@ namespace Fusion.Resources.Api.Controllers
         /// <para>Check valid values used in request model <see cref="ApiAllocationRequestType"/> for information.</para>
         /// </summary>
         public string Type { get; set; }
-        public ApiWorkflow Workflow { get; set; }
+        public ApiWorkflow? Workflow { get; set; }
         public ApiProjectReference Project { get; set; }
-        public Guid? OrgPositionId { get; set; }
-        public string OrgPositionName { get; set; }
-        public ApiPositionInstance OrgPositionInstance { get; set; }
+        public ApiPositionV2? OrgPosition { get; set; }
+        public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
         public string? AdditionalNote { get; set; }
 
-        public ApiPropertiesCollection ProposedChanges { get; set; }
-        public ApiPerson ProposedPerson { get; set; }
+        public ApiPropertiesCollection? ProposedChanges { get; set; }
+        public ApiPerson? ProposedPerson { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public ApiPerson CreatedBy { get; set; }

@@ -31,11 +31,11 @@ namespace Fusion.Resources.Logic.Commands
 
             public Guid? OrgPositionId { get; private set; }
 
-            public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; }
+            public Domain.ResourceAllocationRequest.QueryPositionInstance? OrgPositionInstance { get; private set; }
 
             public Guid? ProposedPersonAzureUniqueId { get; private set; }
             public string? AdditionalNote { get; private set; }
-            public Dictionary<string, object> ProposedChanges { get; private set; }
+            public Dictionary<string, object>? ProposedChanges { get; private set; }
             public bool IsDraft { get; private set; }
 
 
@@ -80,7 +80,7 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
-            public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double workload, string? obs, string location)
+            public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs, Guid locationId)
             {
                 OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                 {
@@ -89,7 +89,7 @@ namespace Fusion.Resources.Logic.Commands
                     AppliesFrom = @from,
                     AppliesTo = to,
                     Obs = obs ?? string.Empty,
-                    Location = location
+                    LocationId = locationId
                 };
 
                 return this;
@@ -102,7 +102,7 @@ namespace Fusion.Resources.Logic.Commands
                 private readonly IMediator mediator;
                 private readonly IProjectOrgResolver orgResolver;
                 private readonly IProfileService profileService;
-                private DbPerson ProposedPerson { get; set; }
+                private DbPerson? ProposedPerson { get; set; }
 
                 public Handler(IProfileService profileService, IProjectOrgResolver orgResolver, ResourcesDbContext db, IMediator mediator)
                 {
@@ -112,7 +112,7 @@ namespace Fusion.Resources.Logic.Commands
                     this.mediator = mediator;
                 }
 
-                private DbProject Project { get; set; }
+                private DbProject? Project { get; set; }
 
                 public async Task<QueryResourceAllocationRequest> Handle(Create request, CancellationToken cancellationToken)
                 {
@@ -140,7 +140,7 @@ namespace Fusion.Resources.Logic.Commands
                         Type = ParseRequestType(request),
                         State = DbRequestState.Created,
 
-                        Project = Project,
+                        Project = Project!,
 
                         ProposedPerson = ProposedPerson,
                         AdditionalNote = request.AdditionalNote,
@@ -191,14 +191,16 @@ namespace Fusion.Resources.Logic.Commands
                     await ValidateOriginalPositionAsync(request);
                 }
 
-                private static DbResourceAllocationRequest.DbPositionInstance GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance position)
+                private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance? position)
                 {
+                    if (position == null)
+                        return null;
                     return new DbResourceAllocationRequest.DbPositionInstance
                     {
                         AppliesFrom = position.AppliesFrom,
                         AppliesTo = position.AppliesTo,
                         Id = position.Id,
-                        Location = position.Location,
+                        LocationId = position.LocationId,
                         Workload = position.Workload,
                         Obs = position.Obs
                     };

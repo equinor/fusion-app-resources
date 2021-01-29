@@ -54,22 +54,5 @@ namespace Fusion.Resources.Api.Controllers
                 newString = char.ToLower(newString[0]) + newString.Substring(1);
             return newString;
         }
-
-        /// <summary>
-        /// Remove property matching key. The search is case insensitive.
-        /// </summary>
-        /// <param name="key"></param>
-        public void RemoveProperty(string key)
-        {
-            var existingKey = Keys.FirstOrDefault(k => string.Equals(k, key, StringComparison.OrdinalIgnoreCase));
-            if (existingKey != null)
-                Remove(existingKey);
-        }
-
-        public void EnsureProperty<T>(string name, T defaultValue)
-        {
-            if (!ContainsKey(name, true))
-                this[name] = defaultValue;
-        }
     }
 }
