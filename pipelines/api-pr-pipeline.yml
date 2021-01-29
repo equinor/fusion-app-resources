@@ -105,7 +105,10 @@ stages:
                       -InfraEnv Test `
                       -DatabaseName $dbName `
                       -SourceDatabase Fusion-Apps-Resources-CI-DB `
-                      -Tags @{ "pr" = $(prNumber), "fusion-app-component-id" = resources-api-db-pr-$(prNumber) }
+                      -Tags @{ `
+                        "pr" = "$(prNumber)"" `
+                        "fusion-app-component-id" = "resources-api-db-pr-$(prNumber)" `
+                      }
 
                     Set-FusionAzSqlDatabaseAccess `
                       -InfraEnv Test `
