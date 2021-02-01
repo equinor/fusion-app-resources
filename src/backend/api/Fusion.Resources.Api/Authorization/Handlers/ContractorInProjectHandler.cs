@@ -1,4 +1,6 @@
 ﻿using Fusion.Integration;
+using Fusion.Integration.Org;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
         {
 
             var contractProjectIds = context.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey(FusionClaimsProperties.ProjectId))
-                        .Select(c => { Guid.TryParse(c.Properties[FusionClaimsProperties.ProjectId], out Guid projectId); return projectId; });
+                .Select(c => { Guid.TryParse(c.Properties[FusionClaimsProperties.ProjectId], out Guid projectId); return projectId; });
 
             if (contractProjectIds.Any(pid => pid == resource.ProjectId))
             {

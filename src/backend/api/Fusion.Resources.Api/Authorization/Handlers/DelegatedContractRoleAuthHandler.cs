@@ -1,8 +1,11 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration.Org;
+using Fusion.Resources.Database;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Authorization.Handlers

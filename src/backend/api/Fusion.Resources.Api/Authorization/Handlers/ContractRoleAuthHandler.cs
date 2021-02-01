@@ -2,8 +2,8 @@
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
-
 
 namespace Fusion.Resources.Api.Authorization.Handlers
 {
@@ -27,7 +27,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
 
 
             Guid userId = context.User.GetAzureUniqueIdOrThrow();
-
+            
             bool isCompRep = contract.CompanyRep.HasActiveAssignment(userId);
             bool isContrResp = contract.ContractRep.HasActiveAssignment(userId);
             bool isInternal = isCompRep || isContrResp;
@@ -35,7 +35,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             bool isExternalContrResp = contract.ExternalContractRep.HasActiveAssignment(userId);
             bool isExternal = isExternalCompRep || isExternalContrResp;
             bool isAnyRole = isInternal || isExternal;
-
+            
 
             if (!isAnyRole)
             {
@@ -76,6 +76,6 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             requirement.SetEvaluation("User does not have any role on the contract.");
 
         }
-
+        
     }
 }

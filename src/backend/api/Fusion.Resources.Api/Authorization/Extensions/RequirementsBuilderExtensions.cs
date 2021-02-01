@@ -1,8 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Integration;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using System.Linq;
 
 
 namespace Fusion.Resources.Api.Controllers
