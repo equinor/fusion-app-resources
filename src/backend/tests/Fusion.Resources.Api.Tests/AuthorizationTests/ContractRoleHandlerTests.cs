@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Fusion.Integration;
 using Fusion.Integration.Org;
+using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Api.Authorization.Handlers;
 using Fusion.Resources.Test;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,6 @@ using Moq;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Fusion.Authorization;
 using Xunit;
 
 namespace Fusion.Resources.Api.Tests
@@ -43,7 +43,7 @@ namespace Fusion.Resources.Api.Tests
             orgResolver.Setup(r => r.ResolveContractAsync(projectId, contractId)).ReturnsAsync(contract);
 
             var requirement = ContractRole.AnyInternalRole;
-            var resource = new ContractResource(project.ProjectId, contractId);
+            var resource = new ContractResource(project, contractId);
             var context = GetContext(requirement, resource, GetClaimsUser(userAzureUniqueId));
             var handler = new ContractRoleAuthHandlerTester(orgResolver.Object);
 
@@ -62,7 +62,7 @@ namespace Fusion.Resources.Api.Tests
             orgResolver.Setup(r => r.ResolveContractAsync(projectId, contractId)).ReturnsAsync(contract);
 
             var requirement = ContractRole.AnyInternalRole;
-            var resource = new ContractResource(project.ProjectId, contractId);
+            var resource = new ContractResource(project, contractId);
             var context = GetContext(requirement, resource, GetClaimsUser(userAzureUniqueId));
             var handler = new ContractRoleAuthHandlerTester(orgResolver.Object);
 
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Api.Tests
             orgResolver.Setup(r => r.ResolveContractAsync(projectId, contractId)).ReturnsAsync(contract);
 
             var requirement = ContractRole.Any;
-            var resource = new ContractResource(project.ProjectId, contractId);
+            var resource = new ContractResource(project, contractId);
             var context = GetContext(requirement, resource, GetClaimsUser(userAzureUniqueId));
             var handler = new ContractRoleAuthHandlerTester(orgResolver.Object);
 
@@ -100,7 +100,7 @@ namespace Fusion.Resources.Api.Tests
             orgResolver.Setup(r => r.ResolveContractAsync(projectId, contractId)).ReturnsAsync(contract);
 
             var requirement = ContractRole.Any;
-            var resource = new ContractResource(project.ProjectId, contractId);
+            var resource = new ContractResource(project, contractId);
             var context = GetContext(requirement, resource, GetClaimsUser(userAzureUniqueId));
             var handler = new ContractRoleAuthHandlerTester(orgResolver.Object);
 
@@ -124,6 +124,11 @@ namespace Fusion.Resources.Api.Tests
         {
             public ContractRoleAuthHandlerTester(IProjectOrgResolver orgResolver) : base(orgResolver)
             {
+            }
+
+            protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ContractRole requirement, ContractResource resource)
+            {
+                return base.HandleRequirementAsync(context, requirement, resource);
             }
         }
 
