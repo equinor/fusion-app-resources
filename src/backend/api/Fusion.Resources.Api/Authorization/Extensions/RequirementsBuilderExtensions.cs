@@ -1,10 +1,9 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Integration;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
-using System.Linq;
+using Fusion.Authorization;
 
 
 namespace Fusion.Resources.Api.Controllers
@@ -42,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public static IAuthorizationRequirementRule ContractAccess(this IAuthorizationRequirementRule builder, ContractRole role, ProjectIdentifier project, Guid contractOrgId)
         {
-            var resource = new ContractResource(project, contractOrgId);
+            var resource = new ContractResource(project.ProjectId, contractOrgId);
             builder.AddRule(resource, role);
 
             return builder;
@@ -50,7 +49,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public static IAuthorizationRequirementRule DelegatedContractAccess(this IAuthorizationRequirementRule builder, DelegatedContractRole role, ProjectIdentifier project, Guid contractOrgId)
         {
-            var resource = new ContractResource(project, contractOrgId);
+            var resource = new ContractResource(project.ProjectId, contractOrgId);
             builder.AddRule(resource, role);
 
             return builder;

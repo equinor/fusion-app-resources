@@ -11,7 +11,6 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Transactions;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
@@ -19,8 +18,6 @@ using Fusion.Integration.Org;
 using System.Threading;
 using FluentValidation;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Controllers
 {

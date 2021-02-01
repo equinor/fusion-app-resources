@@ -2,8 +2,8 @@
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
+using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Authorization.Handlers
 {
@@ -18,16 +18,16 @@ namespace Fusion.Resources.Api.Authorization.Handlers
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ContractRole requirement, ContractResource resource)
         {
-            var contract = await orgResolver.ResolveContractAsync(resource.Project.ProjectId, resource.Contract);
+            var contract = await orgResolver.ResolveContractAsync(resource.ProjectId, resource.Contract);
             if (contract == null)
             {
-                requirement.SetEvaluation($"Couldn't locate contract in project '{resource.Project.Name}'");
+                requirement.SetEvaluation($"Couldn't locate contract in project '{resource.ProjectId}'");
                 return;
             }
 
 
             Guid userId = context.User.GetAzureUniqueIdOrThrow();
-            
+
             bool isCompRep = contract.CompanyRep.HasActiveAssignment(userId);
             bool isContrResp = contract.ContractRep.HasActiveAssignment(userId);
             bool isInternal = isCompRep || isContrResp;
@@ -35,7 +35,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             bool isExternalContrResp = contract.ExternalContractRep.HasActiveAssignment(userId);
             bool isExternal = isExternalCompRep || isExternalContrResp;
             bool isAnyRole = isInternal || isExternal;
-            
+
 
             if (!isAnyRole)
             {
@@ -76,6 +76,6 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             requirement.SetEvaluation("User does not have any role on the contract.");
 
         }
-        
+
     }
 }

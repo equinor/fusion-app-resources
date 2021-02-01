@@ -31,6 +31,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
         public readonly PeopleServiceMock peopleServiceMock;
         public readonly OrgServiceMock orgServiceMock;
         public readonly ContextResolverMock contextResolverMock;
+        public readonly FusionProfileResolverMock profileResolverMock;
         internal readonly NotificationClientMock notificationMock;
         internal readonly RolesClientMock roleClientMock;
 
@@ -48,6 +49,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             peopleServiceMock = new PeopleServiceMock();
             orgServiceMock = new OrgServiceMock();
             contextResolverMock = new ContextResolverMock();
+            profileResolverMock = new FusionProfileResolverMock();
             notificationMock = new NotificationClientMock();
             roleClientMock = new RolesClientMock();
 
@@ -75,8 +77,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureAppConfiguration(cfgBuilder =>
-            {               
-                cfgBuilder.AddInMemoryCollection( new Dictionary<string, string>()
+            {
+                cfgBuilder.AddInMemoryCollection(new Dictionary<string, string>()
                 {
                     { $"ConnectionStrings:{nameof(ResourcesDbContext)}", resourceDbConnectionString }
                 });
@@ -85,6 +87,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             builder.ConfigureTestServices(services =>
             {
                 services.AddIntegrationTestingAuthentication();
+                services.TryRemoveTransientEventHandlers();
 
                 services.TryRemoveImplementationService("PeopleEventReceiver");
                 services.TryRemoveImplementationService("OrgEventReceiver");
@@ -93,7 +96,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
-                
+                services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
+                services.AddSingleton<IFusionProfileResolver, FusionProfileResolverMock>();
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
                 services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
                 services.AddSingleton<IFusionNotificationClient>(sp => notificationMock);

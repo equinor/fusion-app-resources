@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="8.0.1" />
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
 
-    <PackageReference Include="Fusion.AspNetCore" Version="3.1.6" />
-    <PackageReference Include="Fusion.Threading" Version="3.1.1" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.3" />
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="3.5.0" />
-    <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="3.2.2" />
-    <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="1.1.2" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.13.1" />
+    <PackageReference Include="Fusion.AspNetCore" Version="5.0.0" />
+    <PackageReference Include="Fusion.Threading" Version="3.1.5" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.0" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="5.1.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.16.0" />
 
   </ItemGroup>
 

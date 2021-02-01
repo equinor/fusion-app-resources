@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>474454c7-2021-4f46-bfd4-02b221fc3fa0</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
@@ -18,31 +18,31 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.2" />
-    <PackageReference Include="Bogus" Version="30.0.4" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.1" />
+    <PackageReference Include="Bogus" Version="32.0.2" />
 
-    <PackageReference Include="Fusion.Integration" Version="3.5.8" />
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="3.5.4" />
-    <PackageReference Include="Fusion.Integration.Authorization" Version="3.2.1" />
-    <PackageReference Include="Fusion.Integration.Org" Version="3.2.2" />
-    <PackageReference Include="Fusion.Integration.Roles" Version="1.1.2" />
-    <PackageReference Include="Fusion.Integration.Notification" Version="1.0.0-preview.2" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="3.1.3" />
-    <PackageReference Include="Fusion.AspNetCore" Version="3.1.7" />
+    <PackageReference Include="Fusion.Integration" Version="5.1.1" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Org" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Roles" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Notification" Version="5.1.0" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.0" />
+    <PackageReference Include="Fusion.AspNetCore" Version="5.0.0" />
 
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="5.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.11" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.13" />
 
-    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="5.0.0" />
-    <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="5.0.0" />
-    <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="5.0.0" />
-    <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="5.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="6.0.1" />
+    <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="5.6.3" />
+    <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="5.6.3" />
+    <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="5.6.3" />
 
-    <PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="3.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.1">
+    <PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="5.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

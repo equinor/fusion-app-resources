@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
+using Fusion.Authorization;
 using Xunit;
 
 namespace Fusion.Resources.Api.Tests
@@ -35,7 +36,7 @@ namespace Fusion.Resources.Api.Tests
             contractId = Guid.NewGuid();
             projectName = $"Test project {projectId}";
             project = new Controllers.ProjectIdentifier($"{projectId}", projectId, projectName);
-            resource = new ContractResource(project, contractId);
+            resource = new ContractResource(project.ProjectId, contractId);
 
             var dbOptions = new DbContextOptionsBuilder<ResourcesDbContext>()
                 .UseInMemoryDatabase("DelegatedRoleHandlerTests")

@@ -7,6 +7,7 @@ using Fusion.Testing.Mocks.ContextService;
 using Fusion.Integration.Profile;
 using Fusion.Testing;
 using System.Threading.Tasks;
+using Fusion.Resources.Api.Tests.FusionMocks;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -48,6 +49,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
         }
 
+        public FusionProfileResolverMock ProfileResolver => ApiFactory.profileResolverMock;
         public ContextResolverMock ContextResolver => ApiFactory.contextResolverMock;
 
         public void Dispose()
@@ -62,6 +64,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
             var account = new FusionTestUserBuilder(accountType)                
                 .SaveProfile();
 
+            ProfileResolver.AddProfile(account);
+            
             return account;
         }
     }

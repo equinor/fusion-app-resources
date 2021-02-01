@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Controllers.Mpp
 {
