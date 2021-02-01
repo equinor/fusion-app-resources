@@ -1,6 +1,4 @@
 ﻿using Fusion.Integration;
-using Fusion.Integration.Org;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
