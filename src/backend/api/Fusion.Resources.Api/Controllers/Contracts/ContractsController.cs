@@ -18,6 +18,7 @@ using Fusion.Integration.Org;
 using System.Threading;
 using FluentValidation;
 using System.Collections.Generic;
+using ContractRole = Fusion.Resources.Api.Authorization.ContractRole;
 
 namespace Fusion.Resources.Api.Controllers
 {

@@ -3,7 +3,7 @@ using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Threading.Tasks;
-using Fusion.Authorization;
+
 
 namespace Fusion.Resources.Api.Authorization.Handlers
 {
@@ -18,10 +18,10 @@ namespace Fusion.Resources.Api.Authorization.Handlers
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ContractRole requirement, ContractResource resource)
         {
-            var contract = await orgResolver.ResolveContractAsync(resource.ProjectId, resource.Contract);
+            var contract = await orgResolver.ResolveContractAsync(resource.Project.ProjectId, resource.Contract);
             if (contract == null)
             {
-                requirement.SetEvaluation($"Couldn't locate contract in project '{resource.ProjectId}'");
+                requirement.SetEvaluation($"Couldn't locate contract in project '{resource.Project.Name}'");
                 return;
             }
 
