@@ -14,6 +14,8 @@ namespace Fusion.Resources.Api.Controllers
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiPersonAbsence.ApiAbsenceType Type { get; set; }
 
+        public string? Grade { get; set; }
+
 
         public void LoadCommand(CreatePersonAbsence command)
         {
@@ -21,7 +23,7 @@ namespace Fusion.Resources.Api.Controllers
             command.AppliesFrom = AppliesFrom;
             command.AppliesTo = AppliesTo;
             command.Type = Enum.Parse<QueryAbsenceType>($"{Type}", true);
-
+            command.Grade = Grade;
         }
 
 
@@ -33,6 +35,9 @@ namespace Fusion.Resources.Api.Controllers
             {
                 RuleFor(x => x.Comment).NotContainScriptTag();
                 RuleFor(x => x.Comment).MaximumLength(5000);
+
+                RuleFor(x => x.Grade).NotContainScriptTag();
+                RuleFor(x => x.Grade).MaximumLength(4);
 
                 RuleFor(x => x.AppliesTo).GreaterThan(x => x.AppliesFrom)
                     .WithMessage(x => "To date cannot be earlier than from date");

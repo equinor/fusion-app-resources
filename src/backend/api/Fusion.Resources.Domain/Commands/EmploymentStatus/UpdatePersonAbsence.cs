@@ -2,7 +2,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database.Entities;
@@ -24,6 +23,7 @@ namespace Fusion.Resources.Domain.Commands
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
+        public string? Grade { get; set; }
 
         public class Handler : IRequestHandler<UpdatePersonAbsence, QueryPersonAbsence>
         {
@@ -52,6 +52,7 @@ namespace Fusion.Resources.Domain.Commands
                 absences.Created = DateTimeOffset.UtcNow;
                 absences.CreatedBy = request.Editor.Person;
                 absences.Type = Enum.Parse<DbAbsenceType>($"{request.Type}");
+                absences.Grade = request.Grade;
 
 
                 await resourcesDb.SaveChangesAsync();

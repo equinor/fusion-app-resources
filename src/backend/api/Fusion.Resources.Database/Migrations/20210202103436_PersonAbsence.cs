@@ -18,7 +18,8 @@ namespace Fusion.Resources.Database.Migrations
                     Comment = table.Column<string>(nullable: true),
                     AppliesFrom = table.Column<DateTimeOffset>(nullable: false),
                     AppliesTo = table.Column<DateTimeOffset>(nullable: true),
-                    Type = table.Column<string>(nullable: false)
+                    Type = table.Column<string>(nullable: false),
+                    Grade = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {

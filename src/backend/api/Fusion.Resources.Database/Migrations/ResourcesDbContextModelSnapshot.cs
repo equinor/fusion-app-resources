@@ -322,6 +322,9 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Grade")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("PersonId")
                         .HasColumnType("uniqueidentifier");
 

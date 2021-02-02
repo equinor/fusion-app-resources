@@ -57,6 +57,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
 
             response.Value.Id.Should().NotBeEmpty();
+            response.Value.AppliesFrom.Should().NotBeNull();
+            response.Value.AppliesTo.Should().NotBeNull();
+            response.Value.Comment.Should().NotBeNullOrEmpty();
+            response.Value.Type.Should().NotBeNull();
+            response.Value.Grade.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
@@ -67,14 +72,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 AppliesFrom = DateTimeOffset.UtcNow,
                 AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
                 Comment = "A comment",
-                Type = ApiPersonAbsence.ApiAbsenceType.Vacation
+                Type = ApiPersonAbsence.ApiAbsenceType.Vacation,
+                Grade = "70%"
             };
 
             using var authScope = fixture.AdminScope();
             var response = await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", request);
             response.Should().BeSuccessfull();
 
-            response.Value.Id.Should().NotBeEmpty();
+            response.Value.Id.Should().Be(TestAbsenceId);
+            response.Value.AppliesFrom.Should().Be(request.AppliesFrom);
+            response.Value.AppliesTo.Should().Be(request.AppliesTo);
+            response.Value.Comment.Should().Be(request.Comment);
+            response.Value.Type.Should().Be(request.Type);
+            response.Value.Grade.Should().Be(request.Grade);
+
         }
 
         [Fact]
@@ -97,7 +109,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 AppliesFrom = DateTimeOffset.UtcNow,
                 AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
                 Comment = "A comment",
-                Type = ApiPersonAbsence.ApiAbsenceType.Absence
+                Type = ApiPersonAbsence.ApiAbsenceType.Absence,
+                Grade = "100%"
             };
 
             var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence", request);
@@ -117,9 +130,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     public class TestAbsence
     {
         public Guid Id { get; set; }
-        public string Comment { get; set; }
-        public DateTimeOffset AppliesFrom { get; set; }
+        public string? Comment { get; set; }
+        public DateTimeOffset? AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
-        public QueryAbsenceType Type { get; set; }
+        public QueryAbsenceType? Type { get; set; }
+        public string? Grade { get; set; }
     }
 }

@@ -2,12 +2,8 @@
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-
-#nullable enable 
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -24,6 +20,7 @@ namespace Fusion.Resources.Domain.Commands
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
+        public string? Grade { get; set; }
 
         public class Handler : IRequestHandler<CreatePersonAbsence, QueryPersonAbsence>
         {
@@ -51,7 +48,8 @@ namespace Fusion.Resources.Domain.Commands
                     Comment = request.Comment,
                     AppliesFrom = request.AppliesFrom,
                     AppliesTo = request.AppliesTo,
-                    Type = Enum.Parse<DbAbsenceType>($@"{request.Type}")
+                    Type = Enum.Parse<DbAbsenceType>($@"{request.Type}"),
+                    Grade = request.Grade
                 };
 
                 await resourcesDb.PersonAbsences.AddAsync(newItem);
@@ -60,23 +58,6 @@ namespace Fusion.Resources.Domain.Commands
                 return new QueryPersonAbsence(newItem);
             }
             
-            //// Could be used if we want to check for overlapping timespan. Not in use for now....
-            //private async Task CheckOverlappingTimeSpanAsync(CreatePersonAbsence request)
-            //{
-            //    var absences = await resourcesDb.PersonAbsences
-            //        .GetById(request.PersonId)
-            //        .Include(cp => cp.Person)
-            //        .ToListAsync();
-
-            //    foreach (var row in from row
-            //                                 in absences
-            //                        let overlap = request.AppliesFrom <= row.AppliesTo && row.AppliesFrom <= request.AppliesTo
-            //                        where overlap
-            //                        select row)
-            //    {
-            //        throw new RequestAlreadyExistsError($"Overlapping timespan on row with id {row.Id}");
-            //    }
-            //}
         }
     }
 }
