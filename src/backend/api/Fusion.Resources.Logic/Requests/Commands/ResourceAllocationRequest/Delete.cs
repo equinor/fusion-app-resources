@@ -11,7 +11,7 @@ namespace Fusion.Resources.Logic.Commands
 {
     public partial class ResourceAllocationRequest
     {
-        public class Delete : TrackableRequest
+        public class Delete : TrackableRequest<bool>
         {
             public Delete(Guid requestId)
             {
@@ -31,25 +31,26 @@ namespace Fusion.Resources.Logic.Commands
                 }
             }
 
-            public class Handler : AsyncRequestHandler<Delete>
+            public class Handler : IRequestHandler<Delete, bool>
             {
                 private readonly ResourcesDbContext dbContext;
-                private readonly IMediator mediator;
 
-                public Handler(ResourcesDbContext dbContext, IMediator mediator)
+                public Handler(ResourcesDbContext dbContext)
                 {
                     this.dbContext = dbContext;
-                    this.mediator = mediator;
                 }
 
-                protected override async Task Handle(Delete request,
-                    CancellationToken cancellationToken)
+                public async Task<bool> Handle(Delete request, CancellationToken cancellationToken)
                 {
-                    var req = await dbContext.ResourceAllocationRequests.FirstAsync(c => c.Id == request.RequestId);
+                    var req = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(c => c.Id == request.RequestId);
 
                     if (req != null)
+                    {
                         dbContext.ResourceAllocationRequests.Remove(req);
-                    await dbContext.SaveChangesAsync();
+                        await dbContext.SaveChangesAsync();
+                        return true;
+                    }
+                    return false;
 
                 }
             }

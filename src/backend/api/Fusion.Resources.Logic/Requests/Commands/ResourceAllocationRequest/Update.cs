@@ -29,10 +29,14 @@ namespace Fusion.Resources.Logic.Commands
 
             public MonitorableProperty<string?> Discipline { get; private set; } = new MonitorableProperty<string?>();
 
-            public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType> Type { get; private set; } = new MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>();
+            public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>
+                Type { get; private set; } =
+                new MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>();
             public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new MonitorableProperty<Guid?>();
 
-            public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?> OrgPositionInstance { get; private set; } = null!;
+            public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>
+                OrgPositionInstance { get; private set; } =
+                new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>();
 
             public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new MonitorableProperty<Guid?>();
             public MonitorableProperty<string?> AdditionalNote { get; private set; } = new MonitorableProperty<string?>();
