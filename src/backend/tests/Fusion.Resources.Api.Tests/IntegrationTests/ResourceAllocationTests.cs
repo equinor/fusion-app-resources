@@ -114,6 +114,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
         }
+        [Fact]
+        public async Task Delete_NonExisting_Request_Using_AdminRole_ShouldBe_NotFound()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{Guid.NewGuid()}");
+            response.Should().BeNotFound();
+        }
 
         [Fact]
         public async Task GetRequest_AdminRole_ShouldBe_Authorized()
@@ -158,7 +165,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             var beforeUpdate = DateTimeOffset.UtcNow;
 
-            testRequest.Request.OrgPositionInstance.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
+            testRequest.Request.OrgPositionInstance!.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
             testRequest.Request.ProposedPersonAzureUniqueId = Guid.Empty;
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", testRequest.Request);
             response.Should().BeBadRequest("Invalid arguments passed");
@@ -169,10 +176,19 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task PostRequest_InvalidRequest_ShouldBe_Unsuccessful()
         {
             using var adminScope = fixture.AdminScope();
-            testRequest.Request.OrgPositionInstance.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
+            testRequest.Request.OrgPositionInstance!.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
             testRequest.Request.ProposedPersonAzureUniqueId = Guid.Empty;
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request);
             response.Should().BeBadRequest("Invalid arguments passed");
+
+        }
+
+        [Fact] public async Task PostRequest_Minimal_Request_ShouldBe_Successful()
+        {
+            using var adminScope = fixture.AdminScope();
+            var minimalRequest = new CreateProjectAllocationRequest(); 
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", minimalRequest);
+            response.Should().BeSuccessfull();
 
         }
 
