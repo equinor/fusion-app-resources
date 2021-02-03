@@ -73,7 +73,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
                 Comment = "A comment",
                 Type = ApiPersonAbsence.ApiAbsenceType.Vacation,
-                AbsencePercentage = 70.5
+                AbsencePercentage = null // Clearing absencePercentage = 100% 
             };
 
             using var authScope = fixture.AdminScope();
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.AppliesTo.Should().Be(request.AppliesTo);
             response.Value.Comment.Should().Be(request.Comment);
             response.Value.Type.Should().Be(request.Type);
-            response.Value.AbsencePercentage.Should().Be(request.AbsencePercentage);
+            response.Value.AbsencePercentage.Should().Be(100);
 
         }
 
