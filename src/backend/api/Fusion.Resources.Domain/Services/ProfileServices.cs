@@ -90,7 +90,7 @@ namespace Fusion.Resources.Domain.Services
 
                 if (profile != null)
                 {
-                    newEntry.Mail = profile.Mail;
+                    newEntry.Mail = profile.Mail ?? string.Empty;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
                     newEntry.JobTitle = profile.JobTitle;
@@ -149,7 +149,7 @@ namespace Fusion.Resources.Domain.Services
                     AccountType = profile.AccountType.ToString(),
                     AzureUniqueId = profile.AzureUniqueId.Value,
                     JobTitle = profile.JobTitle,
-                    Mail = profile.Mail,
+                    Mail = profile.Mail ?? string.Empty,
                     Name = profile.Name,
                     Phone = profile.MobilePhone ?? string.Empty
                 };

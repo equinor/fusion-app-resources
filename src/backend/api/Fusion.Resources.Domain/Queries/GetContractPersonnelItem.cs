@@ -65,7 +65,7 @@ namespace Fusion.Resources.Domain
                     return;
 
                 var profile = await profileResolver.ResolvePersonFullProfileAsync(personnelItem.AzureUniqueId.Value);
-                personnelItem.Positions = profile.Contracts.SelectMany(c => c.Positions.Select(p => new QueryOrgPositionInstance(c, p))).ToList();
+                personnelItem.Positions = profile?.Contracts?.SelectMany(c => c.Positions.Select(p => new QueryOrgPositionInstance(c, p))).ToList();
             }
 
             private async Task ExpandRequestsAsync(QueryContractPersonnel personnelItem)

@@ -11,7 +11,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPerson(FusionFullPersonProfile profile)
         {
             AzureUniquePersonId = profile.AzureUniqueId;
-            Mail = profile.Mail;
+            Mail = profile.Mail ?? string.Empty;
             Name = profile.Name;
             PhoneNumber = profile.MobilePhone ?? string.Empty;
             JobTitle = profile.JobTitle ?? string.Empty;

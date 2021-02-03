@@ -111,34 +111,35 @@ namespace Fusion.Resources.Domain
 
             private async Task ExpandPositionsAsync(IEnumerable<QueryContractPersonnel> personnelItems)
             {
-                var azureIds = personnelItems.Where(i => i.AzureUniqueId.HasValue).Select(i => i.AzureUniqueId!.Value);
+                var queryContractPersonnels = personnelItems.ToList();
+                var azureIds = queryContractPersonnels.Where(i => i.AzureUniqueId.HasValue).Select(i => i.AzureUniqueId!.Value).ToList();
 
-                var profiles = new List<FusionFullPersonProfile>();
+                var profiles = new List<FusionFullPersonProfile?>();
 
-                int index = 0;
+                var index = 0;
                 while (true)
                 {
                     var page = azureIds.Skip(index).Take(10);
                     index += 10;
 
-                    if (page.Count() == 0)
+                    if (!page.Any())
                         break;
 
                     var resolved = await Task.WhenAll(page.Select(i => profileResolver.ResolvePersonFullProfileAsync(i)));
                     profiles.AddRange(resolved);
                 }
 
-                foreach (var item in personnelItems)
+                foreach (var item in queryContractPersonnels)
                 {
                     if (item.AzureUniqueId.HasValue == false)
                         continue;
 
-                    var profile = profiles.FirstOrDefault(p => p.AzureUniqueId == item.AzureUniqueId);
+                    var profile = profiles.FirstOrDefault(p => p?.AzureUniqueId == item.AzureUniqueId);
                     if (profile is null)
                         throw new InvalidOperationException($"Could locate profile for person with azure id {item.AzureUniqueId}. The profile should have been loaded...");
 
 
-                    item.Positions = profile.Contracts.SelectMany(c => c.Positions.Select(p => new QueryOrgPositionInstance(c, p))).ToList();
+                    item.Positions = profile.Contracts?.SelectMany(c => c.Positions.Select(p => new QueryOrgPositionInstance(c, p))).ToList();
                 }
 
             }

@@ -8,7 +8,7 @@ using MediatR;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetContractPosition : IRequest<ApiClients.Org.ApiPositionV2>
+    public class GetContractPosition : IRequest<ApiClients.Org.ApiPositionV2?>
     {
         private GetContractPosition(Guid projectId, Guid contractId, string externalId)
         {
@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain
         public enum QueryType { ByExternalId }
 
 
-        public class Handler : IRequestHandler<GetContractPosition, ApiClients.Org.ApiPositionV2>
+        public class Handler : IRequestHandler<GetContractPosition, ApiClients.Org.ApiPositionV2?>
         {
             private readonly IOrgApiClient orgApiClient;
 
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain
                 this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             }
 
-            public async Task<ApiClients.Org.ApiPositionV2> Handle(GetContractPosition request, CancellationToken cancellationToken)
+            public async Task<ApiClients.Org.ApiPositionV2?> Handle(GetContractPosition request, CancellationToken cancellationToken)
             {
                 var positions = await orgApiClient.GetAsync<List<ApiPositionV2>>($"/projects/{request.ProjectId}/contracts/{request.ContractId}/positions?$expand=project&$filter=externalId eq '{request.ExternalId}'");
                 return positions.Value.FirstOrDefault();

@@ -59,7 +59,7 @@ namespace Fusion.Resources.Domain
 
         public string? ProposedChangesJson { get; set; }
 
-        public Dictionary<string, object> ProposedChanges
+        public Dictionary<string, object>? ProposedChanges
         {
             get
             {
@@ -68,7 +68,7 @@ namespace Fusion.Resources.Domain
 
                 try
                 {
-                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson);
+                    return ProposedChangesJson != null ? JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson) : null;
                 }
                 catch
                 {

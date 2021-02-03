@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
+using FluentValidation.Results;
+using FluentValidation.Validators;
 using Fusion.Integration;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
@@ -30,12 +34,14 @@ namespace Fusion.Resources.Logic.Commands
             public MonitorableProperty<string?> Discipline { get; private set; } = new MonitorableProperty<string?>();
 
             public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>
-                Type { get; private set; } =
+                Type
+            { get; private set; } =
                 new MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>();
             public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new MonitorableProperty<Guid?>();
 
             public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>
-                OrgPositionInstance { get; private set; } =
+                OrgPositionInstance
+            { get; private set; } =
                 new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>();
 
             public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new MonitorableProperty<Guid?>();
@@ -103,6 +109,58 @@ namespace Fusion.Resources.Logic.Commands
 
                 OrgPositionInstance = new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>(queryPositionInstance);
                 return this;
+            }
+
+            public class Validator : AbstractValidator<Update>
+            {
+                public Validator()
+                {
+                    RuleFor(x => x.Discipline.Value).NotContainScriptTag().MaximumLength(500).When(x => x.Discipline.HasBeenSet);
+                    RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000).When(x => x.Discipline.HasBeenSet);
+
+                    RuleFor(x => x.OrgPositionId.Value).NotEmpty().When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionId.Value != null);
+                    RuleFor(x => x.OrgPositionInstance.Value).SetValidator(PositionInstanceValidator).When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionInstance.Value != null);
+                    RuleFor(x => x.ProposedChanges.Value).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges.HasBeenSet && x.ProposedChanges.Value != null);
+
+                    RuleFor(x => x.ProposedPersonAzureUniqueId.Value).NotEmpty().When(x => x.ProposedPersonAzureUniqueId.HasBeenSet && x.ProposedPersonAzureUniqueId.Value != null);
+
+                    RuleFor(x => x.OrgProjectId).NotNull();
+                    RuleFor(x => x.IsDraft).NotNull();
+                }
+                private static IPropertyValidator ProposedChangesValidator => new CustomValidator<Dictionary<string, object>>(
+                    (prop, context) =>
+                    {
+                        foreach (var k in prop.Keys.Where(k => k.Length > 100))
+                        {
+                            context.AddFailure(new ValidationFailure($"{context.PropertyName}.key",
+                                "Key cannot exceed 100 characters", k));
+                        }
+
+                    });
+
+                private static IPropertyValidator PositionInstanceValidator => new CustomValidator<Domain.ResourceAllocationRequest.QueryPositionInstance>(
+                    (position, context) =>
+                    {
+                        if (position == null) return;
+
+                        if (position.AppliesTo < position.AppliesFrom)
+                            context.AddFailure(new ValidationFailure($"{context.PropertyName}.appliesTo",
+                                $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",
+                                $"{position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}"));
+
+
+                        if (position.Obs?.Length > 30)
+                            context.AddFailure(new ValidationFailure($"{context.PropertyName}.obs",
+                                "Obs cannot exceed 30 characters", position.Obs));
+
+                        if (position.Workload < 0)
+                            context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
+                                "Workload cannot be less than 0", position.Workload));
+
+                        if (position.Workload > 100)
+                            context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
+                                "Workload cannot be more than 1000", position.Workload));
+                    });
             }
 
             public class Handler : IRequestHandler<Update, QueryResourceAllocationRequest
@@ -230,7 +288,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (request.ProposedPersonAzureUniqueId?.Value != null)
                     {
                         var proposed = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value.Value));
-                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null!);
                     }
 
                     await ValidateOriginalPositionAsync(request);

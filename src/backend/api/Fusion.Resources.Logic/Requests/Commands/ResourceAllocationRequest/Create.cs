@@ -237,7 +237,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (request.ProposedPersonAzureUniqueId != null)
                     {
                         var proposed = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value));
-                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null!);
                     }
 
                     var project = await EnsureProjectAsync(request);
