@@ -28,6 +28,7 @@ namespace Fusion.Resources.Database
         public DbSet<DbProject> Projects { get; set; }
         public DbSet<DbContractorRequest> ContractorRequests { get; set; }
         public DbSet<DbRequestComment> RequestComments { get; set; }
+        public DbSet<DbResourceAllocationRequest> ResourceAllocationRequests { get; set; }
 
         public DbSet<DbExternalPersonnelPerson> ExternalPersonnel { get; set; }
 
@@ -46,6 +47,7 @@ namespace Fusion.Resources.Database
             DbRequestComment.OnModelCreating(modelBuilder);
             DbPerson.OnModelCreating(modelBuilder);
             DbDelegatedRole.OnModelCreating(modelBuilder);
+            DbResourceAllocationRequest.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
