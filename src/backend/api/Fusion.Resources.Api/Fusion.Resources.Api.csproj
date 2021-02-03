@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.1" />
-    <PackageReference Include="Bogus" Version="32.0.2" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.3" />
+    <PackageReference Include="Bogus" Version="32.1.1" />
 
     <PackageReference Include="Fusion.Integration" Version="5.1.1" />
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />
