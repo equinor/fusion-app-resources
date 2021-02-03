@@ -101,8 +101,8 @@ stages:
 
                     $dbName = "Fusion-Apps-Resources-PR-$(prNumber)-DB"
                     $tags = @{ 
-                        pr = "$(prNumber)"
-                        fusion-app-component-id = "resources-api-db-pr-$(prNumber)"
+                        "pr" = "$(prNumber)"
+                        "fusion-app-component-id" = "resources-api-db-pr-$(prNumber)"
                     }
 
                     New-FusionSqlDatabaseV2 `
