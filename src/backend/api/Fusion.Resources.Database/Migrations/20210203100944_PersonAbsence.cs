@@ -19,7 +19,7 @@ namespace Fusion.Resources.Database.Migrations
                     AppliesFrom = table.Column<DateTimeOffset>(nullable: false),
                     AppliesTo = table.Column<DateTimeOffset>(nullable: true),
                     Type = table.Column<string>(nullable: false),
-                    Grade = table.Column<string>(nullable: true)
+                    AbsencePercentage = table.Column<double>(nullable: true)
                 },
                 constraints: table =>
                 {

@@ -17,7 +17,7 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public DbAbsenceType Type { get; set; }
-        public string? Grade { get; set; }
+        public double? AbsencePercentage { get; set; }
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {

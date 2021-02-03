@@ -20,7 +20,7 @@ namespace Fusion.Resources.Domain.Commands
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
-        public string? Grade { get; set; }
+        public double? AbsencePercentage { get; set; }
 
         public class Handler : IRequestHandler<CreatePersonAbsence, QueryPersonAbsence>
         {
@@ -49,7 +49,7 @@ namespace Fusion.Resources.Domain.Commands
                     AppliesFrom = request.AppliesFrom,
                     AppliesTo = request.AppliesTo,
                     Type = Enum.Parse<DbAbsenceType>($@"{request.Type}"),
-                    Grade = request.Grade
+                    AbsencePercentage = request.AbsencePercentage
                 };
 
                 await resourcesDb.PersonAbsences.AddAsync(newItem);

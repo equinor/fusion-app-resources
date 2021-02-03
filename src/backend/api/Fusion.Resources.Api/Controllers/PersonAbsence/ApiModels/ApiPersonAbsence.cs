@@ -15,7 +15,7 @@ namespace Fusion.Resources.Api.Controllers
             AppliesFrom = absence.AppliesFrom;
             AppliesTo = absence.AppliesTo;
             Type = Enum.Parse<ApiAbsenceType>($"{absence.Type}", true);
-            Grade = absence.Grade;
+            AbsencePercentage = absence.AbsencePercentage;
         }
 
         public Guid Id { get; set; }
@@ -27,7 +27,7 @@ namespace Fusion.Resources.Api.Controllers
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAbsenceType Type { get; set; }
 
-        public string? Grade { get; set; }
+        public double? AbsencePercentage { get; set; }
         public enum ApiAbsenceType
         {
             Absence,

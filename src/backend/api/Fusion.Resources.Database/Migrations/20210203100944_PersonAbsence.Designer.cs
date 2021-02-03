@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20210202103436_PersonAbsence")]
+    [Migration("20210203100944_PersonAbsence")]
     partial class PersonAbsence
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -309,6 +309,9 @@ namespace Fusion.Resources.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<double?>("AbsencePercentage")
+                        .HasColumnType("float");
+
                     b.Property<DateTimeOffset>("AppliesFrom")
                         .HasColumnType("datetimeoffset");
 
@@ -323,9 +326,6 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Grade")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("PersonId")
                         .HasColumnType("uniqueidentifier");

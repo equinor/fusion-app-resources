@@ -12,7 +12,7 @@ using Fusion.Resources.Domain;
 using Fusion.Testing.Authentication.User;
 using Xunit;
 using Xunit.Abstractions;
-
+#nullable enable
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class PersonAbsenceTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
@@ -61,7 +61,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.AppliesTo.Should().NotBeNull();
             response.Value.Comment.Should().NotBeNullOrEmpty();
             response.Value.Type.Should().NotBeNull();
-            response.Value.Grade.Should().NotBeNullOrEmpty();
+            response.Value.AbsencePercentage.Should().NotBeNull();
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
                 Comment = "A comment",
                 Type = ApiPersonAbsence.ApiAbsenceType.Vacation,
-                Grade = "70%"
+                AbsencePercentage = 70.5
             };
 
             using var authScope = fixture.AdminScope();
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.AppliesTo.Should().Be(request.AppliesTo);
             response.Value.Comment.Should().Be(request.Comment);
             response.Value.Type.Should().Be(request.Type);
-            response.Value.Grade.Should().Be(request.Grade);
+            response.Value.AbsencePercentage.Should().Be(request.AbsencePercentage);
 
         }
 
@@ -110,7 +110,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
                 Comment = "A comment",
                 Type = ApiPersonAbsence.ApiAbsenceType.Absence,
-                Grade = "100%"
+                AbsencePercentage = 100
             };
 
             var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence", request);
@@ -134,6 +134,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public DateTimeOffset? AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType? Type { get; set; }
-        public string? Grade { get; set; }
+        public double? AbsencePercentage { get; set; }
     }
 }

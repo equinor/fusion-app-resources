@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain.Commands
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
-        public string? Grade { get; set; }
+        public double? AbsencePercentage { get; set; }
 
         public class Handler : IRequestHandler<UpdatePersonAbsence, QueryPersonAbsence>
         {
@@ -52,7 +52,7 @@ namespace Fusion.Resources.Domain.Commands
                 absences.Created = DateTimeOffset.UtcNow;
                 absences.CreatedBy = request.Editor.Person;
                 absences.Type = Enum.Parse<DbAbsenceType>($"{request.Type}");
-                absences.Grade = request.Grade;
+                absences.AbsencePercentage = request.AbsencePercentage;
 
 
                 await resourcesDb.SaveChangesAsync();
