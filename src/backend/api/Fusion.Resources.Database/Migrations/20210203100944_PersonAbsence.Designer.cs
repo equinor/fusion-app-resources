@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210203100944_PersonAbsence")]
+    partial class PersonAbsence
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -427,131 +429,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("RequestComments");
                 });
 
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AdditionalNote")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("Created")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetimeoffset")
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 2, 3, 15, 36, 41, 252, DateTimeKind.Unspecified).AddTicks(3819), new TimeSpan(0, 0, 0, 0, 0)));
-
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Discipline")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDraft")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset>("LastActivity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetimeoffset")
-                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 2, 3, 15, 36, 41, 259, DateTimeKind.Unspecified).AddTicks(8146), new TimeSpan(0, 0, 0, 0, 0)));
-
-                    b.Property<Guid?>("OriginalPositionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ProposedChanges")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("ProposedPersonId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool?>("ProposedPersonWasNotified")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("Updated")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("LastActivity")
-                        .HasAnnotation("SqlServer:Clustered", false);
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("ProposedPersonId");
-
-                    b.HasIndex("UpdatedById");
-
-                    b.ToTable("ResourceAllocationRequests");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResponsibilityMatrix", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("BasePositionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Discipline")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("LocationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ResponsibleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Sector")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Unit")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("Updated")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("ResponsibleId");
-
-                    b.HasIndex("UpdatedById");
-
-                    b.ToTable("ResponsibilityMatrices");
-                });
-
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -871,114 +748,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>
-                {
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "ProposedPerson")
-                        .WithMany()
-                        .HasForeignKey("ProposedPersonId");
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbPositionInstance", "OrgPositionInstance", b1 =>
-                        {
-                            b1.Property<Guid>("DbResourceAllocationRequestId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<DateTime>("AppliesFrom")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<DateTime>("AppliesTo")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<Guid>("Id")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid?>("LocationId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("Obs")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<double?>("Workload")
-                                .HasColumnType("float");
-
-                            b1.HasKey("DbResourceAllocationRequestId");
-
-                            b1.ToTable("ResourceAllocationRequests");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DbResourceAllocationRequestId");
-                        });
-
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+ProvisionStatus", "ProvisioningStatus", b1 =>
-                        {
-                            b1.Property<Guid>("DbResourceAllocationRequestId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("ErrorMessage")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("ErrorPayload")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<Guid?>("PositionId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<DateTimeOffset?>("Provisioned")
-                                .HasColumnType("datetimeoffset");
-
-                            b1.Property<string>("State")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("DbResourceAllocationRequestId");
-
-                            b1.ToTable("ResourceAllocationRequests");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DbResourceAllocationRequestId");
-                        });
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResponsibilityMatrix", b =>
-                {
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "Responsible")
-                        .WithMany()
-                        .HasForeignKey("ResponsibleId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
