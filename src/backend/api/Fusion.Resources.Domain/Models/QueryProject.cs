@@ -9,11 +9,13 @@ namespace Fusion.Resources.Domain
         {
             Id = project.Id;
             Name = project.Name;
+            DomainId = project.DomainId;
             OrgProjectId = project.OrgProjectId;
         }
 
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public string DomainId { get; set; }
         public Guid OrgProjectId { get; set; }
 
     }

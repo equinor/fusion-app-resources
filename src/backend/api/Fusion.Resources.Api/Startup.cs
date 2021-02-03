@@ -14,6 +14,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Middleware;
+using Fusion.Resources.Logic.Commands;
+using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api
 {
@@ -71,6 +73,8 @@ namespace Fusion.Resources.Api
                     c.RegisterValidatorsFromAssemblyContaining<Startup>();
                     // Domain project
                     c.RegisterValidatorsFromAssemblyContaining<PersonId>();
+                    // Logic project, where ResourceAllocationRequest having validators
+                    c.RegisterValidatorsFromAssemblyContaining<ResourceAllocationRequest>();
                 });
 
             #region Resource services

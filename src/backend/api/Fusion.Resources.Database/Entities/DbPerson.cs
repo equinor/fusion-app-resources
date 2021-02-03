@@ -1,11 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
-using System.Text;
 
 namespace Fusion.Resources.Database.Entities
 {
-
-
     public class DbPerson
     {
         /// <summary>
@@ -29,7 +26,6 @@ namespace Fusion.Resources.Database.Entities
                 entity.HasIndex(e => e.AzureUniqueId).IsUnique();
                 entity.HasIndex(e => e.Mail).IsClustered(false);
             });
-
         }
     }
 
