@@ -36,6 +36,7 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbDelegatedRole> DelegatedRoles { get; set; }
 
+        public DbSet<DbResponsibilityMatrix> ResponsibilityMatrices { get; set; }
         public DbSet<DbPersonAbsence> PersonAbsences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -49,6 +50,7 @@ namespace Fusion.Resources.Database
             DbPerson.OnModelCreating(modelBuilder);
             DbDelegatedRole.OnModelCreating(modelBuilder);
             DbPersonAbsence.OnModelCreating(modelBuilder);
+            DbResponsibilityMatrix.OnModelCreating(modelBuilder);
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
         }
 
