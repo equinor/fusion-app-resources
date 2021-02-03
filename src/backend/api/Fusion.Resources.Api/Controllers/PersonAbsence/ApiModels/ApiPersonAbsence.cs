@@ -15,9 +15,7 @@ namespace Fusion.Resources.Api.Controllers
             AppliesFrom = absence.AppliesFrom;
             AppliesTo = absence.AppliesTo;
             Type = Enum.Parse<ApiAbsenceType>($"{absence.Type}", true);
-
-            // If null, absence percentage should be displayed as 100
-            AbsencePercentage = absence.AbsencePercentage ?? 100;
+            AbsencePercentage = absence.AbsencePercentage;
         }
 
         public Guid Id { get; set; }
@@ -28,7 +26,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? AppliesTo { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAbsenceType Type { get; set; }
-        public double AbsencePercentage { get; set; }
+        public double? AbsencePercentage { get; set; }
         public enum ApiAbsenceType
         {
             Absence,
