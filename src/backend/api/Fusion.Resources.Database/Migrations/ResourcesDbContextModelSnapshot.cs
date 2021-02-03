@@ -387,58 +387,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("RequestComments");
                 });
 
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResponsibilityMatrix", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("BasePositionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Discipline")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("LocationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ResponsibleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Sector")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Unit")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("Updated")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("ResponsibleId");
-
-                    b.HasIndex("UpdatedById");
-
-                    b.ToTable("ResponsibilityMatrices");
-                });
-
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -743,30 +691,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResponsibilityMatrix", b =>
-                {
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "Responsible")
-                        .WithMany()
-                        .HasForeignKey("ResponsibleId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
