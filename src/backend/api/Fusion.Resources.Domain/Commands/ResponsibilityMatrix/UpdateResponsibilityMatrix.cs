@@ -17,13 +17,13 @@ namespace Fusion.Resources.Domain.Commands
         }
 
         public Guid Id { get; set; }
-        public Guid ProjectId { get; set; }
-        public Guid LocationId { get; set; }
-        public string? Discipline { get; set; }
-        public Guid BasePositionId { get; set; }
-        public string? Sector { get; set; }
-        public string? Unit { get; set; }
-        public Guid? ResponsibleId { get; set; }
+        public MonitorableProperty<Guid?> ProjectId { get; set; } = new MonitorableProperty<Guid?>();
+        public MonitorableProperty<Guid?> LocationId { get; set; } = new MonitorableProperty<Guid?>();
+        public MonitorableProperty<string?> Discipline { get; set; } = new MonitorableProperty<string?>();
+        public MonitorableProperty<Guid?> BasePositionId { get; set; } = new MonitorableProperty<Guid?>();
+        public MonitorableProperty<string?> Sector { get; set; } = new MonitorableProperty<string?>();
+        public MonitorableProperty<string?> Unit { get; set; } = new MonitorableProperty<string?>();
+        public MonitorableProperty<Guid?> ResponsibleId { get; set; } = new MonitorableProperty<Guid?>();
 
         public class Handler : IRequestHandler<UpdateResponsibilityMatrix, QueryResponsibilityMatrix>
         {
@@ -42,18 +42,7 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryResponsibilityMatrix> Handle(UpdateResponsibilityMatrix request, CancellationToken cancellationToken)
             {
-                var project = await EnsureProjectAsync(request.ProjectId);
-                if (project == null)
-                {
-                    throw new ArgumentException("Unable to resolve project using org service");
-                }
-
-                DbPerson? responsible = null;
-                if (request.ResponsibleId != null)
-                    responsible = await profileService.EnsurePersonAsync(request.ResponsibleId.Value);
-                if (responsible == null)
-                    throw new ArgumentException("Cannot create personnel without either a valid azure unique id or mail address");
-
+                bool isModified = false;
                 var status = await resourcesDb.ResponsibilityMatrices
                     .Include(cp => cp.CreatedBy)
                     .Include(cp => cp.Project)
@@ -63,18 +52,75 @@ namespace Fusion.Resources.Domain.Commands
                 if (status is null)
                     throw new ArgumentException($"Cannot locate status using identifier '{request.Id}'");
 
-                //status.UpdatedBy = request.Editor.Person;
-                //status.Updated = DateTimeOffset.UtcNow;
-                status.Project = project;
-                status.LocationId = request.LocationId;
-                status.Discipline = request.Discipline;
-                status.BasePositionId = request.BasePositionId;
-                status.Sector = request.Sector;
-                status.Unit = request.Unit;
-                status.Responsible = responsible;
+                if (request.ProjectId.HasBeenSet)
+                {
+                    if (request.ProjectId.Value != null)
+                    {
+                        var project = await EnsureProjectAsync(request.ProjectId.Value.Value);
+                        if (project == null)
+                            throw new ArgumentException("Unable to resolve project using org service");
 
+                        status.Project = project;
+                    }
+                    else
+                    {
+                        status.Project = null;
+                    }
 
-                await resourcesDb.SaveChangesAsync();
+                    isModified = true;
+                }
+
+                if (request.ResponsibleId.HasBeenSet)
+                {
+                    if (request.ResponsibleId.Value != null)
+                    {
+                        var responsible = await profileService.EnsurePersonAsync(request.ResponsibleId.Value.Value);
+                        if (responsible == null)
+                            throw new ArgumentException(
+                                "Cannot create personnel without either a valid azure unique id or mail address");
+                        status.Responsible = responsible;
+                    }
+                    else
+                    {
+                        status.Responsible = null;
+                    }
+
+                    isModified = true;
+                }
+
+                if (request.LocationId.HasBeenSet)
+                {
+                    status.LocationId = request.LocationId.Value;
+                    isModified = true;
+                }
+                if (request.Discipline.HasBeenSet)
+                {
+                    status.Discipline = request.Discipline.Value;
+                    isModified = true;
+                }
+                if (request.BasePositionId.HasBeenSet)
+                {
+                    status.BasePositionId = request.BasePositionId.Value;
+                    isModified = true;
+                }
+                if (request.Sector.HasBeenSet)
+                {
+                    status.Sector = request.Sector.Value;
+                    isModified = true;
+                }
+
+                if (request.Unit.HasBeenSet)
+                {
+                    status.Unit = request.Unit.Value;
+                    isModified = true;
+                }
+
+                if (isModified)
+                {
+                    status.UpdatedBy = request.Editor.Person;
+                    status.Updated = DateTimeOffset.UtcNow;
+                    await resourcesDb.SaveChangesAsync();
+                }
 
                 var returnItem = await mediator.Send(new GetResponsibilityMatrixItem(request.Id));
                 return returnItem!;

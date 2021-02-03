@@ -55,7 +55,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/internal-resources/responsibility-matrix")]
-        public async Task<ActionResult<ApiResponsibilityMatrix>> CreateResponsibilityMatrix([FromBody] CreateResponsibilityMatrixRequest request)
+        public async Task<ActionResult<ApiResponsibilityMatrix>> CreateResponsibilityMatrix([FromBody] UpdateResponsibilityMatrixRequest request)
         {
             #region Authorization
 

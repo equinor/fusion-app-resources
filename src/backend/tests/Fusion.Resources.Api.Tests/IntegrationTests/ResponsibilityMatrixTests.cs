@@ -81,9 +81,39 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await client.TestClientPutAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix/{testResponsibilityMatrixId}", request);
             response.Should().BeSuccessfull();
 
-            response.Value.Id.Should().NotBeEmpty();
+            response.Value.Project.Should().NotBeNull();
+            response.Value.Location.Should().NotBeNull();
+            response.Value.Discipline.Should().Be(request.Discipline);
+            response.Value.BasePosition.Should().NotBeNull();
             response.Value.Sector.Should().Be(request.Sector);
             response.Value.Unit.Should().Be(request.Unit);
+            response.Value.Updated.Should().NotBeNull();
+        }
+        [Fact]
+        public async Task PutMatrix_NullablesTest_ShouldBeOk_WhenAdmin()
+        {
+            var request = new UpdateResponsibilityMatrixRequest
+            {
+                ProjectId = null,
+                LocationId = null,
+                Discipline = null,
+                BasePositionId = null,
+                Sector = null,
+                Unit = null,
+                ResponsibleId = null
+            };
+
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPutAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix/{testResponsibilityMatrixId}", request);
+            response.Should().BeSuccessfull();
+
+            response.Value.Project.Should().BeNull();
+            response.Value.Project.Should().BeNull();
+            response.Value.Discipline.Should().BeNull();
+            response.Value.Sector.Should().BeNull();
+            response.Value.Unit.Should().BeNull();
+            response.Value.Responsible.Should().BeNull();
+            response.Value.Updated.Should().NotBeNull();
         }
 
         [Fact]
@@ -109,7 +139,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
 
-            var request = new CreateResponsibilityMatrixRequest
+            var request = new UpdateResponsibilityMatrixRequest
             {
                 ProjectId = testProject.Project.ProjectId,
                 LocationId = Guid.NewGuid(),
@@ -122,6 +152,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", request);
             response.Response.IsSuccessStatusCode.Should().BeTrue();
+            response.Value.Project.Should().NotBeNull();
+            response.Value.Location.Should().NotBeNull();
+            response.Value.Discipline.Should().Be(request.Discipline);
+            response.Value.BasePosition.Should().NotBeNull();
+            response.Value.Sector.Should().Be(request.Sector);
+            response.Value.Unit.Should().Be(request.Unit);
+            
             testResponsibilityMatrixId = response.Value.Id;
         }
 
@@ -137,7 +174,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     public class TestResponsibilitMatrix
     {
         public Guid Id { get; set; }
-        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Created { get; set; }
+        public DateTimeOffset? Updated { get; set; }
         public object CreatedBy { get; set; } = null!;
         public object Project { get; set; } = null!;
         public object Location { get; set; }

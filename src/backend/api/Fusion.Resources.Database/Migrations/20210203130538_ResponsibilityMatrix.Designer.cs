@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20210129091449_ResponsibilityMatrix")]
+    [Migration("20210203130538_ResponsibilityMatrix")]
     partial class ResponsibilityMatrix
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -395,7 +395,7 @@ namespace Fusion.Resources.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("BasePositionId")
+                    b.Property<Guid?>("BasePositionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("Created")
@@ -407,13 +407,13 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<string>("Discipline")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("LocationId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProjectId")
+                    b.Property<Guid?>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ResponsibleId")
+                    b.Property<Guid?>("ResponsibleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Sector")
@@ -422,6 +422,12 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<string>("Unit")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
@@ -429,6 +435,8 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("ProjectId");
 
                     b.HasIndex("ResponsibleId");
+
+                    b.HasIndex("UpdatedById");
 
                     b.ToTable("ResponsibilityMatrices");
                 });
@@ -750,14 +758,17 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasOne("Fusion.Resources.Database.Entities.DbProject", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "Responsible")
                         .WithMany()
                         .HasForeignKey("ResponsibleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>

@@ -14,10 +14,10 @@ namespace Fusion.Resources.Domain.Commands
 
     public class CreateResponsibilityMatrix : TrackableRequest<QueryResponsibilityMatrix>
     {
-        public Guid ProjectId { get; set; }
-        public Guid LocationId { get; set; }
+        public Guid? ProjectId { get; set; }
+        public Guid? LocationId { get; set; }
         public string? Discipline { get; set; }
-        public Guid BasePositionId { get; set; }
+        public Guid? BasePositionId { get; set; }
         public string? Sector { get; set; }
         public string? Unit { get; set; }
         public Guid? ResponsibleId { get; set; }
@@ -35,18 +35,24 @@ namespace Fusion.Resources.Domain.Commands
                 this.orgResolver = orgResolver;
             }
 
-            public async Task<QueryResponsibilityMatrix> Handle(CreateResponsibilityMatrix request, CancellationToken cancellationToken)
+            public async Task<QueryResponsibilityMatrix> Handle(CreateResponsibilityMatrix request,
+                CancellationToken cancellationToken)
             {
-                var project = await EnsureProjectAsync(request.ProjectId);
-                if (project == null)
+                DbProject? project = null;
+                if (request.ProjectId != null)
                 {
-                    throw new ArgumentException("Unable to resolve project using org service");
+                    project = await EnsureProjectAsync(request.ProjectId.Value);
+                    if (project == null)
+                        throw new ArgumentException("Unable to resolve project using org service");
                 }
                 DbPerson? responsible = null;
                 if (request.ResponsibleId != null)
+                {
                     responsible = await profileService.EnsurePersonAsync(request.ResponsibleId.Value);
-                if (responsible == null)
-                    throw new ArgumentException("Cannot create personnel without either a valid azure unique id or mail address");
+                    if (responsible == null)
+                        throw new ArgumentException(
+                            "Cannot create personnel without either a valid azure unique id or mail address");
+                }
 
                 var newItem = new DbResponsibilityMatrix
                 {
