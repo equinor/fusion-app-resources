@@ -24,4 +24,4 @@ namespace Fusion.Resources.Functions
             builder.Services.AddOrgApiClient(HttpClientNames.Application.Org);
         }
     }
-}//TEST
+}
