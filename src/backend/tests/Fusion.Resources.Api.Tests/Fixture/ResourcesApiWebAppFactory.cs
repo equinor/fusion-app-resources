@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +30,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
         public readonly PeopleServiceMock peopleServiceMock;
         public readonly OrgServiceMock orgServiceMock;
         public readonly ContextResolverMock contextResolverMock;
-        public readonly FusionProfileResolverMock profileResolverMock;
-        internal readonly NotificationClientMock notificationMock;
         internal readonly RolesClientMock roleClientMock;
 
         private string resourceDbConnectionString = TestDbConnectionStrings.LocalDb($"resources-app-{DateTime.Now:yyyy-MM-dd-HHmmss}");
@@ -49,8 +46,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
             peopleServiceMock = new PeopleServiceMock();
             orgServiceMock = new OrgServiceMock();
             contextResolverMock = new ContextResolverMock();
-            profileResolverMock = new FusionProfileResolverMock();
-            notificationMock = new NotificationClientMock();
             roleClientMock = new RolesClientMock();
 
             EnsureDatabase();
@@ -96,17 +91,16 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
-                services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
-                services.AddSingleton<IFusionProfileResolver, FusionProfileResolverMock>();
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
                 services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
-                services.AddSingleton<IFusionNotificationClient>(sp => notificationMock);
                 services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
+                services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
 
                 services.AddSingleton(sp =>
                 {
                     var clientFactoryMock = new Mock<IHttpClientFactory>();
 
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
 

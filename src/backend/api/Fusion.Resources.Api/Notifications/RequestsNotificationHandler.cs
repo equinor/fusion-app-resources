@@ -45,10 +45,6 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     builder.AddDescription(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason, notification.DeclinedBy));
                 });
-                /*await notificationClient.CreateNotificationAsync(n => n
-                   .WithRecipient(recipient)
-                   .WithTitle($"Request for {request.Position.Name} was declined")
-                   .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason, notification.DeclinedBy)));*/
             }
         }
 
@@ -63,10 +59,6 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     builder.AddDescription(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy));
                 });
-                /*await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(request.CreatedBy.AzureUniqueId)
-                    .WithTitle($"Request for {request.Position.Name} was declined")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy)));*/
             }
         }
 

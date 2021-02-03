@@ -49,7 +49,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
         }
 
-        public FusionProfileResolverMock ProfileResolver => ApiFactory.profileResolverMock;
         public ContextResolverMock ContextResolver => ApiFactory.contextResolverMock;
 
         public void Dispose()
@@ -64,7 +63,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
             var account = new FusionTestUserBuilder(accountType)                
                 .SaveProfile();
 
-            ProfileResolver.AddProfile(account);
             
             return account;
         }

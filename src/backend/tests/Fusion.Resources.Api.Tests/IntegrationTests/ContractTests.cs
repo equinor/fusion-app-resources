@@ -342,8 +342,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.ContextResolver
                 .AddContext(testProject.Project);
 
-            fixture.ProfileResolver.AddProfile(fixture.AdminUser);
-            
             var client = fixture.ApiFactory.CreateClient()
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
