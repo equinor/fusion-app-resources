@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20210203130538_ResponsibilityMatrix")]
+    [Migration("20210203133222_ResponsibilityMatrix")]
     partial class ResponsibilityMatrix
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
