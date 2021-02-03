@@ -41,10 +41,10 @@ namespace Fusion.Resources.Api.Notifications
 
             foreach (var recipient in recipients)
             {
-                await notificationClient.CreateNotificationAsync(n => n
-                   .WithRecipient(recipient)
-                   .WithTitle($"Request for {request.Position.Name} was declined")
-                   .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason, notification.DeclinedBy)));
+                await notificationClient.CreateNotificationForUserAsync(recipient, $"Request for {request.Position.Name} was declined", builder =>
+                {
+                    builder.AddDescription(NotificationDescription.RequestDeclinedByCompany(request, notification.Reason, notification.DeclinedBy));
+                });
             }
         }
 
@@ -55,10 +55,10 @@ namespace Fusion.Resources.Api.Notifications
             //don't need to notify the person who created request if person also is decliner.
             if (request.CreatedBy.AzureUniqueId != notification.DeclinedBy.AzureUniqueId)
             {
-                await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(request.CreatedBy.AzureUniqueId)
-                    .WithTitle($"Request for {request.Position.Name} was declined")
-                    .WithDescriptionMarkdown(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy)));
+                await notificationClient.CreateNotificationForUserAsync(request.CreatedBy.AzureUniqueId, $"Request for {request.Position.Name} was declined", builder =>
+                {
+                    builder.AddDescription(NotificationDescription.RequestDeclinedByExternal(request, notification.Reason, notification.DeclinedBy));
+                });
             }
         }
 

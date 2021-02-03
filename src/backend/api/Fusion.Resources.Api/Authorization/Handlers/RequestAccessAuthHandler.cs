@@ -2,7 +2,6 @@
 using Fusion.Resources.Logic.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using System;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Authorization.Handlers

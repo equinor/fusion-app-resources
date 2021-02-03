@@ -188,7 +188,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .AddToMockService();
 
             fixture.ContextResolver.AddContext(testProject.Project);
-
+            
             using var adminScope = fixture.AdminScope();
 
             var response = await client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/contracts", new { value = new[] { new { id = Guid.Empty } } });
@@ -352,7 +352,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Make the company available in the ppl service
             if (contract.Company != null)
-                PeopleServiceMock.AddCompany(contract.Company.Id, contract.Company.Name);
+                Testing.Mocks.ProfileService.PeopleServiceMock.AddCompany(contract.Company.Id, contract.Company.Name);
 
             var response = await client.PostAsJsonAsync($"/projects/{testProject.Project.ProjectId}/contracts", new
             {

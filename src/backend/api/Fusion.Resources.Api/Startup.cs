@@ -1,18 +1,14 @@
-using Bogus;
 using FluentValidation.AspNetCore;
 using Fusion.Resources.Domain;
 using MediatR;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Logic.Commands;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
@@ -51,7 +47,7 @@ namespace Fusion.Resources.Api
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
                 options.AddFusionRoles();
-                options.AddFusionNotifications(options => options.OriginatingAppKey = "resources");
+                options.AddFusionNotifications(opts => opts.OriginatingAppKey = "resources");
 
                 options.UseDefaultEndpointResolver(Configuration["FUSION_ENVIRONMENT"] ?? "ci");
                 options.UseDefaultTokenProvider(opts =>
@@ -95,7 +91,6 @@ namespace Fusion.Resources.Api
 
             services.AddApplicationInsightsTelemetry();
 
-            services.AddSingleton<ChaosMonkey>();
             services.AddCommonLibHttpClient();
         }
 
@@ -113,11 +108,9 @@ namespace Fusion.Resources.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseMiddleware<Middleware.RequestResponseLoggingMiddleware>();
+            //app.UseMiddleware<RequestResponseLoggingMiddleware>();
             app.UseMiddleware<TraceMiddleware>();
-            app.UseMiddleware<Middleware.ExceptionMiddleware>();
-            app.UseMiddleware<ChaosMonkeyMiddleware>();
-
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
 
@@ -132,33 +125,6 @@ namespace Fusion.Resources.Api
             {
                 endpoints.MapControllers();
 
-                // TODO: Remove
-                endpoints.MapPost("/release-the-monkey", async (context) =>
-                {
-                    var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
-
-                    var auth = await context.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
-
-                    if (auth.Succeeded)
-                    {
-                        monkey.CurrentLevel = monkey.CurrentLevel switch
-                        {
-                            ChaosMonkey.ChaosLevel.None => ChaosMonkey.ChaosLevel.Intermittent,
-                            ChaosMonkey.ChaosLevel.Intermittent => ChaosMonkey.ChaosLevel.Half,
-                            ChaosMonkey.ChaosLevel.Half => ChaosMonkey.ChaosLevel.Full,
-                            _ => ChaosMonkey.ChaosLevel.None
-                        };
-                    }
-                    await context.Response.WriteAsync($"Changed level to: {monkey.CurrentLevel}");
-                });
-
-                // TODO: REMOVE
-                endpoints.MapGet("/release-the-monkey", async (context) =>
-                {
-                    var monkey = context.RequestServices.GetRequiredService<ChaosMonkey>();
-
-                    await context.Response.WriteAsync($"Current level at: {monkey.CurrentLevel}");
-                });
             });
 
             #region Health probes
@@ -176,60 +142,4 @@ namespace Fusion.Resources.Api
         }
     }
 
-    // Leaving this here as it should be removed.
-    internal class ChaosMonkey
-    {
-        public ChaosLevel CurrentLevel { get; set; } = ChaosLevel.None;
-
-        public enum ChaosLevel { None, Intermittent, Half, Full }
-    }
-
-    internal class ChaosMonkeyMiddleware
-    {
-        private readonly RequestDelegate _next;
-
-        public ChaosMonkeyMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
-
-        public async Task Invoke(HttpContext httpContext, ChaosMonkey thaMonkey)
-        {
-            if (thaMonkey.CurrentLevel != ChaosMonkey.ChaosLevel.None && ShouldInterruptUrl(httpContext.Request))
-            {
-                var faker = new Faker();
-
-                var shouldThrow = false;
-
-                switch (thaMonkey.CurrentLevel)
-                {
-                    case ChaosMonkey.ChaosLevel.Full: shouldThrow = true; break;
-                    case ChaosMonkey.ChaosLevel.Half: shouldThrow = faker.Random.Bool(); break;
-                    case ChaosMonkey.ChaosLevel.Intermittent: shouldThrow = faker.Random.Number(100) >= 80; break;
-                }
-
-                if (shouldThrow)
-                {
-                    var error = faker.System.Exception();
-                    throw error;
-                }
-            }
-
-            await _next(httpContext);
-        }
-
-        private bool ShouldInterruptUrl(HttpRequest request)
-        {
-            if ((HttpMethods.IsPost(request.Method) || HttpMethods.IsPut(request.Method)) == false)
-                return false;
-
-            if (request.Path.StartsWithSegments("/release-the-monkey"))
-                return false;
-
-            if (request.Path.StartsWithSegments("/_health"))
-                return false;
-
-            return true;
-        }
-    }
 }

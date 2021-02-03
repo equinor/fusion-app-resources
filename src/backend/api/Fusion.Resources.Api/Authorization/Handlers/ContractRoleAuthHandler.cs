@@ -2,7 +2,6 @@
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Authorization.Handlers

@@ -36,10 +36,12 @@ namespace Fusion.Resources.Api.Notifications
             if (delegatedRole == null)
                 return;
 
-            await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(delegatedRole.Person.AzureUniqueId)
-                    .WithTitle($"You were delegated {delegatedRole.Type} role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name}")
-                    .WithDescriptionMarkdown(NotificationDescription.DelegateAssigned(delegatedRole)));
+            await notificationClient.CreateNotificationForUserAsync(delegatedRole.Person.AzureUniqueId,
+                $"You were delegated {delegatedRole.Type} role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name}",
+                builder =>
+                {
+                    builder.AddDescription(NotificationDescription.DelegateAssigned(delegatedRole));
+                });
         }
 
         public async Task Handle(DelegatedContractRoleRecertified notification, CancellationToken cancellationToken)
@@ -49,10 +51,12 @@ namespace Fusion.Resources.Api.Notifications
             if (delegatedRole == null)
                 return;
 
-            await notificationClient.CreateNotificationAsync(n => n
-                    .WithRecipient(delegatedRole.Person.AzureUniqueId)
-                    .WithTitle($"Your delegated role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name} was recertified")
-                    .WithDescriptionMarkdown(NotificationDescription.DelegateRecertified(delegatedRole)));
+            await notificationClient.CreateNotificationForUserAsync(delegatedRole.Person.AzureUniqueId,
+                $"Your delegated role in {delegatedRole.Contract.ContractNumber} - {delegatedRole.Project.Name} was recertified",
+                builder =>
+                {
+                    builder.AddDescription(NotificationDescription.DelegateRecertified(delegatedRole));
+                });
         }
 
         public async Task Handle(CompanyRepUpdated notification, CancellationToken cancellationToken)
@@ -83,10 +87,10 @@ namespace Fusion.Resources.Api.Notifications
             if (position == null || instance?.AssignedPerson?.AzureUniqueId == null)
                 return;
 
-            await notificationClient.CreateNotificationAsync(n => n
-                .WithRecipient(instance.AssignedPerson.AzureUniqueId)
-                .WithTitle(title)
-                .WithDescriptionMarkdown(NotificationDescription.PositionAssigned(position, instance)));
+            await notificationClient.CreateNotificationForUserAsync(instance.AssignedPerson.AzureUniqueId, title, builder =>
+                {
+                    builder.AddDescription(NotificationDescription.PositionAssigned(position, instance));
+                });
         }
 
         private static class NotificationDescription

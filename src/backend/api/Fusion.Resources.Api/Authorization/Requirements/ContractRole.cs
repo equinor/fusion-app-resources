@@ -1,5 +1,4 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Authorization;
+﻿using Fusion.Authorization;
 using System;
 
 namespace Fusion.Resources.Api.Authorization

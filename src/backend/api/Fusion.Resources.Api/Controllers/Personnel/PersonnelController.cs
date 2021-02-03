@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using ContractRole = Fusion.Resources.Api.Authorization.ContractRole;
 
 namespace Fusion.Resources.Api.Controllers
 {

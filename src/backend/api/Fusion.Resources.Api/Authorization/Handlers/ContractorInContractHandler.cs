@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ContractorInContractRequirement requirement)
         {
             var contractContractIds = context.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey(FusionClaimsProperties.ContractId))
-                        .Select(c => { Guid.TryParse(c.Properties[FusionClaimsProperties.ContractId], out Guid projectId); return projectId; });
+                .Select(c => { Guid.TryParse(c.Properties[FusionClaimsProperties.ContractId], out Guid projectId); return projectId; });
 
             if (contractContractIds.Any(cid => cid == requirement.ContractId))
             {

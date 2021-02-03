@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using ContractRole = Fusion.Resources.Api.Authorization.ContractRole;
 
 namespace Fusion.Resources.Api.Controllers
 {
