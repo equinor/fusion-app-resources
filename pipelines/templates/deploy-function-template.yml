@@ -68,7 +68,6 @@ steps:
       }
       if ($fusionEnvironment -eq "pr") {
           if ($prNumber -eq $null) { throw "Cannot locate prNumber for environment '$environment'" }          
-            $functionAppName = "$functionAppName-$prNumber"
             $resourceEndpoint = "https://resources-api-pr-$prNumber.fusion-dev.net"
       }
 
