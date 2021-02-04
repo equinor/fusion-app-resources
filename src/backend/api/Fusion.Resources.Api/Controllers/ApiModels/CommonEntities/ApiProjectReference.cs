@@ -5,6 +5,12 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiProjectReference
     {
+        public ApiProjectReference(Guid id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+
         public ApiProjectReference(QueryProject project)
         {
             Id = project.OrgProjectId;
