@@ -26,7 +26,6 @@
             "provisionPosition": "provision-position"
           },
           "env": {
-            "name": "parameters('env-name')",
             "prNumber": ""
           } 
         }
@@ -47,10 +46,10 @@
       "tags": {
         "fusion-app": "resources",
         "fusion-app-env": "[toLower(parameters('env-name'))]",
+        "pr": "[parameters('settings').env.prNumber]",
         "fusion-app-component-type": "azFunc",
         "fusion-app-component-id": "[concat('resources-func-', parameters('env-name'))]",
-        "kv-msi-access": "true",
-        "pr": "parameters('settings').env.prNumber)"
+        "kv-msi-access": "true"        
       },
       "kind": "functionapp",
       "identity": {
