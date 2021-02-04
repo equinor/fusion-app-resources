@@ -29,7 +29,7 @@ stages:
       
       variables:
         environment: 'pr'
-        functionServiceName: func-fap-resources-$(environment)
+        functionServiceName: func-fap-resources-$(environment)-$(prNumber)
     
       jobs:
       - deployment: Deploy
@@ -44,6 +44,7 @@ stages:
               steps:
                 - template: templates/deploy-function-template.yml
                   parameters:
+                    appName: $(functionServiceName)
                     envName: $(environment)
                     prNumber: $(prNumber)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
