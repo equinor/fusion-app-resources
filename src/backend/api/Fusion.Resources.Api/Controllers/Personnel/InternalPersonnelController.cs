@@ -166,7 +166,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 // Tweek ranges where end date == next start date
                 var indexToMoveBack = new List<int>();
-                for (int i = 1; i < p.Timeline.Count; i++)
+                for (int i = 0; i < p.Timeline.Count; i++)
                 {
                     var now = p.Timeline.ElementAt(i);
                     var next = p.Timeline.ElementAtOrDefault(i + 1);
@@ -215,7 +215,7 @@ namespace Fusion.Resources.Api.Controllers
             if (!dates.Any())
                 yield break;
 
-            var filterStart = new DateTime(2020, 01, 01);
+            var filterStart = DateTime.SpecifyKind(new DateTime(2020, 01, 01), DateTimeKind.Utc);
             var filterEnd = filterStart.AddMonths(5);
 
             var validDates = dates.Where(d => d > filterStart && d < filterEnd).ToList();
