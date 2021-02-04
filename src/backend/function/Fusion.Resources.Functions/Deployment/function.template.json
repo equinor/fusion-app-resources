@@ -2,7 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "appName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the function app that you wish to create."
+      }
+    },
     "env-name": { "type": "string" },
+    "resource-endpoint": { "type": "string" },      
     "settings": {
         "type": "object",
         "defaultValue": {
@@ -14,7 +21,7 @@
             "endpoints": {
                 "org": "https://pro-s-org-ci.azurewebsites.net",
                 "people": "https://pro-s-people-ci.azurewebsites.net",
-                "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
+                "resources": "[parameters('resource-endpoint')]",
                 "notifications": "https://pro-s-notification-ci.azurewebsites.net",
                 "context": "https://pro-s-context-ci.azurewebsites.net",
                 "portal": "https://pro-s-portal-ci.azurewebsites.net"
@@ -32,7 +39,7 @@
     }
   },
   "variables": {
-    "function-name": "[concat('func-fap-resources-', parameters('env-name'))]",
+    "function-name": "[parameters('appName')]",
     "ai-name": "[concat('ai-fap-resources-', parameters('env-name'))]",
     "storage-name": "[concat('safresources', parameters('env-name'))]",
     "storage-id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Storage/storageAccounts/', variables('storage-name'))]"
