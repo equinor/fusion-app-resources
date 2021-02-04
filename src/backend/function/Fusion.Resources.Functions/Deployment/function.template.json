@@ -22,9 +22,13 @@
             "resources": {
                 "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
             },
-            "queues": {
-                "provisionPosition": "provision-position"
-            }
+          "queues": {
+            "provisionPosition": "provision-position"
+          },
+          "env": {
+            "name": "parameters('env-name')",
+            "prNumber": ""
+          } 
         }
     }
   },
@@ -40,13 +44,21 @@
       "type": "Microsoft.Web/sites",
       "name": "[variables('function-name')]",
       "location": "[resourceGroup().location]",
+      "tags": {
+        "fusion-app": "resources",
+        "fusion-app-env": "[toLower(parameters('env-name'))]",
+        "fusion-app-component-type": "azFunc",
+        "fusion-app-component-id": "[concat('resources-func-', parameters('env-name'))]",
+        "kv-msi-access": "true",
+        "pr": "parameters('settings').env.prNumber)"
+      },
       "kind": "functionapp",
       "identity": {
         "type": "SystemAssigned"
       },
       "dependsOn": [],
       "properties": {
-        "httpsOnly":  true,
+        "httpsOnly": true,
         "siteConfig": {
           "phpVersion": "off",
           "ftpsState": "FtpsOnly",
@@ -116,7 +128,7 @@
             {
               "name": "Endpoints_notifications",
               "value": "[parameters('settings').endpoints.notifications]"
-            },            
+            },
             {
               "name": "Endpoints_context",
               "value": "[parameters('settings').endpoints.context]"

@@ -1,5 +1,6 @@
 parameters:
   envName: ''
+  prNumber:''
   clientId: ''
   fusionEnvironment: 'ci'
   fusionResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
@@ -16,6 +17,7 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     Inline: |
       $environment = "${{ parameters.envName }}"
+      $prNumber = "${{ parameters.prNumber }}"
       $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
       $functionAppName = "func-fap-resources-$environment"
       $envVaultName = "kv-fap-resources-$environment"
@@ -53,6 +55,9 @@ steps:
           }
           queues = @{
               provisionPosition = "provision-position"
+          }
+          env = @{
+              prNumber = $prNumber
           }
       }
 
