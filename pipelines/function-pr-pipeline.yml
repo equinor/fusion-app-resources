@@ -24,7 +24,7 @@ stages:
     - stage: DeployPR
       displayName: PR
       dependsOn: BuildFunction
-      condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+      condition: succeeded()
       
       variables:
         environment: 'pr'
