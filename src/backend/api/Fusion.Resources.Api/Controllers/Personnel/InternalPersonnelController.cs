@@ -138,8 +138,8 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     absence.Add(new Absence()
                     {
-                        Start = new DateTime(2017, 06, 01),
-                        End = new DateTime(2017, 07, 15),
+                        Start = new DateTime(2020, 02, 01),
+                        End = new DateTime(2020, 02, 14),
                         Id = Guid.NewGuid(),
                         Type = "Vacation"
                     });
@@ -154,7 +154,7 @@ namespace Fusion.Resources.Api.Controllers
                     absence.Add(new Absence()
                     {
                         Start = new DateTime(2020, 01, 01),
-                        End = new DateTime(2020, 06, 30),
+                        End = new DateTime(2020, 04, 30),
                         Id = Guid.NewGuid(),
                         AbsencePercentage = 0.6,
                         Type = "Secret Job"
@@ -163,6 +163,18 @@ namespace Fusion.Resources.Api.Controllers
                 p.Timeline = GenerateTimeline(p.PositionInstances, absence).OrderBy(p => p.AppliesFrom)
                     .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not wnat 1 day intervals that occur due to from/to do not overlap
                     .ToList();
+
+                // Tweek ranges where end date == next start date
+                var indexToMoveBack = new List<int>();
+                for (int i = 1; i < p.Timeline.Count; i++)
+                {
+                    var now = p.Timeline.ElementAt(i);
+                    var next = p.Timeline.ElementAtOrDefault(i + 1);
+
+                    if (next != null && now.AppliesTo == next.AppliesFrom)
+                        now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
+                }
+
 
                 p.EmploymentStatuses = absence.Select(a => new ApiInternalPersonnelPerson.PersonnelAbsence()
                 {
@@ -203,8 +215,18 @@ namespace Fusion.Resources.Api.Controllers
             if (!dates.Any())
                 yield break;
 
-            var current = dates.First();
-            foreach (var date in dates.Skip(1))
+            var filterStart = new DateTime(2020, 01, 01);
+            var filterEnd = filterStart.AddMonths(5);
+
+            var validDates = dates.Where(d => d > filterStart && d < filterEnd).ToList();
+            if (!validDates.Any())
+                yield break;
+
+            validDates.Insert(0, filterStart);
+            validDates.Add(filterEnd);
+
+            var current = validDates.First();
+            foreach (var date in validDates.Skip(1))
             {
                 var timelineRange = new TimeRange(current, date);
 
