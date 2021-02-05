@@ -57,10 +57,7 @@ steps:
           }
           queues = @{
               provisionPosition = "provision-position"
-          }
-          env = @{
-              prNumber = $prNumber
-          }
+          }          
       }
 
       if ($fusionEnvironment -eq "fprd") {

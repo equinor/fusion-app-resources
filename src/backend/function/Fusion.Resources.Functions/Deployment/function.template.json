@@ -30,9 +30,6 @@
             },
           "queues": {
             "provisionPosition": "provision-position"
-          },
-          "env": {
-            "prNumber": ""
           } 
         }
     }
