@@ -2,12 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "appName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the function app that you wish to create."
-      }
-    },
     "env-name": { "type": "string" },    
     "settings": {
         "type": "object",
@@ -35,7 +29,7 @@
     }
   },
   "variables": {
-    "function-name": "[parameters('appName')]",
+    "function-name": "[concat('func-fap-resources-', parameters('env-name'))]",
     "ai-name": "[concat('ai-fap-resources-', parameters('env-name'))]",
     "storage-name": "[concat('safresources', parameters('env-name'))]",
     "storage-id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Storage/storageAccounts/', variables('storage-name'))]"
