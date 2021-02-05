@@ -71,3 +71,4 @@ steps:
 
       $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
       Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
+      
