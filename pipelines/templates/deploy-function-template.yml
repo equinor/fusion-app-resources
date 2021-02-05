@@ -72,7 +72,7 @@ steps:
       $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
       Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
 
-       if ($fusionEnvironment -eq "pr") {
+      if ($fusionEnvironment -eq "pr") {
             if ($prNumber -eq $null) { throw "Cannot locate prNumber for environment '$environment'" }
             $mergedTags = @{"pr"="$prNumber";}
             Update-AzTag -ResourceId $functionApp.Id -Tag $mergedTags -Operation Merge
