@@ -1,0 +1,55 @@
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+
+pr: 
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - src/backend/function/*
+    - src/backend/integration/*
+  
+variables:
+    subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    webPackage: '$(Pipeline.Workspace)/drop/Fusion.Resources.Functions.zip'
+  
+stages:
+    - template: templates/build-function.yml
+      parameters:
+        project: 'Fusion.Resources.Functions'
+
+
+    - stage: DeployPR
+      displayName: PR
+      dependsOn: BuildFunction
+      condition: succeeded()
+      
+      variables:
+        environment: 'pr'
+        functionServiceName: func-fap-resources-$(environment)
+    
+      jobs:
+      - deployment: Deploy
+        pool: Private Docker
+    
+        displayName: 'Deploy function app'
+        environment: fusion-pr
+    
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: templates/deploy-function-template.yml
+                  parameters:
+                    envName: $(environment)
+                    clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+
+                - task: AzureFunctionApp@1
+                  inputs:
+                    azureSubscription: $(subscriptionService)
+                    appType: 'functionApp'
+                    appName: $(functionServiceName)
+                    package: $(webPackage)
+                    deploymentMethod: 'runFromPackage'

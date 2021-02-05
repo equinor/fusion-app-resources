@@ -40,13 +40,20 @@
       "type": "Microsoft.Web/sites",
       "name": "[variables('function-name')]",
       "location": "[resourceGroup().location]",
+      "tags": {
+        "fusion-app": "resources",
+        "fusion-app-env": "[toLower(parameters('env-name'))]",
+        "fusion-app-component-type": "azFunc",
+        "fusion-app-component-id": "[concat('resources-func-', parameters('env-name'))]",
+        "kv-msi-access": "true"        
+      },
       "kind": "functionapp",
       "identity": {
         "type": "SystemAssigned"
       },
       "dependsOn": [],
       "properties": {
-        "httpsOnly":  true,
+        "httpsOnly": true,
         "siteConfig": {
           "phpVersion": "off",
           "ftpsState": "FtpsOnly",
@@ -116,7 +123,7 @@
             {
               "name": "Endpoints_notifications",
               "value": "[parameters('settings').endpoints.notifications]"
-            },            
+            },
             {
               "name": "Endpoints_context",
               "value": "[parameters('settings').endpoints.context]"

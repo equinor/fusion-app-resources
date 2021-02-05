@@ -4,6 +4,7 @@ parameters:
   fusionEnvironment: 'ci'
   fusionResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
   templateFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/function.template.json
+  disabledFunctionsFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/disabled-functions.json
 
 steps:
 - checkout: self
@@ -59,10 +60,29 @@ steps:
       if ($fusionEnvironment -eq "fprd") {
             $settings.endpoints.portal = "https://fusion.equinor.com"
       }
-
+     
       New-AzResourceGroupDeployment -Mode Incremental -Name "resources-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
           -env-name $environment `
           -settings $settings
 
       $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
-      Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get  
+      Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
+      
+      ## Load disabled functions
+      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "${{ parameters.disabledFunctionsFile }}" -Raw)
+      $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
+
+      Write-Host "Disabled functions"
+      $disabledFunctions
+
+      $settings = @{}
+      ForEach ($kvp in $functionApp.SiteConfig.AppSettings) {
+          $settings[$kvp.Name] = $kvp.Value
+      }
+
+      ## Mark functions as disabled
+      $disabledFunctions | ForEach-Object { $settings["AzureWebJobs.$_.Disabled"] = "true" }
+      
+      ## Update web app settings for function app
+      Set-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName -AppSettings $settings
+
