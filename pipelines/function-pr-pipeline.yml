@@ -57,3 +57,26 @@ stages:
                     package: $(webPackage)
                     deploymentMethod: 'runFromPackage'
 
+                - task: AzurePowerShell@4
+                  displayName: 'Tag PR'
+                  inputs: 
+                    azureSubscription: $(subscriptionService)
+                    ScriptType: 'InlineScript'
+                    FailOnStandardError: true
+                    azurePowerShellVersion: 'LatestVersion'
+                    Inline: |
+                      $environment = "$environment"
+                      $prNumber = "$prNumber"
+                      $functionAppName = "$functionServiceName"
+                      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
+
+                      if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
+
+                      $resourceGroup = $envResourceGroup.ResourceGroupName
+                      Write-Host "Using resource group $resourceGroup"
+
+                      $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
+                      if ($functionApp -eq $null) { throw "Cannot locate ' $functionAppName' for environment '$environment'" }
+                      if ($prNumber -eq $null) { throw "Cannot locate prNumber for environment '$environment'" }
+                      $mergedTags = @{"pr"="$prNumber";}
+                      Update-AzTag -ResourceId $functionApp.Id -Tag $mergedTags -Operation Merge
