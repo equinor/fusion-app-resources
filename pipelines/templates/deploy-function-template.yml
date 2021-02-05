@@ -6,6 +6,7 @@ parameters:
   fusionEnvironment: 'ci'
   fusionResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
   templateFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/function.template.json
+  disabledFunctionsFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/disabled-functions.json
 
 steps:
 - checkout: self
@@ -73,7 +74,7 @@ steps:
       Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
       
       ## Load disabled functions
-      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "$PSScriptRoot\disabled-functions.json" -Raw)
+      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "{{ parameters.disabledFunctionsFile }}" -Raw)
       $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
 
       Write-Host "Disabled functions"
