@@ -73,8 +73,8 @@ stages:
                       $resourceGroup = $envResourceGroup.ResourceGroupName
                       Write-Host "Using resource group $resourceGroup"
 
-                      $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $(functionServiceName)
-                      if ($functionApp -eq $null) { throw "Cannot locate ' $(functionServiceName)' for environment '$(environment)'" }
+                      $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
+                      if ($functionApp -eq $null) { throw "Cannot locate ' $functionAppName' for environment '$(environment)'" }
                       if ($(prNumber) -eq $null) { throw "Cannot locate prNumber for environment '$(environment)'" }
 
                       $functionAppName = $functionApp.Name

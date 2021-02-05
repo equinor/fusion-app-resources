@@ -72,3 +72,21 @@ steps:
       $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
       Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
       
+      ## Load disabled functions
+      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "$PSScriptRoot\disabled-functions.json" -Raw)
+      $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
+
+      Write-Host "Disabled functions"
+      $disabledFunctions
+
+      $settings = @{}
+      ForEach ($kvp in $functionApp.SiteConfig.AppSettings) {
+          $settings[$kvp.Name] = $kvp.Value
+      }
+
+      ## Mark functions as disabled
+      $disabledFunctions | ForEach-Object { $settings["AzureWebJobs.$_.Disabled"] = "true" }
+      
+      ## Update web app settings for function app
+      Set-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName -AppSettings $settings
+
