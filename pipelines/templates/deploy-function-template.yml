@@ -74,7 +74,7 @@ steps:
       Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
       
       ## Load disabled functions
-      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "{{ parameters.disabledFunctionsFile }}" -Raw)
+      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "${{ parameters.disabledFunctionsFile }}" -Raw)
       $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
 
       Write-Host "Disabled functions"
