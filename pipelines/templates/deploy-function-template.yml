@@ -1,7 +1,6 @@
 parameters:
   envName: ''
   clientId: ''
-  appName: ''  
   fusionEnvironment: 'ci'
   fusionResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
   templateFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/function.template.json
@@ -19,7 +18,7 @@ steps:
     Inline: |
       $environment = "${{ parameters.envName }}"
       $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
-      $functionAppName = "${{ parameters.appName }}"
+      $functionAppName = "func-fap-resources-$environment"
       $envVaultName = "kv-fap-resources-$environment"
       $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
       $resourceEndpoint = "https://resources-api-$environment.fusion-dev.net"
