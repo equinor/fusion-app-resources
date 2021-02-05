@@ -14,7 +14,6 @@ pr:
 variables:
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     webPackage: '$(Pipeline.Workspace)/drop/Fusion.Resources.Functions.zip'
-    prNumber: $(System.PullRequest.PullRequestNumber)
   
 stages:
     - template: templates/build-function.yml
@@ -46,7 +45,6 @@ stages:
                   parameters:
                     appName: $(functionServiceName)
                     envName: $(environment)
-                    prNumber: $(prNumber)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
 
                 - task: AzureFunctionApp@1

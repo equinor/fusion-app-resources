@@ -1,6 +1,5 @@
 parameters:
   envName: ''
-  prNumber: ''
   clientId: ''
   appName: ''  
   fusionEnvironment: 'ci'
@@ -19,7 +18,6 @@ steps:
     azurePowerShellVersion: 'LatestVersion'
     Inline: |
       $environment = "${{ parameters.envName }}"
-      $prNumber = "${{ parameters.prNumber }}"
       $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
       $functionAppName = "${{ parameters.appName }}"
       $envVaultName = "kv-fap-resources-$environment"
