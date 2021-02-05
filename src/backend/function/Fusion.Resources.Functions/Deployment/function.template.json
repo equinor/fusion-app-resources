@@ -8,8 +8,7 @@
         "description": "The name of the function app that you wish to create."
       }
     },
-    "env-name": { "type": "string" },
-    "resource-endpoint": { "type": "string" },      
+    "env-name": { "type": "string" },    
     "settings": {
         "type": "object",
         "defaultValue": {
@@ -21,7 +20,7 @@
             "endpoints": {
                 "org": "https://pro-s-org-ci.azurewebsites.net",
                 "people": "https://pro-s-people-ci.azurewebsites.net",
-                "resources": "[parameters('resource-endpoint')]",
+                "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
                 "notifications": "https://pro-s-notification-ci.azurewebsites.net",
                 "context": "https://pro-s-context-ci.azurewebsites.net",
                 "portal": "https://pro-s-portal-ci.azurewebsites.net"
@@ -53,7 +52,6 @@
       "tags": {
         "fusion-app": "resources",
         "fusion-app-env": "[toLower(parameters('env-name'))]",
-        "pr": "[parameters('settings').env.prNumber]",
         "fusion-app-component-type": "azFunc",
         "fusion-app-component-id": "[concat('resources-func-', parameters('env-name'))]",
         "kv-msi-access": "true"        

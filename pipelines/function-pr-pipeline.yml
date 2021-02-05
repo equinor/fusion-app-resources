@@ -29,7 +29,7 @@ stages:
       
       variables:
         environment: 'pr'
-        functionServiceName: func-fap-resources-$(environment)-$(prNumber)
+        functionServiceName: func-fap-resources-$(environment)
     
       jobs:
       - deployment: Deploy
