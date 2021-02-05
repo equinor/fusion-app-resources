@@ -57,7 +57,7 @@ steps:
           }
           queues = @{
               provisionPosition = "provision-position"
-          }          
+          }
       }
 
       if ($fusionEnvironment -eq "fprd") {
@@ -76,5 +76,4 @@ steps:
             if ($prNumber -eq $null) { throw "Cannot locate prNumber for environment '$environment'" }          
             $mergedTags = @{"pr"="$prNumber";}
             Update-AzTag -ResourceId $functionApp.id -Tag $mergedTags -Operation Merge
-
       }
