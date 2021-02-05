@@ -64,7 +64,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
             {
-                filter = $"department eq '{fullDepartmentString}'"
+                filter = $"fullDepartment eq '{fullDepartmentString}'"
             });
 
             var data = await response.Content.ReadAsStringAsync();
@@ -81,6 +81,7 @@ namespace Fusion.Resources.Api.Controllers
                             name = string.Empty,
                             jobTitle = string.Empty,
                             department = string.Empty,
+                            fullDepartment = string.Empty,
                             mobilePhone = string.Empty,
                             officeLocation = string.Empty,
                             upn = string.Empty,
@@ -90,13 +91,14 @@ namespace Fusion.Resources.Api.Controllers
                             positions = new [] {
                                 new {
                                     id = Guid.Empty,
+                                    instanceId = Guid.Empty,
                                     name = string.Empty,
                                     appliesFrom = (DateTime?) null,
                                     appliesTo = (DateTime?) null,
                                     isActive = false,
                                     obs = string.Empty,
                                     locationName = string.Empty,
-
+                                    workload = 0.0,
                                     project = new
                                     {
                                         name = string.Empty,
@@ -116,6 +118,7 @@ namespace Fusion.Resources.Api.Controllers
                 }
             });
 
+            var rand = new Random();
 
             var departmentPersonnel = items.results.Select(i => new ApiInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
             {
@@ -123,11 +126,12 @@ namespace Fusion.Resources.Api.Controllers
                 JobTitle = i.document.jobTitle,
                 PositionInstances = i.document.positions.Select(p => new ApiInternalPersonnelPerson.PersonnelPosition
                 {
+                    PositionId = p.id,
+                    InstanceId = p.instanceId,
                     AppliesFrom = p.appliesFrom!.Value,
                     AppliesTo = p.appliesTo!.Value,
-                    PositionId = p.id,
                     Project = new ApiProjectReference(p.project.id, p.project.name),
-                    Workload = 1.0
+                    Workload = p.workload
                 }).OrderBy(p => p.AppliesFrom).ToList()
             }).ToList();
 
@@ -138,25 +142,25 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     absence.Add(new Absence()
                     {
-                        Start = new DateTime(2020, 02, 01),
-                        End = new DateTime(2020, 02, 14),
+                        Start = new DateTime(2020, 02, 01, 00, 00, 00, DateTimeKind.Utc),
+                        End = new DateTime(2020, 02, 14, 00, 00, 00, DateTimeKind.Utc),
                         Id = Guid.NewGuid(),
                         Type = "Vacation"
                     });
                     absence.Add(new Absence()
                     {
-                        Start = new DateTime(2018, 02, 21),
-                        End = new DateTime(2018, 05, 10),
+                        Start = new DateTime(2018, 02, 21, 00, 00, 00, DateTimeKind.Utc),
+                        End = new DateTime(2018, 05, 10, 00, 00, 00, DateTimeKind.Utc),
                         Id = Guid.NewGuid(),
-                        AbsencePercentage = 0.3,
+                        AbsencePercentage = 30,
                         Type = "Sick leave"
                     });
                     absence.Add(new Absence()
                     {
-                        Start = new DateTime(2020, 01, 01),
-                        End = new DateTime(2020, 04, 30),
+                        Start = new DateTime(2020, 01, 01, 00, 00, 00, DateTimeKind.Utc),
+                        End = new DateTime(2020, 04, 30, 00, 00, 00, DateTimeKind.Utc),
                         Id = Guid.NewGuid(),
-                        AbsencePercentage = 0.6,
+                        AbsencePercentage = 60,
                         Type = "Secret Job"
                     });
                 }
