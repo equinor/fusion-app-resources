@@ -63,7 +63,6 @@ steps:
      
       New-AzResourceGroupDeployment -Mode Incremental -Name "resources-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
           -env-name $environment `
-          -appName $functionAppName `
           -settings $settings
 
       $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
