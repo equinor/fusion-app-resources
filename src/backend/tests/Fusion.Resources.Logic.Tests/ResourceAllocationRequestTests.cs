@@ -51,7 +51,7 @@ namespace Fusion.Resources.Logic.Tests
                 Created = DateTime.Now,
                 CreatedById = Guid.NewGuid(),
                 Project = new DbProject { OrgProjectId = Guid.NewGuid() },
-                State = DbRequestState.Created
+                State = DbResourceAllocationRequestState.Created
             };
 
             dbContext.Add(request);
@@ -116,7 +116,7 @@ namespace Fusion.Resources.Logic.Tests
                 Created = DateTime.Now,
                 CreatedById = Guid.NewGuid(),
                 Project = new DbProject { OrgProjectId = orgProject.ProjectId!.Value },
-                State = DbRequestState.Created
+                State = DbResourceAllocationRequestState.Created
             };
 
             dbContext.Add(request);

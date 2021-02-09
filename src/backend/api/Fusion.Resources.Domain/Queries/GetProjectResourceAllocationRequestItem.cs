@@ -3,14 +3,12 @@ using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.ApiClients.Org;
 using Fusion.Integration.Org;
-using Fusion.Resources.Domain.Commands;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetProjectResourceAllocationRequestItem : IRequest<QueryResourceAllocationRequest>
+    public class GetProjectResourceAllocationRequestItem : IRequest<QueryResourceAllocationRequest?>
     {
         public GetProjectResourceAllocationRequestItem(Guid requestId)
         {

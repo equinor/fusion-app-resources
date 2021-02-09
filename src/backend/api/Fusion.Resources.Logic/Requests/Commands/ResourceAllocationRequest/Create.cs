@@ -14,6 +14,7 @@ using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
+using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -110,7 +111,7 @@ namespace Fusion.Resources.Logic.Commands
                     RuleFor(x => x.ProposedChanges).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges != null);
 
                     RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
-                    
+
                     RuleFor(x => x.OrgProjectId).NotNull();
                     RuleFor(x => x.IsDraft).NotNull();
                 }
@@ -129,7 +130,7 @@ namespace Fusion.Resources.Logic.Commands
                     (position, context) =>
                     {
                         if (position == null) return;
-                    
+
                         if (position.AppliesTo < position.AppliesFrom)
                             context.AddFailure(new ValidationFailure($"{context.PropertyName}.appliesTo",
                                 $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",
@@ -176,12 +177,11 @@ namespace Fusion.Resources.Logic.Commands
 
                     var item = await PersistChangesAsync(request);
 
-                    //TODO: Start the workflow. Workflow support to be implemented later...
-                    //await mediator.Send(new Initialize(item.Id));
+                    await mediator.Send(new Initialize(item.Id));
 
 
                     var dbRequest = await mediator.Send(new GetProjectResourceAllocationRequestItem(item.Id));
-                    return dbRequest;
+                    return dbRequest!;
                 }
 
                 private async Task<DbResourceAllocationRequest> PersistChangesAsync(Create request)
@@ -193,7 +193,7 @@ namespace Fusion.Resources.Logic.Commands
                         Id = Guid.NewGuid(),
                         Discipline = request.Discipline,
                         Type = ParseRequestType(request),
-                        State = DbRequestState.Created,
+                        State = DbResourceAllocationRequestState.Created,
 
                         Project = Project!,
 
@@ -217,6 +217,11 @@ namespace Fusion.Resources.Logic.Commands
 
                     await db.ResourceAllocationRequests.AddAsync(item);
                     await db.SaveChangesAsync();
+
+                    var workflow = new ResourceAllocationRequestWorkflowV1(request.Editor.Person);
+                    await db.Workflows.AddAsync(workflow.CreateDatabaseEntity(item.Id, DbRequestType.Employee));
+                    await db.SaveChangesAsync();
+
 
                     return item;
                 }

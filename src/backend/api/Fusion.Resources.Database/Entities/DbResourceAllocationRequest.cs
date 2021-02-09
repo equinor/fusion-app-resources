@@ -9,7 +9,7 @@ namespace Fusion.Resources.Database.Entities
         public Guid Id { get; set; }
         public string? Discipline { get; set; }
         public DbAllocationRequestType Type { get; set; } = DbAllocationRequestType.Normal;
-        public DbRequestState State { get; set; } = DbRequestState.Created;
+        public DbResourceAllocationRequestState State { get; set; } = DbResourceAllocationRequestState.Created;
         public DbProject Project { get; set; } = null!;
         public Guid ProjectId { get; set; }
 
@@ -53,7 +53,7 @@ namespace Fusion.Resources.Database.Entities
                 entity.OwnsOne(e => e.OrgPositionInstance);
 
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAllocationRequestType>());
-                entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
+                entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbResourceAllocationRequestState>());
                 entity.Property(e => e.LastActivity).HasDefaultValue(DateTimeOffset.UtcNow);
                 entity.HasIndex(e => e.LastActivity).IsClustered(false);
             });

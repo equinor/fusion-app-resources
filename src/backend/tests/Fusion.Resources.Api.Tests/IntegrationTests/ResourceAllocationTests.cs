@@ -183,12 +183,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
 
-        [Fact] public async Task PostRequest_Minimal_Request_ShouldBe_Successful()
+        [Fact]
+        public async Task PostRequest_Minimal_Request_ShouldBe_Successful()
         {
             using var adminScope = fixture.AdminScope();
-            var minimalRequest = new CreateProjectAllocationRequest(); 
+            var minimalRequest = new CreateProjectAllocationRequest();
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", minimalRequest);
             response.Should().BeSuccessfull();
+
+        }
+
+        [Fact]
+        public async Task Post_Approve_Request_ShouldBe_Successful()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
+            response.Should().BeSuccessfull();
+
+        }   
+        [Fact]
+        public async Task Post_Terminate_Request_ShouldBe_Successful()
+        {
+            using var adminScope = fixture.AdminScope();
+            var reason = new RejectRequestRequest() { Reason = "Testing termination" };
+            var response2 = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/terminate", reason);
+            response2.Should().BeSuccessfull();
 
         }
 
@@ -220,6 +239,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 public Guid? Id { get; set; }
             }
+
+            public object WorkFlow { get; set; }
+            public object ProvisioningStatus { get; set; }
         }
 
         private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response,

@@ -72,6 +72,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
             }
+            catch (Exception ex)
+            {
+                return FusionApiError.InvalidOperation("InvalidOperation", ex.Message);
+            }
         }
 
         [HttpPut("/projects/{projectIdentifier}/requests/{requestId}")]
@@ -228,12 +232,16 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok();
         }
-        /*
+
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
-            [FromBody] ApproveProjectAllocationRequest request)
+            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -241,7 +249,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    
+
                     or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
@@ -255,14 +263,13 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                throw new NotImplementedException();
                 await using var scope = await BeginTransactionAsync();
-                var result = new object();
-                //await DispatchAsync(new CreateProjectAllocationRequestCommand(projectIdentifier.ProjectId, requestId));
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
 
                 await scope.CommitAsync();
 
-                return new ApiResourceAllocationRequest(null);
+                result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+                return new ApiResourceAllocationRequest(result!);
             }
             catch (InvalidOperationException ex)
             {
@@ -273,8 +280,13 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/terminate")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> TerminateProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
-            [FromBody] TerminateProjectAllocationRequest request)
+            [FromBody] RejectRequestRequest request)
         {
+            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -282,7 +294,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    
+
                     or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
@@ -295,21 +307,21 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                throw new NotImplementedException();
                 await using var scope = await BeginTransactionAsync();
-                var result = new object();
-                //await DispatchAsync(new ProcessProjectAllocationCommand(projectIdentifier.ProjectId, requestId));
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Reject(requestId, request.Reason));
 
                 await scope.CommitAsync();
 
-                return new ApiResourceAllocationRequest(null);
+                result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+                return new ApiResourceAllocationRequest(result!);
+
             }
             catch (InvalidOperationException ex)
             {
                 return ApiErrors.InvalidOperation(ex);
             }
         }
-        */
+
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
