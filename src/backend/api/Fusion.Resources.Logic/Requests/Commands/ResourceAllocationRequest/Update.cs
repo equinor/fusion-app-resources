@@ -135,7 +135,7 @@ namespace Fusion.Resources.Logic.Commands
                     //TODO: Start the workflow. Workflow support to be implemented later...
                     //await mediator.Send(new Initialize(item.Id));
 
-                    return await mediator.Send(new GetProjectResourceAllocationRequestItem(item.Id));
+                    return await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
                 }
 
                 private async Task<DbResourceAllocationRequest> PersistChangesAsync(Update request, DbResourceAllocationRequest dbItem)

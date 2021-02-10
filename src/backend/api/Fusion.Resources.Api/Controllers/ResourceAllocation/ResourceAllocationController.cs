@@ -70,7 +70,11 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return FusionApiError.InvalidOperation("InvalidOrgChartPosition", ioe.Message);
+            }
+            catch (ValidationException ve)
+            {
+                return FusionApiError.InvalidOperation("ValidationError", ve.Message);
             }
         }
 
@@ -118,7 +122,7 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
+                return FusionApiError.InvalidOperation("ProfileNotFoundError", pef.Message);
             }
             catch (InvalidOperationException ioe)
             {
@@ -126,15 +130,47 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return FusionApiError.InvalidOperation("InvalidOrgChartPosition", ioe.Message);
+            }
+            catch (ValidationException ve)
+            {
+                return FusionApiError.InvalidOperation("ValidationError", ve.Message);
             }
         }
 
+        [HttpGet("/resources/internal-requests/requests")]
+        public async Task<ActionResult<IEnumerable<ApiResourceAllocationRequest>>> GetResourceAllocationRequests([FromQuery] ODataQueryParams query)
+        {
+            var result = await DispatchAsync(new GetResourceAllocationRequests(query));
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var linkBuilder = new LinkHeaderBuilder();
+            var request = Url.ActionContext.HttpContext.Request;
+            var uriBuilder = new UriBuilder(request.Scheme, request.Host.ToUriComponent())
+            { Path = Url.Action("GetResourceAllocationRequest") };
+
+            Response.Headers.Add("link", linkBuilder.GetLinkHeader(result, uriBuilder.ToString()));
+
+            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+            return apiModel;
+        }
+
         [HttpGet("/projects/{projectIdentifier}/requests")]
-        public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetProjectAllocationRequests(
+        public async Task<ActionResult<IEnumerable<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
             [FromRoute] ProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequests(projectIdentifier.ProjectId, query));
+            var result = await DispatchAsync(new GetResourceAllocationRequests(query).WithProjectId(projectIdentifier.ProjectId));
 
             #region Authorization
 
@@ -153,13 +189,25 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            return result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+            var linkBuilder = new LinkHeaderBuilder().WithQuery(Request, query);
+            var request = Url.ActionContext.HttpContext.Request;
+            var uriBuilder = new UriBuilder(request.Scheme, request.Host.ToUriComponent())
+            { Path = Url.Action("GetResourceAllocationRequestsForProject") };
+
+            var currentRoute = uriBuilder.ToString();
+
+            Response.Headers.Add("link", linkBuilder.GetLinkHeader(result, currentRoute));
+
+            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+
+            return apiModel;
         }
+        [HttpGet("/resources/internal-requests/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(
+            [FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -184,11 +232,12 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result);
         }
 
+        [HttpDelete("/resources/internal-requests/requests/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult> DeleteProjectAllocationRequest([FromRoute] ProjectIdentifier projectIdentifier,
+        public async Task<ActionResult> DeleteProjectAllocationRequest([FromRoute] ProjectIdentifier? projectIdentifier,
             Guid requestId)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -200,7 +249,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
+                    //or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
             });

@@ -123,7 +123,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetRequest_AdminRole_ShouldBe_Authorized()
+        public async Task GetProjectRequest_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
             var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
@@ -133,10 +133,41 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetProjectRequests_AdminRole_ShouldBe_Authorized()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            for (int i = 0; i < 150; i++)
+            {
+                var r = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
+                r.Should().BeSuccessfull();
+            }
+
+            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search=wallaWalla&$filter=department eq 'TEST'&$skip=9&$top=4");
+            response.Should().BeSuccessfull();
+
+            var linkHeader = response.Response.Headers.FirstOrDefault(x => x.Key == "Link");
+            linkHeader.Key.Should().NotBeNull();
+            
+            response.Value.Count().Should().Be(4);
+
+        }
+
+        [Fact]
+        public async Task GetRequest_AdminRole_ShouldBe_Authorized()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.Request.Id}");
+            response.Should().BeSuccessfull();
+
+            AssertPropsAreEqual(response.Value, testRequest, adminScope);
+        }
+
+        [Fact]
         public async Task GetRequests_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests");
+            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests");
             response.Should().BeSuccessfull();
 
             response.Value.Count().Should().BeGreaterThan(0);
@@ -183,10 +214,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
 
-        [Fact] public async Task PostRequest_Minimal_Request_ShouldBe_Successful()
+        [Fact]
+        public async Task PostRequest_Minimal_Request_ShouldBe_Successful()
         {
             using var adminScope = fixture.AdminScope();
-            var minimalRequest = new CreateProjectAllocationRequest(); 
+            var minimalRequest = new CreateProjectAllocationRequest();
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", minimalRequest);
             response.Should().BeSuccessfull();
 
@@ -247,5 +279,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             //Workflow/state & provisioning status to be added.
         }
+    }
+
+    public class PagingHeaderModel
+    {
     }
 }
