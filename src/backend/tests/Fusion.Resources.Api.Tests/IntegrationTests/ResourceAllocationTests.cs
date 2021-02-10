@@ -143,12 +143,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 r.Should().BeSuccessfull();
             }
 
-            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search=wallaWalla&$filter=department eq 'TEST'&$skip=9&$top=4");
+            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.Discipline}&$filter=discipline eq '{testRequest.Request.Discipline}'&$skip=9&$top=4");
             response.Should().BeSuccessfull();
 
             var linkHeader = response.Response.Headers.FirstOrDefault(x => x.Key == "Link");
             linkHeader.Key.Should().NotBeNull();
-            
+
             response.Value.Count().Should().Be(4);
 
         }
@@ -279,9 +279,5 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             //Workflow/state & provisioning status to be added.
         }
-    }
-
-    public class PagingHeaderModel
-    {
     }
 }
