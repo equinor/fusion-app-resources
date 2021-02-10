@@ -70,8 +70,6 @@ namespace Fusion.Resources.Logic.Commands
                                 await HandleWhenCreatedAsync(request);
                                 break;
 
-                            case DbResourceAllocationRequestState.Accepted:
-                            case DbResourceAllocationRequestState.Informed:
                             case DbResourceAllocationRequestState.Rejected:
                                 await HandleWhenAssignedAsync(request);
                                 break;
@@ -96,8 +94,7 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         switch (request.State)
                         {
-                            case DbResourceAllocationRequestState.Accepted:
-                            case DbResourceAllocationRequestState.Informed:
+                            case DbResourceAllocationRequestState.Assigned:
                                 workflow.CompanyApproved(request.Editor.Person);
                                 await mediator.Send(QueueResourceAllocationRequestProvisioning.PersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
                                 //notifyOnSave = new RequestApprovedByCompany(request.RequestId, request.Editor.Person);
@@ -124,15 +121,21 @@ namespace Fusion.Resources.Logic.Commands
                         switch (request.State)
                         {
                             case DbResourceAllocationRequestState.Proposed:
-                                workflow.CompanyApproved(request.Editor.Person);
-                                await mediator.Send(QueueResourceAllocationRequestProvisioning.PersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
+                                workflow.CompanyProposed(request.Editor.Person);
                                 //notifyOnSave = new RequestProposedByCompany(request.RequestId, request.Editor.Person);
                                 break;
+                            case DbResourceAllocationRequestState.Rejected:
+                                if (request.Reason is null)
+                                    throw new ArgumentException("Reason",
+                                        "Reason must be specified when rejecting request");
 
+                                workflow.CompanyRejected(request.Editor.Person, request.Reason);
+                                //notifyOnSave = new RequestDeclinedByCompany(request.RequestId, request.Reason, request.Editor.Person);
+                                break;
 
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,
-                                    DbResourceAllocationRequestState.Assigned, DbResourceAllocationRequestState.Rejected);
+                                    DbResourceAllocationRequestState.Proposed, DbResourceAllocationRequestState.Rejected);
                         }
                     }
                 }

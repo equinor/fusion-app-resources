@@ -67,7 +67,8 @@ namespace Fusion.Resources.Logic.Commands
                         switch (dbItem.State)
                         {
                             case DbResourceAllocationRequestState.Created:
-                                await HandleWhenCreatedAsync(request);
+                            case DbResourceAllocationRequestState.Rejected:
+                                await HandleWhenAssignedAsync(request);
                                 break;
 
                             default:
@@ -85,19 +86,14 @@ namespace Fusion.Resources.Logic.Commands
                         if (notifyOnSave != null)
                             await mediator.Publish(notifyOnSave);
                     }
-                    private async ValueTask HandleWhenCreatedAsync(SetState request)
+                    private async ValueTask HandleWhenAssignedAsync(SetState request)
                     {
                         switch (request.State)
                         {
-                            case DbResourceAllocationRequestState.Proposed:
+                            case DbResourceAllocationRequestState.Assigned:
                                 workflow.CompanyApproved(request.Editor.Person);
                                 await mediator.Send(QueueResourceAllocationRequestProvisioning.PersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
                                 //notifyOnSave = new RequestProposedByCompany(request.RequestId, request.Editor.Person);
-                                break;
-                            case DbResourceAllocationRequestState.Accepted:
-                                workflow.CompanyApproved(request.Editor.Person);
-                                await mediator.Send(QueueResourceAllocationRequestProvisioning.PersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
-                                //notifyOnSave = new RequestApprovedByCompany(request.RequestId, request.Editor.Person);
                                 break;
                             case DbResourceAllocationRequestState.Rejected:
                                 if (request.Reason is null)
@@ -109,7 +105,7 @@ namespace Fusion.Resources.Logic.Commands
 
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,
-                                     DbResourceAllocationRequestState.Proposed, DbResourceAllocationRequestState.Accepted);
+                                     DbResourceAllocationRequestState.Assigned, DbResourceAllocationRequestState.Rejected);
                         }
                     }
                 }

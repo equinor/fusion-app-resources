@@ -35,18 +35,43 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     var dbRequest = await mediator.Send(new GetProjectResourceAllocationRequestItem(request.RequestId), CancellationToken.None);
 
-                    switch (dbRequest.Type)
+                    switch (dbRequest!.Type)
                     {
                         case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
-                            await mediator.Send(new Direct.SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
+                            switch (dbRequest.State)
+                            {
+                                case DbResourceAllocationRequestState.Created:
+                                    await mediator.Send(new Direct.SetState(request.RequestId, DbResourceAllocationRequestState.Assigned));
+                                    break;
+                                default:
+                                    throw new NotSupportedException();
+                            }
                             break;
 
+
                         case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
-                            await mediator.Send(new JointVenture.SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
+                            switch (dbRequest.State)
+                            {
+                                case DbResourceAllocationRequestState.Created:
+                                    await mediator.Send(new JointVenture.SetState(request.RequestId, DbResourceAllocationRequestState.Proposed));
+                                    break;
+                                default:
+                                    throw new NotSupportedException();
+                            }
                             break;
 
                         case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
-                            await mediator.Send(new Normal.SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
+                            switch (dbRequest.State)
+                            {
+                                case DbResourceAllocationRequestState.Created:
+                                    await mediator.Send(new Normal.SetState(request.RequestId, DbResourceAllocationRequestState.Proposed));
+                                    break;
+                                case DbResourceAllocationRequestState.Proposed:
+                                    await mediator.Send(new Normal.SetState(request.RequestId, DbResourceAllocationRequestState.Assigned));
+                                    break;
+                                default:
+                                    throw new NotSupportedException();
+                            }
                             break;
                     }
                 }

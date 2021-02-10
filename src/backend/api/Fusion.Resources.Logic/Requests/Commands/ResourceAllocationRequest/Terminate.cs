@@ -37,10 +37,9 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     var dbRequest = await mediator.Send(new GetProjectResourceAllocationRequestItem(request.RequestId), CancellationToken.None);
 
-                    switch (dbRequest.Type)
+                    switch (dbRequest!.Type)
                     {
                         case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
-
                             await mediator.Send(new Direct.SetState(request.RequestId, DbResourceAllocationRequestState.Rejected).WithReason(request.Reason));
                             break;
                         case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:

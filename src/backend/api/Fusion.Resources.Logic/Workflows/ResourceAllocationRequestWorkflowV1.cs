@@ -1,7 +1,5 @@
 ﻿using Fusion.Resources.Database.Entities;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Fusion.Resources.Logic.Workflows
 {
@@ -9,6 +7,7 @@ namespace Fusion.Resources.Logic.Workflows
     public class ResourceAllocationRequestWorkflowV1 : WorkflowDefinition
     {
         public const string CREATED = "created";
+        public const string COMPANY_PROPOSAL = "companyProposal";
         public const string COMPANY_APPROVAL = "companyApproval";
         public const string PROVISIONING = "provisioning";
 
@@ -21,6 +20,7 @@ namespace Fusion.Resources.Logic.Workflows
             Steps = new List<WorkflowStep>()
             {
                 Created,
+                CompanyProposal,
                 CompanyApproval,
                 Provisioning
             };
@@ -42,6 +42,15 @@ namespace Fusion.Resources.Logic.Workflows
         }
         
         public void CompanyApproved(DbPerson approver)
+        {
+            Step(COMPANY_APPROVAL)
+                .SetName("Approved")
+                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access contract resources.")
+                .Complete(approver, true)
+                .StartNext();
+        }
+
+        public void CompanyProposed(DbPerson approver)
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
@@ -90,6 +99,11 @@ namespace Fusion.Resources.Logic.Workflows
             .WithDescription("Review personnel request and approve/reject")
             .WithPreviousStep(CREATED)
             .WithNextStep(PROVISIONING);
+
+        public static WorkflowStep CompanyProposal => new WorkflowStep(COMPANY_PROPOSAL, "Propose")
+            .WithDescription("Review personnel request and approve/reject")
+            .WithPreviousStep(CREATED)
+            .WithNextStep(COMPANY_APPROVAL);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
             .WithDescription("If the request is approved, the new position or changes will be provisioned to the contract organisational chart.")
