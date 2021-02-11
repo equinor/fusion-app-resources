@@ -2,7 +2,7 @@
 import * as styles from './styles.less';
 import { Spinner, Button, ModalSideSheet } from '@equinor/fusion-components';
 import { useAppContext } from '../../../../../../../../appContext';
-import { Dispatch, SetStateAction, FC, useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
+import { Dispatch, SetStateAction, FC, useState, useRef, useEffect, useCallback, ChangeEvent, DragEvent } from 'react';
 
 type ExcelImportSideSheetProps = {
     setSelectedFile: Dispatch<SetStateAction<File | null>>;
