@@ -3,14 +3,15 @@
     "declaration": true,
     "importHelpers": true,
     "sourceMap": true,
-    "module": "commonjs",
+    "module": "ES6",
     "outDir": "lib",
     "rootDir": "src",
     "strict": true,
-    "target": "es2017",
+    "target": "ES6",
     "composite": false,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node"
   },
   "include": [
     "src/**/*",
