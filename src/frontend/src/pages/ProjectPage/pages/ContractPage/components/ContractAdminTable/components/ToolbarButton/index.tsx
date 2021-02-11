@@ -1,7 +1,7 @@
 
 import { Button } from '@equinor/fusion-components';
 import { ReactNode, forwardRef } from 'react';
-import * as styles from './styles.less';
+import styles from './styles.less';
 
 type ToolbarButtonProps = {
     icon: ReactNode;

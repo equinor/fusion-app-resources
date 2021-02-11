@@ -1,7 +1,7 @@
 
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { ModalSideSheet, TextArea, Button } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { FC, useState } from 'react';
 
 type RejectRequestSideSheetProps = {

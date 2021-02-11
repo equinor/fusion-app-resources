@@ -4,7 +4,7 @@ import Contract from '../../../../../models/contract';
 import CreatePositionRequest from '../../../../../models/createPositionRequest';
 import useCreatePositionForm from '../hooks/useCreatePositionForm';
 import usePositionPersister from '../hooks/usePositionPersister';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import BasePositionPicker from './BasePositionPicker';
 import { TextInput, DatePicker, PersonPicker, Button, Spinner } from '@equinor/fusion-components';
 import { FC, useMemo, useState, useCallback, useEffect } from 'react';

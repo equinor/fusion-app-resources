@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import Workflow from '../../../../../../models/Workflow';
 import { WorkflowStep } from '../../../../../../models/Workflow';
 import RequestWorkflowStep from './WorkflowStep';

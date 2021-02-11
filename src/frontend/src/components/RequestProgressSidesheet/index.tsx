@@ -13,7 +13,7 @@ import {
 } from '@equinor/fusion-components';
 import useServiceNowPopoverRef from '../../hooks/useServiceNowPopoverRef';
 import classNames from 'classnames';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import RequestValidationError from '../../models/RequestValidationError';
 import { FC, useState, useMemo, useEffect, useCallback, RefObject } from 'react';
 

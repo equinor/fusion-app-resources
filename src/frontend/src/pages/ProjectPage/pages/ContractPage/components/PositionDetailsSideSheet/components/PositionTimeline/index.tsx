@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { PositionInstance, formatDate, Position } from '@equinor/fusion';
 import { Slider, ErrorMessage } from '@equinor/fusion-components';
 import { SliderMarker } from '@equinor/fusion-components/dist/components/general/Slider';

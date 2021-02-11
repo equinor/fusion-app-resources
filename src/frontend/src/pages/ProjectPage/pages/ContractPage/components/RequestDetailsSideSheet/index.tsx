@@ -16,7 +16,7 @@ import {
 import RequestDetails from './RequestDetails';
 import useCurrentRequest from './hooks/useCurrentRequest';
 import RequestWorkflow from '../RequestWorkflow';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import CompactPersonDetails from './CompactPersonDetails';
 import useRequestApproval from '../../hooks/useRequestApproval';
 import RejectPersonnelSideSheet from '../RejectRequestSideSheet';

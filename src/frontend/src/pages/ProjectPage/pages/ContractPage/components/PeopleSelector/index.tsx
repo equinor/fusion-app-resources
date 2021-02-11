@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import RemovablePersonDetails from './components/RemovablePersonDetails';
 import { PersonPicker } from '@equinor/fusion-components';
 import { PersonDetails } from '@equinor/fusion';

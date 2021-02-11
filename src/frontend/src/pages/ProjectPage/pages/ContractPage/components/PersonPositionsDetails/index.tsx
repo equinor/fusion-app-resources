@@ -1,6 +1,6 @@
 
 import Personnel, { Position } from '../../../../../../models/Personnel';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { PersonPosition } from '@equinor/fusion';
 import { PersonPositionCard } from '@equinor/fusion-components';
 import { FC, useMemo } from 'react';

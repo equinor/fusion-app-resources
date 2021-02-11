@@ -1,6 +1,6 @@
 
 import { useContractContext } from '../../../../../../contractContex';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import {
     SkeletonBar,
     PositionCard,

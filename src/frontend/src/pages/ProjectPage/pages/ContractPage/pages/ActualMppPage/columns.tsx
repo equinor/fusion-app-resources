@@ -2,7 +2,7 @@ import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
 
 import PositionColumn from '../../../../components/PositionColumn';
 import { Position, useHistory } from '@equinor/fusion';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { FC, useCallback } from 'react';
 
 type AssignedPersonProps = {

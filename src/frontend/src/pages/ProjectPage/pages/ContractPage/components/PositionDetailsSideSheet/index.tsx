@@ -2,7 +2,7 @@
 import { Position, formatDate } from '@equinor/fusion';
 import { ModalSideSheet, Tabs, Tab } from '@equinor/fusion-components';
 import useCurrentPosition from './hooks/useCurrentPosition';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import PositionAssignment from './PositionAssignment';
 import ReportingPathTab from './tabs/ReportingPathTab';
 import PositionTimeline from './components/PositionTimeline';

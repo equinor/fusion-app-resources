@@ -2,7 +2,7 @@ import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
 import PersonDelegation from '../../../../../../models/PersonDelegation';
 
 import { formatDate } from '@equinor/fusion';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { FC } from 'react';
 
 type ColumnProps = {

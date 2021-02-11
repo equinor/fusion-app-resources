@@ -6,7 +6,7 @@ import {
     EditIcon,
     DeleteIcon,
 } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import ExcelImportIcon from '../../../../../../../../components/ExcelImportIcon';
 import { FC, MouseEvent } from 'react';
 

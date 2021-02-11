@@ -1,7 +1,7 @@
 
 
 import { FC } from 'react';
-import * as styles from './styles.less';
+import styles from './styles.less';
 
 type ScrollUpFabProps = {
     onClick: () => void;

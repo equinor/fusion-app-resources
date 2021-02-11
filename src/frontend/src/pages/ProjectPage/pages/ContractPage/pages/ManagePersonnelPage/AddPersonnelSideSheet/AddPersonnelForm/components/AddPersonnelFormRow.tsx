@@ -1,5 +1,5 @@
 
-import * as styles from '../../styles.less';
+import styles from '../../styles.less';
 import Personnel from '../../../../../../../../../models/Personnel';
 import SelectionCell from '../../../components/SelectionCell';
 import AddPersonnelFormTextInput from './AddPersonnelFormTextInput';

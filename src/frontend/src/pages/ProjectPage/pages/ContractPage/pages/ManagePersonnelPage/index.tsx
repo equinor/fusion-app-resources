@@ -3,7 +3,7 @@ import { DataTable, DataTableColumn } from '@equinor/fusion-components';
 import { useSorting, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import Personnel from '../../../../../../models/Personnel';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { useContractContext } from '../../../../../../contractContex';
 import AddPersonnelSideSheet from './AddPersonnelSideSheet';
 import getFilterSections from './getFilterSections';

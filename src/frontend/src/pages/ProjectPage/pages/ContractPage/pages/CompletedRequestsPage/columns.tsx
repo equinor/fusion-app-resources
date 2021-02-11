@@ -3,7 +3,7 @@ import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 
 import PositionColumn from '../../../../components/PositionColumn';
 import { useHistory, formatDateTime } from '@equinor/fusion';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import RequestWorkflow from '../../components/RequestWorkflow';
 import { FC, useCallback } from 'react';
 

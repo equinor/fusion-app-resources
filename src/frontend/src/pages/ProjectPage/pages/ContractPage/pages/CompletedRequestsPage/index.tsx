@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../../../../../../components/SortableTable';

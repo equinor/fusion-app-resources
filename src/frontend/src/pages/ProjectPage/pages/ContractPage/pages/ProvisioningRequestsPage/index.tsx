@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { Button, Spinner } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';

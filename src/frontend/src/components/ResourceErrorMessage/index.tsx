@@ -1,6 +1,6 @@
 
 import { ErrorMessage, BlockIcon } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import ResourceError from '../../reducers/ResourceError';
 import { ErrorTypes } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 import classNames from 'classnames';

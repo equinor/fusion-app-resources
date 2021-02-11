@@ -1,7 +1,7 @@
 
 import { TextInput, EditIcon, ModalSideSheet, TextArea } from '@equinor/fusion-components';
 import { DefaultTableType } from './TableTypes';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { FC, useState, useCallback } from 'react';
 
 type TextEditSideSheetProps = {

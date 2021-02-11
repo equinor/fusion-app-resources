@@ -12,7 +12,7 @@ import {
 import { useNotificationCenter, useCurrentApp } from '@equinor/fusion';
 import { ServiceNowIncidentRequest } from '../../api/ServiceNowApiClient';
 import { useAppContext } from '../../appContext';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { FC, useCallback, useEffect, useState } from 'react';
 
 const serializeLocalStorage = () => {

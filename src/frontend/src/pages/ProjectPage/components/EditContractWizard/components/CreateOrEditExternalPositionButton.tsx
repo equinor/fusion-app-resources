@@ -1,6 +1,6 @@
 
 import { ModalSideSheet, Button, AddIcon, EditIcon } from '@equinor/fusion-components';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { Position } from '@equinor/fusion';
 import Contract from '../../../../../models/contract';
 import ExternalPositionSidesheet from './ExternalPositionSidesheet';

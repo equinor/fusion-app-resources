@@ -2,7 +2,7 @@
 import { DataTableColumn } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 import AzureAdStatusIcon from './components/AzureAdStatus';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import PersonnelInfoSideSheet from './PersonnelInfoSideSheet';
 import { FC, useState } from 'react';
 

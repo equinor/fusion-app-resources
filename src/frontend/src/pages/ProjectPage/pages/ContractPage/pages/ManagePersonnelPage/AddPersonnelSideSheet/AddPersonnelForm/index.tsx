@@ -1,5 +1,5 @@
 
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import PersonnelLine from '../models/PersonnelLine';
 import { AddPersonnelFormHead } from './components/AddPersonnelFormHeader';
 import { AddPersonnelFormRow } from './components/AddPersonnelFormRow';

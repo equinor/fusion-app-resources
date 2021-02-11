@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import classNames from 'classnames';
 import { WorkflowStep } from '../../../../../../models/Workflow';
 import { PersonCard } from '@equinor/fusion-components';

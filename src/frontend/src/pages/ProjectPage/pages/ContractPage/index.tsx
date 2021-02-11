@@ -16,7 +16,7 @@ import ActualMppPage from './pages/ActualMppPage';
 import ActiveRequestsPage from './pages/ActiveRequestsPage';
 import CompletedRequestsPage from './pages/CompletedRequestsPage';
 import useContractFromId from './hooks/useContractFromId';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { useCurrentContext, useHistory } from '@equinor/fusion';
 import { contractReducer, createInitialState } from '../../../../reducers/contractReducer';
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';

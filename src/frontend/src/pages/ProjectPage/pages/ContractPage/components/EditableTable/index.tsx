@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import Taskbar from './Taskbar';
 import TableTextInput from './components/TableTextInput';
 import TableBasePosition from './components/TableBasePositionPicker';

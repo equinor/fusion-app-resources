@@ -1,7 +1,7 @@
 
 import { CheckBox } from '@equinor/fusion-components';
 import { forwardRef, PropsWithChildren, MutableRefObject } from 'react';
-import * as styles from './styles.less';
+import styles from './styles.less';
 
 export type SelectionCellProps = {
   isSelected: boolean;

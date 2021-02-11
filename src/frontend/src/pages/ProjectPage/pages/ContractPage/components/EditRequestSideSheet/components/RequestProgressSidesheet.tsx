@@ -3,7 +3,7 @@ import {
     PersonCard,
 } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { EditRequest } from '..';
 import RequestProgressSidesheet, { FailedRequest, SuccessfulRequest } from '../../../../../../../components/RequestProgressSidesheet';
 import { FC } from 'react';

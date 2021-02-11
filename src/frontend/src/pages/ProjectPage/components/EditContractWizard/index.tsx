@@ -14,7 +14,7 @@ import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
 import ContractNumberPicker from './components/ContractNumberPicker';
 import classNames from 'classnames';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
 import CreateOrEditExternalPositionButton from './components/CreateOrEditExternalPositionButton';
 import { formatDate, useTelemetryLogger, useNotificationCenter } from '@equinor/fusion';

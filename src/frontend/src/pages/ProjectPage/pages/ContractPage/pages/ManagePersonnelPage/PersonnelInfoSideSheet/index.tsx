@@ -14,7 +14,7 @@ import Personnel from '../../../../../../../models/Personnel';
 import useForm from '../../../../../../../hooks/useForm';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import EditablePositionDetails from '../../../components/EditablePositionDetails';
 import PersonPositionsDetails from '../../../components/PersonPositionsDetails';
 import { FC, useState, useCallback, useMemo } from 'react';

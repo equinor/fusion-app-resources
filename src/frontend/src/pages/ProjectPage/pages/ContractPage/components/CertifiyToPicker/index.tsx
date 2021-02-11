@@ -1,7 +1,7 @@
 
 import { RadioButton } from '@equinor/fusion-components';
 import { FC, useState, useMemo, useCallback, useEffect } from 'react';
-import * as styles from './styles.less';
+import styles from './styles.less';
 
 type CertifyToPickerProps = {
     onChange: (selectedDate: Date) => void;

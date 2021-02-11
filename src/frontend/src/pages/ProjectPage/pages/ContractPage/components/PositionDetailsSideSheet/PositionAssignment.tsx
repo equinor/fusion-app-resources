@@ -2,7 +2,7 @@
 import { PersonCard, PersonPhoto } from '@equinor/fusion-components';
 import { PositionInstance, formatDate } from '@equinor/fusion';
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { FC } from 'react';
 
 type PositionAssignmentProps = {

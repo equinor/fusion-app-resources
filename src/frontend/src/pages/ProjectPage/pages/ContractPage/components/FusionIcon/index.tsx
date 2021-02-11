@@ -1,5 +1,5 @@
 import FusionLogo from "./FusionLogo";
-import * as styles from "./styles.less";
+import styles from "./styles.less";
 import { FC } from "react";
 
 const FusionIcon:FC= () => {

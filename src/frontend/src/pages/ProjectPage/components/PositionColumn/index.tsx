@@ -1,7 +1,7 @@
 
 import { useCurrentContext, Position, useApiClients } from '@equinor/fusion';
 import { SkeletonBar, PersonPhoto, SkeletonDisc } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { getInstances } from '../../orgHelpers';
 import { FC, useState, useEffect, useMemo } from 'react';
 

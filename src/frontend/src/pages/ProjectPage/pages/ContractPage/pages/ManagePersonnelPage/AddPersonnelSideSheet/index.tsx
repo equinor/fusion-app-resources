@@ -2,7 +2,7 @@
 import { ModalSideSheet, Button, Spinner, ArrowBackIcon } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import {
     useCurrentContext,
     HttpClientRequestFailedError,

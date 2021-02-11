@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
 import CertifyToPicker from '../CertifiyToPicker';
 import classNames from 'classnames';

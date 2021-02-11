@@ -1,4 +1,4 @@
-import * as styles from "./styles.less";
+import styles from "./styles.less";
 import { IconButton, DeleteIcon, PersonPhoto } from '@equinor/fusion-components';
 import { PersonDetails } from '@equinor/fusion';
 import { FC, useCallback } from "react";

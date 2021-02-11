@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { formatDate } from '@equinor/fusion';
 import { useTooltipRef, PersonPhoto, InfoIcon } from '@equinor/fusion-components';
 import classNames from 'classnames';

@@ -8,7 +8,7 @@ import {
     CopyIcon,
 } from '@equinor/fusion-components';
 import { FC, MutableRefObject, useCallback } from 'react';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 
 type TableToolbarProps = {
     onRemove?: () => void;

@@ -23,7 +23,7 @@ import useBasePositions from '../../../../../../hooks/useBasePositions';
 import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
 import { ReadonlyCollection } from '../../../../../../reducers/utils';
 import { Link } from 'react-router-dom';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { FC, useState, useMemo, useEffect, useCallback } from 'react';
 
 export type EditRequest = {

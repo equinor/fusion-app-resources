@@ -1,7 +1,7 @@
 
 import { OrgChartItemProps, PositionCard } from '@equinor/fusion-components';
 
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { isInstancePast, isInstanceFuture } from '../../../../../orgHelpers';
 import { Position, PositionInstance } from '@equinor/fusion';
 import { OrgStructure } from '@equinor/fusion-components';

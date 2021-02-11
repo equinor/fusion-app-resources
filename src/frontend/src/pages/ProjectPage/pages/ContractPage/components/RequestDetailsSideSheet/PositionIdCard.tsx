@@ -2,7 +2,7 @@
 import { PositionCard, SkeletonDisc, SkeletonBar } from '@equinor/fusion-components';
 import { FC } from 'react';
 import usePositionById from './hooks/usePositionById';
-import * as styles from './styles.less';
+import styles from './styles.less';
 type PositionIdCardProps = {
     positionId?: string;
 };

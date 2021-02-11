@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useCurrentContext, combineUrls } from '@equinor/fusion';
 import { Button, ErrorMessage, IconButton, HelpIcon, useTooltipRef } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import createColumns from './Columns';
 import useContracts from './hooks/useContracts';
 import GenericFilter from '../../../../components/GenericFilter';

@@ -1,6 +1,6 @@
 
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import classNames from 'classnames';
 import { formatDate } from '@equinor/fusion';
 import PositionIdCard from './PositionIdCard';

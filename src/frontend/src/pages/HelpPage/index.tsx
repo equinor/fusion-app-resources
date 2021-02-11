@@ -1,5 +1,5 @@
 
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { Spinner, MarkdownViewer, ErrorMessage, Tabs, Tab } from '@equinor/fusion-components';
 
 import GithubApiClient from '../../api/GithubApiClient';
