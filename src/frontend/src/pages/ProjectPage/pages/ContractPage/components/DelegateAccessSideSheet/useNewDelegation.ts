@@ -1,5 +1,5 @@
 import { PersonDetails, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
-import * as React from 'react';
+import { useState, useCallback } from 'react';
 import {
     PersonDelegationClassification,
     PersonDelegationRequest,
@@ -17,11 +17,11 @@ export default (
     const { contract, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
 
-    const [isDelegatingAccess, setIsDelegatingAccess] = React.useState<boolean>(false);
-    const [delegateError, setDelegateError] = React.useState<Error | null>(null);
+    const [isDelegatingAccess, setIsDelegatingAccess] = useState<boolean>(false);
+    const [delegateError, setDelegateError] = useState<Error | null>(null);
     const sendNotification = useNotificationCenter();
 
-    const delegateAccessAsync = React.useCallback(
+    const delegateAccessAsync = useCallback(
         async (projectId: string, contractId: string, validTo: Date) => {
             setIsDelegatingAccess(true);
             setDelegateError(null);
@@ -66,7 +66,7 @@ export default (
         [persons, accountType, apiClient, sendNotification, onSuccessfullyDelegated]
     );
 
-    const delegateAccess = React.useCallback(async () => {
+    const delegateAccess = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
 

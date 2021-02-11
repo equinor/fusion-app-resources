@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback, useMemo } from 'react';
 import { BasePosition } from '@equinor/fusion';
 import { DefaultTableType } from './TableTypes';
 import {
@@ -16,7 +16,7 @@ function TableBasePosition<T, TState extends BasePosition>({
     rowIdentifier,
     componentState,
 }: DefaultTableType<T, TState>) {
-    const onBasePositionChange = React.useCallback(
+    const onBasePositionChange = useCallback(
         (basePosition: BasePosition) => {
             onChange(item[rowIdentifier], accessKey, basePosition);
         },
@@ -24,7 +24,7 @@ function TableBasePosition<T, TState extends BasePosition>({
     );
     const selectedBasePositionId = accessor(item)?.id;
 
-    const options = React.useMemo(() => {
+    const options = useMemo(() => {
         if (!componentState || componentState.error || componentState.isFetching) {
             return [];
         }
@@ -35,7 +35,7 @@ function TableBasePosition<T, TState extends BasePosition>({
         }));
     }, [componentState, selectedBasePositionId]);
 
-    const onDropdownSelect = React.useCallback(
+    const onDropdownSelect = useCallback(
         (option: SearchableDropdownOption) => {
             if (!componentState) {
                 return;

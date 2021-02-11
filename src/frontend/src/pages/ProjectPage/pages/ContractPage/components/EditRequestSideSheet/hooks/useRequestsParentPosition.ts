@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 
 import { useApiClients, useTelemetryLogger, useCurrentContext, Position } from '@equinor/fusion';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
@@ -7,13 +7,13 @@ import { useAppContext } from '../../../../../../../appContext';
 export default (personnelRequests: PersonnelRequest[] | null) => {
     const currentContext = useCurrentContext();
 
-    const [isFetchingPositions, setIsFetchingPositions] = React.useState<boolean>(false);
-    const [positionsError, setPositionsError] = React.useState<Error | null>(null);
+    const [isFetchingPositions, setIsFetchingPositions] = useState<boolean>(false);
+    const [positionsError, setPositionsError] = useState<Error | null>(null);
     const apiClients = useApiClients();
     const telemetryLogger = useTelemetryLogger();
     const { dispatchAppAction, appState } = useAppContext();
 
-    const parentPositionsIds = React.useMemo(() => {
+    const parentPositionsIds = useMemo(() => {
         if (!personnelRequests) {
             return [];
         }
@@ -26,7 +26,7 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
         }, []);
     }, [personnelRequests]);
 
-    const cachedPositions = React.useMemo(
+    const cachedPositions = useMemo(
         () =>
             appState.positions.data.filter(position =>
                 parentPositionsIds.some(parentPositionId => parentPositionId === position.id)
@@ -34,9 +34,9 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
         [appState, parentPositionsIds]
     );
 
-    const [selectedPositions, setSelectedPositions] = React.useState<Position[]>(cachedPositions);
+    const [selectedPositions, setSelectedPositions] = useState<Position[]>(cachedPositions);
 
-    const fetchAllPositions = React.useCallback(
+    const fetchAllPositions = useCallback(
         async (projectId: string) => {
             try {
                 setIsFetchingPositions(true);
@@ -56,7 +56,7 @@ export default (personnelRequests: PersonnelRequest[] | null) => {
         [parentPositionsIds]
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!currentContext?.externalId) {
             return;
         }

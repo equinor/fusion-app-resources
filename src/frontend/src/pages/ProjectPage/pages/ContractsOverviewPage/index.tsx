@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useCurrentContext, combineUrls } from '@equinor/fusion';
 import { Button, ErrorMessage, IconButton, HelpIcon, useTooltipRef } from '@equinor/fusion-components';
 import * as styles from './styles.less';
@@ -14,16 +14,16 @@ import { Link } from 'react-router-dom';
 const ContractsOverviewPage = () => {
     const currentProject = useCurrentContext();
     const { contracts, isFetchingContracts, contractsError } = useContracts(currentProject?.id);
-    const [filteredContracts, setFilteredContracts] = React.useState<Contract[]>(contracts);
+    const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contracts);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setFilteredContracts(contracts);
     }, [contracts]);
 
-    const columns = React.useMemo(() => createColumns(), []);
-    const filterSections = React.useMemo(() => getFilterSections(contracts), [contracts]);
+    const columns = useMemo(() => createColumns(), []);
+    const filterSections = useMemo(() => getFilterSections(contracts), [contracts]);
 
-    const hasError = React.useMemo(
+    const hasError = useMemo(
         () => contractsError !== null || (!isFetchingContracts && !contracts.length),
         [contractsError, isFetchingContracts]
     );

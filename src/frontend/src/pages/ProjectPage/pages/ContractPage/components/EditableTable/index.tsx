@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import * as styles from './styles.less';
 import Taskbar from './Taskbar';
 import TableTextInput from './components/TableTextInput';
@@ -60,9 +60,9 @@ function EditableTable<T>({
     createCopyState,
     onItemChange
 }: EditableTableProps<T>) {
-    const [selectedItems, setSelectedItems] = React.useState<T[]>([]);
-    const [activeTableCell, setActiveTableCell] = React.useState<HTMLTableCellElement | null>(null);
-    const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
+    const [selectedItems, setSelectedItems] = useState<T[]>([]);
+    const [activeTableCell, setActiveTableCell] = useState<HTMLTableCellElement | null>(null);
+    const tableContainerRef = useRef<HTMLDivElement | null>(null);
 
     const onChange = (key: any, accessKey: keyof T, value: any) => {
         const updatedPersons = [...formState].map(stateItem => {
@@ -82,12 +82,12 @@ function EditableTable<T>({
         setFormState(updatedPersons);
     };
 
-    const onAddItem = React.useCallback(() => {
+    const onAddItem = useCallback(() => {
         const newStateItem = createDefaultState();
         setFormState([...formState, ...newStateItem]);
     }, [formState, createDefaultState]);
 
-    const onRemoveItems = React.useCallback(
+    const onRemoveItems = useCallback(
         (items: T[]) => {
             const newFormState = formState.filter(
                 stateItem => !items.some(item => item[rowIdentifier] === stateItem[rowIdentifier])
@@ -101,7 +101,7 @@ function EditableTable<T>({
         [formState, rowIdentifier, selectedItems]
     );
 
-    const onCopyItems = React.useCallback(
+    const onCopyItems = useCallback(
         (items: T[]) => {
             if (!createCopyState) {
                 return;
@@ -112,7 +112,7 @@ function EditableTable<T>({
         [setFormState, createCopyState, formState]
     );
 
-    const getTableComponent = React.useCallback(
+    const getTableComponent = useCallback(
         (column: EditableTaleColumn<T>, item: T) => {
             const defaultProps = {
                 item,
@@ -155,7 +155,7 @@ function EditableTable<T>({
         [onChange, rowIdentifier, isFetching]
     );
 
-    const onItemSelectChange = React.useCallback(
+    const onItemSelectChange = useCallback(
         (item: T) => {
             if (selectedItems && selectedItems.some(i => i === item)) {
                 setSelectedItems(selectedItems.filter(i => i !== item));
@@ -166,7 +166,7 @@ function EditableTable<T>({
         [selectedItems]
     );
 
-    const isAllSelected = React.useMemo(() => selectedItems.length === formState.length, [
+    const isAllSelected = useMemo(() => selectedItems.length === formState.length, [
         selectedItems,
         formState,
     ]);
@@ -176,11 +176,11 @@ function EditableTable<T>({
         'above'
     );
 
-    const onSelectAll = React.useCallback(() => {
+    const onSelectAll = useCallback(() => {
         setSelectedItems(selectedItems.length === formState.length ? [] : formState);
     }, [formState, selectedItems]);
 
-    const scrollToTableCell = React.useCallback(
+    const scrollToTableCell = useCallback(
         (tableCell: HTMLTableCellElement | null) => {
             if (!tableContainerRef.current || !tableCell) {
                 return;
@@ -198,11 +198,11 @@ function EditableTable<T>({
         [tableContainerRef]
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         scrollToTableCell(activeTableCell);
     }, [activeTableCell]);
 
-    const tableHeader = React.useMemo(() => {
+    const tableHeader = useMemo(() => {
         return (
             <thead>
                 <tr>
@@ -234,7 +234,7 @@ function EditableTable<T>({
         );
     }, [columns, selectedItems, formState]);
 
-    const getRowBodySelectedState = React.useCallback(
+    const getRowBodySelectedState = useCallback(
         (stateItem: T) =>
             !!selectedItems &&
             selectedItems.some(
@@ -243,7 +243,7 @@ function EditableTable<T>({
         [selectedItems]
     );
 
-    const tableBody = React.useMemo(() => {
+    const tableBody = useMemo(() => {
         return (
             <tbody>
                 {formState.map((stateItem, index) => (

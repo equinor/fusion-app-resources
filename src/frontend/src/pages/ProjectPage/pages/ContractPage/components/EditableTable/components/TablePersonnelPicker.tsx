@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useMemo, useCallback } from 'react';
 import {
     SearchableDropdownOption,
     SkeletonBar,
@@ -17,9 +17,9 @@ function TablePersonnelPicker<T>({
     columnLabel,
     componentState,
 }: DefaultTableType<T, Personnel>) {
-    const selectedPersonnel = React.useMemo(() => accessor(item), [accessor, item]);
+    const selectedPersonnel = useMemo(() => accessor(item), [accessor, item]);
 
-    const options = React.useMemo((): SearchableDropdownOption[] => {
+    const options = useMemo((): SearchableDropdownOption[] => {
         if (!componentState) {
             return [];
         }
@@ -34,7 +34,7 @@ function TablePersonnelPicker<T>({
             }));
     }, [selectedPersonnel, componentState]);
 
-    const onDropdownSelect = React.useCallback(
+    const onDropdownSelect = useCallback(
         (option: SearchableDropdownOption) => {
             if (!componentState) {
                 return;

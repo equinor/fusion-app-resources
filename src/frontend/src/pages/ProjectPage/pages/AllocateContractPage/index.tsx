@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback } from 'react';
 import EditContractWizard from '../../components/EditContractWizard';
 import { useHistory, useCurrentContext } from '@equinor/fusion';
 import Contract from '../../../../models/contract';
@@ -7,15 +7,15 @@ const AllocateContractPage = () => {
     const history = useHistory();
     const currentContext = useCurrentContext();
 
-    const onCancel = React.useCallback(() => {
+    const onCancel = useCallback(() => {
         history.push('/' + (currentContext?.id || ''));
     }, [history, currentContext]);
 
-    const onGoBack = React.useCallback(() => {
+    const onGoBack = useCallback(() => {
         history.goBack();
     }, [history]);
 
-    const onSubmit = React.useCallback((contract: Contract) => {
+    const onSubmit = useCallback((contract: Contract) => {
         history.push(`/${currentContext}/${contract.id}`);
     }, [currentContext, history]);
 

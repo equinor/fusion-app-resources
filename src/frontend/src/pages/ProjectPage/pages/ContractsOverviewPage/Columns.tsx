@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { DataTableColumn, styling } from "@equinor/fusion-components";
 import Contract from '../../../../models/contract';
 import ContractLinkColumn from './components/ContractLinkColumn';

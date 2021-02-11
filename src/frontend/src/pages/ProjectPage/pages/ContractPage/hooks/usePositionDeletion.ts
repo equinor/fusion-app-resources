@@ -1,12 +1,12 @@
-import * as React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Position, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useContractContext } from '../../../../../contractContex';
 import { useAppContext } from '../../../../../appContext';
 
 export default (selectedPositions: Position[]) => {
-    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
-    const [deleteError, setDeleteError] = React.useState<Error | null>(null);
-    const [canDeletePosition, setCanDeletePosition] = React.useState<boolean>(false);
+    const [isDeleting, setIsDeleting] = useState<boolean>(false);
+    const [deleteError, setDeleteError] = useState<Error | null>(null);
+    const [canDeletePosition, setCanDeletePosition] = useState<boolean>(false);
 
     const sendNotification = useNotificationCenter();
     const currentContext = useCurrentContext();
@@ -20,13 +20,13 @@ export default (selectedPositions: Position[]) => {
         setCanDeletePosition(response);
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (currentContractId && currentProjectId) {
             canDeletePositionAsync(currentProjectId, currentContractId);
         }
     }, [currentContractId, currentProjectId]);
 
-    const deletePositionsAsync = React.useCallback(
+    const deletePositionsAsync = useCallback(
         async (projectId: string, contractId: string, positions: Position[]) => {
             setDeleteError(null);
             setIsDeleting(true);
@@ -60,7 +60,7 @@ export default (selectedPositions: Position[]) => {
         [apiClient]
     );
 
-    const deletePositions = React.useCallback(async () => {
+    const deletePositions = useCallback(async () => {
         if (!currentProjectId || !currentContractId || selectedPositions.length <= 0) {
             return;
         }

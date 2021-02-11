@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useCallback } from 'react';
 import { useNotificationCenter, useCurrentContext } from '@equinor/fusion';
 import PersonDelegation, {
     PersonDelegationClassification,
@@ -10,10 +10,10 @@ export default (accountType: PersonDelegationClassification, admins: PersonDeleg
     const { apiClient } = useAppContext();
     const { dispatchContractAction, contract } = useContractContext();
     const currentContext = useCurrentContext();
-    const [isRemoving, setIsRemoving] = React.useState<boolean>(false);
-    const [removalError, setRemovalError] = React.useState<Error | null>(null);
+    const [isRemoving, setIsRemoving] = useState<boolean>(false);
+    const [removalError, setRemovalError] = useState<Error | null>(null);
 
-    const removeAccessAsync = React.useCallback(
+    const removeAccessAsync = useCallback(
         async (projectId: string, contractId: string) => {
             setIsRemoving(true);
             setRemovalError(null);
@@ -42,7 +42,7 @@ export default (accountType: PersonDelegationClassification, admins: PersonDeleg
     );
 
     const sendNotification = useNotificationCenter();
-    const removeAccess = React.useCallback(async () => {
+    const removeAccess = useCallback(async () => {
         const response = await sendNotification({
             level: 'high',
             title: 'Remove delegated access',

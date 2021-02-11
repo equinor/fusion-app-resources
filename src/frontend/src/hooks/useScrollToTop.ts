@@ -1,10 +1,10 @@
-import * as React from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 const useScrollToTop = <T extends HTMLElement>(hasScrolledActiveLimit: number = 100) => {
-    const [hasScrolled, setHasScrolled] = React.useState(Boolean);
-    const scrollRef = React.useRef<T | null>(null);
+    const [hasScrolled, setHasScrolled] = useState(Boolean);
+    const scrollRef = useRef<T | null>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (scrollRef.current === null) return;
         scrollRef.current?.addEventListener('scroll', onScroll);
 
@@ -13,7 +13,7 @@ const useScrollToTop = <T extends HTMLElement>(hasScrolledActiveLimit: number = 
         };
     }, [scrollRef.current, hasScrolled]);
 
-    const onScroll = React.useCallback(() => {
+    const onScroll = useCallback(() => {
         if (scrollRef.current === null) return;
 
         if (hasScrolled && scrollRef.current.scrollTop < hasScrolledActiveLimit)
@@ -23,7 +23,7 @@ const useScrollToTop = <T extends HTMLElement>(hasScrolledActiveLimit: number = 
             setHasScrolled(true);
     }, [hasScrolled]);
 
-    const scrollToTop = React.useCallback(() => {
+    const scrollToTop = useCallback(() => {
         if (scrollRef.current === null) return;
         scrollRef.current.scrollTop = 0;
         setHasScrolled(false);
