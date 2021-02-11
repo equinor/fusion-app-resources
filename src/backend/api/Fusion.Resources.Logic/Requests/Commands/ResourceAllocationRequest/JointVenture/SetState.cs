@@ -70,6 +70,7 @@ namespace Fusion.Resources.Logic.Commands
                                 await HandleWhenCreatedAsync(request);
                                 break;
 
+                            case DbResourceAllocationRequestState.Proposed:
                             case DbResourceAllocationRequestState.Rejected:
                                 await HandleWhenAssignedAsync(request);
                                 break;
