@@ -96,8 +96,6 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbResourceAllocationRequestState.Assigned:
                                 workflow.CompanyApproved(request.Editor.Person);
-                                await mediator.Send(QueueResourceAllocationRequestProvisioning.PersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
-                                //notifyOnSave = new RequestApprovedByCompany(request.RequestId, request.Editor.Person);
                                 break;
 
                             case DbResourceAllocationRequestState.Rejected:
@@ -106,7 +104,6 @@ namespace Fusion.Resources.Logic.Commands
                                         "Reason must be specified when rejecting request");
 
                                 workflow.CompanyRejected(request.Editor.Person, request.Reason);
-                                //notifyOnSave = new RequestDeclinedByCompany(request.RequestId, request.Reason, request.Editor.Person);
                                 break;
 
                             default:
@@ -122,7 +119,6 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbResourceAllocationRequestState.Proposed:
                                 workflow.CompanyProposed(request.Editor.Person);
-                                //notifyOnSave = new RequestProposedByCompany(request.RequestId, request.Editor.Person);
                                 break;
                             case DbResourceAllocationRequestState.Rejected:
                                 if (request.Reason is null)
@@ -130,7 +126,6 @@ namespace Fusion.Resources.Logic.Commands
                                         "Reason must be specified when rejecting request");
 
                                 workflow.CompanyRejected(request.Editor.Person, request.Reason);
-                                //notifyOnSave = new RequestDeclinedByCompany(request.RequestId, request.Reason, request.Editor.Person);
                                 break;
 
                             default:

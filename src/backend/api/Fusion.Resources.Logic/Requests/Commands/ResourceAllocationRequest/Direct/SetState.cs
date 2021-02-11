@@ -78,7 +78,7 @@ namespace Fusion.Resources.Logic.Commands
                         dbItem.State = request.State;
                         dbItem.LastActivity = DateTime.UtcNow;
 
-                        // Update the encapsulated dbentity with the new workflow state.
+                        // Update the encapsulated db-entity with the new workflow state.
                         workflow.SaveChanges();
 
                         await resourcesDb.SaveChangesAsync();
@@ -92,16 +92,12 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbResourceAllocationRequestState.Assigned:
                                 workflow.CompanyApproved(request.Editor.Person);
-                                await mediator.Send(QueueResourceAllocationRequestProvisioning.PersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
-                                //notifyOnSave = new RequestProposedByCompany(request.RequestId, request.Editor.Person);
                                 break;
                             case DbResourceAllocationRequestState.Rejected:
                                 if (request.Reason is null)
                                     throw new ArgumentException("Reason", "Reason must be specified when rejecting request");
                                 workflow.CompanyRejected(request.Editor.Person, request.Reason);
-                                //notifyOnSave = new RequestDeclinedByCompany(request.RequestId, request.Reason, request.Editor.Person);
                                 break;
-
 
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,
