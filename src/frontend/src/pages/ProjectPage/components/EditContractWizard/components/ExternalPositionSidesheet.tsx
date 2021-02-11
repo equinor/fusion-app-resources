@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import { Position, PersonDetails } from '@equinor/fusion';
 import Contract from '../../../../../models/contract';
 import CreatePositionRequest from '../../../../../models/createPositionRequest';
@@ -7,6 +7,7 @@ import usePositionPersister from '../hooks/usePositionPersister';
 import * as styles from '../styles.less';
 import BasePositionPicker from './BasePositionPicker';
 import { TextInput, DatePicker, PersonPicker, Button, Spinner } from '@equinor/fusion-components';
+import { FC, useMemo, useState, useCallback, useEffect } from 'react';
 
 type ExternalPositionSidesheetProps = {
     contract: Contract;
@@ -40,14 +41,14 @@ const createRequestFromPosition = (position: Position | null) => {
     return request;
 };
 
-const ExternalPositionSidesheet: React.FC<ExternalPositionSidesheetProps> = ({
+const ExternalPositionSidesheet: FC<ExternalPositionSidesheetProps> = ({
     contract,
     onComplete,
     repType,
     existingPosition,
     onClose,
 }) => {
-    const editPosition = React.useMemo(() => createRequestFromPosition(existingPosition), [
+    const editPosition = useMemo(() => createRequestFromPosition(existingPosition), [
         existingPosition,
     ]);
 
@@ -60,8 +61,8 @@ const ExternalPositionSidesheet: React.FC<ExternalPositionSidesheetProps> = ({
         isFormDirty,
     } = useCreatePositionForm(editPosition);
 
-    const [selectedPerson, setSelectedPerson] = React.useState<PersonDetails | null>(null);
-    const onPersonSelect = React.useCallback(
+    const [selectedPerson, setSelectedPerson] = useState<PersonDetails | null>(null);
+    const onPersonSelect = useCallback(
         (person: PersonDetails) => {
             setSelectedPerson(person);
             setFormField('assignedPerson', {
@@ -72,7 +73,7 @@ const ExternalPositionSidesheet: React.FC<ExternalPositionSidesheetProps> = ({
         [setFormField]
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (
             formState.assignedPerson?.azureUniqueId &&
             formState.assignedPerson.azureUniqueId !== selectedPerson?.azureUniqueId
@@ -81,7 +82,7 @@ const ExternalPositionSidesheet: React.FC<ExternalPositionSidesheetProps> = ({
         }
     }, [formState.assignedPerson]);
 
-    const closeHandler = React.useCallback(() => {
+    const closeHandler = useCallback(() => {
         onClose();
         resetForm();
     }, []);

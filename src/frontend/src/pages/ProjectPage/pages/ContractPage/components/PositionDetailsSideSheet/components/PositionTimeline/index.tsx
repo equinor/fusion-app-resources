@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import { PositionInstance, formatDate, Position } from '@equinor/fusion';
 import { Slider, ErrorMessage } from '@equinor/fusion-components';
@@ -8,6 +8,7 @@ import useArrangedInstance from '../../hooks/useArrangedInstance';
 import InstancesTimeline from './InstancesTimeline';
 import classNames from 'classnames';
 import { getInstances } from '../../../../../../orgHelpers';
+import { FC, useMemo, useCallback } from 'react';
 
 export type TimelineStructure = {
     instance: PositionInstance;
@@ -30,7 +31,7 @@ const createPositionCalculator = (start: number, end: number) => {
     return (time: number) => Math.min(Math.max(((time - start) / full) * 100, 0), 100);
 };
 
-const PositionTimeline: React.FC<PositionTimelineProps> = ({ selectedDate, selectedPosition }) => {
+const PositionTimeline: FC<PositionTimelineProps> = ({ selectedDate, selectedPosition }) => {
     const allInstances = selectedPosition.instances;
     const { instancesByFrom } = useSortedInstances(allInstances);
     const { firstInstance, lastInstance } = useArrangedInstance(allInstances);
@@ -47,7 +48,7 @@ const PositionTimeline: React.FC<PositionTimelineProps> = ({ selectedDate, selec
         return false;
     };
 
-    const timelineStructure: TimelineStructure[] = React.useMemo(() => {
+    const timelineStructure: TimelineStructure[] = useMemo(() => {
         return allInstances.map(instance => {
             return {
                 instance,
@@ -58,12 +59,12 @@ const PositionTimeline: React.FC<PositionTimelineProps> = ({ selectedDate, selec
         });
     }, [selectedPosition, allInstances]);
 
-    const currentInstance = React.useMemo(() => getInstances(selectedPosition, selectedDate)[0], [
+    const currentInstance = useMemo(() => getInstances(selectedPosition, selectedDate)[0], [
         selectedPosition,
         selectedDate,
     ]);
 
-    const calculator = React.useMemo(() => {
+    const calculator = useMemo(() => {
         try {
             return createPositionCalculator(
                 firstInstance.appliesFrom.getTime(),
@@ -74,7 +75,7 @@ const PositionTimeline: React.FC<PositionTimelineProps> = ({ selectedDate, selec
         }
     }, [firstInstance, lastInstance]);
 
-    const labelCheck = React.useCallback(
+    const labelCheck = useCallback(
         (index: number, instance: PositionInstance): boolean => {
             if (index === 0) {
                 return true;
@@ -89,7 +90,7 @@ const PositionTimeline: React.FC<PositionTimelineProps> = ({ selectedDate, selec
         [currentInstance]
     );
 
-    const dgDatesSliderMarkers: SliderMarker[] = React.useMemo(() => {
+    const dgDatesSliderMarkers: SliderMarker[] = useMemo(() => {
         const today = new Date().getTime();
         const isTodayOutOfRange =
             firstInstance.appliesFrom.getTime() > today ||
@@ -116,7 +117,7 @@ const PositionTimeline: React.FC<PositionTimelineProps> = ({ selectedDate, selec
         ];
     }, [firstInstance, lastInstance]);
 
-    const instancesSliderMarkers: SliderMarker[] = React.useMemo(() => {
+    const instancesSliderMarkers: SliderMarker[] = useMemo(() => {
         const markers = instancesByFrom.map((instance, index) => ({
             value: instance.appliesFrom.getTime(),
             label: labelCheck(index, instance) ? formatDate(instance.appliesFrom) : ' ',
@@ -130,11 +131,11 @@ const PositionTimeline: React.FC<PositionTimelineProps> = ({ selectedDate, selec
         return markers;
     }, [instancesByFrom, lastInstance]);
 
-    const hasMultipleTimelines = React.useMemo(() => timelineStructure.length > 1, [
+    const hasMultipleTimelines = useMemo(() => timelineStructure.length > 1, [
         timelineStructure,
     ]);
 
-    const getLeftPercentage = React.useCallback((): string => {
+    const getLeftPercentage = useCallback((): string => {
         if (!calculator) {
             return '0';
         }

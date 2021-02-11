@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import {
     Button,
@@ -31,14 +31,15 @@ import useRequestRejection from '../../hooks/useRequestRejection';
 import useRequestDeletion from '../../hooks/useRequestDeletion';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 import { Link } from 'react-router-dom';
+import { FC, useState, useCallback, useEffect, useMemo } from 'react';
 
-const ActiveRequestsPage: React.FC = () => {
-    const [filteredActiveRequests, setFilteredActiveRequests] = React.useState<PersonnelRequest[]>(
+const ActiveRequestsPage: FC = () => {
+    const [filteredActiveRequests, setFilteredActiveRequests] = useState<PersonnelRequest[]>(
         []
     );
-    const [selectedRequests, setSelectedRequests] = React.useState<PersonnelRequest[]>([]);
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
-    const [rejectRequest, setRejectRequest] = React.useState<PersonnelRequest[]>([]);
+    const [selectedRequests, setSelectedRequests] = useState<PersonnelRequest[]>([]);
+    const [editRequests, setEditRequests] = useState<PersonnelRequest[] | null>(null);
+    const [rejectRequest, setRejectRequest] = useState<PersonnelRequest[]>([]);
 
     const { apiClient } = useAppContext();
     const { contract, contractState, dispatchContractAction } = useContractContext();
@@ -54,7 +55,7 @@ const ActiveRequestsPage: React.FC = () => {
     const helpIconRef = useTooltipRef('Help page', 'below');
     const copyTooltipRef = useTooltipRef('Create new request(s) based on selected request(s)');
 
-    const fetchRequestsAsync = React.useCallback(async () => {
+    const fetchRequestsAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
@@ -71,19 +72,19 @@ const ActiveRequestsPage: React.FC = () => {
         'set'
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         setSelectedRequests([]);
     }, [activeRequests]);
 
-    const filterSections = React.useMemo(() => {
+    const filterSections = useMemo(() => {
         return getFilterSections(activeRequests || []);
     }, [activeRequests]);
 
-    const requestPersonnel = React.useCallback(() => {
+    const requestPersonnel = useCallback(() => {
         setEditRequests([]);
     }, []);
 
-    const editRequest = React.useCallback(
+    const editRequest = useCallback(
         (copy?: boolean) => {
             const requests: PersonnelRequest[] = copy
                 ? selectedRequests.map((s) => ({
@@ -97,7 +98,7 @@ const ActiveRequestsPage: React.FC = () => {
         [selectedRequests]
     );
 
-    const onRequestSidesheetClose = React.useCallback(() => {
+    const onRequestSidesheetClose = useCallback(() => {
         setEditRequests(null);
         setSelectedRequests([]);
     }, []);

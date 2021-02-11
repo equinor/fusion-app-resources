@@ -1,13 +1,14 @@
-import * as React from 'react';
+
 import { PersonCard, PersonPhoto } from '@equinor/fusion-components';
 import { PositionInstance, formatDate } from '@equinor/fusion';
 
 import * as styles from './styles.less';
+import { FC } from 'react';
 
 type PositionAssignmentProps = {
     instance?: PositionInstance;
 };
-const PositionAssignment: React.FC<PositionAssignmentProps> = ({ instance }) => {
+const PositionAssignment: FC<PositionAssignmentProps> = ({ instance }) => {
     if (!instance) {
         return null;
     }

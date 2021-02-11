@@ -1,9 +1,10 @@
-import * as React from 'react';
+
 import { PositionCard } from '@equinor/fusion-components';
 import * as styles from './styles.less';
 import { Position } from '@equinor/fusion';
 import { isInstanceFuture, isInstancePast } from '../../../../../orgHelpers';
 import useInstancesWithPosition, { InstanceWithPosition } from '../hooks/useInstancesWithPosition';
+import { FC, useCallback } from 'react';
 
 type DisciplineNetworkTabProps = {
     selectedPosition: Position;
@@ -11,7 +12,7 @@ type DisciplineNetworkTabProps = {
     positions: Position[];
 };
 
-const DisciplineNetworkTab: React.FC<DisciplineNetworkTabProps> = ({
+const DisciplineNetworkTab: FC<DisciplineNetworkTabProps> = ({
     selectedPosition,
     filterToDate,
     positions,
@@ -29,7 +30,7 @@ const DisciplineNetworkTab: React.FC<DisciplineNetworkTabProps> = ({
               []
           )
         : [];
-    const renderDisciplineSection = React.useCallback(
+    const renderDisciplineSection = useCallback(
         (instance: InstanceWithPosition[]) => {
             return (
                 <div className={styles.disciplineSection}>

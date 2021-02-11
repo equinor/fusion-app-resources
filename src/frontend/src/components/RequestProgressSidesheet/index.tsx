@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     ModalSideSheet,
     Accordion,
@@ -15,6 +15,7 @@ import useServiceNowPopoverRef from '../../hooks/useServiceNowPopoverRef';
 import classNames from 'classnames';
 import * as styles from './styles.less';
 import RequestValidationError from '../../models/RequestValidationError';
+import { FC, useState, useMemo, useEffect, useCallback, RefObject } from 'react';
 
 export type FailedRequest<T> = {
     item: T;
@@ -36,14 +37,14 @@ type RequestProgressSidesheetProps<TRequest, TResponse> = {
     pendingRequests: TRequest[];
     failedRequests: FailedRequest<TRequest>[];
     successfulRequests: SuccessfulRequest<TRequest, TResponse>[];
-    renderRequest: React.FC<RenderRequestProps<TRequest>>;
+    renderRequest: FC<RenderRequestProps<TRequest>>;
     onRemoveFailedRequest: (request: FailedRequest<TRequest>) => void;
     onClose: () => void;
 };
 
 type RequestItemProps<TRequest> = {
     request: TRequest;
-    renderRequest: React.FC<RenderRequestProps<TRequest>>;
+    renderRequest: FC<RenderRequestProps<TRequest>>;
 };
 
 type FailedRequestItemProps<TRequest> = RequestItemProps<TRequest> & {
@@ -148,13 +149,13 @@ function RequestProgressSidesheet<TRequest, TResponse>({
     onRemoveFailedRequest,
     onClose,
 }: RequestProgressSidesheetProps<TRequest, TResponse>) {
-    const [isPendingRequestsOpen, setIsPendingRequestsOpen] = React.useState(true);
-    const [isSuccessfulRequestsOpen, setIsSuccessfulRequestsOpen] = React.useState(true);
+    const [isPendingRequestsOpen, setIsPendingRequestsOpen] = useState(true);
+    const [isSuccessfulRequestsOpen, setIsSuccessfulRequestsOpen] = useState(true);
 
-    const invalidRequests = React.useMemo(() => failedRequests.filter((fr) => fr.isEditable), [
+    const invalidRequests = useMemo(() => failedRequests.filter((fr) => fr.isEditable), [
         failedRequests,
     ]);
-    const requestsWithError = React.useMemo(() => failedRequests.filter((fr) => !fr.isEditable), [
+    const requestsWithError = useMemo(() => failedRequests.filter((fr) => !fr.isEditable), [
         failedRequests,
     ]);
 
@@ -167,19 +168,19 @@ function RequestProgressSidesheet<TRequest, TResponse>({
         }
     );
 
-    const [isShowing, setIsShowing] = React.useState(false);
-    React.useEffect(() => {
+    const [isShowing, setIsShowing] = useState(false);
+    useEffect(() => {
         setIsShowing(
             pendingRequests.length > 0 || failedRequests.length > 0 || successfulRequests.length > 0
         );
     }, [pendingRequests, failedRequests, successfulRequests]);
 
-    const closeSidesheet = React.useCallback(() => {
+    const closeSidesheet = useCallback(() => {
         setIsShowing(false);
         onClose();
     }, [onClose]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isShowing && failedRequests.length === 0) {
             closeSidesheet();
         }
@@ -225,7 +226,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                             <a
                                 href="#"
                                 onClick={(e) => e.preventDefault()}
-                                ref={serviceNowPopoverRef as React.RefObject<HTMLAnchorElement>}
+                                ref={serviceNowPopoverRef as RefObject<HTMLAnchorElement>}
                             >
                                 Service Now
                             </a>

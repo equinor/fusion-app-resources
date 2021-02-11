@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import { ModalSideSheet, Button, Spinner, ArrowBackIcon } from '@equinor/fusion-components';
 import Personnel from '../../../../../../../models/Personnel';
 import { v1 as uuid } from 'uuid';
@@ -21,6 +21,7 @@ import AddPersonnelForm from './AddPersonnelForm';
 import PersonnelLine from './models/PersonnelLine';
 import useScrollToTop from '../../../../../../../hooks/useScrollToTop';
 import ScrollUpFab from '../../../../../../../components/ScrollUpFab';
+import { FC, useState, useMemo, useEffect, useCallback } from 'react';
 
 type AddPersonnelToSideSheetProps = {
     isOpen: boolean;
@@ -29,7 +30,7 @@ type AddPersonnelToSideSheetProps = {
     excelImport: boolean;
 };
 
-const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
+const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
     isOpen,
     setIsOpen,
     selectedPersonnel,
@@ -38,28 +39,28 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
-    const [triggerSelectionUpdate, setTriggerSelectionUpdate] = React.useState(false);
+    const [triggerSelectionUpdate, setTriggerSelectionUpdate] = useState(false);
     const { formState, setFormState, isFormValid, isFormDirty, resetForm } = useAddPersonnelForm(
         selectedPersonnel
     );
 
-    const [pendingRequests, setPendingRequests] = React.useState<Personnel[]>([]);
-    const [failedRequests, setFailedRequests] = React.useState<FailedRequest<Personnel>[]>([]);
-    const [successfulRequests, setSuccessfullRequests] = React.useState<
+    const [pendingRequests, setPendingRequests] = useState<Personnel[]>([]);
+    const [failedRequests, setFailedRequests] = useState<FailedRequest<Personnel>[]>([]);
+    const [successfulRequests, setSuccessfullRequests] = useState<
         SuccessfulRequest<Personnel, Personnel>[]
     >([]);
 
-    const isDirty = React.useMemo(() => {
+    const isDirty = useMemo(() => {
         return excelImport ? excelImport : isFormDirty;
     }, [excelImport, isFormDirty]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (failedRequests.length) {
             setFormState(failedRequests.filter((r) => r.isEditable).map((r) => r.item));
         }
     }, [failedRequests]);
 
-    const savePersonnelAsync = React.useCallback(
+    const savePersonnelAsync = useCallback(
         async (person: Personnel, contextId: string, contractId: string) => {
             try {
                 setPendingRequests((r) => [...r, person]);
@@ -107,7 +108,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         [apiClient]
     );
 
-    const savePersonnelCollectionAsync = React.useCallback(
+    const savePersonnelCollectionAsync = useCallback(
         async (personnel: Personnel[], contextId: string, contractId: string) => {
             try {
                 setPendingRequests((r) => [...r, ...personnel]);
@@ -169,7 +170,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         [apiClient]
     );
 
-    const savePersonnelChangesAsync = React.useCallback(async () => {
+    const savePersonnelChangesAsync = useCallback(async () => {
         const contractId = contract?.id;
 
         if (!currentContext?.id || !contractId) return;
@@ -193,7 +194,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         }
     }, [contract, formState, currentContext, savePersonnelAsync]);
 
-    const onAddPerson = React.useCallback(() => {
+    const onAddPerson = useCallback(() => {
         setFormState([
             ...formState,
             {
@@ -209,13 +210,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         ]);
     }, [formState]);
 
-    const setPersonState = React.useCallback((person: PersonnelLine) => {
+    const setPersonState = useCallback((person: PersonnelLine) => {
         setFormState((previousState) =>
             previousState.map((p) => (p.personnelId === person.personnelId ? person : p))
         );
     }, []);
 
-    const setSelectionState = React.useCallback((setAll: boolean) => {
+    const setSelectionState = useCallback((setAll: boolean) => {
         setFormState((previousState) =>
             previousState.map((p) => {
                 return { ...p, selected: setAll };
@@ -224,7 +225,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         setTriggerSelectionUpdate((previousState) => !previousState);
     }, []);
 
-    const onDeletePerson = React.useCallback(
+    const onDeletePerson = useCallback(
         (person: PersonnelLine) => {
             const personFound = formState.findIndex((p) => p.personnelId === person.personnelId);
             if (personFound < 0) return;
@@ -236,13 +237,13 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         [formState]
     );
 
-    const saveInProgress = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
+    const saveInProgress = useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
-    const addButton = React.useMemo((): IconButtonProps => {
+    const addButton = useMemo((): IconButtonProps => {
         return { onClick: onAddPerson, disabled: saveInProgress };
     }, [saveInProgress, onAddPerson]);
 
-    const saveButton = React.useMemo(() => {
+    const saveButton = useMemo(() => {
         return (
             <Button
                 disabled={!(isDirty && isFormValid) || saveInProgress}
@@ -262,12 +263,12 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         );
     }, [isDirty, isFormValid, saveInProgress, savePersonnelChangesAsync]);
 
-    const closeSidesheet = React.useCallback(() => {
+    const closeSidesheet = useCallback(() => {
         resetForm();
         setIsOpen(false);
     }, [setIsOpen]);
 
-    const onProgressSidesheetClose = React.useCallback(() => {
+    const onProgressSidesheetClose = useCallback(() => {
         const editableFailedRequests = failedRequests.filter((r) => r.isEditable);
         if (editableFailedRequests.length > 0) {
             setFormState(editableFailedRequests.map((r) => r.item));
@@ -277,7 +278,7 @@ const AddPersonnelSideSheet: React.FC<AddPersonnelToSideSheetProps> = ({
         closeSidesheet();
     }, [failedRequests, closeSidesheet]);
 
-    const onRemoveFailedRequest = React.useCallback((request: FailedRequest<Personnel>) => {
+    const onRemoveFailedRequest = useCallback((request: FailedRequest<Personnel>) => {
         setFailedRequests((fr) => fr.filter((r) => r !== request));
     }, []);
 

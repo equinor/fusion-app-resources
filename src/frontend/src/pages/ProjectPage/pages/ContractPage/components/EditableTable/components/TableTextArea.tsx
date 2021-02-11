@@ -1,7 +1,8 @@
-import * as React from 'react';
+
 import { TextInput, EditIcon, ModalSideSheet, TextArea } from '@equinor/fusion-components';
 import { DefaultTableType } from './TableTypes';
 import * as styles from '../styles.less';
+import { FC, useState, useCallback } from 'react';
 
 type TextEditSideSheetProps = {
     isOpen: boolean;
@@ -11,7 +12,7 @@ type TextEditSideSheetProps = {
     label: string;
 };
 
-const TextEditSideSheet: React.FC<TextEditSideSheetProps> = ({
+const TextEditSideSheet: FC<TextEditSideSheetProps> = ({
     isOpen,
     setIsOpen,
     value,
@@ -45,8 +46,8 @@ function TableTextArea<T>({
     rowIdentifier,
     columnLabel,
 }: DefaultTableType<T, string>) {
-    const [openSideSheet, setOpenSideSheet] = React.useState<boolean>(false);
-    const onInputChange = React.useCallback(
+    const [openSideSheet, setOpenSideSheet] = useState<boolean>(false);
+    const onInputChange = useCallback(
         (newValue: string) => {
             onChange(item[rowIdentifier], accessKey, newValue);
         },

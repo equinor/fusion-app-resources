@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     ModalSideSheet,
     Tabs,
@@ -17,6 +17,7 @@ import { useContractContext } from '../../../../../../../contractContex';
 import * as styles from './styles.less';
 import EditablePositionDetails from '../../../components/EditablePositionDetails';
 import PersonPositionsDetails from '../../../components/PersonPositionsDetails';
+import { FC, useState, useCallback, useMemo } from 'react';
 
 type PersonnelInfoSideSheetProps = {
     isOpen: boolean;
@@ -24,14 +25,14 @@ type PersonnelInfoSideSheetProps = {
     setIsOpen: (state: boolean) => void;
 };
 
-const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
+const PersonnelInfoSideSheet: FC<PersonnelInfoSideSheetProps> = ({
     isOpen,
     person,
     setIsOpen,
 }) => {
-    const [activeTabKey, setActiveTabKey] = React.useState<string>('general');
-    const [editMode, setEditMode] = React.useState<boolean>(false);
-    const [isSaving, setIsSaving] = React.useState<boolean>(false);
+    const [activeTabKey, setActiveTabKey] = useState<string>('general');
+    const [editMode, setEditMode] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
     const { contract, dispatchContractAction } = useContractContext();
@@ -55,7 +56,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         validatePerson
     );
 
-    const savePersonChangesAsync = React.useCallback(async () => {
+    const savePersonChangesAsync = useCallback(async () => {
         const contractId = contract?.id;
         if (!currentContext?.id || !contractId) return;
 
@@ -96,7 +97,7 @@ const PersonnelInfoSideSheet: React.FC<PersonnelInfoSideSheetProps> = ({
         }
     }, [formState, isFormValid, isFormDirty]);
 
-    const headerIcons = React.useMemo(() => {
+    const headerIcons = useMemo(() => {
         if (activeTabKey !== 'general') return [];
         return editMode
             ? [

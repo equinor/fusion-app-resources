@@ -1,5 +1,6 @@
-import * as React from 'react';
+
 import { TextInput } from '@equinor/fusion-components';
+import { FC } from 'react';
 import Personnel from '../../../../../../../../../models/Personnel';
 
 export type PersonnelFormTextInputProps = {
@@ -9,7 +10,7 @@ export type PersonnelFormTextInputProps = {
     disabled: boolean;
 };
 
-const AddPersonnelFormTextInput: React.FC<PersonnelFormTextInputProps> = ({
+const AddPersonnelFormTextInput: FC<PersonnelFormTextInputProps> = ({
     item,
     onChange,
     field,

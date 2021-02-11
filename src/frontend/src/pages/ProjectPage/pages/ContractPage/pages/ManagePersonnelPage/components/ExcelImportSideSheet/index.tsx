@@ -1,35 +1,36 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import { Spinner, Button, ModalSideSheet } from '@equinor/fusion-components';
 import { useAppContext } from '../../../../../../../../appContext';
+import { Dispatch, SetStateAction, FC, useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 
 type ExcelImportSideSheetProps = {
-    setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
+    setSelectedFile: Dispatch<SetStateAction<File | null>>;
     isProccessing: boolean;
     isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOpen: Dispatch<SetStateAction<boolean>>;
     processingError: boolean;
 };
 
-const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
+const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
     setSelectedFile,
     isProccessing,
     isOpen,
     setIsOpen,
     processingError,
 }) => {
-    const [selectedFileForUpload, setSelectedFileForUpload] = React.useState<File | null>(null);
-    const fileInput = React.useRef<HTMLInputElement>(null);
-    const [fileError, setFileError] = React.useState<string | null>(null);
+    const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
+    const fileInput = useRef<HTMLInputElement>(null);
+    const [fileError, setFileError] = useState<string | null>(null);
 
     const { apiClient } = useAppContext();
 
-    React.useEffect(() => {
+    useEffect(() => {
         setSelectedFileForUpload(null);
         setFileError(null);
     }, [isOpen]);
 
-    const validateAndSetFile = React.useCallback((file: File) => {
+    const validateAndSetFile = useCallback((file: File) => {
         const fileExtension = file.name.substr(file.name.lastIndexOf('.') + 1).toLowerCase();
 
         if (fileExtension !== 'xlsx') {
@@ -41,7 +42,7 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
         setSelectedFileForUpload(file);
     }, []);
 
-    const dragDropFileUpload = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    const dragDropFileUpload = useCallback((e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         if (!e.dataTransfer.items || e.dataTransfer.items[0].kind !== 'file') return;
 
@@ -50,7 +51,7 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
         validateAndSetFile(file);
     }, []);
 
-    const inputFileUpload = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputFileUpload = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
 
         const file = e.target.files ? e.target.files[0] : null;
@@ -58,24 +59,24 @@ const ExcelImportSideSheet: React.FC<ExcelImportSideSheetProps> = ({
         validateAndSetFile(file);
     }, []);
 
-    const fileInputClick = React.useCallback(() => {
+    const fileInputClick = useCallback(() => {
         fileInput?.current?.click();
     }, [fileInput]);
 
-    const startProcessingSelectedFile = React.useCallback(() => {
+    const startProcessingSelectedFile = useCallback(() => {
         setSelectedFile(selectedFileForUpload);
     }, [selectedFileForUpload]);
 
-    const stopPropagationAndDefault = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    const stopPropagationAndDefault = useCallback((e: DragEvent<HTMLDivElement>) => {
         e.stopPropagation();
         e.preventDefault();
     }, []);
 
-    const closeSidesheet = React.useCallback(() => {
+    const closeSidesheet = useCallback(() => {
         !isProccessing && setIsOpen(false);
     }, [isProccessing]);
 
-    const downloadExcelTemplate = React.useCallback(async () => {
+    const downloadExcelTemplate = useCallback(async () => {
         const file = await apiClient.getPersonnelExcelTemplate();
         const reader = file.body.getReader();
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import CertifyToPicker from '../../../CertifiyToPicker';
 import {
@@ -13,17 +13,18 @@ import { useAppContext } from '../../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../../contractContex';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import ToolbarButton from '../ToolbarButton';
+import { FC, useState, useCallback } from 'react';
 
 type CertifyToPopoverProps = {
     canEdit: boolean;
     admins: PersonDelegation[];
 };
 
-const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins, children }) => {
-    const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
+const CertifyToPopover: FC<CertifyToPopoverProps> = ({ canEdit, admins, children }) => {
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-    const [isReCertifying, setIsReCertifying] = React.useState<boolean>(false);
-    const [reCertificationError, setReCertificationError] = React.useState<Error | null>(null);
+    const [isReCertifying, setIsReCertifying] = useState<boolean>(false);
+    const [reCertificationError, setReCertificationError] = useState<Error | null>(null);
     const { apiClient } = useAppContext();
     const { dispatchContractAction, contract } = useContractContext();
     const currentContext = useCurrentContext();
@@ -39,7 +40,7 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins, ch
         />
     ));
 
-    const reCertifyAdminsAsync = React.useCallback(
+    const reCertifyAdminsAsync = useCallback(
         async (projectId: string, contractId: string, date: Date) => {
             setIsReCertifying(true);
             setReCertificationError(null);
@@ -68,7 +69,7 @@ const CertifyToPopover: React.FC<CertifyToPopoverProps> = ({ canEdit, admins, ch
         [admins, apiClient]
     );
 
-    const onReCertifyClick = React.useCallback(() => {
+    const onReCertifyClick = useCallback(() => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
 

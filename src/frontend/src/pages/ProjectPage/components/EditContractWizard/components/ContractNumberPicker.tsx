@@ -1,5 +1,6 @@
-import * as React from 'react';
+
 import { SearchableDropdown, SearchableDropdownOption } from '@equinor/fusion-components';
+import { FC, useMemo, useCallback } from 'react';
 import useAvailableContracts from '../hooks/useAvailableContracts';
 
 type ContractNumberSelectorProps = {
@@ -7,13 +8,13 @@ type ContractNumberSelectorProps = {
     onSelect: (contractNumber: string) => void;
 };
 
-const ContractNumberPicker: React.FC<ContractNumberSelectorProps> = ({
+const ContractNumberPicker: FC<ContractNumberSelectorProps> = ({
     selectedContractNumber,
     onSelect,
 }) => {
     const { availableContracts } = useAvailableContracts();
 
-    const options = React.useMemo(() => {
+    const options = useMemo(() => {
         return availableContracts.map((ac) => ({
             title: ac.contractNumber,
             key: ac.contractNumber,
@@ -21,7 +22,7 @@ const ContractNumberPicker: React.FC<ContractNumberSelectorProps> = ({
         }));
     }, [availableContracts, selectedContractNumber]);
 
-    const onDropdownSelect = React.useCallback(
+    const onDropdownSelect = useCallback(
         (option: SearchableDropdownOption) => {
             onSelect(option.key);
         },

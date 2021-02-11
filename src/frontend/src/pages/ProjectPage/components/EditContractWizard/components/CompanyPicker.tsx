@@ -1,5 +1,6 @@
-import * as React from 'react';
+
 import { SearchableDropdown, SearchableDropdownOption } from '@equinor/fusion-components';
+import { FC, useMemo, useCallback } from 'react';
 import Company from '../../../../../models/company';
 import useCompanies from '../hooks/useCompanies';
 
@@ -8,10 +9,10 @@ type CompanyPickerProps = {
     onSelect: (company: Company) => void;
 };
 
-const CompanyPicker: React.FC<CompanyPickerProps> = ({ selectedCompanyId, onSelect }) => {
+const CompanyPicker: FC<CompanyPickerProps> = ({ selectedCompanyId, onSelect }) => {
     const { companies } = useCompanies();
 
-    const options = React.useMemo(() => {
+    const options = useMemo(() => {
         return companies.map(company => ({
             title: company.name || company.id,
             key: company.id,
@@ -19,7 +20,7 @@ const CompanyPicker: React.FC<CompanyPickerProps> = ({ selectedCompanyId, onSele
         }));
     }, [companies, selectedCompanyId]);
 
-    const onDropdownSelect = React.useCallback(
+    const onDropdownSelect = useCallback(
         (option: SearchableDropdownOption) => {
             const selectedCompany = companies.find(company => company.id === option.key);
             if (selectedCompany) {

@@ -1,15 +1,16 @@
-import * as React from 'react';
+
 import { Button } from '@equinor/fusion-components';
+import { ReactNode, forwardRef } from 'react';
 import * as styles from './styles.less';
 
 type ToolbarButtonProps = {
-    icon: React.ReactNode;
+    icon: ReactNode;
     title: string;
     onClick?: () => void;
     disabled?: boolean;
 };
 
-const ToolbarButton = React.forwardRef<HTMLElement, ToolbarButtonProps>(
+const ToolbarButton = forwardRef<HTMLElement, ToolbarButtonProps>(
     ({ icon, title, onClick, disabled }, ref) => (
         <Button frameless onClick={onClick} ref={ref} disabled={!!disabled}>
             <div className={styles.toolbarButton}>

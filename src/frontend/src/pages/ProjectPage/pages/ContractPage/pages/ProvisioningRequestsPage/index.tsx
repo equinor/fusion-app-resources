@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import { Button, Spinner } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
@@ -17,20 +17,21 @@ import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
+import { FC, useState, useCallback, useMemo, useEffect } from 'react';
 
 let fetchUpdateInterval: NodeJS.Timeout;
-const ProvisioningRequestsPage: React.FC = () => {
-    const [filteredProvisioningRequests, setFilteredProvisioningRequests] = React.useState<
+const ProvisioningRequestsPage: FC = () => {
+    const [filteredProvisioningRequests, setFilteredProvisioningRequests] = useState<
         PersonnelRequest[]
     >([]);
-    const [checkForRequestStatus, setCheckForRequestStatus] = React.useState<boolean>(false);
+    const [checkForRequestStatus, setCheckForRequestStatus] = useState<boolean>(false);
 
     const sendNotification = useNotificationCenter();
     const { apiClient } = useAppContext();
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
 
-    const fetchRequestsAsync = React.useCallback(async () => {
+    const fetchRequestsAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
@@ -47,7 +48,7 @@ const ProvisioningRequestsPage: React.FC = () => {
         fetchRequestsAsync,
         'set'
     );
-    const provisioningRequests = React.useMemo(
+    const provisioningRequests = useMemo(
         () =>
             data.filter(
                 request =>
@@ -57,7 +58,7 @@ const ProvisioningRequestsPage: React.FC = () => {
         [data]
     );
 
-    const getRequestsAsync = React.useCallback(async () => {
+    const getRequestsAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
@@ -97,8 +98,8 @@ const ProvisioningRequestsPage: React.FC = () => {
         }
     }, [provisioningRequests, contract, currentContext, dispatchContractAction]);
 
-    React.useEffect(() => clearTimeout(fetchUpdateInterval), []);
-    React.useEffect(() => {
+    useEffect(() => clearTimeout(fetchUpdateInterval), []);
+    useEffect(() => {
         if (provisioningRequests.length <= 0) {
             clearTimeout(fetchUpdateInterval);
             setCheckForRequestStatus(false);
@@ -119,7 +120,7 @@ const ProvisioningRequestsPage: React.FC = () => {
         }, 120000);
     };
 
-    const filterSections = React.useMemo(() => {
+    const filterSections = useMemo(() => {
         return getFilterSections(provisioningRequests || []);
     }, [provisioningRequests]);
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from '../../styles.less';
 import Personnel from '../../../../../../../../../models/Personnel';
 import SelectionCell from '../../../components/SelectionCell';
@@ -9,6 +9,7 @@ import useForm from '../../../../../../../../../hooks/useForm';
 import { BasePosition } from '@equinor/fusion';
 import { PopOverMenu } from './AddPersonnelFormLinePopOverMenu';
 import PersonnelLine from '../../models/PersonnelLine';
+import { FC, useCallback, useEffect } from 'react';
 
 type AddPersonnelFormRowProps = {
     person: PersonnelLine;
@@ -20,7 +21,7 @@ type AddPersonnelFormRowProps = {
     deletePerson: (person: PersonnelLine) => void;
 };
 
-export const AddPersonnelFormRow: React.FC<AddPersonnelFormRowProps> = ({
+export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
     person,
     setPersonState,
     saveInProgress,
@@ -29,7 +30,7 @@ export const AddPersonnelFormRow: React.FC<AddPersonnelFormRowProps> = ({
     deletePerson,
     rowNumber,
 }) => {
-    const validateForm = React.useCallback((formState: Personnel) => {
+    const validateForm = useCallback((formState: Personnel) => {
         return Boolean(
             formState.firstName && formState.lastName && formState.phoneNumber && formState.mail
         );
@@ -41,11 +42,11 @@ export const AddPersonnelFormRow: React.FC<AddPersonnelFormRowProps> = ({
         person
     );
 
-    const onSelect = React.useCallback(() => {
+    const onSelect = useCallback(() => {
         formFieldSetter('selected')(!formState?.selected);
     }, [formState]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setPersonState(formState);
     }, [formState]);
 

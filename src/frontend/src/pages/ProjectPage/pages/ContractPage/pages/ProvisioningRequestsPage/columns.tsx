@@ -1,19 +1,20 @@
 import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
-import * as React from 'react';
+
 import PositionColumn from '../../../../components/PositionColumn';
 import { useHistory, formatDateTime } from '@equinor/fusion';
 import * as styles from './styles.less';
 import RequestWorkflow from '../../components/RequestWorkflow';
+import { FC, useCallback } from 'react';
 
 type ColumnSideSheetLinkProps = {
     requestId: string;
 };
 
-const ColumnSideSheetLink: React.FC<ColumnSideSheetLinkProps> = ({ requestId, children }) => {
+const ColumnSideSheetLink: FC<ColumnSideSheetLinkProps> = ({ requestId, children }) => {
     const history = useHistory();
 
-    const openSideSheet = React.useCallback(() => {
+    const openSideSheet = useCallback(() => {
         const sideSheetSearchString = `requestId=${requestId}`;
         history.push({
             pathname: history.location.pathname,

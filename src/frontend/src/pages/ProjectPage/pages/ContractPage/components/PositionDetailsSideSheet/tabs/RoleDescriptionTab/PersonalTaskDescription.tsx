@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import {
     EditIcon,
@@ -20,6 +20,7 @@ import {
     Position,
 } from '@equinor/fusion';
 import { getInstances } from '../../../../../../orgHelpers';
+import { FC, useState, useEffect, useMemo } from 'react';
 
 type PersonalTaskDescriptionProps = {
     selectedInstance: PositionInstance;
@@ -29,19 +30,19 @@ type PersonalTaskDescriptionProps = {
     filterToDate: Date;
 };
 
-const PersonalTaskDescription: React.FC<PersonalTaskDescriptionProps> = ({
+const PersonalTaskDescription: FC<PersonalTaskDescriptionProps> = ({
     selectedInstance,
     roleDescription,
     onEditChange,
     selectedPosition,
     filterToDate,
 }) => {
-    const [isEditing, setIsEditing] = React.useState<boolean>(false);
-    const [inputValue, setInputValue] = React.useState<string>('');
-    const [isSaving, setIsSaving] = React.useState<boolean>(false);
-    const [canEditTaskDescription, setCanEditTaskDescription] = React.useState<boolean>(false);
-    const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
-    const [error, setError] = React.useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [inputValue, setInputValue] = useState<string>('');
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [canEditTaskDescription, setCanEditTaskDescription] = useState<boolean>(false);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const apiClients = useApiClients();
     const sendNotification = useNotificationCenter();
@@ -83,7 +84,7 @@ const PersonalTaskDescription: React.FC<PersonalTaskDescriptionProps> = ({
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (selectedInstance.assignedPerson?.azureUniqueId && project?.externalId) {
             canEditAsync(selectedInstance.assignedPerson.azureUniqueId, project.externalId);
         } else {
@@ -91,11 +92,11 @@ const PersonalTaskDescription: React.FC<PersonalTaskDescriptionProps> = ({
         }
     }, [selectedInstance, project]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         onEditChange(isEditing);
     }, [isEditing]);
 
-    const currentRoleDescription = React.useMemo(
+    const currentRoleDescription = useMemo(
         () =>
             selectedPosition &&
             roleDescription.persons.find(person =>
@@ -106,7 +107,7 @@ const PersonalTaskDescription: React.FC<PersonalTaskDescriptionProps> = ({
         [selectedPosition, roleDescription]
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!currentRoleDescription) {
             return;
         }
@@ -118,7 +119,7 @@ const PersonalTaskDescription: React.FC<PersonalTaskDescriptionProps> = ({
         }
     }, [currentRoleDescription]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (inputValue.length >= 1000) {
             setError('Maximum characters exceeded');
         } else {
@@ -128,7 +129,7 @@ const PersonalTaskDescription: React.FC<PersonalTaskDescriptionProps> = ({
         }
     }, [inputValue]);
 
-    const iconBar = React.useMemo(() => {
+    const iconBar = useMemo(() => {
         if (!isEditing) {
             return (
                 <IconButton onClick={() => setIsEditing(true)} disabled={!canEditTaskDescription}>

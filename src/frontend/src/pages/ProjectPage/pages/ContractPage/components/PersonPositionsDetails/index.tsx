@@ -1,8 +1,9 @@
-import * as React from 'react';
+
 import Personnel, { Position } from '../../../../../../models/Personnel';
 import * as styles from './styles.less';
 import { PersonPosition } from '@equinor/fusion';
 import { PersonPositionCard } from '@equinor/fusion-components';
+import { FC, useMemo } from 'react';
 
 type PersonPositionsDetailsProps = {
     person: Personnel;
@@ -26,17 +27,17 @@ const mapPositionsToPersonPosition = (p: Position): PersonPosition => {
     };
 };
 
-const PersonPositionsDetails: React.FC<PersonPositionsDetailsProps> = ({ person }) => {
-    const positions = React.useMemo(() => person.positions?.map(mapPositionsToPersonPosition), [
+const PersonPositionsDetails: FC<PersonPositionsDetailsProps> = ({ person }) => {
+    const positions = useMemo(() => person.positions?.map(mapPositionsToPersonPosition), [
         person,
     ]);
 
-    const currentDate = React.useMemo(() => new Date().getTime(), []);
-    const pastPositions = React.useMemo(
+    const currentDate = useMemo(() => new Date().getTime(), []);
+    const pastPositions = useMemo(
         () => positions?.filter(p => (p.appliesTo?.getTime() || currentDate) <= currentDate),
         [positions]
     );
-    const activePositions = React.useMemo(
+    const activePositions = useMemo(
         () =>
             positions?.filter(
                 p =>

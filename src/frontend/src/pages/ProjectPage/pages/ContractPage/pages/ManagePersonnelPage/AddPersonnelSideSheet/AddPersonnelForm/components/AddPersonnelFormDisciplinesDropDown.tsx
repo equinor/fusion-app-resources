@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     SearchableDropdown,
     TextInput,
@@ -7,6 +7,7 @@ import {
 import { BasePosition } from '@equinor/fusion';
 import Personnel from '../../../../../../../../../models/Personnel';
 import PersonnelLine from '../../models/PersonnelLine';
+import { FC, useMemo, useCallback } from 'react';
 
 export type PersonnelFormDisciplinesDropDown = {
     onChange: (person: PersonnelLine) => void;
@@ -15,13 +16,13 @@ export type PersonnelFormDisciplinesDropDown = {
     basePositions: BasePosition[];
 };
 
-const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDropDown> = ({
+const AddPersonnelFormDisciplinesDropDown: FC<PersonnelFormDisciplinesDropDown> = ({
     onChange,
     item,
     disabled,
     basePositions,
 }) => {
-    const options = React.useMemo(() => {
+    const options = useMemo(() => {
         const disciplines: SearchableDropdownOption[] = [];
         return basePositions.reduce((d, b): SearchableDropdownOption[] => {
             if (d.some((d) => d.key === b.discipline) || !b.discipline.length) return d;
@@ -36,7 +37,7 @@ const AddPersonnelFormDisciplinesDropDown: React.FC<PersonnelFormDisciplinesDrop
         }, disciplines);
     }, [basePositions, item]);
 
-    const onSelect = React.useCallback(
+    const onSelect = useCallback(
         (newValue: SearchableDropdownOption) => {
             onChange({ ...item, disciplines: [{ name: newValue.title }] });
         },

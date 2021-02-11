@@ -1,5 +1,6 @@
-import * as React from 'react';
+
 import { usePopoverRef, MoreIcon } from '@equinor/fusion-components';
+import { FC, useCallback } from 'react';
 import ManagePersonnelToolBar, {
     IconButtonProps,
 } from '../../../components/ManagePersonnelToolBar';
@@ -10,8 +11,8 @@ type PopOverMenuProps = {
     onDeletePerson: (person: PersonnelLine) => void;
 };
 
-export const PopOverMenu: React.FC<PopOverMenuProps> = ({ person, onDeletePerson }) => {
-    const deleteButton = React.useCallback((): IconButtonProps => {
+export const PopOverMenu: FC<PopOverMenuProps> = ({ person, onDeletePerson }) => {
+    const deleteButton = useCallback((): IconButtonProps => {
         if (person.created) return { disabled: true };
 
         return { onClick: () => onDeletePerson(person) };

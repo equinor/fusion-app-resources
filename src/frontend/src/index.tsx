@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     registerApp,
     ContextTypes,
@@ -16,28 +16,29 @@ import useCollectionReducer from './hooks/useCollectionReducer';
 import ServiceNowApiClient from './api/ServiceNowApiClient';
 import { getResourceApiBaseUrl, getFunctionsBaseUrl, getFusionAppId } from './api/env';
 import HelpPage from './pages/HelpPage';
+import { FC, useMemo, useEffect, useRef } from 'react';
 
-const App: React.FC = () => {
+const App: FC = () => {
     const fusionContext = useFusionContext();
 
-    const resourceBaseUrl = React.useMemo(() => getResourceApiBaseUrl(fusionContext.environment), [
+    const resourceBaseUrl = useMemo(() => getResourceApiBaseUrl(fusionContext.environment), [
         fusionContext.environment,
     ]);
-    const functionsBaseUrl = React.useMemo(() => getFunctionsBaseUrl(fusionContext.environment), [
+    const functionsBaseUrl = useMemo(() => getFunctionsBaseUrl(fusionContext.environment), [
         fusionContext.environment,
     ]);
 
-    const apiClient = React.useMemo(
+    const apiClient = useMemo(
         () => new ApiClient(fusionContext.http.client, resourceBaseUrl),
         [fusionContext.http.client]
     );
 
-    const serviceNowApiClient = React.useMemo(
+    const serviceNowApiClient = useMemo(
         () => new ServiceNowApiClient(fusionContext.http.client, functionsBaseUrl),
         [fusionContext.http.client]
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         fusionContext.auth.container.registerAppAsync(getFusionAppId(), [resourceBaseUrl]);
 
         fusionContext.auth.container.registerAppAsync(getFusionAppId(), [functionsBaseUrl]);
@@ -50,8 +51,8 @@ const App: React.FC = () => {
         createInitialState()
     );
 
-    const prevContext = React.useRef<Context | null>(null);
-    React.useEffect(() => {
+    const prevContext = useRef<Context | null>(null);
+    useEffect(() => {
         if (!prevContext.current) {
             prevContext.current = currentContext;
             return;

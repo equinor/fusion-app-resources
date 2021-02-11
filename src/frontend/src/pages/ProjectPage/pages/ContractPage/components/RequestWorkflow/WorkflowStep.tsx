@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import { WorkflowStep } from '../../../../../../models/Workflow';
 import {
@@ -14,6 +14,7 @@ import { formatDate } from '@equinor/fusion';
 import WorkflowPopover from '../WorkflowPopover';
 import ProvisioningStatus from '../../../../../../models/ProvisioningStatus ';
 import FusionIcon from '../FusionIcon';
+import { FC, useMemo } from 'react';
 
 type RequestWorkflowStepProps = {
     step: WorkflowStep;
@@ -21,7 +22,7 @@ type RequestWorkflowStepProps = {
     inline: boolean;
 };
 
-const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({
+const RequestWorkflowStep: FC<RequestWorkflowStepProps> = ({
     step,
     inline,
     provisioningStatus,
@@ -36,12 +37,12 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({
         300
     );
 
-    const hasProvisioned = React.useMemo(
+    const hasProvisioned = useMemo(
         () => step.id === 'provisioning' && provisioningStatus.state === 'Provisioned',
         [provisioningStatus, step]
     );
 
-    const stepTitle = React.useMemo(() => {
+    const stepTitle = useMemo(() => {
         switch (step.id) {
             case 'created':
                 return 'Create';
@@ -56,7 +57,7 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({
         }
     }, [step]);
 
-    const icon = React.useMemo(() => {
+    const icon = useMemo(() => {
         if (hasProvisioned) {
             return <CheckCircleIcon color={styling.colors.green} />;
         }
@@ -74,7 +75,7 @@ const RequestWorkflowStep: React.FC<RequestWorkflowStepProps> = ({
         }
     }, [step, hasProvisioned]);
 
-    const completedBy = React.useMemo(() => {
+    const completedBy = useMemo(() => {
         const person = step.completedBy;
         if (hasProvisioned) {
             return (

@@ -1,16 +1,17 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import { Spinner, MarkdownViewer, ErrorMessage, Tabs, Tab } from '@equinor/fusion-components';
 
 import GithubApiClient from '../../api/GithubApiClient';
+import { FC, useState, useMemo, useCallback, useEffect } from 'react';
 
-const HelpPage: React.FC = () => {
-    const [isFetchingHelpPage, setIsFetchingHelpPage] = React.useState<boolean>(false);
-    const [helpPageError, setHelpPageError] = React.useState<Error | null>(null);
-    const [cmMarkdown, setCmMarkdown] = React.useState<string>('');
-    const [rdMarkdown, setRdMarkdown] = React.useState<string>('');
-    const [selectedTab, setSelectedTab] = React.useState<string>('contract-management');
-    const githubApiClient = React.useMemo(
+const HelpPage: FC = () => {
+    const [isFetchingHelpPage, setIsFetchingHelpPage] = useState<boolean>(false);
+    const [helpPageError, setHelpPageError] = useState<Error | null>(null);
+    const [cmMarkdown, setCmMarkdown] = useState<string>('');
+    const [rdMarkdown, setRdMarkdown] = useState<string>('');
+    const [selectedTab, setSelectedTab] = useState<string>('contract-management');
+    const githubApiClient = useMemo(
         () =>
             new GithubApiClient(
                 'https://raw.githubusercontent.com/equinor/fusion-app-resources/master'
@@ -18,7 +19,7 @@ const HelpPage: React.FC = () => {
         []
     );
 
-    const fetchHelpPageAsync = React.useCallback(async () => {
+    const fetchHelpPageAsync = useCallback(async () => {
         setIsFetchingHelpPage(true);
         setHelpPageError(null);
         try {
@@ -33,7 +34,7 @@ const HelpPage: React.FC = () => {
         }
     }, [githubApiClient]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (githubApiClient) {
             fetchHelpPageAsync();
         }

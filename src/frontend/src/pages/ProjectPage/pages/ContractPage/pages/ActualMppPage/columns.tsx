@@ -1,13 +1,14 @@
 import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
-import * as React from 'react';
+
 import PositionColumn from '../../../../components/PositionColumn';
 import { Position, useHistory } from '@equinor/fusion';
 import * as styles from './styles.less';
+import { FC, useCallback } from 'react';
 
 type AssignedPersonProps = {
     item: Position;
 };
-const AssignedPersonComponent: React.FC<AssignedPersonProps> = ({ item }) => {
+const AssignedPersonComponent: FC<AssignedPersonProps> = ({ item }) => {
     const person = item.instances.find(i => i.assignedPerson)?.assignedPerson || undefined;
     return <PersonCard person={person} photoSize="medium" inline />;
 };
@@ -16,10 +17,10 @@ type ColumnSideSheetLinkProps = {
     positionId: string;
 };
 
-const ColumnSideSheetLink: React.FC<ColumnSideSheetLinkProps> = ({ positionId, children }) => {
+const ColumnSideSheetLink: FC<ColumnSideSheetLinkProps> = ({ positionId, children }) => {
     const history = useHistory();
 
-    const openSideSheet = React.useCallback(() => {
+    const openSideSheet = useCallback(() => {
         const sideSheetSearchString = `positionId=${positionId}`;
         history.push({
             pathname: history.location.pathname,

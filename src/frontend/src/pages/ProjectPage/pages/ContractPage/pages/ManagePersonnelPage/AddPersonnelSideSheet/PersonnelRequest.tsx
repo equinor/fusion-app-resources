@@ -1,12 +1,13 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import Personnel from '../../../../../../../models/Personnel';
+import { FC } from 'react';
 
 type PersonnelRequestProps = {
     person: Personnel;
 };
 
-const PersonnelRequest: React.FC<PersonnelRequestProps> = ({ person }) => {
+const PersonnelRequest: FC<PersonnelRequestProps> = ({ person }) => {
     return (
         <div className={styles.personnelRequest}>
             <div className={styles.personName}>

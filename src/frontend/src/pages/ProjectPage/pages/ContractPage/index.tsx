@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import { RouteComponentProps, Route } from 'react-router-dom';
 import ContractContext from '../../../../contractContex';
 import {
@@ -22,6 +22,7 @@ import { contractReducer, createInitialState } from '../../../../reducers/contra
 import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 import ProvisioningRequestsPage from './pages/ProvisioningRequestsPage';
 import ResourceErrorMessage from '../../../../components/ResourceErrorMessage';
+import { FC, useMemo, useCallback } from 'react';
 
 type ContractPageMatch = {
     contractId: string;
@@ -29,7 +30,7 @@ type ContractPageMatch = {
 
 type ContractPageProps = RouteComponentProps<ContractPageMatch>;
 
-const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
+const ContractPage: FC<ContractPageProps> = ({ match }) => {
     const currentContext = useCurrentContext();
     const { contract, isFetchingContract, contractError } = useContractFromId(
         match.params.contractId
@@ -41,7 +42,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
         createInitialState()
     );
 
-    const contractContext = React.useMemo(() => {
+    const contractContext = useMemo(() => {
         return {
             contract,
             isFetchingContract,
@@ -56,7 +57,7 @@ const ContractPage: React.FC<ContractPageProps> = ({ match }) => {
     );
 
     const history = useHistory();
-    const onClose = React.useCallback(() => {
+    const onClose = useCallback(() => {
         history.push('/' + currentContext?.id || '');
     }, [history, currentContext]);
 

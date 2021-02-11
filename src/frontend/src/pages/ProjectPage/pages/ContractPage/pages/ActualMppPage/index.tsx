@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import {
     IconButton,
@@ -26,20 +26,21 @@ import {
 import { useAppContext } from '../../../../../../appContext';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 import usePositionDeletion from '../../hooks/usePositionDeletion';
+import { FC, useState, useCallback, useMemo } from 'react';
 
-const ActualMppPage: React.FC = () => {
-    const [filteredContractPositions, setFilteredContractPositions] = React.useState<Position[]>(
+const ActualMppPage: FC = () => {
+    const [filteredContractPositions, setFilteredContractPositions] = useState<Position[]>(
         []
     );
-    const [selectedPositions, setSelectedPositions] = React.useState<Position[]>([]);
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
+    const [selectedPositions, setSelectedPositions] = useState<Position[]>([]);
+    const [editRequests, setEditRequests] = useState<PersonnelRequest[] | null>(null);
 
     const apiClients = useApiClients();
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
 
-    const fetchMppAsync = React.useCallback(async () => {
+    const fetchMppAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.externalId;
         if (!contractId || !projectId) {
@@ -77,7 +78,7 @@ const ActualMppPage: React.FC = () => {
         });
     };
 
-    const fetchPersonnelAsync = React.useCallback(async () => {
+    const fetchPersonnelAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
@@ -98,11 +99,11 @@ const ActualMppPage: React.FC = () => {
         fetchPersonnelAsync
     );
 
-    const filterSections = React.useMemo(() => {
+    const filterSections = useMemo(() => {
         return getFilterSections(contractPositions || []);
     }, [contractPositions]);
 
-    const onRequestSidesheetClose = React.useCallback(() => {
+    const onRequestSidesheetClose = useCallback(() => {
         setEditRequests(null);
     }, []);
 
@@ -110,7 +111,7 @@ const ActualMppPage: React.FC = () => {
     const addRequestTooltipRef = useTooltipRef('Create a new request');
     const copyTooltipRef = useTooltipRef('Create new request(s) based on selected positions(s)');
 
-    const editSelected = React.useCallback(
+    const editSelected = useCallback(
         (copy?: boolean) => {
             const transformedPositions = copy
                 ? transformPositionsToCopyRequest(selectedPositions, personnel)

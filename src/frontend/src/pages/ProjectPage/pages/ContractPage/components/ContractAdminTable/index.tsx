@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import * as styles from './styles.less';
 import {
     Button,
@@ -21,6 +21,7 @@ import { useCurrentContext } from '@equinor/fusion';
 import columns from './columns';
 import ToolbarButton from './components/ToolbarButton';
 import classNames from 'classnames';
+import { FC, useState, useCallback, useEffect } from 'react';
 
 type ContractAdminTableProps = {
     accountType: PersonDelegationClassification;
@@ -28,7 +29,7 @@ type ContractAdminTableProps = {
     isFetchingAdmins: boolean;
 };
 
-const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
+const ContractAdminTable: FC<ContractAdminTableProps> = ({
     accountType,
     admins,
     isFetchingAdmins,
@@ -37,17 +38,17 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
     const { contract } = useContractContext();
     const currentContext = useCurrentContext();
 
-    const [selectedAdmins, setSelectedAdmins] = React.useState<PersonDelegation[]>([]);
-    const [canEdit, setCanEdit] = React.useState<boolean>(false);
-    const [canDelete, setCanDelete] = React.useState<boolean>(false);
+    const [selectedAdmins, setSelectedAdmins] = useState<PersonDelegation[]>([]);
+    const [canEdit, setCanEdit] = useState<boolean>(false);
+    const [canDelete, setCanDelete] = useState<boolean>(false);
 
-    const [showDelegateAccess, setShowDelegateAccess] = React.useState<boolean>(false);
-    const closeDelegateAccess = React.useCallback(() => setShowDelegateAccess(false), []);
-    const openDelegateAccess = React.useCallback(() => canEdit && setShowDelegateAccess(true), [
+    const [showDelegateAccess, setShowDelegateAccess] = useState<boolean>(false);
+    const closeDelegateAccess = useCallback(() => setShowDelegateAccess(false), []);
+    const openDelegateAccess = useCallback(() => canEdit && setShowDelegateAccess(true), [
         canEdit,
     ]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const updatedAdmins = admins.filter((admin) =>
             selectedAdmins.some((selectedAdmin) => admin.id === selectedAdmin.id)
         );
@@ -56,11 +57,11 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
 
     const { removeAccess, isRemoving } = useAccessRemoval(accountType, selectedAdmins);
 
-    const removeDelegateAccess = React.useCallback(() => canDelete && removeAccess(), [
+    const removeDelegateAccess = useCallback(() => canDelete && removeAccess(), [
         removeAccess,
         canDelete,
     ]);
-    const getPersonAccess = React.useCallback(
+    const getPersonAccess = useCallback(
         async (projectId: string, contractId: string) => {
             setCanDelete(false);
             setCanEdit(false);
@@ -79,7 +80,7 @@ const ContractAdminTable: React.FC<ContractAdminTableProps> = ({
         [apiClient]
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         const projectId = currentContext?.id;
         const contractId = contract?.id;
         if (contractId && projectId) {
