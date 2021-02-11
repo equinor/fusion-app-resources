@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetResourceAllocationRequestItem : IRequest<QueryResourceAllocationRequest>
+    public class GetResourceAllocationRequestItem : IRequest<QueryResourceAllocationRequest?>
     {
         public GetResourceAllocationRequestItem(Guid requestId)
         {

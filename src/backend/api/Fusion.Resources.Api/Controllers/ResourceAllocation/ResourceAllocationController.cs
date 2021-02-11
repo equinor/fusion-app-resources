@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers
     {
         [HttpPost("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> AllocateProjectRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateProjectAllocationRequest request)
+            [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequest request)
         {
             #region Authorization
 
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPut("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> UpdateProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
-            [FromBody] CreateProjectAllocationRequest request)
+            [FromBody] CreateResourceAllocationRequest request)
         {
             #region Authorization
 
@@ -138,6 +138,69 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        [HttpPut("/resources/internal-requests/requests/{requestId}")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> UpdateResourceAllocationRequest(Guid requestId, [FromBody] CreateResourceAllocationRequest request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            if (!request.ProjectId.HasValue)
+            {
+                return FusionApiError.InvalidOperation("ValidationError", "ProjectId required");
+            }
+
+            var command = new Logic.Commands.ResourceAllocationRequest.Update(request.ProjectId.Value, requestId)
+                .WithDiscipline(request.Discipline)
+                .WithType($"{request.Type}")
+                .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+                .WithOrgPosition(request.OrgPositionId)
+                .WithProposedChanges(request.ProposedChanges)
+                .WithIsDraft(request.IsDraft)
+                .WithAdditionalNode(request.AdditionalNote);
+
+            if (request.OrgPositionInstance != null)
+                command.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                              request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+
+
+            try
+            {
+                var result = await DispatchAsync(command);
+                return new ApiResourceAllocationRequest(result);
+            }
+            catch (ProfileNotFoundError pef)
+            {
+                return FusionApiError.InvalidOperation("ProfileNotFoundError", pef.Message);
+            }
+            catch (InvalidOperationException ioe)
+            {
+                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+            }
+            catch (InvalidOrgChartPositionError ioe)
+            {
+                return FusionApiError.InvalidOperation("InvalidOrgChartPosition", ioe.Message);
+            }
+            catch (ValidationException ve)
+            {
+                return FusionApiError.InvalidOperation("ValidationError", ve.Message);
+            }
+        }
+
         [HttpGet("/resources/internal-requests/requests")]
         public async Task<ActionResult<IEnumerable<ApiResourceAllocationRequest>>> GetResourceAllocationRequests([FromQuery] ODataQueryParams query)
         {
@@ -154,7 +217,7 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-            
+
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
             return apiModel;
         }
@@ -222,7 +285,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
-            if (result == null)
+            if (result is null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
             #region Authorization
@@ -232,7 +295,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    //or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
+                    if (projectIdentifier is not null)
+                        or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
             });

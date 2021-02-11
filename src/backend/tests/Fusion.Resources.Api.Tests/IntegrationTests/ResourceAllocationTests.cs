@@ -102,9 +102,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task DeleteRequest_RandomRole_ShouldBe_Unauthorized()
         {
-            using var userScope = fixture.UserScope(testUser);
-            var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
-            response.Should().BeUnauthorized();
+            using (var userScope = fixture.UserScope(testUser))
+            {
+                var response =
+                    await Client.TestClientDeleteAsync(
+                        $"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
+                response.Should().BeUnauthorized();
+            }
         }
 
         [Fact]
@@ -142,7 +146,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 var r = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
                 r.Should().BeSuccessfull();
             }
-            
+
             for (int j = 5; j < 20; j++)
             {
                 var topResponseTest = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.Discipline}&$filter=discipline eq '{testRequest.Request.Discipline}'&$skip=2&$top={j}");
@@ -206,6 +210,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest("Invalid arguments passed");
 
         }
+        [Fact]
+        public async Task PutAdminRequest_RequestMissingProjectId_ShouldBe_Unsuccessful()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.Request.Id}", testRequest.Request);
+            response.Should().BeBadRequest("ProjectId argument missing");
+
+        }
 
         [Fact]
         public async Task PostRequest_InvalidRequest_ShouldBe_Unsuccessful()
@@ -222,7 +234,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task PostRequest_Minimal_Request_ShouldBe_Successful()
         {
             using var adminScope = fixture.AdminScope();
-            var minimalRequest = new CreateProjectAllocationRequest();
+            var minimalRequest = new CreateResourceAllocationRequest();
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", minimalRequest);
             response.Should().BeSuccessfull();
 

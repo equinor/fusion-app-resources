@@ -7,10 +7,10 @@ namespace Fusion.Testing.Mocks
 {
     public class ResourceAllocationTestData
     {
-        public static Faker<CreateProjectAllocationRequest> Request() => new Faker<CreateProjectAllocationRequest>()
+        public static Faker<CreateResourceAllocationRequest> Request() => new Faker<CreateResourceAllocationRequest>()
             .CustomInstantiator(f =>
                 {
-                    var request = new CreateProjectAllocationRequest()
+                    var request = new CreateResourceAllocationRequest()
                     {
                         Id = Guid.NewGuid(),
                         Discipline = f.Hacker.Phrase(),
