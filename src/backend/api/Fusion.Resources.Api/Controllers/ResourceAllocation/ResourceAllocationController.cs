@@ -154,14 +154,7 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-
-            var linkBuilder = new LinkHeaderBuilder();
-            var request = Url.ActionContext.HttpContext.Request;
-            var uriBuilder = new UriBuilder(request.Scheme, request.Host.ToUriComponent())
-            { Path = Url.Action("GetResourceAllocationRequest") };
-
-            Response.Headers.Add("link", linkBuilder.GetLinkHeader(result, uriBuilder.ToString()));
-
+            
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
             return apiModel;
         }
@@ -189,17 +182,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var linkBuilder = new LinkHeaderBuilder().WithQuery(Request, query);
-            var request = Url.ActionContext.HttpContext.Request;
-            var uriBuilder = new UriBuilder(request.Scheme, request.Host.ToUriComponent())
-            { Path = Url.Action("GetResourceAllocationRequestsForProject") };
-
-            var currentRoute = uriBuilder.ToString();
-
-            Response.Headers.Add("link", linkBuilder.GetLinkHeader(result, currentRoute));
-
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
-
             return apiModel;
         }
         [HttpGet("/resources/internal-requests/requests/{requestId}")]
