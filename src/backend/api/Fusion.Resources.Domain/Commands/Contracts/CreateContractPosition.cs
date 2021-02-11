@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain.Commands
         public string? ExternalId { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
-        public double Workload { get; set; }
+        public double? Workload { get; set; }
 
         public Guid? ParentPositionId { get; set; }
 

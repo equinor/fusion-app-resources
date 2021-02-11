@@ -75,7 +75,7 @@ namespace Fusion.Resources.Domain.Queries
                 if (dbRequest is null)
                     throw new RequestNotFoundError(request.RequestId);
 
-                var basePosition = await orgResolver.ResolveBasePositionAsync(dbRequest.Position.BasePositionId);
+                var basePosition = await orgResolver.ResolveBasePositionAsync(dbRequest.Position!.BasePositionId);
 
                 var position = new QueryPositionRequest(dbRequest.Position)
                     .WithResolvedBasePosition(basePosition);

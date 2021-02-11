@@ -19,7 +19,7 @@ namespace Fusion.Resources.Database.Entities
         public DbContractPersonnel Person { get; set; } = null!;
         public Guid PersonId { get; set; }
 
-        public RequestPosition Position { get; set; } = new RequestPosition();
+        public RequestPosition? Position { get; set; } = new RequestPosition();
 
         public DbRequestState State { get; set; }
         public DbRequestCategory Category { get; set; }
@@ -55,7 +55,7 @@ namespace Fusion.Resources.Database.Entities
                 });
                 entity.OwnsOne(e => e.Position, op =>
                 {
-                    op.OwnsOne(p => p.TaskOwner);
+                    op.OwnsOne(p => p!.TaskOwner);
                 });
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
@@ -67,12 +67,12 @@ namespace Fusion.Resources.Database.Entities
 
         public class RequestPosition
         {
-            public string Name { get; set; } = null!;
+            public string? Name { get; set; } = null!;
             public Guid BasePositionId { get; set; }
-            public DateTime AppliesFrom { get; set; }
-            public DateTime AppliesTo { get; set; }
+            public DateTime? AppliesFrom { get; set; }
+            public DateTime? AppliesTo { get; set; }
             public string? Obs { get; set; }
-            public double Workload { get; set; }
+            public double? Workload { get; set; }
 
             public PositionTaskOwner TaskOwner { get; set; } = new PositionTaskOwner();
         }
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Database.Entities
 
         public class ProvisionStatus
         {
-            public DbProvisionState State { get; set; } = DbProvisionState.NotProvisioned;
+            public DbProvisionState? State { get; set; } = DbProvisionState.NotProvisioned;
             public Guid? PositionId { get; set; }
             public DateTimeOffset? Provisioned { get; set; }
             public string? ErrorMessage { get; set; }

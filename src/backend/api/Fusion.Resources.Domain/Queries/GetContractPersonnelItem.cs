@@ -79,15 +79,15 @@ namespace Fusion.Resources.Domain
                     .ToListAsync();
 
                 var basePositions = await Task.WhenAll(requests
-                    .Select(q => q.Position.BasePositionId)
+                    .Select(q => q.Position!.BasePositionId)
                     .Distinct()
                     .Select(bp => orgResolver.ResolveBasePositionAsync(bp))
                 );
 
                 var positions = requests.Select(p =>
                 {
-                    var position = new QueryPositionRequest(p.Position)
-                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp!.Id == p.Position.BasePositionId));
+                    var position = new QueryPositionRequest(p.Position!)
+                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp!.Id == p.Position!.BasePositionId));
 
                     return new QueryPersonnelRequestReference(p, position);
                 }).ToList();

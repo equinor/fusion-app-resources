@@ -22,14 +22,14 @@ namespace Fusion.Resources.Database.Entities
         public DbPerson? ProposedPerson { get; set; }
         public Guid? ProposedPersonId { get; set; }
         public bool? ProposedPersonWasNotified { get; set; }
-        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public DbPerson CreatedBy { get; set; } = null!;
         public DbPerson? UpdatedBy { get; set; }
 
         public Guid CreatedById { get; set; }
         public Guid? UpdatedById { get; set; }
-        public DateTimeOffset LastActivity { get; set; }
+        public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
 
         public ProvisionStatus ProvisioningStatus { get; set; } = new ProvisionStatus();
@@ -41,7 +41,7 @@ namespace Fusion.Resources.Database.Entities
                 entity.HasOne(e => e.Project).WithMany().OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
-                entity.Property(e => e.Created).HasDefaultValue(DateTimeOffset.UtcNow);
+                entity.Property(e => e.Created).HasDefaultValueSql("getdate()");
 
                 entity.HasOne(e => e.UpdatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
 
@@ -54,7 +54,7 @@ namespace Fusion.Resources.Database.Entities
 
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAllocationRequestType>());
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
-                entity.Property(e => e.LastActivity).HasDefaultValue(DateTimeOffset.UtcNow);
+                entity.Property(e => e.LastActivity).HasDefaultValueSql("getdate()");
                 entity.HasIndex(e => e.LastActivity).IsClustered(false);
             });
         }
@@ -72,7 +72,7 @@ namespace Fusion.Resources.Database.Entities
 
         public class ProvisionStatus
         {
-            public DbProvisionState State { get; set; } = DbProvisionState.NotProvisioned;
+            public DbProvisionState? State { get; set; } = DbProvisionState.NotProvisioned;
             public Guid? PositionId { get; set; }
             public DateTimeOffset? Provisioned { get; set; }
             public string? ErrorMessage { get; set; }

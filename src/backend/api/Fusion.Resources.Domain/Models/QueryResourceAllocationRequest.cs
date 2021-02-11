@@ -77,11 +77,11 @@ namespace Fusion.Resources.Domain
             }
         }
 
-        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public QueryPerson CreatedBy { get; set; }
         public QueryPerson? UpdatedBy { get; set; }
-        public DateTimeOffset LastActivity { get; set; }
+        public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
 

@@ -55,13 +55,13 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public ApiPerson? ProposedPerson { get; set; }
 
-        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Created { get; set; }
         public ApiPerson CreatedBy { get; set; }
 
         public DateTimeOffset? Updated { get; set; }
         public ApiPerson? UpdatedBy { get; set; }
 
-        public DateTimeOffset LastActivity { get; set; }
+        public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
 
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
