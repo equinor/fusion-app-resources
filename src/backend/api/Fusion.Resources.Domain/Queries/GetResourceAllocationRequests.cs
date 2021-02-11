@@ -20,12 +20,20 @@ namespace Fusion.Resources.Domain.Queries
 
         }
 
+        public GetResourceAllocationRequests WithAssignedDepartment(string assignedDepartment)
+        {
+            AssignedDepartment = assignedDepartment;
+            return this;
+        }
+
+
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
         {
             ProjectId = projectId;
             return this;
         }
 
+        public string? AssignedDepartment { get; set; }
         public Guid? ProjectId { get; private set; }
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
@@ -78,6 +86,9 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     query = query.Where(p => p.AssignedDepartment != null && p.AssignedDepartment.ToLower().Contains(request.Query.Search));
                 }
+
+                if (!string.IsNullOrEmpty(request.AssignedDepartment))
+                    query = query.Where(c => string.Equals(c.AssignedDepartment, request.AssignedDepartment, StringComparison.InvariantCultureIgnoreCase));
 
 
                 if (request.ProjectId.HasValue)
