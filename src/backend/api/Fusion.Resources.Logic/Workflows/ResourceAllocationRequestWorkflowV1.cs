@@ -45,7 +45,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access contract resources.")
+                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access resources.")
                 .Complete(approver, true)
                 .StartNext();
         }
@@ -54,7 +54,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access contract resources.")
+                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access resources.")
                 .Complete(approver, true)
                 .StartNext();
         }
@@ -68,24 +68,6 @@ namespace Fusion.Resources.Logic.Workflows
                 .Complete(editor, false)
                 .SkipRest()
                 .CompleteWorkflow();
-        }
-
-        public void ProvisionSuccessful(DbPerson systemAccount)
-        {
-            Step(PROVISIONING)
-                .SetName("Provisioned")
-                .SetDescription($"The request was successfully provisioned to the contract org chart.")
-                .Complete(systemAccount, true)
-                .CompleteWorkflow(); 
-        }
-
-        public void ProvisionError(string errorMessage)
-        {
-            Step(PROVISIONING)
-                .SetName("Submitted")
-                .SetDescription($"There was an error trying to provision the request to the contract org chart. " +
-                    $"This could be a transient error. Please contact support if the issue is not resolved within a day.")
-                .SetWorkflowError(errorMessage);
         }
 
         #region Step definitions
@@ -106,7 +88,7 @@ namespace Fusion.Resources.Logic.Workflows
             .WithNextStep(COMPANY_APPROVAL);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
-            .WithDescription("If the request is approved, the new position or changes will be provisioned to the contract organisational chart.")
+            .WithDescription("If the request is approved, the new position or changes will be provisioned to the organisational chart.")
             .WithPreviousStep(COMPANY_APPROVAL);
 
         #endregion
