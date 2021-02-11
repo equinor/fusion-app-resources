@@ -27,6 +27,7 @@ namespace Fusion.Resources.Logic.Commands
             private Guid OrgProjectId { get; }
             private Guid RequestId { get; }
 
+            public MonitorableProperty<string?> AssignedDepartment { get; private set; } = new MonitorableProperty<string?>();
             public MonitorableProperty<string?> Discipline { get; private set; } = new MonitorableProperty<string?>();
 
             public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>
@@ -50,6 +51,11 @@ namespace Fusion.Resources.Logic.Commands
             public Update WithIsDraft(bool? isDraft)
             {
                 IsDraft = isDraft.GetValueOrDefault(true);
+                return this;
+            }
+            public Update WithAssignedDepartment(string? assignedDepartment)
+            {
+                AssignedDepartment = assignedDepartment;
                 return this;
             }
 
@@ -143,6 +149,11 @@ namespace Fusion.Resources.Logic.Commands
                     bool modified = false;
                     var updated = DateTimeOffset.UtcNow;
 
+                    if (request.AssignedDepartment.HasBeenSet)
+                    {
+                        dbItem.AssignedDepartment = request.AssignedDepartment.Value;
+                        modified = true;
+                    }
                     if (request.Discipline.HasBeenSet)
                     {
                         dbItem.Discipline = request.Discipline.Value;

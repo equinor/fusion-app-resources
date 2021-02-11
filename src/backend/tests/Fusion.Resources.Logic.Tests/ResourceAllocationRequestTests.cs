@@ -85,7 +85,8 @@ namespace Fusion.Resources.Logic.Tests
             var dbContext = new ResourcesDbContext(dbOptions);
 
             var handler = new Create.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
-            var command = new Create(project.ProjectId);
+            var command = new Create(project.ProjectId)
+                .WithAssignedDepartment("TPD PRD");
             command.SetEditor(Guid.NewGuid(), null);
 
             var response = await handler.Handle(command, new CancellationToken());
@@ -124,8 +125,9 @@ namespace Fusion.Resources.Logic.Tests
 
             var handler = new Update.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
             var command = new Update(project.ProjectId, request.Id)
+                .WithAssignedDepartment("IT PLA")
                 .WithDiscipline("Whatever");
-            
+
             command.SetEditor(Guid.NewGuid(), null);
 
             var response = await handler.Handle(command, new CancellationToken());
