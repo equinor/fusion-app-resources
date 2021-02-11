@@ -14,7 +14,7 @@ namespace Fusion.Resources.Logic.Workflows
         public override string Version => "v1";
         public override string Name => "Contractor personnel request";
 
-        public ResourceAllocationRequestWorkflowV1() 
+        public ResourceAllocationRequestWorkflowV1()
             : base(null)
         {
             Steps = new List<WorkflowStep>()
@@ -26,7 +26,7 @@ namespace Fusion.Resources.Logic.Workflows
             };
         }
 
-        public ResourceAllocationRequestWorkflowV1(DbPerson creator) 
+        public ResourceAllocationRequestWorkflowV1(DbPerson creator)
             : this()
         {
             Step(CREATED)
@@ -36,11 +36,11 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public ResourceAllocationRequestWorkflowV1(DbWorkflow workflow) 
+        public ResourceAllocationRequestWorkflowV1(DbWorkflow workflow)
             : base(workflow)
         {
         }
-        
+
         public void CompanyApproved(DbPerson approver)
         {
             Step(COMPANY_APPROVAL)
@@ -50,12 +50,12 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public void CompanyProposed(DbPerson approver)
+        public void CompanyProposed(DbPerson proposer)
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access resources.")
-                .Complete(approver, true)
+                .SetDescription($"{proposer.Name} approved the request. The provisioing process will start so the person can access resources.")
+                .Complete(proposer, true)
                 .StartNext();
         }
 
@@ -74,18 +74,17 @@ namespace Fusion.Resources.Logic.Workflows
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")
             .WithDescription("Request was created and started.")
-            .WithNextStep(COMPANY_APPROVAL);
-
-
-        public static WorkflowStep CompanyApproval => new WorkflowStep(COMPANY_APPROVAL, "Approve")
-            .WithDescription("Review personnel request and approve/reject")
-            .WithPreviousStep(CREATED)
-            .WithNextStep(PROVISIONING);
+            .WithNextStep(COMPANY_PROPOSAL);
 
         public static WorkflowStep CompanyProposal => new WorkflowStep(COMPANY_PROPOSAL, "Propose")
             .WithDescription("Review personnel request and approve/reject")
             .WithPreviousStep(CREATED)
             .WithNextStep(COMPANY_APPROVAL);
+
+        public static WorkflowStep CompanyApproval => new WorkflowStep(COMPANY_APPROVAL, "Approve")
+            .WithDescription("Review personnel request and approve/reject")
+            .WithPreviousStep(COMPANY_PROPOSAL)
+            .WithNextStep(PROVISIONING);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
             .WithDescription("If the request is approved, the new position or changes will be provisioned to the organisational chart.")
