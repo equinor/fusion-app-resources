@@ -204,7 +204,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/resources/internal-requests/requests")]
-        public async Task<ActionResult<IEnumerable<ApiResourceAllocationRequest>>> GetResourceAllocationRequests([FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequests([FromQuery] ODataQueryParams query)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequests(query));
 
@@ -221,11 +221,11 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
-            return apiModel;
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
 
         [HttpGet("/projects/{projectIdentifier}/requests")]
-        public async Task<ActionResult<IEnumerable<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
             [FromRoute] ProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequests(query).WithProjectId(projectIdentifier.ProjectId));
@@ -248,7 +248,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
-            return apiModel;
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
         [HttpGet("/resources/internal-requests/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
