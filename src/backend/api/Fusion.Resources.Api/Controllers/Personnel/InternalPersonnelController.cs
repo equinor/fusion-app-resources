@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -32,7 +33,11 @@ namespace Fusion.Resources.Api.Controllers
         
         
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString, 
+            [FromQuery] ODataQueryParams query, 
+            [FromQuery]DateTime? timelineStart = null, 
+            [FromQuery]string? timelineDuration = null, 
+            [FromQuery]DateTime? timelineEnd = null)
         {
             #region Authorization
 
@@ -41,8 +46,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-                    or.FullControl();                    
-                    
+                    or.FullControl();
+
+                    or.FullControlInternal();
+
                     // TODO add
                     // - Resource owner in line org chain (all departments upwrards)
                     // - Is resource owner in general (?)
@@ -58,6 +65,33 @@ namespace Fusion.Resources.Api.Controllers
             // Departments are 
             //if (query is null) query = new ODataQueryParams { Top = 1000 };
             //if (query.Top > 1000) return ApiErrors.InvalidPageSize("Max page size is 1000");
+
+            #region Validate input if timeline is expanded
+
+            var shouldExpandTimeline = query.ShoudExpand("timeline");
+            if (shouldExpandTimeline)
+            {
+                if (timelineStart is null)
+                    return ApiErrors.MissingInput(nameof(timelineStart), "Must specify 'timelineStart' when expanding timeline");
+
+                TimeSpan? duration;
+
+                try { duration = timelineDuration != null ? XmlConvert.ToTimeSpan("P5M") : null; }
+                catch (Exception ex)
+                {
+                    return ApiErrors.InvalidInput("Invalid duration value: " + ex.Message);
+                }
+
+                if (timelineEnd is null)
+                {
+                    if (duration is null)
+                        return ApiErrors.MissingInput(nameof(timelineDuration), "Must specify either 'timelineDuration' or 'timelineEnd' when expanding timeline");
+
+                    timelineEnd = timelineStart.Value.Add(duration.Value);
+                }
+            }
+
+            #endregion
 
 
             var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
@@ -108,7 +142,9 @@ namespace Fusion.Resources.Api.Controllers
                                     basePosition = new
                                     {
                                         id = Guid.Empty,
-                                        name = string.Empty
+                                        name = string.Empty,
+                                        discipline = string.Empty,
+                                        projectType = string.Empty
                                     }
                                 }
 
@@ -130,11 +166,15 @@ namespace Fusion.Resources.Api.Controllers
                     InstanceId = p.instanceId,
                     AppliesFrom = p.appliesFrom!.Value,
                     AppliesTo = p.appliesTo!.Value,
+                    Name = p.name,
+                    Location = p.locationName,
+                    BasePosition = new ApiBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.projectType),
                     Project = new ApiProjectReference(p.project.id, p.project.name),
                     Workload = p.workload
                 }).OrderBy(p => p.AppliesFrom).ToList()
             }).ToList();
 
+          
             departmentPersonnel.ForEach(p =>
             {
                 var absence = new List<Absence>();
@@ -164,20 +204,26 @@ namespace Fusion.Resources.Api.Controllers
                         Type = "Secret Job"
                     });
                 }
-                p.Timeline = GenerateTimeline(p.PositionInstances, absence).OrderBy(p => p.AppliesFrom)
-                    .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not wnat 1 day intervals that occur due to from/to do not overlap
-                    .ToList();
 
-                // Tweek ranges where end date == next start date
-                var indexToMoveBack = new List<int>();
-                for (int i = 0; i < p.Timeline.Count; i++)
+                if (shouldExpandTimeline)
                 {
-                    var now = p.Timeline.ElementAt(i);
-                    var next = p.Timeline.ElementAtOrDefault(i + 1);
+                    // Timeline date input has been verified when shouldExpandTimline is true.
+                    p.Timeline = GenerateTimeline(p.PositionInstances, absence, timelineStart!.Value, timelineEnd!.Value).OrderBy(p => p.AppliesFrom)
+                        .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
+                        .ToList();
 
-                    if (next != null && now.AppliesTo == next.AppliesFrom)
-                        now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
+                    // Tweek ranges where end date == next start date
+                    var indexToMoveBack = new List<int>();
+                    for (int i = 0; i < p.Timeline.Count; i++)
+                    {
+                        var now = p.Timeline.ElementAt(i);
+                        var next = p.Timeline.ElementAtOrDefault(i + 1);
+
+                        if (next != null && now.AppliesTo == next.AppliesFrom)
+                            now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
+                    }
                 }
+
 
 
                 p.EmploymentStatuses = absence.Select(a => new ApiInternalPersonnelPerson.PersonnelAbsence()
@@ -207,8 +253,16 @@ namespace Fusion.Resources.Api.Controllers
             public string Type { get; set; } = null!;
         }
 
-        private IEnumerable<ApiInternalPersonnelPerson.TimelineRange> GenerateTimeline(List<ApiInternalPersonnelPerson.PersonnelPosition> position, List<Absence> absences)
+        private IEnumerable<ApiInternalPersonnelPerson.TimelineRange> GenerateTimeline(List<ApiInternalPersonnelPerson.PersonnelPosition> position, List<Absence> absences, DateTime filterStart, DateTime filterEnd)
         {
+            // Ensure utc dates
+            if (filterStart.Kind != DateTimeKind.Utc)
+                filterStart = DateTime.SpecifyKind(filterStart, DateTimeKind.Utc);
+
+            if (filterEnd.Kind != DateTimeKind.Utc)
+                filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
+
+
             // Gather all dates 
             var dates = position.SelectMany(p => new[] { p.AppliesFrom.Date, p.AppliesTo.Date })
                 .Union(absences.SelectMany(a => new[] { a.Start, a.End }))
@@ -219,12 +273,7 @@ namespace Fusion.Resources.Api.Controllers
             if (!dates.Any())
                 yield break;
 
-            var filterStart = DateTime.SpecifyKind(new DateTime(2020, 01, 01), DateTimeKind.Utc);
-            var filterEnd = filterStart.AddMonths(5);
-
             var validDates = dates.Where(d => d > filterStart && d < filterEnd).ToList();
-            //if (!validDates.Any())
-            //    yield break;
 
             validDates.Insert(0, filterStart);
             validDates.Add(filterEnd);
@@ -252,7 +301,9 @@ namespace Fusion.Resources.Api.Controllers
                         Type = "PositionInstance",
                         Workload = p.Workload,
                         Id = p.PositionId,
-                        Description = $"{p.Project.Name}"
+                        Description = $"{p.Name}",
+                        BasePosition = p.BasePosition,
+                        Project = p.Project
                     }).Union(relevantAbsence.Select(a => new ApiInternalPersonnelPerson.TimelineItem()
                     {
                         Type = "Absence",
@@ -339,7 +390,8 @@ namespace Fusion.Resources.Api.Controllers
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
         public List<PersonnelAbsence> EmploymentStatuses { get; set; } = new List<PersonnelAbsence>();
 
-        public List<TimelineRange> Timeline { get; set; } = new List<TimelineRange>();
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public List<TimelineRange> Timeline { get; set; }
 
 
         public class TimelineRange
@@ -355,7 +407,12 @@ namespace Fusion.Resources.Api.Controllers
             public Guid Id { get; set; }
             public string Type { get; set; } = null!;
             public double? Workload { get; set; }
-        public string Description { get; set; } = null!;
+            public string Description { get; set; } = null!;
+
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public ApiProjectReference? Project { get; set; } 
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public ApiBasePosition? BasePosition { get; set; }
         }
 
         public class PersonnelPosition
@@ -365,6 +422,11 @@ namespace Fusion.Resources.Api.Controllers
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
 
+            public ApiBasePosition BasePosition { get; set; } = null!;
+            public string Name { get; set; } = null!;
+            public string? Location { get; set; }
+
+            public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
             public double Workload { get; set; }
             public ApiProjectReference Project { get; set; } = null!;
         }
@@ -374,7 +436,7 @@ namespace Fusion.Resources.Api.Controllers
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
             public double? AbsencePercentage { get; set; }
-            public string Type { get; set; }
+            public string Type { get; set; } = null!;
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Domain;
+using Newtonsoft.Json;
 using System;
 
 namespace Fusion.Resources.Api.Controllers
@@ -23,7 +24,8 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         public Guid Id { get; set; }
 
-        public Guid InternalId { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Guid? InternalId { get; set; }
         public string Name { get; set; }
     }
 }

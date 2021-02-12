@@ -43,6 +43,40 @@ namespace Fusion.Resources.Api.Controllers
             };
         }
 
+        public static ActionResult InvalidInput(string message)
+        {
+            var problem = new ProblemDetails()
+            {
+                Type = rfcProblemDetails,
+                Detail = message,
+                Title = "Invalid Operation",
+                Status = (int)System.Net.HttpStatusCode.BadRequest
+            };
+            problem.Extensions.Add("error", new ApiProblem.ApiError("InvalidInput", message));
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
+        public static ActionResult MissingInput(string paramName, string message)
+        {
+            var problem = new ProblemDetails()
+            {
+                Type = rfcProblemDetails,
+                Detail = message,
+                Title = "Invalid Operation",
+                Status = (int)System.Net.HttpStatusCode.BadRequest
+            };
+            problem.Extensions.Add("error", new ApiProblem.MissingPropertyError(paramName, "MissingInput", message));
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
         internal static ActionResult InvalidPageSize(string message)
         {
             var problem = new ProblemDetails
