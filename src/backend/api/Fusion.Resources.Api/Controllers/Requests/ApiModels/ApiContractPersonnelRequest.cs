@@ -25,8 +25,8 @@ namespace Fusion.Resources.Api.Controllers
             Person = new ApiContractPersonnel(query.Person);
             Project = new ApiProjectReference(query.Project);
             Contract = new ApiContractReference(query.Contract);
-            Workflow = new ApiWorkflow(query.Workflow);
-            ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
+            if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
+            if (query.ProvisioningStatus != null) ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
 
             OriginalPositionId = query.OriginalPositionId;
             SetOriginalProperties(query);
@@ -59,7 +59,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiRequestPosition? OriginalPosition { get; set; }
         public ApiPerson? OriginalPerson { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public ApiRequestPosition Position { get; set; }
         public ApiContractPersonnel Person { get; set; }
@@ -69,8 +69,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public List<ApiRequestComment>? Comments { get; set; }
 
-        public ApiWorkflow Workflow { get; set; }
-        public ApiProvisioningStatus ProvisioningStatus { get; set; }
+        public ApiWorkflow? Workflow { get; set; }
+        public ApiProvisioningStatus? ProvisioningStatus { get; set; }
 
 
         private void SetOriginalProperties(QueryPersonnelRequest query)

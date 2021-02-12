@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain
         public DbRequestState State { get; set; }
         public DbRequestCategory Category { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
 
         public QueryContractPersonnel Person { get; set; }
@@ -62,7 +62,7 @@ namespace Fusion.Resources.Domain
         public QueryContract Contract { get; set; }
 
         public QueryWorkflow? Workflow { get; set; }
-        public QueryProvisioningStatus ProvisioningStatus { get; set; }
+        public QueryProvisioningStatus? ProvisioningStatus { get; set; }
 
         public IEnumerable<QueryRequestComment>? Comments { get; set; }
 

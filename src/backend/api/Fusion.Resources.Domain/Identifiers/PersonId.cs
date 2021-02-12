@@ -6,9 +6,9 @@ namespace Fusion.Resources.Domain
 {
     public struct PersonId
     {
-        public PersonId(string identifier)
+        public PersonId(string? identifier)
         {
-            OriginalIdentifier = identifier;
+            OriginalIdentifier = identifier ?? "UNIDENTIFIED USER";
 
             if (Guid.TryParse(identifier, out Guid id))
             {
@@ -40,7 +40,7 @@ namespace Fusion.Resources.Domain
         public enum IdentifierType { UniqueId, Mail }
 
 
-        public static implicit operator PersonId(string identifier)
+        public static implicit operator PersonId(string? identifier)
         {
             return new PersonId(identifier);
         }
@@ -53,9 +53,10 @@ namespace Fusion.Resources.Domain
         {
             if (assignedPerson is null)
                 return null;
-                //throw new ArgumentNullException(nameof(assignedPerson), "Assigned persin is null. Must provide value when implicitly converting");
+            //throw new ArgumentNullException(nameof(assignedPerson), "Assigned persin is null. Must provide value when implicitly converting");
 
-            return new PersonId(assignedPerson.AzureUniqueId.HasValue switch {
+            return new PersonId(assignedPerson.AzureUniqueId.HasValue switch
+            {
                 true => $"{assignedPerson.AzureUniqueId}",
                 _ => assignedPerson.Mail
             });
