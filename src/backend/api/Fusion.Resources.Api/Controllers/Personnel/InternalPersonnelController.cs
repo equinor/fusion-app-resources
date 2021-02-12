@@ -223,8 +223,8 @@ namespace Fusion.Resources.Api.Controllers
             var filterEnd = filterStart.AddMonths(5);
 
             var validDates = dates.Where(d => d > filterStart && d < filterEnd).ToList();
-            if (!validDates.Any())
-                yield break;
+            //if (!validDates.Any())
+            //    yield break;
 
             validDates.Insert(0, filterStart);
             validDates.Add(filterEnd);
