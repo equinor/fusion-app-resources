@@ -97,7 +97,7 @@ namespace Fusion.Resources.Logic.Workflows
                 Name = Name,
                 Completed = Completed,
                 CompletedBy = CompletedBy,
-                Description = Description ?? string.Empty,
+                Description = Description,
                 DueDate = null,
                 NextStep = NextStepId,
                 PreviousStep = PreviousStepId,
@@ -113,7 +113,7 @@ namespace Fusion.Resources.Logic.Workflows
             dbEntity.Name = Name;
             dbEntity.Completed = Completed;
             dbEntity.CompletedBy = CompletedBy;
-            dbEntity.Description = Description ?? string.Empty;
+            dbEntity.Description = Description;
             dbEntity.DueDate = null;
             dbEntity.NextStep = NextStepId;
             dbEntity.PreviousStep = PreviousStepId;

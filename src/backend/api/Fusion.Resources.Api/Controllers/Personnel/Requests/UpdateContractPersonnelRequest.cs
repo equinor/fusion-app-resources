@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
             command.JobTitle = JobTitle;
             command.DawinciCode = DawinciCode;
             command.LinkedInProfile = LinkedInProfile;
-            command.Phone = PhoneNumber ?? string.Empty;
+            command.Phone = PhoneNumber;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
 

@@ -24,7 +24,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             command.FirstName = FirstName;
             command.LastName = LastName;
-            command.Phone = PhoneNumber ?? string.Empty;
+            command.Phone = PhoneNumber;
             command.JobTitle = JobTitle;
             command.DawinciCode = DawinciCode;
             command.LinkedInProfile = LinkedInProfile;

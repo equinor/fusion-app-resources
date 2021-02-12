@@ -18,8 +18,8 @@ namespace Fusion.Resources.Database.Entities
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
 
-        public string Mail { get; set; } = null!;
-        public string Phone { get; set; } = null!;
+        public string? Mail { get; set; } = null!;
+        public string? Phone { get; set; } = null!;
         public string? JobTitle { get; set; }
 
 

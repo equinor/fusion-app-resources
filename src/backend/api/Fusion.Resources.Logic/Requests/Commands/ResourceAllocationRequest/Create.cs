@@ -92,7 +92,7 @@ namespace Fusion.Resources.Logic.Commands
                     Workload = workload,
                     AppliesFrom = @from,
                     AppliesTo = to,
-                    Obs = obs ?? string.Empty,
+                    Obs = obs,
                     LocationId = locationId
                 };
 
