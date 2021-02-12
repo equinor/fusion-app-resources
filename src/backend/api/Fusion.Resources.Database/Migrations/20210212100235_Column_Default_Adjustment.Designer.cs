@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20210211192849_Column_Default_Adjustment")]
+    [Migration("20210212100235_Column_Default_Adjustment")]
     partial class Column_Default_Adjustment
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -118,7 +118,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("LastActivity")
@@ -245,7 +244,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -253,7 +251,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -281,7 +278,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -289,7 +285,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -614,7 +609,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset?>("DueDate")

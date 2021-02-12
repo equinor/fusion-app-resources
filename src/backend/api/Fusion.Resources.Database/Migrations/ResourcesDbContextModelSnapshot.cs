@@ -116,7 +116,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("LastActivity")
@@ -243,7 +242,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -251,7 +249,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -279,7 +276,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -287,7 +283,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -612,7 +607,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset?>("DueDate")
