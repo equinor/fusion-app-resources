@@ -202,7 +202,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         ProposedChanges = SerializeToString(request.ProposedChanges),
 
-                        OriginalPositionId = request.OrgPositionId,
+                        OrgPositionId = request.OrgPositionId,
                         OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance),
 
                         IsDraft = request.IsDraft,

@@ -7,7 +7,7 @@ namespace Fusion.Resources.Database.Entities
     public class DbContractorRequest
     {
         public Guid Id { get; set; }
-        public string? Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
 
         public DbContract Contract { get; set; } = null!;
@@ -19,7 +19,7 @@ namespace Fusion.Resources.Database.Entities
         public DbContractPersonnel Person { get; set; } = null!;
         public Guid PersonId { get; set; }
 
-        public RequestPosition? Position { get; set; } = new RequestPosition();
+        public RequestPosition Position { get; set; } = new RequestPosition();
 
         public DbRequestState State { get; set; }
         public DbRequestCategory Category { get; set; }
@@ -69,10 +69,10 @@ namespace Fusion.Resources.Database.Entities
         {
             public string? Name { get; set; } = null!;
             public Guid BasePositionId { get; set; }
-            public DateTime? AppliesFrom { get; set; }
-            public DateTime? AppliesTo { get; set; }
+            public DateTime AppliesFrom { get; set; }
+            public DateTime AppliesTo { get; set; }
             public string? Obs { get; set; }
-            public double? Workload { get; set; }
+            public double Workload { get; set; }
 
             public PositionTaskOwner TaskOwner { get; set; } = new PositionTaskOwner();
         }

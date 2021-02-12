@@ -35,7 +35,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
 
                 var positions = profile.Positions?.Where(p => p.Project.Id == resource.ProjectId);
                 
-                if (positions != null && positions.Any(p => p.BasePosition.Discipline == "Procurement"))
+                if (positions is not null && positions.Any(p => p.BasePosition.Discipline == "Procurement"))
                 {
                     context.Succeed(requirement);
                 }

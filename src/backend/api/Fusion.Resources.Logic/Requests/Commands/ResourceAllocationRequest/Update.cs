@@ -233,7 +233,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     if (request.OrgPositionInstance.HasBeenSet)
                     {
-                        dbItem.OriginalPositionId = request.OrgPositionId.Value;
+                        dbItem.OrgPositionId = request.OrgPositionId.Value;
                         modified = true;
                     }
 

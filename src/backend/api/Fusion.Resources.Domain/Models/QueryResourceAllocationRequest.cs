@@ -20,7 +20,7 @@ namespace Fusion.Resources.Domain
 
             Project = new QueryProject(entity.Project);
 
-            OriginalPositionId = entity.OriginalPositionId;
+            OrgPositionId = entity.OrgPositionId;
             OrgPositionInstanceId = entity.OrgPositionInstance?.Id;
 
             if (entity.ProposedPerson != null)
@@ -40,7 +40,7 @@ namespace Fusion.Resources.Domain
             ProvisioningStatus = new QueryProvisioningStatus(entity.ProvisioningStatus);
         }
 
-        internal Guid? OriginalPositionId { get; set; }
+        internal Guid? OrgPositionId { get; set; }
         internal Guid? OrgPositionInstanceId { get; set; }
 
         public Guid RequestId { get; set; }

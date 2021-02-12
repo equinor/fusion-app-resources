@@ -15,9 +15,9 @@ namespace Fusion.Resources.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseIdentityColumns()
+                .HasAnnotation("ProductVersion", "3.1.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.2");
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContract", b =>
                 {
@@ -116,6 +116,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("LastActivity")
@@ -149,7 +150,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("LastActivity")
-                        .IsClustered(false);
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.HasIndex("PersonId");
 
@@ -242,6 +243,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -249,12 +251,13 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Mail")
-                        .IsClustered(false);
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.ToTable("ExternalPersonnel");
                 });
@@ -276,6 +279,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -283,6 +287,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -291,7 +296,7 @@ namespace Fusion.Resources.Database.Migrations
                         .IsUnique();
 
                     b.HasIndex("Mail")
-                        .IsClustered(false);
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.ToTable("Persons");
                 });
@@ -415,7 +420,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("RequestId")
-                        .IsClustered(false);
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.HasIndex("UpdatedById");
 
@@ -431,10 +436,10 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<string>("AdditionalNote")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTimeOffset?>("Created")
+                    b.Property<DateTimeOffset>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
-                        .HasDefaultValueSql("getdate()");
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 2, 3, 15, 36, 41, 252, DateTimeKind.Unspecified).AddTicks(3819), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
@@ -445,10 +450,10 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<bool>("IsDraft")
                         .HasColumnType("bit");
 
-                    b.Property<DateTimeOffset?>("LastActivity")
+                    b.Property<DateTimeOffset>("LastActivity")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
-                        .HasDefaultValueSql("getdate()");
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 2, 3, 15, 36, 41, 259, DateTimeKind.Unspecified).AddTicks(8146), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid?>("OriginalPositionId")
                         .HasColumnType("uniqueidentifier");
@@ -484,7 +489,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("LastActivity")
-                        .IsClustered(false);
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.HasIndex("ProjectId");
 
@@ -607,6 +612,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset?>("DueDate")
@@ -654,10 +660,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AllocatedBy");
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractPersonnel", b =>
@@ -690,16 +692,6 @@ namespace Fusion.Resources.Database.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Contract");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Person");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractorRequest", b =>
@@ -751,6 +743,7 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasColumnType("datetimeoffset");
 
                             b1.Property<string>("State")
+                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.HasKey("DbContractorRequestId");
@@ -766,10 +759,10 @@ namespace Fusion.Resources.Database.Migrations
                             b1.Property<Guid>("DbContractorRequestId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<DateTime?>("AppliesFrom")
+                            b1.Property<DateTime>("AppliesFrom")
                                 .HasColumnType("datetime2");
 
-                            b1.Property<DateTime?>("AppliesTo")
+                            b1.Property<DateTime>("AppliesTo")
                                 .HasColumnType("datetime2");
 
                             b1.Property<Guid>("BasePositionId")
@@ -781,7 +774,7 @@ namespace Fusion.Resources.Database.Migrations
                             b1.Property<string>("Obs")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<double?>("Workload")
+                            b1.Property<double>("Workload")
                                 .HasColumnType("float");
 
                             b1.HasKey("DbContractorRequestId");
@@ -809,25 +802,7 @@ namespace Fusion.Resources.Database.Migrations
                                     b2.WithOwner()
                                         .HasForeignKey("RequestPositionDbContractorRequestId");
                                 });
-
-                            b1.Navigation("TaskOwner")
-                                .IsRequired();
                         });
-
-                    b.Navigation("Contract");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Person");
-
-                    b.Navigation("Position");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("ProvisioningStatus")
-                        .IsRequired();
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDelegatedRole", b =>
@@ -860,16 +835,6 @@ namespace Fusion.Resources.Database.Migrations
                         .WithMany()
                         .HasForeignKey("RecertifiedById")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Contract");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Person");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("RecertifiedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonAbsence", b =>
@@ -885,10 +850,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonnelDiscipline", b =>
@@ -910,10 +871,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>
@@ -988,6 +945,7 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasColumnType("datetimeoffset");
 
                             b1.Property<string>("State")
+                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.HasKey("DbResourceAllocationRequestId");
@@ -997,19 +955,6 @@ namespace Fusion.Resources.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("DbResourceAllocationRequestId");
                         });
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("OrgPositionInstance");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("ProposedPerson");
-
-                    b.Navigation("ProvisioningStatus")
-                        .IsRequired();
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResponsibilityMatrix", b =>
@@ -1034,14 +979,6 @@ namespace Fusion.Resources.Database.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("Responsible");
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
@@ -1049,8 +986,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "TerminatedBy")
                         .WithMany()
                         .HasForeignKey("TerminatedbyId");
-
-                    b.Navigation("TerminatedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflowStep", b =>
@@ -1064,25 +999,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("CompletedBy");
-
-                    b.Navigation("Workflow");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", b =>
-                {
-                    b.Navigation("Disciplines");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbProject", b =>
-                {
-                    b.Navigation("Contracts");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>
-                {
-                    b.Navigation("WorkflowSteps");
                 });
 #pragma warning restore 612, 618
         }
