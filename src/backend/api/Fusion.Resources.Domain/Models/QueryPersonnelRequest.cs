@@ -9,7 +9,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryPersonnelRequest
     {
-        public QueryPersonnelRequest(DbContractorRequest request, QueryPositionRequest position, QueryWorkflow? workflow)
+        public QueryPersonnelRequest(DbContractorRequest request, QueryPositionRequest position, QueryWorkflow workflow)
         {
             Id = request.Id;
             Position = position;
@@ -17,7 +17,7 @@ namespace Fusion.Resources.Domain
 
             OriginalPositionId = request.OriginalPositionId;
 
-            Description = request.Description;
+            Description = request.Description ?? string.Empty;
             State = request.State;
             Category = request.Category;
 
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain
         public DbRequestState State { get; set; }
         public DbRequestCategory Category { get; set; }
 
-        public string? Description { get; set; }
+        public string Description { get; set; }
 
 
         public QueryContractPersonnel Person { get; set; }
@@ -61,8 +61,8 @@ namespace Fusion.Resources.Domain
         public QueryProject Project { get; set; }
         public QueryContract Contract { get; set; }
 
-        public QueryWorkflow? Workflow { get; set; }
-        public QueryProvisioningStatus? ProvisioningStatus { get; set; }
+        public QueryWorkflow Workflow { get; set; }
+        public QueryProvisioningStatus ProvisioningStatus { get; set; }
 
         public IEnumerable<QueryRequestComment>? Comments { get; set; }
 

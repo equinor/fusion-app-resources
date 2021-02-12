@@ -59,16 +59,16 @@ namespace Fusion.Resources.Domain
 
         public string? ProposedChangesJson { get; set; }
 
-        public Dictionary<string, object>? ProposedChanges
+        public Dictionary<string, object> ProposedChanges
         {
             get
             {
-                if (ProposedChangesJson == null)
+                if (ProposedChangesJson is null)
                     return new Dictionary<string, object>();
 
                 try
                 {
-                    return ProposedChangesJson != null ? JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson) : null;
+                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson)!;
                 }
                 catch
                 {
@@ -77,7 +77,7 @@ namespace Fusion.Resources.Domain
             }
         }
 
-        public DateTimeOffset? Created { get; set; }
+        public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public QueryPerson CreatedBy { get; set; }
         public QueryPerson? UpdatedBy { get; set; }

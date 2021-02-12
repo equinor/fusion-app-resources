@@ -31,26 +31,14 @@ namespace Fusion.Resources.Logic.Commands
             private Guid OrgProjectId { get; }
             private Guid RequestId { get; }
 
-            public MonitorableProperty<string?> Discipline { get; private set; } = new MonitorableProperty<string?>();
-
-            public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>
-                Type
-            { get; private set; } =
-                new MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>();
-            public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new MonitorableProperty<Guid?>();
-
-            public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>
-                OrgPositionInstance
-            { get; private set; } =
-                new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>();
-
-            public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new MonitorableProperty<Guid?>();
-            public MonitorableProperty<string?> AdditionalNote { get; private set; } = new MonitorableProperty<string?>();
-
-            public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; private set; } =
-                new MonitorableProperty<Dictionary<string, object>?>();
-
-            public MonitorableProperty<bool> IsDraft { get; private set; } = new MonitorableProperty<bool>();
+            public MonitorableProperty<string?> Discipline { get; private set; } = new();
+            public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType> Type { get; private set; } = new();
+            public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new();
+            public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance { get; private set; } = new();
+            public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new();
+            public MonitorableProperty<string?> AdditionalNote { get; private set; } = new();
+            public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; private set; } = new();
+            public MonitorableProperty<bool> IsDraft { get; private set; } = new();
 
 
             public Update WithIsDraft(bool? isDraft)
@@ -107,7 +95,7 @@ namespace Fusion.Resources.Logic.Commands
                 };
 
 
-                OrgPositionInstance = new MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance?>(queryPositionInstance);
+                OrgPositionInstance = new();
                 return this;
             }
 
@@ -119,7 +107,7 @@ namespace Fusion.Resources.Logic.Commands
                     RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000).When(x => x.Discipline.HasBeenSet);
 
                     RuleFor(x => x.OrgPositionId.Value).NotEmpty().When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionId.Value != null);
-                    RuleFor(x => x.OrgPositionInstance.Value).SetValidator(PositionInstanceValidator).When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionInstance.Value != null);
+                    RuleFor(x => x.OrgPositionInstance.Value).SetValidator(PositionInstanceValidator);
                     RuleFor(x => x.ProposedChanges.Value).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges.HasBeenSet && x.ProposedChanges.Value != null);
 
                     RuleFor(x => x.ProposedPersonAzureUniqueId.Value).NotEmpty().When(x => x.ProposedPersonAzureUniqueId.HasBeenSet && x.ProposedPersonAzureUniqueId.Value != null);

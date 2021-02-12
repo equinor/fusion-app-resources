@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain.Commands
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string? JobTitle { get; set; } 
-        public string? Phone { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
         public List<string> Disciplines { get; set; } = new List<string>();
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }

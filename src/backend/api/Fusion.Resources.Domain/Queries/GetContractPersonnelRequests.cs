@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 #nullable enable
 namespace Fusion.Resources.Domain.Queries
@@ -41,11 +43,11 @@ namespace Fusion.Resources.Domain.Queries
         private enum QueryType { All, Project, Contract }
 
         [Flags]
-        public enum ExpandFields 
-        { 
-            None                = 0,
-            OriginalPosition    = 1 << 0,
-            All                 = OriginalPosition
+        public enum ExpandFields
+        {
+            None = 0,
+            OriginalPosition = 1 << 0,
+            All = OriginalPosition
         }
 
         public GetContractPersonnelRequests WithQuery(ODataQueryParams query)
@@ -63,12 +65,14 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ResourcesDbContext resourcesDb;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
+            private readonly IFusionLogger<GetContractPersonnelRequest> log;
 
-            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator)
+            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator, IFusionLogger<GetContractPersonnelRequest> log)
             {
                 this.resourcesDb = resourcesDb;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
+                this.log = log;
             }
 
             public async Task<IEnumerable<QueryPersonnelRequest>> Handle(GetContractPersonnelRequests request, CancellationToken cancellationToken)
@@ -97,11 +101,11 @@ namespace Fusion.Resources.Domain.Queries
 
                         m.MapField("originalPositionId", e => e.OriginalPositionId);
 
-                        m.MapField("position.workload", e => e.Position!.Workload);
-                        m.MapField("position.name", e => e.Position!.Name);
-                        m.MapField("position.appliesFrom", e => e.Position!.AppliesFrom);
-                        m.MapField("position.appliesTo", e => e.Position!.AppliesTo);
-                        m.MapField("position.basePositionId", e => e.Position!.BasePositionId);
+                        m.MapField("position.workload", e => e.Position.Workload);
+                        m.MapField("position.name", e => e.Position.Name);
+                        m.MapField("position.appliesFrom", e => e.Position.AppliesFrom);
+                        m.MapField("position.appliesTo", e => e.Position.AppliesTo);
+                        m.MapField("position.basePositionId", e => e.Position.BasePositionId);
 
                         m.MapField("person.mail", e => e.Person.Person.Mail);
                         m.MapField("person.name", e => e.Person.Person.Name);
@@ -126,7 +130,7 @@ namespace Fusion.Resources.Domain.Queries
                     .ToListAsync();
 
                 var basePositions = await Task.WhenAll(dbRequest
-                    .Select(q => q.Position!.BasePositionId)
+                    .Select(q => q.Position.BasePositionId)
                     .Distinct()
                     .Select(bp => orgResolver.ResolveBasePositionAsync(bp))
                 );
@@ -139,9 +143,16 @@ namespace Fusion.Resources.Domain.Queries
 
                 var positions = dbRequest.Select(p =>
                 {
-                    var position = new QueryPositionRequest(p.Position!)
-                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp!.Id == p.Position!.BasePositionId));
+                    var position = new QueryPositionRequest(p.Position)
+                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp?.Id == p.Position.BasePositionId));
                     var workflow = workflows.FirstOrDefault(wf => wf.RequestId == p.Id);
+
+                    if (workflow is null)
+                    {
+                        // log critical event
+                        log.LogCritical($"Workflow not found for position request id: {p.Id}");
+                        return null;
+                    }
 
                     var personnelRequest = new QueryPersonnelRequest(p, position, workflow);
 
@@ -154,7 +165,10 @@ namespace Fusion.Resources.Domain.Queries
                     }
 
                     return personnelRequest;
-                }).ToList();
+                })
+                    .Where(r => r is not null)
+                    .Select(r => r!)
+                    .ToList();
 
                 return positions;
             }

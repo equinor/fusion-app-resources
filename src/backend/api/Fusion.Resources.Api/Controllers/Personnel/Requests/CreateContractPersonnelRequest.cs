@@ -13,7 +13,7 @@ namespace Fusion.Resources.Api.Controllers
         public string LastName { get; set; } = null!;
 
         public string? JobTitle { get; set; } = null!;
-        public string? PhoneNumber { get; set; } = null!;
+        public string PhoneNumber { get; set; } = null!;
 
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }

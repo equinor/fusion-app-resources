@@ -55,7 +55,7 @@ namespace Fusion.Resources.Domain.Services
             resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
             resolvedPerson.JobTitle = profile.JobTitle;
             resolvedPerson.Name = profile.Name;
-            resolvedPerson.Phone = profile.MobilePhone;
+            resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
 
             await resourcesDb.SaveChangesAsync();
 
@@ -90,12 +90,12 @@ namespace Fusion.Resources.Domain.Services
 
                 if (profile != null)
                 {
-                    newEntry.Mail = profile.Mail;
+                    newEntry.Mail = profile.Mail ?? string.Empty;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
                     newEntry.JobTitle = profile.JobTitle;
                     newEntry.Name = profile.Name;
-                    newEntry.Phone = profile.MobilePhone;
+                    newEntry.Phone = profile.MobilePhone ?? string.Empty;
                 }
 
                 await resourcesDb.ExternalPersonnel.AddAsync(newEntry);

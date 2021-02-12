@@ -22,18 +22,17 @@ namespace Fusion.Resources.Domain
         }
 
         public QueryBasePosition BasePosition { get; set; }
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public string? Obs { get; set; }
-        public DateTime? AppliesFrom { get; set; }
-        public DateTime? AppliesTo { get; set; }
-        public double? Workload { get; set; }
+        public DateTime AppliesFrom { get; set; }
+        public DateTime AppliesTo { get; set; }
+        public double Workload { get; set; }
 
         public Guid? TaskOwnerPositionId { get; set; }
 
         public QueryPositionRequest WithResolvedBasePosition(ApiBasePositionV2? basePosition = null)
         {
             // Indicate failure unless not null. 
-            if (BasePosition == null) return this;
             BasePosition.Resolved = false;
 
             if (basePosition != null)
@@ -45,4 +44,3 @@ namespace Fusion.Resources.Domain
         }
     }
 }
-

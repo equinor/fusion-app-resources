@@ -147,7 +147,7 @@ namespace Fusion.Resources.Logic.Commands
                         hasChanges = true;
                         var position = request.Position.Value;
 
-                        dbRequest.Position!.AppliesFrom = position.AppliesFrom;
+                        dbRequest.Position.AppliesFrom = position.AppliesFrom;
                         dbRequest.Position.AppliesTo = position.AppliesTo;
                         dbRequest.Position.BasePositionId = position.BasePositionId;
                         dbRequest.Position.Name = position.PositionName;
@@ -155,7 +155,7 @@ namespace Fusion.Resources.Logic.Commands
                         dbRequest.Position.Obs = position.Obs;
                     }
 
-                    hasChanges |= request.PositionTaskOwner.IfSet(x => dbRequest.Position!.TaskOwner = new DbContractorRequest.PositionTaskOwner { PositionId = x });
+                    hasChanges |= request.PositionTaskOwner.IfSet(x => dbRequest.Position.TaskOwner = new DbContractorRequest.PositionTaskOwner { PositionId = x });
 
                     return hasChanges;
                 }

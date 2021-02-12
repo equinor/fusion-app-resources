@@ -11,7 +11,7 @@ namespace Fusion.Resources.Domain
         {
             Id = step.Id;
             Name = step.Name;
-            Description = step.Description;
+            Description = step.Description ?? string.Empty;
             State = step.State;
             Reason = step.Reason;
             CompletedBy = QueryPerson.FromEntityOrDefault(step.CompletedBy);
@@ -25,9 +25,9 @@ namespace Fusion.Resources.Domain
         public string Id { get; set; }
 
         public string Name { get; set; }
-        public string? Description { get; set; }
+        public string Description { get; set; }
         public string? Reason { get; set; }
-        
+
         public QueryPerson? CompletedBy { get; set; }
 
         public DbWFStepState State { get; set; }

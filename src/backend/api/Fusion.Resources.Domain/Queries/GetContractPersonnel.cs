@@ -114,7 +114,7 @@ namespace Fusion.Resources.Domain
                 var queryContractPersonnels = personnelItems.ToList();
                 var azureIds = queryContractPersonnels.Where(i => i.AzureUniqueId.HasValue).Select(i => i.AzureUniqueId!.Value).ToList();
 
-                var profiles = new List<FusionFullPersonProfile?>();
+                var profiles = new List<FusionFullPersonProfile>();
 
                 var index = 0;
                 while (true)
@@ -126,7 +126,7 @@ namespace Fusion.Resources.Domain
                         break;
 
                     var resolved = await Task.WhenAll(page.Select(i => profileResolver.ResolvePersonFullProfileAsync(i)));
-                    profiles.AddRange(resolved);
+                    profiles.AddRange(resolved.Where(p => p is not null).Select(p => p!));
                 }
 
                 foreach (var item in queryContractPersonnels)
@@ -134,7 +134,7 @@ namespace Fusion.Resources.Domain
                     if (item.AzureUniqueId.HasValue == false)
                         continue;
 
-                    var profile = profiles.FirstOrDefault(p => p?.AzureUniqueId == item.AzureUniqueId);
+                    var profile = profiles.FirstOrDefault(p => p.AzureUniqueId == item.AzureUniqueId);
                     if (profile is null)
                         throw new InvalidOperationException($"Could locate profile for person with azure id {item.AzureUniqueId}. The profile should have been loaded...");
 
@@ -146,7 +146,8 @@ namespace Fusion.Resources.Domain
 
             private async Task ExpandRequestsAsync(IEnumerable<QueryContractPersonnel> personnelItems)
             {
-                var ids = personnelItems.Select(i => i.PersonnelId);
+                var queryContractPersonnels = personnelItems.ToList();
+                var ids = queryContractPersonnels.Select(i => i.PersonnelId);
 
                 var requests = await db.ContractorRequests
                     .Include(r => r.Person)
@@ -156,21 +157,21 @@ namespace Fusion.Resources.Domain
                     .ToListAsync();
 
                 var basePositions = await Task.WhenAll(requests
-                    .Select(q => q.Position!.BasePositionId)
+                    .Select(q => q.Position.BasePositionId)
                     .Distinct()
                     .Select(bp => orgResolver.ResolveBasePositionAsync(bp))
                 );
 
                 var positions = requests.Select(p =>
                 {
-                    var position = new QueryPositionRequest(p.Position!)
-                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp!.Id == p.Position!.BasePositionId));
+                    var position = new QueryPositionRequest(p.Position)
+                        .WithResolvedBasePosition(basePositions.FirstOrDefault(bp => bp?.Id == p.Position.BasePositionId));
 
                     return new QueryPersonnelRequestReference(p, position);
                 }).ToList();
 
 
-                foreach (var item in personnelItems)
+                foreach (var item in queryContractPersonnels)
                 {
                     item.Requests = positions.Where(p => p.PersonnelId == item.PersonnelId).ToList();
                 }

@@ -67,7 +67,7 @@ namespace Fusion.Resources.Database.Entities
 
         public class RequestPosition
         {
-            public string? Name { get; set; } = null!;
+            public string Name { get; set; } = null!;
             public Guid BasePositionId { get; set; }
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Database.Entities
 
         public class ProvisionStatus
         {
-            public DbProvisionState? State { get; set; } = DbProvisionState.NotProvisioned;
+            public DbProvisionState State { get; set; } = DbProvisionState.NotProvisioned;
             public Guid? PositionId { get; set; }
             public DateTimeOffset? Provisioned { get; set; }
             public string? ErrorMessage { get; set; }

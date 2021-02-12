@@ -72,7 +72,7 @@ namespace Fusion.Resources.Database.Entities
 
         public class ProvisionStatus
         {
-            public DbProvisionState? State { get; set; } = DbProvisionState.NotProvisioned;
+            public DbProvisionState State { get; set; } = DbProvisionState.NotProvisioned;
             public Guid? PositionId { get; set; }
             public DateTimeOffset? Provisioned { get; set; }
             public string? ErrorMessage { get; set; }
