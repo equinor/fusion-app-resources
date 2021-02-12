@@ -9,7 +9,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryPersonnelRequest
     {
-        public QueryPersonnelRequest(DbContractorRequest request, QueryPositionRequest position, QueryWorkflow workflow)
+        public QueryPersonnelRequest(DbContractorRequest request, QueryPositionRequest position, QueryWorkflow? workflow)
         {
             Id = request.Id;
             Position = position;
@@ -61,7 +61,7 @@ namespace Fusion.Resources.Domain
         public QueryProject Project { get; set; }
         public QueryContract Contract { get; set; }
 
-        public QueryWorkflow Workflow { get; set; }
+        public QueryWorkflow? Workflow { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
 
         public IEnumerable<QueryRequestComment>? Comments { get; set; }
