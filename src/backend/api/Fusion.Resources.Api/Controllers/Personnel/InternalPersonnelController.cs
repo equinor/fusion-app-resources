@@ -3,6 +3,7 @@ using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Integration.Http;
 using Fusion.Integration.Profile;
+using Fusion.Resources.Api.Integrations;
 using Fusion.Resources.Domain;
 using Itenso.TimePeriod;
 using Microsoft.AspNetCore.Authorization;
@@ -30,14 +31,14 @@ namespace Fusion.Resources.Api.Controllers
             this.httpClientFactory = httpClientFactory;
         }
 
-        
-        
+
+
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString, 
-            [FromQuery] ODataQueryParams query, 
-            [FromQuery]DateTime? timelineStart = null, 
-            [FromQuery]string? timelineDuration = null, 
-            [FromQuery]DateTime? timelineEnd = null)
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
+            [FromQuery] ODataQueryParams query,
+            [FromQuery] DateTime? timelineStart = null,
+            [FromQuery] string? timelineDuration = null,
+            [FromQuery] DateTime? timelineEnd = null)
         {
             #region Authorization
 
@@ -94,87 +95,8 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
+            var departmentPersonnel = await GetDepartmentPersonnel(fullDepartmentString);
 
-            var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
-            {
-                filter = $"fullDepartment eq '{fullDepartmentString}'"
-            });
-
-            var data = await response.Content.ReadAsStringAsync();
-
-            var items = JsonConvert.DeserializeAnonymousType(data, new
-            {
-                results = new[]
-                {
-                    new {
-                        document = new
-                        {
-                            azureUniqueId = Guid.Empty,
-                            mail = string.Empty,
-                            name = string.Empty,
-                            jobTitle = string.Empty,
-                            department = string.Empty,
-                            fullDepartment = string.Empty,
-                            mobilePhone = string.Empty,
-                            officeLocation = string.Empty,
-                            upn = string.Empty,
-                            accountType = string.Empty,
-                            isExpired = false,
-
-                            positions = new [] {
-                                new {
-                                    id = Guid.Empty,
-                                    instanceId = Guid.Empty,
-                                    name = string.Empty,
-                                    appliesFrom = (DateTime?) null,
-                                    appliesTo = (DateTime?) null,
-                                    isActive = false,
-                                    obs = string.Empty,
-                                    locationName = string.Empty,
-                                    workload = 0.0,
-                                    project = new
-                                    {
-                                        name = string.Empty,
-                                        id = Guid.Empty
-                                    },
-
-                                    basePosition = new
-                                    {
-                                        id = Guid.Empty,
-                                        name = string.Empty,
-                                        discipline = string.Empty,
-                                        projectType = string.Empty
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-            });
-
-            var rand = new Random();
-
-            var departmentPersonnel = items.results.Select(i => new ApiInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
-            {
-                PhoneNumber = i.document.mobilePhone,
-                JobTitle = i.document.jobTitle,
-                PositionInstances = i.document.positions.Select(p => new ApiInternalPersonnelPerson.PersonnelPosition
-                {
-                    PositionId = p.id,
-                    InstanceId = p.instanceId,
-                    AppliesFrom = p.appliesFrom!.Value,
-                    AppliesTo = p.appliesTo!.Value,
-                    Name = p.name,
-                    Location = p.locationName,
-                    BasePosition = new ApiBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.projectType),
-                    Project = new ApiProjectReference(p.project.id, p.project.name),
-                    Workload = p.workload
-                }).OrderBy(p => p.AppliesFrom).ToList()
-            }).ToList();
-
-          
             departmentPersonnel.ForEach(p =>
             {
                 var absence = new List<Absence>();
@@ -240,6 +162,193 @@ namespace Fusion.Resources.Api.Controllers
             //var apiModelItems = externalPersonell.Select(ep => new ApiExternalPersonnelPerson(ep));
 
             return new ApiCollection<ApiInternalPersonnelPerson>(departmentPersonnel);
+        }
+
+       
+
+        [HttpGet("sectors/{sector}/resources/personnel")]
+        public async Task<IActionResult> GetSectorPersonnel(string sector)
+        {
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+
+                    or.FullControlInternal();
+
+                    // TODO: Figure out auth requirements
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            return null;
+        }
+
+
+        [HttpGet("sectors/{sectorString}/resources/personnel/timeline")]
+        public async Task<IActionResult> GetSectorPersonnelTimeline(string sectorString)
+        {
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+
+                    or.FullControlInternal();
+
+                    // TODO: Figure out auth requirements
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            // resolve child departments from line org
+            // GET https://pro-s-lineorg-ci.azurewebsites.net/lineorg/departments/PRD FE MMS?api-version=1.0&$expand=children
+
+            var sector = await GetSector(sectorString);
+            var childDepartments = await FindChildDepartments(sector);
+
+            var personnel = new List<object>();
+            foreach(var child in childDepartments)
+            {
+                personnel.AddRange(await GetDepartmentPersonnel(child.FullName));
+            }
+
+            // resolve all persons in all child departments
+            // 
+
+            // structure return payload
+
+            return null;
+        }
+
+        private async  Task<List<Department>> FindChildDepartments(Department sector)
+        {
+            if (sector.Children == null || !sector.Children.Any())
+                return new List<Department>();
+
+            var lineOrgClient = httpClientFactory.CreateClient("LineOrg");
+
+            var departments = new List<Department>();
+            foreach(var child in sector.Children)
+            {
+                var resource = $"/lineorg/departments/{child.Name}?api-version=1.0&$expand=children";
+                var response = await lineOrgClient.GetAsync(resource);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new LineOrgIntegrationError();
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var department = JsonConvert.DeserializeObject<Department>(json);
+                departments.Add(department);
+                departments.AddRange(await FindChildDepartments(department));
+            }
+            return departments;
+        }
+
+        private async Task<Department> GetSector(string sectorString)
+        {
+            var lineOrgClient = httpClientFactory.CreateClient("LineOrg");
+            var resource = $"/lineorg/departments/{sectorString}?api-version=1.0&$expand=children";
+
+            var response = await lineOrgClient.GetAsync(resource);
+            if(!response.IsSuccessStatusCode)
+            {
+                throw new LineOrgIntegrationError();
+            }
+
+            return JsonConvert.DeserializeObject<Department>(await response.Content.ReadAsStringAsync());
+        }
+
+        private async Task<List<ApiInternalPersonnelPerson>> GetDepartmentPersonnel(string fullDepartmentString)
+        {
+            var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
+
+            var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
+            {
+                filter = $"fullDepartment eq '{fullDepartmentString}'"
+            });
+
+            var data = await response.Content.ReadAsStringAsync();
+
+            var items = JsonConvert.DeserializeAnonymousType(data, new
+            {
+                results = new[]
+                {
+                    new {
+                        document = new
+                        {
+                            azureUniqueId = Guid.Empty,
+                            mail = string.Empty,
+                            name = string.Empty,
+                            jobTitle = string.Empty,
+                            department = string.Empty,
+                            fullDepartment = string.Empty,
+                            mobilePhone = string.Empty,
+                            officeLocation = string.Empty,
+                            upn = string.Empty,
+                            accountType = string.Empty,
+                            isExpired = false,
+
+                            positions = new [] {
+                                new {
+                                    id = Guid.Empty,
+                                    instanceId = Guid.Empty,
+                                    name = string.Empty,
+                                    appliesFrom = (DateTime?) null,
+                                    appliesTo = (DateTime?) null,
+                                    isActive = false,
+                                    obs = string.Empty,
+                                    locationName = string.Empty,
+                                    workload = 0.0,
+                                    project = new
+                                    {
+                                        name = string.Empty,
+                                        id = Guid.Empty
+                                    },
+
+                                    basePosition = new
+                                    {
+                                        id = Guid.Empty,
+                                        name = string.Empty,
+                                        discipline = string.Empty,
+                                        projectType = string.Empty
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            });
+
+            var departmentPersonnel = items.results.Select(i => new ApiInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
+            {
+                PhoneNumber = i.document.mobilePhone,
+                JobTitle = i.document.jobTitle,
+                PositionInstances = i.document.positions.Select(p => new ApiInternalPersonnelPerson.PersonnelPosition
+                {
+                    PositionId = p.id,
+                    InstanceId = p.instanceId,
+                    AppliesFrom = p.appliesFrom!.Value,
+                    AppliesTo = p.appliesTo!.Value,
+                    Name = p.name,
+                    Location = p.locationName,
+                    BasePosition = new ApiBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.projectType),
+                    Project = new ApiProjectReference(p.project.id, p.project.name),
+                    Workload = p.workload
+                }).OrderBy(p => p.AppliesFrom).ToList()
+            }).ToList();
+            return departmentPersonnel;
         }
 
         public class Absence
@@ -410,7 +519,7 @@ namespace Fusion.Resources.Api.Controllers
             public string Description { get; set; } = null!;
 
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-            public ApiProjectReference? Project { get; set; } 
+            public ApiProjectReference? Project { get; set; }
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public ApiBasePosition? BasePosition { get; set; }
         }
