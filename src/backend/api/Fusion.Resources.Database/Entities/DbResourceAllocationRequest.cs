@@ -45,8 +45,6 @@ namespace Fusion.Resources.Database.Entities
 
                 entity.HasOne(e => e.UpdatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
 
-                entity.OwnsOne(e => e.OrgPositionInstance);
-
                 entity.OwnsOne(e => e.ProvisioningStatus, op =>
                 {
                     op.Property(ps => ps.State).HasConversion(new EnumToStringConverter<DbProvisionState>());
