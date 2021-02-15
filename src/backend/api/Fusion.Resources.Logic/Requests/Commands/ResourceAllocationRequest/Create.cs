@@ -181,8 +181,8 @@ namespace Fusion.Resources.Logic.Commands
                     //await mediator.Send(new Initialize(item.Id));
 
 
-                    var dbRequest = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
-                    return dbRequest;
+                    var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
+                    return requestItem!;
                 }
 
                 private async Task<DbResourceAllocationRequest> PersistChangesAsync(Create request)

@@ -149,15 +149,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             for (int j = 5; j < 20; j++)
             {
-                var topResponseTest = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.Discipline}&$filter=discipline eq '{testRequest.Request.Discipline}'&$skip=2&$top={j}");
+                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.Discipline}&$filter=discipline eq '{testRequest.Request.Discipline}'&$skip=2&$top={j}");
                 topResponseTest.Should().BeSuccessfull();
-                topResponseTest.Value.Count().Should().Be(j);
+                topResponseTest.Value.Value.Count().Should().Be(j);
             }
 
-            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests");
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests");
             response.Should().BeSuccessfull();
 
-            response.Value.Count().Should().Be(100); // Default page size is 100
+            response.Value.Value.Count().Should().Be(100); // Default page size is 100
 
         }
 
@@ -175,10 +175,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetRequests_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<IEnumerable<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests");
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests");
             response.Should().BeSuccessfull();
 
-            response.Value.Count().Should().BeGreaterThan(0);
+            response.Value.Value.Count().Should().BeGreaterThan(0);
 
         }
         [Fact]
@@ -206,7 +206,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             testRequest.Request.OrgPositionInstance!.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
             testRequest.Request.ProposedPersonAzureUniqueId = Guid.Empty;
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", testRequest.Request);
+            var response = await Client.TestClientPutAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", testRequest.Request);
             response.Should().BeBadRequest("Invalid arguments passed");
 
         }
@@ -214,7 +214,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task PutAdminRequest_RequestMissingProjectId_ShouldBe_Unsuccessful()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.Request.Id}", testRequest.Request);
+            var response = await Client.TestClientPutAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests/{testRequest.Request.Id}", testRequest.Request);
             response.Should().BeBadRequest("ProjectId argument missing");
 
         }
@@ -225,19 +225,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             testRequest.Request.OrgPositionInstance!.AppliesFrom = testRequest.Request.OrgPositionInstance.AppliesTo.AddDays(1);
             testRequest.Request.ProposedPersonAzureUniqueId = Guid.Empty;
-            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request);
+            var response = await Client.TestClientPostAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request);
             response.Should().BeBadRequest("Invalid arguments passed");
 
         }
 
-        [Fact]
-        public async Task PostRequest_Minimal_Request_ShouldBe_Successful()
+       
+        public class PagedCollection<T>
         {
-            using var adminScope = fixture.AdminScope();
-            var minimalRequest = new CreateResourceAllocationRequest();
-            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests", minimalRequest);
-            response.Should().BeSuccessfull();
+            public PagedCollection(IEnumerable<T> items)
+            {
+                Value = items;
+            }
 
+            public IEnumerable<T> Value { get; set; }
         }
 
         public class ResourceAllocationRequestTestModel

@@ -148,7 +148,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (position.Workload > 100)
                             context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
-                                "Workload cannot be more than 1000", position.Workload));
+                                "Workload cannot be more than 100", position.Workload));
                     });
             }
 
@@ -182,7 +182,8 @@ namespace Fusion.Resources.Logic.Commands
                     //TODO: Start the workflow. Workflow support to be implemented later...
                     //await mediator.Send(new Initialize(item.Id));
 
-                    return await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
+                    var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
+                    return requestItem!;
                 }
 
                 private async Task<DbResourceAllocationRequest> PersistChangesAsync(Update request, DbResourceAllocationRequest dbItem)
