@@ -25,6 +25,7 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbPerson> Persons { get; set; }
         public DbSet<DbContract> Contracts { get; set; }
+        public DbSet<DbDepartment> Departments { get; set; }
         public DbSet<DbProject> Projects { get; set; }
         public DbSet<DbContractorRequest> ContractorRequests { get; set; }
         public DbSet<DbRequestComment> RequestComments { get; set; }
@@ -52,6 +53,7 @@ namespace Fusion.Resources.Database
             DbPersonAbsence.OnModelCreating(modelBuilder);
             DbResponsibilityMatrix.OnModelCreating(modelBuilder);
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
+            DbDepartment.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

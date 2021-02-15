@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Fusion.Resources.Database.Migrations
+namespace Fusion.Resources.Database.migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210215132917_add_department_data")]
+    partial class add_department_data
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,6 +118,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("LastActivity")
@@ -306,6 +309,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Mail")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -313,6 +317,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -462,7 +467,9 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("datetimeoffset");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 2, 15, 13, 29, 17, 215, DateTimeKind.Unspecified).AddTicks(1738), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
@@ -474,9 +481,11 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset>("LastActivity")
-                        .HasColumnType("datetimeoffset");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2021, 2, 15, 13, 29, 17, 220, DateTimeKind.Unspecified).AddTicks(4765), new TimeSpan(0, 0, 0, 0, 0)));
 
-                    b.Property<Guid?>("OrgPositionId")
+                    b.Property<Guid?>("OriginalPositionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ProjectId")
@@ -508,6 +517,9 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("LastActivity")
+                        .IsClustered(false);
 
                     b.HasIndex("ProjectId");
 
@@ -630,6 +642,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset?>("DueDate")
