@@ -53,9 +53,10 @@ namespace Fusion.Resources.Domain
         {
             if (assignedPerson is null)
                 return null;
-                //throw new ArgumentNullException(nameof(assignedPerson), "Assigned persin is null. Must provide value when implicitly converting");
+            //throw new ArgumentNullException(nameof(assignedPerson), "Assigned persin is null. Must provide value when implicitly converting");
 
-            return new PersonId(assignedPerson.AzureUniqueId.HasValue switch {
+            return new PersonId(assignedPerson.AzureUniqueId.HasValue switch
+            {
                 true => $"{assignedPerson.AzureUniqueId}",
                 _ => assignedPerson.Mail
             });

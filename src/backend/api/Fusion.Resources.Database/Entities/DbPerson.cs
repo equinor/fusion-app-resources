@@ -12,9 +12,9 @@ namespace Fusion.Resources.Database.Entities
 
         public Guid AzureUniqueId { get; set; }
 
-        public string Mail { get; set; } = null!;
+        public string? Mail { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string Phone { get; set; } = null!;
+        public string? Phone { get; set; } = null!;
 
         public string AccountType { get; set; } = null!;
         public string? JobTitle { get; set; }

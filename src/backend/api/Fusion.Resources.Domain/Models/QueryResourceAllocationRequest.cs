@@ -20,7 +20,7 @@ namespace Fusion.Resources.Domain
 
             Project = new QueryProject(entity.Project);
 
-            OriginalPositionId = entity.OriginalPositionId;
+            OrgPositionId = entity.OrgPositionId;
             OrgPositionInstanceId = entity.OrgPositionInstance?.Id;
 
             if (entity.ProposedPerson != null)
@@ -40,7 +40,7 @@ namespace Fusion.Resources.Domain
             ProvisioningStatus = new QueryProvisioningStatus(entity.ProvisioningStatus);
         }
 
-        internal Guid? OriginalPositionId { get; set; }
+        internal Guid? OrgPositionId { get; set; }
         internal Guid? OrgPositionInstanceId { get; set; }
 
         public Guid RequestId { get; set; }
@@ -63,12 +63,12 @@ namespace Fusion.Resources.Domain
         {
             get
             {
-                if (ProposedChangesJson == null)
+                if (ProposedChangesJson is null)
                     return new Dictionary<string, object>();
 
                 try
                 {
-                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson);
+                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson)!;
                 }
                 catch
                 {
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? Updated { get; set; }
         public QueryPerson CreatedBy { get; set; }
         public QueryPerson? UpdatedBy { get; set; }
-        public DateTimeOffset LastActivity { get; set; }
+        public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
 

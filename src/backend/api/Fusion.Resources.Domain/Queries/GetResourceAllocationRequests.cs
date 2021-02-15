@@ -95,8 +95,8 @@ namespace Fusion.Resources.Domain.Queries
 
                 // Expand original position.
                 var resolvedOrgChartPositions =
-                    (await orgResolver.ResolvePositionsAsync(requestItems.Where(r => r.OriginalPositionId.HasValue)
-                        .Select(r => r.OriginalPositionId!.Value))).ToList();
+                    (await orgResolver.ResolvePositionsAsync(requestItems.Where(r => r.OrgPositionId.HasValue)
+                        .Select(r => r.OrgPositionId!.Value))).ToList();
 
                 // If none resolved, return.
                 if (!resolvedOrgChartPositions.Any())

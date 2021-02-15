@@ -17,7 +17,7 @@ namespace Fusion.Resources.Domain
 
             OriginalPositionId = request.OriginalPositionId;
 
-            Description = request.Description;
+            Description = request.Description ?? string.Empty;
             State = request.State;
             Category = request.Category;
 

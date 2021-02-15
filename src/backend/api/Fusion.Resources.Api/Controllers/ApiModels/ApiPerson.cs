@@ -13,8 +13,8 @@ namespace Fusion.Resources.Api.Controllers
             AzureUniquePersonId = profile.AzureUniqueId;
             Mail = profile.Mail;
             Name = profile.Name;
-            PhoneNumber = profile.MobilePhone ?? string.Empty;
-            JobTitle = profile.JobTitle ?? string.Empty;
+            PhoneNumber = profile.MobilePhone;
+            JobTitle = profile.JobTitle;
             AccountType = profile.AccountType;
         }
 
@@ -31,7 +31,7 @@ namespace Fusion.Resources.Api.Controllers
             Mail = person.Mail;
             Name = person.Name;
             PhoneNumber = person.Phone;
-            JobTitle = person.JobTitle ?? string.Empty;
+            JobTitle = person.JobTitle;
             AccountType = person.AccountType;
         }
 
@@ -50,10 +50,10 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         public Guid? AzureUniquePersonId { get; set; }
-        public string Mail { get; set; } = null!;
+        public string? Mail { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string PhoneNumber { get; set; }
-        public string JobTitle { get; set; } 
+        public string? PhoneNumber { get; set; }
+        public string? JobTitle { get; set; } 
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FusionAccountType AccountType { get; set; }

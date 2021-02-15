@@ -7,7 +7,7 @@ namespace Fusion.Resources.Database.Entities
     public class DbContractorRequest
     {
         public Guid Id { get; set; }
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
 
         public DbContract Contract { get; set; } = null!;

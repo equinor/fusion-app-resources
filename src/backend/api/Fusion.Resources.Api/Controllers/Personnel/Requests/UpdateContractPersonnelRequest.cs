@@ -11,7 +11,7 @@ namespace Fusion.Resources.Api.Controllers
         public string LastName { get; set; } = null!;
 
         public string? JobTitle { get; set; }
-        public string? PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; } = null!;
 
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
             command.JobTitle = JobTitle;
             command.DawinciCode = DawinciCode;
             command.LinkedInProfile = LinkedInProfile;
-            command.Phone = PhoneNumber ?? string.Empty;
+            command.Phone = PhoneNumber;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
         }
 

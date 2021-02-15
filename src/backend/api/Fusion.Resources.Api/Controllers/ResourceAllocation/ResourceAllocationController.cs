@@ -62,19 +62,19 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
+                return ApiErrors.InvalidOperation(pef);
             }
             catch (InvalidOperationException ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOrgChartPosition", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
-            catch (ValidationException ve)
+            catch (ValidationException ex)
             {
-                return FusionApiError.InvalidOperation("ValidationError", ve.Message);
+                return ApiErrors.InvalidOperation(ex);
             }
         }
 
@@ -122,15 +122,15 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFoundError", pef.Message);
+                return ApiErrors.InvalidOperation(pef);
             }
             catch (InvalidOperationException ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOrgChartPosition", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
             catch (ValidationException ve)
             {
@@ -185,19 +185,15 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFoundError", pef.Message);
+                return ApiErrors.InvalidOperation(pef);
             }
             catch (InvalidOperationException ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
-            catch (InvalidOrgChartPositionError ioe)
+            catch (ValidationException ex)
             {
-                return FusionApiError.InvalidOperation("InvalidOrgChartPosition", ioe.Message);
-            }
-            catch (ValidationException ve)
-            {
-                return FusionApiError.InvalidOperation("ValidationError", ve.Message);
+                return ApiErrors.InvalidOperation(ex);
             }
         }
 

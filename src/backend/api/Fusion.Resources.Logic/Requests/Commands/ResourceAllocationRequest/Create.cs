@@ -35,7 +35,7 @@ namespace Fusion.Resources.Logic.Commands
 
             public Guid? OrgPositionId { get; private set; }
 
-            public Domain.ResourceAllocationRequest.QueryPositionInstance? OrgPositionInstance { get; private set; }
+            public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; } = null!;
 
             public Guid? ProposedPersonAzureUniqueId { get; private set; }
             public string? AdditionalNote { get; private set; }
@@ -92,7 +92,7 @@ namespace Fusion.Resources.Logic.Commands
                     Workload = workload,
                     AppliesFrom = @from,
                     AppliesTo = to,
-                    Obs = obs ?? string.Empty,
+                    Obs = obs,
                     LocationId = locationId
                 };
 
@@ -106,11 +106,12 @@ namespace Fusion.Resources.Logic.Commands
                     RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
                     RuleFor(x => x.OrgPositionId).NotEmpty().When(x => x.OrgPositionId != null);
+                    RuleFor(x => x.OrgPositionInstance).NotNull();
                     RuleFor(x => x.OrgPositionInstance).SetValidator(PositionInstanceValidator).When(x => x.OrgPositionInstance != null);
                     RuleFor(x => x.ProposedChanges).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges != null);
 
                     RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
-                    
+
                     RuleFor(x => x.OrgProjectId).NotNull();
                     RuleFor(x => x.IsDraft).NotNull();
                 }
@@ -129,7 +130,7 @@ namespace Fusion.Resources.Logic.Commands
                     (position, context) =>
                     {
                         if (position == null) return;
-                    
+
                         if (position.AppliesTo < position.AppliesFrom)
                             context.AddFailure(new ValidationFailure($"{context.PropertyName}.appliesTo",
                                 $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",
@@ -146,7 +147,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (position.Workload > 100)
                             context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
-                                "Workload cannot be more than 1000", position.Workload));
+                                "Workload cannot be more than 100", position.Workload));
                     });
             }
 
@@ -202,8 +203,8 @@ namespace Fusion.Resources.Logic.Commands
 
                         ProposedChanges = SerializeToString(request.ProposedChanges),
 
-                        OriginalPositionId = request.OrgPositionId,
-                        OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance),
+                        OrgPositionId = request.OrgPositionId,
+                        OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)!,
 
                         IsDraft = request.IsDraft,
 
@@ -237,7 +238,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (request.ProposedPersonAzureUniqueId != null)
                     {
                         var proposed = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value));
-                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                        ProposedPerson = proposed ?? throw new InvalidOperationException("Profile not found");
                     }
 
                     var project = await EnsureProjectAsync(request);
@@ -246,7 +247,7 @@ namespace Fusion.Resources.Logic.Commands
                     await ValidateOriginalPositionAsync(request);
                 }
 
-                private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance? position)
+                private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance position)
                 {
                     if (position == null)
                         return null;

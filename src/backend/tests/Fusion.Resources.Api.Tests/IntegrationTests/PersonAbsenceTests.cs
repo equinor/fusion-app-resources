@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.AppliesTo.Should().Be(request.AppliesTo);
             response.Value.Comment.Should().Be(request.Comment);
             response.Value.Type.Should().Be(request.Type);
-            response.Value.AbsencePercentage.Should().Be(100);
+            response.Value.AbsencePercentage.Should().BeNull();
 
         }
 
