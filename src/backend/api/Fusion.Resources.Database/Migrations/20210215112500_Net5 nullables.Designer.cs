@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20210212154357_Net5 nullables adjustments")]
-    partial class Net5nullablesadjustments
+    [Migration("20210215112500_Net5 nullables")]
+    partial class Net5nullables
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -447,7 +447,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<bool>("IsDraft")
                         .HasColumnType("bit");
 
-                    b.Property<DateTimeOffset?>("LastActivity")
+                    b.Property<DateTimeOffset>("LastActivity")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<Guid?>("OrgPositionId")

@@ -445,7 +445,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<bool>("IsDraft")
                         .HasColumnType("bit");
 
-                    b.Property<DateTimeOffset?>("LastActivity")
+                    b.Property<DateTimeOffset>("LastActivity")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<Guid?>("OrgPositionId")

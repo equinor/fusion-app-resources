@@ -55,7 +55,7 @@ namespace Fusion.Resources.Database.Entities
                 });
                 entity.OwnsOne(e => e.Position, op =>
                 {
-                    op.OwnsOne(p => p!.TaskOwner);
+                    op.OwnsOne(p => p.TaskOwner);
                 });
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());

@@ -29,7 +29,7 @@ namespace Fusion.Resources.Database.Entities
 
         public Guid CreatedById { get; set; }
         public Guid? UpdatedById { get; set; }
-        public DateTimeOffset? LastActivity { get; set; }
+        public DateTimeOffset LastActivity { get; set; }
         public bool IsDraft { get; set; }
 
         public ProvisionStatus ProvisioningStatus { get; set; } = new ProvisionStatus();

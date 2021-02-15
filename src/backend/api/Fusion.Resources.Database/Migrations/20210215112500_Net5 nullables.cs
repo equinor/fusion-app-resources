@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fusion.Resources.Database.Migrations
 {
-    public partial class Net5nullablesadjustments : Migration
+    public partial class Net5nullables : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -60,7 +60,7 @@ namespace Fusion.Resources.Database.Migrations
                 name: "LastActivity",
                 table: "ResourceAllocationRequests",
                 type: "datetimeoffset",
-                nullable: true,
+                nullable: false,
                 oldClrType: typeof(DateTimeOffset),
                 oldType: "datetimeoffset",
                 oldDefaultValue: new DateTimeOffset(new DateTime(2021, 2, 3, 15, 36, 41, 259, DateTimeKind.Unspecified).AddTicks(8146), new TimeSpan(0, 0, 0, 0, 0)));
@@ -203,8 +203,7 @@ namespace Fusion.Resources.Database.Migrations
                 nullable: false,
                 defaultValue: new DateTimeOffset(new DateTime(2021, 2, 3, 15, 36, 41, 259, DateTimeKind.Unspecified).AddTicks(8146), new TimeSpan(0, 0, 0, 0, 0)),
                 oldClrType: typeof(DateTimeOffset),
-                oldType: "datetimeoffset",
-                oldNullable: true);
+                oldType: "datetimeoffset");
 
             migrationBuilder.AlterColumn<DateTimeOffset>(
                 name: "Created",

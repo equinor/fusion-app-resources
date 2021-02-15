@@ -60,7 +60,7 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     var createPositionCommand = new CreateContractPosition(dbRequest.Project.OrgProjectId, dbRequest.Contract.OrgContractId)
                     {
-                        AppliesFrom = dbRequest.Position!.AppliesFrom,
+                        AppliesFrom = dbRequest.Position.AppliesFrom,
                         AppliesTo = dbRequest.Position.AppliesTo,
                         PositionName = dbRequest.Position.Name,
                         Workload = dbRequest.Position.Workload,
@@ -97,7 +97,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     var updatePositionCommand = new UpdateContractPosition(dbRequest.Project.OrgProjectId, dbRequest.Contract.OrgContractId, dbRequest.OriginalPositionId.Value)
                     {
-                        AppliesFrom = dbRequest.Position!.AppliesFrom,
+                        AppliesFrom = dbRequest.Position.AppliesFrom,
                         AppliesTo = dbRequest.Position.AppliesTo,
                         PositionName = dbRequest.Position.Name,
                         Workload = dbRequest.Position.Workload,

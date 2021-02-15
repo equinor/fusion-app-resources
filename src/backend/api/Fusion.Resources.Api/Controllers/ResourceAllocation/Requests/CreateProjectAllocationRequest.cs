@@ -14,7 +14,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiAllocationRequestType Type { get; set; }
         public string? Discipline { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public ApiPositionInstance OrgPositionInstance { get; set; } = null!;
+        public ApiPositionInstance? OrgPositionInstance { get; set; } = null!;
         public string? AdditionalNote { get; set; }
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
@@ -31,7 +31,8 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
                 RuleFor(x => x.OrgPositionId).NotEmpty().When(x => x.OrgPositionId != null);
-                RuleFor(x => x.OrgPositionInstance).SetValidator(PositionInstanceValidator);
+                RuleFor(x => x.OrgPositionInstance).NotNull();
+                RuleFor(x => x.OrgPositionInstance).SetValidator(PositionInstanceValidator).When(x => x.OrgPositionInstance != null);
                 RuleFor(x => x.ProposedChanges).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges != null);
 
                 RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
@@ -53,7 +54,7 @@ namespace Fusion.Resources.Api.Controllers
                 (position, context) =>
                 {
                     if (position == null) return;
-                    
+
                     if (position.AppliesTo < position.AppliesFrom)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.appliesTo",
                             $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",

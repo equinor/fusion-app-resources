@@ -107,7 +107,8 @@ namespace Fusion.Resources.Logic.Commands
                     RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000).When(x => x.Discipline.HasBeenSet);
 
                     RuleFor(x => x.OrgPositionId.Value).NotEmpty().When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionId.Value != null);
-                    RuleFor(x => x.OrgPositionInstance.Value).SetValidator(PositionInstanceValidator);
+                    RuleFor(x => x.OrgPositionInstance).NotNull();
+                    RuleFor(x => x.OrgPositionInstance.Value).SetValidator(PositionInstanceValidator).When(x => x.OrgPositionInstance != null);
                     RuleFor(x => x.ProposedChanges.Value).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges.HasBeenSet && x.ProposedChanges.Value != null);
 
                     RuleFor(x => x.ProposedPersonAzureUniqueId.Value).NotEmpty().When(x => x.ProposedPersonAzureUniqueId.HasBeenSet && x.ProposedPersonAzureUniqueId.Value != null);
