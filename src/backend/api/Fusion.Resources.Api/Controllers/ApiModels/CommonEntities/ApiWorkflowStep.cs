@@ -47,7 +47,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? Completed { get; set; }
         public DateTimeOffset? DueDate { get; set; }
         public ApiPerson? CompletedBy { get; set; }
-        public string? Description { get; set; }
+        public string Description { get; set; }
         public string? Reason { get; set; }
 
         public string? PreviousStep { get; set; }

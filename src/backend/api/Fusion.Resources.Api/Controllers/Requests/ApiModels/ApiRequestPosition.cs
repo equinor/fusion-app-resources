@@ -49,9 +49,9 @@ namespace Fusion.Resources.Api.Controllers
 
         public string? Name { get; set; }
         public string? Obs { get; set; }
-        public DateTime? AppliesFrom { get; set; }
-        public DateTime? AppliesTo { get; set; }
-        public double? Workload { get; set; }
+        public DateTime AppliesFrom { get; set; }
+        public DateTime AppliesTo { get; set; }
+        public double Workload { get; set; }
 
         public ApiRequestBasePosition BasePosition { get; set; }
         public ApiRequestTaskOwner? TaskOwner { get; set; }

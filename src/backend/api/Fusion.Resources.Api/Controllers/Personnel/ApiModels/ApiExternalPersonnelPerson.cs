@@ -36,8 +36,8 @@ namespace Fusion.Resources.Api.Controllers
         public string LastName { get; set; }
 
         public string? JobTitle { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? Mail { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Mail { get; set; }
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
 
