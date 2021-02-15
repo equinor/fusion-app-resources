@@ -1,12 +1,20 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, FC } from 'react';
 import {
     SearchableDropdownOption,
     SkeletonBar,
     styling,
     SearchableDropdown,
+    PersonCard,
 } from '@equinor/fusion-components';
 import { DefaultTableType } from './TableTypes';
 import Personnel from '../../../../../../../models/Personnel';
+
+type DropDownItemProps = {
+    item: { key: string; title: string; personId: string | undefined };
+};
+const DropDownItem: FC<DropDownItemProps> = ({ item }) => (
+    <PersonCard personId={item.personId} inline photoSize="small" />
+);
 
 function TablePersonnelPicker<T>({
     item,
@@ -24,10 +32,11 @@ function TablePersonnelPicker<T>({
             return [];
         }
         return componentState.data
-            .filter(person => person.azureAdStatus === 'Available')
-            .map(person => ({
+            .filter((person) => person.azureAdStatus === 'Available')
+            .map((person) => ({
                 title: person.name,
                 key: person.personnelId,
+                personId: person.azureUniquePersonId,
                 isSelected: !!(
                     selectedPersonnel && person.personnelId === selectedPersonnel.personnelId
                 ),
@@ -39,7 +48,7 @@ function TablePersonnelPicker<T>({
             if (!componentState) {
                 return;
             }
-            const person = componentState.data.find(p => p.personnelId === option.key);
+            const person = componentState.data.find((p) => p.personnelId === option.key);
             if (person) {
                 onChange(item[rowIdentifier], accessKey, person);
             }
@@ -58,6 +67,7 @@ function TablePersonnelPicker<T>({
             onSelect={onDropdownSelect}
             error={componentState?.error !== null}
             errorMessage="Unable to get personnel"
+            itemComponent={DropDownItem}
         />
     );
 }
