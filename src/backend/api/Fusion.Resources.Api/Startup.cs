@@ -62,6 +62,7 @@ namespace Fusion.Resources.Api
 
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
+            services.AddHttpClient("LineOrg", client => client.BaseAddress = new System.Uri("https://pro-s-lineorg-ci.azurewebsites.net/"));
 
             services.AddControllers()
                 .AddFluentValidation(c =>
