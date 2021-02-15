@@ -8,7 +8,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryDepartmentPersonnelPerson
     {
-        public QueryDepartmentPersonnelPerson(Guid azureId, string name, string? mail, string accountType)
+        public QueryDepartmentPersonnelPerson(Guid azureId, string? mail, string name, string accountType)
         {
             AzureUniqueId = azureId;
             Name = name;
