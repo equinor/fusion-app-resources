@@ -17,6 +17,8 @@
     <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="5.1.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.16.0" />
 
+    <PackageReference Include="TimePeriodCore" Version="1.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>

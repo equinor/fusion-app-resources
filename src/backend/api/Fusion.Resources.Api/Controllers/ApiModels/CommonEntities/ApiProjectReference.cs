@@ -19,6 +19,12 @@ namespace Fusion.Resources.Api.Controllers
             InternalId = project.Id;
         }
 
+        public ApiProjectReference(QueryProjectRef project)
+        {
+            Id = project.OrgProjectId;
+            Name = project.Name;
+        }
+
         /// <summary>
         /// The internal id.
         /// </summary>
