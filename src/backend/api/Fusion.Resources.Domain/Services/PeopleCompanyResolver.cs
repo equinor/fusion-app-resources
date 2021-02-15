@@ -12,11 +12,11 @@ namespace Fusion.Resources.Domain.Services
 {
     internal class PeopleCompanyResolver : ICompanyResolver, IDisposable
     {
-        private HttpClient client;
+        private readonly HttpClient client;
 
 
         private List<ApiCompanyV2>? companies = null;
-        private Timer? cacheRestTimer = null;
+        private readonly Timer? cacheRestTimer = null;
 
         public PeopleCompanyResolver(IHttpClientFactory httpClientFactory)
         {
@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain.Services
             cacheRestTimer?.Dispose();
         }
 
-        public async Task<ApiCompanyV2> FindCompanyAsync(Guid companyId)
+        public async Task<ApiCompanyV2?> FindCompanyAsync(Guid companyId)
         {
             if (companies == null)
             {

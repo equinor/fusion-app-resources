@@ -13,7 +13,7 @@ namespace Fusion.Resources.Api.Controllers
         public string LastName { get; set; } = null!;
 
         public string? JobTitle { get; set; } = null!;
-        public string? PhoneNumber { get; set; } = null!;
+        public string PhoneNumber { get; set; } = null!;
 
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             command.FirstName = FirstName;
             command.LastName = LastName;
-            command.Phone = PhoneNumber ?? string.Empty;
+            command.Phone = PhoneNumber;
             command.JobTitle = JobTitle;
             command.DawinciCode = DawinciCode;
             command.LinkedInProfile = LinkedInProfile;

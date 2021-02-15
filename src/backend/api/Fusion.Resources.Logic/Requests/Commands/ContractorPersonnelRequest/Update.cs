@@ -43,7 +43,7 @@ namespace Fusion.Resources.Logic.Commands
                     AppliesFrom = from,
                     AppliesTo = to,
                     Workload = workload,
-                    Obs = obs ?? string.Empty
+                    Obs = obs
                 };
 
                 Position = position;
@@ -133,7 +133,7 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     bool hasChanges = false;
 
-                    hasChanges |= request.Description.IfSet(x => dbRequest.Description = x ?? string.Empty);
+                    hasChanges |= request.Description.IfSet(x => dbRequest.Description = x);
 
                     return hasChanges;
                 }

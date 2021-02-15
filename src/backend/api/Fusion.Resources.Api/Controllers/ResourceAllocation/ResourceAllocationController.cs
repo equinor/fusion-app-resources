@@ -62,15 +62,19 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
+                return ApiErrors.InvalidOperation(pef);
             }
             catch (InvalidOperationException ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
+            }
+            catch (ValidationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
             }
         }
 
@@ -118,16 +122,21 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
+                return ApiErrors.InvalidOperation(pef);
             }
             catch (InvalidOperationException ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
+            catch (ValidationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+
         }
 
         [HttpGet("/projects/{projectIdentifier}/requests")]

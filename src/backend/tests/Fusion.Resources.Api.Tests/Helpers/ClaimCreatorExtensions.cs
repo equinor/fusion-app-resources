@@ -42,7 +42,7 @@ namespace Fusion.Resources.Api.Tests
             public ClaimBuilder WithProperty(string property, string? value)
             {
                 // Seems like the claim is copied onto the identity, so cannot update the reference kept in this type.
-                if (claim != null)
+                if (claim != null && value != null)
                 {
                     identity.Claims.FirstOrDefault(c => c.Properties.ContainsKey("claimId") && c.Properties["claimId"] == $"{claimId}")?.Properties.Add(property, value);
                 }

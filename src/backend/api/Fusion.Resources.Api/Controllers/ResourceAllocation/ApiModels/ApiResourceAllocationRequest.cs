@@ -25,7 +25,8 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionInstance = query.OrgPositionInstance;
 
             AdditionalNote = query.AdditionalNote;
-            ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
+            if (query.ProposedChanges.Count > 0)
+                ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
             Created = query.Created;
             Updated = query.Updated;
@@ -61,7 +62,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? Updated { get; set; }
         public ApiPerson? UpdatedBy { get; set; }
 
-        public DateTimeOffset LastActivity { get; set; }
+        public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
 
         public ApiProvisioningStatus ProvisioningStatus { get; set; }

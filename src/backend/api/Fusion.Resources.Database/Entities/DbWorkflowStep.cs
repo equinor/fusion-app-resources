@@ -15,7 +15,7 @@ namespace Fusion.Resources.Database.Entities
         /// Display name for the step. Should be short.
         /// </summary>
         public string Name { get; set; } = null!;
-        public string Description { get; set; } = null!;
+        public string? Description { get; set; } = null!;
         public string? Reason { get; set; }
 
         public Guid? CompletedById { get; set; }

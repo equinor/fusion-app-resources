@@ -51,7 +51,7 @@ namespace Fusion.Resources.Logic.Commands
                 Position.AppliesFrom = from;
                 Position.AppliesTo = to;
                 Position.Workload = workload;
-                Position.Obs = obs ?? string.Empty;
+                Position.Obs = obs;
 
                 return this;
             }
@@ -143,7 +143,7 @@ namespace Fusion.Resources.Logic.Commands
                         Category = category,
                         OriginalPositionId = request.OriginalPositionId,
                         Position = GeneratePosition(request.Position, request.PositionTaskOwner),
-                        Description = request.Description ?? string.Empty,
+                        Description = request.Description,
                         Created = created,
                         CreatedBy = request.Editor.Person,
                         LastActivity = created

@@ -42,9 +42,9 @@ namespace Fusion.Resources.Domain.Queries
 
                 var requestItem = row != null ? new QueryResourceAllocationRequest(row) : null;
 
-                if (requestItem?.OriginalPositionId != null)
+                if (requestItem?.OrgPositionId != null)
                 {
-                    var position = await orgResolver.ResolvePositionAsync(requestItem.OriginalPositionId.Value);
+                    var position = await orgResolver.ResolvePositionAsync(requestItem.OrgPositionId.Value);
                     if (position != null)
                     {
                         requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);

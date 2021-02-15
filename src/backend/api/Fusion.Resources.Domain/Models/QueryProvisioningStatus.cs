@@ -22,7 +22,7 @@ namespace Fusion.Resources.Domain
             ErrorPayload = status.ErrorPayload;
         }
 
-        public string State { get; set; }
+        public string State { get; set; } = null!;
         public Guid? PositionId { get; set; }
         public DateTimeOffset? Provisioned { get; set; }
         public string? ErrorMessage { get; set; }

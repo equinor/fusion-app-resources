@@ -14,11 +14,13 @@ namespace Fusion.Resources.Api.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly TelemetryClient telemetryClient;
+        private readonly IFusionProfileResolver profileResolver;
 
-        public RequestResponseLoggingMiddleware(RequestDelegate next, TelemetryClient telemetryClient)
+        public RequestResponseLoggingMiddleware(RequestDelegate next, TelemetryClient telemetryClient, IFusionProfileResolver profileResolver)
         {
             _next = next;
             this.telemetryClient = telemetryClient;
+            this.profileResolver = profileResolver;
         }
 
         public async Task Invoke(HttpContext context)
@@ -49,7 +51,7 @@ namespace Fusion.Resources.Api.Middleware
                     telemetryClient.TrackTrace("Response: " + response);
                     telemetryClient.TrackTrace(string.Join(",\n", context.User.Claims.Select(c => $"{c.Type}:{c.Value}")));
 
-                    var profile = context.GetProfile();
+                    var profile = profileResolver.GetCurrentUserBasicProfileAsync();
                     if (profile != null)
                         telemetryClient.TrackTrace(JsonConvert.SerializeObject(profile, Formatting.Indented));
                 }
