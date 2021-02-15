@@ -24,6 +24,15 @@ namespace Fusion.Resources.Api.Controllers.Departments
         [HttpGet]
         public async Task<ActionResult<List<ApiDepartment>>> GetDepartments()
         {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+                });
+            });
+
             var departments = await db.Departments.ToListAsync();
             return departments.Select(dpt => new ApiDepartment(dpt)).ToList();
         }
@@ -31,10 +40,18 @@ namespace Fusion.Resources.Api.Controllers.Departments
         [HttpGet("{orgPath}")]
         public async Task<ActionResult<ApiDepartment>> GetSector(string orgPath)
         {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+                });
+            });
+
             var department = await db.Departments
                 .SingleOrDefaultAsync(dpt => dpt.OrgPath == orgPath);
             if (department == null) return NotFound();
-
 
             return new ApiDepartment(department);
         }
@@ -48,7 +65,6 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 {
                     or.BeTrustedApplication();
                     or.FullControl();
-                    // TODO: Figure out auth requirements
                 });
             });
 
@@ -74,7 +90,6 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 {
                     or.BeTrustedApplication();
                     or.FullControl();
-                    // TODO: Figure out auth requirements
                 });
             });
 
