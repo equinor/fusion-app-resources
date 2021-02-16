@@ -1,6 +1,5 @@
 ﻿using Bogus;
 using System;
-using Fusion.ApiClients.Org;
 using Fusion.Resources.Api.Controllers;
 
 namespace Fusion.Testing.Mocks

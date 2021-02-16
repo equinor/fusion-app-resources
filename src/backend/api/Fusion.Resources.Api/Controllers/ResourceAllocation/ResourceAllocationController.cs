@@ -134,7 +134,7 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ValidationException ve)
             {
-                return FusionApiError.InvalidOperation("ValidationError", ve.Message);
+                return ApiErrors.InvalidOperation(ve);
             }
         }
 
