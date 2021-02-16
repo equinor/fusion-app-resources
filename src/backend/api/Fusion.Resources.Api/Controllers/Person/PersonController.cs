@@ -70,6 +70,12 @@ namespace Fusion.Resources.Api.Controllers
 
             var resp = await client.GetAsync($"lineorg/persons/{user.AzureUniqueId}");
 
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return ApiErrors.InvalidInput("Invalid account, user does not exist in the line.");
+
+            if (!resp.IsSuccessStatusCode)
+                return ApiErrors.FailedDependency("Lineorg", $"Could not resolve line info: {resp.StatusCode}");
+
             var content = await resp.Content.ReadAsStringAsync();
             var lineOrgProfile = JsonConvert.DeserializeAnonymousType(content, new {
                 isResourceOwner = false,
