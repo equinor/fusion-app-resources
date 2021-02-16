@@ -5,6 +5,14 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiBasePosition
     {
+        public ApiBasePosition(Guid id, string name, string discipline, string projectType)
+        {
+            Id = id;
+            Name = name;
+            Discipline = discipline;
+            ProjectType = projectType;
+        }
+
         public ApiBasePosition(QueryBasePosition basePosition)
         {
             Id = basePosition.Id;

@@ -41,5 +41,15 @@ namespace Fusion.Resources.Api.Middleware
             public string Code { get; }
             public string Message { get; }
         }
+
+        public class MissingPropertyError : ApiError
+        {
+            public MissingPropertyError(string property, string code, string message) : base(code, message)
+            {
+                PropertyName = property;
+            }
+
+            public string PropertyName { get; set; }
+        }
     }
 }

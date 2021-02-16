@@ -6,6 +6,16 @@ namespace Fusion.Resources.Domain
 {
     public class QueryBasePosition
     {
+        public QueryBasePosition(Guid id, string name, string discipline, string projectType)
+        {
+            Id = id;
+            Name = name;
+            Discipline = discipline;
+            ProjectType = projectType;
+
+            Resolved = true;
+        }
+
         public QueryBasePosition(Guid basePositionId)
         {
             Id = basePositionId;

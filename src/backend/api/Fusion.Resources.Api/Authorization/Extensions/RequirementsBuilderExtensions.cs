@@ -22,6 +22,17 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
+        public static IAuthorizationRequirementRule FullControlInternal(this IAuthorizationRequirementRule builder)
+        {
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.Internal.FullControl"))
+                .Build();
+
+            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
+
+            return builder;
+        }
+
         public static IAuthorizationRequirementRule BeContractorInProject(this IAuthorizationRequirementRule builder, ProjectIdentifier project)
         {
             builder.AddRule(project, new ContractorInProjectRequirement());
