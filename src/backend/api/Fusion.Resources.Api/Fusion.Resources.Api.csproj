@@ -10,10 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Controllers\Person\departmentSectors.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Data\personnel-import-template.xlsx" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Controllers\Person\departmentSectors.json" />
     <EmbeddedResource Include="Data\personnel-import-template.xlsx" />
   </ItemGroup>
 

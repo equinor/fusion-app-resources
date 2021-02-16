@@ -1,10 +1,16 @@
-﻿using Fusion.Resources.Api.Configuration;
+﻿using Fusion.Integration.Configuration;
+using Fusion.Integration.Http;
+using Fusion.Resources.Api.Configuration;
 using Fusion.Resources.Api.Notifications;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Timeout;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using HttpClientNames = Fusion.Resources.Api.Configuration.HttpClientNames;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -35,6 +41,26 @@ namespace Microsoft.Extensions.DependencyInjection
                     TimeSpan.FromSeconds(60)
             }))
             .AddPolicyHandler(timeoutPolicy);
+
+            return services;
+        }
+
+        public static IServiceCollection AddLineOrgHttpClient(this IServiceCollection services)
+        {
+            services.AddFusionIntegrationHttpClient("lineorg", o =>
+            {                
+                o.EndpointResolver = (sp) =>
+                {
+                    var config = sp.GetRequiredService<IOptions<ServiceDiscoveryOptions>>();
+                    var fusionEnv = config.Value.Environment ?? "ci";
+                    return Task.FromResult($"https://pro-s-lineorg-{fusionEnv}.azurewebsites.net");
+                };
+
+                // Bug, must be specified
+                o.Uri = new Uri("https://pro-s-lineorg-.azurewebsits.net");
+
+                //o.Resource 
+            });
 
             return services;
         }

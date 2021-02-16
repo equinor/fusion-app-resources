@@ -61,6 +61,7 @@ namespace Fusion.Resources.Api
             services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
 
 
+
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
             services.AddControllers()
@@ -92,6 +93,7 @@ namespace Fusion.Resources.Api
             services.AddApplicationInsightsTelemetry();
 
             services.AddCommonLibHttpClient();
+            services.AddLineOrgHttpClient();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
