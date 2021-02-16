@@ -38,7 +38,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
         }
 
         [HttpGet("{orgPath}")]
-        public async Task<ActionResult<ApiDepartment>> GetSector(string orgPath)
+        public async Task<ActionResult<ApiDepartment>> GetDepartment(string orgPath)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -108,6 +108,32 @@ namespace Fusion.Resources.Api.Controllers.Departments
             existingDepartment.OrgType = department.OrgType.ToDbType();
             existingDepartment.SectorId = sector?.Id;
 
+            await db.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpDelete("{orgPath}")]
+        public async Task<IActionResult> DeleteDepartment(string orgPath)
+        {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            var department = await db.Departments
+               .SingleOrDefaultAsync(dpt => dpt.OrgPath == orgPath);
+
+            if (department == null) return NotFound();
+
+            db.Departments.Remove(department);
+            
             await db.SaveChangesAsync();
             return Ok();
         }
