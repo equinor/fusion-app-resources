@@ -17,6 +17,7 @@ namespace Fusion.Resources.Api.Controllers
             AccountType = p.AccountType;
             PhoneNumber = p.PhoneNumber;
             JobTitle = p.JobTitle;
+            OfficeLocation = p.OfficeLocation;
 
             if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti)).ToList();
 
