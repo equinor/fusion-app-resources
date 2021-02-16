@@ -74,7 +74,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (position.Workload > 100)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.workload",
-                            "Workload cannot be more than 1000", position.Workload));
+                            "Workload cannot be more than 100", position.Workload));
                 });
         }
 
