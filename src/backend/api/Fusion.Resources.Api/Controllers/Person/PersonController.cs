@@ -44,11 +44,10 @@ namespace Fusion.Resources.Api.Controllers
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
-                
+                r.AlwaysAccessWhen().FullControlInternal();
 
                 r.AnyOf(or => {
                     or.CurrentUserIs(personId);
-
                 });
             });
 
