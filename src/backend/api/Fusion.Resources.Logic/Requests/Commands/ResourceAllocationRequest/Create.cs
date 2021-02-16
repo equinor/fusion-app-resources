@@ -28,7 +28,7 @@ namespace Fusion.Resources.Logic.Commands
                 OrgProjectId = orgProjectId;
             }
 
-            private Guid OrgProjectId { get; }
+            public Guid OrgProjectId { get; }
 
             public string? Discipline { get; private set; }
             public QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; private set; }
