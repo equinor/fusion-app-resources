@@ -167,6 +167,7 @@ namespace Fusion.Resources.Domain
                 {
                     PhoneNumber = i.document.mobilePhone,
                     JobTitle = i.document.jobTitle,
+                    OfficeLocation = i.document.officeLocation,
                     PositionInstances = i.document.positions.Select(p => new QueryDepartmentPersonnelPerson.PersonnelPosition
                     {
                         PositionId = p.id,

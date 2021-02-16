@@ -29,6 +29,7 @@ namespace Fusion.Resources.Api.Controllers
         public string Name { get; set; } = null!;
         public string? PhoneNumber { get; set; }
         public string? JobTitle { get; set; }
+        public string? OfficeLocation { get; set; }
 
         /// <summary>
         /// Enum, <see cref="FusionAccountType"/>.
