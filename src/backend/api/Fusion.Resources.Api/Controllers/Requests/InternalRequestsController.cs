@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
-using Fusion.Authorization;
 using Fusion.Integration;
-using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +13,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     [Authorize]
     [ApiController]
-    public class ResourceAllocationController : ResourceControllerBase
+    public class InternalRequestsController : ResourceControllerBase
     {
         [HttpPost("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> AllocateProjectRequest(
@@ -231,7 +228,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeEmployee();
 
                 });
             });
@@ -261,7 +257,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeEmployee();
 
                 });
             });
@@ -291,8 +286,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    if (projectIdentifier is not null)
-                        or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
+                    
                 });
 
             });
@@ -411,7 +405,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
             });
