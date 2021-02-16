@@ -19,4 +19,17 @@ namespace Fusion.Resources.Domain
         public Guid OrgProjectId { get; set; }
 
     }
+
+    public class QueryProjectRef 
+    {
+        public QueryProjectRef(Guid orgId, string name, string domainId)
+        {
+            OrgProjectId = orgId;
+            Name = name;
+            DomainId = domainId;
+        }
+        public string Name { get; set; }
+        public string DomainId { get; set; }
+        public Guid OrgProjectId { get; set; }
+    }
 }
