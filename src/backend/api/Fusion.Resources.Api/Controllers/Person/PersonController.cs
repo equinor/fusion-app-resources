@@ -35,9 +35,13 @@ namespace Fusion.Resources.Api.Controllers
             this.profileResolver = profileResolver;
         }
 
+        [HttpGet("/persons/me/resources/profile")]
         [HttpGet("/persons/{personId}/resources/profile")]
-        public async Task<ActionResult<ApiResourceOwnerProfile>> GetResourceProfile(string personId)
+        public async Task<ActionResult<ApiResourceOwnerProfile>> GetResourceProfile(string? personId)
         {
+
+            if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
+                personId = $"{User.GetAzureUniqueId()}";
 
             #region Authorization
 
