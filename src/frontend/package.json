@@ -19,8 +19,8 @@
         "shortName": "Resources"
     },
     "dependencies": {
-        "@equinor/fusion": "^3.0.0",
-        "@equinor/fusion-components": "^2.0.0-4",
+        "@equinor/fusion": "^3.1.1",
+        "@equinor/fusion-components": "^2.0.2",
         "@types/classnames": "^2.2.11",
         "@types/deep-equal": "^1.0.1",
         "classnames": "^2.2.6",
@@ -30,7 +30,7 @@
         "uuid": "^3.3.3"
     },
     "devDependencies": {
-        "@equinor/fusion-cli": "^2.0.0-8",
+        "@equinor/fusion-cli": "^2.0.3",
         "@types/history": "^4.7.8",
         "@types/react": "^17.0.1",
         "@types/react-router-dom": "^5.1.7",
