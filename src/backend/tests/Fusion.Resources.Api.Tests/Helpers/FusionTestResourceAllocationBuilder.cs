@@ -10,49 +10,49 @@ namespace Fusion.Testing.Mocks
     {
         public ApiProjectV2 Project { get; set; }
 
-        public CreateResourceAllocationRequest CreateRequest { get; }
+        public CreateResourceAllocationRequest Request { get; }
         public FusionTestResourceAllocationBuilder()
         {
             Project = OrgTestData.Project().Generate();
-            CreateRequest = ResourceAllocationTestData.Request().Generate();
+            Request = ResourceAllocationTestData.Request().Generate();
         }
 
-        public FusionTestResourceAllocationBuilder(CreateResourceAllocationRequest createRequest)
+        public FusionTestResourceAllocationBuilder(CreateResourceAllocationRequest request)
         {
-            this.CreateRequest = createRequest;
+            this.Request = request;
         }
 
         public FusionTestResourceAllocationBuilder WithOrgPositionId(ApiPositionV2 position)
         {
-            this.CreateRequest.OrgPositionId = position.Id;
-            this.CreateRequest.OrgPositionInstance = new ApiPositionInstance(position.Instances.First());
+            this.Request.OrgPositionId = position.Id;
+            this.Request.OrgPositionInstance = new ApiPositionInstance(position.Instances.First());
             return this;
         }
         public FusionTestResourceAllocationBuilder WithProject(ApiProjectV2 project)
         {
             Project = project;
-            CreateRequest.ProjectId = Project.ProjectId;
+            Request.ProjectId = Project.ProjectId;
             return this;
         }
         public FusionTestResourceAllocationBuilder WithIsDraft(bool isDraft)
         {
-            this.CreateRequest.IsDraft = isDraft;
+            this.Request.IsDraft = isDraft;
             return this;
         }
         public FusionTestResourceAllocationBuilder WithProposedPerson(ApiPersonProfileV3 profile)
         {
-            CreateRequest.ProposedPersonAzureUniqueId = profile.AzureUniqueId.Value;
+            Request.ProposedPersonAzureUniqueId = profile.AzureUniqueId.Value;
             return this;
         }
         public FusionTestResourceAllocationBuilder WithProposedChanges(ApiPropertiesCollection changes)
         {
-            CreateRequest.ProposedChanges = changes;
+            Request.ProposedChanges = changes;
             return this;
         }
 
         public FusionTestResourceAllocationBuilder WithRequestType(ApiAllocationRequestType type)
         {
-            CreateRequest.Type = type;
+            Request.Type = type;
             return this;
         }
     }
