@@ -33,9 +33,9 @@ namespace Fusion.Resources.Api.Authorization.Handlers
                 // User must work in procurement position in the project
                 var profile = await profileResolver.GetCurrentUserFullProfileAsync();
 
-                var positions = profile.Positions.Where(p => p.Project.Id == resource.ProjectId);
+                var positions = profile.Positions?.Where(p => p.Project.Id == resource.ProjectId);
                 
-                if (positions.Any(p => p.BasePosition.Discipline == "Procurement"))
+                if (positions is not null && positions.Any(p => p.BasePosition.Discipline == "Procurement"))
                 {
                     context.Succeed(requirement);
                 }

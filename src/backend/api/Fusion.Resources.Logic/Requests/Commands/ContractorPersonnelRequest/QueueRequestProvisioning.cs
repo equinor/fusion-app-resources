@@ -1,8 +1,6 @@
 ﻿using Fusion.Resources.Integration.Models.Queue;
 using MediatR;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,8 +8,8 @@ namespace Fusion.Resources.Logic.Commands
 {
     internal class QueueRequestProvisioning : IRequest
     {
-
-        private QueueRequestProvisioning(RequestType type, Guid requestId, Guid orgProjectId, Guid orgContractId)
+        private QueueRequestProvisioning(RequestType type, Guid requestId, Guid orgProjectId,
+            Guid orgContractId)
         {
             Type = type;
             RequestId = requestId;
@@ -24,10 +22,15 @@ namespace Fusion.Resources.Logic.Commands
         public Guid OrgProjectId { get; }
         public Guid OrgContractId { get; }
 
-        private enum RequestType { ContractorPersonnel }
+        private enum RequestType
+        {
+            ContractorPersonnel
+        }
 
-        public static QueueRequestProvisioning ContractorPersonnelRequest(Guid requestId, Guid orgProjectId, Guid orgContractId) =>
-            new QueueRequestProvisioning(RequestType.ContractorPersonnel, requestId, orgProjectId, orgContractId);
+        public static QueueRequestProvisioning ContractorPersonnelRequest(Guid requestId, Guid orgProjectId,
+            Guid orgContractId) =>
+            new QueueRequestProvisioning(RequestType.ContractorPersonnel, requestId, orgProjectId,
+                orgContractId);
 
         public class Handler : AsyncRequestHandler<QueueRequestProvisioning>
         {
@@ -38,7 +41,8 @@ namespace Fusion.Resources.Logic.Commands
                 this.queueSender = queueSender;
             }
 
-            protected override async Task Handle(QueueRequestProvisioning request, CancellationToken cancellationToken)
+            protected override async Task Handle(QueueRequestProvisioning request,
+                CancellationToken cancellationToken)
             {
                 await queueSender.SendMessageAsync(QueuePath.ProvisionPosition, new ProvisionPositionMessageV1
                 {
@@ -47,8 +51,10 @@ namespace Fusion.Resources.Logic.Commands
                     ContractOrgId = request.OrgContractId,
                     Type = request.Type switch
                     {
-                        RequestType.ContractorPersonnel => ProvisionPositionMessageV1.RequestTypeV1.ContractorPersonnel,
-                        _ => throw new NotSupportedException($"Provision of request type {request.Type} is not supported")
+                        RequestType.ContractorPersonnel => ProvisionPositionMessageV1.RequestTypeV1
+                            .ContractorPersonnel,
+                        _ => throw new NotSupportedException(
+                            $"Provision of request type {request.Type} is not supported")
                     }
                 });
             }

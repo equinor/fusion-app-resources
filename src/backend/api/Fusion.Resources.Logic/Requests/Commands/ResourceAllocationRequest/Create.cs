@@ -29,14 +29,14 @@ namespace Fusion.Resources.Logic.Commands
                 OrgProjectId = orgProjectId;
             }
 
-            private Guid OrgProjectId { get; }
+            public Guid OrgProjectId { get; }
 
             public string? Discipline { get; private set; }
             public QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; private set; }
 
             public Guid? OrgPositionId { get; private set; }
 
-            public Domain.ResourceAllocationRequest.QueryPositionInstance? OrgPositionInstance { get; private set; }
+            public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; } = null!;
 
             public Guid? ProposedPersonAzureUniqueId { get; private set; }
             public string? AdditionalNote { get; private set; }
@@ -93,7 +93,7 @@ namespace Fusion.Resources.Logic.Commands
                     Workload = workload,
                     AppliesFrom = @from,
                     AppliesTo = to,
-                    Obs = obs ?? string.Empty,
+                    Obs = obs,
                     LocationId = locationId
                 };
 
@@ -107,6 +107,7 @@ namespace Fusion.Resources.Logic.Commands
                     RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
                     RuleFor(x => x.OrgPositionId).NotEmpty().When(x => x.OrgPositionId != null);
+                    RuleFor(x => x.OrgPositionInstance).NotNull();
                     RuleFor(x => x.OrgPositionInstance).SetValidator(PositionInstanceValidator).When(x => x.OrgPositionInstance != null);
                     RuleFor(x => x.ProposedChanges).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges != null);
 
@@ -147,7 +148,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (position.Workload > 100)
                             context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
-                                "Workload cannot be more than 1000", position.Workload));
+                                "Workload cannot be more than 100", position.Workload));
                     });
             }
 
@@ -177,11 +178,38 @@ namespace Fusion.Resources.Logic.Commands
 
                     var item = await PersistChangesAsync(request);
 
-                    await mediator.Send(new Initialize(item.Id));
+                    var initCommand = GetInitializationCommand(item);
+                    await mediator.Send(initCommand);
+
+                    switch (item.Type)
+                    {
+                        case DbResourceAllocationRequest.DbAllocationRequestType.Normal:
+                            await mediator.Send(new Normal.Initialize(item.Id));
+                            break;
+                        case DbResourceAllocationRequest.DbAllocationRequestType.JointVenture:
+                            await mediator.Send(new JointVenture.Initialize(item.Id));
+                            break;
+                        case DbResourceAllocationRequest.DbAllocationRequestType.Direct:
+                            await mediator.Send(new Direct.Initialize(item.Id));
+                            break;
+                        default:
+                            throw new NotSupportedException($"{item.Type} not supported");
+                    }
 
 
-                    var dbRequest = await mediator.Send(new GetProjectResourceAllocationRequestItem(item.Id));
-                    return dbRequest!;
+                    var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
+                    return requestItem!;
+                }
+
+                private static object GetInitializationCommand(DbResourceAllocationRequest item)
+                {
+                    return item.Type switch
+                    {
+                        DbResourceAllocationRequest.DbAllocationRequestType.Normal => new Normal.Initialize(item.Id),
+                        DbResourceAllocationRequest.DbAllocationRequestType.JointVenture => new JointVenture.Initialize(item.Id),
+                        DbResourceAllocationRequest.DbAllocationRequestType.Direct => new Direct.Initialize(item.Id),
+                        _ => throw new NotSupportedException($"{item.Type} not supported")
+                    };
                 }
 
                 private async Task<DbResourceAllocationRequest> PersistChangesAsync(Create request)
@@ -202,8 +230,8 @@ namespace Fusion.Resources.Logic.Commands
 
                         ProposedChanges = SerializeToString(request.ProposedChanges),
 
-                        OriginalPositionId = request.OrgPositionId,
-                        OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance),
+                        OrgPositionId = request.OrgPositionId,
+                        OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)!,
 
                         IsDraft = request.IsDraft,
 
@@ -218,12 +246,26 @@ namespace Fusion.Resources.Logic.Commands
                     await db.ResourceAllocationRequests.AddAsync(item);
                     await db.SaveChangesAsync();
 
-                    var workflow = new ResourceAllocationRequestWorkflowV1(request.Editor.Person);
+                    var workflow = GetWorkflowDefinition(request);
                     await db.Workflows.AddAsync(workflow.CreateDatabaseEntity(item.Id, DbRequestType.Employee));
                     await db.SaveChangesAsync();
 
 
                     return item;
+                }
+
+                private static WorkflowDefinition GetWorkflowDefinition(Create request)
+                {
+
+                    return request.Type switch
+                    {
+                        QueryResourceAllocationRequest.QueryAllocationRequestType.Normal => new ResourceAllocationRequestNormalWorkflowV1(request.Editor.Person),
+                        QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture => new ResourceAllocationRequestJointVentureWorkflowV1(request.Editor.Person),
+                        QueryResourceAllocationRequest.QueryAllocationRequestType.Direct => new ResourceAllocationRequestDirectWorkflowV1(request.Editor.Person),
+                        _ => throw new NotSupportedException($"{request.Type} not supported")
+                    };
+
+                    
                 }
 
                 private static DbResourceAllocationRequest.DbAllocationRequestType ParseRequestType(Create request)
@@ -242,7 +284,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (request.ProposedPersonAzureUniqueId != null)
                     {
                         var proposed = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value));
-                        ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null);
+                        ProposedPerson = proposed ?? throw new InvalidOperationException("Profile not found");
                     }
 
                     var project = await EnsureProjectAsync(request);
@@ -251,7 +293,7 @@ namespace Fusion.Resources.Logic.Commands
                     await ValidateOriginalPositionAsync(request);
                 }
 
-                private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance? position)
+                private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance position)
                 {
                     if (position == null)
                         return null;

@@ -4,18 +4,18 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using FluentValidation.Results;
 using FluentValidation.Validators;
-using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class CreateProjectAllocationRequest
+    public class CreateResourceAllocationRequest
     {
         internal Guid? Id { get; set; }
+        internal Guid? ProjectId { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAllocationRequestType Type { get; set; }
         public string? Discipline { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public ApiPositionInstance? OrgPositionInstance { get; set; }
+        public ApiPositionInstance? OrgPositionInstance { get; set; } = null!;
         public string? AdditionalNote { get; set; }
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
@@ -24,14 +24,17 @@ namespace Fusion.Resources.Api.Controllers
 
         #region Validator
 
-        public class Validator : AbstractValidator<CreateProjectAllocationRequest>
+        public class Validator : AbstractValidator<CreateResourceAllocationRequest>
         {
             public Validator()
             {
+                RuleFor(x => x.ProjectId).NotEmpty().When(x => x.ProjectId != null);
+
                 RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
                 RuleFor(x => x.OrgPositionId).NotEmpty().When(x => x.OrgPositionId != null);
+                RuleFor(x => x.OrgPositionInstance).NotNull();
                 RuleFor(x => x.OrgPositionInstance).SetValidator(PositionInstanceValidator).When(x => x.OrgPositionInstance != null);
                 RuleFor(x => x.ProposedChanges).SetValidator(ProposedChangesValidator).When(x => x.ProposedChanges != null);
 
@@ -54,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
                 (position, context) =>
                 {
                     if (position == null) return;
-                    
+
                     if (position.AppliesTo < position.AppliesFrom)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.appliesTo",
                             $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",
@@ -71,7 +74,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (position.Workload > 100)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.workload",
-                            "Workload cannot be more than 1000", position.Workload));
+                            "Workload cannot be more than 100", position.Workload));
                 });
         }
 

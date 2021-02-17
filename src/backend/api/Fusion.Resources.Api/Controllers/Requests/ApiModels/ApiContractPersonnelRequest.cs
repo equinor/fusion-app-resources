@@ -59,7 +59,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiRequestPosition? OriginalPosition { get; set; }
         public ApiPerson? OriginalPerson { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public ApiRequestPosition Position { get; set; }
         public ApiContractPersonnel Person { get; set; }

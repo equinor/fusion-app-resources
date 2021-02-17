@@ -13,9 +13,9 @@ namespace Fusion.Resources.Database.Entities
         public DbProject Project { get; set; } = null!;
         public Guid ProjectId { get; set; }
 
-        public Guid? OriginalPositionId { get; set; }
+        public Guid? OrgPositionId { get; set; }
 
-        public DbPositionInstance? OrgPositionInstance { get; set; } = new DbPositionInstance();
+        public DbPositionInstance OrgPositionInstance { get; set; } = new DbPositionInstance();
 
         public string? AdditionalNote { get; set; }
         public string? ProposedChanges { get; set; }
@@ -41,10 +41,9 @@ namespace Fusion.Resources.Database.Entities
                 entity.HasOne(e => e.Project).WithMany().OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
-                entity.Property(e => e.Created).HasDefaultValue(DateTimeOffset.UtcNow);
+                entity.Property(e => e.Created);
 
                 entity.HasOne(e => e.UpdatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
-
 
                 entity.OwnsOne(e => e.ProvisioningStatus, op =>
                 {
@@ -54,8 +53,7 @@ namespace Fusion.Resources.Database.Entities
 
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAllocationRequestType>());
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbResourceAllocationRequestState>());
-                entity.Property(e => e.LastActivity).HasDefaultValue(DateTimeOffset.UtcNow);
-                entity.HasIndex(e => e.LastActivity).IsClustered(false);
+                entity.Property(e => e.LastActivity);
             });
         }
 

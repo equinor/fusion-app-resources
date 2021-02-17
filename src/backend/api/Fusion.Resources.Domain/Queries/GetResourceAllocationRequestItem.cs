@@ -8,16 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetProjectResourceAllocationRequestItem : IRequest<QueryResourceAllocationRequest?>
+    public class GetResourceAllocationRequestItem : IRequest<QueryResourceAllocationRequest?>
     {
-        public GetProjectResourceAllocationRequestItem(Guid requestId)
+        public GetResourceAllocationRequestItem(Guid requestId)
         {
             RequestId = requestId;
         }
 
         public Guid RequestId { get; }
 
-        public class Handler : IRequestHandler<GetProjectResourceAllocationRequestItem, QueryResourceAllocationRequest?>
+        public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain.Queries
                 this.orgResolver = orgResolver;
             }
 
-            public async Task<QueryResourceAllocationRequest?> Handle(GetProjectResourceAllocationRequestItem request, CancellationToken cancellationToken)
+            public async Task<QueryResourceAllocationRequest?> Handle(GetResourceAllocationRequestItem request, CancellationToken cancellationToken)
             {
                 var row = await db.ResourceAllocationRequests
                     .Include(r => r.OrgPositionInstance)
@@ -40,9 +40,9 @@ namespace Fusion.Resources.Domain.Queries
 
                 var requestItem = row != null ? new QueryResourceAllocationRequest(row) : null;
 
-                if (requestItem?.OriginalPositionId != null)
+                if (requestItem?.OrgPositionId != null)
                 {
-                    var position = await orgResolver.ResolvePositionAsync(requestItem.OriginalPositionId.Value);
+                    var position = await orgResolver.ResolvePositionAsync(requestItem.OrgPositionId.Value);
                     if (position != null)
                     {
                         requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);

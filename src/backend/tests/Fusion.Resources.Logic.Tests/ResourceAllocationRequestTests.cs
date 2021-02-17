@@ -123,7 +123,7 @@ namespace Fusion.Resources.Logic.Tests
             await dbContext.SaveChangesAsync();
 
             var handler = new Update.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
-            var command = new Update(project.ProjectId, request.Id)
+            var command = new Update(request.Id)
                 .WithDiscipline("Whatever");
             
             command.SetEditor(Guid.NewGuid(), null);

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
-using Fusion.Authorization;
 using Fusion.Integration;
-using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +13,11 @@ namespace Fusion.Resources.Api.Controllers
 {
     [Authorize]
     [ApiController]
-    public class ResourceAllocationController : ResourceControllerBase
+    public class InternalRequestsController : ResourceControllerBase
     {
         [HttpPost("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> AllocateProjectRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateProjectAllocationRequest request)
+            [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequest request)
         {
             #region Authorization
 
@@ -62,15 +59,19 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
+                return ApiErrors.InvalidOperation(pef);
             }
             catch (InvalidOperationException ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
+            }
+            catch (ValidationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
             }
             catch (Exception ex)
             {
@@ -78,10 +79,11 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        [HttpPut("/resources/internal-requests/requests/{requestId}")]
         [HttpPut("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> UpdateProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
-            [FromBody] CreateProjectAllocationRequest request)
+            [FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId,
+            [FromBody] UpdateResourceAllocationRequest request)
         {
             #region Authorization
 
@@ -100,7 +102,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var command = new Logic.Commands.ResourceAllocationRequest.Update(projectIdentifier.ProjectId, requestId)
+            var command = new Logic.Commands.ResourceAllocationRequest.Update(requestId)
+                .WithProjectId(projectIdentifier?.ProjectId)
                 .WithDiscipline(request.Discipline)
                 .WithType($"{request.Type}")
                 .WithProposedPerson(request.ProposedPersonAzureUniqueId)
@@ -122,23 +125,34 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (ProfileNotFoundError pef)
             {
-                return FusionApiError.InvalidOperation("ProfileNotFound", pef.Message);
+                return ApiErrors.InvalidOperation(pef);
             }
             catch (InvalidOperationException ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
             }
             catch (InvalidOrgChartPositionError ioe)
             {
-                return FusionApiError.InvalidOperation("InvalidOperation", ioe.Message);
+                return ApiErrors.InvalidOperation(ioe);
+            }
+            catch (ValidationException ve)
+            {
+                return ApiErrors.InvalidOperation(ve);
             }
         }
 
+
+        [HttpGet("/resources/internal-requests/requests")]
         [HttpGet("/projects/{projectIdentifier}/requests")]
-        public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetProjectAllocationRequests(
-            [FromRoute] ProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
+            [FromRoute] ProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequests(projectIdentifier.ProjectId, query));
+            var requestCommand = new GetResourceAllocationRequests(query);
+
+            if (projectIdentifier != null)
+                requestCommand.WithProjectId(projectIdentifier.ProjectId);
+
+            var result = await DispatchAsync(requestCommand);
 
             #region Authorization
 
@@ -147,7 +161,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeEmployee();
 
                 });
             });
@@ -157,13 +170,15 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            return result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
+
+        [HttpGet("/resources/internal-requests/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -175,7 +190,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.BeEmployee();
 
                 });
             });
@@ -188,13 +202,13 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result);
         }
 
+        [HttpDelete("/resources/internal-requests/requests/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult> DeleteProjectAllocationRequest([FromRoute] ProjectIdentifier projectIdentifier,
-            Guid requestId)
+        public async Task<ActionResult> DeleteProjectAllocationRequest(Guid requestId)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
-            if (result == null)
+            if (result is null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
             #region Authorization
@@ -204,7 +218,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
+
                 });
 
             });
@@ -237,7 +251,7 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -249,8 +263,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-
-                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
             });
@@ -264,11 +276,11 @@ namespace Fusion.Resources.Api.Controllers
             try
             {
                 await using var scope = await BeginTransactionAsync();
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Normal.Approve(requestId));
 
                 await scope.CommitAsync();
 
-                result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+                result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
                 return new ApiResourceAllocationRequest(result!);
             }
             catch (InvalidOperationException ex)
@@ -282,7 +294,7 @@ namespace Fusion.Resources.Api.Controllers
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
             [FromBody] RejectRequestRequest request)
         {
-            var result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -294,8 +306,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-
-                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
             });
@@ -308,11 +318,13 @@ namespace Fusion.Resources.Api.Controllers
             try
             {
                 await using var scope = await BeginTransactionAsync();
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Reject(requestId, request.Reason));
+
+                var command = new Logic.Commands.ResourceAllocationRequest.Direct.Reject(requestId, request.Reason);
+                await DispatchAsync(command);
 
                 await scope.CommitAsync();
 
-                result = await DispatchAsync(new GetProjectResourceAllocationRequestItem(requestId));
+                result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
                 return new ApiResourceAllocationRequest(result!);
 
             }
@@ -331,7 +343,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AnyOf(or =>
                 {
-                    or.ProjectAccess(ProjectAccess.ManageRequests, projectIdentifier);
                 });
 
             });

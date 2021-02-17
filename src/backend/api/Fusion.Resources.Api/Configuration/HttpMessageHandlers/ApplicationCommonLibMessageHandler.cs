@@ -22,7 +22,7 @@ namespace Fusion.Resources.Api.Configuration
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var baseUri = new Uri(await endpointResolver.ResolveEndpointAsync(FusionEndpoint.CommonLib));
-            var absoluteUri = new Uri(baseUri, request.RequestUri.PathAndQuery);
+            var absoluteUri = new Uri(baseUri, request.RequestUri!.PathAndQuery);
             request.RequestUri = absoluteUri;
 
             if (request.Headers.Authorization == null)

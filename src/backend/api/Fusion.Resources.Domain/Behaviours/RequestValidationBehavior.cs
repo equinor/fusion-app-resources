@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Behaviours
 {
-    public class RequestValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class RequestValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
         private readonly IEnumerable<IValidator<TRequest>> validators;
 
