@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as styles from './styles.less';
+
+import styles from './styles.less';
 import { ModalSideSheet, Button, Spinner } from '@equinor/fusion-components';
 import CertifyToPicker from '../CertifiyToPicker';
 import classNames from 'classnames';
@@ -7,6 +7,7 @@ import PeopleSelector from '../PeopleSelector';
 import { PersonDetails } from '@equinor/fusion';
 import { PersonDelegationClassification } from '../../../../../../models/PersonDelegation';
 import useNewDelegation from './useNewDelegation';
+import { FC, useState, useCallback, useMemo } from 'react';
 
 type DelegateAccessSideSheetProps = {
     showSideSheet: boolean;
@@ -20,7 +21,7 @@ type DelegationSectionProps = {
     strong?: boolean;
 };
 
-const DelegationSection: React.FC<DelegationSectionProps> = ({ title, strong, children }) => (
+const DelegationSection: FC<DelegationSectionProps> = ({ title, strong, children }) => (
     <div className={styles.delegationSection}>
         <label
             className={classNames(styles.delegationTitle, {
@@ -33,16 +34,16 @@ const DelegationSection: React.FC<DelegationSectionProps> = ({ title, strong, ch
     </div>
 );
 
-const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
+const DelegateAccessSideSheet: FC<DelegateAccessSideSheetProps> = ({
     onSideSheetClose,
     showSideSheet,
     accountType,
     canEdit,
 }) => {
-    const [delegateTo, setDelegateTo] = React.useState<Date | null>(null);
-    const [selectedPersons, setSelectedPersons] = React.useState<PersonDetails[]>([]);
+    const [delegateTo, setDelegateTo] = useState<Date | null>(null);
+    const [selectedPersons, setSelectedPersons] = useState<PersonDetails[]>([]);
 
-   const onClose = React.useCallback(() => {
+   const onClose = useCallback(() => {
         onSideSheetClose();
         setSelectedPersons([])
     }, [onSideSheetClose]);
@@ -54,12 +55,12 @@ const DelegateAccessSideSheet: React.FC<DelegateAccessSideSheetProps> = ({
         onClose
     );
 
-    const onDelegateClick = React.useCallback(
+    const onDelegateClick = useCallback(
         () => canEdit && !isDelegatingAccess && delegateAccess(),
         [canEdit, isDelegatingAccess, delegateAccess]
     );
 
-    const delegateButton = React.useMemo(
+    const delegateButton = useMemo(
         () => (
             <Button
                 disabled={!canEdit || isDelegatingAccess || selectedPersons.length <= 0}

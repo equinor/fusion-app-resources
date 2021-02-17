@@ -1,7 +1,8 @@
-import * as React from 'react';
+
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { ModalSideSheet, TextArea, Button } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
+import { FC, useState } from 'react';
 
 type RejectRequestSideSheetProps = {
     requests: PersonnelRequest[];
@@ -9,12 +10,12 @@ type RejectRequestSideSheetProps = {
     onReject: (reason: string) => void;
 };
 
-const RejectPersonnelSideSheet: React.FC<RejectRequestSideSheetProps> = ({
+const RejectPersonnelSideSheet: FC<RejectRequestSideSheetProps> = ({
     requests,
     setRequests,
     onReject,
 }) => {
-    const [inputValue, setInputValue] = React.useState<string>('');
+    const [inputValue, setInputValue] = useState<string>('');
 
     return (
         <ModalSideSheet

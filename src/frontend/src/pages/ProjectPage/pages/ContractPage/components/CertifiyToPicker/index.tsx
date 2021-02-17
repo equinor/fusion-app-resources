@@ -1,6 +1,7 @@
-import * as React from 'react';
+
 import { RadioButton } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import { FC, useState, useMemo, useCallback, useEffect } from 'react';
+import styles from './styles.less';
 
 type CertifyToPickerProps = {
     onChange: (selectedDate: Date) => void;
@@ -37,13 +38,13 @@ const dates: CertifyToDate[] = [
     },
 ];
 
-const CertifyToPicker: React.FC<CertifyToPickerProps> = ({ onChange, defaultSelected, isReCertification }) => {
-    const [selectedDate, setSelectedDate] = React.useState<CertifyToDateKey>();
-    const certifyPrefix = React.useMemo(() => (isReCertification ? 'Re-certify ' : 'Certify '), [
+const CertifyToPicker: FC<CertifyToPickerProps> = ({ onChange, defaultSelected, isReCertification }) => {
+    const [selectedDate, setSelectedDate] = useState<CertifyToDateKey>();
+    const certifyPrefix = useMemo(() => (isReCertification ? 'Re-certify ' : 'Certify '), [
         isReCertification,
     ]);
 
-    const onCertifyToChange = React.useCallback((dateItem?: CertifyToDate) => {
+    const onCertifyToChange = useCallback((dateItem?: CertifyToDate) => {
         if(!dateItem) {
             return
         }
@@ -51,7 +52,7 @@ const CertifyToPicker: React.FC<CertifyToPickerProps> = ({ onChange, defaultSele
         onChange(dateItem.date);
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if(defaultSelected) {
             const dateItem = dates.find(d => d.key === defaultSelected);
             onCertifyToChange(dateItem);

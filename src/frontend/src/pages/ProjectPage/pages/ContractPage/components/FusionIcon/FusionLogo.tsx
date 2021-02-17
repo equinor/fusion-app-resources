@@ -1,10 +1,11 @@
-import * as React from 'react';
+import { FC } from "react";
+
 
 type FusionLogoProps = {
     scale?: number;
 };
 
-const FusionLogo: React.FC<FusionLogoProps> = ({ scale = 1 }) => (
+const FusionLogo: FC<FusionLogoProps> = ({ scale = 1 }) => (
     <svg
         width="50"
         height="35"

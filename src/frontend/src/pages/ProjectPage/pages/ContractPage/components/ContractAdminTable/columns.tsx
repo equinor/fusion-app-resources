@@ -1,22 +1,23 @@
 import { DataTableColumn, PersonCard } from '@equinor/fusion-components';
 import PersonDelegation from '../../../../../../models/PersonDelegation';
-import * as React from 'react';
+
 import { formatDate } from '@equinor/fusion';
-import * as styles from './styles.less';
+import styles from './styles.less';
+import { FC } from 'react';
 
 type ColumnProps = {
     item: PersonDelegation;
 };
-const AssignedPersonComponent: React.FC<ColumnProps> = ({ item }) => {
+const AssignedPersonComponent: FC<ColumnProps> = ({ item }) => {
     return <PersonCard personId={item.person.azureUniquePersonId} photoSize="medium" inline />;
 };
 
-const CertifiedByComponent: React.FC<ColumnProps> = ({ item }) => {
+const CertifiedByComponent: FC<ColumnProps> = ({ item }) => {
     const certifiedBy = item.recertifiedBy || item.createdBy
     return <PersonCard personId={certifiedBy.azureUniquePersonId} photoSize="medium" inline />;
 };
 
-const ValidToComponent: React.FC<ColumnProps> = ({ item }) => {
+const ValidToComponent: FC<ColumnProps> = ({ item }) => {
     const oneDay = 24 * 60 * 60 * 1000;
     const today = new Date();
     const validTo = item.validTo;

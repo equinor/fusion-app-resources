@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo } from "react";
 import { PositionInstance } from "@equinor/fusion";
 import { sortInstancesByFrom, sortInstancesByTo } from "../../../../../orgHelpers";
 
@@ -8,8 +8,8 @@ type SortedInstances = {
 };
 
 export default (instances: PositionInstance[]): SortedInstances => {
-    const instancesByFrom = React.useMemo(() => sortInstancesByFrom(instances), [instances]);
-    const instancesByTo = React.useMemo(() => sortInstancesByTo(instances), [instances]);
+    const instancesByFrom = useMemo(() => sortInstancesByFrom(instances), [instances]);
+    const instancesByTo = useMemo(() => sortInstancesByTo(instances), [instances]);
 
     return { instancesByFrom, instancesByTo };
 };

@@ -1,11 +1,12 @@
-import * as React from 'react';
+
 import { PositionCard, SkeletonDisc, SkeletonBar } from '@equinor/fusion-components';
+import { FC } from 'react';
 import usePositionById from './hooks/usePositionById';
-import * as styles from './styles.less';
+import styles from './styles.less';
 type PositionIdCardProps = {
     positionId?: string;
 };
-const PositionIdCard: React.FC<PositionIdCardProps> = ({ positionId }) => {
+const PositionIdCard: FC<PositionIdCardProps> = ({ positionId }) => {
     const { position, isFetchingPosition } = usePositionById(positionId);
     if (isFetchingPosition) {
         return (

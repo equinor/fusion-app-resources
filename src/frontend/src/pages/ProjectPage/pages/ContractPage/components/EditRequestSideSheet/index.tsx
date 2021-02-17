@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     ModalSideSheet,
     Button,
@@ -23,7 +23,8 @@ import useBasePositions from '../../../../../../hooks/useBasePositions';
 import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
 import { ReadonlyCollection } from '../../../../../../reducers/utils';
 import { Link } from 'react-router-dom';
-import * as styles from './styles.less';
+import styles from './styles.less';
+import { FC, useState, useMemo, useEffect, useCallback } from 'react';
 
 export type EditRequest = {
     id: string;
@@ -46,16 +47,16 @@ type EditRequestSideSheetProps = {
     onClose: () => void;
 };
 
-const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
+const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
     initialRequests,
     onClose,
 }) => {
     const { isFetchingContract } = useContractContext();
-    const [editRequests, setEditRequests] = React.useState<PersonnelRequest[] | null>(null);
-    const showSideSheet = React.useMemo(() => editRequests !== null, [editRequests]);
+    const [editRequests, setEditRequests] = useState<PersonnelRequest[] | null>(null);
+    const showSideSheet = useMemo(() => editRequests !== null, [editRequests]);
     const helpIconRef = useTooltipRef('Help page', 'below');
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (initialRequests) {
             setEditRequests(initialRequests);
         }
@@ -77,12 +78,12 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         error: personnelError,
     };
 
-    const defaultState = React.useMemo(() => transFormRequest(editRequests, selectedPositions), [
+    const defaultState = useMemo(() => transFormRequest(editRequests, selectedPositions), [
         editRequests,
         selectedPositions,
     ]);
 
-    const validateForm = React.useCallback((requests: EditRequest[]) => {
+    const validateForm = useCallback((requests: EditRequest[]) => {
         return !requests.some(
             (state) =>
                 !Boolean(
@@ -112,14 +113,14 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         removeFailedRequest,
     } = useSubmitChanges(formState);
 
-    const closeSideSheet = React.useCallback(() => {
+    const closeSideSheet = useCallback(() => {
         reset();
         setEditRequests(null);
         resetForm();
         onClose();
     }, [setEditRequests, resetForm]);
 
-    const onProgressSidesheetClose = React.useCallback(() => {
+    const onProgressSidesheetClose = useCallback(() => {
         const editableFailedRequests = failedRequests.filter((r) => r.isEditable);
         if (editableFailedRequests.length > 0) {
             setFormState(editableFailedRequests.map((r) => r.item));
@@ -129,9 +130,9 @@ const EditRequestSideSheet: React.FC<EditRequestSideSheetProps> = ({
         closeSideSheet();
     }, [failedRequests, closeSideSheet]);
 
-    const isSubmitting = React.useMemo(() => pendingRequests.length > 0, [pendingRequests]);
+    const isSubmitting = useMemo(() => pendingRequests.length > 0, [pendingRequests]);
 
-    const onItemChange = React.useCallback((item: EditRequest, key: keyof EditRequest) => {
+    const onItemChange = useCallback((item: EditRequest, key: keyof EditRequest) => {
         switch (key) {
             case 'basePosition':
                 if (item.basePosition && !item.positionName) {

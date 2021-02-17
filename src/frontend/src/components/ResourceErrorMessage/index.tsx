@@ -1,11 +1,12 @@
-import * as React from 'react';
+
 import { ErrorMessage, BlockIcon } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import ResourceError from '../../reducers/ResourceError';
 import { ErrorTypes } from '@equinor/fusion-components/dist/components/general/ErrorMessage';
 import classNames from 'classnames';
 import { useComponentDisplayClassNames } from '@equinor/fusion';
 import { styling } from '@equinor/fusion-components';
+import { FC } from 'react';
 
 const iconProps = {
     width: 80,
@@ -15,7 +16,7 @@ const iconProps = {
 };
 
 type AccessDeniedProps = { error: ResourceError };
-const AccessDenied: React.FC<AccessDeniedProps> = ({ error }) => {
+const AccessDenied: FC<AccessDeniedProps> = ({ error }) => {
     const { accessRequirements, message } = error.response.error;
 
     const messageContainerClasses = classNames(
@@ -61,7 +62,7 @@ const getErrorType = (error?: number): ErrorTypes => {
 type ResourceErrorMessageProps = {
     error: ResourceError | null;
 };
-const ResourceErrorMessage: React.FC<ResourceErrorMessageProps> = ({ error, children }) => {
+const ResourceErrorMessage: FC<ResourceErrorMessageProps> = ({ error, children }) => {
     if (error && (error.statusCode === 403 || error.statusCode === 401)) {
         return <AccessDenied error={error} />;
     }

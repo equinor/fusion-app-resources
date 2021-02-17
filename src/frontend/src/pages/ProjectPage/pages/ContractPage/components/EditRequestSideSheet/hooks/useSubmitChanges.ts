@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useCallback } from 'react';
 import {
     useNotificationCenter,
     useCurrentContext,
@@ -22,13 +22,13 @@ export default (formState: EditRequest[]) => {
     const sendNotification = useNotificationCenter();
     const { apiClient } = useAppContext();
 
-    const [pendingRequests, setPendingRequests] = React.useState<EditRequest[]>([]);
-    const [failedRequests, setFailedRequests] = React.useState<FailedRequest<EditRequest>[]>([]);
-    const [successfulRequests, setSuccessfulRequests] = React.useState<
+    const [pendingRequests, setPendingRequests] = useState<EditRequest[]>([]);
+    const [failedRequests, setFailedRequests] = useState<FailedRequest<EditRequest>[]>([]);
+    const [successfulRequests, setSuccessfulRequests] = useState<
         SuccessfulRequest<EditRequest, PersonnelRequest>[]
     >([]);
 
-    const createRequest = React.useCallback(
+    const createRequest = useCallback(
         async (projectId: string, contractId: string, request: EditRequest) => {
             const transformedRequest = transformToCreatePersonnelRequest(request);
 
@@ -107,13 +107,13 @@ export default (formState: EditRequest[]) => {
         [apiClient]
     );
 
-    const reset = React.useCallback(() => {
+    const reset = useCallback(() => {
         setPendingRequests([]);
         setFailedRequests([]);
         setSuccessfulRequests([]);
     }, []);
 
-    const submit = React.useCallback(() => {
+    const submit = useCallback(() => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         reset();
@@ -129,7 +129,7 @@ export default (formState: EditRequest[]) => {
         }
     }, [contract, currentContext, createRequest, formState, reset]);
 
-    const removeFailedRequest = React.useCallback((request: FailedRequest<EditRequest>) => {
+    const removeFailedRequest = useCallback((request: FailedRequest<EditRequest>) => {
         setFailedRequests(fr => fr.filter(r => r !== request));
     }, []);
 

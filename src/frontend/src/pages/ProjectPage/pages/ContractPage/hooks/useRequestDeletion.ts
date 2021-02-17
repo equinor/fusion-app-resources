@@ -1,12 +1,12 @@
-import * as React from 'react';
+import { useState, useCallback } from 'react';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useAppContext } from '../../../../../appContext';
 import { useContractContext } from '../../../../../contractContex';
 import PersonnelRequest from '../../../../../models/PersonnelRequest';
 
 export default (requests: PersonnelRequest[]) => {
-    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
-    const [deleteError, setDeleteError] = React.useState<Error | null>(null);
+    const [isDeleting, setIsDeleting] = useState<boolean>(false);
+    const [deleteError, setDeleteError] = useState<Error | null>(null);
     const { apiClient } = useAppContext();
     const sendNotification = useNotificationCenter();
     const currentContext = useCurrentContext();
@@ -14,7 +14,7 @@ export default (requests: PersonnelRequest[]) => {
     const projectId = currentContext?.externalId;
     const contractId = contract?.id;
 
-    const deleteRequestsAsync = React.useCallback(
+    const deleteRequestsAsync = useCallback(
         async (projectId: string, contractId: string, requests: PersonnelRequest[]) => {
             setDeleteError(null);
             setIsDeleting(true);
@@ -50,7 +50,7 @@ export default (requests: PersonnelRequest[]) => {
         [apiClient, requests]
     );
 
-    const deleteRequests = React.useCallback(async () => {
+    const deleteRequests = useCallback(async () => {
         if (!projectId || !contractId || requests.length <= 0) {
             return;
         }

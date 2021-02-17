@@ -1,9 +1,10 @@
-import * as React from 'react';
+
 import { DataTableColumn } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 import AzureAdStatusIcon from './components/AzureAdStatus';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import PersonnelInfoSideSheet from './PersonnelInfoSideSheet';
+import { FC, useState } from 'react';
 
 export type DataItemProps = {
     item: Personnel;
@@ -13,11 +14,11 @@ type ColumnPersonnelInfoSideSheetLinkProps = {
     person: Personnel;
 };
 
-const ColumnPersonnelInfoSideSheetLink: React.FC<ColumnPersonnelInfoSideSheetLinkProps> = ({
+const ColumnPersonnelInfoSideSheetLink: FC<ColumnPersonnelInfoSideSheetLinkProps> = ({
     person,
     children,
 }) => {
-    const [isOpen, setIsOpen] = React.useState<boolean>(false);
+    const [isOpen, setIsOpen] = useState<boolean>(false);
 
     return (
         <div onClick={() => setIsOpen(!isOpen)} className={styles.columnLink}>

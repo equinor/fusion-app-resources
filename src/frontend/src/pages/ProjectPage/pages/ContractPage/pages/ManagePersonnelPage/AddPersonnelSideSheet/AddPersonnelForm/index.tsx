@@ -1,9 +1,10 @@
-import * as React from 'react';
-import * as styles from '../styles.less';
+
+import styles from '../styles.less';
 import PersonnelLine from '../models/PersonnelLine';
 import { AddPersonnelFormHead } from './components/AddPersonnelFormHeader';
 import { AddPersonnelFormRow } from './components/AddPersonnelFormRow';
 import useBasePositions from '../../../../../../../../hooks/useBasePositions';
+import { FC, useMemo } from 'react';
 
 type AddPersonnelFormProps = {
     formState: PersonnelLine[];
@@ -14,7 +15,7 @@ type AddPersonnelFormProps = {
     onDeletePerson: (person: PersonnelLine) => void;
 };
 
-const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
+const AddPersonnelForm: FC<AddPersonnelFormProps> = ({
     formState,
     saveInProgress,
     setPersonState,
@@ -24,12 +25,12 @@ const AddPersonnelForm: React.FC<AddPersonnelFormProps> = ({
 }) => {
     const { basePositions, isFetchingBasePositions } = useBasePositions();
 
-    const renderFormHeader = React.useMemo(
+    const renderFormHeader = useMemo(
         () => <AddPersonnelFormHead formState={formState} setSelectionState={setSelectionState} />,
         [formState]
     );
 
-    const renderFormBody = React.useMemo(
+    const renderFormBody = useMemo(
         () => (
             <tbody>
                 {formState.map((person, i) => (

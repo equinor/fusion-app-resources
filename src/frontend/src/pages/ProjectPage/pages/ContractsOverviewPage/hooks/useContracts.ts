@@ -1,11 +1,11 @@
-import * as React from 'react';
+import { useCallback } from 'react';
 import { useAppContext } from '../../../../../appContext';
 import useReducerCollection from '../../../../../hooks/useReducerCollection';
 
 const useContracts = (projectId?: string) => {
     const { apiClient, appState, dispatchAppAction } = useAppContext();
 
-    const fetchContracts = React.useCallback(async () => {
+    const fetchContracts = useCallback(async () => {
         if (!projectId) {
             return [];
         }

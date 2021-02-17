@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useCallback } from 'react';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useAppContext } from '../../../../../appContext';
 import { useContractContext } from '../../../../../contractContex';
@@ -6,8 +6,8 @@ import PersonnelRequest from '../../../../../models/PersonnelRequest';
 import useEditableRequests from './useEditableRequests';
 
 export default (requests: PersonnelRequest[], onReject?: () => void) => {
-    const [isRejecting, setIsRejecting] = React.useState<boolean>(false);
-    const [rejectedError, setRejectedError] = React.useState<Error | null>(null);
+    const [isRejecting, setIsRejecting] = useState<boolean>(false);
+    const [rejectedError, setRejectedError] = useState<Error | null>(null);
     const { apiClient } = useAppContext();
     const sendNotification = useNotificationCenter();
     const { canEdit, checkForEditAccessAsync } = useEditableRequests(requests, 'reject');
@@ -16,7 +16,7 @@ export default (requests: PersonnelRequest[], onReject?: () => void) => {
     const projectId = currentContext?.externalId;
     const contractId = contract?.id;
 
-    const rejectRequestsAsync = React.useCallback(
+    const rejectRequestsAsync = useCallback(
         async (
             projectId: string,
             contractId: string,
@@ -62,7 +62,7 @@ export default (requests: PersonnelRequest[], onReject?: () => void) => {
         [apiClient]
     );
 
-    const reject = React.useCallback(
+    const reject = useCallback(
         async (reason: string) => {
             if (!canEdit || !projectId || !contractId || requests.length <= 0) {
                 return;

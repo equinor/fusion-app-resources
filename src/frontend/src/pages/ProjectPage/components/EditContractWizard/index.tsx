@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     Stepper,
     Step,
@@ -14,7 +14,7 @@ import Contract from '../../../../models/contract';
 import useContractForm from './hooks/useContractForm';
 import ContractNumberPicker from './components/ContractNumberPicker';
 import classNames from 'classnames';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import ContractPositionPicker from './components/ContractPositionPicker';
 import CreateOrEditExternalPositionButton from './components/CreateOrEditExternalPositionButton';
 import { formatDate, useTelemetryLogger, useNotificationCenter } from '@equinor/fusion';
@@ -22,6 +22,7 @@ import CompanyPicker from './components/CompanyPicker';
 import useContractAllocationAutoFocus from './hooks/useContractAllocationAutoFocus';
 import useActiveStepKey, { StepKey } from './hooks/useActiveStepKey';
 import useContractPersister from './hooks/useContractPersister';
+import { FC, useMemo, useCallback } from 'react';
 
 export { default as ContractWizardSkeleton } from './components/ContractWizardSkeleton';
 
@@ -34,7 +35,7 @@ type EditContractWizardProps = {
     onSubmit: (contract: Contract) => void;
 };
 
-const EditContractWizard: React.FC<EditContractWizardProps> = ({
+const EditContractWizard: FC<EditContractWizardProps> = ({
     title,
     existingContract,
     onCancel,
@@ -42,7 +43,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
     onGoBack,
     onSubmit,
 }) => {
-    const isEdit = React.useMemo(() => {
+    const isEdit = useMemo(() => {
         return Boolean(existingContract && existingContract.contractNumber !== null);
     }, [existingContract]);
 
@@ -60,7 +61,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
     const telemetryLogger = useTelemetryLogger();
     const sendNotification = useNotificationCenter();
 
-    const onSave = React.useCallback(async () => {
+    const onSave = useCallback(async () => {
         try {
             const savedContract = await saveAsync();
             if (formState.id) {
@@ -91,7 +92,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         externalCompanyRepRef,
     } = useContractAllocationAutoFocus(activeStepKey, formState);
 
-    const contractDetailsDescription = React.useMemo(() => {
+    const contractDetailsDescription = useMemo(() => {
         const dateOrNa = (date: Date | null) => (date ? formatDate(date) : 'N/A');
         return `${formState.company ? formState.company.name + ' - ' : ''} ${dateOrNa(
             formState.startDate
@@ -100,23 +101,23 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
 
     const backButtonTooltipRef = useTooltipRef('Go back to ' + goBackTo, 'right');
 
-    const clearEquinorContractResponsible = React.useCallback(
+    const clearEquinorContractResponsible = useCallback(
         () => setFormField('contractResponsible', null),
         [setFormField]
     );
-    const clearEquinorCompanyRep = React.useCallback(() => setFormField('companyRep', null), [
+    const clearEquinorCompanyRep = useCallback(() => setFormField('companyRep', null), [
         setFormField,
     ]);
-    const clearExternalContractResponsible = React.useCallback(
+    const clearExternalContractResponsible = useCallback(
         () => setFormField('externalContractResponsible', null),
         [setFormField]
     );
-    const clearExternalCompanyRep = React.useCallback(
+    const clearExternalCompanyRep = useCallback(
         () => setFormField('externalCompanyRep', null),
         [setFormField]
     );
 
-    const handleSubmit = React.useCallback(async () => {
+    const handleSubmit = useCallback(async () => {
         try {
             const contract = await saveAsync();
             onSubmit(contract);
@@ -129,7 +130,7 @@ const EditContractWizard: React.FC<EditContractWizardProps> = ({
         }
     }, [saveAsync, onSubmit]);
 
-    const handleChange = React.useCallback((stepKey: string) => {
+    const handleChange = useCallback((stepKey: string) => {
         setActiveStepKey(stepKey as StepKey);
     }, []);
 

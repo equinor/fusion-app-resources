@@ -1,28 +1,29 @@
-import * as React from 'react';
-import * as styles from '../../styles.less';
+
+import styles from '../../styles.less';
 import SelectionCell from '../../../components/SelectionCell';
 import { useTooltipRef } from '@equinor/fusion-components';
 import PersonnelLine from '../../models/PersonnelLine';
+import { FC, useMemo, useCallback } from 'react';
 
 type AddPersonnelFormHeadProps = {
     formState: PersonnelLine[];
     setSelectionState: (state: boolean) => void;
 };
 
-export const AddPersonnelFormHead: React.FC<AddPersonnelFormHeadProps> = ({
+export const AddPersonnelFormHead: FC<AddPersonnelFormHeadProps> = ({
     formState,
     setSelectionState,
 }) => {
-    const isAllSelected = React.useMemo(() => !formState.find((p) => !Boolean(p?.selected)), [
+    const isAllSelected = useMemo(() => !formState.find((p) => !Boolean(p?.selected)), [
         formState,
     ]);
 
-    const isSomeSelected = React.useMemo(
+    const isSomeSelected = useMemo(
         () => formState.find((p) => p.selected === true) && !isAllSelected,
         [formState, isAllSelected]
     );
 
-    const onSelectAll = React.useCallback(() => {
+    const onSelectAll = useCallback(() => {
         setSelectionState(!isAllSelected);
     }, [isAllSelected, setSelectionState]);
 

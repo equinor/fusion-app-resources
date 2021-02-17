@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { FilterTerm, FilterPane, FilterSection } from '@equinor/fusion-components';
 
 type GenericFilterProps<T> = {
@@ -8,14 +8,14 @@ type GenericFilterProps<T> = {
 };
 
 function GenericFilter<T>({ data, filterSections, onFilter }: GenericFilterProps<T>) {
-    const [filterTerms, setFilterTerms] = React.useState<FilterTerm[]>([]);
+    const [filterTerms, setFilterTerms] = useState<FilterTerm[]>([]);
 
-    const onFilterChange = React.useCallback((filteredData: T[], terms: FilterTerm[]) => {
+    const onFilterChange = useCallback((filteredData: T[], terms: FilterTerm[]) => {
         setFilterTerms(terms);
         onFilter(filteredData);
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (data) {
             onFilter(data);
         }

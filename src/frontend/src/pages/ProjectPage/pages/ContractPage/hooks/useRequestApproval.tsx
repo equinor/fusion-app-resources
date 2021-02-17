@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useCallback } from 'react';
 import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import { useAppContext } from '../../../../../appContext';
 import { useContractContext } from '../../../../../contractContex';
@@ -6,8 +6,8 @@ import PersonnelRequest from '../../../../../models/PersonnelRequest';
 import useEditableRequests from './useEditableRequests';
 
 export default (requests: PersonnelRequest[], onApprove?: () => void) => {
-    const [isApproving, setIsApproving] = React.useState<boolean>(false);
-    const [approvedError, setApprovedError] = React.useState<Error | null>(null);
+    const [isApproving, setIsApproving] = useState<boolean>(false);
+    const [approvedError, setApprovedError] = useState<Error | null>(null);
     const { apiClient } = useAppContext();
     const sendNotification = useNotificationCenter();
     const { canEdit, checkForEditAccessAsync } = useEditableRequests(requests, 'approve');
@@ -17,7 +17,7 @@ export default (requests: PersonnelRequest[], onApprove?: () => void) => {
     const projectId = currentContext?.externalId;
     const contractId = contract?.id;
 
-    const approveRequestsAsync = React.useCallback(
+    const approveRequestsAsync = useCallback(
         async (projectId: string, contractId: string, requests: PersonnelRequest[]) => {
             setApprovedError(null);
             setIsApproving(true);
@@ -72,7 +72,7 @@ export default (requests: PersonnelRequest[], onApprove?: () => void) => {
         [apiClient]
     );
 
-    const approve = React.useCallback(async () => {
+    const approve = useCallback(async () => {
         if (!canEdit || !projectId || !contractId || requests.length <= 0) {
             return;
         }

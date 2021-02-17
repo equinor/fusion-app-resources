@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     useApiClients,
     RoleDescription,
@@ -6,6 +6,7 @@ import {
     useCurrentContext,
 } from '@equinor/fusion';
 import { MarkdownViewer, Spinner, ErrorMessage } from '@equinor/fusion-components';
+import { FC, useState, useEffect } from 'react';
 import PersonalTaskDescription from './PersonalTaskDescription';
 
 type RoleDescriptionTabProps = {
@@ -14,16 +15,16 @@ type RoleDescriptionTabProps = {
     filterToDate: Date
 };
 
-const RoleDescriptionTab: React.FC<RoleDescriptionTabProps> = ({
+const RoleDescriptionTab: FC<RoleDescriptionTabProps> = ({
     onEditChange,
     selectedPosition,
     filterToDate
 }) => {
     const apiClients = useApiClients();
     const project = useCurrentContext();
-    const [isFetchingDescription, setIsFetchingDescription] = React.useState<boolean>(false);
-    const [roleDescription, setRoleDescription] = React.useState<RoleDescription | null>(null);
-    const [error, setError] = React.useState<string | null>(null);
+    const [isFetchingDescription, setIsFetchingDescription] = useState<boolean>(false);
+    const [roleDescription, setRoleDescription] = useState<RoleDescription | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const getRoleDescriptionAsync = async (positionId: string, projectId: string) => {
         setIsFetchingDescription(true);
@@ -40,7 +41,7 @@ const RoleDescriptionTab: React.FC<RoleDescriptionTabProps> = ({
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (project?.externalId) {
             getRoleDescriptionAsync(selectedPosition.id, project.externalId);
         }

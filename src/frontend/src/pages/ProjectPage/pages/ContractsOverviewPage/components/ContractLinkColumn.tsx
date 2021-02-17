@@ -1,10 +1,11 @@
-import * as React from 'react';
+
 import { useCurrentContext, combineUrls } from '@equinor/fusion';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { Link } from 'react-router-dom';
+import { FC } from 'react';
 
 type ContractLinkColumnProps = { contractId: string | null };
-const ContractLinkColumn: React.FC<ContractLinkColumnProps> = ({ contractId, children }) => {
+const ContractLinkColumn: FC<ContractLinkColumnProps> = ({ contractId, children }) => {
     const currentContext = useCurrentContext();
     if (!currentContext || !contractId) {
         return null;

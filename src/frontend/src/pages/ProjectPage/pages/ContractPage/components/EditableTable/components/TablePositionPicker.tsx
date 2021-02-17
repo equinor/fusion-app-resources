@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback } from 'react';
 import { Position, useCurrentContext } from '@equinor/fusion';
 
 import { PositionPicker } from '@equinor/fusion-components';
@@ -14,7 +14,7 @@ function TablePositionPicker<T>({
 }: DefaultTableType<T, Position | null>) {
     const currentContext = useCurrentContext();
     const { contract } = useContractContext();
-    const onPositionChange = React.useCallback(
+    const onPositionChange = useCallback(
         (position: Position) => {
             onChange(item[rowIdentifier], accessKey, position || null);
         },

@@ -1,9 +1,10 @@
-import * as React from 'react';
-import * as styles from './styles.less';
+
+import styles from './styles.less';
 import { formatDate } from '@equinor/fusion';
 import { useTooltipRef, PersonPhoto, InfoIcon } from '@equinor/fusion-components';
 import classNames from 'classnames';
 import { TimelineStructure } from '.';
+import { FC, useMemo } from 'react';
 
 type InstancesTimelineProps = {
     timeline: TimelineStructure[];
@@ -15,7 +16,7 @@ type TimelineInstanceProps = {
     calculator: (time: number) => number;
 };
 
-const TimelineInstance: React.FC<TimelineInstanceProps> = ({ timelineSplit, calculator }) => {
+const TimelineInstance: FC<TimelineInstanceProps> = ({ timelineSplit, calculator }) => {
     const instance = timelineSplit.instance;
 
     const assignedPersonName = instance.assignedPerson ? instance.assignedPerson.name : 'TBN';
@@ -28,7 +29,7 @@ const TimelineInstance: React.FC<TimelineInstanceProps> = ({ timelineSplit, calc
         'above'
     );
 
-    const isInstanceSelected = React.useMemo(() => timelineSplit.isSelected, [timelineSplit]);
+    const isInstanceSelected = useMemo(() => timelineSplit.isSelected, [timelineSplit]);
 
     const className = classNames(styles.instance, {
         [styles.hasAssignedPerson]: instance.assignedPerson !== null,
@@ -53,7 +54,7 @@ const TimelineInstance: React.FC<TimelineInstanceProps> = ({ timelineSplit, calc
     );
 };
 
-const InstancesTimeline: React.FC<InstancesTimelineProps> = ({ timeline, calculator }) => {
+const InstancesTimeline: FC<InstancesTimelineProps> = ({ timeline, calculator }) => {
     return (
         <div className={styles.timelineInstancesWithRotation}>
             <div className={styles.timelineInstances}>

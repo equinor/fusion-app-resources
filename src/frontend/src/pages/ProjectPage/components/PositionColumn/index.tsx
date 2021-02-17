@@ -1,17 +1,18 @@
-import * as React from 'react';
+
 import { useCurrentContext, Position, useApiClients } from '@equinor/fusion';
 import { SkeletonBar, PersonPhoto, SkeletonDisc } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { getInstances } from '../../orgHelpers';
+import { FC, useState, useEffect, useMemo } from 'react';
 
 type PositionColumnProps = {
     position?: Position | null;
     positionId?: string | null;
 };
 
-const PositionColumn: React.FC<PositionColumnProps> = ({ position, positionId }) => {
-    const [internalPosition, setPosition] = React.useState<Position | null>(position || null);
-    const [isFetching, setIsFetching] = React.useState(false);
+const PositionColumn: FC<PositionColumnProps> = ({ position, positionId }) => {
+    const [internalPosition, setPosition] = useState<Position | null>(position || null);
+    const [isFetching, setIsFetching] = useState(false);
     const currentProject = useCurrentContext();
 
     const apiClients = useApiClients();
@@ -27,13 +28,13 @@ const PositionColumn: React.FC<PositionColumnProps> = ({ position, positionId })
         setIsFetching(false);
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (currentProject?.externalId && positionId) {
             fetchPosition(currentProject.externalId, positionId);
         }
     }, [currentProject, positionId]);
 
-    const instance = React.useMemo(
+    const instance = useMemo(
         () => internalPosition && getInstances(internalPosition, new Date())[0],
         [internalPosition]
     );

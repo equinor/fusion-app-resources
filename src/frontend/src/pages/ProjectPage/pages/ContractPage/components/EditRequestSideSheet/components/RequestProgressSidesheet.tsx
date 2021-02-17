@@ -1,11 +1,12 @@
-import * as React from 'react';
+
 import {
     PersonCard,
 } from '@equinor/fusion-components';
 import PersonnelRequest from '../../../../../../../models/PersonnelRequest';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { EditRequest } from '..';
 import RequestProgressSidesheet, { FailedRequest, SuccessfulRequest } from '../../../../../../../components/RequestProgressSidesheet';
+import { FC } from 'react';
 
 type RequestProgressSidesheetProps = {
     pendingRequests: EditRequest[];
@@ -19,7 +20,7 @@ type RequestItemProps = {
     request: EditRequest;
 };
 
-const PendingRequestProgressItem: React.FC<RequestItemProps> = ({ request }) => {
+const PendingRequestProgressItem: FC<RequestItemProps> = ({ request }) => {
     return (
         <div className={styles.item}>
             <div className={styles.position}>{request.positionName}</div>
@@ -30,7 +31,7 @@ const PendingRequestProgressItem: React.FC<RequestItemProps> = ({ request }) => 
     );
 };
 
-const MppRequestProgressSidesheet: React.FC<RequestProgressSidesheetProps> = ({
+const MppRequestProgressSidesheet: FC<RequestProgressSidesheetProps> = ({
     pendingRequests,
     failedRequests,
     successfulRequests,

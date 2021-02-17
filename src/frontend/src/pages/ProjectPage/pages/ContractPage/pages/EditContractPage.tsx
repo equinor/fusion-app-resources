@@ -1,9 +1,10 @@
-import * as React from 'react';
+
 import EditContractWizard, { ContractWizardSkeleton } from '../../../components/EditContractWizard';
 import { useHistory, useCurrentContext } from '@equinor/fusion';
 import useContractFromId from '../hooks/useContractFromId';
 import { RouteComponentProps } from 'react-router-dom';
 import Contract from '../../../../../models/contract';
+import { FC, useCallback } from 'react';
 
 type EditContractPageMatch = {
     contractId: string;
@@ -11,17 +12,17 @@ type EditContractPageMatch = {
 
 type EditContractPageProps = RouteComponentProps<EditContractPageMatch>;
 
-const EditContractPage: React.FC<EditContractPageProps> = ({ match }) => {
+const EditContractPage: FC<EditContractPageProps> = ({ match }) => {
     const { contract, isFetchingContract } = useContractFromId(match.params.contractId);
     const history = useHistory();
     const currentContext = useCurrentContext();
 
-    const goBack = React.useCallback(
+    const goBack = useCallback(
         () => history.replace(`/${currentContext?.id}/${match.params.contractId}`),
         [history, currentContext]
     );
 
-    const onSubmit = React.useCallback(
+    const onSubmit = useCallback(
         (updatedContract: Contract) => {
             history.push(`/${currentContext?.id}/${updatedContract.id}`);
         },

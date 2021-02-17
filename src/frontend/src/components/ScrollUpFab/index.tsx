@@ -1,12 +1,13 @@
-import * as React from 'react';
 
-import * as styles from './styles.less';
+
+import { FC } from 'react';
+import styles from './styles.less';
 
 type ScrollUpFabProps = {
     onClick: () => void;
 };
 
-const ScrollUpFab: React.FC<ScrollUpFabProps> = ({ onClick, children }) => {
+const ScrollUpFab: FC<ScrollUpFabProps> = ({ onClick, children }) => {
     return (
         <button
             className={styles.container}

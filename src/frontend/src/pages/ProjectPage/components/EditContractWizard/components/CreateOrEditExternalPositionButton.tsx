@@ -1,9 +1,10 @@
-import * as React from 'react';
+
 import { ModalSideSheet, Button, AddIcon, EditIcon } from '@equinor/fusion-components';
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { Position } from '@equinor/fusion';
 import Contract from '../../../../../models/contract';
 import ExternalPositionSidesheet from './ExternalPositionSidesheet';
+import { FC, useState, useCallback } from 'react';
 
 type CreateOrEditExternalPositionButtonProps = {
     contract: Contract;
@@ -12,16 +13,16 @@ type CreateOrEditExternalPositionButtonProps = {
     existingPosition: Position | null;
 };
 
-const CreateOrEditExternalPositionButton: React.FC<CreateOrEditExternalPositionButtonProps> = ({
+const CreateOrEditExternalPositionButton: FC<CreateOrEditExternalPositionButtonProps> = ({
     repType,
     contract,
     onComplete,
     existingPosition,
 }) => {
-    const [isShowing, setIsShowing] = React.useState(false);
+    const [isShowing, setIsShowing] = useState(false);
 
-    const show = React.useCallback(() => setIsShowing(true), []);
-    const onClose = React.useCallback(() => {
+    const show = useCallback(() => setIsShowing(true), []);
+    const onClose = useCallback(() => {
         setIsShowing(false);
     }, []);
 

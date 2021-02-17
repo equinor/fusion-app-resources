@@ -1,6 +1,6 @@
-import * as React from 'react';
 
-import * as styles from '../styles.less';
+
+import styles from '../styles.less';
 import {
     IconButton,
     ArrowBackIcon,
@@ -11,13 +11,14 @@ import {
     styling,
 } from '@equinor/fusion-components';
 import classNames from 'classnames';
+import { FC } from 'react';
 
 type ContractWizardSkeletonProps = {
     isEdit: boolean;
     onGoBack: () => void;
 };
 
-const ContractWizardSkeleton: React.FC<ContractWizardSkeletonProps> = ({ isEdit, onGoBack }) => {
+const ContractWizardSkeleton: FC<ContractWizardSkeletonProps> = ({ isEdit, onGoBack }) => {
     return (
         <div className={styles.container}>
             <header className={styles.header}>

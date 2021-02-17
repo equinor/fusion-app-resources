@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Route } from 'react-router-dom';
 import ContractsOverviewPage from './pages/ContractsOverviewPage';
 import AllocateContractPage from './pages/AllocateContractPage';

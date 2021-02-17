@@ -1,5 +1,4 @@
-import * as React from 'react';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { SortIcon } from '@equinor/fusion-components';
 
 const LandingPage = () => {
