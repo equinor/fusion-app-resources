@@ -1,17 +1,22 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Integration.Configuration;
 using Fusion.Integration.Http;
+using Fusion.Resources.Api.Controllers.Departments;
 using Fusion.Resources.Api.Integrations;
+using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
 using Itenso.TimePeriod;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
@@ -25,9 +30,13 @@ namespace Fusion.Resources.Api.Controllers
     {
 
         private readonly IHttpClientFactory httpClientFactory;
-        public InternalPersonnelController(IHttpClientFactory httpClientFactory)
+        private readonly ResourcesDbContext db;
+        private readonly IFusionTokenProvider tokenProvider;
+        public InternalPersonnelController(IHttpClientFactory httpClientFactory, ResourcesDbContext db, IFusionTokenProvider tokenProvider)
         {
             this.httpClientFactory = httpClientFactory;
+            this.db = db;
+            this.tokenProvider = tokenProvider;
         }
 
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
@@ -99,7 +108,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("sectors/{sectorString}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiSectorDepartments>>> GetSectorPersonnel(string SectorString,
+        public async Task<ActionResult<ApiDepartment>> GetSectorPersonnel(string sectorString,
             [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
             [FromQuery] string? timelineDuration = null,
@@ -119,53 +128,54 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            //get departments from lineOrg
-            var departmentStrings = await FindChildDepartments(SectorString);
+            var sector = await db.Departments
+                .SingleOrDefaultAsync(dpt => dpt.OrgPath == sectorString && dpt.OrgType == OrgTypes.Sector.ToDbType());
+            if (sector == null) return NotFound();
+            
+            var apiSector = new ApiDepartment(sector);
+
+            var departmentStrings = await FindChildDepartments(sectorString);
             foreach (var departmentString in departmentStrings)
             {
-                var department = await DispatchAsync(new GetDepartmentPersonnel(departmentString, query);
-                // .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
+                var department = await db.Departments
+                .SingleOrDefaultAsync(dpt => dpt.OrgPath == departmentString && dpt.OrgType == OrgTypes.Department.ToDbType());
+                if (department != null)
+                {
+                    var apiDepartment = new ApiDepartment(department);
+                    var departmentPersonnel = await DispatchAsync(new GetDepartmentPersonnel(departmentString, query));
+                    // .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
+                    apiDepartment.DepartmentPersonell?.AddRange(departmentPersonnel.Select(p => new ApiInternalPersonnelPerson(p)).ToList());
+
+                    apiSector.Children?.Add(apiDepartment);
+                }
             }
-            //for each department, get personnel as above
-
-
-            //example response
-            //var sectorDepartments = new ApiSectorDepartments()
-            //{
-            //    SectorString = SectorString,
-            //    DepartmentsInSector = new List<DepartmentInSector>()
-            //    {
-            //        new DepartmentInSector()
-            //        {
-            //            DepartmentString = "TEST DPT",
-            //            DepartmentPersonnel = new List<ApiInternalPersonnelPerson>()
-            //            {
-
-            //            }
-            //        }
-            //    }
-
-            //};
-            return new ApiCollection<ApiSectorDepartments>(new List<ApiSectorDepartments>());
+            return apiSector;
         }
 
         private async Task<List<string>> FindChildDepartments(string SectorString)
         {
             var lineOrgClient = httpClientFactory.CreateClient("LineOrg");
+            var token = await tokenProvider.GetApplicationTokenAsync();
+            lineOrgClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
 
             var departmentStrings = new List<String>();
             var resource = $"/lineorg/departments/{SectorString}?api-version=1.0&$expand=children";
             var response = await lineOrgClient.GetAsync(resource);
             if (!response.IsSuccessStatusCode)
                   throw new LineOrgIntegrationError();
-           
+
             var json = await response.Content.ReadAsStringAsync();
-            //funker dette?
-            var departments = JsonConvert.DeserializeObject<List<Department>>(json);
-            // name eller fullname?
-            departmentStrings.AddRange(departments.Select(department => department.FullName));
+
+            var sector = JsonConvert.DeserializeObject<Department>(json);
+  
+            //var departments = new List<Department>()
+            //{
+            //    new Department() { Name = "PRD FE EA", FullName = "TPD PRD FE EA" },
+            //    new Department() { Name = "PRD FE EM", FullName = "TPD PRD FE EM" }
+            //};
+
+            departmentStrings.AddRange(sector.Children.Select(child => child.FullName));
             return departmentStrings;
-        }
         }
     }
 }

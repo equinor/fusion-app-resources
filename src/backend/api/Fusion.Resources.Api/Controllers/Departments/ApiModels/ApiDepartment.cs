@@ -30,7 +30,8 @@ namespace Fusion.Resources.Api.Controllers.Departments
         public Guid Responsible { get; }
         public OrgTypes OrgType { get; }
         public string? Sector { get; }
-        public List<ApiDepartment>? Children { get; }
+        public List<ApiDepartment>? Children { get; } = new List<ApiDepartment>();
+        public List<ApiInternalPersonnelPerson>? DepartmentPersonell { get; set; } = new List<ApiInternalPersonnelPerson>();
 
     }
 }
