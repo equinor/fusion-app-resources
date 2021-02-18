@@ -1,6 +1,7 @@
-import * as React from 'react';
+
 import { CheckBox } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import { forwardRef, PropsWithChildren, MutableRefObject } from 'react';
+import styles from './styles.less';
 
 export type SelectionCellProps = {
   isSelected: boolean;
@@ -9,9 +10,9 @@ export type SelectionCellProps = {
   indeterminate?: boolean;
 };
 
-const SelectionCell = React.forwardRef<
+const SelectionCell = forwardRef<
   HTMLDivElement | null,
-  React.PropsWithChildren<SelectionCellProps>
+  PropsWithChildren<SelectionCellProps>
 >(
   (
     {
@@ -24,7 +25,7 @@ const SelectionCell = React.forwardRef<
     return (
       <div
         className={styles.cell}
-        ref={ref as React.MutableRefObject<HTMLDivElement | null>}
+        ref={ref as MutableRefObject<HTMLDivElement | null>}
       >
         <CheckBox
           selected={isSelected}

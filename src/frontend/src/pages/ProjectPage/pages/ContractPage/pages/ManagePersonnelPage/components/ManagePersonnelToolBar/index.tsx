@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     useTooltipRef,
     IconButton,
@@ -6,13 +6,14 @@ import {
     EditIcon,
     DeleteIcon,
 } from '@equinor/fusion-components';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import ExcelImportIcon from '../../../../../../../../components/ExcelImportIcon';
+import { FC, MouseEvent } from 'react';
 
 export type IconButtonProps = {
     disabled?: boolean;
     iconColor?: string;
-    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export type ToolBarProps = {
@@ -22,7 +23,7 @@ export type ToolBarProps = {
     excelImportButton?: IconButtonProps;
 };
 
-const ManagePersonnelToolBar: React.FC<ToolBarProps> = ({
+const ManagePersonnelToolBar: FC<ToolBarProps> = ({
     addButton,
     deleteButton,
     editButton,

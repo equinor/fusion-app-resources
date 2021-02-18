@@ -1,9 +1,10 @@
-import * as React from 'react';
+
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import classNames from 'classnames';
 import { formatDate } from '@equinor/fusion';
 import PositionIdCard from './PositionIdCard';
+import { ReactNode, FC } from 'react';
 
 type RequestDetailsProps = {
     request: PersonnelRequest;
@@ -12,12 +13,12 @@ type RequestDetailsProps = {
 type ItemFieldProps = {
     fieldName: string;
     title: string;
-    original?: React.ReactNode;
+    original?: ReactNode;
     value?: string | null;
     originalValue?: string | null;
 };
 
-const ItemField: React.FC<ItemFieldProps> = ({ fieldName, title, original, value, originalValue, children }) => (
+const ItemField: FC<ItemFieldProps> = ({ fieldName, title, original, value, originalValue, children }) => (
     <div className={classNames(styles.textField, styles[fieldName])}>
         <span className={styles.title}>{title}</span>
         <span className={styles.content}>{children}</span>
@@ -27,7 +28,7 @@ const ItemField: React.FC<ItemFieldProps> = ({ fieldName, title, original, value
     </div>
 );
 
-const RequestDetails: React.FC<RequestDetailsProps> = ({ request }) => {
+const RequestDetails: FC<RequestDetailsProps> = ({ request }) => {
     return (
         <div className={styles.requestDetails}>
             <ItemField fieldName="description" title="Request description">

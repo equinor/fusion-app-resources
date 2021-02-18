@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback } from 'react';
 import { useAppContext } from '../../../../../../../appContext';
 import { useContractContext } from '../../../../../../../contractContex';
 import useReducerCollection from '../../../../../../../hooks/useReducerCollection';
@@ -20,7 +20,7 @@ const usePersonnel = (contractId?: string, projectId?: string) => {
         });
     };
 
-    const fetchPersonnel = React.useCallback(async () => {
+    const fetchPersonnel = useCallback(async () => {
         if (!projectId || !contractId) {
             return [];
         }

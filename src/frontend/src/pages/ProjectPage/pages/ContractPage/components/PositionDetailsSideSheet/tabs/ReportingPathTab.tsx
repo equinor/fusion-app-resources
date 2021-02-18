@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import { ReportingPath, Spinner, ErrorMessage } from '@equinor/fusion-components';
 import OrgChartCard, { OrgChartCardType } from '../components/OrgChartCard';
 import {
@@ -10,23 +10,24 @@ import {
 } from '@equinor/fusion';
 import { getParentPositionId, getInstances, isInstanceFuture, isInstancePast } from '../../../../../orgHelpers';
 import useArrangedInstance from '../hooks/useArrangedInstance';
+import { FC, useState, useCallback, useEffect, useMemo } from 'react';
 
 type ReportingPathTabProps = {
     selectedPosition: Position;
     filterToDate: Date;
 };
 
-const ReportingPathTab: React.FC<ReportingPathTabProps> = ({ selectedPosition, filterToDate }) => {
-    const [isFetching, setIsFetching] = React.useState<boolean>(false);
-    const [error, setError] = React.useState<Error | null>();
-    const [reportingPath, setReportingPath] = React.useState<PositionReportPath | null>(null);
+const ReportingPathTab: FC<ReportingPathTabProps> = ({ selectedPosition, filterToDate }) => {
+    const [isFetching, setIsFetching] = useState<boolean>(false);
+    const [error, setError] = useState<Error | null>();
+    const [reportingPath, setReportingPath] = useState<PositionReportPath | null>(null);
     const apiClients = useApiClients();
     const project = useCurrentContext();
 
     
     const { firstInstance, lastInstance } = useArrangedInstance(selectedPosition?.instances || []);
 
-    const getReportPathDate = React.useCallback(() => {
+    const getReportPathDate = useCallback(() => {
         if (!selectedPosition || selectedPosition.instances.length <= 0) {
             return filterToDate;
         }
@@ -72,13 +73,13 @@ const ReportingPathTab: React.FC<ReportingPathTabProps> = ({ selectedPosition, f
     const rowMargin = componentDisplayType === 'Compact' ? 120 : 134;
     const cardMargin = componentDisplayType === 'Compact' ? 16 : 16;
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (selectedPosition && !error && !isFetching && project?.externalId) {
             fetchReportPathAsync(selectedPosition.id, project.externalId);
         }
     }, [selectedPosition]);
 
-    const getDetailedStructure = React.useCallback(
+    const getDetailedStructure = useCallback(
         (
             structure: Position[],
             linked?: boolean,
@@ -102,7 +103,7 @@ const ReportingPathTab: React.FC<ReportingPathTabProps> = ({ selectedPosition, f
         [filterToDate]
     );
 
-    const reportingPathStructure = React.useMemo((): OrgChartCardType[] => {
+    const reportingPathStructure = useMemo((): OrgChartCardType[] => {
         if (!selectedPosition || !reportingPath) {
             return [];
         }

@@ -1,12 +1,12 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useHistory, Position } from '@equinor/fusion';
 import { parseQueryString } from '../../../../../../../api/utils';
 
 export default (positions: Position[] | null) => {
     const history = useHistory();
-    const [currentPosition, setCurrentPosition] = React.useState<Position | null>();
+    const [currentPosition, setCurrentPosition] = useState<Position | null>();
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!positions) {
             return;
         }
@@ -15,7 +15,7 @@ export default (positions: Position[] | null) => {
         setCurrentPosition(selectedRequest || null);
     }, [history.location.search, positions]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (currentPosition === null) {
             history.push({
                 pathname: history.location.pathname,

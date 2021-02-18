@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     SearchableDropdown,
     SearchableDropdownOption,
@@ -7,19 +7,20 @@ import {
 } from '@equinor/fusion-components';
 import { BasePosition } from '@equinor/fusion';
 import useBasePositions from '../../../../../hooks/useBasePositions';
+import { FC, useMemo, useCallback } from 'react';
 
 type BasePositionPickerProps = {
     selectedBasePositionId?: string;
     onSelect: (basePosition: BasePosition) => void;
 };
 
-const BasePositionPicker: React.FC<BasePositionPickerProps> = ({
+const BasePositionPicker: FC<BasePositionPickerProps> = ({
     selectedBasePositionId,
     onSelect,
 }) => {
     const { basePositions, basePositionsError, isFetchingBasePositions } = useBasePositions();
 
-    const options = React.useMemo(() => {
+    const options = useMemo(() => {
         if (basePositionsError || isFetchingBasePositions)
             return []
 
@@ -30,7 +31,7 @@ const BasePositionPicker: React.FC<BasePositionPickerProps> = ({
         }));
     }, [basePositions, basePositionsError, isFetchingBasePositions, selectedBasePositionId]);
 
-    const onDropdownSelect = React.useCallback(
+    const onDropdownSelect = useCallback(
         (option: SearchableDropdownOption) => {
             const basePosition = basePositions.find(ba => ba.id === option.key);
             if (basePosition) {

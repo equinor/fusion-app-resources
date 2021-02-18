@@ -1,9 +1,9 @@
-import * as React from 'react';
+
 import { DataTable, DataTableColumn } from '@equinor/fusion-components';
 import { useSorting, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import Personnel from '../../../../../../models/Personnel';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import { useContractContext } from '../../../../../../contractContex';
 import AddPersonnelSideSheet from './AddPersonnelSideSheet';
 import getFilterSections from './getFilterSections';
@@ -15,8 +15,9 @@ import ResourceErrorMessage from '../../../../../../components/ResourceErrorMess
 import useExcelImport from '../../../../../../hooks/useExcelImport';
 import personnelExcelImportSettings from './personnelExcelImportSettings';
 import ExcelImportSideSheet from './components/ExcelImportSideSheet';
+import { FC, useState, useEffect, useCallback, useMemo } from 'react';
 
-const ManagePersonnelPage: React.FC = () => {
+const ManagePersonnelPage: FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
     const { setSelectedFile, isProccessingFile, processedFile, processingError } = useExcelImport<
@@ -24,22 +25,22 @@ const ManagePersonnelPage: React.FC = () => {
     >(personnelExcelImportSettings);
 
     const { contract, contractState, dispatchContractAction } = useContractContext();
-    const [filteredPersonnel, setFilteredPersonnel] = React.useState<Personnel[]>([]);
-    const [isAddPersonOpen, setIsAddPersonOpen] = React.useState<boolean>(false);
-    const [isExcelImport, setIsExcelImport] = React.useState<boolean>(false);
-    const [selectedItems, setSelectedItems] = React.useState<Personnel[]>([]);
+    const [filteredPersonnel, setFilteredPersonnel] = useState<Personnel[]>([]);
+    const [isAddPersonOpen, setIsAddPersonOpen] = useState<boolean>(false);
+    const [isExcelImport, setIsExcelImport] = useState<boolean>(false);
+    const [selectedItems, setSelectedItems] = useState<Personnel[]>([]);
     const notification = useNotificationCenter();
 
-    const [isUploadFileOpen, setIsUploadFileOpen] = React.useState<boolean>(false);
+    const [isUploadFileOpen, setIsUploadFileOpen] = useState<boolean>(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!isAddPersonOpen) {
             setIsExcelImport(false);
             setSelectedItems([]);
         }
     }, [isAddPersonOpen]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (processedFile) {
             setSelectedItems([...processedFile]);
             setIsExcelImport(true);
@@ -63,7 +64,7 @@ const ManagePersonnelPage: React.FC = () => {
         });
     };
 
-    const fetchPersonnelAsync = React.useCallback(async () => {
+    const fetchPersonnelAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
@@ -89,24 +90,24 @@ const ManagePersonnelPage: React.FC = () => {
         'asc'
     );
 
-    const onSortChange = React.useCallback(
+    const onSortChange = useCallback(
         (column: DataTableColumn<Personnel>) => {
             setSortBy(column.accessor, null);
         },
         [sortBy, direction]
     );
 
-    const filterSections = React.useMemo(() => {
+    const filterSections = useMemo(() => {
         return getFilterSections(personnel);
     }, [personnel]);
 
-    const personnelColumns = React.useMemo(() => PersonnelColumns(contract?.id), [contract]);
-    const sortedByColumn = React.useMemo(
+    const personnelColumns = useMemo(() => PersonnelColumns(contract?.id), [contract]);
+    const sortedByColumn = useMemo(
         () => personnelColumns.find((c) => c.accessor === sortBy) || null,
         [sortBy]
     );
 
-    const deletePersonnelAsync = React.useCallback(
+    const deletePersonnelAsync = useCallback(
         async (personnelToDelete: Personnel[]) => {
             const contractId = contract?.id;
             if (!currentContext?.id || !contractId) return;
@@ -147,7 +148,7 @@ const ManagePersonnelPage: React.FC = () => {
         [currentContext?.id, personnel]
     );
 
-    const onDeletePersonnel = React.useCallback(async () => {
+    const onDeletePersonnel = useCallback(async () => {
         const response = await notification({
             level: 'high',
             title: `Are you sure you want to delete ${selectedItems.length} entries from personnel`,
@@ -159,11 +160,11 @@ const ManagePersonnelPage: React.FC = () => {
         }
     }, [selectedItems, deletePersonnelAsync]);
 
-    const onExcelImport = React.useCallback(async () => {
+    const onExcelImport = useCallback(async () => {
         setIsUploadFileOpen(true);
     }, []);
 
-    const addButton = React.useMemo((): IconButtonProps => {
+    const addButton = useMemo((): IconButtonProps => {
         return {
             onClick: () => {
                 setSelectedItems([]);
@@ -174,15 +175,15 @@ const ManagePersonnelPage: React.FC = () => {
         };
     }, [selectedItems]);
 
-    const editButton = React.useMemo((): IconButtonProps => {
+    const editButton = useMemo((): IconButtonProps => {
         return { onClick: () => setIsAddPersonOpen(true), disabled: !selectedItems.length };
     }, [selectedItems]);
 
-    const deleteButton = React.useMemo((): IconButtonProps => {
+    const deleteButton = useMemo((): IconButtonProps => {
         return { onClick: onDeletePersonnel, disabled: !selectedItems.length };
     }, [selectedItems, onDeletePersonnel]);
 
-    const excelImportButton = React.useMemo((): IconButtonProps => {
+    const excelImportButton = useMemo((): IconButtonProps => {
         return { onClick: onExcelImport };
     }, []);
 

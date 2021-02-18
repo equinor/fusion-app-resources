@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import {
     IconButton,
     useDropdownController,
@@ -7,24 +7,25 @@ import {
     MoreIcon,
     CopyIcon,
 } from '@equinor/fusion-components';
-import * as styles from '../styles.less';
+import { FC, MutableRefObject, useCallback } from 'react';
+import styles from '../styles.less';
 
 type TableToolbarProps = {
     onRemove?: () => void;
     onCopy?: () => void;
 };
 
-const TableToolbar: React.FC<TableToolbarProps> = ({ onRemove, onCopy }) => {
+const TableToolbar: FC<TableToolbarProps> = ({ onRemove, onCopy }) => {
     const dropdownController = useDropdownController((_, isOpen, setIsOpen) => (
         <IconButton onClick={() => setIsOpen(!isOpen)}>
             <MoreIcon />
         </IconButton>
     ));
 
-    const containerRef = dropdownController.controllerRef as React.MutableRefObject<HTMLDivElement | null>;
+    const containerRef = dropdownController.controllerRef as MutableRefObject<HTMLDivElement | null>;
 
     const { isOpen, setIsOpen } = dropdownController;
-    const select = React.useCallback(
+    const select = useCallback(
         (onClick?: () => void) => {
             onClick && onClick();
             if (isOpen) {

@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import {
     ModalSideSheet,
@@ -16,7 +16,7 @@ import {
 import RequestDetails from './RequestDetails';
 import useCurrentRequest from './hooks/useCurrentRequest';
 import RequestWorkflow from '../RequestWorkflow';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import CompactPersonDetails from './CompactPersonDetails';
 import useRequestApproval from '../../hooks/useRequestApproval';
 import RejectPersonnelSideSheet from '../RejectRequestSideSheet';
@@ -26,6 +26,7 @@ import PersonPositionsDetails from '../PersonPositionsDetails';
 import usePersonnel from '../../pages/ManagePersonnelPage/hooks/usePersonnel';
 import * as moment from 'moment';
 import classNames from 'classnames';
+import { FC, useState, useCallback, useMemo } from 'react';
 
 type RequestDetailsSideSheetProps = {
     requests: PersonnelRequest[] | null;
@@ -36,17 +37,17 @@ type AccordionOpenDictionary = {
     comments: boolean;
 };
 
-const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ requests }) => {
+const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests }) => {
     const { currentRequest, setCurrentRequest } = useCurrentRequest(requests);
-    const [activeTabKey, setActiveTabKey] = React.useState<string>('general');
-    const [rejectRequest, setRejectRequest] = React.useState<PersonnelRequest[]>([]);
-    const [openAccordions, setOpenAccordions] = React.useState<AccordionOpenDictionary>({
+    const [activeTabKey, setActiveTabKey] = useState<string>('general');
+    const [rejectRequest, setRejectRequest] = useState<PersonnelRequest[]>([]);
+    const [openAccordions, setOpenAccordions] = useState<AccordionOpenDictionary>({
         comments: true,
         description: true,
         person: true,
     });
 
-    const onClose = React.useCallback(() => {
+    const onClose = useCallback(() => {
         setCurrentRequest(null);
     }, [setCurrentRequest]);
 
@@ -58,9 +59,9 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
         currentRequest ? [currentRequest] : [],
         onClose
     );
-    const showSideSheet = React.useMemo(() => currentRequest !== null, [currentRequest]);
+    const showSideSheet = useMemo(() => currentRequest !== null, [currentRequest]);
 
-    const handleAccordionStateChange = React.useCallback(
+    const handleAccordionStateChange = useCallback(
         (id: keyof AccordionOpenDictionary) => {
             setOpenAccordions({ ...openAccordions, [id]: !openAccordions[id] });
         },
@@ -72,19 +73,19 @@ const RequestDetailsSideSheet: React.FC<RequestDetailsSideSheetProps> = ({ reque
         (p) => p.mail === currentRequest?.originalPerson?.mail
     );
 
-    const currentPerson = React.useMemo(() => {
+    const currentPerson = useMemo(() => {
         const personnelPerson = personnel.find(
             (p) => p.azureUniquePersonId === currentRequest?.person?.azureUniquePersonId
         );
         return personnelPerson || currentRequest?.person;
     }, [currentRequest, personnel]);
 
-    const isRequestCompleted = React.useMemo(
+    const isRequestCompleted = useMemo(
         () => !!(currentRequest?.state === 'ApprovedByCompany'),
         [currentRequest]
     );
 
-    const rejectedStep = React.useMemo(
+    const rejectedStep = useMemo(
         () => currentRequest?.workflow?.steps.find((s) => s.state === 'Rejected'),
         [currentRequest]
     );

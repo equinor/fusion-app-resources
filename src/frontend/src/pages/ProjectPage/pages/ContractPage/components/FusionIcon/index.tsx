@@ -1,8 +1,8 @@
 import FusionLogo from "./FusionLogo";
-import * as styles from "./styles.less";
-import * as React from "react";
+import styles from "./styles.less";
+import { FC } from "react";
 
-const FusionIcon:React.FC= () => {
+const FusionIcon:FC= () => {
     return (
         <div className={styles.fusionIconContainer}>
             <FusionLogo scale={0.7}/>

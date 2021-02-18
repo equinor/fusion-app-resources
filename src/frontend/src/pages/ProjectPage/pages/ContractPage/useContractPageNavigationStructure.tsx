@@ -1,8 +1,9 @@
-import * as React from 'react';
+
 import { NavigationStructure, Chip } from '@equinor/fusion-components';
 import { useHistory, combineUrls } from '@equinor/fusion';
 import { History } from 'history';
 import { useContractContext, IContractContext } from '../../../../contractContex';
+import { ReactNode, useMemo, useState, useEffect } from 'react';
 
 type NavStructureType = 'grouping' | 'section' | 'child';
 
@@ -52,8 +53,8 @@ const createNavItem = (
     title: string,
     path: string,
     type: NavStructureType,
-    icon?: React.ReactNode,
-    aside?: React.ReactNode
+    icon?: ReactNode,
+    aside?: ReactNode
 ): NavigationStructure => ({
     id: title,
     title,
@@ -67,7 +68,7 @@ const createNavItem = (
 const getNavigationStructure = (
     history: History,
     contractId: string,
-    provisioningComponent: React.ReactNode
+    provisioningComponent: ReactNode
 ): NavigationStructure[] => {
     return [
         createNavItem(history, contractId, 'General', '', 'grouping', <GeneralIcon />),
@@ -106,7 +107,7 @@ const useNavigationStructure = (contractId: string, contractContext: IContractCo
     const failedProvisioning = provisioningRequests.filter(
         r => r.provisioningStatus?.state === 'Error' && r.state === 'ApprovedByCompany'
     ).length;
-    const provisioningComponent = React.useMemo(() => {
+    const provisioningComponent = useMemo(() => {
         if (provisioning <= 0 && failedProvisioning <= 0) {
             return null;
         }
@@ -118,11 +119,11 @@ const useNavigationStructure = (contractId: string, contractContext: IContractCo
         );
     }, [provisioning, failedProvisioning]);
 
-    const [structure, setStructure] = React.useState<NavigationStructure[]>(
+    const [structure, setStructure] = useState<NavigationStructure[]>(
         getNavigationStructure(history, contractId, provisioningComponent)
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         setStructure(getNavigationStructure(history, contractId, provisioningComponent));
     }, [contractId, history.location.pathname, provisioning, failedProvisioning]);
 

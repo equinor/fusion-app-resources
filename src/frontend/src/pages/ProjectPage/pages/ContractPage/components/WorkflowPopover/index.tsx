@@ -1,19 +1,20 @@
-import * as React from 'react';
-import * as styles from './styles.less';
+
+import styles from './styles.less';
 import classNames from 'classnames';
 import { WorkflowStep } from '../../../../../../models/Workflow';
 import { PersonCard } from '@equinor/fusion-components';
 import * as moment from 'moment';
 import ProvisioningStatus from '../../../../../../models/ProvisioningStatus ';
 import FusionIcon from '../FusionIcon';
+import { FC, useCallback, useMemo } from 'react';
 
 type WorkflowPopoverProps = {
     step: WorkflowStep;
     provisioningStatus: ProvisioningStatus;
 };
 
-const WorkflowPopover: React.FC<WorkflowPopoverProps> = ({ step, provisioningStatus }) => {
-    const createItemField = React.useCallback(
+const WorkflowPopover: FC<WorkflowPopoverProps> = ({ step, provisioningStatus }) => {
+    const createItemField = useCallback(
         (fieldName: string, title: string, content: () => string | JSX.Element) => {
             return (
                 <div className={classNames(styles.textField, styles[fieldName])}>
@@ -25,7 +26,7 @@ const WorkflowPopover: React.FC<WorkflowPopoverProps> = ({ step, provisioningSta
         []
     );
 
-    const hasProvisioned = React.useMemo(
+    const hasProvisioned = useMemo(
         () => step.id === 'provisioning' && provisioningStatus.state === 'Provisioned',
         [provisioningStatus, step]
     );

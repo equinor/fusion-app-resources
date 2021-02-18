@@ -1,15 +1,16 @@
-import * as React from 'react';
+
 import { PersonCard, Chip } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import AzureAdStatusIcon from '../../pages/ManagePersonnelPage/components/AzureAdStatus';
 import classNames from 'classnames';
+import { FC } from 'react';
 
 type CompactPersonDetailsProps = {
     personnel: Personnel;
     originalPersonnel?: Personnel;
 };
-const CompactPersonDetails: React.FC<CompactPersonDetailsProps> = ({
+const CompactPersonDetails: FC<CompactPersonDetailsProps> = ({
     personnel,
     originalPersonnel,
 }) => {

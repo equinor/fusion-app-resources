@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import useForm from '../useForm';
 import {
     TextInput,
@@ -12,7 +12,8 @@ import {
 import { useNotificationCenter, useCurrentApp } from '@equinor/fusion';
 import { ServiceNowIncidentRequest } from '../../api/ServiceNowApiClient';
 import { useAppContext } from '../../appContext';
-import * as styles from './styles.less';
+import styles from './styles.less';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 const serializeLocalStorage = () => {
     const store: Record<string, string | null> = {};
@@ -48,7 +49,7 @@ type ServiceNowFormProps = {
     isSubmitting: boolean;
 };
 
-const ServiceNowForm: React.FC<ServiceNowFormProps> = ({
+const ServiceNowForm: FC<ServiceNowFormProps> = ({
     error,
     onRetry,
     isShowing,
@@ -61,11 +62,11 @@ const ServiceNowForm: React.FC<ServiceNowFormProps> = ({
         () => true
     );
 
-    const handleSubmit = React.useCallback(async () => {
+    const handleSubmit = useCallback(async () => {
         onSubmit(formState);
     }, [formState, onSubmit]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!isShowing) {
             resetForm();
         }
@@ -109,14 +110,14 @@ const ServiceNowForm: React.FC<ServiceNowFormProps> = ({
 };
 
 const useServiceNowPopoverRef = (metadata: any | null, popoverProps?: PopoverContainerProps) => {
-    const [shouldShow, setShouldShow] = React.useState(false);
-    const [error, setError] = React.useState<Error | null>(null);
-    const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+    const [shouldShow, setShouldShow] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const { serviceNowApiClient } = useAppContext();
     const sendNotification = useNotificationCenter();
     const currentApp = useCurrentApp();
-    const handleSubmit = React.useCallback(
+    const handleSubmit = useCallback(
         async (request: ServiceNowIncidentRequest) => {
             setIsSubmitting(true);
             try {
@@ -144,11 +145,11 @@ const useServiceNowPopoverRef = (metadata: any | null, popoverProps?: PopoverCon
         [serviceNowApiClient, metadata]
     );
 
-    const handleCancel = React.useCallback(() => {
+    const handleCancel = useCallback(() => {
         setShouldShow(false);
     }, []);
 
-    const handleRetry = React.useCallback(() => {
+    const handleRetry = useCallback(() => {
         setError(null);
     }, []);
 
@@ -164,11 +165,11 @@ const useServiceNowPopoverRef = (metadata: any | null, popoverProps?: PopoverCon
         popoverProps
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         setShouldShow(isShowing);
     }, [isShowing]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setIsShowing(shouldShow);
     }, [shouldShow]);
 

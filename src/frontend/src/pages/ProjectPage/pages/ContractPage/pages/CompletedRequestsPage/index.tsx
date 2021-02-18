@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as styles from './styles.less';
+
+import styles from './styles.less';
 import PersonnelRequest from '../../../../../../models/PersonnelRequest';
 import { useAppContext } from '../../../../../../appContext';
 import SortableTable from '../../../../../../components/SortableTable';
@@ -11,9 +11,10 @@ import GenericFilter from '../../../../../../components/GenericFilter';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import RequestDetailsSideSheet from '../../components/RequestDetailsSideSheet';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
+import { FC, useState, useCallback, useMemo } from 'react';
 
-const CompletedRequestsPage: React.FC = () => {
-    const [filteredCompletedRequests, setFilteredCompletedRequests] = React.useState<
+const CompletedRequestsPage: FC = () => {
+    const [filteredCompletedRequests, setFilteredCompletedRequests] = useState<
         PersonnelRequest[]
     >([]);
 
@@ -21,7 +22,7 @@ const CompletedRequestsPage: React.FC = () => {
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const currentContext = useCurrentContext();
 
-    const fetchRequestsAsync = React.useCallback(async () => {
+    const fetchRequestsAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
@@ -38,7 +39,7 @@ const CompletedRequestsPage: React.FC = () => {
         'set'
     );
 
-    const completedRequests = React.useMemo(
+    const completedRequests = useMemo(
         () =>
             data
                 .filter(
@@ -56,7 +57,7 @@ const CompletedRequestsPage: React.FC = () => {
         [data]
     );
 
-    const filterSections = React.useMemo(() => {
+    const filterSections = useMemo(() => {
         return getFilterSections(completedRequests || []);
     }, [completedRequests]);
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useCallback } from 'react';
 import { TextInput } from '@equinor/fusion-components';
 import { DefaultTableType } from './TableTypes';
 
@@ -10,7 +10,7 @@ function TableTextInput<T>({
     rowIdentifier,
     columnLabel,
 }: DefaultTableType<T, string>) {
-    const onInputChange = React.useCallback(
+    const onInputChange = useCallback(
         (newValue: string) => {
             onChange(item[rowIdentifier], accessKey, newValue);
         },

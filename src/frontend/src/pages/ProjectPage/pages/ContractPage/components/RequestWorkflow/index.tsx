@@ -1,9 +1,10 @@
-import * as React from 'react';
-import * as styles from './styles.less';
+
+import styles from './styles.less';
 import Workflow from '../../../../../../models/Workflow';
 import { WorkflowStep } from '../../../../../../models/Workflow';
 import RequestWorkflowStep from './WorkflowStep';
 import ProvisioningStatus from '../../../../../../models/ProvisioningStatus ';
+import { FC, useCallback, useMemo } from 'react';
 
 type RequestWorkflowProps = {
     workflow: Workflow;
@@ -11,8 +12,8 @@ type RequestWorkflowProps = {
     inline?: boolean;
 };
 
-const RequestWorkflow: React.FC<RequestWorkflowProps> = ({ workflow, inline, provisioningStatus }) => {
-    const findWorkflowIndex = React.useCallback(
+const RequestWorkflow: FC<RequestWorkflowProps> = ({ workflow, inline, provisioningStatus }) => {
+    const findWorkflowIndex = useCallback(
         (step: WorkflowStep, index: number): number => {
             const previousStep = workflow.steps.find(
                 workflowStep => workflowStep.id === step.previousStep
@@ -26,7 +27,7 @@ const RequestWorkflow: React.FC<RequestWorkflowProps> = ({ workflow, inline, pro
         [workflow]
     );
 
-    const sortedWorkflowSteps = React.useMemo(
+    const sortedWorkflowSteps = useMemo(
         () =>
             workflow.steps.reduce((sortedSteps: WorkflowStep[], currentStep: WorkflowStep) => {
                 sortedSteps[findWorkflowIndex(currentStep, 0)] = currentStep;

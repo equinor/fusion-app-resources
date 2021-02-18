@@ -1,6 +1,6 @@
-import * as React from 'react';
+
 import Personnel, { PersonnelDiscipline } from '../../../../../../models/Personnel';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import {
     PersonPhoto,
     TextInput,
@@ -11,6 +11,7 @@ import classNames from 'classnames';
 import useBasePositions from '../../../../../../hooks/useBasePositions';
 import AzureAdStatusIcon from '../../pages/ManagePersonnelPage/components/AzureAdStatus';
 import { PersonDetails } from '@equinor/fusion';
+import { ReactNode, FC, useMemo, useCallback } from 'react';
 
 type EditablePositionDetailsProps = {
     person: Personnel;
@@ -33,7 +34,7 @@ const getPersonDetails = (person: Personnel): PersonDetails => ({
 
 const createTextField = (
     label: string,
-    text: string | React.ReactNode,
+    text: string | ReactNode,
     textStyle?: string | null
 ) => {
     return (
@@ -59,14 +60,14 @@ const createEditField = (
     );
 };
 
-const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
+const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({
     person,
     edit,
     setField,
 }) => {
     const { basePositions } = useBasePositions();
 
-    const dropDownOptions = React.useMemo(() => {
+    const dropDownOptions = useMemo(() => {
         const disciplineOptions: SearchableDropdownOption[] = [];
         return basePositions.reduce((d, b): SearchableDropdownOption[] => {
             if (d.some((d) => d.key === b.discipline) || !b.discipline.length) return d;
@@ -81,7 +82,7 @@ const EditablePositionDetails: React.FC<EditablePositionDetailsProps> = ({
         }, disciplineOptions);
     }, [basePositions, person.disciplines]);
 
-    const onSelect = React.useCallback(
+    const onSelect = useCallback(
         (newValue: SearchableDropdownOption) => {
             setField && setField('disciplines')([{ name: newValue.key }]);
         },

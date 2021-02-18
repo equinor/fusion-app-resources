@@ -1,14 +1,15 @@
-import * as React from 'react';
+
 import { DataTableColumn, DataTable } from '@equinor/fusion-components';
 import { useSorting, usePagination, Page } from '@equinor/fusion';
 import { DataItemComponentProps } from '@equinor/fusion-components/dist/components/data/DataTable/dataTableTypes';
 import { useContractContext } from '../contractContex';
+import { FC, useCallback, useEffect } from 'react';
 
 type SortableTableProps<T> = {
     data: T[];
     columns: DataTableColumn<T>[];
     rowIdentifier: keyof T | ((item: T) => string);
-    expandedComponent?: React.FC<DataItemComponentProps<T>>;
+    expandedComponent?: FC<DataItemComponentProps<T>>;
     isSelectable?: boolean;
     selectedItems?: T[];
     onSelectionChange?: (selectedItems: T[]) => void;
@@ -30,20 +31,20 @@ function SortableTable<T>({
 
     const { pagination, pagedData, setCurrentPage } = usePagination<T>(sortedData, 100);
 
-    const onSortChange = React.useCallback(
+    const onSortChange = useCallback(
         (column: DataTableColumn<T>) => {
             setSortBy(column.accessor, null);
         },
         [sortBy, direction]
     );
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (pagination.pageCount > 0 && pagination.currentPage.index > pagination.pageCount - 1) {
             setCurrentPage(pagination.pageCount - 1, pagination.perPage);
         }
     }, [pagination]);
 
-    const onPaginationChange = React.useCallback((newPage: Page, perPage: number) => {
+    const onPaginationChange = useCallback((newPage: Page, perPage: number) => {
         setCurrentPage(newPage.index, perPage);
     }, []);
 

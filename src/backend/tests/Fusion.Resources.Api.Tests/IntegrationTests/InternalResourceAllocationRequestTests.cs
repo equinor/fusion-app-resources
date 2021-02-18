@@ -76,9 +76,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             // Make sure we are able to create a request
-            var response = await adminClient.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.CreateRequest, new { Id = Guid.Empty });
+            var response = await adminClient.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
             response.Should().BeSuccessfull();
-            testRequest.CreateRequest.Id = response.Value.Id;
+            testRequest.Request.Id = response.Value.Id;
         }
 
         public Task DisposeAsync()
@@ -91,10 +91,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task CreateRequest_Invalid_Request_InvalidArguments_ShouldBe_BadRequest()
         {
-            testRequest.CreateRequest.OrgPositionId = Guid.Empty;
+            testRequest.Request.OrgPositionId = Guid.Empty;
 
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.CreateRequest, new { Id = Guid.Empty });
+            var response = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
 
             response.Should().BeBadRequest();
         }
@@ -103,7 +103,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DeleteRequest_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.CreateRequest.Id}");
+            var response = await Client.TestClientDeleteAsync($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
         }
         [Fact]
@@ -118,10 +118,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetProjectRequest_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.CreateRequest.Id}");
+            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
 
-            AssertPropsAreEqual(response.Value, testRequest.CreateRequest, adminScope);
+            AssertPropsAreEqual(response.Value, testRequest.Request, adminScope);
         }
 
         [Fact]
@@ -131,13 +131,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             for (int i = 0; i < 150; i++)
             {
-                var r = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.CreateRequest, new { Id = Guid.Empty });
+                var r = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
                 r.Should().BeSuccessfull();
             }
 
             for (int j = 5; j < 20; j++)
             {
-                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.CreateRequest.Discipline}&$filter=discipline eq '{testRequest.CreateRequest.Discipline}'&$skip=2&$top={j}");
+                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.Discipline}&$filter=discipline eq '{testRequest.Request.Discipline}'&$skip=2&$top={j}");
                 topResponseTest.Should().BeSuccessfull();
                 topResponseTest.Value.Value.Count().Should().Be(j);
             }
@@ -153,10 +153,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetRequest_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.CreateRequest.Id}");
+            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.Request.Id}");
             response.Should().BeSuccessfull();
 
-            AssertPropsAreEqual(response.Value, testRequest.CreateRequest, adminScope);
+            AssertPropsAreEqual(response.Value, testRequest.Request, adminScope);
         }
 
         [Fact]
@@ -177,16 +177,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var updateRequest = new UpdateResourceAllocationRequest
             {
                 ProjectId = testRequest.Project.ProjectId,
-                OrgPositionId = testRequest.CreateRequest.OrgPositionId,
-                OrgPositionInstance = testRequest.CreateRequest.OrgPositionInstance,
+                OrgPositionId = testRequest.Request.OrgPositionId,
+                OrgPositionInstance = testRequest.Request.OrgPositionInstance,
                 Type = ApiAllocationRequestType.JointVenture,
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
-                ProposedPersonAzureUniqueId = testRequest.CreateRequest.ProposedPersonAzureUniqueId
+                ProposedPersonAzureUniqueId = testRequest.Request.ProposedPersonAzureUniqueId
             };
 
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.CreateRequest.Id}", updateRequest);
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
             response.Should().BeSuccessfull();
 
             AssertPropsAreEqual(response.Value, updateRequest, adminScope);
@@ -201,16 +201,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var updateRequest = new UpdateResourceAllocationRequest
             {
                 ProjectId = testRequest.Project.ProjectId,
-                OrgPositionId = testRequest.CreateRequest.OrgPositionId,
-                OrgPositionInstance = testRequest.CreateRequest.OrgPositionInstance,
+                OrgPositionId = testRequest.Request.OrgPositionId,
+                OrgPositionInstance = testRequest.Request.OrgPositionInstance,
                 Type = ApiAllocationRequestType.Normal,
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
-                ProposedPersonAzureUniqueId = testRequest.CreateRequest.ProposedPersonAzureUniqueId
+                ProposedPersonAzureUniqueId = testRequest.Request.ProposedPersonAzureUniqueId
             };
 
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.CreateRequest.Id}", updateRequest);
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.Request.Id}", updateRequest);
             response.Should().BeSuccessfull();
 
             AssertPropsAreEqual(response.Value, updateRequest, adminScope);
@@ -223,7 +223,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var updateRequest = new UpdateResourceAllocationRequest { ProposedPersonAzureUniqueId = Guid.Empty };
-            var response = await Client.TestClientPutAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.CreateRequest.Id}", updateRequest);
+            var response = await Client.TestClientPutAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
             response.Should().BeBadRequest("Invalid arguments passed");
 
         }
@@ -232,7 +232,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var updateRequest = new UpdateResourceAllocationRequest { ProposedPersonAzureUniqueId = Guid.Empty };
-            var response = await Client.TestClientPutAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests/{testRequest.CreateRequest.Id}", updateRequest);
+            var response = await Client.TestClientPutAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests/{testRequest.Request.Id}", updateRequest);
             response.Should().BeBadRequest("ProjectId argument missing");
 
         }

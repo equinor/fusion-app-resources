@@ -1,6 +1,7 @@
 import * as React from "react";
 import { PositionPicker } from '@equinor/fusion-components';
 import { useCurrentContext, useApiClients, Position } from '@equinor/fusion';
+import { FC } from "react";
 
 type ContractPositionPickerProps = {
     label: string;
@@ -9,7 +10,7 @@ type ContractPositionPickerProps = {
     contractId?: string;
 };
 
-const ContractPositionPicker: React.FC<ContractPositionPickerProps> = ({ label, selectedPosition, onSelect, contractId }) => {
+const ContractPositionPicker: FC<ContractPositionPickerProps> = ({ label, selectedPosition, onSelect, contractId }) => {
     const currentOrgProject = useCurrentContext();
 
     if (!currentOrgProject || !currentOrgProject.externalId) {

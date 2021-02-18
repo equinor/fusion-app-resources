@@ -1,6 +1,6 @@
-import * as React from 'react';
+
 import { useContractContext } from '../../../../../../contractContex';
-import * as styles from './styles.less';
+import styles from './styles.less';
 import {
     SkeletonBar,
     PositionCard,
@@ -17,11 +17,12 @@ import { Link } from 'react-router-dom';
 import ContractAdminTable from '../../components/ContractAdminTable';
 import { useAppContext } from '../../../../../../appContext';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
+import { ReactNode, useMemo, useCallback } from 'react';
 
 const createFieldWithSkeleton = (
     name: string,
-    render: (contract: Contract) => React.ReactNode,
-    renderSkeleton?: () => React.ReactNode
+    render: (contract: Contract) => ReactNode,
+    renderSkeleton?: () => ReactNode
 ) => {
     const { isFetchingContract, contract } = useContractContext();
 
@@ -76,16 +77,16 @@ const renderPosition = (position: Position | null) => {
     if (!position) {
         return 'N/A';
     }
-    const filterToDate = React.useMemo(() => new Date(), []);
-    const instance = React.useMemo(() => getInstances(position, filterToDate)[0], [
+    const filterToDate = useMemo(() => new Date(), []);
+    const instance = useMemo(() => getInstances(position, filterToDate)[0], [
         position,
         filterToDate,
     ]);
-    const isFuture = React.useMemo(() => isInstanceFuture(instance, filterToDate), [
+    const isFuture = useMemo(() => isInstanceFuture(instance, filterToDate), [
         position,
         filterToDate,
     ]);
-    const isPast = React.useMemo(() => isInstancePast(instance, filterToDate), [
+    const isPast = useMemo(() => isInstancePast(instance, filterToDate), [
         position,
         filterToDate,
     ]);
@@ -139,7 +140,7 @@ const ContractDetailsPage = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
 
-    const fetchRequestsAsync = React.useCallback(async () => {
+    const fetchRequestsAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
@@ -156,13 +157,13 @@ const ContractDetailsPage = () => {
         'set'
     );
 
-    const crAdministrators = React.useMemo(() => data.filter((d) => d.type === 'CR'), [data]);
+    const crAdministrators = useMemo(() => data.filter((d) => d.type === 'CR'), [data]);
 
-    const internalAdministrators = React.useMemo(
+    const internalAdministrators = useMemo(
         () => crAdministrators.filter((d) => d.classification === 'Internal'),
         [crAdministrators]
     );
-    const externalAdministrators = React.useMemo(
+    const externalAdministrators = useMemo(
         () => crAdministrators.filter((d) => d.classification === 'External'),
         [crAdministrators]
     );

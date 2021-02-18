@@ -1,23 +1,24 @@
-import * as React from 'react';
+
 import { OrgChartItemProps, PositionCard } from '@equinor/fusion-components';
 
-import * as styles from '../styles.less';
+import styles from '../styles.less';
 import { isInstancePast, isInstanceFuture } from '../../../../../orgHelpers';
 import { Position, PositionInstance } from '@equinor/fusion';
 import { OrgStructure } from '@equinor/fusion-components';
+import { FC, useMemo } from 'react';
 
 export type OrgChartCardType = OrgStructure & {
     position: Position;
     instance: PositionInstance | undefined;
 };
 
-const OrgChartCard: React.FC<OrgChartItemProps<OrgChartCardType>> = ({ item }) => {
-    const filterToDate = React.useMemo(() => new Date(), []);
-    const isFuture = React.useMemo(
+const OrgChartCard: FC<OrgChartItemProps<OrgChartCardType>> = ({ item }) => {
+    const filterToDate = useMemo(() => new Date(), []);
+    const isFuture = useMemo(
         () => item.instance && isInstanceFuture(item.instance, filterToDate),
         [item]
     );
-    const isPast = React.useMemo(
+    const isPast = useMemo(
         () => item.instance && isInstancePast(item.instance, filterToDate),
         [item, filterToDate]
     );
