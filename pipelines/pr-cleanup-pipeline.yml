@@ -89,7 +89,7 @@ jobs:
                         continue
                     }
 
-                    if (-not $activePRs.Contains($pullRequestNumber)) {
+                    if (-not $activePRs.Contains($prNr)) {
                         Write-Output "`tREMOVING"
                         ## kubectl -n fusion-portal-pr delete deployments,services,ingress -l prNumber=$prNr
                     } else {
