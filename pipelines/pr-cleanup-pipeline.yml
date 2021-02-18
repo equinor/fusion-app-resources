@@ -32,7 +32,7 @@ jobs:
             displayName: Detect active pull requests
 
           - task: AzurePowerShell@4
-            displayName: 'Deploy Function ARM template'
+            displayName: 'Delete expired databases'
             inputs:
               azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
               ScriptType: 'InlineScript'
@@ -69,7 +69,7 @@ jobs:
           - task: Kubernetes@1
             inputs:
               connectionType: 'Kubernetes Service Connection'
-              kubernetesServiceEndpoint: 'fusion-portal-pr'
+              kubernetesServiceEndpoint: 'fusion-resources-app-pr'
               namespace: 'fusion-resources-app-pr'
               command: 'login'
 
@@ -96,6 +96,7 @@ jobs:
                         Write-Output "`tStill active - skipping"
                     }
                 }
+            displayName: Delete expired aks resources
 
           - task: Kubernetes@1
             inputs:
