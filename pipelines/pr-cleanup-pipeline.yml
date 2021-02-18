@@ -62,11 +62,12 @@ jobs:
                         continue
                     } else {
                         Write-Host "`tPull request not active, deleting db..."
-                        
+                        Remove-AzSqlDatabase -ResourceGroupName $db.ResourceGroupName -ServerName $db.Name.Split("/")[0] -DatabaseName $db.Name.Split("/")[1]
                     }    
                 }
 
           - task: Kubernetes@1
+            displayName: Log in to aks namespace
             inputs:
               connectionType: 'Kubernetes Service Connection'
               kubernetesServiceEndpoint: 'fusion-resources-app-pr'
@@ -91,7 +92,7 @@ jobs:
 
                     if (-not $activePRs.Contains($prNr)) {
                         Write-Output "`tREMOVING"
-                        ## kubectl -n fusion-portal-pr delete deployments,services,ingress -l prNumber=$prNr
+                        kubectl -n fusion-resources-app-pr delete deployments,services,ingress -l prNumber=$prNr
                     } else {
                         Write-Output "`tStill active - skipping"
                     }
@@ -99,6 +100,7 @@ jobs:
             displayName: Delete expired aks resources
 
           - task: Kubernetes@1
+            displayName: Log out from aks
             inputs:
               command: 'logout'
 
