@@ -41,9 +41,14 @@ jobs:
               Inline: |                
                 $activePRs = "$(activePrs)".Split(",")
 
-                $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app" = "resources"; "fusion-app-env" = "pr" }
+                $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app" = "resources"; "fusion-app-env" = "pr" } -ResourceGroupName Fusion-SQL-Test
 
                 foreach ($db in $prDbs) {
+                    if ($db.Tags["fusion-app-env"] -ne "pr") {
+                        Write-Host "`tNot a pull request db.. skipping"
+                        continue;
+                    }
+
                     Write-Host "Processing db: $($db.Name)"
                     $dbPrNumber = $db.Tags["pr"]
                     if ($null -eq $dbPrNumber) { 
