@@ -1,0 +1,34 @@
+name: pr-cleanup-$(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+pr: none
+# schedules:
+#   - cron: 0 18 * * *
+#     always: true
+#     branches:
+#       include:
+#         - master
+#     displayName: Daily pull request env cleanup
+
+jobs:
+  - deployment: DeployPR
+    displayName: 'Deploy API to PR'
+    pool: Private Docker
+    environment: fusion-resources-pr.fusion-resources-app-pr
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - pwsh: |
+              $PatToken = "$(githubPatToken)"
+              $prs = Invoke-RestMethod -Uri "https://api.github.com/repos/equinor/fusion-app-resources/pulls?state=active&per_page=100" -Headers @{Authorization = "Bearer $PatToken"}
+
+              if ($prs -eq $null) { throw "Could not load pull requests, terminating" }
+
+              $activePRs = $prs | select -ExpandProperty number
+              Write-Host "Located active pull requests" 
+              Write-Host $activePRs
+
+              
+
+
