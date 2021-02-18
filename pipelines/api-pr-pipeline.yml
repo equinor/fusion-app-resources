@@ -103,8 +103,8 @@ stages:
                     $tags = @{ 
                         "pr" = "$(prNumber)"
                         "fusion-app-component-id" = "resources-api-db-pr-$(prNumber)"
-                        "fusion-app": "resources"
-                        "fusion-app-env": "pr"
+                        "fusion-app" = "resources"
+                        "fusion-app-env" = "pr"
                     }
 
                     New-FusionSqlDatabaseV2 `
