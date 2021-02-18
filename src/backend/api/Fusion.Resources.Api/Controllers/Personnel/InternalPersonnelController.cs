@@ -2,12 +2,10 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Integration.Configuration;
-using Fusion.Integration.Http;
 using Fusion.Resources.Api.Controllers.Departments;
 using Fusion.Resources.Api.Integrations;
 using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
-using Itenso.TimePeriod;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +15,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -131,7 +128,7 @@ namespace Fusion.Resources.Api.Controllers
             var sector = await db.Departments
                 .SingleOrDefaultAsync(dpt => dpt.OrgPath == sectorString && dpt.OrgType == OrgTypes.Sector.ToDbType());
             if (sector == null) return NotFound();
-            
+
             var apiSector = new ApiDepartment(sector);
 
             var departmentStrings = await FindChildDepartments(sectorString);
@@ -162,12 +159,12 @@ namespace Fusion.Resources.Api.Controllers
             var resource = $"/lineorg/departments/{SectorString}?api-version=1.0&$expand=children";
             var response = await lineOrgClient.GetAsync(resource);
             if (!response.IsSuccessStatusCode)
-                  throw new LineOrgIntegrationError();
+                throw new LineOrgIntegrationError();
 
             var json = await response.Content.ReadAsStringAsync();
 
             var sector = JsonConvert.DeserializeObject<Department>(json);
-  
+
             //var departments = new List<Department>()
             //{
             //    new Department() { Name = "PRD FE EA", FullName = "TPD PRD FE EA" },
