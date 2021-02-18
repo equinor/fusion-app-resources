@@ -26,7 +26,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "a46ed099-8ece-4547-a11e-615e1ab1cc7e"
       },
-      "applicationUrl": "https://localhost:5003;http://localhost:5002"
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
     },
     "Docker": {
       "commandName": "Docker",

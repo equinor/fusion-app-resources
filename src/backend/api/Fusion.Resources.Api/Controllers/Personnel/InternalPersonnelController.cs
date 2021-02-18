@@ -66,10 +66,6 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            // Departments are 
-            //if (query is null) query = new ODataQueryParams { Top = 1000 };
-            //if (query.Top > 1000) return ApiErrors.InvalidPageSize("Max page size is 1000");
-
             #region Validate input if timeline is expanded
 
             var shouldExpandTimeline = query.ShoudExpand("timeline");
