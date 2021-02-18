@@ -66,6 +66,40 @@ jobs:
                     }    
                 }
 
+          - task: Kubernetes@1
+            inputs:
+              connectionType: 'Kubernetes Service Connection'
+              kubernetesServiceEndpoint: 'fusion-portal-pr'
+              namespace: 'fusion-resources-app-pr'
+              command: 'login'
+
+          - pwsh: |
+                $activePRs = "$(activePrs)".Split(",")
+                
+                $deployments = kubectl -n fusion-resources-app-pr get deployments -o json | ConvertFrom-Json
+                $aksPrPortals = $deployments.items | select -Property {$_.metadata.labels.prNumber} | select -ExpandProperty '$_.metadata.labels.prNumber'
+
+                foreach ($prNr in $aksPrPortals) {
+                    Write-Host "Processing pr: $prNr"
+                    
+                    $pullRequestNumber = 0
+                    if (-not [int]::TryParse($prNr, [ref]$pullRequestNumber)) {
+                        Write-Output "`Not a number, must be custom - SKIPPING"
+                        Write-Host "##vso[task.logissue type=warning]Leaving PR Portal env with id $prNr."
+                        continue
+                    }
+
+                    if (-not $activePRs.Contains($pullRequestNumber)) {
+                        Write-Output "`tREMOVING"
+                        ## kubectl -n fusion-portal-pr delete deployments,services,ingress -l prNumber=$prNr
+                    } else {
+                        Write-Output "`tStill active - skipping"
+                    }
+                }
+
+          - task: Kubernetes@1
+            inputs:
+              command: 'logout'
 
 
 
