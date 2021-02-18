@@ -2,13 +2,13 @@ name: pr-cleanup-$(date:yyyyMMdd)$(rev:.r)
 
 trigger: none
 pr: none
-# schedules:
-#   - cron: 0 18 * * *
-#     always: true
-#     branches:
-#       include:
-#         - master
-#     displayName: Daily pull request env cleanup
+schedules:
+  - cron: 0 18 * * *
+    always: true
+    branches:
+      include:
+        - master
+    displayName: Daily pull request env cleanup
 
 jobs:
   - deployment: DeployPR
