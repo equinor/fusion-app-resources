@@ -7,9 +7,10 @@ using FluentValidation.Validators;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class CreateProjectAllocationRequest
+    public class CreateResourceAllocationRequest
     {
         internal Guid? Id { get; set; }
+        internal Guid? ProjectId { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAllocationRequestType Type { get; set; }
         public string? Discipline { get; set; }
@@ -23,10 +24,12 @@ namespace Fusion.Resources.Api.Controllers
 
         #region Validator
 
-        public class Validator : AbstractValidator<CreateProjectAllocationRequest>
+        public class Validator : AbstractValidator<CreateResourceAllocationRequest>
         {
             public Validator()
             {
+                RuleFor(x => x.ProjectId).NotEmpty().When(x => x.ProjectId != null);
+
                 RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
@@ -71,7 +74,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (position.Workload > 100)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.workload",
-                            "Workload cannot be more than 1000", position.Workload));
+                            "Workload cannot be more than 100", position.Workload));
                 });
         }
 

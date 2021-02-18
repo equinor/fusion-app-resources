@@ -10,15 +10,14 @@ namespace Fusion.Testing.Mocks
     {
         public ApiProjectV2 Project { get; set; }
 
-        public CreateProjectAllocationRequest Request { get; }
-
+        public CreateResourceAllocationRequest Request { get; }
         public FusionTestResourceAllocationBuilder()
         {
             Project = OrgTestData.Project().Generate();
             Request = ResourceAllocationTestData.Request().Generate();
         }
 
-        public FusionTestResourceAllocationBuilder(CreateProjectAllocationRequest request)
+        public FusionTestResourceAllocationBuilder(CreateResourceAllocationRequest request)
         {
             this.Request = request;
         }
@@ -32,6 +31,7 @@ namespace Fusion.Testing.Mocks
         public FusionTestResourceAllocationBuilder WithProject(ApiProjectV2 project)
         {
             Project = project;
+            Request.ProjectId = Project.ProjectId;
             return this;
         }
         public FusionTestResourceAllocationBuilder WithIsDraft(bool isDraft)
