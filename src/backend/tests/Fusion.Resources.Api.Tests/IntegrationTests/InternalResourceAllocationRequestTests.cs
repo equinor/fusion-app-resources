@@ -180,6 +180,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 OrgPositionId = testRequest.Request.OrgPositionId,
                 OrgPositionInstance = testRequest.Request.OrgPositionInstance,
                 Type = ApiAllocationRequestType.JointVenture,
+                AssignedDepartment = "TPD",
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
