@@ -69,13 +69,14 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     query = query.ApplyODataFilters(request.Query, m =>
                     {
+                        m.MapField(nameof(QueryResourceAllocationRequest.AssignedDepartment), i => i.AssignedDepartment);
                         m.MapField(nameof(QueryResourceAllocationRequest.Discipline), i => i.Discipline);
                     });
                 }
 
                 if (request.Query.HasSearch)
                 {
-                    query = query.Where(p => p.Discipline != null && p.Discipline.ToLower().Contains(request.Query.Search));
+                    query = query.Where(p => p.AssignedDepartment != null && p.AssignedDepartment.ToLower().Contains(request.Query.Search));
                 }
 
 

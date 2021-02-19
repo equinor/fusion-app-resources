@@ -260,6 +260,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public class ResourceAllocationRequestTestModel
         {
+            public string AssignedDepartment { get; set; }
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
             public string Type { get; set; }
@@ -293,6 +294,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
 
             response.Type.Should().Be(request.Type.ToString());
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
             response.Discipline.Should().Be(request.Discipline);
 
             response.Project.Id.Should().Be(request.ProjectId);
@@ -318,6 +320,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
 
             response.Type.Should().Be(request.Type.ToString());
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
             response.Discipline.Should().Be(request.Discipline);
 
             response.Project.Id.Should().Be(request.ProjectId);

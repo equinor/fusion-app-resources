@@ -30,6 +30,7 @@ namespace Fusion.Resources.Logic.Commands
             public Guid RequestId { get; }
 
             public MonitorableProperty<Guid?> OrgProjectId { get; private set; } = new();
+            public MonitorableProperty<string?> AssignedDepartment { get; private set; } = new();
             public MonitorableProperty<string?> Discipline { get; private set; } = new();
             public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType> Type { get; private set; } = new();
             public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new();
@@ -51,6 +52,11 @@ namespace Fusion.Resources.Logic.Commands
                 return this;
             }
 
+            public Update WithAssignedDepartment(string? assignedDepartment)
+            {
+                AssignedDepartment = assignedDepartment;
+                return this;
+            }
             public Update WithDiscipline(string? discipline)
             {
                 Discipline = discipline;
@@ -88,7 +94,7 @@ namespace Fusion.Resources.Logic.Commands
 
             public Update WithPositionInstance(Guid id, DateTime from, DateTime to, double? workload, string? obs, Guid? locationId)
             {
-                var queryPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
+                OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                 {
                     Id = id,
                     Workload = workload,
@@ -97,9 +103,6 @@ namespace Fusion.Resources.Logic.Commands
                     Obs = obs,
                     LocationId = locationId
                 };
-
-
-                OrgPositionInstance = new();
                 return this;
             }
 
@@ -107,8 +110,9 @@ namespace Fusion.Resources.Logic.Commands
             {
                 public Validator()
                 {
+                    RuleFor(x => x.AssignedDepartment.Value).NotContainScriptTag().MaximumLength(500).When(x => x.AssignedDepartment.HasBeenSet);
                     RuleFor(x => x.Discipline.Value).NotContainScriptTag().MaximumLength(500).When(x => x.Discipline.HasBeenSet);
-                    RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000).When(x => x.Discipline.HasBeenSet);
+                    RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000).When(x => x.AdditionalNote.HasBeenSet);
 
                     RuleFor(x => x.OrgPositionId.Value).NotEmpty().When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionId.Value != null);
                     RuleFor(x => x.OrgPositionInstance).NotNull();
@@ -200,6 +204,13 @@ namespace Fusion.Resources.Logic.Commands
                         dbItem.Project = Project;
                         modified = true;
                     }
+
+                    if (request.AssignedDepartment.HasBeenSet)
+                    {
+                        dbItem.AssignedDepartment = request.AssignedDepartment.Value;
+                        modified = true;
+                    }
+
                     if (request.Discipline.HasBeenSet)
                     {
                         dbItem.Discipline = request.Discipline.Value;
