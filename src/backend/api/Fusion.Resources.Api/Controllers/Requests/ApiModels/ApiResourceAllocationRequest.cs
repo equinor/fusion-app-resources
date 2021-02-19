@@ -9,6 +9,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiResourceAllocationRequest(QueryResourceAllocationRequest query)
         {
             Id = query.RequestId;
+            AssignedDepartment = query.AssignedDepartment;
             Discipline = query.Discipline;
             Type = $"{query.Type}";
 
@@ -42,6 +43,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         public Guid Id { get; set; }
+        public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
         /// <summary>Type of request
         /// <para>Check valid values used in request model <see cref="ApiAllocationRequestType"/> for information.</para>
