@@ -4,33 +4,73 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Queries;
 using MediatR;
 using Xunit;
 using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Logic.Tests
 {
-    public class ResourceAllocationRequestTests
+    public class ResourceAllocationRequestTests : IAsyncLifetime
     {
+        private readonly Guid testOrgId = Guid.NewGuid();
+        private readonly ResourcesDbContext dbContext;
+        private readonly Mock<IProjectOrgResolver> orgResolverMock;
+        private readonly Mock<IProfileService> profileServiceMock;
+        private readonly Mock<IMediator> mediatorMock;
+        private readonly ApiProjectV2 testProject;
+        private Guid testRequestId = Guid.NewGuid();
 
-
-        [Fact]
-        public async Task DeleteRequest_NonExisting_ShouldBe_BadRequest()
+        public ResourceAllocationRequestTests()
         {
-            var requestId = Guid.NewGuid();
             var dbOptions = new DbContextOptionsBuilder<ResourcesDbContext>()
                 .UseInMemoryDatabase(nameof(ResourceAllocationRequestTests))
                 .Options;
 
-            var dbContext = new ResourcesDbContext(dbOptions);
+            dbContext = new ResourcesDbContext(dbOptions);
+
+            var orgProject = new OrgProjectId(testOrgId);
+            orgResolverMock = new Mock<IProjectOrgResolver>();
+            testProject = new ApiProjectV2 { ProjectId = orgProject.ProjectId!.Value, Name = "TestProject", DomainId = Guid.NewGuid().ToString() };
+            orgResolverMock.Setup(r => r.ResolveProjectAsync(It.IsAny<OrgProjectId>())).ReturnsAsync(testProject);
+
+            profileServiceMock = new Mock<IProfileService>();
+
+            mediatorMock = new Mock<IMediator>();
+
+        }
+
+        public async Task InitializeAsync()
+        {
+            var person = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), AccountType = $"{FusionAccountType.Employee}" };
+            await dbContext.Persons.AddAsync(person);
+
+            var handler = new Create.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
+            var command = new Create(testProject.ProjectId)
+                .WithType("Normal");
+            command.SetEditor(person.Id, person);
+
+            await handler.Handle(command, CancellationToken.None);
+        }
+
+        public async Task DisposeAsync()
+        {
+            return;
+        }
+
+        [Fact]
+        public async Task DeleteRequest_NonExisting_ShouldBe_BadRequest()
+        {
 
             var handler = new Delete.Handler(dbContext);
-            var command = new Delete(requestId);
+            var command = new Delete(Guid.NewGuid());
 
             var response = await handler.Handle(command, new CancellationToken());
             response.Should().Be(false);
@@ -39,98 +79,51 @@ namespace Fusion.Resources.Logic.Tests
         [Fact]
         public async Task DeleteRequest_Existing_ShouldBe_Success()
         {
-            var dbOptions = new DbContextOptionsBuilder<ResourcesDbContext>()
-                .UseInMemoryDatabase(nameof(ResourceAllocationRequestTests))
-                .Options;
-
-            var dbContext = new ResourcesDbContext(dbOptions);
-
-            var request = new DbResourceAllocationRequest
-            {
-                Id = Guid.NewGuid(),
-                Created = DateTime.Now,
-                CreatedById = Guid.NewGuid(),
-                Project = new DbProject { OrgProjectId = Guid.NewGuid() },
-                State = DbResourceAllocationRequestState.Created
-            };
-
-            dbContext.Add(request);
-            await dbContext.SaveChangesAsync();
-
-
+            var request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync();
             var handler = new Delete.Handler(dbContext);
             var command = new Delete(request.Id);
 
             var response = await handler.Handle(command, new CancellationToken());
 
             response.Should().Be(true);
-        }
-
-        [Fact]
-        public async Task CreateRequest_ShouldBe_Ok()
-        {
-            var orgProject = new OrgProjectId(Guid.NewGuid());
-            var orgResolverMock = new Mock<IProjectOrgResolver>();
-            var project = new ApiProjectV2 { ProjectId = orgProject.ProjectId!.Value, Name = "TestProject", DomainId = "12345" };
-            orgResolverMock.Setup(r => r.ResolveProjectAsync(It.IsAny<OrgProjectId>())).ReturnsAsync(project);
-
-            var profileServiceMock = new Mock<IProfileService>();
-
-            var mediatorMock = new Mock<IMediator>();
-
-            var dbOptions = new DbContextOptionsBuilder<ResourcesDbContext>()
-                .UseInMemoryDatabase(nameof(ResourceAllocationRequestTests))
-                .Options;
-
-            var dbContext = new ResourcesDbContext(dbOptions);
-
-            var handler = new Create.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
-            var command = new Create(project.ProjectId);
-            command.SetEditor(Guid.NewGuid(), null);
-
-            var response = await handler.Handle(command, new CancellationToken());
-
-            response.Should().BeNull("Created item doesn't return anything");
+            request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(x => x.Id == request.Id);
+            request.Should().BeNull();
         }
 
         [Fact]
         public async Task UpdateRequest_ShouldBe_Ok()
         {
-            var orgProject = new OrgProjectId(Guid.NewGuid());
-            var orgResolverMock = new Mock<IProjectOrgResolver>();
-            var project = new ApiProjectV2 { ProjectId = orgProject.ProjectId!.Value, Name = "TestProject", DomainId = "12345" };
-            orgResolverMock.Setup(r => r.ResolveProjectAsync(It.IsAny<OrgProjectId>())).ReturnsAsync(project);
-
-            var profileServiceMock = new Mock<IProfileService>();
-            var mediatorMock = new Mock<IMediator>();
-
-            var dbOptions = new DbContextOptionsBuilder<ResourcesDbContext>()
-                .UseInMemoryDatabase(nameof(ResourceAllocationRequestTests))
-                .Options;
-
-            var dbContext = new ResourcesDbContext(dbOptions);
-
-            var request = new DbResourceAllocationRequest
-            {
-                Id = Guid.NewGuid(),
-                Created = DateTime.Now,
-                CreatedById = Guid.NewGuid(),
-                Project = new DbProject { OrgProjectId = orgProject.ProjectId!.Value },
-                State = DbResourceAllocationRequestState.Created
-            };
-
-            dbContext.Add(request);
-            await dbContext.SaveChangesAsync();
+            var expectedDiscipline = "Whatever";
+            var request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync();
 
             var handler = new Update.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
             var command = new Update(request.Id)
-                .WithDiscipline("Whatever");
-            
+                .WithDiscipline(expectedDiscipline);
+
             command.SetEditor(Guid.NewGuid(), null);
 
-            var response = await handler.Handle(command, new CancellationToken());
+            await handler.Handle(command, new CancellationToken());
 
-            response.Should().BeNull("Updated item doesn't return anything");
+            request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(x => x.Id == request.Id);
+            request.Discipline.Should().Be(expectedDiscipline);
+        }
+
+        [Fact]
+        public async Task ApproveRequest_Should_Be_Ok()
+        {
+            var request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync();
+
+            mediatorMock.Setup(m => m.Send(It.IsAny<GetResourceAllocationRequestItem>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new QueryResourceAllocationRequest(request));
+
+            IRequestHandler<Normal.Approve> handler = new Normal.Approve.Handler(mediatorMock.Object);
+            var command = new Normal.Approve(request.Id);
+
+            command.SetEditor(Guid.NewGuid(), null);
+
+            await handler.Handle(command, new CancellationToken());
+
+           
         }
 
     }
