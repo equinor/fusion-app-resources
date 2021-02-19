@@ -10,6 +10,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             Id = query.RequestId;
             Discipline = query.Discipline;
+            State = $"{query.State}";
             Type = $"{query.Type}";
 
 
@@ -43,6 +44,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public Guid Id { get; set; }
         public string? Discipline { get; set; }
+        public string? State { get; set; }
         /// <summary>Type of request
         /// <para>Check valid values used in request model <see cref="ApiAllocationRequestType"/> for information.</para>
         /// </summary>

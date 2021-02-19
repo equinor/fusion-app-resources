@@ -4,14 +4,12 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Queries;
 using MediatR;
 using Xunit;
 using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
@@ -107,24 +105,5 @@ namespace Fusion.Resources.Logic.Tests
             request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(x => x.Id == request.Id);
             request.Discipline.Should().Be(expectedDiscipline);
         }
-
-        [Fact]
-        public async Task ApproveRequest_Should_Be_Ok()
-        {
-            var request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync();
-
-            mediatorMock.Setup(m => m.Send(It.IsAny<GetResourceAllocationRequestItem>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new QueryResourceAllocationRequest(request));
-
-            IRequestHandler<Normal.Approve> handler = new Normal.Approve.Handler(mediatorMock.Object);
-            var command = new Normal.Approve(request.Id);
-
-            command.SetEditor(Guid.NewGuid(), null);
-
-            await handler.Handle(command, new CancellationToken());
-
-           
-        }
-
     }
 }

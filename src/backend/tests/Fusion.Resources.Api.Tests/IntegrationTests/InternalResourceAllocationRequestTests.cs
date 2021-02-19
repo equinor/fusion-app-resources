@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
@@ -174,6 +175,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var beforeUpdate = DateTimeOffset.UtcNow;
+            var dict = new Dictionary<string, object> {{"orgpositioninstance.workload", 50}};
             var updateRequest = new UpdateResourceAllocationRequest
             {
                 ProjectId = testRequest.Project.ProjectId,
@@ -183,8 +185,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
-                ProposedPersonAzureUniqueId = testRequest.Request.ProposedPersonAzureUniqueId
+                ProposedPersonAzureUniqueId = testRequest.Request.ProposedPersonAzureUniqueId,
+                ProposedChanges = new ApiPropertiesCollection(dict)
             };
+
+            var test = JsonSerializer.Serialize(updateRequest);
 
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
             response.Should().BeSuccessfull();
@@ -247,6 +252,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
 
+        [Fact]
+        public async Task Post_Request_State_Approved()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
+
+            response.Value.State.Should().Be("Assigned");
+            response.Value.Workflow.State.Should().NotBeEmpty();
+        }
+
 
         public class PagedCollection<T>
         {
@@ -260,6 +275,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public class ResourceAllocationRequestTestModel
         {
+            public string State { get; set; }
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
             public string Type { get; set; }
@@ -276,6 +292,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             public DateTimeOffset? Created { get; set; }
             public DateTimeOffset? Updated { get; set; }
             public DateTimeOffset? LastActivity { get; set; }
+
+            public ObjectWithState Workflow { get; set; }
 
             public class ObjectWithAzureUniquePerson
             {
@@ -329,7 +347,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             if (request.ProposedChanges != null)
                 foreach (var (key, value) in request.ProposedChanges)
                 {
-                    response.ProposedChanges.Should().ContainValue(value);
+                    var item = response.ProposedChanges.First(x => x.Key == key);
+                    item.Value.Should().Be(value);
                 }
 
             response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
@@ -338,5 +357,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             //Workflow/state & provisioning status to be added.
         }
+    }
+
+    public class ObjectWithState
+    {
+        public string State { get; set; }
     }
 }

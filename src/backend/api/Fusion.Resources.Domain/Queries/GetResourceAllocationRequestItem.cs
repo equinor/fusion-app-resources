@@ -21,11 +21,13 @@ namespace Fusion.Resources.Domain.Queries
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator)
             {
                 this.db = db;
                 this.orgResolver = orgResolver;
+                this.mediator = mediator;
             }
 
             public async Task<QueryResourceAllocationRequest?> Handle(GetResourceAllocationRequestItem request, CancellationToken cancellationToken)
@@ -38,7 +40,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.ProposedPerson)
                     .FirstOrDefaultAsync(c => c.Id == request.RequestId);
 
-                var requestItem = row != null ? new QueryResourceAllocationRequest(row) : null;
+                var requestItem = row != null ? new QueryResourceAllocationRequest(row, await mediator.Send(new GetRequestWorkflow(request.RequestId))) : null;
 
                 if (requestItem?.OrgPositionId != null)
                 {
