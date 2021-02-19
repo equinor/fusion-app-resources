@@ -1,9 +1,9 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -41,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
         public List<PersonnelAbsence> EmploymentStatuses { get; set; } = new List<PersonnelAbsence>();
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<TimelineRange>? Timeline { get; set; }
 
 
@@ -80,9 +80,9 @@ namespace Fusion.Resources.Api.Controllers
             public double? Workload { get; set; }
             public string Description { get; set; } = null!;
 
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-            public ApiProjectReference? Project { get; set; } 
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public ApiProjectReference? Project { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public ApiBasePosition? BasePosition { get; set; }
         }
 

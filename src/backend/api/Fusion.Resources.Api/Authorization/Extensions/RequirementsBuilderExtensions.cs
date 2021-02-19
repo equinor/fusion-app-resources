@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Integration;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,12 @@ namespace Fusion.Resources.Api.Controllers
 
             builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
 
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule CurrentUserIs(this IAuthorizationRequirementRule builder, PersonIdentifier personIdentifier)
+        {          
+            builder.AddRule(new CurrentUserIsRequirement(personIdentifier));
             return builder;
         }
 

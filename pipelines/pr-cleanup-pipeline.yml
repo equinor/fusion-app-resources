@@ -1,0 +1,109 @@
+name: pr-cleanup-$(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+pr: none
+schedules:
+  - cron: 0 18 * * *
+    always: true
+    branches:
+      include:
+        - master
+    displayName: Daily pull request env cleanup
+
+jobs:
+  - deployment: DeployPR
+    displayName: 'Remove pull request environment artifacts'
+    pool: Private Docker
+    environment: fusion-resources-pr.fusion-resources-app-pr
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - pwsh: |
+              $prs = Invoke-RestMethod -Uri "https://api.github.com/repos/equinor/fusion-app-resources/pulls?state=active&per_page=100" -Headers @{Authorization = "Bearer $(githubPatToken)"}
+
+              if ($prs -eq $null) { throw "Could not load pull requests, terminating" }
+
+              $activePRs = $prs | select -ExpandProperty number
+              Write-Host "Located active pull requests" 
+              Write-Host $activePRs
+
+              Write-Output "##vso[task.setvariable variable=activePrs]$([string]::Join(",", $activePRs))"
+            displayName: Detect active pull requests
+
+          - task: AzurePowerShell@4
+            displayName: 'Delete expired databases'
+            inputs:
+              azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+              ScriptType: 'InlineScript'
+              FailOnStandardError: true
+              azurePowerShellVersion: 'LatestVersion'
+              Inline: |                
+                $activePRs = "$(activePrs)".Split(",")
+
+                $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app" = "resources"; "fusion-app-env" = "pr" } -ResourceGroupName Fusion-SQL-Test
+
+                foreach ($db in $prDbs) {
+                    if ($db.Tags["fusion-app-env"] -ne "pr") {
+                        Write-Host "`tNot a pull request db.. skipping"
+                        continue;
+                    }
+
+                    Write-Host "Processing db: $($db.Name)"
+                    $dbPrNumber = $db.Tags["pr"]
+                    if ($null -eq $dbPrNumber) { 
+                        Write-Host "`tCould not locate pull request number for db, skipping"
+                        continue
+                    }
+                    Write-Host "`tLocated pull request number $dbPrNumber..."
+
+                    if ($activePRs.Contains($dbPrNumber)) {
+                        Write-Host "`tPull request still active, skipping..."
+                        continue
+                    } else {
+                        Write-Host "`tPull request not active, deleting db..."
+                        Remove-AzSqlDatabase -ResourceGroupName $db.ResourceGroupName -ServerName $db.Name.Split("/")[0] -DatabaseName $db.Name.Split("/")[1]
+                    }    
+                }
+
+          - task: Kubernetes@1
+            displayName: Log in to aks namespace
+            inputs:
+              connectionType: 'Kubernetes Service Connection'
+              kubernetesServiceEndpoint: 'fusion-resources-app-pr'
+              namespace: 'fusion-resources-app-pr'
+              command: 'login'
+
+          - pwsh: |
+                $activePRs = "$(activePrs)".Split(",")
+                
+                $deployments = kubectl -n fusion-resources-app-pr get deployments -o json | ConvertFrom-Json
+                $aksPrPortals = $deployments.items | select -Property {$_.metadata.labels.prNumber} | select -ExpandProperty '$_.metadata.labels.prNumber'
+
+                foreach ($prNr in $aksPrPortals) {
+                    Write-Host "Processing pr: $prNr"
+                    
+                    $pullRequestNumber = 0
+                    if (-not [int]::TryParse($prNr, [ref]$pullRequestNumber)) {
+                        Write-Output "`Not a number, must be custom - SKIPPING"
+                        Write-Host "##vso[task.logissue type=warning]Leaving PR Portal env with id $prNr."
+                        continue
+                    }
+
+                    if (-not $activePRs.Contains($prNr)) {
+                        Write-Output "`tREMOVING"
+                        kubectl -n fusion-resources-app-pr delete deployments,services,ingress -l prNumber=$prNr
+                    } else {
+                        Write-Output "`tStill active - skipping"
+                    }
+                }
+            displayName: Delete expired aks resources
+
+          - task: Kubernetes@1
+            displayName: Log out from aks
+            inputs:
+              command: 'logout'
+
+
+
+

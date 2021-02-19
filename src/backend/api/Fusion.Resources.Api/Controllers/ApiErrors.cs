@@ -125,5 +125,22 @@ namespace Fusion.Resources.Api.Controllers
                 StatusCode = problem.Status
             };
         }
+
+        internal static ActionResult FailedDependency(string identifier, string message)
+        {
+            var problem = new ProblemDetails
+            {
+                Type = rfcProblemDetails,
+                Detail = $"Error invoking endpoint on service '{identifier}': {message}",
+                Title = "External dependency request failed",
+                Status = (int)System.Net.HttpStatusCode.FailedDependency
+            };
+            problem.Extensions.Add("error", new ApiProblem.ApiError("FailedDependency", message));
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
     }
 }
