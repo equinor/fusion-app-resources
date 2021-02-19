@@ -181,7 +181,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 ProjectId = testRequest.Project.ProjectId,
                 OrgPositionId = testRequest.Request.OrgPositionId,
                 OrgPositionInstance = testRequest.Request.OrgPositionInstance,
-                Type = ApiAllocationRequestType.JointVenture,
+                Type = $"{ApiAllocationRequestType.JointVenture}",
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
@@ -208,7 +208,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 ProjectId = testRequest.Project.ProjectId,
                 OrgPositionId = testRequest.Request.OrgPositionId,
                 OrgPositionInstance = testRequest.Request.OrgPositionInstance,
-                Type = ApiAllocationRequestType.Normal,
+                Type = $"{ApiAllocationRequestType.Normal}",
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
@@ -240,6 +240,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPutAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests/{testRequest.Request.Id}", updateRequest);
             response.Should().BeBadRequest("ProjectId argument missing");
 
+        }
+        [Fact]
+        public async Task PutAdminRequest_EmptyRequest_ShouldNotModify_DbEntity()
+        {
+            using var adminScope = fixture.AdminScope();
+            var beforeUpdate = DateTimeOffset.UtcNow;
+            var updateRequest = new UpdateResourceAllocationRequest();
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{testRequest.Request.Id}", updateRequest);
+
+            AssertPropsAreEqual(response.Value, testRequest.Request, adminScope);
+            response.Value.Updated.Should().BeNull();
         }
 
         [Fact]

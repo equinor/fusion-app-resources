@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using System;
 using System.Linq;
-using System.Text.Json.Serialization;
 using FluentValidation.Results;
 using FluentValidation.Validators;
 
@@ -11,8 +10,7 @@ namespace Fusion.Resources.Api.Controllers
     {
         internal Guid? Id { get; set; }
         internal Guid? ProjectId { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ApiAllocationRequestType Type { get; set; }
+        public string? Type { get; set; }
         public string? Discipline { get; set; }
         public Guid? OrgPositionId { get; set; }
         public ApiPositionInstance? OrgPositionInstance { get; set; } = null!;

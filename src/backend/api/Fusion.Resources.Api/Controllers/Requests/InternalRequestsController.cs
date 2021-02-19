@@ -102,7 +102,7 @@ namespace Fusion.Resources.Api.Controllers
             var command = new Logic.Commands.ResourceAllocationRequest.Update(requestId)
                 .WithProjectId(projectIdentifier?.ProjectId)
                 .WithDiscipline(request.Discipline)
-                .WithType($"{request.Type}")
+                .WithType(request.Type)
                 .WithProposedPerson(request.ProposedPersonAzureUniqueId)
                 .WithOrgPosition(request.OrgPositionId)
                 .WithProposedChanges(request.ProposedChanges)

@@ -31,7 +31,7 @@ namespace Fusion.Resources.Logic.Commands
 
             public MonitorableProperty<Guid?> OrgProjectId { get; private set; } = new();
             public MonitorableProperty<string?> Discipline { get; private set; } = new();
-            public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType> Type { get; private set; } = new();
+            public MonitorableProperty<QueryResourceAllocationRequest.QueryAllocationRequestType>? Type { get; private set; } = new();
             public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new();
             public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance { get; private set; } = new();
             public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new();
@@ -41,54 +41,54 @@ namespace Fusion.Resources.Logic.Commands
 
             public Update WithProjectId(Guid? projectId)
             {
-                OrgProjectId = projectId;
+                if (projectId is not null) OrgProjectId = projectId;
                 return this;
             }
 
             public Update WithIsDraft(bool? isDraft)
             {
-                IsDraft = isDraft.GetValueOrDefault(true);
+                if (isDraft is not null) IsDraft = isDraft.GetValueOrDefault(true);
                 return this;
             }
 
             public Update WithDiscipline(string? discipline)
             {
-                Discipline = discipline;
+                if (discipline is not null) Discipline = discipline;
                 return this;
             }
 
-            public Update WithType(string type)
+            public Update WithType(string? type)
             {
-                Type = Enum.Parse<QueryResourceAllocationRequest.QueryAllocationRequestType>(type);
+                if (type is not null) Type = Enum.Parse<QueryResourceAllocationRequest.QueryAllocationRequestType>(type);
                 return this;
             }
 
-            public Update WithOrgPosition(Guid? originalPositionId)
+            public Update WithOrgPosition(Guid? orgPositionId)
             {
-                OrgPositionId = originalPositionId;
+                if (orgPositionId is not null) OrgPositionId = orgPositionId;
                 return this;
             }
 
             public Update WithProposedPerson(Guid? proposedPersonAzureUniqueId)
             {
-                ProposedPersonAzureUniqueId = proposedPersonAzureUniqueId;
+                if (proposedPersonAzureUniqueId is not null) ProposedPersonAzureUniqueId = proposedPersonAzureUniqueId;
                 return this;
             }
 
             public Update WithAdditionalNode(string? note)
             {
-                AdditionalNote = note;
+                if (note is not null) AdditionalNote = note;
                 return this;
             }
             public Update WithProposedChanges(Dictionary<string, object>? changes)
             {
-                ProposedChanges = changes;
+                if (changes is not null) ProposedChanges = changes;
                 return this;
             }
 
             public Update WithPositionInstance(Guid id, DateTime from, DateTime to, double? workload, string? obs, Guid? locationId)
             {
-                var queryPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
+                OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                 {
                     Id = id,
                     Workload = workload,
@@ -97,9 +97,6 @@ namespace Fusion.Resources.Logic.Commands
                     Obs = obs,
                     LocationId = locationId
                 };
-
-
-                OrgPositionInstance = new();
                 return this;
             }
 
@@ -206,7 +203,7 @@ namespace Fusion.Resources.Logic.Commands
                         modified = true;
                     }
 
-                    if (request.Type.HasBeenSet)
+                    if (request.Type != null && request.Type.HasBeenSet)
                     {
                         dbItem.Type = ParseRequestType(request);
                         modified = true;
