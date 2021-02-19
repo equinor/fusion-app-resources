@@ -283,7 +283,8 @@ namespace Fusion.Resources.Api.Controllers
                         await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Approve(requestId));
                         break;
                     case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.JointVenture.Approve(requestId));
+                        await DispatchAsync(
+                            new Logic.Commands.ResourceAllocationRequest.JointVenture.Approve(requestId));
                         break;
                 }
 
@@ -291,6 +292,10 @@ namespace Fusion.Resources.Api.Controllers
 
                 result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
                 return new ApiResourceAllocationRequest(result!);
+            }
+            catch (NotSupportedException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
             }
             catch (InvalidOperationException ex)
             {
