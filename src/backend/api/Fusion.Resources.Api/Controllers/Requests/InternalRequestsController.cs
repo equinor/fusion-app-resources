@@ -5,6 +5,7 @@ using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Integration;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -72,10 +73,6 @@ namespace Fusion.Resources.Api.Controllers
             catch (ValidationException ex)
             {
                 return ApiErrors.InvalidOperation(ex);
-            }
-            catch (Exception ex)
-            {
-                return FusionApiError.InvalidOperation("InvalidOperation", ex.Message);
             }
         }
 
@@ -276,7 +273,19 @@ namespace Fusion.Resources.Api.Controllers
             try
             {
                 await using var scope = await BeginTransactionAsync();
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Normal.Approve(requestId));
+
+                switch (result.Type)
+                {
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Normal.Approve(requestId));
+                        break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Approve(requestId));
+                        break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.JointVenture.Approve(requestId));
+                        break;
+                }
 
                 await scope.CommitAsync();
 
@@ -319,9 +328,18 @@ namespace Fusion.Resources.Api.Controllers
             {
                 await using var scope = await BeginTransactionAsync();
 
-                var command = new Logic.Commands.ResourceAllocationRequest.Direct.Reject(requestId, request.Reason);
-                await DispatchAsync(command);
-
+                switch (result.Type)
+                {
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Normal.Reject(requestId, request.Reason));
+                        break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Reject(requestId, request.Reason));
+                        break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.JointVenture.Reject(requestId, request.Reason));
+                        break;
+                }
                 await scope.CommitAsync();
 
                 result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
