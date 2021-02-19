@@ -109,7 +109,6 @@ namespace Fusion.Resources.Logic.Commands
                 public Validator()
                 {
                     RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
-                    RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
                     RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
                     RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
