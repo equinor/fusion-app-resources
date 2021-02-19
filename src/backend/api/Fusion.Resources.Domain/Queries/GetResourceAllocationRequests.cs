@@ -104,12 +104,13 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var queryResourceAllocationRequest in requestItems)
                 {
-                    if (queryResourceAllocationRequest.OrgPosition == null) continue;
+                    if (queryResourceAllocationRequest.OrgPositionId == null) continue;
 
-                    var originalPosition = resolvedOrgChartPositions.FirstOrDefault(p =>
-                        p.Id == queryResourceAllocationRequest.OrgPosition.Id);
-                    if (originalPosition != null)
-                        queryResourceAllocationRequest.WithResolvedOriginalPosition(queryResourceAllocationRequest.OrgPosition, queryResourceAllocationRequest.OrgPositionInstanceId);
+                    var position = resolvedOrgChartPositions.FirstOrDefault(p =>
+                        p.Id == queryResourceAllocationRequest.OrgPositionId);
+
+                    if (position != null)
+                        queryResourceAllocationRequest.WithResolvedOriginalPosition(position, queryResourceAllocationRequest.OrgPositionInstanceId);
                 }
 
                 return requestItems;

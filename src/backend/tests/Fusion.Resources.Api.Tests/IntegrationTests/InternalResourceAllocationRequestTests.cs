@@ -150,6 +150,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetProjectRequestsExpanded_AdminRole_ShouldBe_Authorized()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            for (int i = 0; i < 10; i++)
+            {
+                var r = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
+                r.Should().BeSuccessfull();
+            }
+
+            var plainList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests");
+            plainList.Should().BeSuccessfull();
+            foreach (var m in plainList.Value.Value)
+            {
+                m.OrgPosition.Should().BeNull();
+            }
+
+            var expandedList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$expand=orgPosition");
+
+            expandedList.Should().BeSuccessfull();
+            foreach (var m in expandedList.Value.Value)
+            {
+                m.OrgPosition.Should().NotBeNull();
+            }
+
+        }
+
+        [Fact]
         public async Task GetRequest_AdminRole_ShouldBe_Authorized()
         {
             using var adminScope = fixture.AdminScope();
@@ -263,8 +291,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
             public string Type { get; set; }
-            public ObjectWithId OrgPosition { get; set; }
-            public ObjectWithId OrgPositionInstance { get; set; }
+            public ObjectWithId? OrgPosition { get; set; }
+            public ObjectWithId? OrgPositionInstance { get; set; }
             public string AdditionalNote { get; set; }
             public bool? IsDraft { get; set; }
             public Dictionary<string, object> ProposedChanges { get; set; }
