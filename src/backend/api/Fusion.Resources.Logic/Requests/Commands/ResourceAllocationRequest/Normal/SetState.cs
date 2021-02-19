@@ -1,7 +1,6 @@
 ﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands;
-using Fusion.Resources.Domain.Notifications.Request;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

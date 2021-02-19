@@ -1,5 +1,4 @@
-﻿using Fusion.Integration.Org;
-using Fusion.Resources.Database;
+﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Notifications;

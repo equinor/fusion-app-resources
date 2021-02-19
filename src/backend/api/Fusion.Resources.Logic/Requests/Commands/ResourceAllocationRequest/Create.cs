@@ -178,24 +178,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     var item = await PersistChangesAsync(request);
 
-                    var initCommand = GetInitializationCommand(item);
-                    await mediator.Send(initCommand);
-
-                    switch (item.Type)
-                    {
-                        case DbResourceAllocationRequest.DbAllocationRequestType.Normal:
-                            await mediator.Send(new Normal.Initialize(item.Id));
-                            break;
-                        case DbResourceAllocationRequest.DbAllocationRequestType.JointVenture:
-                            await mediator.Send(new JointVenture.Initialize(item.Id));
-                            break;
-                        case DbResourceAllocationRequest.DbAllocationRequestType.Direct:
-                            await mediator.Send(new Direct.Initialize(item.Id));
-                            break;
-                        default:
-                            throw new NotSupportedException($"{item.Type} not supported");
-                    }
-
+                    await mediator.Send(GetInitializationCommand(item));
 
                     var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
                     return requestItem!;
