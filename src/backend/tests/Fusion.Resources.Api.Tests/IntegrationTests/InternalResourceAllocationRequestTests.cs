@@ -137,7 +137,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             for (int j = 5; j < 20; j++)
             {
-                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.AssignedDepartment}&$filter=assignedDepartment eq '{testRequest.Request.AssignedDepartment}'&$skip=2&$top={j}");
+                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$filter=assignedDepartment eq '{testRequest.Request.AssignedDepartment}'&$skip=2&$top={j}");
                 topResponseTest.Should().BeSuccessfull();
                 topResponseTest.Value.Value.Count().Should().Be(j);
             }

@@ -74,12 +74,6 @@ namespace Fusion.Resources.Domain.Queries
                     });
                 }
 
-                if (request.Query.HasSearch)
-                {
-                    query = query.Where(p => p.AssignedDepartment != null && p.AssignedDepartment.ToLower().Contains(request.Query.Search));
-                }
-
-
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
 
