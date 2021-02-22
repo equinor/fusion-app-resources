@@ -31,6 +31,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         // Created by the async lifetime
         private FusionTestResourceAllocationBuilder testRequest;
+        private ApiPersonProfileV3 testProfile;
+        private FusionTestProjectBuilder testProject;
 
         public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -48,11 +50,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task InitializeAsync()
         {
             // Mock profile
-            var testProfile = PeopleServiceMock.AddTestProfile()
+            testProfile = PeopleServiceMock.AddTestProfile()
                 .SaveProfile();
 
             // Mock project
-            var testProject = new FusionTestProjectBuilder()
+            testProject = new FusionTestProjectBuilder()
                 .WithPositions(1)
                 .AddToMockService();
 
@@ -275,7 +277,50 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest("Invalid arguments passed");
 
         }
+        
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldBe_Successful()
+        {
+            using var adminScope = fixture.AdminScope();
 
+            var anotherTestRequest = new FusionTestResourceAllocationBuilder()
+               .WithOrgPositionId(testProject.Positions.First())
+               .WithProject(testProject.Project)
+               .WithProposedPerson(testProfile)
+               .WithAssignedDepartment("Different department");
+            ;
+            await Client.TestClientPostAsync($"/projects/{anotherTestRequest.Project.ProjectId}/requests", anotherTestRequest.Request, new { Id = Guid.Empty });
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{anotherTestRequest.Request.AssignedDepartment}/resources/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Value.Count().Should().Be(1);
+            AssertPropsAreEqual(response.Value.Value.First(), anotherTestRequest.Request, adminScope);
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequestsTop_ShouldBe_Successful()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            for (int i = 0; i < 150; i++)
+            {
+                var r = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
+                r.Should().BeSuccessfull();
+            }
+
+            for (int j = 5; j < 20; j++)
+            {
+                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests?$skip=2&$top={j}");
+                topResponseTest.Should().BeSuccessfull();
+                topResponseTest.Value.Value.Count().Should().Be(j);
+            }
+
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Value.Count().Should().Be(100); // Default page size is 100
+
+        }
 
         public class PagedCollection<T>
         {
@@ -341,6 +386,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
             response.Created.Should().NotBeNull();
             response.LastActivity.Should().NotBeNull();
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
 
             //Workflow/state & provisioning status to be added.
         }
@@ -367,6 +413,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
             response.Created.Should().NotBeNull();
             response.LastActivity.Should().NotBeNull();
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
 
             //Workflow/state & provisioning status to be added.
         }
