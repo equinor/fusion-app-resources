@@ -50,8 +50,8 @@ namespace Fusion.Resources.Logic.Tests
             var person = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), AccountType = $"{FusionAccountType.Employee}" };
             await dbContext.Persons.AddAsync(person);
 
-            var handler = new Create.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
-            var command = new Create(testProject.ProjectId)
+            var handler = new Normal.Create.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
+            var command = new Normal.Create(testProject.ProjectId)
                 .WithType("Normal");
             command.SetEditor(person.Id, person);
 
@@ -94,8 +94,8 @@ namespace Fusion.Resources.Logic.Tests
             var expectedDiscipline = "Whatever";
             var request = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync();
 
-            var handler = new Update.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
-            var command = new Update(request.Id)
+            var handler = new Normal.Update.Handler(profileServiceMock.Object, orgResolverMock.Object, dbContext, mediatorMock.Object);
+            var command = new Normal.Update(request.Id)
                 .WithDiscipline(expectedDiscipline);
 
             command.SetEditor(Guid.NewGuid(), null);

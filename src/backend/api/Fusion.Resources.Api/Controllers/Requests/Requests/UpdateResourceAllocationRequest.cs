@@ -10,7 +10,6 @@ namespace Fusion.Resources.Api.Controllers
     {
         internal Guid? Id { get; set; }
         internal Guid? ProjectId { get; set; }
-        public string? Type { get; set; }
         public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
         public Guid? OrgPositionId { get; set; }

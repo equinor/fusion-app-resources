@@ -86,14 +86,14 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         switch (request.State)
                         {
-                            case DbResourceAllocationRequestState.Assigned:
-                                workflow.CompanyApproved(request.Editor.Person);
+                            case DbResourceAllocationRequestState.Accepted:
+                                workflow.Approved(request.Editor.Person);
                                 break;
 
                          
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,
-                                    DbResourceAllocationRequestState.Assigned);
+                                    DbResourceAllocationRequestState.Accepted);
                         }
 
                     }
@@ -103,7 +103,7 @@ namespace Fusion.Resources.Logic.Commands
                         switch (request.State)
                         {
                             case DbResourceAllocationRequestState.Proposed:
-                                workflow.CompanyApproved(request.Editor.Person);
+                                workflow.Approved(request.Editor.Person);
                                 break;
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,

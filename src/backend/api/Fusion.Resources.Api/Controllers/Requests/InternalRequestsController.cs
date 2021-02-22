@@ -24,7 +24,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
 
@@ -36,28 +36,75 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-
-            var command = new Logic.Commands.ResourceAllocationRequest.Create(projectIdentifier.ProjectId)
-                .WithAssignedDepartment(request.AssignedDepartment)
-                .WithDiscipline(request.Discipline)
-                .WithType($"{request.Type}")
-                .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                .WithOrgPosition(request.OrgPositionId)
-                .WithProposedChanges(request.ProposedChanges)
-                .WithIsDraft(request.IsDraft)
-                .WithAdditionalNode(request.AdditionalNote);
-
-            if (request.OrgPositionInstance != null)
-                command.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                              request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
-
             try
             {
-                var result = await DispatchAsync(command);
-                return Created($"/projects/{projectIdentifier}/requests/{result.RequestId}",
-                    new ApiResourceAllocationRequest(result));
+                QueryResourceAllocationRequest? result = null;
+                switch (request.Type)
+                {
+                    case ApiAllocationRequestType.Normal:
+                        var command = new Logic.Commands.ResourceAllocationRequest.Normal.Create(projectIdentifier.ProjectId)
+                            .WithAssignedDepartment(request.AssignedDepartment)
+                            .WithDiscipline(request.Discipline)
+                            .WithType($"{request.Type}")
+                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+                            .WithOrgPosition(request.OrgPositionId)
+                            .WithProposedChanges(request.ProposedChanges)
+                            .WithIsDraft(request.IsDraft)
+                            .WithAdditionalNode(request.AdditionalNote);
+
+                        if (request.OrgPositionInstance != null)
+                            command.WithPositionInstance(request.OrgPositionInstance.Id,
+                                request.OrgPositionInstance.AppliesFrom,
+                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+
+
+                        result = await DispatchAsync(command);
+                        break;
+                    case ApiAllocationRequestType.Direct:
+                        var direct = new Logic.Commands.ResourceAllocationRequest.Direct.Create(projectIdentifier.ProjectId)
+                            .WithAssignedDepartment(request.AssignedDepartment)
+                            .WithDiscipline(request.Discipline)
+                            .WithType($"{request.Type}")
+                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+                            .WithOrgPosition(request.OrgPositionId)
+                            .WithProposedChanges(request.ProposedChanges)
+                            .WithIsDraft(request.IsDraft)
+                            .WithAdditionalNode(request.AdditionalNote);
+
+                        if (request.OrgPositionInstance != null)
+                            direct.WithPositionInstance(request.OrgPositionInstance.Id,
+                                request.OrgPositionInstance.AppliesFrom,
+                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+
+
+                        result = await DispatchAsync(direct);
+                        break;
+                    case ApiAllocationRequestType.JointVenture:
+                        var jointVenture = new Logic.Commands.ResourceAllocationRequest.JointVenture.Create(projectIdentifier.ProjectId)
+                            .WithAssignedDepartment(request.AssignedDepartment)
+                            .WithDiscipline(request.Discipline)
+                            .WithType($"{request.Type}")
+                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+                            .WithOrgPosition(request.OrgPositionId)
+                            .WithProposedChanges(request.ProposedChanges)
+                            .WithIsDraft(request.IsDraft)
+                            .WithAdditionalNode(request.AdditionalNote);
+
+                        if (request.OrgPositionInstance != null)
+                            jointVenture.WithPositionInstance(request.OrgPositionInstance.Id,
+                                request.OrgPositionInstance.AppliesFrom,
+                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+
+
+                        result = await DispatchAsync(jointVenture);
+                        break;
+
+                }
+
+                return Created($"/projects/{projectIdentifier}/requests/{result!.RequestId}", new ApiResourceAllocationRequest(result));
             }
             catch (ProfileNotFoundError pef)
             {
@@ -87,7 +134,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
 
@@ -99,28 +146,70 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-
-            var command = new Logic.Commands.ResourceAllocationRequest.Update(requestId)
-                .WithProjectId(projectIdentifier?.ProjectId)
-                .WithAssignedDepartment(request.AssignedDepartment)
-                .WithDiscipline(request.Discipline)
-                .WithType(request.Type)
-                .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                .WithOrgPosition(request.OrgPositionId)
-                .WithProposedChanges(request.ProposedChanges)
-                .WithIsDraft(request.IsDraft)
-                .WithAdditionalNode(request.AdditionalNote);
-
-            if (request.OrgPositionInstance != null)
-                command.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                              request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                              request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
-
             try
             {
-                var result = await DispatchAsync(command);
-                return new ApiResourceAllocationRequest(result);
+                var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+                if (item == null)
+                    return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+                QueryResourceAllocationRequest? result = null;
+                switch (item.Type)
+                {
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
+                        var normal = new Logic.Commands.ResourceAllocationRequest.Normal.Update(requestId)
+                            .WithProjectId(projectIdentifier?.ProjectId)
+                            .WithAssignedDepartment(request.AssignedDepartment)
+                            .WithDiscipline(request.Discipline)
+                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+                            .WithOrgPosition(request.OrgPositionId)
+                            .WithProposedChanges(request.ProposedChanges)
+                            .WithIsDraft(request.IsDraft)
+                            .WithAdditionalNode(request.AdditionalNote);
+
+                        if (request.OrgPositionInstance != null)
+                            normal.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+
+                        result = await DispatchAsync(normal);
+                        break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
+                        var direct = new Logic.Commands.ResourceAllocationRequest.Direct.Update(requestId)
+                            .WithProjectId(projectIdentifier?.ProjectId)
+                            .WithAssignedDepartment(request.AssignedDepartment)
+                            .WithDiscipline(request.Discipline)
+                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+                            .WithOrgPosition(request.OrgPositionId)
+                            .WithProposedChanges(request.ProposedChanges)
+                            .WithIsDraft(request.IsDraft)
+                            .WithAdditionalNode(request.AdditionalNote);
+
+                        if (request.OrgPositionInstance != null)
+                            direct.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+
+                        result = await DispatchAsync(direct);
+                        break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
+                        var jointVenture = new Logic.Commands.ResourceAllocationRequest.JointVenture.Update(requestId)
+                            .WithProjectId(projectIdentifier?.ProjectId)
+                            .WithAssignedDepartment(request.AssignedDepartment)
+                            .WithDiscipline(request.Discipline)
+                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+                            .WithOrgPosition(request.OrgPositionId)
+                            .WithProposedChanges(request.ProposedChanges)
+                            .WithIsDraft(request.IsDraft)
+                            .WithAdditionalNode(request.AdditionalNote);
+
+                        if (request.OrgPositionInstance != null)
+                            jointVenture.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+                        result = await DispatchAsync(jointVenture);
+                        break;
+                }
+                return new ApiResourceAllocationRequest(result!);
             }
             catch (ProfileNotFoundError pef)
             {
@@ -157,7 +246,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
 
@@ -186,7 +275,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
 
@@ -214,7 +303,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
 
@@ -244,6 +333,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             return Ok();
+
         }
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
@@ -259,7 +349,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
                 });
@@ -305,13 +395,32 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
-        [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult> CheckProjectAllocationRequestAccess(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}/approve")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                });
+
+            });
+
+
+            if (authResult.Success)
+                Response.Headers.Add("Allow", "GET,POST");
+            else
+                Response.Headers.Add("Allow", "GET");
+
+            return NoContent();
+        }
+        [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
+        public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
                 });

@@ -7,12 +7,12 @@ namespace Fusion.Resources.Logic.Workflows
     public class InternalRequestNormalWorkflowV1 : WorkflowDefinition
     {
         public const string CREATED = "created";
-        public const string COMPANY_PROPOSAL = "companyProposal";
-        public const string COMPANY_APPROVAL = "companyApproval";
+        public const string PROPOSAL = "proposal";
+        public const string APPROVAL = "approval";
         public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
-        public override string Name => "Contractor personnel request";
+        public override string Name => "Personnel request of normal type";
 
         public InternalRequestNormalWorkflowV1()
             : base(null)
@@ -20,8 +20,8 @@ namespace Fusion.Resources.Logic.Workflows
             Steps = new List<WorkflowStep>()
             {
                 Created,
-                CompanyProposal,
-                CompanyApproval,
+                Proposal,
+                Approval,
                 Provisioning
             };
         }
@@ -41,54 +41,43 @@ namespace Fusion.Resources.Logic.Workflows
         {
         }
 
-        public void CompanyApproved(DbPerson approver)
+        public void Approved(DbPerson approver)
         {
-            Step(COMPANY_APPROVAL)
+            Step(APPROVAL)
                 .SetName("Approved")
                 .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(approver, true)
                 .StartNext();
         }
 
-        public void CompanyProposed(DbPerson proposer)
+        public void Proposed(DbPerson proposer)
         {
-            Step(COMPANY_APPROVAL)
+            Step(APPROVAL)
                 .SetName("Approved")
                 .SetDescription($"{proposer.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(proposer, true)
                 .StartNext();
         }
 
-        public void CompanyRejected(DbPerson editor, string reason)
-        {
-            Step(COMPANY_APPROVAL)
-                .SetName("Submitted")
-                .SetDescription($"{editor.Name} rejected the request.")
-                .SetReason(reason)
-                .Complete(editor, false)
-                .SkipRest()
-                .CompleteWorkflow();
-        }
-
         #region Step definitions
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")
             .WithDescription("Request was created and started.")
-            .WithNextStep(COMPANY_PROPOSAL);
+            .WithNextStep(PROPOSAL);
 
-        public static WorkflowStep CompanyProposal => new WorkflowStep(COMPANY_PROPOSAL, "Propose")
+        public static WorkflowStep Proposal => new WorkflowStep(PROPOSAL, "Propose")
             .WithDescription("Review personnel request and approve/reject")
             .WithPreviousStep(CREATED)
-            .WithNextStep(COMPANY_APPROVAL);
+            .WithNextStep(APPROVAL);
 
-        public static WorkflowStep CompanyApproval => new WorkflowStep(COMPANY_APPROVAL, "Approve")
+        public static WorkflowStep Approval => new WorkflowStep(APPROVAL, "Approve")
             .WithDescription("Review personnel request and approve/reject")
-            .WithPreviousStep(COMPANY_PROPOSAL)
+            .WithPreviousStep(PROPOSAL)
             .WithNextStep(PROVISIONING);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
             .WithDescription("If the request is approved, the new position or changes will be provisioned to the organisational chart.")
-            .WithPreviousStep(COMPANY_APPROVAL);
+            .WithPreviousStep(APPROVAL);
 
         #endregion
     }
