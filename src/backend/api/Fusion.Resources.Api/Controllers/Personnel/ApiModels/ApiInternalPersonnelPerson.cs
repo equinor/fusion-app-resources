@@ -29,6 +29,7 @@ namespace Fusion.Resources.Api.Controllers
             Disciplines = p.PositionInstances
                 .OrderByDescending(p => p.AppliesTo)
                 .Select(p => p.BasePosition.Discipline)
+                .Where(d => !string.IsNullOrEmpty(d))
                 .Distinct()
                 .ToList();
         }

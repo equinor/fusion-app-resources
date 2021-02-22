@@ -108,7 +108,8 @@ namespace Fusion.Resources.Domain
 
                 var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
                 {
-                    filter = $"fullDepartment eq '{fullDepartmentString}'"
+                    filter = $"fullDepartment eq '{fullDepartmentString}'",
+                    top = 500
                 });
 
                 var data = await response.Content.ReadAsStringAsync();
@@ -371,7 +372,8 @@ namespace Fusion.Resources.Domain
 
                 var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
                 {
-                    filter = string.Join(" or ", departments.Select(dep => $"fullDepartment eq '{dep}'"))
+                    filter = string.Join(" or ", departments.Select(dep => $"fullDepartment eq '{dep}'")),
+                    top = 500
                 });
 
                 var data = await response.Content.ReadAsStringAsync();
@@ -434,7 +436,7 @@ namespace Fusion.Resources.Domain
                     JobTitle = i.document.jobTitle,
                     OfficeLocation = i.document.officeLocation,
                     Department = i.document.department,
-                    FullDepartment = i.document.fullDepartment,
+                    FullDepartment = departments.Where(d => d.EndsWith(i.document.department)).FirstOrDefault(),
                     PositionInstances = i.document.positions.Select(p => new QueryDepartmentPersonnelPerson.PersonnelPosition
                     {
                         PositionId = p.id,
