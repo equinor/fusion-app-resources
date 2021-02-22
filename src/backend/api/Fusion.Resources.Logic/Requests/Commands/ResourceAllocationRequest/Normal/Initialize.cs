@@ -52,7 +52,7 @@ namespace Fusion.Resources.Logic.Commands
                     protected override async Task Handle(Initialize request, CancellationToken cancellationToken)
                     {
                         await ValidateAsync(request);
-                        await mediator.Publish(new RequestCreated(request.RequestId));
+                        await mediator.Publish(new InternalRequestCreated(request.RequestId));
 
                     }
 
