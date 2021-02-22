@@ -7,6 +7,7 @@ namespace Fusion.Resources.Database.Entities
     public class DbResourceAllocationRequest
     {
         public Guid Id { get; set; }
+        public string? AssignedDepartment { get;set; }
         public string? Discipline { get; set; }
         public DbAllocationRequestType Type { get; set; } = DbAllocationRequestType.Normal;
         public DbResourceAllocationRequestState State { get; set; } = DbResourceAllocationRequestState.Created;

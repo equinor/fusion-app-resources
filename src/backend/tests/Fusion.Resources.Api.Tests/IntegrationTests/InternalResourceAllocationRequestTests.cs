@@ -139,7 +139,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             for (int j = 5; j < 20; j++)
             {
-                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.Discipline}&$filter=discipline eq '{testRequest.Request.Discipline}'&$skip=2&$top={j}");
+                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$filter=assignedDepartment eq '{testRequest.Request.AssignedDepartment}'&$skip=2&$top={j}");
                 topResponseTest.Should().BeSuccessfull();
                 topResponseTest.Value.Value.Count().Should().Be(j);
             }
@@ -148,6 +148,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
 
             response.Value.Value.Count().Should().Be(100); // Default page size is 100
+
+        }
+
+        [Fact]
+        public async Task GetProjectRequestsExpanded_AdminRole_ShouldBe_Authorized()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            for (int i = 0; i < 10; i++)
+            {
+                var r = await Client.TestClientPostAsync($"/projects/{testRequest.Project.ProjectId}/requests", testRequest.Request, new { Id = Guid.Empty });
+                r.Should().BeSuccessfull();
+            }
+
+            var plainList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests");
+            plainList.Should().BeSuccessfull();
+            foreach (var m in plainList.Value.Value)
+            {
+                m.OrgPosition.Should().BeNull();
+            }
+
+            var expandedList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$expand=orgPosition");
+
+            expandedList.Should().BeSuccessfull();
+            foreach (var m in expandedList.Value.Value)
+            {
+                m.OrgPosition.Should().NotBeNull();
+            }
 
         }
 
@@ -183,6 +211,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 OrgPositionId = testRequest.Request.OrgPositionId,
                 OrgPositionInstance = testRequest.Request.OrgPositionInstance,
                 Type = $"{ApiAllocationRequestType.JointVenture}",
+                AssignedDepartment = "TPD",
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
@@ -387,11 +416,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public class ResourceAllocationRequestTestModel
         {
             public string State { get; set; }
+            public string AssignedDepartment { get; set; }
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
             public string Type { get; set; }
-            public ObjectWithId OrgPosition { get; set; }
-            public ObjectWithId OrgPositionInstance { get; set; }
+            public ObjectWithId? OrgPosition { get; set; }
+            public ObjectWithId? OrgPositionInstance { get; set; }
             public string AdditionalNote { get; set; }
             public bool? IsDraft { get; set; }
             public Dictionary<string, object> ProposedChanges { get; set; }
@@ -422,6 +452,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
 
             response.Type.Should().Be(request.Type.ToString());
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
             response.Discipline.Should().Be(request.Discipline);
 
             response.Project.Id.Should().Be(request.ProjectId);
@@ -447,6 +478,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
 
             response.Type.Should().Be(request.Type.ToString());
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
             response.Discipline.Should().Be(request.Discipline);
 
             response.Project.Id.Should().Be(request.ProjectId);

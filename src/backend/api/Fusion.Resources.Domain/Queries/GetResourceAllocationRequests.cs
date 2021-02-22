@@ -69,15 +69,10 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     query = query.ApplyODataFilters(request.Query, m =>
                     {
+                        m.MapField(nameof(QueryResourceAllocationRequest.AssignedDepartment), i => i.AssignedDepartment);
                         m.MapField(nameof(QueryResourceAllocationRequest.Discipline), i => i.Discipline);
                     });
                 }
-
-                if (request.Query.HasSearch)
-                {
-                    query = query.Where(p => p.Discipline != null && p.Discipline.ToLower().Contains(request.Query.Search));
-                }
-
 
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
@@ -104,12 +99,13 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var queryResourceAllocationRequest in requestItems)
                 {
-                    if (queryResourceAllocationRequest.OrgPosition == null) continue;
+                    if (queryResourceAllocationRequest.OrgPositionId == null) continue;
 
-                    var originalPosition = resolvedOrgChartPositions.FirstOrDefault(p =>
-                        p.Id == queryResourceAllocationRequest.OrgPosition.Id);
-                    if (originalPosition != null)
-                        queryResourceAllocationRequest.WithResolvedOriginalPosition(queryResourceAllocationRequest.OrgPosition, queryResourceAllocationRequest.OrgPositionInstanceId);
+                    var position = resolvedOrgChartPositions.FirstOrDefault(p =>
+                        p.Id == queryResourceAllocationRequest.OrgPositionId);
+
+                    if (position != null)
+                        queryResourceAllocationRequest.WithResolvedOriginalPosition(position, queryResourceAllocationRequest.OrgPositionInstanceId);
                 }
 
                 return requestItems;

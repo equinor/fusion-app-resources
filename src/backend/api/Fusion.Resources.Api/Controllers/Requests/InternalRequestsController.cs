@@ -38,6 +38,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var command = new Logic.Commands.ResourceAllocationRequest.Create(projectIdentifier.ProjectId)
+                .WithAssignedDepartment(request.AssignedDepartment)
                 .WithDiscipline(request.Discipline)
                 .WithType($"{request.Type}")
                 .WithProposedPerson(request.ProposedPersonAzureUniqueId)
@@ -101,6 +102,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var command = new Logic.Commands.ResourceAllocationRequest.Update(requestId)
                 .WithProjectId(projectIdentifier?.ProjectId)
+                .WithAssignedDepartment(request.AssignedDepartment)
                 .WithDiscipline(request.Discipline)
                 .WithType(request.Type)
                 .WithProposedPerson(request.ProposedPersonAzureUniqueId)

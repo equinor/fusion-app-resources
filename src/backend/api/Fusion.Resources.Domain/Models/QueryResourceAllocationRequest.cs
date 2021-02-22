@@ -13,6 +13,7 @@ namespace Fusion.Resources.Domain
         public QueryResourceAllocationRequest(DbResourceAllocationRequest entity, QueryWorkflow? workflow = null)
         {
             RequestId = entity.Id;
+            AssignedDepartment = entity.AssignedDepartment;
             Discipline = entity.Discipline;
             Type = Enum.Parse<QueryAllocationRequestType>($"{entity.Type}");
             Workflow = workflow;
@@ -44,6 +45,7 @@ namespace Fusion.Resources.Domain
         internal Guid? OrgPositionInstanceId { get; set; }
 
         public Guid RequestId { get; set; }
+        public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
         public QueryAllocationRequestType Type { get; set; }
         public QueryWorkflow? Workflow { get; set; }

@@ -11,6 +11,7 @@ namespace Fusion.Resources.Api.Controllers
         internal Guid? Id { get; set; }
         internal Guid? ProjectId { get; set; }
         public string? Type { get; set; }
+        public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
         public Guid? OrgPositionId { get; set; }
         public ApiPositionInstance? OrgPositionInstance { get; set; } = null!;
@@ -28,6 +29,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 RuleFor(x => x.ProjectId).NotEmpty().When(x => x.ProjectId != null);
 
+                RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
                 RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 

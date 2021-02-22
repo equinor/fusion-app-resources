@@ -12,6 +12,7 @@ namespace Fusion.Testing.Mocks
                     var request = new CreateResourceAllocationRequest()
                     {
                         Id = Guid.NewGuid(),
+                        AssignedDepartment = f.Address.CityPrefix(),
                         Discipline = f.Address.CountryCode(),
                         AdditionalNote = f.Hacker.Phrase(),
                         Type = ApiAllocationRequestType.Normal,
