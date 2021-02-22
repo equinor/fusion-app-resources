@@ -305,60 +305,6 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
-        [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/terminate")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> TerminateProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId,
-            [FromBody] RejectRequestRequest request)
-        {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-
-            if (result == null)
-                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
-
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl();
-                r.AnyOf(or =>
-                {
-                });
-
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion
-
-            try
-            {
-                await using var scope = await BeginTransactionAsync();
-
-                switch (result.Type)
-                {
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Normal.Reject(requestId, request.Reason));
-                        break;
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Reject(requestId, request.Reason));
-                        break;
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.JointVenture.Reject(requestId, request.Reason));
-                        break;
-                }
-                await scope.CommitAsync();
-
-                result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-                return new ApiResourceAllocationRequest(result!);
-
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ApiErrors.InvalidOperation(ex);
-            }
-        }
-
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)

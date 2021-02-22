@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -336,73 +335,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.State.Should().Be("Assigned");
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task Post_Request_NormalTerminationSteps_ShouldBeRejected(bool includeProposedState)
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var updateRequest = new UpdateResourceAllocationRequest { Type = "Normal" };
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
-            response.Response.IsSuccessStatusCode.Should().BeTrue();
-
-            if (includeProposedState)
-            {
-                response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>(
-                    $"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
-                response.Value.State.Should().Be("Proposed");
-            }
-
-            var reason = new TestRejectRequestRequest { Reason = "Testing" };
-            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/terminate", reason);
-            response.Value.State.Should().Be("Rejected");
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task Post_Request_JointVentureTerminationSteps_ShouldBeRejected(bool includeProposedState)
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var updateRequest = new UpdateResourceAllocationRequest { Type = "JointVenture" };
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
-            response.Response.IsSuccessStatusCode.Should().BeTrue();
-
-            if (includeProposedState)
-            {
-                response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>(
-                    $"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
-                response.Value.State.Should().Be("Proposed");
-            }
-
-            var reason = new TestRejectRequestRequest { Reason = "Testing" };
-            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/terminate", reason);
-            response.Value.State.Should().Be("Rejected");
-        }
-
-        [Fact]
-        public async Task Post_Request_DirectTerminationSteps_ShouldBeRejected()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var updateRequest = new UpdateResourceAllocationRequest { Type = "Direct" };
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
-            response.Response.IsSuccessStatusCode.Should().BeTrue();
-
-            var reason = new TestRejectRequestRequest { Reason = "Testing" };
-            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/terminate", reason);
-            response.Value.State.Should().Be("Rejected");
-        }
-
-
-        public class TestRejectRequestRequest
-        {
-            public string Reason { get; set; }
-        }
-
-
         public class PagedCollection<T>
         {
             public PagedCollection(IEnumerable<T> items)
@@ -462,10 +394,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.AdditionalNote.Should().Be(request.AdditionalNote);
             response.IsDraft.Should().Be(request.IsDraft);
             if (request.ProposedChanges != null)
+            {
                 foreach (var (key, value) in request.ProposedChanges)
                 {
-                    response.ProposedChanges.Should().ContainValue(value);
+                    var item = response.ProposedChanges.First(x => string.Equals(x.Key, key, StringComparison.InvariantCultureIgnoreCase));
+                    item.Value.Should().Be(value);
                 }
+            }
 
             response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
             response.Created.Should().NotBeNull();
@@ -488,11 +423,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.AdditionalNote.Should().Be(request.AdditionalNote);
             response.IsDraft.Should().Be(request.IsDraft);
             if (request.ProposedChanges != null)
+            {
                 foreach (var (key, value) in request.ProposedChanges)
                 {
-                    var item = response.ProposedChanges.First(x => x.Key == key);
+                    var item = response.ProposedChanges.First(x => string.Equals(x.Key, key, StringComparison.InvariantCultureIgnoreCase));
                     item.Value.Should().Be(value);
                 }
+            }
 
             response.CreatedBy.AzureUniquePersonId.Should().Be(scope.Profile.AzureUniqueId);
             response.Created.Should().NotBeNull();

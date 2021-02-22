@@ -70,7 +70,6 @@ namespace Fusion.Resources.Logic.Commands
                                 break;
 
                             case DbResourceAllocationRequestState.Proposed:
-                            case DbResourceAllocationRequestState.Rejected:
                                 await HandleWhenAssignedAsync(request);
                                 break;
 
@@ -98,17 +97,10 @@ namespace Fusion.Resources.Logic.Commands
                                 workflow.CompanyApproved(request.Editor.Person);
                                 break;
 
-                            case DbResourceAllocationRequestState.Rejected:
-                                if (request.Reason is null)
-                                    throw new ArgumentException("Reason",
-                                        "Reason must be specified when rejecting request");
-
-                                workflow.CompanyRejected(request.Editor.Person, request.Reason);
-                                break;
-
+                         
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,
-                                    DbResourceAllocationRequestState.Assigned, DbResourceAllocationRequestState.Rejected);
+                                    DbResourceAllocationRequestState.Assigned);
                         }
 
                     }
@@ -120,14 +112,6 @@ namespace Fusion.Resources.Logic.Commands
                             case DbResourceAllocationRequestState.Proposed:
                                 workflow.CompanyApproved(request.Editor.Person);
                                 break;
-                            case DbResourceAllocationRequestState.Rejected:
-                                if (request.Reason is null)
-                                    throw new ArgumentException("Reason",
-                                        "Reason must be specified when rejecting request");
-
-                                workflow.CompanyRejected(request.Editor.Person, request.Reason);
-                                break;
-
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,
                                     DbResourceAllocationRequestState.Proposed);
