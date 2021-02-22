@@ -265,7 +265,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Post_Request_Normal_Approval_Steps_ShouldBe_Ok()
+        public async Task Post_Request_NormalApprovalSteps_ShouldBeAssigned()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -280,7 +280,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Post_Request_JointVenture_Approval_Steps_ShouldBe_Ok()
+        public async Task Post_Request_JointVentureApprovalSteps_ShouldBeAssigned()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -295,7 +295,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Post_Request_Direct_Approval_Steps_ShouldBe_Ok()
+        public async Task Post_Request_DirectApprovalSteps_ShouldBeAssigned()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -305,15 +305,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Assigned");
-            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
-            response.Response.IsSuccessStatusCode.Should().BeFalse();
-            response.Response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task Post_Request_Normal_Termination_Steps_ShouldBe_Ok(bool includeProposedState)
+        public async Task Post_Request_NormalTerminationSteps_ShouldBeRejected(bool includeProposedState)
         {
             using var adminScope = fixture.AdminScope();
 
@@ -336,7 +333,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task Post_Request_JointVenture_Termination_Steps_ShouldBe_Ok(bool includeProposedState)
+        public async Task Post_Request_JointVentureTerminationSteps_ShouldBeRejected(bool includeProposedState)
         {
             using var adminScope = fixture.AdminScope();
 
@@ -357,7 +354,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Post_Request_Direct_Termination_Steps_ShouldBe_Ok()
+        public async Task Post_Request_DirectTerminationSteps_ShouldBeRejected()
         {
             using var adminScope = fixture.AdminScope();
 
