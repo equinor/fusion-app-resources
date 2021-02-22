@@ -28,6 +28,8 @@ namespace Fusion.Resources.Domain
         public string? PhoneNumber { get; set; }
         public string? Mail { get; set; }
         public string? OfficeLocation { get; set; }
+        public string? Department { get; set; }
+        public string? FullDepartment { get; set; }
 
         /// <summary>
         /// Enum, <see cref="FusionAccountType"/>.

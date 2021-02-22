@@ -18,6 +18,8 @@ namespace Fusion.Resources.Api.Controllers
             PhoneNumber = p.PhoneNumber;
             JobTitle = p.JobTitle;
             OfficeLocation = p.OfficeLocation;
+            Department = p.Department!;
+            FullDepartment = p.FullDepartment!;
 
             if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti)).ToList();
 
@@ -37,6 +39,8 @@ namespace Fusion.Resources.Api.Controllers
         public string? PhoneNumber { get; set; }
         public string? JobTitle { get; set; }
         public string? OfficeLocation { get; set; }
+        public string Department { get; set; }
+        public string FullDepartment { get; set; }
 
         /// <summary>
         /// Enum, <see cref="FusionAccountType"/>.
