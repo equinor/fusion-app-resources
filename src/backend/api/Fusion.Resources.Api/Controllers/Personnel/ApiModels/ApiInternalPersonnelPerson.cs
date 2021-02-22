@@ -23,6 +23,12 @@ namespace Fusion.Resources.Api.Controllers
 
             PositionInstances = p.PositionInstances.Select(pos => new PersonnelPosition(pos)).ToList();
             EmploymentStatuses = p.Absence.Select(a => new PersonnelAbsence(a)).ToList();
+
+            Disciplines = p.PositionInstances
+                .OrderByDescending(p => p.AppliesTo)
+                .Select(p => p.BasePosition.Discipline)
+                .Distinct()
+                .ToList();
         }
 
         public Guid? AzureUniquePersonId { get; set; }
@@ -37,6 +43,7 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         public string AccountType { get; set; }
 
+        public List<string> Disciplines { get; set; } = new List<string>();
 
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
         public List<PersonnelAbsence> EmploymentStatuses { get; set; } = new List<PersonnelAbsence>();
