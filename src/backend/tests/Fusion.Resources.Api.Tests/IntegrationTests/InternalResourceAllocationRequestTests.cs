@@ -137,7 +137,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             for (int j = 5; j < 20; j++)
             {
-                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$search={testRequest.Request.Discipline}&$filter=discipline eq '{testRequest.Request.Discipline}'&$skip=2&$top={j}");
+                var topResponseTest = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{testRequest.Project.ProjectId}/requests?$filter=assignedDepartment eq '{testRequest.Request.AssignedDepartment}'&$skip=2&$top={j}");
                 topResponseTest.Should().BeSuccessfull();
                 topResponseTest.Value.Value.Count().Should().Be(j);
             }
@@ -208,6 +208,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 OrgPositionId = testRequest.Request.OrgPositionId,
                 OrgPositionInstance = testRequest.Request.OrgPositionInstance,
                 Type = ApiAllocationRequestType.JointVenture,
+                AssignedDepartment = "TPD",
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
@@ -288,6 +289,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public class ResourceAllocationRequestTestModel
         {
+            public string AssignedDepartment { get; set; }
             public string Discipline { get; set; }
             public ObjectWithId Project { get; set; }
             public string Type { get; set; }
@@ -321,6 +323,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
 
             response.Type.Should().Be(request.Type.ToString());
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
             response.Discipline.Should().Be(request.Discipline);
 
             response.Project.Id.Should().Be(request.ProjectId);
@@ -346,6 +349,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
 
             response.Type.Should().Be(request.Type.ToString());
+            response.AssignedDepartment.Should().Be(request.AssignedDepartment);
             response.Discipline.Should().Be(request.Discipline);
 
             response.Project.Id.Should().Be(request.ProjectId);

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
 using FluentValidation.Validators;
-using Fusion.Integration;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
@@ -30,6 +29,7 @@ namespace Fusion.Resources.Logic.Commands
 
             public Guid OrgProjectId { get; }
 
+            public string? AssignedDepartment { get; private set; }
             public string? Discipline { get; private set; }
             public QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; private set; }
 
@@ -46,6 +46,12 @@ namespace Fusion.Resources.Logic.Commands
             public Create WithIsDraft(bool? isDraft)
             {
                 IsDraft = isDraft.GetValueOrDefault(true);
+                return this;
+            }
+
+            public Create WithAssignedDepartment(string? assignedDepartment)
+            {
+                AssignedDepartment = assignedDepartment;
                 return this;
             }
 
@@ -102,6 +108,7 @@ namespace Fusion.Resources.Logic.Commands
             {
                 public Validator()
                 {
+                    RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
                     RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
                     RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
@@ -192,6 +199,7 @@ namespace Fusion.Resources.Logic.Commands
                     var item = new DbResourceAllocationRequest
                     {
                         Id = Guid.NewGuid(),
+                        AssignedDepartment = request.AssignedDepartment,
                         Discipline = request.Discipline,
                         Type = ParseRequestType(request),
                         State = DbRequestState.Created,
