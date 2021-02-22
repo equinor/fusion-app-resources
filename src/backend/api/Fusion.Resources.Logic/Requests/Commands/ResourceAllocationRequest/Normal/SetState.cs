@@ -46,7 +46,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     private DbResourceAllocationRequest dbItem = null!;
-                    private ResourceAllocationRequestNormalWorkflowV1 workflow = null!;
+                    private InternalRequestNormalWorkflowV1 workflow = null!;
 
                     protected override async Task Handle(SetState request, CancellationToken cancellationToken)
                     {
@@ -60,7 +60,7 @@ namespace Fusion.Resources.Logic.Commands
 
 
                         var dbWorkflow = await mediator.GetRequestWorkflowAsync(dbItem.Id);
-                        workflow = new ResourceAllocationRequestNormalWorkflowV1(dbWorkflow);
+                        workflow = new InternalRequestNormalWorkflowV1(dbWorkflow);
 
 
                         switch (dbItem.State)

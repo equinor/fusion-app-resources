@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Fusion.Resources.Logic.Workflows
 {
 
-    public class ResourceAllocationRequestJointVentureWorkflowV1 : WorkflowDefinition
+    public class InternalRequestNormalWorkflowV1 : WorkflowDefinition
     {
         public const string CREATED = "created";
         public const string COMPANY_PROPOSAL = "companyProposal";
@@ -14,7 +14,7 @@ namespace Fusion.Resources.Logic.Workflows
         public override string Version => "v1";
         public override string Name => "Contractor personnel request";
 
-        public ResourceAllocationRequestJointVentureWorkflowV1()
+        public InternalRequestNormalWorkflowV1()
             : base(null)
         {
             Steps = new List<WorkflowStep>()
@@ -26,7 +26,7 @@ namespace Fusion.Resources.Logic.Workflows
             };
         }
 
-        public ResourceAllocationRequestJointVentureWorkflowV1(DbPerson creator)
+        public InternalRequestNormalWorkflowV1(DbPerson creator)
             : this()
         {
             Step(CREATED)
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public ResourceAllocationRequestJointVentureWorkflowV1(DbWorkflow workflow)
+        public InternalRequestNormalWorkflowV1(DbWorkflow workflow)
             : base(workflow)
         {
         }
@@ -45,7 +45,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access resources.")
+                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(approver, true)
                 .StartNext();
         }
@@ -54,7 +54,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{proposer.Name} approved the request. The provisioing process will start so the person can access resources.")
+                .SetDescription($"{proposer.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(proposer, true)
                 .StartNext();
         }

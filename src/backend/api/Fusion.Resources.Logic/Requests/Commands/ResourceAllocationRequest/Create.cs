@@ -250,9 +250,9 @@ namespace Fusion.Resources.Logic.Commands
 
                     return request.Type switch
                     {
-                        QueryResourceAllocationRequest.QueryAllocationRequestType.Normal => new ResourceAllocationRequestNormalWorkflowV1(request.Editor.Person),
-                        QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture => new ResourceAllocationRequestJointVentureWorkflowV1(request.Editor.Person),
-                        QueryResourceAllocationRequest.QueryAllocationRequestType.Direct => new ResourceAllocationRequestDirectWorkflowV1(request.Editor.Person),
+                        QueryResourceAllocationRequest.QueryAllocationRequestType.Normal => new InternalRequestNormalWorkflowV1(request.Editor.Person),
+                        QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture => new InternalRequestJointVentureWorkflowV1(request.Editor.Person),
+                        QueryResourceAllocationRequest.QueryAllocationRequestType.Direct => new InternalRequestDirectWorkflowV1(request.Editor.Person),
                         _ => throw new NotSupportedException($"{request.Type} not supported")
                     };
 

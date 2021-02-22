@@ -4,27 +4,29 @@ using System.Collections.Generic;
 namespace Fusion.Resources.Logic.Workflows
 {
 
-    public class ResourceAllocationRequestDirectWorkflowV1 : WorkflowDefinition
+    public class InternalRequestJointVentureWorkflowV1 : WorkflowDefinition
     {
         public const string CREATED = "created";
+        public const string COMPANY_PROPOSAL = "companyProposal";
         public const string COMPANY_APPROVAL = "companyApproval";
         public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
         public override string Name => "Contractor personnel request";
 
-        public ResourceAllocationRequestDirectWorkflowV1()
+        public InternalRequestJointVentureWorkflowV1()
             : base(null)
         {
             Steps = new List<WorkflowStep>()
             {
                 Created,
+                CompanyProposal,
                 CompanyApproval,
                 Provisioning
             };
         }
 
-        public ResourceAllocationRequestDirectWorkflowV1(DbPerson creator)
+        public InternalRequestJointVentureWorkflowV1(DbPerson creator)
             : this()
         {
             Step(CREATED)
@@ -34,7 +36,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public ResourceAllocationRequestDirectWorkflowV1(DbWorkflow workflow)
+        public InternalRequestJointVentureWorkflowV1(DbWorkflow workflow)
             : base(workflow)
         {
         }
@@ -43,7 +45,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access resources.")
+                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(approver, true)
                 .StartNext();
         }
@@ -52,7 +54,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{proposer.Name} approved the request. The provisioing process will start so the person can access resources.")
+                .SetDescription($"{proposer.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(proposer, true)
                 .StartNext();
         }
@@ -72,12 +74,16 @@ namespace Fusion.Resources.Logic.Workflows
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")
             .WithDescription("Request was created and started.")
-            .WithNextStep(COMPANY_APPROVAL);
+            .WithNextStep(COMPANY_PROPOSAL);
 
+        public static WorkflowStep CompanyProposal => new WorkflowStep(COMPANY_PROPOSAL, "Propose")
+            .WithDescription("Review personnel request and approve/reject")
+            .WithPreviousStep(CREATED)
+            .WithNextStep(COMPANY_APPROVAL);
 
         public static WorkflowStep CompanyApproval => new WorkflowStep(COMPANY_APPROVAL, "Approve")
             .WithDescription("Review personnel request and approve/reject")
-            .WithPreviousStep(CREATED)
+            .WithPreviousStep(COMPANY_PROPOSAL)
             .WithNextStep(PROVISIONING);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
