@@ -54,7 +54,7 @@ namespace Fusion.Resources.Logic.Commands
 
             public Update WithAssignedDepartment(string? assignedDepartment)
             {
-                AssignedDepartment = assignedDepartment;
+                if (assignedDepartment is not null) AssignedDepartment = assignedDepartment;
                 return this;
             }
             public Update WithDiscipline(string? discipline)
