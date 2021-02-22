@@ -271,7 +271,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
         [Fact]
-        public async Task PutAdminRequest_EmptyRequest_ShouldNotModify_DbEntity()
+        public async Task PutAdminRequest_EmptyRequest_ShouldNotModifyDbEntity()
         {
             using var adminScope = fixture.AdminScope();
             var beforeUpdate = DateTimeOffset.UtcNow;
