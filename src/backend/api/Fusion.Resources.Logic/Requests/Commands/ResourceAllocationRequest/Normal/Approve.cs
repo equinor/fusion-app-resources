@@ -44,12 +44,10 @@ namespace Fusion.Resources.Logic.Commands
                         switch (dbRequest.State)
                         {
                             case DbResourceAllocationRequestState.Created:
-                                await mediator.Send(new Normal.SetState(request.RequestId,
-                                    DbResourceAllocationRequestState.Proposed));
+                                await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Proposed));
                                 break;
                             case DbResourceAllocationRequestState.Proposed:
-                                await mediator.Send(new Normal.SetState(request.RequestId,
-                                    DbResourceAllocationRequestState.Assigned));
+                                await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Assigned));
                                 break;
                             default:
                                 throw new NotSupportedException();

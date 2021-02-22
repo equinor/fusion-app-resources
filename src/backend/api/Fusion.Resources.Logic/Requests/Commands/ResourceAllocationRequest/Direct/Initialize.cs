@@ -42,11 +42,9 @@ namespace Fusion.Resources.Logic.Commands
                         dbItem = await resourcesDb.ResourceAllocationRequests
                             .Include(r => r.Project)
                             .FirstOrDefaultAsync(r => r.Id == request.RequestId);
-
-
+                        
                         if (dbItem == null)
                             throw new InvalidOperationException($"Cannot resolve request {request.RequestId}");
-
                     }
 
                     protected override async Task Handle(Initialize request, CancellationToken cancellationToken)

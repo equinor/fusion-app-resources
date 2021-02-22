@@ -10,29 +10,25 @@ namespace Fusion.Resources.Logic.Commands
     {
         public partial class JointVenture
         {
-            internal class QueueRequestProvisioning : IRequest
+          internal class QueueRequestProvisioning : IRequest
             {
-                private QueueRequestProvisioning(RequestType type, Guid requestId, Guid orgProjectId, Guid orgContractId)
+                private QueueRequestProvisioning(RequestType type, Guid requestId, Guid orgProjectId)
                 {
                     Type = type;
                     RequestId = requestId;
                     OrgProjectId = orgProjectId;
-                    OrgContractId = orgContractId;
                 }
 
                 private RequestType Type { get; }
                 public Guid RequestId { get; }
                 public Guid OrgProjectId { get; }
-                public Guid OrgContractId { get; }
 
                 private enum RequestType
                 {
-                    ContractorPersonnel
+                    Employee
                 }
 
-                public static QueueRequestProvisioning ContractorPersonnelRequest(Guid requestId, Guid orgProjectId,
-                    Guid orgContractId) =>
-                    new QueueRequestProvisioning(RequestType.ContractorPersonnel, requestId, orgProjectId, orgContractId);
+                public static QueueRequestProvisioning EmployeeRequest(Guid requestId, Guid orgProjectId) => new QueueRequestProvisioning(RequestType.Employee, requestId, orgProjectId);
 
                 public class Handler : AsyncRequestHandler<QueueRequestProvisioning>
                 {
@@ -46,15 +42,13 @@ namespace Fusion.Resources.Logic.Commands
                     protected override async Task Handle(QueueRequestProvisioning request,
                         CancellationToken cancellationToken)
                     {
-                        await queueSender.SendMessageAsync(QueuePath.ProvisionPosition, new ProvisionPositionMessageV1
+                        await queueSender.SendMessageAsync(QueuePath.ProvisionPosition, new ProvisionInternalRequestPositionMessageV1
                         {
                             RequestId = request.RequestId,
                             ProjectOrgId = request.OrgProjectId,
-                            ContractOrgId = request.OrgContractId,
                             Type = request.Type switch
                             {
-                                RequestType.ContractorPersonnel => ProvisionPositionMessageV1.RequestTypeV1
-                                    .ContractorPersonnel,
+                                RequestType.Employee => ProvisionInternalRequestPositionMessageV1.RequestTypeV1.Employee,
                                 _ => throw new NotSupportedException(
                                     $"Provision of request type {request.Type} is not supported")
                             }

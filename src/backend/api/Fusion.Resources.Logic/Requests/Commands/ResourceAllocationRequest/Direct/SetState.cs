@@ -25,14 +25,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 public Guid RequestId { get; set; }
                 public DbResourceAllocationRequestState State { get; set; }
-                public string? Reason { get; set; }
-
-                public SetState WithReason(string reason)
-                {
-                    Reason = reason;
-                    return this;
-                }
-
+             
                 public class Handler : AsyncRequestHandler<SetState>
                 {
                     private readonly ResourcesDbContext resourcesDb;
@@ -76,7 +69,7 @@ namespace Fusion.Resources.Logic.Commands
                         dbItem.State = request.State;
                         dbItem.LastActivity = DateTime.UtcNow;
 
-                        // Update the encapsulated db-entity with the new workflow state.
+                        // Update the encapsulated db entity with the new workflow state.
                         workflow.SaveChanges();
 
                         await resourcesDb.SaveChangesAsync();
