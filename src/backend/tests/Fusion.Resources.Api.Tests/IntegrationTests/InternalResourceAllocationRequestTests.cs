@@ -176,7 +176,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var beforeUpdate = DateTimeOffset.UtcNow;
-            var dict = new Dictionary<string, object> {{"orgpositioninstance.workload", 50}};
+            var dict = new Dictionary<string, object> { { "orgpositioninstance.workload", 50 } };
             var updateRequest = new UpdateResourceAllocationRequest
             {
                 ProjectId = testRequest.Project.ProjectId,
@@ -268,13 +268,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Post_Request_Normal_Approval_Steps_ShouldBe_Ok()
         {
             using var adminScope = fixture.AdminScope();
-            
+
             var updateRequest = new UpdateResourceAllocationRequest { Type = "Normal" };
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
             response.Response.IsSuccessStatusCode.Should().BeTrue();
 
             response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
-            response.Value.State.Should().Be("Proposed"); 
+            response.Value.State.Should().Be("Proposed");
             response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Assigned");
         }
@@ -287,9 +287,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var updateRequest = new UpdateResourceAllocationRequest { Type = "JointVenture" };
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
             response.Response.IsSuccessStatusCode.Should().BeTrue();
-            
+
             response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
-            response.Value.State.Should().Be("Proposed"); 
+            response.Value.State.Should().Be("Proposed");
             response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Assigned");
         }
@@ -298,16 +298,82 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Post_Request_Direct_Approval_Steps_ShouldBe_Ok()
         {
             using var adminScope = fixture.AdminScope();
-            
+
             var updateRequest = new UpdateResourceAllocationRequest { Type = "Direct" };
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
             response.Response.IsSuccessStatusCode.Should().BeTrue();
 
             response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
-            response.Value.State.Should().Be("Assigned"); 
+            response.Value.State.Should().Be("Assigned");
             response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
             response.Response.IsSuccessStatusCode.Should().BeFalse();
             response.Response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Post_Request_Normal_Termination_Steps_ShouldBe_Ok(bool includeProposedState)
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var updateRequest = new UpdateResourceAllocationRequest { Type = "Normal" };
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
+            response.Response.IsSuccessStatusCode.Should().BeTrue();
+
+            if (includeProposedState)
+            {
+                response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>(
+                    $"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
+                response.Value.State.Should().Be("Proposed");
+            }
+
+            var reason = new TestRejectRequestRequest { Reason = "Testing" };
+            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/terminate", reason);
+            response.Value.State.Should().Be("Rejected");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Post_Request_JointVenture_Termination_Steps_ShouldBe_Ok(bool includeProposedState)
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var updateRequest = new UpdateResourceAllocationRequest { Type = "JointVenture" };
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
+            response.Response.IsSuccessStatusCode.Should().BeTrue();
+
+            if (includeProposedState)
+            {
+                response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>(
+                    $"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/approve", null);
+                response.Value.State.Should().Be("Proposed");
+            }
+
+            var reason = new TestRejectRequestRequest { Reason = "Testing" };
+            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/terminate", reason);
+            response.Value.State.Should().Be("Rejected");
+        }
+
+        [Fact]
+        public async Task Post_Request_Direct_Termination_Steps_ShouldBe_Ok()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var updateRequest = new UpdateResourceAllocationRequest { Type = "Direct" };
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}", updateRequest);
+            response.Response.IsSuccessStatusCode.Should().BeTrue();
+
+            var reason = new TestRejectRequestRequest { Reason = "Testing" };
+            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{testRequest.Project.ProjectId}/requests/{testRequest.Request.Id}/terminate", reason);
+            response.Value.State.Should().Be("Rejected");
+        }
+
+
+        public class TestRejectRequestRequest
+        {
+            public string Reason { get; set; }
         }
 
 
