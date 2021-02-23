@@ -116,64 +116,17 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     public Validator()
                     {
-                        RuleFor(x => x.AssignedDepartment.Value).NotContainScriptTag().MaximumLength(500)
-                            .When(x => x.AssignedDepartment.HasBeenSet);
-                        RuleFor(x => x.Discipline.Value).NotContainScriptTag().MaximumLength(500)
-                            .When(x => x.Discipline.HasBeenSet);
-                        RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000)
-                            .When(x => x.AdditionalNote.HasBeenSet);
-
-                        RuleFor(x => x.OrgPositionId.Value).NotEmpty().When(x =>
-                            x.OrgPositionId.HasBeenSet && x.OrgPositionId.Value != null);
+                        RuleFor(x => x.AssignedDepartment.Value).NotContainScriptTag().MaximumLength(500).When(x => x.AssignedDepartment.HasBeenSet);
+                        RuleFor(x => x.Discipline.Value).NotContainScriptTag().MaximumLength(500).When(x => x.Discipline.HasBeenSet);
+                        RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000).When(x => x.AdditionalNote.HasBeenSet);
+                        RuleFor(x => x.OrgPositionId.Value).NotEmpty().When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionId.Value != null);
                         RuleFor(x => x.OrgPositionInstance).NotNull();
-                        RuleFor(x => x.OrgPositionInstance.Value).SetValidator(PositionInstanceValidator)
-                            .When(x => x.OrgPositionInstance != null);
-                        RuleFor(x => x.ProposedChanges.Value).SetValidator(ProposedChangesValidator).When(x =>
-                            x.ProposedChanges.HasBeenSet && x.ProposedChanges.Value != null);
-
-                        RuleFor(x => x.ProposedPersonAzureUniqueId.Value).NotEmpty().When(x =>
-                            x.ProposedPersonAzureUniqueId.HasBeenSet && x.ProposedPersonAzureUniqueId.Value != null);
-
+                        RuleFor(x => x.OrgPositionInstance.Value).BeValidPositionInstance().When(x => x.OrgPositionInstance != null);
+                        RuleFor(x => x.ProposedChanges.Value).BeValidProposedChanges().When(x => x.ProposedChanges.HasBeenSet && x.ProposedChanges.Value != null);
+                        RuleFor(x => x.ProposedPersonAzureUniqueId.Value).NotEmpty().When(x => x.ProposedPersonAzureUniqueId.HasBeenSet && x.ProposedPersonAzureUniqueId.Value != null);
                         RuleFor(x => x.OrgProjectId.Value).NotEmptyIfProvided();
                         RuleFor(x => x.IsDraft).NotNull();
                     }
-
-                    private static IPropertyValidator ProposedChangesValidator =>
-                        new CustomValidator<Dictionary<string, object>>(
-                            (prop, context) =>
-                            {
-                                foreach (var k in prop.Keys.Where(k => k.Length > 100))
-                                {
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.key",
-                                        "Key cannot exceed 100 characters", k));
-                                }
-
-                            });
-
-                    private static IPropertyValidator PositionInstanceValidator =>
-                        new CustomValidator<Domain.ResourceAllocationRequest.QueryPositionInstance>(
-                            (position, context) =>
-                            {
-                                if (position == null) return;
-
-                                if (position.AppliesTo < position.AppliesFrom)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.appliesTo",
-                                        $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",
-                                        $"{position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}"));
-
-
-                                if (position.Obs?.Length > 30)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.obs",
-                                        "Obs cannot exceed 30 characters", position.Obs));
-
-                                if (position.Workload < 0)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
-                                        "Workload cannot be less than 0", position.Workload));
-
-                                if (position.Workload > 100)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
-                                        "Workload cannot be more than 100", position.Workload));
-                            });
                 }
 
                 public class Handler : IRequestHandler<Update, QueryResourceAllocationRequest

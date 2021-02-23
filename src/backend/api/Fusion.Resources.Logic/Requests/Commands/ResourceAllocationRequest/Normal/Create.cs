@@ -94,8 +94,7 @@ namespace Fusion.Resources.Logic.Commands
                     return this;
                 }
 
-                public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload,
-                    string? obs, Guid? locationId)
+                public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs, Guid? locationId)
                 {
                     OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                     {
@@ -117,57 +116,14 @@ namespace Fusion.Resources.Logic.Commands
                         RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
                         RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
                         RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
-
                         RuleFor(x => x.OrgPositionId).NotEmpty().When(x => x.OrgPositionId != null);
                         RuleFor(x => x.OrgPositionInstance).NotNull();
-                        RuleFor(x => x.OrgPositionInstance).SetValidator(PositionInstanceValidator)
-                            .When(x => x.OrgPositionInstance != null);
-                        RuleFor(x => x.ProposedChanges).SetValidator(ProposedChangesValidator)
-                            .When(x => x.ProposedChanges != null);
-
-                        RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty()
-                            .When(x => x.ProposedPersonAzureUniqueId != null);
-
+                        RuleFor(x => x.OrgPositionInstance).BeValidPositionInstance().When(x => x.OrgPositionInstance != null);
+                        RuleFor(x => x.ProposedChanges).BeValidProposedChanges().When(x => x.ProposedChanges != null);
+                        RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
                         RuleFor(x => x.OrgProjectId).NotNull();
                         RuleFor(x => x.IsDraft).NotNull();
                     }
-
-                    private static IPropertyValidator ProposedChangesValidator =>
-                        new CustomValidator<Dictionary<string, object>>(
-                            (prop, context) =>
-                            {
-                                foreach (var k in prop.Keys.Where(k => k.Length > 100))
-                                {
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.key",
-                                        "Key cannot exceed 100 characters", k));
-                                }
-
-                            });
-
-                    private static IPropertyValidator PositionInstanceValidator =>
-                        new CustomValidator<Domain.ResourceAllocationRequest.QueryPositionInstance>(
-                            (position, context) =>
-                            {
-                                if (position == null) return;
-
-                                if (position.AppliesTo < position.AppliesFrom)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.appliesTo",
-                                        $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",
-                                        $"{position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}"));
-
-
-                                if (position.Obs?.Length > 30)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.obs",
-                                        "Obs cannot exceed 30 characters", position.Obs));
-
-                                if (position.Workload < 0)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
-                                        "Workload cannot be less than 0", position.Workload));
-
-                                if (position.Workload > 100)
-                                    context.AddFailure(new ValidationFailure($"{context.PropertyName}.workload",
-                                        "Workload cannot be more than 100", position.Workload));
-                            });
                 }
 
                 public class Handler : IRequestHandler<Create, QueryResourceAllocationRequest
@@ -190,8 +146,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     private DbProject? Project { get; set; }
 
-                    public async Task<QueryResourceAllocationRequest> Handle(Create request,
-                        CancellationToken cancellationToken)
+                    public async Task<QueryResourceAllocationRequest> Handle(Create request, CancellationToken cancellationToken)
                     {
                         // Validate references.
                         await ValidateAsync(request);

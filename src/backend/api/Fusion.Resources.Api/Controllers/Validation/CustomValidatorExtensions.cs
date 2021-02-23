@@ -6,7 +6,6 @@ using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -22,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers
                     if (person.AzureUniquePersonId.HasValue && person.AzureUniquePersonId == Guid.Empty)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.azureUniqueId", "Person unique object id cannot be empty-guid when provided."));
 
-                    if (!string.IsNullOrEmpty(person.Mail) && ! ValidationHelper.IsValidEmail(person.Mail))
+                    if (!string.IsNullOrEmpty(person.Mail) && !ValidationHelper.IsValidEmail(person.Mail))
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.mail", "Invalid mail address", person.Mail));
 
                     if (person.AzureUniquePersonId is null && string.IsNullOrEmpty(person.Mail))
@@ -91,7 +90,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (position != null && position.Instances.Count > 1)
                     {
-                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}", 
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}",
                             $"Position with id '{positionId}' exists, but have multiple instances, {position.Instances.Count}, which is not supported."));
                     }
                 }
@@ -123,7 +122,47 @@ namespace Fusion.Resources.Api.Controllers
             return (IRuleBuilderOptions<T, Guid?>)result;
         }
 
+        public static IRuleBuilderOptions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
+        {
+            return ruleBuilder.SetValidator(new CustomValidator<ApiPropertiesCollection>(
+                (prop, context) =>
+                {
+                    foreach (var k in prop.Keys.Where(k => k.Length > 100))
+                    {
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",
+                            "Key cannot exceed 100 characters", k));
+                    }
 
+                }));
+        }
+
+        public static IRuleBuilderOptions<T, ApiPositionInstance?> BeValidPositionInstance<T>(this IRuleBuilder<T, ApiPositionInstance?> ruleBuilder)
+        {
+            return ruleBuilder.SetValidator(new CustomValidator<ApiPositionInstance>(
+                (position, context) =>
+                {
+                    if (position == null) return;
+
+                    if (position.AppliesTo < position.AppliesFrom)
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.appliesTo",
+                            $"To date cannot be earlier than from date, {position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}",
+                            $"{position.AppliesFrom:dd/MM/yyyy} -> {position.AppliesTo:dd/MM/yyyy}"));
+
+
+                    if (position.Obs?.Length > 30)
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.obs",
+                            "Obs cannot exceed 30 characters", position.Obs));
+
+                    if (position.Workload < 0)
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.workload",
+                            "Workload cannot be less than 0", position.Workload));
+
+                    if (position.Workload > 100)
+                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.workload",
+                            "Workload cannot be more than 100", position.Workload));
+                }));
+        }
+   
         private static string ToLowerFirstChar(this string input)
         {
             string newString = input;
