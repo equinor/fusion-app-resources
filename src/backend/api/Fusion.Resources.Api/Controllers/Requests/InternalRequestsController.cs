@@ -375,8 +375,7 @@ namespace Fusion.Resources.Api.Controllers
                         await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Approve(requestId));
                         break;
                     case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
-                        await DispatchAsync(
-                            new Logic.Commands.ResourceAllocationRequest.JointVenture.Approve(requestId));
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.JointVenture.Approve(requestId));
                         break;
                 }
 

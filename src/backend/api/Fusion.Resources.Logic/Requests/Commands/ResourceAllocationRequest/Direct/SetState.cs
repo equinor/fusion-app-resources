@@ -39,7 +39,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     private DbResourceAllocationRequest dbItem = null!;
-                    private InternalRequestNormalWorkflowV1 workflow = null!;
+                    private InternalRequestDirectWorkflowV1 workflow = null!;
 
                     protected override async Task Handle(SetState request, CancellationToken cancellationToken)
                     {
@@ -49,17 +49,14 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (dbItem == null)
                             throw new RequestNotFoundError(request.RequestId);
-
-
-
+                        
                         var dbWorkflow = await mediator.GetRequestWorkflowAsync(dbItem.Id);
-                        workflow = new InternalRequestNormalWorkflowV1(dbWorkflow);
+                        workflow = new InternalRequestDirectWorkflowV1(dbWorkflow);
 
 
                         switch (dbItem.State)
                         {
                             case DbResourceAllocationRequestState.Created:
-                                await HandleWhenAssignedAsync(request);
                                 break;
 
                             default:
@@ -76,19 +73,6 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (notifyOnSave != null)
                             await mediator.Publish(notifyOnSave);
-                    }
-                    private async ValueTask HandleWhenAssignedAsync(SetState request)
-                    {
-                        switch (request.State)
-                        {
-                            case DbResourceAllocationRequestState.Accepted:
-                                workflow.Approved(request.Editor.Person);
-                                break;
-
-                            default:
-                                throw new IllegalStateChangeError(dbItem.State, request.State,
-                                     DbResourceAllocationRequestState.Accepted);
-                        }
                     }
                 }
             }

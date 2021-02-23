@@ -40,15 +40,20 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.ProposedPerson)
                     .FirstOrDefaultAsync(c => c.Id == request.RequestId);
 
-                var requestItem = row != null ? new QueryResourceAllocationRequest(row, await mediator.Send(new GetRequestWorkflow(request.RequestId))) : null;
 
-                if (requestItem?.OrgPositionId != null)
+                if (row is null)
+                    return null;
+
+                var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
+                var requestItem = new QueryResourceAllocationRequest(row, workflow);
+
+                if (requestItem.OrgPositionId == null) 
+                    return requestItem;
+                
+                var position = await orgResolver.ResolvePositionAsync(requestItem.OrgPositionId.Value);
+                if (position != null)
                 {
-                    var position = await orgResolver.ResolvePositionAsync(requestItem.OrgPositionId.Value);
-                    if (position != null)
-                    {
-                        requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
-                    }
+                    requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
                 }
 
                 return requestItem;

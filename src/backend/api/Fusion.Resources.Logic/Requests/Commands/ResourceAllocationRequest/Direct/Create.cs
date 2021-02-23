@@ -38,8 +38,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 public Guid? OrgPositionId { get; private set; }
 
-                public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; }
-                    = null!;
+                public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; } = null!;
 
                 public Guid? ProposedPersonAzureUniqueId { get; private set; }
                 public string? AdditionalNote { get; private set; }
@@ -199,7 +198,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         var item = await PersistChangesAsync(request);
 
-                        await mediator.Send( new Initialize(item.Id));
+                        await mediator.Send(new Initialize(item.Id));
 
                         var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
                         return requestItem!;
@@ -279,8 +278,7 @@ namespace Fusion.Resources.Logic.Commands
                         await ValidateOriginalPositionAsync(request);
                     }
 
-                    private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(
-                        Domain.ResourceAllocationRequest.QueryPositionInstance position)
+                    private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance? position)
                     {
                         if (position == null)
                             return null;

@@ -7,12 +7,11 @@ namespace Fusion.Resources.Logic.Workflows
     public class InternalRequestJointVentureWorkflowV1 : WorkflowDefinition
     {
         public const string CREATED = "created";
-        public const string PROPOSAL = "proposal";
         public const string APPROVAL = "approval";
         public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
-        public override string Name => "Personnel request of joint venture type";
+        public override string Name => "Joint venture personnel assignment request";
 
         public InternalRequestJointVentureWorkflowV1()
             : base(null)
@@ -20,7 +19,6 @@ namespace Fusion.Resources.Logic.Workflows
             Steps = new List<WorkflowStep>()
             {
                 Created,
-                Proposal,
                 Approval,
                 Provisioning
             };
@@ -50,29 +48,15 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public void Proposed(DbPerson proposer)
-        {
-            Step(APPROVAL)
-                .SetName("Approved")
-                .SetDescription($"{proposer.Name} approved the request. The provisioning process will start so the person can access resources.")
-                .Complete(proposer, true)
-                .StartNext();
-        }
-
         #region Step definitions
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")
             .WithDescription("Request was created and started.")
-            .WithNextStep(PROPOSAL);
-
-        public static WorkflowStep Proposal => new WorkflowStep(PROPOSAL, "Propose")
-            .WithDescription("Review personnel request and approve/reject")
-            .WithPreviousStep(CREATED)
             .WithNextStep(APPROVAL);
 
         public static WorkflowStep Approval => new WorkflowStep(APPROVAL, "Approve")
             .WithDescription("Review personnel request and approve/reject")
-            .WithPreviousStep(PROPOSAL)
+            .WithPreviousStep(APPROVAL)
             .WithNextStep(PROVISIONING);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")

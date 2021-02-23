@@ -38,18 +38,15 @@ namespace Fusion.Resources.Logic.Commands
                             CancellationToken.None);
 
                         if (dbRequest!.Type != QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture)
-                            throw new NotSupportedException();
+                            throw new NotSupportedException($"{dbRequest.Type} not supported. Should be {QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture}");
 
                         switch (dbRequest.State)
                         {
                             case DbResourceAllocationRequestState.Created:
-                                await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Proposed));
-                                break;
-                            case DbResourceAllocationRequestState.Proposed:
                                 await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
                                 break;
                             default:
-                                throw new NotSupportedException();
+                                throw new NotSupportedException($"Invalid state change. Only supporting Created and Proposed. State was:{dbRequest.State}");
                         }
                     }
                 }

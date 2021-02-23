@@ -38,8 +38,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 public Guid? OrgPositionId { get; private set; }
 
-                public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; }
-                    = null!;
+                public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; } = null!;
 
                 public Guid? ProposedPersonAzureUniqueId { get; private set; }
                 public string? AdditionalNote { get; private set; }
@@ -280,8 +279,7 @@ namespace Fusion.Resources.Logic.Commands
                         await ValidateOriginalPositionAsync(request);
                     }
 
-                    private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(
-                        Domain.ResourceAllocationRequest.QueryPositionInstance position)
+                    private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance? position)
                     {
                         if (position == null)
                             return null;

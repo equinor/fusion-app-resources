@@ -7,11 +7,10 @@ namespace Fusion.Resources.Logic.Workflows
     public class InternalRequestDirectWorkflowV1 : WorkflowDefinition
     {
         public const string CREATED = "created";
-        public const string APPROVAL = "approval";
         public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
-        public override string Name => "Personnel request of direct type";
+        public override string Name => "Direct personnel assignment request";
 
         public InternalRequestDirectWorkflowV1()
             : base(null)
@@ -19,7 +18,6 @@ namespace Fusion.Resources.Logic.Workflows
             Steps = new List<WorkflowStep>()
             {
                 Created,
-                Approval,
                 Provisioning
             };
         }
@@ -39,29 +37,17 @@ namespace Fusion.Resources.Logic.Workflows
         {
         }
 
-        public void Approved(DbPerson approver)
-        {
-            Step(APPROVAL)
-                .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access resources.")
-                .Complete(approver, true)
-                .StartNext();
-        }
         #region Step definitions
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")
             .WithDescription("Request was created and started.")
-            .WithNextStep(APPROVAL);
-
-
-        public static WorkflowStep Approval => new WorkflowStep(APPROVAL, "Approve")
-            .WithDescription("Review personnel request and approve/reject")
-            .WithPreviousStep(CREATED)
             .WithNextStep(PROVISIONING);
 
+
+     
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
             .WithDescription("If the request is approved, the new position or changes will be provisioned to the organisational chart.")
-            .WithPreviousStep(APPROVAL);
+            .WithPreviousStep(CREATED);
 
         #endregion
     }

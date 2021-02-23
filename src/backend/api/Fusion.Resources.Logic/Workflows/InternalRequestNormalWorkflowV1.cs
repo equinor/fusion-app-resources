@@ -12,7 +12,7 @@ namespace Fusion.Resources.Logic.Workflows
         public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
-        public override string Name => "Personnel request of normal type";
+        public override string Name => "Normal personnel assignment request";
 
         public InternalRequestNormalWorkflowV1()
             : base(null)

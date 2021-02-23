@@ -49,9 +49,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (dbItem == null)
                             throw new RequestNotFoundError(request.RequestId);
-
-
-
+                        
                         var dbWorkflow = await mediator.GetRequestWorkflowAsync(dbItem.Id);
                         workflow = new InternalRequestNormalWorkflowV1(dbWorkflow);
 

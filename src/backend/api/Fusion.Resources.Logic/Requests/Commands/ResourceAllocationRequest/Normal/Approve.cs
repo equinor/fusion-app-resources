@@ -39,7 +39,7 @@ namespace Fusion.Resources.Logic.Commands
 
 
                         if (dbRequest!.Type != QueryResourceAllocationRequest.QueryAllocationRequestType.Normal)
-                            throw new NotSupportedException();
+                            throw new NotSupportedException($"{dbRequest.Type} not supported. Should be {QueryResourceAllocationRequest.QueryAllocationRequestType.Normal}");
 
                         switch (dbRequest.State)
                         {
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Logic.Commands
                                 await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
                                 break;
                             default:
-                                throw new NotSupportedException();
+                                throw new NotSupportedException($"Invalid state change. Only supporting Created and Proposed. State was:{dbRequest.State}");
                         }
                     }
                 }

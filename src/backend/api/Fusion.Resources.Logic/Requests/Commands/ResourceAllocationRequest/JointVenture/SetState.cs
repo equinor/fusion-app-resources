@@ -25,7 +25,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 public Guid RequestId { get; set; }
                 public DbResourceAllocationRequestState State { get; set; }
-             
+
                 public class Handler : AsyncRequestHandler<SetState>
                 {
                     private readonly ResourcesDbContext resourcesDb;
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     private DbResourceAllocationRequest dbItem = null!;
-                    private InternalRequestNormalWorkflowV1 workflow = null!;
+                    private InternalRequestJointVentureWorkflowV1 workflow = null!;
 
                     protected override async Task Handle(SetState request, CancellationToken cancellationToken)
                     {
@@ -50,19 +50,13 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbItem == null)
                             throw new RequestNotFoundError(request.RequestId);
 
-
-
                         var dbWorkflow = await mediator.GetRequestWorkflowAsync(dbItem.Id);
-                        workflow = new InternalRequestNormalWorkflowV1(dbWorkflow);
+                        workflow = new InternalRequestJointVentureWorkflowV1(dbWorkflow);
 
 
                         switch (dbItem.State)
                         {
                             case DbResourceAllocationRequestState.Created:
-                                await HandleWhenCreatedAsync(request);
-                                break;
-
-                            case DbResourceAllocationRequestState.Proposed:
                                 await HandleWhenAssignedAsync(request);
                                 break;
 
@@ -95,20 +89,6 @@ namespace Fusion.Resources.Logic.Commands
                                     DbResourceAllocationRequestState.Accepted);
                         }
 
-                    }
-
-                    private async ValueTask HandleWhenCreatedAsync(SetState request)
-                    {
-                        switch (request.State)
-                        {
-                            case DbResourceAllocationRequestState.Proposed:
-                                workflow.Proposed(request.Editor.Person);
-                                break;
-                           
-                            default:
-                                throw new IllegalStateChangeError(dbItem.State, request.State,
-                                    DbResourceAllocationRequestState.Proposed);
-                        }
                     }
                 }
             }
