@@ -21,11 +21,9 @@ namespace Fusion.Resources.Logic.Commands
                     RequestId = requestId;
                     State = state;
                 }
-
-
                 public Guid RequestId { get; set; }
                 public DbResourceAllocationRequestState State { get; set; }
-               
+
                 public class Handler : AsyncRequestHandler<SetState>
                 {
                     private readonly ResourcesDbContext resourcesDb;

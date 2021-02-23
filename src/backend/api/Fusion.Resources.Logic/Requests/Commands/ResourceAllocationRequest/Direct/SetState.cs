@@ -21,8 +21,6 @@ namespace Fusion.Resources.Logic.Commands
                     RequestId = requestId;
                     State = state;
                 }
-
-
                 public Guid RequestId { get; set; }
                 public DbResourceAllocationRequestState State { get; set; }
              

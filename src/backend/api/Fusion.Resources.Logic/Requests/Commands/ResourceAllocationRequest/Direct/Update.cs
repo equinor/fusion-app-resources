@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
-using FluentValidation.Results;
-using FluentValidation.Validators;
-using Fusion.Integration;
-using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
@@ -31,28 +25,13 @@ namespace Fusion.Resources.Logic.Commands
                 }
 
                 public Guid RequestId { get; }
-
-                public MonitorableProperty<Guid?> OrgProjectId { get; private set; } = new();
                 public MonitorableProperty<string?> AssignedDepartment { get; private set; } = new();
                 public MonitorableProperty<string?> Discipline { get; private set; } = new();
-                public MonitorableProperty<Guid?> OrgPositionId { get; private set; } = new();
-
-                public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance
-                {
-                    get;
-                    private set;
-                } = new();
-
+                public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance { get; private set; } = new();
                 public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new();
                 public MonitorableProperty<string?> AdditionalNote { get; private set; } = new();
                 public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; private set; } = new();
                 public MonitorableProperty<bool> IsDraft { get; private set; } = new();
-
-                public Update WithProjectId(Guid? projectId)
-                {
-                    if (projectId is not null) OrgProjectId = projectId;
-                    return this;
-                }
 
                 public Update WithIsDraft(bool? isDraft)
                 {
@@ -69,12 +48,6 @@ namespace Fusion.Resources.Logic.Commands
                 public Update WithDiscipline(string? discipline)
                 {
                     if (discipline is not null) Discipline = discipline;
-                    return this;
-                }
-
-                public Update WithOrgPosition(Guid? orgPositionId)
-                {
-                    if (orgPositionId is not null) OrgPositionId = orgPositionId;
                     return this;
                 }
 
@@ -114,18 +87,19 @@ namespace Fusion.Resources.Logic.Commands
 
                 public class Validator : AbstractValidator<Update>
                 {
-                    public Validator()
+                    public Validator(IProfileService profileService)
                     {
-                        RuleFor(x => x.AssignedDepartment.Value).NotContainScriptTag().MaximumLength(500).When(x => x.AssignedDepartment.HasBeenSet);
-                        RuleFor(x => x.Discipline.Value).NotContainScriptTag().MaximumLength(500).When(x => x.Discipline.HasBeenSet);
-                        RuleFor(x => x.AdditionalNote.Value).NotContainScriptTag().MaximumLength(5000).When(x => x.AdditionalNote.HasBeenSet);
-                        RuleFor(x => x.OrgPositionId.Value).NotEmpty().When(x => x.OrgPositionId.HasBeenSet && x.OrgPositionId.Value != null);
                         RuleFor(x => x.OrgPositionInstance).NotNull();
-                        RuleFor(x => x.OrgPositionInstance.Value).BeValidPositionInstance().When(x => x.OrgPositionInstance != null);
+                        RuleFor(x => x.OrgPositionInstance.Value).BeValidPositionInstance();
                         RuleFor(x => x.ProposedChanges.Value).BeValidProposedChanges().When(x => x.ProposedChanges.HasBeenSet && x.ProposedChanges.Value != null);
-                        RuleFor(x => x.ProposedPersonAzureUniqueId.Value).NotEmpty().When(x => x.ProposedPersonAzureUniqueId.HasBeenSet && x.ProposedPersonAzureUniqueId.Value != null);
-                        RuleFor(x => x.OrgProjectId.Value).NotEmptyIfProvided();
-                        RuleFor(x => x.IsDraft).NotNull();
+                        RuleFor(x => x.ProposedPersonAzureUniqueId).MustAsync(async (id, cancel) =>
+                            {
+                                var profile = await profileService.EnsurePersonAsync(new PersonId(id.Value!.Value));
+                                return profile != null;
+
+                            }).WithMessage("Profile must exist in profile service")
+                            .When(x => x.ProposedPersonAzureUniqueId.Value != null);
+
                     }
                 }
 
@@ -134,51 +108,31 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     private readonly ResourcesDbContext db;
                     private readonly IMediator mediator;
-                    private readonly IProjectOrgResolver orgResolver;
                     private readonly IProfileService profileService;
-                    private DbPerson? ProposedPerson { get; set; }
 
-                    public Handler(IProfileService profileService, IProjectOrgResolver orgResolver,
-                        ResourcesDbContext db, IMediator mediator)
+                    public Handler(IProfileService profileService, ResourcesDbContext db, IMediator mediator)
                     {
                         this.profileService = profileService;
-                        this.orgResolver = orgResolver;
                         this.db = db;
                         this.mediator = mediator;
                     }
 
-                    public async Task<QueryResourceAllocationRequest> Handle(Update request,
-                        CancellationToken cancellationToken)
+                    public async Task<QueryResourceAllocationRequest> Handle(Update request, CancellationToken cancellationToken)
                     {
-                        var dbEntity =
-                            await db.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId);
+                        var dbEntity = await db.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId);
                         if (dbEntity is null)
                             throw new RequestNotFoundError(request.RequestId);
 
-
-                        // Validate references.
-                        await ValidateAsync(request);
-
                         var item = await PersistChangesAsync(request, dbEntity);
-
-                        //TODO: Start the workflow. Workflow support to be implemented later...
-                        //await mediator.Send(new Initialize(item.Id));
 
                         var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
                         return requestItem!;
                     }
 
-                    private async Task<DbResourceAllocationRequest> PersistChangesAsync(Update request,
-                        DbResourceAllocationRequest dbItem)
+                    private async Task<DbResourceAllocationRequest> PersistChangesAsync(Update request, DbResourceAllocationRequest dbItem)
                     {
                         bool modified = false;
                         var updated = DateTimeOffset.UtcNow;
-
-                        if (Project != null)
-                        {
-                            dbItem.Project = Project;
-                            modified = true;
-                        }
 
                         if (request.AssignedDepartment.HasBeenSet)
                         {
@@ -192,9 +146,12 @@ namespace Fusion.Resources.Logic.Commands
                             modified = true;
                         }
 
-                        if (request.ProposedChanges.HasBeenSet)
+                        if (request.ProposedPersonAzureUniqueId.HasBeenSet)
                         {
-                            dbItem.ProposedPerson = ProposedPerson;
+                            if (request.ProposedPersonAzureUniqueId.Value != null)
+                                dbItem.ProposedPerson = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value.Value));
+                            else
+                                dbItem.ProposedPerson = null;
                             modified = true;
                         }
 
@@ -206,19 +163,13 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (request.ProposedChanges.HasBeenSet)
                         {
-                            dbItem.ProposedChanges = SerializeToString(request.ProposedChanges.Value);
+                            dbItem.ProposedChanges = request.ProposedChanges.Value.SerializeToString();
                             modified = true;
                         }
 
                         if (request.OrgPositionInstance.HasBeenSet)
                         {
-                            dbItem.OrgPositionId = request.OrgPositionId.Value;
-                            modified = true;
-                        }
-
-                        if (request.OrgPositionInstance.HasBeenSet)
-                        {
-                            dbItem.OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance.Value);
+                            dbItem.OrgPositionInstance = request.OrgPositionInstance.Value.ToEntity();
                             modified = true;
 
                         }
@@ -246,85 +197,6 @@ namespace Fusion.Resources.Logic.Commands
                         }
 
                         return dbItem;
-                    }
-
-                    private static string SerializeToString(Dictionary<string, object>? properties)
-                    {
-                        var propertiesJson = JsonSerializer.Serialize(properties ?? new Dictionary<string, object>(),
-                            new JsonSerializerOptions
-                                {WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
-
-                        return propertiesJson;
-                    }
-
-                    private async Task ValidateAsync(Update request)
-                    {
-                        if (request.OrgProjectId.Value != null)
-                        {
-                            var project = await EnsureProjectAsync(request);
-                            Project = project ?? throw new InvalidOperationException("Could not locate the project!");
-                        }
-
-
-                        if (request.ProposedPersonAzureUniqueId?.Value != null)
-                        {
-                            var proposed =
-                                await profileService.EnsurePersonAsync(
-                                    new PersonId(request.ProposedPersonAzureUniqueId.Value.Value));
-                            ProposedPerson = proposed ?? throw new ProfileNotFoundError("Profile not found", null!);
-                        }
-
-                        await ValidateOriginalPositionAsync(request);
-                    }
-
-                    public DbProject? Project { get; set; }
-
-                    private static DbResourceAllocationRequest.DbPositionInstance GenerateOrgPositionInstance(
-                        Domain.ResourceAllocationRequest.QueryPositionInstance position)
-                    {
-                        return new DbResourceAllocationRequest.DbPositionInstance
-                        {
-                            AppliesFrom = position.AppliesFrom,
-                            AppliesTo = position.AppliesTo,
-                            Id = position.Id,
-                            LocationId = position.LocationId,
-                            Workload = position.Workload,
-                            Obs = position.Obs
-                        };
-                    }
-
-                    private async Task ValidateOriginalPositionAsync(Update request)
-                    {
-                        if (request.OrgPositionId.Value != null)
-                        {
-                            var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value.Value);
-
-                            if (position is null)
-                                throw InvalidOrgChartPositionError.NotFound(request.OrgPositionId.Value.Value);
-
-                            if (request.OrgProjectId.Value != null &&
-                                position.Project.ProjectId != request.OrgProjectId.Value)
-                                throw InvalidOrgChartPositionError.InvalidProject(position);
-                        }
-                    }
-
-                    private async Task<DbProject?> EnsureProjectAsync(Update request)
-                    {
-                        var orgProject = await orgResolver.ResolveProjectAsync(request.OrgProjectId.Value!.Value);
-                        if (orgProject == null)
-                            return null;
-
-                        var project =
-                            await db.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId.Value) ??
-                            new DbProject
-                            {
-                                Name = orgProject.Name,
-                                OrgProjectId = orgProject.ProjectId,
-                                DomainId = orgProject.DomainId
-                            };
-
-
-                        return project;
                     }
                 }
             }

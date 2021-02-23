@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
-using FluentValidation.Results;
-using FluentValidation.Validators;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
-using Fusion.Resources.Domain.Notifications;
 using Fusion.Resources.Domain.Queries;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
@@ -32,15 +28,11 @@ namespace Fusion.Resources.Logic.Commands
                 }
 
                 public Guid OrgProjectId { get; }
-
                 public string? AssignedDepartment { get; private set; }
                 public string? Discipline { get; private set; }
                 public QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; private set; }
-
                 public Guid? OrgPositionId { get; private set; }
-
                 public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; } = null!;
-
                 public Guid? ProposedPersonAzureUniqueId { get; private set; }
                 public string? AdditionalNote { get; private set; }
                 public Dictionary<string, object>? ProposedChanges { get; private set; }
@@ -95,7 +87,8 @@ namespace Fusion.Resources.Logic.Commands
                     return this;
                 }
 
-                public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs, Guid? locationId)
+                public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload,
+                    string? obs, Guid? locationId)
                 {
                     OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
                     {
@@ -112,32 +105,47 @@ namespace Fusion.Resources.Logic.Commands
 
                 public class Validator : AbstractValidator<Create>
                 {
-                    public Validator()
+                    public Validator(IProjectOrgResolver orgResolver, IProfileService profileService, ResourcesDbContext db)
                     {
-                        RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
-                        RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
-                        RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
-                        RuleFor(x => x.OrgPositionId).NotEmpty().When(x => x.OrgPositionId != null);
-                        RuleFor(x => x.OrgPositionInstance).NotNull();
-                        RuleFor(x => x.OrgPositionInstance).BeValidPositionInstance().When(x => x.OrgPositionInstance != null);
+                        RuleFor(x => x.OrgPositionId).MustAsync(async (id, cancel) =>
+                        {
+                            var position = await orgResolver.ResolvePositionAsync(id!.Value);
+                            return position != null;
+
+                        }).WithMessage("Position must exist in org");
+                        RuleFor(x => x.OrgPositionId).MustAsync(async (id, cancel) =>
+                        {
+                            var positionRequest = await db.ResourceAllocationRequests.FirstOrDefaultAsync(y => y.OrgPositionId == id);
+                            return positionRequest == null;
+                        }).WithMessage("Request for org position must not exist");
+                        RuleFor(x => x.OrgPositionInstance).BeValidPositionInstance();
                         RuleFor(x => x.ProposedChanges).BeValidProposedChanges().When(x => x.ProposedChanges != null);
-                        RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
-                        RuleFor(x => x.OrgProjectId).NotNull();
-                        RuleFor(x => x.IsDraft).NotNull();
+
+                        RuleFor(x => x.ProposedPersonAzureUniqueId).MustAsync(async (id, cancel) =>
+                            {
+                                var profile = await profileService.EnsurePersonAsync(new PersonId(id!.Value));
+                                return profile != null;
+
+                            }).WithMessage("Profile must exist in profile service")
+                            .When(x => x.ProposedPersonAzureUniqueId != null);
+
+                        RuleFor(x => x.OrgProjectId).MustAsync(async (id, cancel) =>
+                        {
+                            var orgProject = await orgResolver.ResolveProjectAsync(id);
+                            return orgProject != null;
+
+                        }).WithMessage("Project must exist in org");
                     }
                 }
 
-                public class Handler : IRequestHandler<Create, QueryResourceAllocationRequest
-                >
+                public class Handler : IRequestHandler<Create, QueryResourceAllocationRequest>
                 {
                     private readonly ResourcesDbContext db;
                     private readonly IMediator mediator;
                     private readonly IProjectOrgResolver orgResolver;
                     private readonly IProfileService profileService;
-                    private DbPerson? ProposedPerson { get; set; }
-
-                    public Handler(IProfileService profileService, IProjectOrgResolver orgResolver,
-                        ResourcesDbContext db, IMediator mediator)
+                    
+                    public Handler(IProfileService profileService, IProjectOrgResolver orgResolver, ResourcesDbContext db, IMediator mediator)
                     {
                         this.profileService = profileService;
                         this.orgResolver = orgResolver;
@@ -145,17 +153,10 @@ namespace Fusion.Resources.Logic.Commands
                         this.mediator = mediator;
                     }
 
-                    private DbProject? Project { get; set; }
-
                     public async Task<QueryResourceAllocationRequest> Handle(Create request, CancellationToken cancellationToken)
                     {
-                        // Validate references.
-                        await ValidateAsync(request);
-
+                       
                         var item = await PersistChangesAsync(request);
-
-                        // Prepare a notification request for Joint venture.
-                        await mediator.Publish(new InternalRequestCreated(item.Id));
 
                         var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
                         return requestItem!;
@@ -165,6 +166,12 @@ namespace Fusion.Resources.Logic.Commands
                     private async Task<DbResourceAllocationRequest> PersistChangesAsync(Create request)
                     {
                         var created = DateTimeOffset.UtcNow;
+                        var resolvedProject = await EnsureProjectAsync(request);
+                        await ValidateOrgPositionAsync(request);
+
+                        DbPerson? proposedPerson = null;
+                        if (request.ProposedPersonAzureUniqueId != null)
+                            proposedPerson = await profileService.EnsurePersonAsync(new PersonId(request.ProposedPersonAzureUniqueId.Value));
 
                         var item = new DbResourceAllocationRequest
                         {
@@ -174,15 +181,15 @@ namespace Fusion.Resources.Logic.Commands
                             Type = ParseRequestType(request),
                             State = DbResourceAllocationRequestState.Created,
 
-                            Project = Project!,
+                            Project = resolvedProject!,
 
-                            ProposedPerson = ProposedPerson,
+                            ProposedPerson = proposedPerson,
                             AdditionalNote = request.AdditionalNote,
 
                             ProposedChanges = SerializeToString(request.ProposedChanges),
 
                             OrgPositionId = request.OrgPositionId,
-                            OrgPositionInstance = GenerateOrgPositionInstance(request.OrgPositionInstance)!,
+                            OrgPositionInstance = request.OrgPositionInstance.ToEntity(),
 
                             IsDraft = request.IsDraft,
 
@@ -190,8 +197,7 @@ namespace Fusion.Resources.Logic.Commands
                             CreatedBy = request.Editor.Person,
                             LastActivity = created,
 
-                            ProposedPersonWasNotified =
-                                false, // Should be set/reset during update when/if when notifications are enabled
+                            ProposedPersonWasNotified = false, // Should be set/reset during update when/if when notifications are enabled
 
                         };
 
@@ -215,54 +221,20 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         var propertiesJson = JsonSerializer.Serialize(properties ?? new Dictionary<string, object>(),
                             new JsonSerializerOptions
-                            { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                                {WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
 
                         return propertiesJson;
                     }
-
-                    private async Task ValidateAsync(Create request)
+                    
+                    private async Task ValidateOrgPositionAsync(Create request)
                     {
-                        if (request.ProposedPersonAzureUniqueId != null)
-                        {
-                            var proposed =
-                                await profileService.EnsurePersonAsync(
-                                    new PersonId(request.ProposedPersonAzureUniqueId.Value));
-                            ProposedPerson = proposed ?? throw new InvalidOperationException("Profile not found");
-                        }
+                        var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId!.Value);
 
-                        var project = await EnsureProjectAsync(request);
-                        Project = project ?? throw new InvalidOperationException("Could not locate the project!");
+                        if (position is null)
+                            throw InvalidOrgChartPositionError.NotFound(request.OrgPositionId.Value);
 
-                        await ValidateOriginalPositionAsync(request);
-                    }
-
-                    private static DbResourceAllocationRequest.DbPositionInstance? GenerateOrgPositionInstance(Domain.ResourceAllocationRequest.QueryPositionInstance? position)
-                    {
-                        if (position == null)
-                            return null;
-                        return new DbResourceAllocationRequest.DbPositionInstance
-                        {
-                            AppliesFrom = position.AppliesFrom,
-                            AppliesTo = position.AppliesTo,
-                            Id = position.Id,
-                            LocationId = position.LocationId,
-                            Workload = position.Workload,
-                            Obs = position.Obs
-                        };
-                    }
-
-                    private async Task ValidateOriginalPositionAsync(Create request)
-                    {
-                        if (request.OrgPositionId != null)
-                        {
-                            var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
-
-                            if (position is null)
-                                throw InvalidOrgChartPositionError.NotFound(request.OrgPositionId.Value);
-
-                            if (position.Project.ProjectId != request.OrgProjectId)
-                                throw InvalidOrgChartPositionError.InvalidProject(position);
-                        }
+                        if (position.Project.ProjectId != request.OrgProjectId)
+                            throw InvalidOrgChartPositionError.InvalidProject(position);
                     }
 
                     private async Task<DbProject?> EnsureProjectAsync(Create request)

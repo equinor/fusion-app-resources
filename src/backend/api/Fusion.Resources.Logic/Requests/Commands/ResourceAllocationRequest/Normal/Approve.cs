@@ -19,10 +19,8 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     RequestId = requestId;
                 }
-
                 public Guid RequestId { get; }
-
-
+                
                 public class Handler : AsyncRequestHandler<Approve>
                 {
                     private readonly IMediator mediator;

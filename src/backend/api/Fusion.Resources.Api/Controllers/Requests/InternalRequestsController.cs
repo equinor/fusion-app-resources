@@ -157,11 +157,9 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
                         var normal = new Logic.Commands.ResourceAllocationRequest.Normal.Update(requestId)
-                            .WithProjectId(projectIdentifier?.ProjectId)
                             .WithAssignedDepartment(request.AssignedDepartment)
                             .WithDiscipline(request.Discipline)
                             .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
                             .WithProposedChanges(request.ProposedChanges)
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
@@ -175,11 +173,9 @@ namespace Fusion.Resources.Api.Controllers
                         break;
                     case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
                         var direct = new Logic.Commands.ResourceAllocationRequest.Direct.Update(requestId)
-                            .WithProjectId(projectIdentifier?.ProjectId)
                             .WithAssignedDepartment(request.AssignedDepartment)
                             .WithDiscipline(request.Discipline)
                             .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
                             .WithProposedChanges(request.ProposedChanges)
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
@@ -193,11 +189,9 @@ namespace Fusion.Resources.Api.Controllers
                         break;
                     case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
                         var jointVenture = new Logic.Commands.ResourceAllocationRequest.JointVenture.Update(requestId)
-                            .WithProjectId(projectIdentifier?.ProjectId)
                             .WithAssignedDepartment(request.AssignedDepartment)
                             .WithDiscipline(request.Discipline)
                             .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
                             .WithProposedChanges(request.ProposedChanges)
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
