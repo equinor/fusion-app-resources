@@ -186,7 +186,7 @@ namespace Fusion.Resources.Logic.Commands
                             ProposedPerson = proposedPerson,
                             AdditionalNote = request.AdditionalNote,
 
-                            ProposedChanges = SerializeToString(request.ProposedChanges),
+                            ProposedChanges = request.ProposedChanges.SerializeToString(),
 
                             OrgPositionId = request.OrgPositionId,
                             OrgPositionInstance = request.OrgPositionInstance.ToEntity(),
@@ -217,15 +217,7 @@ namespace Fusion.Resources.Logic.Commands
                         return Enum.Parse<DbResourceAllocationRequest.DbAllocationRequestType>($"{request.Type}");
                     }
 
-                    private static string SerializeToString(Dictionary<string, object>? properties)
-                    {
-                        var propertiesJson = JsonSerializer.Serialize(properties ?? new Dictionary<string, object>(),
-                            new JsonSerializerOptions
-                                {WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
-
-                        return propertiesJson;
-                    }
-                    
+                  
                     private async Task ValidateOrgPositionAsync(Create request)
                     {
                         var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId!.Value);

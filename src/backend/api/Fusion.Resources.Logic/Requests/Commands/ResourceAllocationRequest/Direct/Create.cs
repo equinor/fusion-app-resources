@@ -37,7 +37,7 @@ namespace Fusion.Resources.Logic.Commands
                 public string? AdditionalNote { get; private set; }
                 public Dictionary<string, object>? ProposedChanges { get; private set; }
                 public bool IsDraft { get; private set; }
-                
+
                 public Create WithIsDraft(bool? isDraft)
                 {
                     IsDraft = isDraft.GetValueOrDefault(true);
@@ -185,7 +185,7 @@ namespace Fusion.Resources.Logic.Commands
                             ProposedPerson = proposedPerson,
                             AdditionalNote = request.AdditionalNote,
 
-                            ProposedChanges = SerializeToString(request.ProposedChanges),
+                            ProposedChanges = request.ProposedChanges.SerializeToString(),
 
                             OrgPositionId = request.OrgPositionId,
                             OrgPositionInstance = request.OrgPositionInstance.ToEntity(),
@@ -214,14 +214,6 @@ namespace Fusion.Resources.Logic.Commands
                     private static DbResourceAllocationRequest.DbAllocationRequestType ParseRequestType(Create request)
                     {
                         return Enum.Parse<DbResourceAllocationRequest.DbAllocationRequestType>($"{request.Type}");
-                    }
-
-                    private static string SerializeToString(Dictionary<string, object>? properties)
-                    {
-                        var propertiesJson = JsonSerializer.Serialize(properties ?? new Dictionary<string, object>(),
-                            new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
-                        return propertiesJson;
                     }
 
                     private async Task ValidateOrgPositionAsync(Create request)
