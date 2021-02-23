@@ -198,8 +198,6 @@ namespace Fusion.Resources.Logic.Commands
 
                         var item = await PersistChangesAsync(request);
 
-                        await mediator.Send(new Initialize(item.Id));
-
                         var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
                         return requestItem!;
                     }

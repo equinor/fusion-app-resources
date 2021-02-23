@@ -12,6 +12,7 @@ using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Domain.Notifications;
 using Fusion.Resources.Domain.Queries;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
@@ -198,7 +199,8 @@ namespace Fusion.Resources.Logic.Commands
 
                         var item = await PersistChangesAsync(request);
 
-                        await mediator.Send(new Initialize(item.Id));
+                        // Prepare a notification request for Joint venture.
+                        await mediator.Publish(new InternalRequestCreated(item.Id));
 
                         var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
                         return requestItem!;
