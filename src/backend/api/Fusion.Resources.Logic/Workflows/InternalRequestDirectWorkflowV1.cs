@@ -26,8 +26,8 @@ namespace Fusion.Resources.Logic.Workflows
             : this()
         {
             Step(CREATED)
-                .SetDescription($"Request was created by {creator.Name}")
-                .Start()
+                .SetName("Approved")
+                .SetDescription($"{creator.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(creator, true)
                 .StartNext();
         }
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Logic.Workflows
             : base(workflow)
         {
         }
-
+       
         #region Step definitions
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")

@@ -99,7 +99,7 @@ namespace Fusion.Resources.Logic.Commands
                         switch (request.State)
                         {
                             case DbResourceAllocationRequestState.Proposed:
-                                workflow.Approved(request.Editor.Person);
+                                workflow.Proposed(request.Editor.Person);
                                 break;
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State,
