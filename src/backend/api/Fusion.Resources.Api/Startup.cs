@@ -37,8 +37,18 @@ namespace Fusion.Resources.Api
                 });
 
 
+            services.AddApiVersioning(s =>
+            {
+                s.ReportApiVersions = true;
+                s.AssumeDefaultVersionWhenUnspecified = true;
+                s.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+                s.ApiVersionReader = new Fusion.AspNetCore.Mvc.Versioning.HeaderOrQueryVersionReader("api-version");
+            });
+
             services.AddHttpContextAccessor();
             services.AddSwagger(Configuration);
+
+            
 
 
             // Configure fusion integration
