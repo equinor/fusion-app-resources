@@ -95,6 +95,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
                 services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
                 services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
+                services.AddSingleton<IOrgApiClientFactory, OrgApiClientFactoryMock>();
 
                 services.AddSingleton(sp =>
                 {

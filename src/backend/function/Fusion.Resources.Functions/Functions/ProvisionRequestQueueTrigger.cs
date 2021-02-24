@@ -6,7 +6,6 @@ using Fusion.Resources.Integration.Models.Queue;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Functions
@@ -23,7 +22,7 @@ namespace Fusion.Resources.Functions
 
         [FunctionName("provision-position-request")]
         public async Task RunAsync(
-            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")]Message message,
+            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] Message message,
             ILogger log,
             MessageReceiver messageReceiver,
             [ServiceBus("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] MessageSender sender)
@@ -55,9 +54,28 @@ namespace Fusion.Resources.Functions
                     log.LogInformation(content);
                 }
             }
+            if (payload.Type == ProvisionPositionMessageV1.RequestTypeV1.InternalPersonnel)
+            {
+                var provisionResponse = await resourcesClient.PostAsync($"/internal-requests/{payload.RequestId}/provision", null);
+
+                var content = await provisionResponse.Content.ReadAsStringAsync();
+
+                if (!provisionResponse.IsSuccessStatusCode)
+                {
+                    log.LogError($"An error occured when trying to provision the request with id {payload.RequestId}");
+                    log.LogError(content);
+
+                    throw new Exception($"An error occured when trying to provision the request with id {payload.RequestId}");
+                }
+                else
+                {
+                    log.LogInformation($"Successfully provisioned the position for request {payload.RequestId}");
+                    log.LogInformation(content);
+                }
+            }
 
 
         }
     }
-    
+
 }
