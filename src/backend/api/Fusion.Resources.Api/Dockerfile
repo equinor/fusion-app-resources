@@ -13,10 +13,20 @@ COPY ["api/Fusion.Resources.Domain/Fusion.Resources.Domain.csproj", "api/Fusion.
 COPY ["api/Fusion.Resources.Logic/Fusion.Resources.Logic.csproj", "api/Fusion.Resources.Logic/"]
 COPY ["integration/Fusion.Resources.Integration.Models/Fusion.Resources.Integration.Models.csproj", "integration/Fusion.Resources.Integration.Models/"]
 COPY ["nuget.config", "./"]
+COPY ["tests/Fusion.Resources.Api.Tests/Fusion.Resources.Api.Tests.csproj", "tests/Fusion.Resources.Api.Tests/"]  
+COPY ["tests/Fusion.Resources.Functions.Tests/Fusion.Resources.Functions.Tests.csproj", "tests/Fusion.Resources.Functions.Tests/"]  
+COPY ["tests/Fusion.Resources.Logic.Tests/Fusion.Resources.Logic.Tests.csproj", "tests/Fusion.Resources.Logic.Tests/"]  
+
 RUN dotnet restore "api/Fusion.Resources.Api/Fusion.Resources.Api.csproj"
 COPY . .
 WORKDIR "/src/api/Fusion.Resources.Api"
 RUN dotnet build "Fusion.Resources.Api.csproj" -c Release -o /app/build
+
+FROM build AS test  
+LABEL test=true  
+RUN dotnet test -c Release --results-directory /testresults --logger "trx;LogFileName=test_results.trx" tests/Fusion.Resources.Api.Tests/Fusion.Resources.Api.Tests.csproj  
+RUN dotnet test -c Release --results-directory /testresults --logger "trx;LogFileName=test_results.trx" tests/Fusion.Resources.Functions.Tests/Fusion.Resources.Functions.Tests.csproj  
+RUN dotnet test -c Release --results-directory /testresults --logger "trx;LogFileName=test_results.trx" tests/Fusion.Resources.Logic.Tests/Fusion.Resources.Logic.Tests.csproj  
 
 FROM build AS publish
 
