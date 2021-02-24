@@ -84,6 +84,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     Mail = "someone@mail.com",
                     FirstName = "Some",
                     LastName = "Person",
+                    PhoneNumber = "51515151"
                 });
                 createResp.Should().BeSuccessfull();
 
@@ -107,6 +108,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     Mail = "someone@mail.com",
                     FirstName = "Some",
                     LastName = "Person",
+                    PhoneNumber = "51515151"
                 });
                 createResp.Should().BeUnauthorized();
 
@@ -132,6 +134,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     Mail = "someone@mail.com",
                     FirstName = "Some",
                     LastName = "Person",
+                    PhoneNumber = "51515151"
                 });
                 createResp.Should().BeSuccessfull();
 
@@ -169,6 +172,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     Mail = "someone@mail.com",
                     FirstName = "Some",
                     LastName = "Person",
+                    PhoneNumber = "51515151"
                 };
                 var createResp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel", personnel, personnel);
                 createResp.Should().BeSuccessfull();

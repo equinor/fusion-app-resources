@@ -68,7 +68,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(COMPANY_APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioing process will start so the person can access contract resources.")
+                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access contract resources.")
                 .Complete(approver, true)
                 .StartNext();
         }

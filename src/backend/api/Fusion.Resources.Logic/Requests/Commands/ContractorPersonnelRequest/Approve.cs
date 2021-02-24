@@ -45,12 +45,12 @@ namespace Fusion.Resources.Logic.Commands
                             break;
 
                         default:
-                            throw new NotSupportedException();
+                            throw new NotSupportedException($"Invalid state change. Only supporting Created and SubmittedToCompany. State was:{dbRequest.State}");
                     }
                 }
             }
         }
     }
 
-    
+
 }
