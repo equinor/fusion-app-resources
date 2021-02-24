@@ -5,7 +5,10 @@ using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
+using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -20,7 +23,17 @@ namespace Fusion.Resources.Logic.Commands
                     RequestId = requestId;
                 }
                 public Guid RequestId { get; }
-                
+                public class Validator : AbstractValidator<Approve>
+                {
+                    public Validator(ResourcesDbContext db)
+                    {
+                        RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
+                        {
+                            return await db.ResourceAllocationRequests.AnyAsync(y => y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Normal);
+                        }).WithMessage($"Request of type: '{DbResourceAllocationRequest.DbAllocationRequestType.Normal}' must exist to be able to approve.");
+                    }
+                }
+
                 public class Handler : AsyncRequestHandler<Approve>
                 {
                     private readonly IMediator mediator;
@@ -32,14 +45,9 @@ namespace Fusion.Resources.Logic.Commands
 
                     protected override async Task Handle(Approve request, CancellationToken cancellationToken)
                     {
-                        var dbRequest = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId),
-                            CancellationToken.None);
-
-
-                        if (dbRequest!.Type != QueryResourceAllocationRequest.QueryAllocationRequestType.Normal)
-                            throw new NotSupportedException($"{dbRequest.Type} not supported. Should be {QueryResourceAllocationRequest.QueryAllocationRequestType.Normal}");
-
-                        switch (dbRequest.State)
+                        var dbRequest = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId), CancellationToken.None);
+                        
+                        switch (dbRequest!.State)
                         {
                             case DbResourceAllocationRequestState.Created:
                                 await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Proposed));

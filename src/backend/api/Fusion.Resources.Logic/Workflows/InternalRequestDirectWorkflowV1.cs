@@ -26,7 +26,7 @@ namespace Fusion.Resources.Logic.Workflows
             : this()
         {
             Step(CREATED)
-                .SetName("Approved")
+                .SetName("Created")
                 .SetDescription($"{creator.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(creator, true)
                 .StartNext();
@@ -42,8 +42,6 @@ namespace Fusion.Resources.Logic.Workflows
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")
             .WithDescription("Request was created and started.")
             .WithNextStep(PROVISIONING);
-
-
      
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
             .WithDescription("If the request is approved, the new position or changes will be provisioned to the organisational chart.")
