@@ -317,6 +317,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{directRequest.Project.ProjectId}/requests/{directRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Accepted");
         }
+        [Fact]
+        public async Task Post_ProjectRequest_DirectApproval_ShouldBeProvisioned()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/internal-requests/{directRequest.Request.Id}/provision", null);
+            response.Should().BeSuccessfull();
+            response.Value.ProvisioningStatus.State.Should().Be("Provisioned");
+        }
+
         #endregion
 
         #region test helpers
@@ -407,7 +417,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public DateTimeOffset? Updated { get; set; }
         public DateTimeOffset? LastActivity { get; set; }
 
-        public ObjectWithState Workflow { get; set; }
+        public ObjectWithState Workflow { get; set; } = null!;
+        public ObjectWithState ProvisioningStatus { get; set; } = null!;
 
     }
     public class ObjectWithAzureUniquePerson

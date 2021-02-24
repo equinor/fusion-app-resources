@@ -330,6 +330,57 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
+        [HttpPost("/internal-requests/{requestId}/provision")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest(Guid requestId)
+        {
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                });
+
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
+            try
+            {
+                await using var scope = await BeginTransactionAsync();
+
+                switch (result.Type)
+                {
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Provision(requestId));
+                        break;
+                }
+
+                await scope.CommitAsync();
+
+                result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+                return new ApiResourceAllocationRequest(result!);
+            }
+            catch (NotSupportedException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+        }
+
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
