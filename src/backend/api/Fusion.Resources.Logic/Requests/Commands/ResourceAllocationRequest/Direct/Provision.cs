@@ -41,13 +41,11 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     private readonly ResourcesDbContext resourcesDb;
                     private readonly IMediator mediator;
-                    private readonly IProjectOrgResolver projectOrgResolver;
 
-                    public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProjectOrgResolver projectOrgResolver)
+                    public Handler(ResourcesDbContext resourcesDb, IMediator mediator)
                     {
                         this.resourcesDb = resourcesDb;
                         this.mediator = mediator;
-                        this.projectOrgResolver = projectOrgResolver;
                     }
 
                     protected override async Task Handle(Provision request, CancellationToken cancellationToken)
@@ -71,8 +69,6 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest.OrgPositionId == null)
                             throw new InvalidOperationException(
                                 "Cannot provision change request when original position id is empty.");
-
-                        //var orgPosition = await projectOrgResolver.ResolvePositionAsync(dbRequest.OrgPositionId!.Value);
 
                         var updatePositionCommand = new UpdatePosition(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value)
                         {

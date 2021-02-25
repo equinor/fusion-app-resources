@@ -82,12 +82,25 @@ namespace Fusion.Resources.Domain.Commands
                 instance.Workload = request.Workload;
                 instance.AssignedPerson = request.AssignedPerson;
 
-                var resp = await orgClient.UpdatePositionInstanceAsync(method, position);
+                if (method == HttpMethod.Patch)
+                {
+                    var resp = await orgClient.PatchPositionInstanceAsync(position);
 
-                if (resp.IsSuccessStatusCode)
-                    return resp.Value;
+                    if (resp.IsSuccessStatusCode)
+                        return resp.Value;
 
-                throw new OrgApiError(resp.Response, resp.Content);
+                    throw new OrgApiError(resp.Response, resp.Content);
+                }
+                else
+                {
+                    var resp = await orgClient.PutPositionAsync(position);
+
+                    if (resp.IsSuccessStatusCode)
+                        return resp.Value;
+
+                    throw new OrgApiError(resp.Response, resp.Content);
+                }
+
             }
 
             private static InvalidOperationException GenerateMultiInstanceError(ApiPositionV2 position)

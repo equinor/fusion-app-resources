@@ -26,7 +26,7 @@ namespace Fusion.Resources.Domain
             return await RequestResponse<TResponse>.FromResponseAsync(response);
         }
 
-        public static async Task<RequestResponse<ApiPositionV2>> UpdatePositionInstanceAsync(this IOrgApiClient client, HttpMethod method, ApiPositionV2 position)
+        public static async Task<RequestResponse<ApiPositionV2>> PatchPositionInstanceAsync(this IOrgApiClient client, ApiPositionV2 position)
         {
             if (position.Id == Guid.Empty)
                 throw new ArgumentException("Position id cannot be empty when updating.");
@@ -41,7 +41,7 @@ namespace Fusion.Resources.Domain
 
             var url = $"projects/{position.ProjectId}/positions/{position.Id}/instances/{positionInstance.Id}";
 
-            var request = new HttpRequestMessage(method, url);
+            var request = new HttpRequestMessage(HttpMethod.Patch, url);
             request.Content = new StringContent(JsonConvert.SerializeObject(positionInstance), Encoding.UTF8, "application/json");
 
             var response = await client.SendAsync(request);
