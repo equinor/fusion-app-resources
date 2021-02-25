@@ -138,6 +138,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/projects/{normalRequest.Project.ProjectId}/requests/{Guid.NewGuid()}");
             response.Should().BeNotFound();
         }
+        [Fact]
+        public async Task Delete_RequestComment_ShouldBeDeleted()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}");
+            response.Should().BeSuccessfull();
+        }
+        [Fact]
+        public async Task Delete_NonExistingRequestComment_ShouldBeNotFound()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{Guid.NewGuid()}");
+            response.Should().BeNotFound();
+        }
         #endregion
 
         #region get tests
@@ -208,6 +224,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Value.Count().Should().BeGreaterThan(0);
 
         }
+        [Fact]
+        public async Task Get_RequestComment_ShouldBeFound()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientGetAsync<ObjectWithId>($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{testCommentId}");
+            response.Should().BeSuccessfull();
+        }
         #endregion
 
         #region put tests
@@ -277,6 +301,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{normalRequest.Request.Id}", updateRequest);
             response.Value.Updated.Should().BeNull();
         }
+
+        [Fact]
+        public async Task Put_RequestComment_ShouldBeUpdated()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPutAsync<ObjectWithId>($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
+            response.Should().BeSuccessfull();
+        }
         #endregion
 
         #region post tests
@@ -326,41 +359,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.State.Should().Be("Accepted");
         }
         #endregion
-
-        [Fact]
-        public async Task Put_RequestComment_ShouldBeUpdated()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var response = await Client.TestClientPutAsync<object>($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
-            response.Should().BeSuccessfull();
-        }
-
-        [Fact]
-        public async Task Delete_RequestComment_ShouldBeDeleted()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}");
-            response.Should().BeSuccessfull();
-        }
-        [Fact]
-        public async Task Delete_NonExistingRequestComment_ShouldBeNotFound()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{Guid.NewGuid()}");
-            response.Should().BeNotFound();
-        }
-        [Fact]
-        public async Task Get_RequestComment_ShouldBeFound()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var response = await Client.TestClientGetAsync<object>($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{testCommentId}");
-            response.Should().BeSuccessfull();
-        }
-
 
         #region test helpers
         private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response, CreateResourceAllocationRequest request, TestClientScope scope)

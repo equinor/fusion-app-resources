@@ -59,8 +59,8 @@ namespace Fusion.Resources.Domain.Commands
                     "consultant" => DbRequestComment.DbOrigin.Company,
                     "employee" => DbRequestComment.DbOrigin.Company,
                     "external" => DbRequestComment.DbOrigin.Contractor,
-                    _ => DbRequestComment.DbOrigin.Internal
-                    //_ => throw new InvalidOperationException("Unable to resolve origin. Aborting add operation.")
+                    "local" => DbRequestComment.DbOrigin.Local,
+                    _ => throw new InvalidOperationException($"Unable to resolve origin: '{command.Editor.Person.AccountType.ToLower()}'. Aborting add operation.")
                 };
 
                 var comment = new DbRequestComment
