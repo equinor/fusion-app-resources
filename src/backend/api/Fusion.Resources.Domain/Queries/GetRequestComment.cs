@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetRequestComment : IRequest<QueryRequestComment>
+    public class GetRequestComment : IRequest<QueryRequestComment?>
     {
         public GetRequestComment(Guid commentId)
         {

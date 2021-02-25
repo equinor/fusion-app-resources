@@ -3,6 +3,7 @@ using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.AspNetCore.OData;
 using Fusion.Integration.Org;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,28 @@ namespace Fusion.Resources.Domain.Queries
             RequestId = requestId;
         }
 
+        public GetResourceAllocationRequestItem WithQuery(ODataQueryParams query)
+        {
+            if (query.ShoudExpand("comments"))
+            {
+                Expands |= ExpandProperties.RequestComments;
+            }
+
+           
+            return this;
+        }
         public Guid RequestId { get; }
+
+        
+        public ExpandProperties Expands { get; set; }
+
+        [Flags]
+        public enum ExpandProperties
+        {
+            None = 0,
+            RequestComments = 1 << 0,
+            All = RequestComments
+        }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
         {
@@ -46,6 +68,14 @@ namespace Fusion.Resources.Domain.Queries
 
                 var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
                 var requestItem = new QueryResourceAllocationRequest(row, workflow);
+
+
+                if (request.Expands.HasFlag(ExpandProperties.RequestComments))
+                {
+                    var comments = await mediator.Send(new GetRequestComments(request.RequestId));
+                    requestItem.WithComments(comments);
+                }
+
 
                 if (requestItem.OrgPositionId == null) 
                     return requestItem;

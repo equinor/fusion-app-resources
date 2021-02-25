@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
@@ -259,9 +260,9 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/resources/internal-requests/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -391,7 +392,7 @@ namespace Fusion.Resources.Api.Controllers
 
         #region Comments
         [HttpPost("/resources/internal-requests/requests/{requestId}/comments")]
-        public async Task<ActionResult> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
+        public async Task<ActionResult<ApiRequestComment>> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
         {
             #region Authorization
 
@@ -405,17 +406,54 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            await DispatchAsync(new AddComment(requestId, create.Content));
+            var comment = await DispatchAsync(new AddComment(RequestType.Internal, requestId, create.Content));
 
-            return NoContent();
+            return Created($"/resources/internal-requests/requests/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));
+        }
+
+        [HttpGet("/resources/internal-requests/requests/{requestId}/comments")]
+        public async Task<ActionResult<IEnumerable<ApiRequestComment>>> GetRequestComment(Guid requestId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var comments = await DispatchAsync(new GetRequestComments(requestId));
+            return comments.Select(x => new ApiRequestComment(x)).ToList();
+        }
+        [HttpGet("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult<ApiRequestComment>> GetRequestComment(Guid requestId, Guid commentId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+            return new ApiRequestComment(comment!);
         }
 
         [HttpPut("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult> UpdateRequestComment(Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+        public async Task<ActionResult<ApiRequestComment>> UpdateRequestComment(Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
-            if (comment == null)
+            if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
             #region Authorization
@@ -432,7 +470,8 @@ namespace Fusion.Resources.Api.Controllers
 
             await DispatchAsync(new UpdateComment(commentId, update.Content));
 
-            return NoContent();
+            comment = await DispatchAsync(new GetRequestComment(commentId));
+            return new ApiRequestComment(comment!);
         }
 
         [HttpDelete("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
@@ -440,7 +479,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
-            if (comment == null)
+            if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
             #region Authorization

@@ -8,19 +8,21 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class AddComment : TrackableRequest
+    public class AddComment : TrackableRequest<QueryRequestComment>
     {
-        public AddComment(Guid requestId, string comment)
+        public AddComment(RequestType type, Guid requestId, string comment)
         {
+            Type = type;
             RequestId = requestId;
             Comment = comment;
         }
 
+        public RequestType Type { get; }
         public Guid RequestId { get; }
 
         public string Comment { get; }
 
-        public class Handler : AsyncRequestHandler<AddComment>
+        public class Handler : IRequestHandler<AddComment, QueryRequestComment>
         {
             private readonly ResourcesDbContext db;
             private readonly IMediator mediator;
@@ -31,19 +33,34 @@ namespace Fusion.Resources.Domain.Commands
                 this.mediator = mediator;
             }
 
-            protected override async Task Handle(AddComment command, CancellationToken cancellationToken)
+            public async Task<QueryRequestComment> Handle(AddComment command, CancellationToken cancellationToken)
             {
-                var contractorRequest = await db.ContractorRequests.FirstOrDefaultAsync(c => c.Id == command.RequestId);
+                switch (command.Type)
+                {
+                    case RequestType.Internal:
+                        var request = await db.ResourceAllocationRequests.FirstOrDefaultAsync(c => c.Id == command.RequestId);
 
-                if (contractorRequest == null)
-                    throw new InvalidOperationException($"Contractor request with id '{command.RequestId}' was not found");
+                        if (request == null)
+                            throw new InvalidOperationException($"Internal equest with id '{command.RequestId}' was not found");
+                        break;
+
+                    default:
+                        var contractorRequest = await db.ContractorRequests.FirstOrDefaultAsync(c => c.Id == command.RequestId);
+
+                        if (contractorRequest == null)
+                            throw new InvalidOperationException($"Contractor request with id '{command.RequestId}' was not found");
+                        break;
+
+                }
+
 
                 var origin = command.Editor.Person.AccountType.ToLower() switch
                 {
                     "consultant" => DbRequestComment.DbOrigin.Company,
                     "employee" => DbRequestComment.DbOrigin.Company,
                     "external" => DbRequestComment.DbOrigin.Contractor,
-                    _ => throw new InvalidOperationException("Unable to resolve origin. Aborting add operation.")
+                    _ => DbRequestComment.DbOrigin.Internal
+                    //_ => throw new InvalidOperationException("Unable to resolve origin. Aborting add operation.")
                 };
 
                 var comment = new DbRequestComment
@@ -60,7 +77,14 @@ namespace Fusion.Resources.Domain.Commands
                 await db.SaveChangesAsync();
 
                 await mediator.Publish(new Notifications.CommentAdded(comment.Id));
+
+                return new QueryRequestComment(comment);
             }
         }
+    }
+
+    public enum RequestType
+    {
+        External, Internal
     }
 }

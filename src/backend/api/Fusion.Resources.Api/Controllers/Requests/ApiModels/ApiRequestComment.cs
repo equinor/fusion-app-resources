@@ -8,6 +8,7 @@ namespace Fusion.Resources.Api.Controllers
     {
         public ApiRequestComment(QueryRequestComment queryComment)
         {
+            Id = queryComment.Id;
             Created = queryComment.Created;
             CreatedBy = new ApiPerson(queryComment.CreatedBy);
             Updated = queryComment.Updated;
@@ -20,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers
             else
                 Origin = ApiCommentOrigin.Unknown;
         }
-
+        public Guid Id { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public ApiPerson CreatedBy { get; set; } = null!;

@@ -343,7 +343,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            await DispatchAsync(new AddComment(requestId, create.Content));
+            await DispatchAsync(new AddComment(RequestType.External, requestId, create.Content));
 
             return NoContent();
         }

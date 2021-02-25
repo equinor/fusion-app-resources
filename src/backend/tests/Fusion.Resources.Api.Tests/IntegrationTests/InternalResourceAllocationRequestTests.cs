@@ -34,7 +34,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestResourceAllocationBuilder normalRequest = null!;
         private FusionTestResourceAllocationBuilder directRequest = null!;
         private FusionTestResourceAllocationBuilder jointVentureRequest = null!;
-        private FusionTestProjectBuilder testProject;
+        private FusionTestProjectBuilder testProject = null!;
+        private Guid? testCommentId;
 
         public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -109,6 +110,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response = await adminClient.TestClientPostAsync($"/projects/{directRequest.Project.ProjectId}/requests", directRequest.Request, new { Id = Guid.Empty });
             response.Should().BeSuccessfull();
             directRequest.Request.Id = response.Value.Id;
+
+            var commentResponse = await adminClient.TestClientPostAsync($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
+            commentResponse.Should().BeSuccessfull();
+            testCommentId = commentResponse.Value.Id;
         }
 
         public Task DisposeAsync()
@@ -185,8 +190,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Get_InternalRequest_ShouldBeAuthorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{normalRequest.Request.Id}");
+            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{normalRequest.Request.Id}?$expand=comments");
             response.Should().BeSuccessfull();
+            
+            // Test comment expansion
+            response.Value.Comments!.Count().Should().BeGreaterOrEqualTo(1);
 
             AssertPropsAreEqual(response.Value, normalRequest.Request, adminScope);
         }
@@ -314,10 +322,45 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{directRequest.Project.ProjectId}/requests/{directRequest.Request.Id}/approve", null);
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{normalRequest.Project.ProjectId}/requests/{normalRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Accepted");
         }
         #endregion
+
+        [Fact]
+        public async Task Put_RequestComment_ShouldBeUpdated()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPutAsync<object>($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
+            response.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task Delete_RequestComment_ShouldBeDeleted()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}");
+            response.Should().BeSuccessfull();
+        }
+        [Fact]
+        public async Task Delete_NonExistingRequestComment_ShouldBeNotFound()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{Guid.NewGuid()}");
+            response.Should().BeNotFound();
+        }
+        [Fact]
+        public async Task Get_RequestComment_ShouldBeFound()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientGetAsync<object>($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{testCommentId}");
+            response.Should().BeSuccessfull();
+        }
+
 
         #region test helpers
         private static void AssertPropsAreEqual(ResourceAllocationRequestTestModel response, CreateResourceAllocationRequest request, TestClientScope scope)
@@ -400,14 +443,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public ObjectWithAzureUniquePerson? ProposedPerson { get; set; }
 
-        public ObjectWithAzureUniquePerson CreatedBy { get; set; }
+        public ObjectWithAzureUniquePerson CreatedBy { get; set; } = null!;
         public ObjectWithAzureUniquePerson? UpdatedBy { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public DateTimeOffset? LastActivity { get; set; }
 
-        public ObjectWithState Workflow { get; set; }
+        public ObjectWithState Workflow { get; set; } = null!;
+        public IEnumerable<ObjectWithId>? Comments { get; set; }
+
 
     }
     public class ObjectWithAzureUniquePerson
@@ -421,7 +466,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     }
     public class ObjectWithState
     {
-        public string State { get; set; }
+        public string? State { get; set; }
     }
     #endregion
 }
