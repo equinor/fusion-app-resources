@@ -22,13 +22,8 @@ namespace Fusion.Resources.Domain.Commands
             if (position.BasePosition == null || position.BasePosition.Id == Guid.Empty)
                 throw new ArgumentException("BasePosition property must be defined and contain non-empty id.");
 
-
             OrgProjectId = position.Project.ProjectId;
             PositionId = position.Id;
-
-            BasePositionId = position.BasePosition.Id;
-            PositionName = position.Name;
-            ExternalId = position.ExternalId;
 
             var instance = position.Instances.FirstOrDefault();
             if (instance != null)
@@ -49,15 +44,11 @@ namespace Fusion.Resources.Domain.Commands
         }
         public Guid OrgProjectId { get; }
         public Guid PositionId { get; }
-        public Guid BasePositionId { get; set; }
-        public string? PositionName { get; set; }
-        public string? ExternalId { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
         public double? Workload { get; set; }
         public PersonId? AssignedPerson { get; set; }
         public string? Obs { get; set; }
-        public Guid? ParentPositionId { get; set; }
 
 
         public class Handler : IRequestHandler<UpdatePosition, ApiPositionV2>

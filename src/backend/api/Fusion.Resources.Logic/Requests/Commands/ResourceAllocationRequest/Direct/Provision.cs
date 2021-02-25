@@ -72,18 +72,15 @@ namespace Fusion.Resources.Logic.Commands
                             throw new InvalidOperationException(
                                 "Cannot provision change request when original position id is empty.");
 
-                        var orgPosition = await projectOrgResolver.ResolvePositionAsync(dbRequest.OrgPositionId!.Value);
+                        //var orgPosition = await projectOrgResolver.ResolvePositionAsync(dbRequest.OrgPositionId!.Value);
 
                         var updatePositionCommand = new UpdatePosition(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value)
                         {
                             AppliesFrom = dbRequest.OrgPositionInstance.AppliesFrom,
                             AppliesTo = dbRequest.OrgPositionInstance.AppliesTo,
-                            PositionName = orgPosition!.Name,
                             Workload = dbRequest.OrgPositionInstance.Workload.GetValueOrDefault(),
                             Obs = dbRequest.OrgPositionInstance.Obs,
-                            BasePositionId = orgPosition.BasePosition.Id,
-                            AssignedPerson = dbRequest.ProposedPerson!.Mail!,
-                            //ParentPositionId = orgPosition.TaskOwner.PositionId
+                            AssignedPerson = dbRequest.ProposedPerson!.AzureUniqueId
                         };
 
                         dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
