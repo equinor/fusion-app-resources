@@ -322,7 +322,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{normalRequest.Project.ProjectId}/requests/{normalRequest.Request.Id}/approve", null);
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{directRequest.Project.ProjectId}/requests/{directRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Accepted");
         }
         #endregion
