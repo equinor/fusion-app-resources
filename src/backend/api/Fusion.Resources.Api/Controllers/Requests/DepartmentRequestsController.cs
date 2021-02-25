@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
                     // add requirements
@@ -32,8 +32,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             #endregion
 
-            var requestCommand = new GetResourceAllocationRequests(query);
-            requestCommand.WithAssignedDepartment(departmentString);
+            var requestCommand = new GetResourceAllocationRequests(query)
+                .WithAssignedDepartment(departmentString);
             var result = await DispatchAsync(requestCommand);
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();

@@ -279,22 +279,58 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
         
         [Fact]
-        public async Task GetDepartmentRequests_ShouldBe_Successful()
+        public async Task GetDepartmentRequests_ShouldIncludeRequest_WhenCurrentDepartment()
         {
             using var adminScope = fixture.AdminScope();
 
-            var anotherTestRequest = new FusionTestResourceAllocationBuilder()
+            var newRequest = new FusionTestResourceAllocationBuilder()
                .WithOrgPositionId(testProject.Positions.First())
                .WithProject(testProject.Project)
                .WithProposedPerson(testProfile)
-               .WithAssignedDepartment("Different department");
+               .WithAssignedDepartment("Current department");
             ;
-            await Client.TestClientPostAsync($"/projects/{anotherTestRequest.Project.ProjectId}/requests", anotherTestRequest.Request, new { Id = Guid.Empty });
-            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{anotherTestRequest.Request.AssignedDepartment}/resources/requests");
+            await Client.TestClientPostAsync($"/projects/{newRequest.Project.ProjectId}/requests", newRequest.Request, new { Id = Guid.Empty });
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{newRequest.Request.AssignedDepartment}/resources/requests");
             response.Should().BeSuccessfull();
 
-            response.Value.Value.Count().Should().Be(1);
-            AssertPropsAreEqual(response.Value.Value.First(), anotherTestRequest.Request, adminScope);
+            response.Value.Value.Should().HaveCount(1);
+            response.Value.Value.Should().OnlyContain(r => r.AssignedDepartment == "Current department");
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldNotIncludeRequests_WhenAssignedDepartmentEmpty()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var unassignedRequest = new FusionTestResourceAllocationBuilder()
+               .WithOrgPositionId(testProject.Positions.First())
+               .WithProject(testProject.Project)
+               .WithProposedPerson(testProfile)
+               .WithAssignedDepartment(null);
+            ;
+            await Client.TestClientPostAsync($"/projects/{unassignedRequest.Project.ProjectId}/requests", unassignedRequest.Request, new { Id = Guid.Empty });
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/some department string/resources/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Value.Should().HaveCount(0);
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldNotIncludeRequests_WhenAssignedDepartmentNotCurrentDepartment()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var otherDepartmentRequest = new FusionTestResourceAllocationBuilder()
+               .WithOrgPositionId(testProject.Positions.First())
+               .WithProject(testProject.Project)
+               .WithProposedPerson(testProfile)
+               .WithAssignedDepartment("Other department");
+            ;
+            await Client.TestClientPostAsync($"/projects/{otherDepartmentRequest.Project.ProjectId}/requests", otherDepartmentRequest.Request, new { Id = Guid.Empty });
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/some department string/resources/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Value.Should().NotContain(r => r.AssignedDepartment == "Other department");
         }
 
         [Fact]
