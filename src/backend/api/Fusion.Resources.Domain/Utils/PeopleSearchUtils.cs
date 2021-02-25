@@ -11,7 +11,7 @@ namespace Fusion.Resources.Domain
     public static class PeopleSearchUtils
     {
         public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, params string[] departments) 
-            => await GetDepartmentFromSearchIndexAsync(peopleClient, departments);
+            => await GetDepartmentFromSearchIndexAsync(peopleClient, departments.AsEnumerable());
         public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, IEnumerable<string> departments)
         {
             var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
