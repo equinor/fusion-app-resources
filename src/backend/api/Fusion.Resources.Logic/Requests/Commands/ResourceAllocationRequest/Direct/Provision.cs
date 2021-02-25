@@ -34,6 +34,8 @@ namespace Fusion.Resources.Logic.Commands
                             return await db.ResourceAllocationRequests.AnyAsync(y =>
                                 y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Direct);
                         }).WithMessage($"Request must exist.");
+
+                        // Valider om instansen eksisterer
                     }
                 }
 
@@ -70,6 +72,15 @@ namespace Fusion.Resources.Logic.Commands
                             throw new InvalidOperationException(
                                 "Cannot provision change request when original position id is empty.");
 
+                        ///Kommando for å oppdatere en versjon av posisjons-instansen
+                        /// I stedenfor UpdatePosition => Assign TBN Position Instance
+                        ///
+                        /// Bruk versjon 2 av Org - sørg for å mappe proposedchanges dict.
+                        /// Beskrive i kommandoen at det er versjon-2 som brukes
+                        ///
+                        /// 
+                        /// 
+                        ///dbRequest.ProposedChanges
                         var updatePositionCommand = new UpdatePosition(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value)
                         {
                             AppliesFrom = dbRequest.OrgPositionInstance.AppliesFrom,

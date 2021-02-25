@@ -322,7 +322,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/internal-requests/{directRequest.Request.Id}/provision", null);
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{directRequest.Request.Id}/provision", null);
             response.Should().BeSuccessfull();
             response.Value.ProvisioningStatus.State.Should().Be("Provisioned");
         }

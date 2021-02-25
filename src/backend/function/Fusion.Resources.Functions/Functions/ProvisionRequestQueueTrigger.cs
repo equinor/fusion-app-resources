@@ -56,7 +56,7 @@ namespace Fusion.Resources.Functions
             }
             if (payload.Type == ProvisionPositionMessageV1.RequestTypeV1.InternalPersonnel)
             {
-                var provisionResponse = await resourcesClient.PostAsync($"/internal-requests/{payload.RequestId}/provision", null);
+                var provisionResponse = await resourcesClient.PostAsync($"/resources/requests/internal/{payload.RequestId}/provision", null);
 
                 var content = await provisionResponse.Content.ReadAsStringAsync();
 

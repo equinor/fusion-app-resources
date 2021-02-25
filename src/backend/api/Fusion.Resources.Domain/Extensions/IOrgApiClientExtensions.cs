@@ -26,23 +26,20 @@ namespace Fusion.Resources.Domain
             return await RequestResponse<TResponse>.FromResponseAsync(response);
         }
 
-        public static async Task<RequestResponse<ApiPositionV2>> PatchPositionInstanceAsync(this IOrgApiClient client, ApiPositionV2 position)
+        public static async Task<RequestResponse<ApiPositionV2>> PatchPositionInstanceAsync(this IOrgApiClient client, ApiPositionV2 position, ApiPositionInstanceV2 instance)
         {
             if (position.Id == Guid.Empty)
                 throw new ArgumentException("Position id cannot be empty when updating.");
 
-            if (!position.Instances.Any())
-                throw new ArgumentException("Position instances cannot be empty when updating.");
-
             if (position.ProjectId == Guid.Empty && (position.Project?.ProjectId == null || position.Project.ProjectId == Guid.Empty))
                 throw new ArgumentException("Could not locate the project id on the position. Cannot generate url from position");
 
-            var positionInstance = position.Instances.First();
 
-            var url = $"projects/{position.ProjectId}/positions/{position.Id}/instances/{positionInstance.Id}";
+
+            var url = $"projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}";
 
             var request = new HttpRequestMessage(HttpMethod.Patch, url);
-            request.Content = new StringContent(JsonConvert.SerializeObject(positionInstance), Encoding.UTF8, "application/json");
+            request.Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json");
 
             var response = await client.SendAsync(request);
 

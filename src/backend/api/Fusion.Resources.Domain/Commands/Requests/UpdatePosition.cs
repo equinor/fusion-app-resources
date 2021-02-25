@@ -84,7 +84,8 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (method == HttpMethod.Patch)
                 {
-                    var resp = await orgClient.PatchPositionInstanceAsync(position);
+
+                    var resp = await orgClient.PatchPositionInstanceAsync(position, instance);
 
                     if (resp.IsSuccessStatusCode)
                         return resp.Value;
