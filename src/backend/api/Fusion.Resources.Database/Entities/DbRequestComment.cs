@@ -35,6 +35,6 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbRequestComment>(c => c.Property(e => e.Origin).HasConversion(new EnumToStringConverter<DbOrigin>()));
         }
 
-        public enum DbOrigin { Company, Contractor, Local }
+        public enum DbOrigin { Company, Contractor, Local, Application }
     }
 }

@@ -60,6 +60,7 @@ namespace Fusion.Resources.Domain.Commands
                     "employee" => DbRequestComment.DbOrigin.Company,
                     "external" => DbRequestComment.DbOrigin.Contractor,
                     "local" => DbRequestComment.DbOrigin.Local,
+                    "application" =>DbRequestComment.DbOrigin.Application,
                     _ => throw new InvalidOperationException($"Unable to resolve origin: '{command.Editor.Person.AccountType.ToLower()}'. Aborting add operation.")
                 };
 
