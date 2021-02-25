@@ -2,23 +2,24 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Integration.Http;
 using Fusion.Resources.Database;
-using Itenso.TimePeriod;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetDepartmentPersonnel : IRequest<IEnumerable<QueryInternalPersonnelPerson>>
+    public class GetSectorPersonnel : IRequest<IEnumerable<QueryInternalPersonnelPerson>>
     {
 
-        public GetDepartmentPersonnel(string department, ODataQueryParams? queryParams = null)
+        public GetSectorPersonnel(string department, ODataQueryParams? queryParams = null)
         {
             Department = department;
             QueryParams = queryParams;
@@ -33,7 +34,7 @@ namespace Fusion.Resources.Domain
         public DateTime? TimelineEnd { get; set; }
 
 
-        public GetDepartmentPersonnel WithTimeline(bool shouldExpandTimeline, DateTime? start, DateTime? end)
+        public GetSectorPersonnel WithTimeline(bool shouldExpandTimeline, DateTime? start, DateTime? end)
         {
             ExpandTimeline = shouldExpandTimeline;
             TimelineStart = start;
@@ -43,7 +44,7 @@ namespace Fusion.Resources.Domain
         }
 
 
-        public class Validator : AbstractValidator<GetDepartmentPersonnel>
+        public class Validator : AbstractValidator<GetSectorPersonnel>
         {
             public Validator()
             {
@@ -54,7 +55,7 @@ namespace Fusion.Resources.Domain
             }
         }
 
-        public class Handler : IRequestHandler<GetDepartmentPersonnel, IEnumerable<QueryInternalPersonnelPerson>>
+        public class Handler : IRequestHandler<GetSectorPersonnel, IEnumerable<QueryInternalPersonnelPerson>>
         {
             private readonly ResourcesDbContext db;
             private readonly IHttpClientFactory httpClientFactory;
@@ -65,11 +66,10 @@ namespace Fusion.Resources.Domain
                 this.httpClientFactory = httpClientFactory;
             }
 
-            public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetSectorPersonnel request, CancellationToken cancellationToken)
             {
                 var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department);
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
-
 
                 departmentPersonnel.ForEach(p =>
                 {
@@ -101,13 +101,20 @@ namespace Fusion.Resources.Domain
 
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString)
             {
-                var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
+                var sectorInfo = LoadSectorInfo();
+                if (!sectorInfo.TryGetValue(fullDepartmentString.ToUpper(), out string? sector))
+                    throw new InvalidOperationException($"Could not locate any sector for the department '{fullDepartmentString}'");
 
-                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
-                return departmentPersonnel;
+                var departments = sectorInfo.Where(kv => kv.Value == sector && kv.Key != sector).Select(kv => kv.Key).ToList();
+
+
+                var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
+                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, departments);
+
+                return sectorPersonnel;
             }
 
-            private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds) 
+            private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)
             {
                 var ids = azureIds.ToArray();
 
@@ -121,6 +128,32 @@ namespace Fusion.Resources.Domain
                 return personsAbsence;
             }
 
+           
+            private static Dictionary<string, string> departmentSectors = null!;
+
+            private Dictionary<string, string> LoadSectorInfo()
+            {
+                if (departmentSectors is null)
+                {
+                    using (var s = Assembly.GetEntryAssembly().GetManifestResourceStream("Fusion.Resources.Api.Controllers.Person.departmentSectors.json"))
+                    using (var r = new StreamReader(s))
+                    {
+                        var json = r.ReadToEnd();
+
+                        var sectorInfo = JsonConvert.DeserializeAnonymousType(json, new[] { new { sector = string.Empty, departments = Array.Empty<string>() } });
+
+                        departmentSectors = new Dictionary<string, string>();
+
+                        foreach (var sector in sectorInfo)
+                        {
+                            sector.departments.ToList().ForEach(d => departmentSectors[d] = sector.sector);
+                            departmentSectors[sector.sector] = sector.sector;
+                        }
+                    }
+                }
+
+                return departmentSectors;
+            }
         }
     }
 }

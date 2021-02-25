@@ -9,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiInternalPersonnelPerson
     {
-        public ApiInternalPersonnelPerson(QueryDepartmentPersonnelPerson p)
+        public ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p)
         {
             AzureUniquePersonId = p.AzureUniqueId;
             Mail = p.Mail!;
@@ -59,7 +59,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineRange
         {
-            public TimelineRange(QueryTimelineRange<QueryDepartmentPersonnelPerson.PersonnelTimelineItem> ti)
+            public TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti)
             {
                 AppliesFrom = ti.AppliesFrom;
                 AppliesTo = ti.AppliesTo;
@@ -76,7 +76,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineItem
         {
-            public TimelineItem(QueryDepartmentPersonnelPerson.PersonnelTimelineItem item)
+            public TimelineItem(QueryPersonnelTimelineItem item)
             {
                 Id = item.Id;
                 Workload = item.Workload;
@@ -100,7 +100,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class PersonnelPosition
         {
-            public PersonnelPosition(QueryDepartmentPersonnelPerson.PersonnelPosition pos)
+            public PersonnelPosition(QueryPersonnelPosition pos)
             {
                 PositionId = pos.PositionId;
                 InstanceId = pos.InstanceId;
