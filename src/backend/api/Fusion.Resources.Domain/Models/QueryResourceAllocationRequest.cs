@@ -49,7 +49,7 @@ namespace Fusion.Resources.Domain
         public string? Discipline { get; set; }
         public QueryAllocationRequestType Type { get; set; }
         public QueryWorkflow? Workflow { get; set; }
-        public DbRequestState State { get; set; }
+        public DbResourceAllocationRequestState State { get; set; }
 
         public QueryProject Project { get; set; }
         public ApiPositionV2? OrgPosition { get; set; }
