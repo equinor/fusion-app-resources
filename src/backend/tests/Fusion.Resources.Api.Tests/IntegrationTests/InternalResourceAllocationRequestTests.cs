@@ -66,7 +66,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "obs", "obsText" }, { "workload", 45.2 } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -75,7 +75,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(1).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", DateTimeOffset.UtcNow.Date }, { "workload", 41 } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -84,7 +84,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(2).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "name", "Test Name" }, { "workload", 66 } })
                     .WithProject(testProject.Project)
                 ;
 

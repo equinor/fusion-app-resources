@@ -330,7 +330,7 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
-        [HttpPost("/resources/internal-requests/{requestId}/provision")]
+        [HttpPost("/resources/requests/internal/{requestId}/provision")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest(Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
