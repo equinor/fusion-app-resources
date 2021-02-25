@@ -21,18 +21,19 @@ using Fusion.Integration.Roles;
 using Fusion.Testing;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Services;
+using System.Linq;
+using System.Reflection;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
     public class ResourcesApiWebAppFactory : WebApplicationFactory<Startup>
     {
-
         public readonly PeopleServiceMock peopleServiceMock;
         public readonly OrgServiceMock orgServiceMock;
         public readonly ContextResolverMock contextResolverMock;
         internal readonly RolesClientMock roleClientMock;
 
-        private string resourceDbConnectionString = TestDbConnectionStrings.LocalDb($"resources-app-{DateTime.Now:yyyy-MM-dd-HHmmss}");
+        private string resourceDbConnectionString = TestDbConnectionStrings.LocalDb($"resources-app-{DateTime.Now:yyyy-MM-dd-HHmmss}-{Guid.NewGuid()}");
 
         public ResourcesApiWebAppFactory()
         {
@@ -52,7 +53,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
         }
 
         private void EnsureDatabase()
-        {
+        {            
             var services = new ServiceCollection();
             services.AddDbContext<ResourcesDbContext>(options =>
             {
@@ -69,45 +70,52 @@ namespace Fusion.Resources.Api.Tests.Fixture
             }
         }
 
+        private static object locker = new object();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.ConfigureAppConfiguration(cfgBuilder =>
+            lock (locker)
             {
-                cfgBuilder.AddInMemoryCollection(new Dictionary<string, string>()
+                var fld = typeof(OrgConfigurationExtensions).GetField("hasAddedServices", BindingFlags.NonPublic | BindingFlags.Static);
+                fld.SetValue(null, false);
+
+                builder.ConfigureAppConfiguration(cfgBuilder =>
                 {
+                    cfgBuilder.AddInMemoryCollection(new Dictionary<string, string>()
+                    {
                     { $"ConnectionStrings:{nameof(ResourcesDbContext)}", resourceDbConnectionString }
+                    });
                 });
-            });
 
-            builder.ConfigureTestServices(services =>
-            {
-                services.AddIntegrationTestingAuthentication();
-                services.TryRemoveTransientEventHandlers();
+                builder.ConfigureTestServices(services =>
+                {
+                    services.AddIntegrationTestingAuthentication();
+                    services.TryRemoveTransientEventHandlers();
 
-                services.TryRemoveImplementationService("PeopleEventReceiver");
-                services.TryRemoveImplementationService("OrgEventReceiver");
-                services.TryRemoveImplementationService("ContextEventReceiver");
-                services.TryRemoveImplementationService<ICompanyResolver>();
+                    services.TryRemoveImplementationService("PeopleEventReceiver");
+                    services.TryRemoveImplementationService("OrgEventReceiver");
+                    services.TryRemoveImplementationService("ContextEventReceiver");
+                    services.TryRemoveImplementationService<ICompanyResolver>();
 
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
-                services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
-                services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
-                services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
-                services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
+                    services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
+                    services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
+                    services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
+                    services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
                 services.AddSingleton<IOrgApiClientFactory, OrgApiClientFactoryMock>();
 
-                services.AddSingleton(sp =>
-                {
-                    var clientFactoryMock = new Mock<IHttpClientFactory>();
+                    services.AddSingleton(sp =>
+                    {
+                        var clientFactoryMock = new Mock<IHttpClientFactory>();
 
-                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
-                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
-                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
+                        clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
+                        clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
+                        clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
 
-                    return clientFactoryMock.Object;
+                        return clientFactoryMock.Object;
+                    });
                 });
-            });
+            }
         }
     }
 }
