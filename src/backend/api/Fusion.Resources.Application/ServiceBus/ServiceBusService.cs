@@ -21,22 +21,23 @@ namespace Fusion.Resources.ServiceBus
         }
         public async Task SendMessageAsync(QueuePath queue, object message)
         {
-            var sender = GetClient(queue);
-            var jsonMessage = JsonSerializer.Serialize(message);
-            var queueMessage = new Microsoft.Azure.ServiceBus.Message(Encoding.UTF8.GetBytes(jsonMessage)) { ContentType = "application/json" };
-
             if (!IsDisabled)
             {
+                var sender = GetClient(queue);
+                var jsonMessage = JsonSerializer.Serialize(message);
+                var queueMessage = new Microsoft.Azure.ServiceBus.Message(Encoding.UTF8.GetBytes(jsonMessage)) { ContentType = "application/json" };
+
                 logger.LogInformation($"Posting message to {sender.Path}: {jsonMessage}");
                 await sender.SendAsync(queueMessage);
+            }
+            else
+            {
+                logger.LogWarning("Sending queue messages has been disabled by config, ServiceBus:Disabled");
             }
         }
 
         private MessageSender GetClient(QueuePath queue)
         {
-            if (IsDisabled)
-                logger.LogWarning("Sending queue messages has been disabled by config, ServiceBus:Disabled");
-
             var entityPath = configuration.GetValue<string>($"ServiceBus:Queues:{queue}", DefaultQueuePath(queue));
 
             var entityPathOverride = configuration.GetValue<string>($"SERVICEBUS_QUEUES_{queue}");

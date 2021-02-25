@@ -22,6 +22,20 @@ namespace Fusion.Resources
             AllowedStates = allowedStates.Select(s => s.ToString()).ToArray();
         }
 
+        public IllegalStateChangeError(DbResourceAllocationRequestState fromState, DbResourceAllocationRequestState toState) : base ($"Cannot change state from {fromState} to {toState}")
+        {
+            FromState = $"{fromState}";
+            ToState = $"{toState}";
+        }
+
+        public IllegalStateChangeError(DbResourceAllocationRequestState fromState, DbResourceAllocationRequestState toState, params DbResourceAllocationRequestState[] allowedStates)
+            : base($"Cannot change state from {fromState} to {toState}. Allowed states are {string.Join(", ", allowedStates.Select(s => s.ToString()))}.")
+        {
+            FromState = $"{fromState}";
+            ToState = $"{toState}";
+            AllowedStates = allowedStates.Select(s => s.ToString()).ToArray();
+        }
+
         public string FromState { get; }
         public string ToState { get; }
         public IEnumerable<string>? AllowedStates { get; }

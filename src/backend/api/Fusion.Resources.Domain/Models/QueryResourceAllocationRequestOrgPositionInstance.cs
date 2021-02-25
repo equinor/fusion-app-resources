@@ -28,6 +28,18 @@ namespace Fusion.Resources.Domain
             public DateTime AppliesTo { get; set; }
             public Guid? LocationId { get; set; }
 
+            public DbResourceAllocationRequest.DbPositionInstance ToEntity()
+            {
+                return new()
+                {
+                    Id = Id,
+                    AppliesFrom = AppliesFrom,
+                    AppliesTo = AppliesTo,
+                    LocationId = LocationId,
+                    Workload = Workload,
+                    Obs = Obs
+                };
+            }
         }
     }
 }
