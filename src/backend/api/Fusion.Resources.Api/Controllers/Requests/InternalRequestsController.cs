@@ -6,6 +6,7 @@ using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -387,6 +388,82 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation(ex);
             }
         }
+
+        #region Comments
+
+        [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/comments")]
+        public async Task<ActionResult> AddRequestComment([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new AddComment(requestId, create.Content));
+
+            return NoContent();
+        }
+
+        [HttpPut("/projects/{projectIdentifier}/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> UpdateRequestComment(
+            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+        {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment == null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new UpdateComment(commentId, update.Content));
+
+            return NoContent();
+        }
+
+        [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> DeleteRequestComment([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId, Guid commentId)
+        {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment == null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new DeleteComment(commentId));
+
+            return NoContent();
+        }
+
+        #endregion Comments
 
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
