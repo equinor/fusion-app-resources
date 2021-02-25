@@ -34,7 +34,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestResourceAllocationBuilder normalRequest = null!;
         private FusionTestResourceAllocationBuilder directRequest = null!;
         private FusionTestResourceAllocationBuilder jointVentureRequest = null!;
-        private FusionTestProjectBuilder testProject;
+        private FusionTestProjectBuilder testProject = null!;
 
         public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -410,7 +410,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public ObjectWithAzureUniquePerson? ProposedPerson { get; set; }
 
-        public ObjectWithAzureUniquePerson CreatedBy { get; set; }
+        public ObjectWithAzureUniquePerson CreatedBy { get; set; } = null!;
         public ObjectWithAzureUniquePerson? UpdatedBy { get; set; }
 
         public DateTimeOffset Created { get; set; }
@@ -432,7 +432,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     }
     public class ObjectWithState
     {
-        public string State { get; set; }
+        public string? State { get; set; }
     }
     #endregion
 }

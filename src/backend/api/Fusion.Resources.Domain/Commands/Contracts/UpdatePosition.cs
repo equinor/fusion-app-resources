@@ -94,7 +94,7 @@ namespace Fusion.Resources.Domain.Commands
                 instance.ParentPositionId = request.ParentPositionId;
 
 
-                var resp = await orgClient.PutPositionAsync(position);
+                var resp = await orgClient.PatchPositionInstanceAsync(position);
 
                 if (resp.IsSuccessStatusCode)
                     return resp.Value;

@@ -32,8 +32,8 @@ namespace Fusion.Resources.Logic.Commands
                         RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
                         {
                             return await db.ResourceAllocationRequests.AnyAsync(y =>
-                                y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Direct && y.ProvisioningStatus.State != DbResourceAllocationRequest.DbProvisionState.Provisioned);
-                        }).WithMessage($"Request must exist av must not already be provisioned.");
+                                y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Direct);
+                        }).WithMessage($"Request must exist.");
                     }
                 }
 
@@ -60,56 +60,10 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest is null)
                             throw new RequestNotFoundError(request.RequestId);
 
-                        switch (DbRequestCategory.NewRequest)
-                        {
-                            case DbRequestCategory.NewRequest:
-                                await CreatePositionAsync(dbRequest);
-                                break;
 
-                            case DbRequestCategory.ChangeRequest:
-                                await UpdatePositionAsync(dbRequest);
-                                break;
-                        }
+                        await UpdatePositionAsync(dbRequest);
 
                         await resourcesDb.SaveChangesAsync();
-                    }
-
-                    private async Task CreatePositionAsync(DbResourceAllocationRequest dbRequest)
-                    {
-                        var orgPosition = await projectOrgResolver.ResolvePositionAsync(dbRequest.OrgPositionId!.Value);
-
-                        var createPositionCommand = new CreatePosition(dbRequest.Project.OrgProjectId)
-                        {
-                            AppliesFrom = dbRequest.OrgPositionInstance.AppliesFrom,
-                            AppliesTo = dbRequest.OrgPositionInstance.AppliesTo,
-                            PositionName = orgPosition!.Name,
-                            Workload = dbRequest.OrgPositionInstance.Workload.GetValueOrDefault(),
-                            Obs = dbRequest.OrgPositionInstance.Obs,
-                            BasePositionId = orgPosition.BasePosition.Id,
-                            AssignedPerson = dbRequest.ProposedPerson!.Mail!,
-                            //ParentPositionId = orgPosition.TaskOwner.PositionId
-                        };
-
-                        dbRequest.State = DbResourceAllocationRequestState.Accepted; 
-                        dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
-                        dbRequest.LastActivity = DateTime.UtcNow;
-
-                        try
-                        {
-                            var position = await mediator.Send(createPositionCommand);
-                            dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Provisioned;
-                            dbRequest.ProvisioningStatus.PositionId = position.Id;
-
-                            dbRequest.ProvisioningStatus.ErrorMessage = null;
-                            dbRequest.ProvisioningStatus.ErrorPayload = null;
-                        }
-                        catch (OrgApiError apiError)
-                        {
-                            dbRequest.ProvisioningStatus.ErrorMessage =
-                                $"Received error from Org service when trying to create the position: '{apiError.Error?.Message}'";
-                            dbRequest.ProvisioningStatus.ErrorPayload = apiError.ResponseText;
-                            dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
-                        }
                     }
 
                     private async Task UpdatePositionAsync(DbResourceAllocationRequest dbRequest)
