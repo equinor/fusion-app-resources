@@ -111,7 +111,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
             directRequest.Request.Id = response.Value.Id;
 
-            var commentResponse = await adminClient.TestClientPostAsync($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
+            var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
             commentResponse.Should().BeSuccessfull();
             testCommentId = commentResponse.Value.Id;
         }
@@ -143,7 +143,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}");
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}");
             response.Should().BeSuccessfull();
         }
         [Fact]
@@ -151,7 +151,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientDeleteAsync($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{Guid.NewGuid()}");
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{directRequest.Request.Id}/comments/{Guid.NewGuid()}");
             response.Should().BeNotFound();
         }
         #endregion
@@ -229,7 +229,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientGetAsync<ObjectWithId>($"/resources/internal-requests/requests/{directRequest.Request.Id}/comments/{testCommentId}");
+            var response = await Client.TestClientGetAsync<ObjectWithId>($"/resources/requests/internal/{directRequest.Request.Id}/comments/{testCommentId}");
             response.Should().BeSuccessfull();
         }
         #endregion
@@ -307,7 +307,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientPutAsync<ObjectWithId>($"/resources/internal-requests/requests/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
+            var response = await Client.TestClientPutAsync<ObjectWithId>($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
             response.Should().BeSuccessfull();
         }
         #endregion

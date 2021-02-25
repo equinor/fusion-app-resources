@@ -391,7 +391,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         #region Comments
-        [HttpPost("/resources/internal-requests/requests/{requestId}/comments")]
+        [HttpPost("/resources/requests/internal/{requestId}/comments")]
         public async Task<ActionResult<ApiRequestComment>> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
         {
             #region Authorization
@@ -408,10 +408,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var comment = await DispatchAsync(new AddComment(RequestType.Internal, requestId, create.Content));
 
-            return Created($"/resources/internal-requests/requests/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));
+            return Created($"/resources/requests/internal/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));
         }
 
-        [HttpGet("/resources/internal-requests/requests/{requestId}/comments")]
+        [HttpGet("/resources/requests/internal/{requestId}/comments")]
         public async Task<ActionResult<IEnumerable<ApiRequestComment>>> GetRequestComment(Guid requestId)
         {
             #region Authorization
@@ -429,7 +429,7 @@ namespace Fusion.Resources.Api.Controllers
             var comments = await DispatchAsync(new GetRequestComments(requestId));
             return comments.Select(x => new ApiRequestComment(x)).ToList();
         }
-        [HttpGet("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
+        [HttpGet("/resources/requests/internal/{requestId}/comments/{commentId}")]
         public async Task<ActionResult<ApiRequestComment>> GetRequestComment(Guid requestId, Guid commentId)
         {
             #region Authorization
@@ -448,7 +448,7 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiRequestComment(comment!);
         }
 
-        [HttpPut("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
+        [HttpPut("/resources/requests/internal/{requestId}/comments/{commentId}")]
         public async Task<ActionResult<ApiRequestComment>> UpdateRequestComment(Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
@@ -474,7 +474,7 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiRequestComment(comment!);
         }
 
-        [HttpDelete("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
+        [HttpDelete("/resources/requests/internal/{requestId}/comments/{commentId}")]
         public async Task<ActionResult> DeleteRequestComment(Guid requestId, Guid commentId)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
