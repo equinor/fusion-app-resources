@@ -390,9 +390,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         #region Comments
-
-        [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/comments")]
-        public async Task<ActionResult> AddRequestComment([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
+        [HttpPost("/resources/internal-requests/requests/{requestId}/comments")]
+        public async Task<ActionResult> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
         {
             #region Authorization
 
@@ -411,9 +410,8 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-        [HttpPut("/projects/{projectIdentifier}/requests/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult> UpdateRequestComment(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+        [HttpPut("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> UpdateRequestComment(Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -437,8 +435,8 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-        [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult> DeleteRequestComment([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId, Guid commentId)
+        [HttpDelete("/resources/internal-requests/requests/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> DeleteRequestComment(Guid requestId, Guid commentId)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
