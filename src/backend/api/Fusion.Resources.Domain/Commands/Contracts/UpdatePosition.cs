@@ -2,6 +2,7 @@
 using MediatR;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -75,13 +76,11 @@ namespace Fusion.Resources.Domain.Commands
                 if (position.Instances.Count > 1)
                     throw GenerateMultiInstanceError(position);
 
-                position.BasePosition = new ApiPositionBasePositionV2 { Id = request.BasePositionId };
-                position.Name = request.PositionName;
-                position.ExternalId = request.ExternalId;
-
+                var method = HttpMethod.Patch;
                 var instance = position.Instances.FirstOrDefault();
                 if (instance == null)
                 {
+                    method = HttpMethod.Put;
                     instance = new ApiPositionInstanceV2();
                     position.Instances.Add(instance);
                 }
@@ -91,10 +90,8 @@ namespace Fusion.Resources.Domain.Commands
                 instance.Obs = request.Obs;
                 instance.Workload = request.Workload;
                 instance.AssignedPerson = request.AssignedPerson;
-                instance.ParentPositionId = request.ParentPositionId;
 
-
-                var resp = await orgClient.PatchPositionInstanceAsync(position);
+                var resp = await orgClient.UpdatePositionInstanceAsync(method, position);
 
                 if (resp.IsSuccessStatusCode)
                     return resp.Value;
