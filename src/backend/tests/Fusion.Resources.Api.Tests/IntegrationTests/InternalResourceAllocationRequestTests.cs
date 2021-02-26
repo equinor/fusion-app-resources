@@ -151,7 +151,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{directRequest.Request.Id}/comments/{Guid.NewGuid()}");
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{Guid.NewGuid()}");
             response.Should().BeNotFound();
         }
         #endregion
@@ -225,11 +225,28 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
         [Fact]
+        public async Task Get_RequestCommentsForNotFoundRequest_ShouldBeNotFound()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientGetAsync<List<ObjectWithId>>($"/resources/requests/internal/{Guid.NewGuid()}/comments");
+            response.Should().BeNotFound();
+        }
+        [Fact]
+        public async Task Get_RequestCommentsForRequest_ShouldBeSuccessful()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientGetAsync<List<ObjectWithId>>($"/resources/requests/internal/{normalRequest.Request.Id}/comments");
+            response.Should().BeSuccessfull();
+            response.Value.Count.Should().BeGreaterOrEqualTo(1);
+        }
+        [Fact]
         public async Task Get_RequestComment_ShouldBeFound()
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientGetAsync<ObjectWithId>($"/resources/requests/internal/{directRequest.Request.Id}/comments/{testCommentId}");
+            var response = await Client.TestClientGetAsync<ObjectWithId>($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}");
             response.Should().BeSuccessfull();
         }
         #endregion
