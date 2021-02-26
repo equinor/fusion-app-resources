@@ -144,17 +144,17 @@ namespace Fusion.Resources.Logic.Commands
                                     patchDoc.Workload = jsonElement.GetDouble();
                                 }
 
-                                if (string.Equals(key.Name, "appliesfrom", StringComparison.InvariantCultureIgnoreCase))
+                                if (string.Equals(key.Name, "appliesFrom", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     patchDoc.AppliesFrom = jsonElement.GetDateTime();
                                 }
 
-                                if (string.Equals(key.Name, "appliesto", StringComparison.InvariantCultureIgnoreCase))
+                                if (string.Equals(key.Name, "appliesTo", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     patchDoc.AppliesTo = jsonElement.GetDateTime();
                                 }
 
-                                if (string.Equals(key.Name, "locationid", StringComparison.InvariantCultureIgnoreCase))
+                                if (string.Equals(key.Name, "location.id", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     patchDoc.Location = new ApiPositionLocationV2 { Id = jsonElement.GetGuid() };
                                 }
