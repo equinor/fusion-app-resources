@@ -23,11 +23,15 @@ namespace Fusion.Resources.Api.Controllers
                 AppliesFrom = qr.OrgPositionInstance.AppliesFrom;
                 AppliesTo = qr.OrgPositionInstance.AppliesTo;
                 Workload = qr.OrgPositionInstance.Workload;
+                ProjectName = qr.Project.Name;
+                PositionName = qr.OrgPosition.Name;
             }
             public string Id { get; set; }
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
             public double? Workload { get; set; }
+            public string ProjectName { get; set; }
+            public string PositionName { get; set; }
         }
 
         public class DepartmentRequestsTimelineRange

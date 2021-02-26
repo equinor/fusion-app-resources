@@ -104,13 +104,14 @@ namespace Fusion.Resources.Domain
                     filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
 
                 //gather all dates from orgPositionInstances of each request
-                var orgPositionInstances = requests.Select(r => r.OrgPositionInstance);
+                var orgPositionInstances = requests.Select(r => r.OrgPositionInstance)
+                    .Where(p => p != null);
                 var dates = orgPositionInstances.SelectMany(p => new[] { (DateTime?)p.AppliesFrom.Date, (DateTime?)p.AppliesTo.Date })
-                      .Where(d => d.HasValue)
-                      .Select(d => d!.Value)
-                      .Distinct()
-                      .OrderBy(d => d)
-                      .ToList();
+                    .Where(d => d.HasValue)
+                    .Select(d => d!.Value)
+                    .Distinct()
+                    .OrderBy(d => d)
+                    .ToList();
 
                 if (!dates.Any())
                     yield break;
