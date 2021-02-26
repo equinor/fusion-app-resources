@@ -394,6 +394,11 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/resources/requests/internal/{requestId}/comments")]
         public async Task<ActionResult<ApiRequestComment>> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
         {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -405,8 +410,8 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-
-            var comment = await DispatchAsync(new AddComment(RequestType.Internal, requestId, create.Content));
+            
+            var comment = await DispatchAsync(new AddComment(User.GetRequestOrigin(), requestId, create.Content));
 
             return Created($"/resources/requests/internal/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));
         }
@@ -414,6 +419,11 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/resources/requests/internal/{requestId}/comments")]
         public async Task<ActionResult<IEnumerable<ApiRequestComment>>> GetRequestComment(Guid requestId)
         {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
