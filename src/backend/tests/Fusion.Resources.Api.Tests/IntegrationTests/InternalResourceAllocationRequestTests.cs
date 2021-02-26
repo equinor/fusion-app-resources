@@ -75,7 +75,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(1).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", "2020-01-01T00:00:00" }, { "workload", 41 } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", "2020-01-01T00:00:00" }, { "workload", 41 }, { "obs", null! } })
                     .WithProject(testProject.Project)
                 ;
 

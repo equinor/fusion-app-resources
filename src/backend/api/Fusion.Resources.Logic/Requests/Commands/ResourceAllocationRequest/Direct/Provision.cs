@@ -122,10 +122,10 @@ namespace Fusion.Resources.Logic.Commands
                     /// </summary>
                     /// <param name="dbRequest"></param>
                     /// <returns></returns>
-                    private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
+                    private static UpdatePositionInstance.PatchApiPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
                     {
                         var changeDoc = JsonDocument.Parse(dbRequest.ProposedChanges!);
-                        var patchDoc = new PatchPositionInstanceV2();
+                        var patchDoc = new UpdatePositionInstance.PatchApiPositionInstanceV2();
                         if (dbRequest.ProposedPersonId != null)
                         {
                             patchDoc.AssignedPerson = new ApiPersonV2 {AzureUniqueId = dbRequest.ProposedPersonId};

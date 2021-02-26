@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain
             return await RequestResponse<TResponse>.FromResponseAsync(response);
         }
 
-        public static async Task<RequestResponse<ApiPositionV2>> PatchPositionInstanceAsync(this IOrgApiClient client, ApiPositionV2 position, Guid positionInstanceId, PatchPositionInstanceV2 instance)
+        public static async Task<RequestResponse<ApiPositionV2>> PatchPositionInstanceAsync(this IOrgApiClient client, ApiPositionV2 position, Guid positionInstanceId, UpdatePositionInstance.PatchApiPositionInstanceV2 instance)
         {
             if (position.Id == Guid.Empty)
                 throw new ArgumentException("Position id cannot be empty when updating.");

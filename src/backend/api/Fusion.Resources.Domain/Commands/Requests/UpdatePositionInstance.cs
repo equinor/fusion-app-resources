@@ -13,7 +13,7 @@ namespace Fusion.Resources.Domain.Commands
     /// </summary>
     public class UpdatePositionInstance : TrackableRequest<ApiPositionV2>
     {
-        public UpdatePositionInstance(Guid orgProjectId, Guid positionId, Guid positionInstanceId, PatchPositionInstanceV2 instance)
+        public UpdatePositionInstance(Guid orgProjectId, Guid positionId, Guid positionInstanceId, PatchApiPositionInstanceV2 instance)
         {
             OrgProjectId = orgProjectId;
             PositionId = positionId;
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid PositionId { get; set; }
         public Guid PositionInstanceId { get; set; }
 
-        public PatchPositionInstanceV2 Instance { get; }
+        public PatchApiPositionInstanceV2 Instance { get; }
 
 
         public class Handler : IRequestHandler<UpdatePositionInstance, ApiPositionV2>
@@ -49,22 +49,25 @@ namespace Fusion.Resources.Domain.Commands
 
             }
         }
-    }
-    public class PatchPositionInstanceV2
-    {
-        public string? Type { get; set; }
-        public string? ExternalId { get; set; }
-        public DateTime? AppliesFrom { get; set; }
-        public DateTime? AppliesTo { get; set; }
-        public double? Workload { get; set; }
-        public string? Obs { get; set; }
-        public bool? IsPrimary { get; set; }
-        public string? Calendar { get; set; }
-        public string? RotationId { get; set; }
-        public ApiPositionLocationV2? Location { get; set; }
-        public ApiPersonV2? AssignedPerson { get; set; }
-        public Guid? ParentPositionId { get; set; }
-        public List<Guid>? TaskOwnerIds { get; set; }
-        public ApiPropertiesCollectionV2? Properties { get; set; }
+        /// <summary>
+        /// Ensure all properties are nullable. Only properties with values should be used in a patch operation.
+        /// </summary>
+        public class PatchApiPositionInstanceV2
+        {
+            public string? Type { get; set; }
+            public string? ExternalId { get; set; }
+            public DateTime? AppliesFrom { get; set; }
+            public DateTime? AppliesTo { get; set; }
+            public double? Workload { get; set; }
+            public string? Obs { get; set; }
+            public bool? IsPrimary { get; set; }
+            public string? Calendar { get; set; }
+            public string? RotationId { get; set; }
+            public ApiPositionLocationV2? Location { get; set; }
+            public ApiPersonV2? AssignedPerson { get; set; }
+            public Guid? ParentPositionId { get; set; }
+            public List<Guid>? TaskOwnerIds { get; set; }
+            public ApiPropertiesCollectionV2? Properties { get; set; }
+        }
     }
 }
