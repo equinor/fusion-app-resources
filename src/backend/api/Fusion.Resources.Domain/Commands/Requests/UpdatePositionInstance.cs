@@ -1,8 +1,7 @@
 ﻿using Fusion.ApiClients.Org;
 using MediatR;
 using System;
-using System.Linq;
-using System.Net.Http;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,14 +13,18 @@ namespace Fusion.Resources.Domain.Commands
     /// </summary>
     public class UpdatePositionInstance : TrackableRequest<ApiPositionV2>
     {
-        public UpdatePositionInstance(Guid orgProjectId, ApiPositionInstanceV2 instance)
+        public UpdatePositionInstance(Guid orgProjectId, Guid positionId, Guid positionInstanceId, PatchPositionInstanceV2 instance)
         {
             OrgProjectId = orgProjectId;
+            PositionId = positionId;
+            PositionInstanceId = positionInstanceId;
             Instance = instance;
         }
         public Guid OrgProjectId { get; }
+        public Guid PositionId { get; set; }
+        public Guid PositionInstanceId { get; set; }
 
-        public ApiPositionInstanceV2 Instance { get; }
+        public PatchPositionInstanceV2 Instance { get; }
 
 
         public class Handler : IRequestHandler<UpdatePositionInstance, ApiPositionV2>
@@ -35,11 +38,9 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<ApiPositionV2> Handle(UpdatePositionInstance request, CancellationToken cancellationToken)
             {
-                var position = await orgClient.GetPositionV2Async(request.OrgProjectId, request.Instance.PositionId);
+                var position = await orgClient.GetPositionV2Async(request.OrgProjectId, request.PositionId);
 
-                var instance = position.Instances.First(x => x.Id == request.Instance.Id);
-                
-                var resp = await orgClient.PatchPositionInstanceAsync(position, instance);
+                var resp = await orgClient.PatchPositionInstanceAsync(position, request.PositionInstanceId, request.Instance);
 
                 if (resp.IsSuccessStatusCode)
                     return resp.Value;
@@ -47,12 +48,23 @@ namespace Fusion.Resources.Domain.Commands
                 throw new OrgApiError(resp.Response, resp.Content);
 
             }
-
-            private static InvalidOperationException GenerateMultiInstanceError(ApiPositionV2 position)
-            {
-                var instances = string.Join(", ", position.Instances.OrderBy(i => i.AppliesFrom).Select(i => $"{i.AppliesFrom:yyyy-MM-dd} -> {i.AppliesTo:yyyy-MM-dd}"));
-                return new InvalidOperationException($"Cannot update a position with multiple instances. Detected {position.Instances.Count} instances on {position.Name}, {instances}");
-            }
         }
+    }
+    public class PatchPositionInstanceV2
+    {
+        public string? Type { get; set; }
+        public string? ExternalId { get; set; }
+        public DateTime? AppliesFrom { get; set; }
+        public DateTime? AppliesTo { get; set; }
+        public double? Workload { get; set; }
+        public string? Obs { get; set; }
+        public bool? IsPrimary { get; set; }
+        public string? Calendar { get; set; }
+        public string? RotationId { get; set; }
+        public ApiPositionLocationV2? Location { get; set; }
+        public ApiPersonV2? AssignedPerson { get; set; }
+        public Guid? ParentPositionId { get; set; }
+        public List<Guid>? TaskOwnerIds { get; set; }
+        public ApiPropertiesCollectionV2? Properties { get; set; }
     }
 }

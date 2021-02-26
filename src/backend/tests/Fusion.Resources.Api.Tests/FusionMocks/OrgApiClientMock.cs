@@ -19,13 +19,14 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
     internal class OrgApiClientMock : IOrgApiClient
     {
-        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage message)
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message)
         {
             string url = message.RequestUri!.ToString();
             //            if (Regex.IsMatch(url, "/projects/([^/?]+)/positions/([^/?]+)/instances"))
             if (message.Method == HttpMethod.Patch)
             {
-                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { RequestMessage = message, Content = message.Content! });
+                var contentString = await message.Content!.ReadAsStringAsync();
+                return new HttpResponseMessage(HttpStatusCode.OK) { RequestMessage = message, Content = message.Content! };
             }
 
 

@@ -1,12 +1,11 @@
 ﻿using Fusion.ApiClients.Org;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Commands;
 
 namespace Fusion.Resources.Domain
 {
@@ -26,7 +25,7 @@ namespace Fusion.Resources.Domain
             return await RequestResponse<TResponse>.FromResponseAsync(response);
         }
 
-        public static async Task<RequestResponse<ApiPositionV2>> PatchPositionInstanceAsync(this IOrgApiClient client, ApiPositionV2 position, ApiPositionInstanceV2 instance)
+        public static async Task<RequestResponse<ApiPositionV2>> PatchPositionInstanceAsync(this IOrgApiClient client, ApiPositionV2 position, Guid positionInstanceId, PatchPositionInstanceV2 instance)
         {
             if (position.Id == Guid.Empty)
                 throw new ArgumentException("Position id cannot be empty when updating.");
@@ -35,11 +34,10 @@ namespace Fusion.Resources.Domain
                 throw new ArgumentException("Could not locate the project id on the position. Cannot generate url from position");
 
 
-
-            var url = $"projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}";
+            var url = $"projects/{position.ProjectId}/positions/{position.Id}/instances/{positionInstanceId}";
 
             var request = new HttpRequestMessage(HttpMethod.Patch, url);
-            request.Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json");
+            request.Content = new StringContent(JsonConvert.SerializeObject(instance, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }), Encoding.UTF8, "application/json");
 
             var response = await client.SendAsync(request);
 

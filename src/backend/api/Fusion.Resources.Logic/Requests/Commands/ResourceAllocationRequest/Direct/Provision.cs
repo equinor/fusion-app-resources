@@ -47,8 +47,7 @@ namespace Fusion.Resources.Logic.Commands
                                 return false;
 
                             var position = await projectOrgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
-                            var instance =
-                                position?.Instances.FirstOrDefault(x => x.Id == request.OrgPositionInstance.Id);
+                            var instance = position?.Instances.FirstOrDefault(x => x.Id == request.OrgPositionInstance.Id);
                             return instance != null;
 
                         }).WithMessage($"Org position instance must exist.");
@@ -82,52 +81,22 @@ namespace Fusion.Resources.Logic.Commands
                         await resourcesDb.SaveChangesAsync();
                     }
 
-                    private static Dictionary<string, string> TryConvertToDictionary(string? objectString)
-                    {
-                        if (objectString is null)
-                            return new Dictionary<string, string>();
-
-                        try
-                        {
-                            var objDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(objectString);
-
-                            var ret = new Dictionary<string, string>();
-                            foreach (var o in objDict)
-                            {
-                                
-                                ret.Add(o.Key, o.Value.GetString()!);
-                            }
-                            return ret;
-                        }
-                        catch(Exception ex)
-                        {
-                            var x = ex.Message;
-                            return new Dictionary<string, string>();
-                        }
-                    }
-
-
                     private async Task UpdatePositionAsync(DbResourceAllocationRequest dbRequest)
                     {
                         if (dbRequest.OrgPositionId == null)
-                            throw new InvalidOperationException(
-                                "Cannot provision change request when original position id is empty.");
-
+                            throw new InvalidOperationException("Cannot provision change request when original position id is empty.");
 
                         if (dbRequest.ProposedChanges != null)
                         {
-                            var instanceChanges = TryConvertToDictionary(dbRequest.ProposedChanges).DictionaryToObject<ApiPositionInstanceV2>();
-
-                            var updatePositionCommand = new UpdatePositionInstance(dbRequest.Project.OrgProjectId, instanceChanges);
+                            var patchDoc = CreatePatchPositionInstanceV2(dbRequest);
+                            var updatePositionCommand = new UpdatePositionInstance(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value, dbRequest.OrgPositionInstance.Id, patchDoc);
 
                             dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
                             dbRequest.LastActivity = DateTime.UtcNow;
-
                             try
                             {
                                 var position = await mediator.Send(updatePositionCommand);
-                                dbRequest.ProvisioningStatus.State =
-                                    DbResourceAllocationRequest.DbProvisionState.Provisioned;
+                                dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Provisioned;
                                 dbRequest.ProvisioningStatus.PositionId = position.Id;
 
                                 dbRequest.ProvisioningStatus.ErrorMessage = null;
@@ -141,6 +110,54 @@ namespace Fusion.Resources.Logic.Commands
                                 dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
                             }
                         }
+                        else
+                        {
+                            dbRequest.ProvisioningStatus.ErrorMessage = $"Request payload of proposed changes was null or empty. Unable to provision";
+                            dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+                        }
+                    }
+
+                    /// <summary>
+                    /// Based upon ApiPositionInstanceV2. Consider re-mapping if updating API version.
+                    /// </summary>
+                    /// <param name="dbRequest"></param>
+                    /// <returns></returns>
+                    private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
+                    {
+                        var changeDoc = JsonDocument.Parse(dbRequest.ProposedChanges!);
+                        var patchDoc = new PatchPositionInstanceV2();
+                        foreach (var key in changeDoc.RootElement.EnumerateObject())
+                        {
+                            if (changeDoc.RootElement.TryGetProperty(key.Name, out var jsonElement))
+                            {
+                                if (string.Equals(key.Name, "obs", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.Obs = jsonElement.GetString();
+                                }
+
+                                if (string.Equals(key.Name, "workload", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.Workload = jsonElement.GetDouble();
+                                }
+
+                                if (string.Equals(key.Name, "appliesfrom", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.AppliesFrom = jsonElement.GetDateTime();
+                                }
+
+                                if (string.Equals(key.Name, "appliesto", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.AppliesTo = jsonElement.GetDateTime();
+                                }
+
+                                if (string.Equals(key.Name, "locationid", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.Location = new ApiPositionLocationV2 { Id = jsonElement.GetGuid() };
+                                }
+                            }
+                        }
+
+                        return patchDoc;
                     }
                 }
             }

@@ -66,7 +66,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "obs", "obsText" }, { "workload", 45.2 } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "obs", "obsText" }, { "workload", 45 } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -75,7 +75,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(1).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", DateTimeOffset.UtcNow.Date }, { "workload", 41 } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", "2020-01-01T00:00:00" }, { "workload", 41 } })
                     .WithProject(testProject.Project)
                 ;
 
