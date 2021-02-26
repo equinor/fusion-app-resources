@@ -126,6 +126,10 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         var changeDoc = JsonDocument.Parse(dbRequest.ProposedChanges!);
                         var patchDoc = new PatchPositionInstanceV2();
+                        if (dbRequest.ProposedPersonId != null)
+                        {
+                            patchDoc.AssignedPerson = new ApiPersonV2 {AzureUniqueId = dbRequest.ProposedPersonId};
+                        }
                         foreach (var key in changeDoc.RootElement.EnumerateObject())
                         {
                             if (changeDoc.RootElement.TryGetProperty(key.Name, out var jsonElement))
