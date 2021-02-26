@@ -19,15 +19,7 @@ namespace Fusion.Testing.Mocks
                         IsDraft = false,
                         ProposedChanges = new ApiPropertiesCollection(),
                         OrgPositionId = Guid.NewGuid(),
-                        OrgPositionInstance = new ApiPositionInstance
-                        {
-                            Id = Guid.NewGuid(),
-                            AppliesFrom = f.Date.Past(),
-                            AppliesTo = f.Date.Future(),
-                            Workload = f.Random.Double(0, 100),
-                            LocationId = f.Random.Guid(),
-                            Obs = f.Hacker.Adjective()
-                        }
+                        OrgPositionInstanceId = Guid.NewGuid()
                     };
                     return request;
                 }

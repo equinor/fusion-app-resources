@@ -47,17 +47,11 @@ namespace Fusion.Resources.Api.Controllers
                             .WithDiscipline(request.Discipline)
                             .WithType($"{request.Type}")
                             .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
+                            .WithOrgPositionId(request.OrgPositionId)
+                            .WithOrgPositionInstanceId(request.OrgPositionInstanceId)
                             .WithProposedChanges(request.ProposedChanges)
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
-
-                        if (request.OrgPositionInstance != null)
-                            command.WithPositionInstance(request.OrgPositionInstance.Id,
-                                request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
 
                         result = await DispatchAsync(command);
                         break;
@@ -67,17 +61,11 @@ namespace Fusion.Resources.Api.Controllers
                             .WithDiscipline(request.Discipline)
                             .WithType($"{request.Type}")
                             .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
+                            .WithOrgPositionId(request.OrgPositionId)
+                            .WithOrgPositionInstanceId(request.OrgPositionInstanceId)
                             .WithProposedChanges(request.ProposedChanges)
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
-
-                        if (request.OrgPositionInstance != null)
-                            direct.WithPositionInstance(request.OrgPositionInstance.Id,
-                                request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
 
                         result = await DispatchAsync(direct);
                         break;
@@ -87,17 +75,11 @@ namespace Fusion.Resources.Api.Controllers
                             .WithDiscipline(request.Discipline)
                             .WithType($"{request.Type}")
                             .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
+                            .WithOrgPositionId(request.OrgPositionId)
+                            .WithOrgPositionInstanceId(request.OrgPositionInstanceId)
                             .WithProposedChanges(request.ProposedChanges)
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
-
-                        if (request.OrgPositionInstance != null)
-                            jointVenture.WithPositionInstance(request.OrgPositionInstance.Id,
-                                request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
 
                         result = await DispatchAsync(jointVenture);
                         break;
@@ -164,11 +146,6 @@ namespace Fusion.Resources.Api.Controllers
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
 
-                        if (request.OrgPositionInstance != null)
-                            normal.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
                         result = await DispatchAsync(normal);
                         break;
                     case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
@@ -179,11 +156,6 @@ namespace Fusion.Resources.Api.Controllers
                             .WithProposedChanges(request.ProposedChanges)
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
-
-                        if (request.OrgPositionInstance != null)
-                            direct.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
 
                         result = await DispatchAsync(direct);
                         break;
@@ -196,10 +168,6 @@ namespace Fusion.Resources.Api.Controllers
                             .WithIsDraft(request.IsDraft)
                             .WithAdditionalNode(request.AdditionalNote);
 
-                        if (request.OrgPositionInstance != null)
-                            jointVenture.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
                         result = await DispatchAsync(jointVenture);
                         break;
                 }

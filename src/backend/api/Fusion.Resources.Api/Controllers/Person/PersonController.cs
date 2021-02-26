@@ -168,7 +168,7 @@ namespace Fusion.Resources.Api.Controllers
             if (departmentSectors is null)
             {
                 using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Controllers.Person.departmentSectors.json"))
-                using (var r = new StreamReader(s))
+                using (var r = new StreamReader(s!))
                 {
                     var json = r.ReadToEnd();
 

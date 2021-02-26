@@ -16,21 +16,7 @@ namespace Fusion.Resources.Api.Controllers
             LocationId = instance.Location?.Id;
 
         }
-        public ApiPositionInstance(ResourceAllocationRequest.QueryPositionInstance query)
-        {
-            Id = query.Id;
-            Workload = query.Workload;
-            Obs = query.Obs;
-            AppliesFrom = query.AppliesFrom;
-            AppliesTo = query.AppliesTo;
-            LocationId = query.LocationId;
-
-        }
-
-        public ApiPositionInstance()
-        {
-        }
-
+     
         public Guid Id { get; set; }
         public double? Workload { get; set; }
         public string? Obs { get; set; } = null!;

@@ -33,7 +33,7 @@ namespace Fusion.Resources.Logic.Commands
                 public string? Discipline { get; private set; }
                 public QueryResourceAllocationRequest.QueryAllocationRequestType Type { get; private set; }
                 public Guid? OrgPositionId { get; private set; }
-                public Domain.ResourceAllocationRequest.QueryPositionInstance OrgPositionInstance { get; private set; } = null!;
+                public Guid? OrgPositionInstanceId { get; private set; }
                 public Guid? ProposedPersonAzureUniqueId { get; private set; }
                 public string? AdditionalNote { get; private set; }
                 public Dictionary<string, object>? ProposedChanges { get; private set; }
@@ -64,9 +64,14 @@ namespace Fusion.Resources.Logic.Commands
                     return this;
                 }
 
-                public Create WithOrgPosition(Guid? originalPositionId)
+                public Create WithOrgPositionId(Guid? id)
                 {
-                    OrgPositionId = originalPositionId;
+                    OrgPositionId = id;
+                    return this;
+                }
+                public Create WithOrgPositionInstanceId(Guid? id)
+                {
+                    OrgPositionInstanceId = id;
                     return this;
                 }
 
@@ -88,21 +93,6 @@ namespace Fusion.Resources.Logic.Commands
                     return this;
                 }
 
-                public Create WithPositionInstance(Guid basePositionId, DateTime from, DateTime to, double? workload, string? obs, Guid? locationId)
-                {
-                    OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
-                    {
-                        Id = basePositionId,
-                        Workload = workload,
-                        AppliesFrom = @from,
-                        AppliesTo = to,
-                        Obs = obs,
-                        LocationId = locationId
-                    };
-
-                    return this;
-                }
-
                 public class Validator : AbstractValidator<Create>
                 {
                     public Validator(IProjectOrgResolver orgResolver, IProfileService profileService, ResourcesDbContext db)
@@ -120,7 +110,6 @@ namespace Fusion.Resources.Logic.Commands
                             return positionRequest == null;
                         }).WithMessage("Request for org position must not exist");
 
-                        RuleFor(x => x.OrgPositionInstance).BeValidPositionInstance();
                         RuleFor(x => x.ProposedChanges).BeValidProposedChanges().When(x => x.ProposedChanges != null);
 
                         RuleFor(x => x.ProposedPersonAzureUniqueId).MustAsync(async (id, cancel) =>
@@ -191,7 +180,7 @@ namespace Fusion.Resources.Logic.Commands
                             ProposedChanges = request.ProposedChanges.SerializeToString(),
 
                             OrgPositionId = request.OrgPositionId,
-                            OrgPositionInstance = request.OrgPositionInstance.ToEntity(),
+                            OrgPositionInstanceId = request.OrgPositionInstanceId,
 
                             IsDraft = request.IsDraft,
 

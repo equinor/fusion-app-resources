@@ -22,7 +22,7 @@ namespace Fusion.Resources.Domain
             Project = new QueryProject(entity.Project);
 
             OrgPositionId = entity.OrgPositionId;
-            OrgPositionInstanceId = entity.OrgPositionInstance?.Id;
+            OrgPositionInstanceId = entity.OrgPositionInstanceId;
 
             if (entity.ProposedPerson != null)
                 ProposedPerson = new QueryPerson(entity.ProposedPerson);

@@ -57,7 +57,6 @@ namespace Fusion.Resources.Domain.Queries
 
 
                 var query = db.ResourceAllocationRequests
-                    .Include(r => r.OrgPositionInstance)
                     .Include(r => r.CreatedBy)
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)

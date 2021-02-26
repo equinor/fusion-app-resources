@@ -34,7 +34,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestResourceAllocationBuilder normalRequest = null!;
         private FusionTestResourceAllocationBuilder directRequest = null!;
         private FusionTestResourceAllocationBuilder jointVentureRequest = null!;
-        private FusionTestProjectBuilder testProject;
+        private FusionTestProjectBuilder testProject = null!;
 
         public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -66,7 +66,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", "2020-01-01" }, { "appliesTo", "2021-12-31" }, { "workload", 100 }, { "obs", "test normal" } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -75,7 +75,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(1).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", "2020-03-01" }, { "appliesTo", "2021-11-31" }, { "workload", 50.5 }, { "obs", "test direct" } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -84,7 +84,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(2).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", "2020-02-21" }, { "appliesTo", "2021-12-14" }, { "workload", 77.55 }, { "obs", "test jointventure" } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -208,12 +208,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var beforeUpdate = DateTimeOffset.UtcNow;
-            var dict = new Dictionary<string, object> { { "orgpositioninstance.workload", 50 } };
+            var dict = new Dictionary<string, object> { { "workload", 10 } };
             var updateRequest = new UpdateResourceAllocationRequest
             {
                 ProjectId = normalRequest.Project.ProjectId,
-                OrgPositionId = normalRequest.Request.OrgPositionId,
-                OrgPositionInstance = normalRequest.Request.OrgPositionInstance,
                 AssignedDepartment = "TPD",
                 Discipline = "upd",
                 IsDraft = false,
@@ -247,8 +245,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var updateRequest = new UpdateResourceAllocationRequest
             {
                 ProjectId = normalRequest.Project.ProjectId,
-                OrgPositionId = normalRequest.Request.OrgPositionId,
-                OrgPositionInstance = normalRequest.Request.OrgPositionInstance,
                 Discipline = "upd",
                 IsDraft = false,
                 AdditionalNote = "upd",
@@ -328,7 +324,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             request.ProjectId?.Should().Be(response.Project!.Id);
             request.OrgPositionId?.Should().Be(response.OrgPosition!.Id);
-            request.OrgPositionInstance?.Id.Should().Be(response.OrgPositionInstance!.Id);
+            request.OrgPositionInstanceId?.Should().Be(response.OrgPositionInstance.Id);
             request.ProposedPersonAzureUniqueId?.Should().Be(response.ProposedPerson!.AzureUniquePersonId);
             request.AdditionalNote?.Should().Be(response.AdditionalNote);
             request.IsDraft?.Should().Be(response.IsDraft.GetValueOrDefault());
@@ -353,8 +349,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             request.Discipline?.Should().Be(response.Discipline);
 
             request.ProjectId?.Should().Be(response.Project!.Id);
-            request.OrgPositionId?.Should().Be(response.OrgPosition!.Id);
-            request.OrgPositionInstance?.Id.Should().Be(response.OrgPositionInstance!.Id);
             request.ProposedPersonAzureUniqueId?.Should().Be(response.ProposedPerson!.AzureUniquePersonId);
             request.AdditionalNote?.Should().Be(response.AdditionalNote);
             request.IsDraft?.Should().Be(response.IsDraft.GetValueOrDefault());
@@ -400,14 +394,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public ObjectWithAzureUniquePerson? ProposedPerson { get; set; }
 
-        public ObjectWithAzureUniquePerson CreatedBy { get; set; }
+        public ObjectWithAzureUniquePerson CreatedBy { get; set; } = null!;
         public ObjectWithAzureUniquePerson? UpdatedBy { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public DateTimeOffset? LastActivity { get; set; }
 
-        public ObjectWithState Workflow { get; set; }
+        public ObjectWithState Workflow { get; set; } = null!;
 
     }
     public class ObjectWithAzureUniquePerson
@@ -421,7 +415,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     }
     public class ObjectWithState
     {
-        public string State { get; set; }
+        public string? State { get; set; }
     }
     #endregion
 }

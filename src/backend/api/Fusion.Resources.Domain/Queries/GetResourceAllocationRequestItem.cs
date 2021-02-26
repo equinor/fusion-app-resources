@@ -33,7 +33,6 @@ namespace Fusion.Resources.Domain.Queries
             public async Task<QueryResourceAllocationRequest?> Handle(GetResourceAllocationRequestItem request, CancellationToken cancellationToken)
             {
                 var row = await db.ResourceAllocationRequests
-                    .Include(r => r.OrgPositionInstance)
                     .Include(r => r.CreatedBy)
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)

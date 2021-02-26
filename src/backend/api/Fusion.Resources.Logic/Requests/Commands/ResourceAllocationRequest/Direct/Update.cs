@@ -27,7 +27,6 @@ namespace Fusion.Resources.Logic.Commands
                 public Guid RequestId { get; }
                 public MonitorableProperty<string?> AssignedDepartment { get; private set; } = new();
                 public MonitorableProperty<string?> Discipline { get; private set; } = new();
-                public MonitorableProperty<Domain.ResourceAllocationRequest.QueryPositionInstance> OrgPositionInstance { get; private set; } = new();
                 public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; private set; } = new();
                 public MonitorableProperty<string?> AdditionalNote { get; private set; } = new();
                 public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; private set; } = new();
@@ -70,27 +69,10 @@ namespace Fusion.Resources.Logic.Commands
                     return this;
                 }
 
-                public Update WithPositionInstance(Guid id, DateTime from, DateTime to, double? workload, string? obs,
-                    Guid? locationId)
-                {
-                    OrgPositionInstance = new Domain.ResourceAllocationRequest.QueryPositionInstance
-                    {
-                        Id = id,
-                        Workload = workload,
-                        AppliesFrom = @from,
-                        AppliesTo = to,
-                        Obs = obs,
-                        LocationId = locationId
-                    };
-                    return this;
-                }
-
                 public class Validator : AbstractValidator<Update>
                 {
                     public Validator(IProfileService profileService)
                     {
-                        RuleFor(x => x.OrgPositionInstance).NotNull();
-                        RuleFor(x => x.OrgPositionInstance.Value).BeValidPositionInstance();
                         RuleFor(x => x.ProposedChanges.Value).BeValidProposedChanges().When(x => x.ProposedChanges.HasBeenSet && x.ProposedChanges.Value != null);
                         RuleFor(x => x.ProposedPersonAzureUniqueId).MustAsync(async (id, cancel) =>
                             {
@@ -165,13 +147,6 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             dbItem.ProposedChanges = request.ProposedChanges.Value.SerializeToString();
                             modified = true;
-                        }
-
-                        if (request.OrgPositionInstance.HasBeenSet)
-                        {
-                            dbItem.OrgPositionInstance = request.OrgPositionInstance.Value.ToEntity();
-                            modified = true;
-
                         }
 
                         if (request.IsDraft.HasBeenSet)
