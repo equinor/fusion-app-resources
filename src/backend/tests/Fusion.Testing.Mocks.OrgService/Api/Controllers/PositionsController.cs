@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Fusion.Integration.Profile.ApiClient;
 using System.Linq;
 using Fusion.ApiClients.Org;
 
@@ -80,6 +78,22 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             OrgServiceMock.contractPositions.Remove(position);
 
             return NoContent();
+        }
+
+        [ApiVersion("2.0")]
+        [HttpPatch("projects/{projectId}/positions/{positionId}/instances/{instanceId}")]
+        public ActionResult<ApiPositionV2> PatchPositionInstance([FromRoute] ProjectIdentifier projectId, Guid positionId, Guid instanceId, [FromBody] PatchInstanceRequestV2 request)
+        {
+            var position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
+
+            var instance = position?.Instances.FirstOrDefault(x => x.Id == instanceId);
+
+            if (instance == null)
+                return NotFound();
+
+            // Do some updates based on request if required.
+
+            return position;
         }
     }
 }
