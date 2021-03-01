@@ -5,7 +5,6 @@ using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -123,11 +122,11 @@ namespace Fusion.Resources.Logic.Commands
                     /// </summary>
                     /// <param name="dbRequest"></param>
                     /// <returns></returns>
-                    private static UpdatePositionInstance.PatchApiPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
+                    private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
                     {
                         var changeDoc = JsonDocument.Parse(dbRequest.ProposedChanges!);
 
-                        var patchDoc = new UpdatePositionInstance.PatchApiPositionInstanceV2();
+                        var patchDoc = new PatchPositionInstanceV2();
                         if (dbRequest.ProposedPerson != null)
                         {
                             patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId };
