@@ -69,6 +69,7 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         var dbRequest = await resourcesDb.ResourceAllocationRequests
                             .Include(r => r.Project)
+                            .Include(r => r.ProposedPerson)
                             .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
 
@@ -126,13 +127,10 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         var changeDoc = JsonDocument.Parse(dbRequest.ProposedChanges!);
 
-                        var test = JsonSerializer.Deserialize<UpdatePositionInstance.PatchApiPositionInstanceV2>(dbRequest.ProposedChanges!);
-
                         var patchDoc = new UpdatePositionInstance.PatchApiPositionInstanceV2();
-                        if (dbRequest.ProposedPersonId != null)
+                        if (dbRequest.ProposedPerson != null)
                         {
-                            //TODO: Temporarily disabled due to ORG Concurrency issues.
-                            //patchDoc.AssignedPerson = new ApiPersonV2 {AzureUniqueId = dbRequest.ProposedPersonId};
+                            patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId };
                         }
                         foreach (var key in changeDoc.RootElement.EnumerateObject())
                         {

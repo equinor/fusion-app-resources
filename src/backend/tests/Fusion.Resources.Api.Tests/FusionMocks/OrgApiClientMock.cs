@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using PersonIdentifier = Fusion.ApiClients.Org.PersonIdentifier;
@@ -21,11 +22,13 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message)
         {
             string url = message.RequestUri!.ToString();
-            //            if (Regex.IsMatch(url, "/projects/([^/?]+)/positions/([^/?]+)/instances"))
-            if (message.Method == HttpMethod.Patch)
+            if (Regex.IsMatch(url, @"projects\/([^\/?]+)\/positions\/([^\/?]+)"))
             {
-                var contentString = await message.Content!.ReadAsStringAsync();
-                return new HttpResponseMessage(HttpStatusCode.OK) { RequestMessage = message, Content = message.Content! };
+                if (message.Method == HttpMethod.Patch)
+                {
+                    var debugContentString = await message.Content!.ReadAsStringAsync();
+                    return new HttpResponseMessage(HttpStatusCode.OK) { RequestMessage = message, Content = message.Content! };
+                }
             }
 
 
