@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Core.Http.Patch;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -49,25 +50,23 @@ namespace Fusion.Resources.Domain.Commands
 
             }
         }
-        /// <summary>
-        /// Ensure all properties are nullable. Only properties with values should be used in a patch operation.
-        /// </summary>
-        public class PatchApiPositionInstanceV2
+
+        public class PatchApiPositionInstanceV2 : PatchRequest
         {
-            public string? Type { get; set; }
-            public string? ExternalId { get; set; }
-            public DateTime? AppliesFrom { get; set; }
-            public DateTime? AppliesTo { get; set; }
-            public double? Workload { get; set; }
-            public string? Obs { get; set; }
-            public bool? IsPrimary { get; set; }
-            public string? Calendar { get; set; }
-            public string? RotationId { get; set; }
-            public ApiPositionLocationV2? Location { get; set; }
-            public ApiPersonV2? AssignedPerson { get; set; }
-            public Guid? ParentPositionId { get; set; }
-            public List<Guid>? TaskOwnerIds { get; set; }
-            public ApiPropertiesCollectionV2? Properties { get; set; }
+            public PatchProperty<string?> Type { get; set; } = null!;
+            public PatchProperty<string?> ExternalId { get; set; } = null!;
+            public PatchProperty<DateTime?> AppliesFrom { get; set; } = null!;
+            public PatchProperty<DateTime?> AppliesTo { get; set; } = null!;
+            public PatchProperty<double?> Workload { get; set; } = null!;
+            public PatchProperty<string?> Obs { get; set; } = null!;
+            public PatchProperty<bool?> IsPrimary { get; set; } = null!;
+            public PatchProperty<string?> Calendar { get; set; } = null!;
+            public PatchProperty<string?> RotationId { get; set; } = null!;
+            public PatchProperty<ApiPositionLocationV2?> Location { get; set; } = null!;
+            public PatchProperty<ApiPersonV2?> AssignedPerson { get; set; } = null!;
+            public PatchProperty<Guid?> ParentPositionId { get; set; } = null!;
+            public PatchProperty<List<Guid>?> TaskOwnerIds { get; set; } = null!;
+            public PatchProperty<ApiPropertiesCollectionV2?> Properties { get; set; } = null!;
         }
     }
 }
