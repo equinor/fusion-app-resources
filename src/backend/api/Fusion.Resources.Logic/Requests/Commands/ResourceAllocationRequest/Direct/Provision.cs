@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.Integration.Org;
+using Newtonsoft.Json.Linq;
+using DateTimeOffset = System.DateTimeOffset;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -124,42 +126,36 @@ namespace Fusion.Resources.Logic.Commands
                     /// <returns></returns>
                     private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
                     {
-                        var changeDoc = JsonDocument.Parse(dbRequest.ProposedChanges!);
+                        var changeDoc = JObject.Parse(dbRequest.ProposedChanges!);
 
                         var patchDoc = new PatchPositionInstanceV2();
                         if (dbRequest.ProposedPerson != null)
                         {
                             patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId };
                         }
-                        foreach (var key in changeDoc.RootElement.EnumerateObject())
+                        if (changeDoc.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
                         {
-                            if (changeDoc.RootElement.TryGetProperty(key.Name, out var jsonElement))
-                            {
-                                if (string.Equals(key.Name, "obs", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    patchDoc.Obs = jsonElement.GetString();
-                                }
+                            patchDoc.Obs = obs.ToObject<string?>();
+                        }
 
-                                if (string.Equals(key.Name, "workload", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    patchDoc.Workload = jsonElement.GetDouble();
-                                }
+                        if (changeDoc.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
+                        {
+                            patchDoc.Workload = workload.ToObject<double?>();
+                        }
 
-                                if (string.Equals(key.Name, "appliesFrom", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    patchDoc.AppliesFrom = jsonElement.GetDateTime();
-                                }
+                        if (changeDoc.TryGetValue("appliesFrom", StringComparison.InvariantCultureIgnoreCase, out var appliesFrom))
+                        {
+                            patchDoc.AppliesFrom = appliesFrom.ToObject<DateTime?>();
+                        }
 
-                                if (string.Equals(key.Name, "appliesTo", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    patchDoc.AppliesTo = jsonElement.GetDateTime();
-                                }
+                        if (changeDoc.TryGetValue("appliesTo", StringComparison.InvariantCultureIgnoreCase, out var appliesTo))
+                        {
+                            patchDoc.AppliesTo = appliesTo.ToObject<DateTime?>();
+                        }
 
-                                if (string.Equals(key.Name, "locationId", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    patchDoc.Location = new ApiPositionLocationV2 { Id = jsonElement.GetGuid() };
-                                }
-                            }
+                        if (changeDoc.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
+                        {
+                            patchDoc.Location = location.ToObject<ApiPositionLocationV2?>()!;
                         }
 
                         return patchDoc;
