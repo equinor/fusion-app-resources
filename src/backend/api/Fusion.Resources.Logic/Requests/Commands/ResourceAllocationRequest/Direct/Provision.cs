@@ -88,9 +88,9 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest.OrgPositionId == null)
                             throw new InvalidOperationException("Cannot provision change request when original position id is empty.");
 
-                        if (dbRequest.ProposedChanges != null)
+                        if (dbRequest.ProposedChanges != null || dbRequest.ProposedPerson != null)
                         {
-                            var patchDoc = CreatePatchPositionInstanceV2(dbRequest);
+                            var patchDoc = CreatePatchPositionInstanceV2(dbRequest.ProposedChanges, dbRequest.ProposedPerson);
                             var updatePositionCommand = new UpdatePositionInstance(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value, dbRequest.OrgPositionInstance.Id, patchDoc);
 
                             dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
@@ -114,7 +114,7 @@ namespace Fusion.Resources.Logic.Commands
                         }
                         else
                         {
-                            dbRequest.ProvisioningStatus.ErrorMessage = $"Request payload of proposed changes was null or empty. Unable to provision";
+                            dbRequest.ProvisioningStatus.ErrorMessage = $"Request payload of proposed changes and proposed person was null or empty. Unable to provision";
                             dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
                         }
                     }
@@ -122,41 +122,34 @@ namespace Fusion.Resources.Logic.Commands
                     /// <summary>
                     /// Based upon ApiPositionInstanceV2. Consider re-mapping if updating API version.
                     /// </summary>
-                    /// <param name="dbRequest"></param>
+                    /// <param name="changes">Proposed changes json</param>
+                    /// <param name="proposedPerson">Proposed person</param>
                     /// <returns></returns>
-                    private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
+                    private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(string? changes, DbPerson? proposedPerson)
                     {
-                        var changeDoc = JObject.Parse(dbRequest.ProposedChanges!);
+                        var proposedChanges = new JObject();
+
+                        if (!string.IsNullOrEmpty(changes))
+                            proposedChanges = JObject.Parse(changes);
 
                         var patchDoc = new PatchPositionInstanceV2();
-                        if (dbRequest.ProposedPerson != null)
-                        {
-                            patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId };
-                        }
-                        if (changeDoc.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
-                        {
+                        if (proposedPerson != null)
+                            patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = proposedPerson.AzureUniqueId };
+
+                        if (proposedChanges.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
                             patchDoc.Obs = obs.ToObject<string?>();
-                        }
 
-                        if (changeDoc.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
-                        {
+                        if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                             patchDoc.Workload = workload.ToObject<double?>();
-                        }
 
-                        if (changeDoc.TryGetValue("appliesFrom", StringComparison.InvariantCultureIgnoreCase, out var appliesFrom))
-                        {
+                        if (proposedChanges.TryGetValue("appliesFrom", StringComparison.InvariantCultureIgnoreCase, out var appliesFrom))
                             patchDoc.AppliesFrom = appliesFrom.ToObject<DateTime?>();
-                        }
 
-                        if (changeDoc.TryGetValue("appliesTo", StringComparison.InvariantCultureIgnoreCase, out var appliesTo))
-                        {
+                        if (proposedChanges.TryGetValue("appliesTo", StringComparison.InvariantCultureIgnoreCase, out var appliesTo))
                             patchDoc.AppliesTo = appliesTo.ToObject<DateTime?>();
-                        }
 
-                        if (changeDoc.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                        {
+                        if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
                             patchDoc.Location = location.ToObject<ApiPositionLocationV2?>()!;
-                        }
 
                         return patchDoc;
                     }
