@@ -172,12 +172,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 m.OrgPosition.Should().BeNull();
             }
 
-            var expandedList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{normalRequest.Project.ProjectId}/requests?$expand=orgPosition");
-
-            expandedList.Should().BeSuccessfull();
-            foreach (var m in expandedList.Value.Value)
+            var expandedOrgPositionList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{normalRequest.Project.ProjectId}/requests?$expand=orgPosition");
+            expandedOrgPositionList.Should().BeSuccessfull();
+            foreach (var m in expandedOrgPositionList.Value.Value)
             {
                 m.OrgPosition.Should().NotBeNull();
+                m.OrgPositionInstance.Should().BeNull();
+            }
+            var expandedOrgPositionInstanceList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{normalRequest.Project.ProjectId}/requests?$expand=orgPositionInstance");
+            expandedOrgPositionInstanceList.Should().BeSuccessfull();
+            foreach (var m in expandedOrgPositionInstanceList.Value.Value)
+            {
+                m.OrgPosition.Should().NotBeNull();
+                m.OrgPositionInstance.Should().NotBeNull();
+            }
+
+            var expandedAllList = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/projects/{normalRequest.Project.ProjectId}/requests?$expand=orgPositionInstance,orgPosition");
+            expandedAllList.Should().BeSuccessfull();
+            foreach (var m in expandedAllList.Value.Value)
+            {
+                m.OrgPosition.Should().NotBeNull();
+                m.OrgPositionInstance.Should().NotBeNull();
             }
 
         }
