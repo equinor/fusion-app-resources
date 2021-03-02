@@ -11,6 +11,7 @@ using System.Xml;
 
 namespace Fusion.Resources.Api.Controllers.Requests
 {
+    [ApiVersion("1.0-preview")]
     [Authorize]
     [ApiController]
     public class DepartmentRequestsController : ResourceControllerBase
@@ -92,7 +93,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var requestCommand = new GetDepartmentRequestsTimeline(departmentString, timelineStart.Value, timelineEnd.Value, query);
             var departmentRequestsTimeline = await DispatchAsync(requestCommand);
 
-            var apiModel = new ApiRequestsTimeline(departmentRequestsTimeline);
+            var apiModel = new ApiRequestsTimeline(departmentRequestsTimeline, timelineStart.Value, timelineEnd.Value);
 
             return apiModel;
         }

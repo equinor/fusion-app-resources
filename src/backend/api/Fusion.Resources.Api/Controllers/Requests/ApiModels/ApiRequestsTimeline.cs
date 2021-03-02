@@ -8,16 +8,16 @@ namespace Fusion.Resources.Api.Controllers
     public class ApiRequestsTimeline
     {
    
-        public ApiRequestsTimeline(QueryRequestsTimeline qt)
+        public ApiRequestsTimeline(QueryRequestsTimeline qt, DateTime timelineStart, DateTime timelineEnd)
         {
-            if (qt.Requests != null) Requests = qt.Requests.Select(r => new SimpleRequest(r)).ToList();
+            if (qt.Requests != null) Requests = qt.Requests.Select(r => new TimelineRequest(r, timelineStart, timelineEnd)).ToList();
             if (qt.Timeline != null) Timeline = qt.Timeline.Select(t => new RequestsTimelineRange(t)).ToList();
         }
-        public List<SimpleRequest>? Requests { get; set; }
+        public List<TimelineRequest>? Requests { get; set; }
         public List<RequestsTimelineRange>? Timeline { get; set; }
-        public class SimpleRequest
+        public class TimelineRequest
         {
-            public SimpleRequest(QueryResourceAllocationRequest qr) 
+            public TimelineRequest(QueryResourceAllocationRequest qr, DateTime timelineStart, DateTime timelineEnd) 
             {
                 Id = qr.RequestId.ToString();
                 if (qr.OrgPositionInstance != null)
@@ -25,6 +25,8 @@ namespace Fusion.Resources.Api.Controllers
                     AppliesFrom = qr.OrgPositionInstance.AppliesFrom;
                     AppliesTo = qr.OrgPositionInstance.AppliesTo;
                     Workload = qr.OrgPositionInstance.Workload;
+                    FilteredAppliesFrom = AppliesFrom < timelineStart ? timelineStart : AppliesFrom;
+                    FilteredAppliesTo = AppliesTo > timelineEnd ? timelineEnd : AppliesTo; 
                 }
                 ProjectName = qr.Project.Name;
                 PositionName = qr.OrgPosition != null ? qr.OrgPosition.Name : "";
@@ -33,6 +35,8 @@ namespace Fusion.Resources.Api.Controllers
             public string Id { get; set; }
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
+            public DateTime FilteredAppliesFrom { get; set; }
+            public DateTime FilteredAppliesTo { get; set; }
             public double? Workload { get; set; }
             public string ProjectName { get; set; }
             public string PositionName { get; set; }

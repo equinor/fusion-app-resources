@@ -39,6 +39,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
+        private const string ApiVersion = "api-version=1.0-Preview";
 
         public async Task InitializeAsync()
         {
@@ -75,7 +76,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests");
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests?{ApiVersion}");
             response.Should().BeSuccessfull();
 
             response.Value.Value.Should().OnlyContain(r => r.AssignedDepartment == "Test department");
@@ -94,7 +95,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             ;
             var post = await Client.TestClientPostAsync($"/projects/{unassignedRequest.Project.ProjectId}/requests", unassignedRequest.Request, new { Id = Guid.Empty });
             post.Should().BeSuccessfull();
-            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/some department string/resources/requests");
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/some department string/resources/requests?{ApiVersion}");
             response.Should().BeSuccessfull();
 
             response.Value.Value.Should().HaveCount(0);
@@ -114,7 +115,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             ;
             var post = await Client.TestClientPostAsync($"/projects/{otherDepartmentRequest.Project.ProjectId}/requests", otherDepartmentRequest.Request, new { Id = Guid.Empty });
             post.Should().BeSuccessfull();
-            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests");
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests?{ApiVersion}");
             response.Should().BeSuccessfull();
 
             response.Value.Value.Should().NotContain(r => r.AssignedDepartment == "Other department");
@@ -127,7 +128,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart=2020-02-01T00:00:00Z&timelineEnd=2021-05-01T00:00:00Z");
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart=2020-02-01T00:00:00Z&timelineEnd=2021-05-01T00:00:00Z");
             response.Should().BeSuccessfull();
         }
 
@@ -136,7 +137,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineEnd=2021-05-01T00:00:00Z");
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineEnd=2021-05-01T00:00:00Z");
             response.Should().BeBadRequest();
         }
 
@@ -145,7 +146,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart=2021-05-01T00:00:00Z");
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart=2021-05-01T00:00:00Z");
             response.Should().BeBadRequest();
         }
 
@@ -166,7 +167,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //use generated dates from request to make sure it is within time range
             var timelineStart = position.Instances.First().AppliesFrom.Date;
             var timelineEnd = position.Instances.First().AppliesTo.Date;
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{newRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{newRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
             response.Value.Requests.Should().OnlyContain(r => r.Id == created.Value.Id.ToString());
             response.Value.Timeline.Should().Contain(t => t.AppliesFrom == timelineStart && t.AppliesTo == timelineEnd && t.Items.Exists(i => i.Id == created.Value.Id.ToString()));
         }
@@ -187,7 +188,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //use generated dates from request to make sure it is within time range
             var timelineStart = position.Instances.First().AppliesFrom.Date;
             var timelineEnd = position.Instances.First().AppliesTo.Date;
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
             response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         }
 
@@ -208,7 +209,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //use generated dates from request to make sure it is within time range
             var timelineStart = position.Instances.First().AppliesFrom.Date;
             var timelineEnd = position.Instances.First().AppliesTo.Date;
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
             response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         }
 
@@ -229,7 +230,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //use generated dates from request to make sure it is NOT within time range
             var timelineStart = position.Instances.First().AppliesTo.Date.AddDays(1);
             var timelineEnd = timelineStart.Date.AddDays(10);
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
             response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         }
 
