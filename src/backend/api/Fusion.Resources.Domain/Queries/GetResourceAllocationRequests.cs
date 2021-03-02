@@ -44,9 +44,8 @@ namespace Fusion.Resources.Domain.Queries
         private enum ExpandFields
         {
             None = 0,
-            OrgPosition = 1,
-            OrgPositionInstance = 2,
-            All = OrgPosition | OrgPositionInstance
+            OrgPosition = 1 << 0,
+            OrgPositionInstance = 1 << 1
         }
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryPagedList<QueryResourceAllocationRequest>>
         {
