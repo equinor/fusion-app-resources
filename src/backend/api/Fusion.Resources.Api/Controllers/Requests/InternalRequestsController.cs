@@ -371,11 +371,7 @@ namespace Fusion.Resources.Api.Controllers
                 result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
                 return new ApiResourceAllocationRequest(result!);
             }
-            catch (NotSupportedException ex)
-            {
-                return ApiErrors.InvalidOperation(ex);
-            }
-            catch (InvalidOperationException ex)
+            catch (ValidationException ex)
             {
                 return ApiErrors.InvalidOperation(ex);
             }
