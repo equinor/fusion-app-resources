@@ -20,11 +20,14 @@ namespace Fusion.Resources.Api.Controllers
             public SimpleRequest(QueryResourceAllocationRequest qr) 
             {
                 Id = qr.RequestId.ToString();
-                AppliesFrom = qr.OrgPositionInstance.AppliesFrom;
-                AppliesTo = qr.OrgPositionInstance.AppliesTo;
-                Workload = qr.OrgPositionInstance.Workload;
+                if (qr.OrgPositionInstance != null)
+                {
+                    AppliesFrom = qr.OrgPositionInstance.AppliesFrom;
+                    AppliesTo = qr.OrgPositionInstance.AppliesTo;
+                    Workload = qr.OrgPositionInstance.Workload;
+                }
                 ProjectName = qr.Project.Name;
-                PositionName = qr.OrgPosition.Name;
+                PositionName = qr.OrgPosition != null ? qr.OrgPosition.Name : "";
             }
             public string Id { get; set; }
             public DateTime AppliesFrom { get; set; }

@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain
         }
 
         public string DepartmentString { get; private set; }
-        private ODataQueryParams Query { get; set; }
+        private ODataQueryParams? Query { get; set; }
         public DateTime? TimelineStart { get; set; }
         public DateTime? TimelineEnd { get; set; }
 
