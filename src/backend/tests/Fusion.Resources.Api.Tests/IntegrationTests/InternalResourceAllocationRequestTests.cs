@@ -35,6 +35,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestResourceAllocationBuilder directRequest = null!;
         private FusionTestResourceAllocationBuilder jointVentureRequest = null!;
         private FusionTestProjectBuilder testProject = null!;
+        private Guid? testCommentId;
 
         public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -109,6 +110,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response = await adminClient.TestClientPostAsync($"/projects/{directRequest.Project.ProjectId}/requests", directRequest.Request, new { Id = Guid.Empty });
             response.Should().BeSuccessfull();
             directRequest.Request.Id = response.Value.Id;
+
+            var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
+            commentResponse.Should().BeSuccessfull();
+            testCommentId = commentResponse.Value.Id;
         }
 
         public Task DisposeAsync()
@@ -131,6 +136,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var response = await Client.TestClientDeleteAsync($"/projects/{normalRequest.Project.ProjectId}/requests/{Guid.NewGuid()}");
+            response.Should().BeNotFound();
+        }
+        [Fact]
+        public async Task Delete_RequestComment_ShouldBeDeleted()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}");
+            response.Should().BeSuccessfull();
+        }
+        [Fact]
+        public async Task Delete_NonExistingRequestComment_ShouldBeNotFound()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{Guid.NewGuid()}");
             response.Should().BeNotFound();
         }
         #endregion
@@ -185,8 +206,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Get_InternalRequest_ShouldBeAuthorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}");
+            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}?$expand=comments");
             response.Should().BeSuccessfull();
+            
+            // Test comment expansion
+            response.Value.Comments!.Count().Should().BeGreaterOrEqualTo(1);
 
             AssertPropsAreEqual(response.Value, normalRequest.Request, adminScope);
         }
@@ -200,6 +224,62 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Value.Count().Should().BeGreaterThan(0);
 
         }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldIncludeRequest_WhenCurrentDepartment()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var newRequest = new FusionTestResourceAllocationBuilder()
+               .WithOrgPositionId(testProject.Positions.Skip(3).First())
+               .WithProject(testProject.Project)
+               .WithProposedPerson(testUser)
+               .WithAssignedDepartment("Current department");
+            ;
+            await Client.TestClientPostAsync($"/projects/{newRequest.Project.ProjectId}/requests", newRequest.Request, new { Id = Guid.Empty });
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/{newRequest.Request.AssignedDepartment}/resources/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Value.Should().HaveCount(1);
+            response.Value.Value.Should().OnlyContain(r => r.AssignedDepartment == "Current department");
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldNotIncludeRequests_WhenAssignedDepartmentEmpty()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var unassignedRequest = new FusionTestResourceAllocationBuilder()
+               .WithOrgPositionId(testProject.Positions.Skip(3).First())
+               .WithProject(testProject.Project)
+               .WithProposedPerson(testUser)
+               .WithAssignedDepartment(null);
+            ;
+            await Client.TestClientPostAsync($"/projects/{unassignedRequest.Project.ProjectId}/requests", unassignedRequest.Request, new { Id = Guid.Empty });
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/some department string/resources/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Value.Should().HaveCount(0);
+        }
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldNotIncludeRequests_WhenAssignedDepartmentNotCurrentDepartment()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var otherDepartmentRequest = new FusionTestResourceAllocationBuilder()
+               .WithOrgPositionId(testProject.Positions.Skip(3).First())
+               .WithProject(testProject.Project)
+               .WithProposedPerson(testUser)
+               .WithAssignedDepartment("Other department");
+            ;
+            await Client.TestClientPostAsync($"/projects/{otherDepartmentRequest.Project.ProjectId}/requests", otherDepartmentRequest.Request, new { Id = Guid.Empty });
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/departments/some department/resources/requests");
+            response.Should().BeSuccessfull();
+
+            response.Value.Value.Should().NotContain(r => r.AssignedDepartment == "Other department");
+        }
+
         #endregion
 
         #region put tests
@@ -268,6 +348,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var updateRequest = new UpdateResourceAllocationRequest();
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}", updateRequest);
             response.Value.Updated.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task Put_RequestComment_ShouldBeUpdated()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPutAsync<ObjectWithId>($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
+            response.Should().BeSuccessfull();
         }
         #endregion
 
@@ -419,6 +508,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public ObjectWithState Workflow { get; set; } = null!;
         public ObjectWithState ProvisioningStatus { get; set; } = null!;
+        public IEnumerable<ObjectWithId>? Comments { get; set; }
+
 
     }
     public class ObjectWithAzureUniquePerson

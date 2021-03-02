@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
@@ -6,6 +7,7 @@ using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -258,9 +260,9 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -434,6 +436,128 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation(ex);
             }
         }
+
+        #region Comments
+        [HttpPost("/resources/requests/internal/{requestId}/comments")]
+        public async Task<ActionResult<ApiRequestComment>> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
+        {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+            
+            var comment = await DispatchAsync(new AddComment(User.GetRequestOrigin(), requestId, create.Content));
+
+            return Created($"/resources/requests/internal/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));
+        }
+
+        [HttpGet("/resources/requests/internal/{requestId}/comments")]
+        public async Task<ActionResult<IEnumerable<ApiRequestComment>>> GetRequestComment(Guid requestId)
+        {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var comments = await DispatchAsync(new GetRequestComments(requestId));
+            return comments.Select(x => new ApiRequestComment(x)).ToList();
+        }
+        [HttpGet("/resources/requests/internal/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult<ApiRequestComment>> GetRequestComment(Guid requestId, Guid commentId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+            return new ApiRequestComment(comment!);
+        }
+
+        [HttpPut("/resources/requests/internal/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult<ApiRequestComment>> UpdateRequestComment(Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+        {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment is null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new UpdateComment(commentId, update.Content));
+
+            comment = await DispatchAsync(new GetRequestComment(commentId));
+            return new ApiRequestComment(comment!);
+        }
+
+        [HttpDelete("/resources/requests/internal/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> DeleteRequestComment(Guid requestId, Guid commentId)
+        {
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (comment is null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new DeleteComment(commentId));
+
+            return NoContent();
+        }
+
+        #endregion Comments
 
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)

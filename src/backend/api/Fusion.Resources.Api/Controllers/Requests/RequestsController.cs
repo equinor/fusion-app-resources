@@ -325,6 +325,11 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments")]
         public async Task<ActionResult> AddRequestComment([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
         {
+            var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -343,7 +348,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            await DispatchAsync(new AddComment(requestId, create.Content));
+            await DispatchAsync(new AddComment(User.GetRequestOrigin(), requestId, create.Content));
 
             return NoContent();
         }
