@@ -225,6 +225,27 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        [HttpGet("/resources/requests/internal/unassigned")]
+        public async Task<ActionResult<int>> GetResourceAllocationRequestsUnassignedCount([FromQuery] bool? isDraft)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            return await DispatchAsync(new GetResourceAllocationRequestsUnassignedCount(isDraft));
+        }
 
         [HttpGet("/resources/requests/internal")]
         [HttpGet("/projects/{projectIdentifier}/requests")]
@@ -457,7 +478,7 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-            
+
             var comment = await DispatchAsync(new AddComment(User.GetRequestOrigin(), requestId, create.Content));
 
             return Created($"/resources/requests/internal/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));

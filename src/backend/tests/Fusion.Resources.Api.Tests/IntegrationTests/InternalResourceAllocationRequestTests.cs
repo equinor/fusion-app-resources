@@ -218,12 +218,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
         [Fact]
+        public async Task Get_UnassignedInternalRequest_ShouldBeAuthorized()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<int>($"/resources/requests/internal/unassigned");
+            response.Should().BeSuccessfull();
+
+        }
+        [Fact]
         public async Task Get_InternalRequest_ShouldBeAuthorized()
         {
             using var adminScope = fixture.AdminScope();
             var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}?$expand=comments");
             response.Should().BeSuccessfull();
-            
+
             // Test comment expansion
             response.Value.Comments!.Count().Should().BeGreaterOrEqualTo(1);
 
