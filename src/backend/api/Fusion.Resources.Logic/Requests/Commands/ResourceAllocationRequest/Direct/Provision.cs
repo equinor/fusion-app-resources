@@ -155,7 +155,7 @@ namespace Fusion.Resources.Logic.Commands
                                     patchDoc.AppliesTo = jsonElement.GetDateTime();
                                 }
 
-                                if (string.Equals(key.Name, "location.id", StringComparison.InvariantCultureIgnoreCase))
+                                if (string.Equals(key.Name, "locationId", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     patchDoc.Location = new ApiPositionLocationV2 { Id = jsonElement.GetGuid() };
                                 }
