@@ -53,7 +53,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
         }
 
         private void EnsureDatabase()
-        {            
+        {
             var services = new ServiceCollection();
             services.AddDbContext<ResourcesDbContext>(options =>
             {
@@ -96,8 +96,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     services.TryRemoveImplementationService("ContextEventReceiver");
                     services.TryRemoveImplementationService<ICompanyResolver>();
 
-                //make it transient in the tests, to make sure that test contracts are added to in-memory collection
-                services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
+                    //make it transient in the tests, to make sure that test contracts are added to in-memory collection
+                    services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
                     services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
                     services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
                     services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);

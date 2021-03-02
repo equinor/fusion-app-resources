@@ -29,7 +29,7 @@ namespace Fusion.Resources.Integration.Models.Queue
         /// The enum must be backwardscompatible for deserialization. 
         /// If an enum needs to be renamed, a new version must be created, and convertion between 1 -> x must be handled.
         /// </summary>
-        public enum RequestTypeV1 { ContractorPersonnel }
+        public enum RequestTypeV1 { ContractorPersonnel, InternalPersonnel }
     }
 
 

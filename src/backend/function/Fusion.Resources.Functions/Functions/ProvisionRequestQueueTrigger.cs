@@ -6,7 +6,6 @@ using Fusion.Resources.Integration.Models.Queue;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Functions
@@ -23,7 +22,7 @@ namespace Fusion.Resources.Functions
 
         [FunctionName("provision-position-request")]
         public async Task RunAsync(
-            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")]Message message,
+            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] Message message,
             ILogger log,
             MessageReceiver messageReceiver,
             [ServiceBus("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] MessageSender sender)
@@ -36,28 +35,62 @@ namespace Fusion.Resources.Functions
         {
             var payload = JsonSerializer.Deserialize<ProvisionPositionMessageV1>(messageBody);
 
-            if (payload.Type == ProvisionPositionMessageV1.RequestTypeV1.ContractorPersonnel)
+            var wasProvisioned = payload.Type switch
             {
-                var provisionResponse = await resourcesClient.PostAsync($"/projects/{payload.ProjectOrgId}/contracts/{payload.ContractOrgId}/resources/requests/{payload.RequestId}/provision", null);
+                ProvisionPositionMessageV1.RequestTypeV1.ContractorPersonnel => await ProvisionContractorPersonnel(log, payload),
+                ProvisionPositionMessageV1.RequestTypeV1.InternalPersonnel => await ProvisionInternalPersonnel(log, payload),
+                _ => throw new InvalidOperationException($" {payload.Type} is not a supported provisioning type.")
+            };
 
-                var content = await provisionResponse.Content.ReadAsStringAsync();
+            log.LogTrace($"Position was provisioned?: {wasProvisioned}");
+        }
 
-                if (!provisionResponse.IsSuccessStatusCode)
-                {
-                    log.LogError($"An error occured when trying to provision the request with id {payload.RequestId}");
-                    log.LogError(content);
+        private async Task<bool> ProvisionContractorPersonnel(ILogger log, ProvisionPositionMessageV1 payload)
+        {
+            var provisionResponse = await resourcesClient.PostAsync(
+                $"/projects/{payload.ProjectOrgId}/contracts/{payload.ContractOrgId}/resources/requests/{payload.RequestId}/provision",
+                null);
 
-                    throw new Exception($"An error occured when trying to provision the request with id {payload.RequestId}");
-                }
-                else
-                {
-                    log.LogInformation($"Successfully provisioned the position for request {payload.RequestId}");
-                    log.LogInformation(content);
-                }
+            var content = await provisionResponse.Content.ReadAsStringAsync();
+
+            if (!provisionResponse.IsSuccessStatusCode)
+            {
+                log.LogError($"An error occured when trying to provision the request with id {payload.RequestId}");
+                log.LogError(content);
+
+                throw new Exception($"An error occured when trying to provision the request with id {payload.RequestId}");
+            }
+            else
+            {
+                log.LogInformation($"Successfully provisioned the position for request {payload.RequestId}");
+                log.LogInformation(content);
+            }
+            return true;
+        }
+        
+        private async Task<bool> ProvisionInternalPersonnel(ILogger log, ProvisionPositionMessageV1 payload)
+        {
+            var provisionResponse =
+                await resourcesClient.PostAsync($"/resources/requests/internal/{payload.RequestId}/provision", null);
+
+            var content = await provisionResponse.Content.ReadAsStringAsync();
+
+            if (!provisionResponse.IsSuccessStatusCode)
+            {
+                log.LogError($"An error occured when trying to provision the request with id {payload.RequestId}");
+                log.LogError(content);
+
+                throw new Exception($"An error occured when trying to provision the request with id {payload.RequestId}");
+            }
+            else
+            {
+                log.LogInformation($"Successfully provisioned the position for request {payload.RequestId}");
+                log.LogInformation(content);
             }
 
-
+            return true;
         }
+
     }
-    
+
 }

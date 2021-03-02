@@ -67,7 +67,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "obs", "obsText" }, { "workload", 45 } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -76,7 +76,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(1).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "appliesFrom", "2020-01-01T00:00:00" }, { "appliesTo", null! }, { "workload", 41 }, { "obs", null! }, { "location", new { Id = Guid.NewGuid() } } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .WithOrgPositionId(testProject.Positions.Skip(2).First())
                     .WithProposedPerson(testUser)
                     .WithIsDraft(true)
-                    .WithProposedChanges(new ApiPropertiesCollection { { "PROPA", "CHANGEA" }, { "PROPB", "CHANGEB" } })
+                    .WithProposedChanges(new ApiPropertiesCollection { { "name", "Test Name" }, { "workload", 66 } })
                     .WithProject(testProject.Project)
                 ;
 
@@ -406,6 +406,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{directRequest.Project.ProjectId}/requests/{directRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Accepted");
         }
+        [Fact]
+        public async Task Post_ProjectRequest_DirectApproval_ShouldBeProvisioned()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{directRequest.Request.Id}/provision", null);
+            response.Should().BeSuccessfull();
+            response.Value.ProvisioningStatus.State.Should().Be("Provisioned");
+        }
+
         #endregion
 
         #region test helpers
@@ -497,6 +507,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public DateTimeOffset? LastActivity { get; set; }
 
         public ObjectWithState Workflow { get; set; } = null!;
+        public ObjectWithState ProvisioningStatus { get; set; } = null!;
         public IEnumerable<ObjectWithId>? Comments { get; set; }
 
 
