@@ -124,7 +124,7 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
-        [HttpPut("/resources/internal-requests/requests/{requestId}")]
+        [HttpPut("/resources/requests/internal/{requestId}")]
         [HttpPut("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> UpdateProjectAllocationRequest(
             [FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId,
@@ -224,7 +224,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
 
-        [HttpGet("/resources/internal-requests/requests")]
+        [HttpGet("/resources/requests/internal")]
         [HttpGet("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
             [FromRoute] ProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
@@ -256,7 +256,7 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
 
-        [HttpGet("/resources/internal-requests/requests/{requestId}")]
+        [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId)
         {
@@ -284,7 +284,7 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result);
         }
 
-        [HttpDelete("/resources/internal-requests/requests/{requestId}")]
+        [HttpDelete("/resources/requests/internal/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult> DeleteProjectAllocationRequest(Guid requestId)
         {

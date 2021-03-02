@@ -17,7 +17,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     {
         [HttpGet("departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentRequests(
-            [FromRoute] string departmentString,
+            [FromRoute] string departmentString, 
             [FromQuery] ODataQueryParams query)
         {
             #region Authorization

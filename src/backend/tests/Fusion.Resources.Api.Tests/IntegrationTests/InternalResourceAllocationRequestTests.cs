@@ -185,7 +185,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Get_InternalRequest_ShouldBeAuthorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{normalRequest.Request.Id}");
+            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}");
             response.Should().BeSuccessfull();
 
             AssertPropsAreEqual(response.Value, normalRequest.Request, adminScope);
@@ -194,7 +194,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Get_InternalRequests_ShouldBeAuthorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/resources/internal-requests/requests");
+            var response = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>($"/resources/requests/internal");
             response.Should().BeSuccessfull();
 
             response.Value.Value.Count().Should().BeGreaterThan(0);
@@ -256,7 +256,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 ProposedPersonAzureUniqueId = normalRequest.Request.ProposedPersonAzureUniqueId
             };
 
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{normalRequest.Request.Id}", updateRequest);
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}", updateRequest);
             response.Should().BeSuccessfull();
 
             AssertPropsAreEqual(response.Value, updateRequest, adminScope);
@@ -267,7 +267,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var updateRequest = new UpdateResourceAllocationRequest();
-            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/internal-requests/requests/{normalRequest.Request.Id}", updateRequest);
+            var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}", updateRequest);
             response.Value.Updated.Should().BeNull();
         }
         #endregion
