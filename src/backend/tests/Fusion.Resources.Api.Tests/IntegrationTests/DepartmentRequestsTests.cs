@@ -150,7 +150,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetDepartmentTimeline_CurrentDepartment_CorrectResponse()
+        public async Task GetDepartmentTimeline_CurrentDepartment_ShouldReturnCorrectResponse()
         {
             using var adminScope = fixture.AdminScope();
             var position = testProject.Positions.Skip(1).First();
@@ -169,14 +169,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Requests.Should().OnlyContain(r => r.Id == created.Value.Id.ToString());
             response.Value.Timeline.Should().Contain(t => t.AppliesFrom == timelineStart && t.AppliesTo == timelineEnd && t.Items.Exists(i => i.Id == created.Value.Id.ToString()));
         }
-
-        // test correct requests are returned
-
-        // test correct number of timelines are calculated
-
-        // test correct requests within each timelinerange
-
-        // test correct workload calculated
 
         public Task DisposeAsync()
         {
@@ -211,8 +203,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             public class RequestTimelineItemTestModel
             {
                 public string Id { get; set; } 
-                public string? PositionName { get; set; }
-                public string? ProjectName { get; set; }
+                public string PositionName { get; set; }
+                public string ProjectName { get; set; }
                 public double? Workload { get; set; }
             }
         }

@@ -44,7 +44,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("departments/{departmentString}/resources/requests/timeline")]
-        public async Task<ActionResult<ApiDepartmentRequestsTimeline>> GetDepartmentTimeline(
+        public async Task<ActionResult<ApiRequestsTimeline>> GetDepartmentTimeline(
             [FromRoute] string departmentString,
             [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
@@ -92,7 +92,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var requestCommand = new GetDepartmentRequestsTimeline(departmentString, timelineStart.Value, timelineEnd.Value, query);
             var departmentRequestsTimeline = await DispatchAsync(requestCommand);
 
-            var apiModel = new ApiDepartmentRequestsTimeline(departmentRequestsTimeline);
+            var apiModel = new ApiRequestsTimeline(departmentRequestsTimeline);
 
             return apiModel;
         }

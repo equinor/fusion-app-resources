@@ -5,16 +5,16 @@ using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class ApiDepartmentRequestsTimeline
+    public class ApiRequestsTimeline
     {
    
-        public ApiDepartmentRequestsTimeline(QueryDepartmentRequestsTimeline qt)
+        public ApiRequestsTimeline(QueryRequestsTimeline qt)
         {
             if (qt.Requests != null) Requests = qt.Requests.Select(r => new SimpleRequest(r)).ToList();
-            if (qt.Timeline != null) Timeline = qt.Timeline.Select(t => new DepartmentRequestsTimelineRange(t)).ToList();
+            if (qt.Timeline != null) Timeline = qt.Timeline.Select(t => new RequestsTimelineRange(t)).ToList();
         }
         public List<SimpleRequest>? Requests { get; set; }
-        public List<DepartmentRequestsTimelineRange>? Timeline { get; set; }
+        public List<RequestsTimelineRange>? Timeline { get; set; }
         public class SimpleRequest
         {
             public SimpleRequest(QueryResourceAllocationRequest qr) 
@@ -37,25 +37,25 @@ namespace Fusion.Resources.Api.Controllers
             public string PositionName { get; set; }
         }
 
-        public class DepartmentRequestsTimelineRange
+        public class RequestsTimelineRange
         {
-            public DepartmentRequestsTimelineRange(QueryTimelineRange<QueryDepartmentRequestsTimeline.DepartmentTimelineItem> ti)
+            public RequestsTimelineRange(QueryTimelineRange<QueryRequestsTimelineItem> ti)
             {
                 AppliesFrom = ti.AppliesFrom;
                 AppliesTo = ti.AppliesTo;
                 Workload = ti.Workload;
 
-                Items = ti.Items.Select(i => new RequestTimelineItem(i)).ToList();
+                Items = ti.Items.Select(i => new RequestsTimelineItem(i)).ToList();
             }
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
-            public List<RequestTimelineItem> Items { get; set; } = new List<RequestTimelineItem>();
-            public double? Workload { get; set; } //sum of all requests within the window
+            public List<RequestsTimelineItem> Items { get; set; } = new List<RequestsTimelineItem>();
+            public double Workload { get; set; } //sum of all requests within the window
         }
 
-        public class RequestTimelineItem
+        public class RequestsTimelineItem
         {
-            public RequestTimelineItem(QueryDepartmentRequestsTimeline.DepartmentTimelineItem item)
+            public RequestsTimelineItem(QueryRequestsTimelineItem item)
             {
                 Id = item.Id;
                 Workload = item.Workload;

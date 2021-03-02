@@ -14,18 +14,18 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetDepartmentRequestsTimeline : IRequest<QueryDepartmentRequestsTimeline>
+    public class GetDepartmentRequestsTimeline : IRequest<QueryRequestsTimeline>
     {
-        public GetDepartmentRequestsTimeline(string departmentString, DateTime timelineStart, DateTime timelineEnd, ODataQueryParams? query = null)
+        public GetDepartmentRequestsTimeline(string departmentString, DateTime timelineStart, DateTime timelineEnd, ODataQueryParams? queryParams = null)
         {
-            this.Query = query ?? new ODataQueryParams();
+            this.QueryParams = queryParams;
             this.DepartmentString = departmentString;
             this.TimelineStart = timelineStart;
             this.TimelineEnd = timelineEnd;
         }
 
         public string DepartmentString { get; private set; }
-        private ODataQueryParams? Query { get; set; }
+        public ODataQueryParams? QueryParams { get; set; }
         public DateTime? TimelineStart { get; set; }
         public DateTime? TimelineEnd { get; set; }
 
@@ -40,7 +40,7 @@ namespace Fusion.Resources.Domain
             }
         }
 
-        public class Handler : IRequestHandler<GetDepartmentRequestsTimeline, QueryDepartmentRequestsTimeline>
+        public class Handler : IRequestHandler<GetDepartmentRequestsTimeline, QueryRequestsTimeline>
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
@@ -51,8 +51,7 @@ namespace Fusion.Resources.Domain
                 this.orgResolver = orgResolver;
             }
 
-            //TODO
-            public async Task<QueryDepartmentRequestsTimeline> Handle(GetDepartmentRequestsTimeline request, CancellationToken cancellationToken)
+            public async Task<QueryRequestsTimeline> Handle(GetDepartmentRequestsTimeline request, CancellationToken cancellationToken)
             {
                 // get requests for department
                 var query = db.ResourceAllocationRequests
@@ -79,77 +78,16 @@ namespace Fusion.Resources.Domain
                     }
                 }
                 // Timeline date input has been verified in controller
-                var timeline = GenerateTimeline(request.TimelineStart!.Value, request.TimelineEnd!.Value, departmentRequests).OrderBy(p => p.AppliesFrom)
+                var timeline = TimelineUtils.GenerateRequestsTimeline(departmentRequests, request.TimelineStart!.Value, request.TimelineEnd!.Value).OrderBy(p => p.AppliesFrom)
                             .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
                             .ToList();
 
-                var result = new QueryDepartmentRequestsTimeline
+                var result = new QueryRequestsTimeline
                 {
                     Timeline = timeline,
                     Requests = departmentRequests
                 };
                 return result;
-            }
-        
-            private IEnumerable<QueryTimelineRange<QueryDepartmentRequestsTimeline.DepartmentTimelineItem>> GenerateTimeline(
-                DateTime filterStart,
-                DateTime filterEnd, 
-                List<QueryResourceAllocationRequest> requests)
-            {
-                // Ensure utc dates
-                if (filterStart.Kind != DateTimeKind.Utc)
-                    filterStart = DateTime.SpecifyKind(filterStart, DateTimeKind.Utc);
-
-                if (filterEnd.Kind != DateTimeKind.Utc)
-                    filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
-
-                //gather all dates from orgPositionInstances of each request
-                var orgPositionInstances = requests.Select(r => r.OrgPositionInstance)
-                    .Where(p => p != null);
-                var dates = orgPositionInstances.SelectMany(p => new[] { (DateTime?)p.AppliesFrom.Date, (DateTime?)p.AppliesTo.Date })
-                    .Where(d => d.HasValue)
-                    .Select(d => d!.Value)
-                    .Distinct()
-                    .OrderBy(d => d)
-                    .ToList();
-
-                if (!dates.Any())
-                    yield break;
-
-                // choose dates within filter range
-                var validDates = dates.Where(d => d > filterStart && d < filterEnd).ToList();
-
-                validDates.Insert(0, filterStart);
-                validDates.Add(filterEnd);
-
-                var current = validDates.First();
-
-                //create timeline
-                foreach (var date in validDates.Skip(1))
-                {
-                    var timelineRange = new TimeRange(current, date);
-
-                    var affectedItems = requests.Where(r =>
-                    {
-                        if (r.OrgPositionInstance == null) return false;
-                        var requestTimeRange = new TimeRange(r.OrgPositionInstance.AppliesFrom.Date, r.OrgPositionInstance.AppliesTo.Date);
-                        return requestTimeRange.OverlapsWith(timelineRange);
-                    });
-                    // create timelinerange with TimelineItems
-                    yield return new QueryTimelineRange<QueryDepartmentRequestsTimeline.DepartmentTimelineItem>(timelineRange.Start, timelineRange.End)
-                    {
-                        Items = affectedItems.Select(r => new QueryDepartmentRequestsTimeline.DepartmentTimelineItem
-                        {
-                            Workload = r.OrgPositionInstance?.Workload,
-                            Id = r.RequestId.ToString(),
-                            PositionName = r.OrgPosition?.Name,
-                            ProjectName = r.Project.Name
-                        })
-                            .ToList(),
-                        Workload = affectedItems.Sum(r => r.OrgPositionInstance?.Workload ?? 0)
-                    };
-                    current = date;
-                }
             }
         }
     }
