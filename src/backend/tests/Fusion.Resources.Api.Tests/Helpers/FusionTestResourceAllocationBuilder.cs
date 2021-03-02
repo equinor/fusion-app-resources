@@ -55,5 +55,11 @@ namespace Fusion.Testing.Mocks
             Request.Type = type;
             return this;
         }
+
+        public FusionTestResourceAllocationBuilder WithAssignedDepartment(string departmentString)
+        {
+            Request.AssignedDepartment = departmentString;
+            return this;
+        }
     }
 }

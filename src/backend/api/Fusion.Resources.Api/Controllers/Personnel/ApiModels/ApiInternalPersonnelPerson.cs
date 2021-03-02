@@ -9,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiInternalPersonnelPerson
     {
-        public ApiInternalPersonnelPerson(QueryDepartmentPersonnelPerson p)
+        public ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p)
         {
             AzureUniquePersonId = p.AzureUniqueId;
             Mail = p.Mail!;
@@ -18,11 +18,20 @@ namespace Fusion.Resources.Api.Controllers
             PhoneNumber = p.PhoneNumber;
             JobTitle = p.JobTitle;
             OfficeLocation = p.OfficeLocation;
+            Department = p.Department!;
+            FullDepartment = p.FullDepartment!;
 
             if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti)).ToList();
 
             PositionInstances = p.PositionInstances.Select(pos => new PersonnelPosition(pos)).ToList();
             EmploymentStatuses = p.Absence.Select(a => new PersonnelAbsence(a)).ToList();
+
+            Disciplines = p.PositionInstances
+                .OrderByDescending(p => p.AppliesTo)
+                .Select(p => p.BasePosition.Discipline)
+                .Where(d => !string.IsNullOrEmpty(d))
+                .Distinct()
+                .ToList();
         }
 
         public Guid? AzureUniquePersonId { get; set; }
@@ -31,12 +40,15 @@ namespace Fusion.Resources.Api.Controllers
         public string? PhoneNumber { get; set; }
         public string? JobTitle { get; set; }
         public string? OfficeLocation { get; set; }
+        public string Department { get; set; }
+        public string FullDepartment { get; set; }
 
         /// <summary>
         /// Enum, <see cref="FusionAccountType"/>.
         /// </summary>
         public string AccountType { get; set; }
 
+        public List<string> Disciplines { get; set; } = new List<string>();
 
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
         public List<PersonnelAbsence> EmploymentStatuses { get; set; } = new List<PersonnelAbsence>();
@@ -47,7 +59,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineRange
         {
-            public TimelineRange(QueryTimelineRange<QueryDepartmentPersonnelPerson.PersonnelTimelineItem> ti)
+            public TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti)
             {
                 AppliesFrom = ti.AppliesFrom;
                 AppliesTo = ti.AppliesTo;
@@ -64,7 +76,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineItem
         {
-            public TimelineItem(QueryDepartmentPersonnelPerson.PersonnelTimelineItem item)
+            public TimelineItem(QueryPersonnelTimelineItem item)
             {
                 Id = item.Id;
                 Workload = item.Workload;
@@ -88,7 +100,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class PersonnelPosition
         {
-            public PersonnelPosition(QueryDepartmentPersonnelPerson.PersonnelPosition pos)
+            public PersonnelPosition(QueryPersonnelPosition pos)
             {
                 PositionId = pos.PositionId;
                 InstanceId = pos.InstanceId;

@@ -26,7 +26,14 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests WithAssignedDepartment(string departmentString)
+        {
+            DepartmentString = departmentString;
+            return this;
+        }
+
         public Guid? ProjectId { get; private set; }
+        public string? DepartmentString { get; private set; }
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
 
@@ -77,6 +84,8 @@ namespace Fusion.Resources.Domain.Queries
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
 
+                if (request.DepartmentString != null)
+                    query = query.Where(c => c.AssignedDepartment == request.DepartmentString);
 
                 var pagedQuery = await QueryPagedList<DbResourceAllocationRequest>.ToPagedListAsync(query,
                     request.Query.Skip.GetValueOrDefault(1), request.Query.Top.GetValueOrDefault(DefaultPageSize));

@@ -91,6 +91,73 @@ namespace Fusion.Resources.Api.Controllers
             var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
+
+        [HttpGet("sectors/{sectorPath}/resources/personnel")]
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetSectorPersonnel(string sectorPath,
+            [FromQuery] ODataQueryParams query,
+            [FromQuery] DateTime? timelineStart = null,
+            [FromQuery] string? timelineDuration = null,
+            [FromQuery] DateTime? timelineEnd = null)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+
+                    or.FullControlInternal();
+
+                    // TODO add
+                    // - Resource owner in line org chain (all departments upwrards)
+                    // - Is resource owner in general (?)
+                    // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
+            #region Validate input if timeline is expanded
+
+            var shouldExpandTimeline = query.ShoudExpand("timeline");
+            if (shouldExpandTimeline)
+            {
+                if (timelineStart is null)
+                    return ApiErrors.MissingInput(nameof(timelineStart), "Must specify 'timelineStart' when expanding timeline");
+
+                TimeSpan? duration;
+
+                try { duration = timelineDuration != null ? XmlConvert.ToTimeSpan("P5M") : null; }
+                catch (Exception ex)
+                {
+                    return ApiErrors.InvalidInput("Invalid duration value: " + ex.Message);
+                }
+
+                if (timelineEnd is null)
+                {
+                    if (duration is null)
+                        return ApiErrors.MissingInput(nameof(timelineDuration), "Must specify either 'timelineDuration' or 'timelineEnd' when expanding timeline");
+
+                    timelineEnd = timelineStart.Value.Add(duration.Value);
+                }
+            }
+
+            #endregion
+
+
+            var department = await DispatchAsync(new GetSectorPersonnel(sectorPath, query)
+                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
+
+
+            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
+            return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
+        }
     }
 
 }
