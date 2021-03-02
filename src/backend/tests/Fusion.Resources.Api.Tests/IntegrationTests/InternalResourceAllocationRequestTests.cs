@@ -34,7 +34,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestResourceAllocationBuilder normalRequest = null!;
         private FusionTestResourceAllocationBuilder directRequest = null!;
         private FusionTestResourceAllocationBuilder jointVentureRequest = null!;
-        private FusionTestProjectBuilder testProject;
+        private FusionTestProjectBuilder testProject = null!;
+        private Guid? testCommentId;
 
         public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -109,6 +110,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response = await adminClient.TestClientPostAsync($"/projects/{directRequest.Project.ProjectId}/requests", directRequest.Request, new { Id = Guid.Empty });
             response.Should().BeSuccessfull();
             directRequest.Request.Id = response.Value.Id;
+
+            var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
+            commentResponse.Should().BeSuccessfull();
+            testCommentId = commentResponse.Value.Id;
         }
 
         public Task DisposeAsync()
@@ -131,6 +136,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var response = await Client.TestClientDeleteAsync($"/projects/{normalRequest.Project.ProjectId}/requests/{Guid.NewGuid()}");
+            response.Should().BeNotFound();
+        }
+        [Fact]
+        public async Task Delete_RequestComment_ShouldBeDeleted()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}");
+            response.Should().BeSuccessfull();
+        }
+        [Fact]
+        public async Task Delete_NonExistingRequestComment_ShouldBeNotFound()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{Guid.NewGuid()}");
             response.Should().BeNotFound();
         }
         #endregion
@@ -185,8 +206,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Get_InternalRequest_ShouldBeAuthorized()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}");
+            var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}?$expand=comments");
             response.Should().BeSuccessfull();
+            
+            // Test comment expansion
+            response.Value.Comments!.Count().Should().BeGreaterOrEqualTo(1);
 
             AssertPropsAreEqual(response.Value, normalRequest.Request, adminScope);
         }
@@ -325,6 +349,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPutAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}", updateRequest);
             response.Value.Updated.Should().BeNull();
         }
+
+        [Fact]
+        public async Task Put_RequestComment_ShouldBeUpdated()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPutAsync<ObjectWithId>($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
+            response.Should().BeSuccessfull();
+        }
         #endregion
 
         #region post tests
@@ -456,14 +489,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public ObjectWithAzureUniquePerson? ProposedPerson { get; set; }
 
-        public ObjectWithAzureUniquePerson CreatedBy { get; set; }
+        public ObjectWithAzureUniquePerson CreatedBy { get; set; } = null!;
         public ObjectWithAzureUniquePerson? UpdatedBy { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public DateTimeOffset? LastActivity { get; set; }
 
-        public ObjectWithState Workflow { get; set; }
+        public ObjectWithState Workflow { get; set; } = null!;
+        public IEnumerable<ObjectWithId>? Comments { get; set; }
+
 
     }
     public class ObjectWithAzureUniquePerson
@@ -477,7 +512,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     }
     public class ObjectWithState
     {
-        public string State { get; set; }
+        public string? State { get; set; }
     }
     #endregion
 }
