@@ -124,37 +124,43 @@ namespace Fusion.Resources.Logic.Commands
                     /// <returns></returns>
                     private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(DbResourceAllocationRequest dbRequest)
                     {
+                        var changeDoc = JsonDocument.Parse(dbRequest.ProposedChanges!);
+
                         var patchDoc = new PatchPositionInstanceV2();
-
-                        var changedProps = JsonSerializerExtensions.DeserializeAnonymousType(dbRequest.ProposedChanges!,
-                                new
-                                {
-                                    Obs = (string?)null,
-                                    Workload = (double?)null,
-                                    AppliesFrom = (DateTime?)null,
-                                    AppliesTo = (DateTime?)null,
-                                    Location = new
-                                    {
-                                        id = (Guid?)null
-                                    }
-                                },
-                                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                        if (changedProps != null)
-                        {
-                            patchDoc.Obs = changedProps.Obs;
-                            patchDoc.Workload = changedProps.Workload;
-                            patchDoc.AppliesFrom = changedProps.AppliesFrom;
-                            patchDoc.AppliesTo = changedProps.AppliesTo;
-                            if (changedProps.Location?.id != null)
-                                patchDoc.Location = new ApiPositionLocationV2 { Id = changedProps.Location.id.Value };
-                        }
-
                         if (dbRequest.ProposedPerson != null)
                         {
                             patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId };
                         }
+                        foreach (var key in changeDoc.RootElement.EnumerateObject())
+                        {
+                            if (changeDoc.RootElement.TryGetProperty(key.Name, out var jsonElement))
+                            {
+                                if (string.Equals(key.Name, "obs", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.Obs = jsonElement.GetString();
+                                }
 
+                                if (string.Equals(key.Name, "workload", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.Workload = jsonElement.GetDouble();
+                                }
+
+                                if (string.Equals(key.Name, "appliesFrom", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.AppliesFrom = jsonElement.GetDateTime();
+                                }
+
+                                if (string.Equals(key.Name, "appliesTo", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.AppliesTo = jsonElement.GetDateTime();
+                                }
+
+                                if (string.Equals(key.Name, "location.id", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    patchDoc.Location = new ApiPositionLocationV2 { Id = jsonElement.GetGuid() };
+                                }
+                            }
+                        }
 
                         return patchDoc;
                     }
