@@ -84,13 +84,6 @@ namespace Fusion.Resources.Domain
             DateTime filterStart,
             DateTime filterEnd)
         {
-            // Ensure utc dates
-            if (filterStart.Kind != DateTimeKind.Utc)
-                filterStart = DateTime.SpecifyKind(filterStart, DateTimeKind.Utc);
-
-            if (filterEnd.Kind != DateTimeKind.Utc)
-                filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
-
             //gather all dates from orgPositionInstances of each request
             var orgPositionInstances = requests.Select(r => r.OrgPositionInstance)
                 .Where(p => p != null);
@@ -117,12 +110,7 @@ namespace Fusion.Resources.Domain
             {
                 var timelineRange = new TimeRange(current, date);
 
-                var affectedItems = requests.Where(r =>
-                {
-                    if (r.OrgPositionInstance == null) return false;
-                    var requestTimeRange = new TimeRange(r.OrgPositionInstance.AppliesFrom.Date, r.OrgPositionInstance.AppliesTo.Date);
-                    return requestTimeRange.OverlapsWith(timelineRange);
-                });
+                var affectedItems = FilterRequests(requests, timelineRange);
                 // create timelinerange with TimelineItems
                 yield return new QueryTimelineRange<QueryRequestsTimelineItem>(timelineRange.Start, timelineRange.End)
                 {
@@ -138,6 +126,18 @@ namespace Fusion.Resources.Domain
                 };
                 current = date;
             }
+        }
+
+        public static IEnumerable<QueryResourceAllocationRequest> FilterRequests(List<QueryResourceAllocationRequest> requests, TimeRange timelineRange)
+        {
+            var affectedItems = requests.Where(r =>
+            {
+                if (r.OrgPositionInstance == null) return false;
+                var requestTimeRange = new TimeRange(r.OrgPositionInstance.AppliesFrom.Date, r.OrgPositionInstance.AppliesTo.Date);
+                return requestTimeRange.OverlapsWith(timelineRange);
+            });
+
+            return affectedItems;
         }
     }
 }

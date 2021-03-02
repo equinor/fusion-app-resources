@@ -82,7 +82,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetDepartmentRequests_ShouldNotIncludeRequests_WhenAssignedDepartmentEmpty()
+        public async Task GetDepartmentRequests_ShouldNotReturn_UnassignedRequest()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -163,11 +163,74 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var created = await Client.TestClientPostAsync($"/projects/{newRequest.Project.ProjectId}/requests", newRequest.Request, new { Id = Guid.Empty });
             created.Should().BeSuccessfull();
 
+            //use generated dates from request to make sure it is within time range
             var timelineStart = position.Instances.First().AppliesFrom.Date;
             var timelineEnd = position.Instances.First().AppliesTo.Date;
             var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{newRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
             response.Value.Requests.Should().OnlyContain(r => r.Id == created.Value.Id.ToString());
             response.Value.Timeline.Should().Contain(t => t.AppliesFrom == timelineStart && t.AppliesTo == timelineEnd && t.Items.Exists(i => i.Id == created.Value.Id.ToString()));
+        }
+
+        [Fact]
+        public async Task GetDepartmentTimeline_ShouldNotReturnRequest_WhenAssignedDepartmentNotCurrentDepartment() {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.Positions.Skip(1).First();
+            var newRequest = new FusionTestResourceAllocationBuilder()
+              .WithOrgPositionId(position)
+              .WithProject(testProject.Project)
+              .WithProposedPerson(testUser)
+              .WithAssignedDepartment("Other department");
+
+            var created = await Client.TestClientPostAsync($"/projects/{newRequest.Project.ProjectId}/requests", newRequest.Request, new { Id = Guid.Empty });
+            created.Should().BeSuccessfull();
+
+            //use generated dates from request to make sure it is within time range
+            var timelineStart = position.Instances.First().AppliesFrom.Date;
+            var timelineEnd = position.Instances.First().AppliesTo.Date;
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
+        }
+
+        [Fact]
+        public async Task GetDepartmentTimeline_ShouldNotReturn_UnassignedRequest()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.Positions.Skip(1).First();
+            var unassignedRequest = new FusionTestResourceAllocationBuilder()
+              .WithOrgPositionId(position)
+              .WithProject(testProject.Project)
+              .WithProposedPerson(testUser)
+              .WithAssignedDepartment(null);
+
+            var created = await Client.TestClientPostAsync($"/projects/{unassignedRequest.Project.ProjectId}/requests", unassignedRequest.Request, new { Id = Guid.Empty });
+            created.Should().BeSuccessfull();
+
+            //use generated dates from request to make sure it is within time range
+            var timelineStart = position.Instances.First().AppliesFrom.Date;
+            var timelineEnd = position.Instances.First().AppliesTo.Date;
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
+        }
+
+        [Fact]
+        public async Task GetDepartmentTimeline_ShouldNotReturn_RequestNotInTimeRange()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.Positions.Skip(1).First();
+            var unassignedRequest = new FusionTestResourceAllocationBuilder()
+              .WithOrgPositionId(position)
+              .WithProject(testProject.Project)
+              .WithProposedPerson(testUser)
+              .WithAssignedDepartment("Test department");
+
+            var created = await Client.TestClientPostAsync($"/projects/{unassignedRequest.Project.ProjectId}/requests", unassignedRequest.Request, new { Id = Guid.Empty });
+            created.Should().BeSuccessfull();
+
+            //use generated dates from request to make sure it is NOT within time range
+            var timelineStart = position.Instances.First().AppliesTo.Date.AddDays(1);
+            var timelineEnd = timelineStart.Date.AddDays(10);
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         }
 
         public Task DisposeAsync()

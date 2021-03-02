@@ -28,6 +28,7 @@ namespace Fusion.Resources.Api.Controllers
                 }
                 ProjectName = qr.Project.Name;
                 PositionName = qr.OrgPosition != null ? qr.OrgPosition.Name : "";
+                Discipline = qr.Discipline;
             }
             public string Id { get; set; }
             public DateTime AppliesFrom { get; set; }
@@ -35,6 +36,7 @@ namespace Fusion.Resources.Api.Controllers
             public double? Workload { get; set; }
             public string ProjectName { get; set; }
             public string PositionName { get; set; }
+            public string? Discipline { get; set; }
         }
 
         public class RequestsTimelineRange
@@ -67,5 +69,6 @@ namespace Fusion.Resources.Api.Controllers
             public string? ProjectName { get; set; }
             public double? Workload { get; set; }
         }
+
     }
 }

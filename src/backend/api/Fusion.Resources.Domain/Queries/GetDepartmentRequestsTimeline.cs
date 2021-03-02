@@ -77,15 +77,28 @@ namespace Fusion.Resources.Domain
                         }
                     }
                 }
+
                 // Timeline date input has been verified in controller
-                var timeline = TimelineUtils.GenerateRequestsTimeline(departmentRequests, request.TimelineStart!.Value, request.TimelineEnd!.Value).OrderBy(p => p.AppliesFrom)
+                var filterStart = request.TimelineStart!.Value;
+                var filterEnd = request.TimelineEnd!.Value;
+
+                // Ensure utc dates
+                if (filterStart.Kind != DateTimeKind.Utc)
+                    filterStart = DateTime.SpecifyKind(filterStart, DateTimeKind.Utc);
+
+                if (filterEnd.Kind != DateTimeKind.Utc)
+                    filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
+
+                var relevantRequests = TimelineUtils.FilterRequests(departmentRequests, new TimeRange(filterStart, filterEnd)).ToList();
+                
+                var timeline = TimelineUtils.GenerateRequestsTimeline(relevantRequests, filterStart, filterEnd).OrderBy(p => p.AppliesFrom)
                             .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
                             .ToList();
 
                 var result = new QueryRequestsTimeline
                 {
                     Timeline = timeline,
-                    Requests = departmentRequests
+                    Requests = relevantRequests
                 };
                 return result;
             }
