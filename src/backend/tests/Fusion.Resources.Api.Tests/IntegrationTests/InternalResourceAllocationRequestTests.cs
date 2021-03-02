@@ -412,6 +412,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{jointVentureRequest.Project.ProjectId}/requests/{jointVentureRequest.Request.Id}/approve", null);
             response.Value.State.Should().Be("Accepted");
+            response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{jointVentureRequest.Project.ProjectId}/requests/{jointVentureRequest.Request.Id}/approve", null);
+            response.Value.State.Should().Be("Accepted");
         }
         [Fact]
         public async Task Post_ProjectRequest_DirectApprovalSteps_ShouldBeAssigned()

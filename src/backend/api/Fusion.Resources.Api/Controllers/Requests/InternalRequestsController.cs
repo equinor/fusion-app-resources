@@ -366,6 +366,12 @@ namespace Fusion.Resources.Api.Controllers
                     case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
                         await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Provision(requestId));
                         break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.JointVenture.Provision(requestId));
+                        break;
+                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
+                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Normal.Provision(requestId));
+                        break;
                 }
 
                 await scope.CommitAsync();
@@ -457,7 +463,7 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-            
+
             var comment = await DispatchAsync(new AddComment(User.GetRequestOrigin(), requestId, create.Content));
 
             return Created($"/resources/requests/internal/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));

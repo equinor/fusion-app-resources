@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.Resources.Database;
-using Fusion.Resources.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Logic.Commands
@@ -51,10 +50,11 @@ namespace Fusion.Resources.Logic.Commands
                         switch (dbRequest!.State)
                         {
                             case DbResourceAllocationRequestState.Created:
+                            case DbResourceAllocationRequestState.Accepted:
                                 await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
                                 break;
                             default:
-                                throw new NotSupportedException($"Invalid state change. Only supporting Created and Proposed. State was:{dbRequest.State}");
+                                throw new NotSupportedException($"Invalid state change. Only supporting Created and Accepted. State was:{dbRequest.State}");
                         }
                     }
                 }

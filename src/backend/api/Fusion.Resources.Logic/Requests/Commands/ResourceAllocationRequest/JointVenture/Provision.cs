@@ -16,7 +16,7 @@ namespace Fusion.Resources.Logic.Commands
 {
     public partial class ResourceAllocationRequest
     {
-        public partial class Direct
+        public partial class JointVenture
         {
             public class Provision : TrackableRequest
             {
@@ -34,7 +34,7 @@ namespace Fusion.Resources.Logic.Commands
                         RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
                         {
                             return await db.ResourceAllocationRequests.AnyAsync(y =>
-                                y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Direct);
+                                y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.JointVenture);
                         }).WithMessage($"Request must exist.");
 
                         // Based on request, does the org position instance exist ?

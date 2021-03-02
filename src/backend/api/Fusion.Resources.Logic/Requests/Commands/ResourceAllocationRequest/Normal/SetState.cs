@@ -84,6 +84,7 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbResourceAllocationRequestState.Accepted:
                                 workflow.Approved(request.Editor.Person);
+                                await mediator.Send(QueueRequestProvisioning.InternalPersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
                                 break;
 
                          

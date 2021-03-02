@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Notifications.Request;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -21,7 +22,7 @@ namespace Fusion.Resources.Logic.Commands
                     RequestId = requestId;
                     State = state;
                 }
-                
+
                 public Guid RequestId { get; set; }
                 public DbResourceAllocationRequestState State { get; set; }
 
@@ -58,6 +59,9 @@ namespace Fusion.Resources.Logic.Commands
                             case DbResourceAllocationRequestState.Created:
                                 await HandleWhenAssignedAsync(request);
                                 break;
+                            case DbResourceAllocationRequestState.Accepted:
+                                await HandleWhenAcceptedAsync(request);
+                                break;
 
                             default:
                                 throw new IllegalStateChangeError(dbItem.State, request.State);
@@ -81,6 +85,7 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbResourceAllocationRequestState.Accepted:
                                 workflow.Approved(request.Editor.Person);
+                                notifyOnSave = new InternalJointVentureRequestProposal(request.RequestId);
                                 break;
 
                             default:
@@ -88,6 +93,11 @@ namespace Fusion.Resources.Logic.Commands
                                     DbResourceAllocationRequestState.Accepted);
                         }
 
+                    }
+
+                    private async ValueTask HandleWhenAcceptedAsync(SetState request)
+                    {
+                        await mediator.Send(QueueRequestProvisioning.InternalPersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
                     }
                 }
             }
