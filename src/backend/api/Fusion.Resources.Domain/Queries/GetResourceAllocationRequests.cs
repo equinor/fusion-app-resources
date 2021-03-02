@@ -1,13 +1,16 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
+using Fusion.Integration.Diagnostics;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -42,25 +45,30 @@ namespace Fusion.Resources.Domain.Queries
         {
             None = 0,
             OrgPosition = 1 << 0,
-            All = OrgPosition
+            OrgPositionInstance = 1 << 1
         }
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryPagedList<QueryResourceAllocationRequest>>
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly IMediator mediator;
             private const int DefaultPageSize = 100;
+            private readonly IFusionLogger<GetResourceAllocationRequests> log;
 
-            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IFusionLogger<GetResourceAllocationRequests> log)
             {
                 this.db = db;
                 this.orgResolver = orgResolver;
+                this.mediator = mediator;
+                this.log = log;
             }
 
             public async Task<QueryPagedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
             {
-
                 if (request.Query.ShoudExpand("OrgPosition"))
                     request.Expands |= ExpandFields.OrgPosition;
+                if (request.Query.ShoudExpand("OrgPositionInstance"))
+                    request.Expands |= ExpandFields.OrgPositionInstance;
 
 
                 var query = db.ResourceAllocationRequests
@@ -93,31 +101,56 @@ namespace Fusion.Resources.Domain.Queries
                 var requestItems = new QueryPagedList<QueryResourceAllocationRequest>(pagedQuery.Select(x => new QueryResourceAllocationRequest(x)), pagedQuery.TotalCount,
                     pagedQuery.CurrentPage, pagedQuery.PageSize);
 
-                if (!request.Expands.HasFlag(ExpandFields.OrgPosition))
-                    return requestItems;
+                await AddWorkFlows(requestItems);
 
+                await AddOrgPositions(requestItems, request.Expands);
 
-                // Expand original position.
+                return requestItems;
+            }
+
+            private async Task AddOrgPositions(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
+            {
+                if ((expands.HasFlag(ExpandFields.OrgPosition) || expands.HasFlag(ExpandFields.OrgPositionInstance)) == false)
+                    return;
+
+                // Expand org position.
                 var resolvedOrgChartPositions =
                     (await orgResolver.ResolvePositionsAsync(requestItems.Where(r => r.OrgPositionId.HasValue)
                         .Select(r => r.OrgPositionId!.Value))).ToList();
 
                 // If none resolved, return.
                 if (!resolvedOrgChartPositions.Any())
-                    return requestItems;
+                    return;
 
-                foreach (var queryResourceAllocationRequest in requestItems)
+                foreach (var req in requestItems)
                 {
-                    if (queryResourceAllocationRequest.OrgPositionId == null) continue;
+                    if (req.OrgPositionId == null) continue;
 
-                    var position = resolvedOrgChartPositions.FirstOrDefault(p =>
-                        p.Id == queryResourceAllocationRequest.OrgPositionId);
+                    var position = resolvedOrgChartPositions.FirstOrDefault(p => p.Id == req.OrgPositionId);
 
                     if (position != null)
-                        queryResourceAllocationRequest.WithResolvedOriginalPosition(position, queryResourceAllocationRequest.OrgPositionInstanceId);
+                    {
+                        req.WithResolvedOriginalPosition(position, expands.HasFlag(ExpandFields.OrgPositionInstance) ? req.OrgPositionInstanceId : null);
+                    }
                 }
+            }
 
-                return requestItems;
+            private async Task AddWorkFlows(List<QueryResourceAllocationRequest> requestItems)
+            {
+                var workFlows = await mediator.Send(new GetRequestWorkflows(requestItems.Select(r => r.RequestId)));
+                var workFlowList = workFlows.ToList();
+
+                foreach (var req in requestItems)
+                {
+                    var wf = workFlowList.FirstOrDefault(x => x.RequestId == req.RequestId);
+                    if (wf == null)
+                    {
+                        // log critical event
+                        log.LogCritical($"Workflow not found for request id: {req.RequestId}");
+                        continue;
+                    }
+                    req.Workflow = wf;
+                }
             }
         }
     }
