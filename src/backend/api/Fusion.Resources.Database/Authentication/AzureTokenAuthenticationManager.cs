@@ -16,7 +16,7 @@ namespace Fusion.Resources.Database.Authentication
         private readonly IConfiguration configuration;
         private readonly string connectionString;
         private readonly ConnectionMode connectionMode;
-        private readonly Timer tokenRefreshTimer;
+        private readonly Timer? tokenRefreshTimer;
 
         private string? accessToken = null;
 
@@ -33,9 +33,14 @@ namespace Fusion.Resources.Database.Authentication
             this.connectionMode = mode;
 
             // Set a timer to refresh the token every 5 minutes, so the db connections always have a fresh token to use, and don't have to use sync-antipattern fetch.
-            tokenRefreshTimer = new Timer(async (state) => { 
-                accessToken = await tokenProvider.GetAccessTokenAsync(); 
-            }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+            if (connectionMode == ConnectionMode.Tokens)
+            {
+                tokenRefreshTimer = new Timer(async (state) =>
+                {
+                    try { accessToken = await tokenProvider.GetAccessTokenAsync(); }
+                    catch { /* Ignore */ }
+                }, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+            }
         }
 
         public SqlConnection GetSqlConnection()

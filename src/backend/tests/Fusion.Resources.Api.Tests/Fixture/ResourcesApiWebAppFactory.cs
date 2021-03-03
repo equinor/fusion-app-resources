@@ -46,6 +46,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             Environment.SetEnvironmentVariable("AzureAd__ClientId", TestConstants.APP_CLIENT_ID);
             Environment.SetEnvironmentVariable("FORWARD_JWT", "True");
             Environment.SetEnvironmentVariable("FORWARD_COOKIE", "True");
+            Environment.SetEnvironmentVariable("Database__ConnectionMode", "Default");
 
             peopleServiceMock = new PeopleServiceMock();
             orgServiceMock = new OrgServiceMock();
