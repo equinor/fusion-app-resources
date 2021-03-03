@@ -1,4 +1,6 @@
 ﻿using Fusion.Testing;
+using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -30,6 +32,33 @@ namespace Fusion.Resources.Api.Tests
             });
 
             resp.Should().BeSuccessfull();
+        }
+
+
+        public static async Task<Guid> CreateRequestAsync(this HttpClient client, Guid projectId, Action<FusionTestResourceAllocationBuilder> setup)
+        {
+            var builder = new FusionTestResourceAllocationBuilder();
+
+            setup(builder);
+
+            var newRequestResponse = await client.TestClientPostAsync($"/projects/{projectId}/requests", builder.Request, new { Id = Guid.Empty });
+            newRequestResponse.Should().BeSuccessfull();
+
+            return newRequestResponse.Value.Id;
+        }
+
+        public static async Task<Guid> CreateRequestAsync(this HttpClient client, FusionTestProjectBuilder project, Action<FusionTestResourceAllocationBuilder> setup)
+        {
+            var builder = new FusionTestResourceAllocationBuilder()
+                .WithOrgPositionId(project.Positions.PickRandom())
+                .WithProject(project.Project);
+
+            setup(builder);
+
+            var newRequestResponse = await client.TestClientPostAsync($"/projects/{project.Project.ProjectId}/requests", builder.Request, new { Id = Guid.Empty });
+            newRequestResponse.Should().BeSuccessfull();
+
+            return newRequestResponse.Value.Id;
         }
     }
 }
