@@ -395,6 +395,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
         #endregion
 
+        #region Update request
+
+        [Fact]
+        public async Task UpdateRequest_ShouldBeSuccessfull_WhenPatchingIsDraft()
+        {
+            using var adminScope = fixture.AdminScope();
+
+
+            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}", null);
+            response.Should().BeSuccessfull();
+            response.Value.ProvisioningStatus.State.Should().Be("Provisioned");
+        }
+
+        #endregion
+
         #region post tests
         [Fact]
         public async Task Post_ProjectRequest_InvalidArguments_ShouldBeBadRequest()

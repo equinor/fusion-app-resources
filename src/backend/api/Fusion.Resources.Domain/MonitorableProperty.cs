@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -41,6 +42,19 @@ namespace Fusion.Resources.Domain.Commands
             if (property.HasBeenSet)
             {
                 action(property.Value);
+                hasChanges = true;
+            }
+
+            return hasChanges;
+        }
+
+        public static async Task<bool> IfSetAsync<TValue>(this MonitorableProperty<TValue> property, Func<TValue, Task> action)
+        {
+            bool hasChanges = false;
+
+            if (property.HasBeenSet)
+            {
+                await action(property.Value);
                 hasChanges = true;
             }
 
