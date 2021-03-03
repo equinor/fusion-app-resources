@@ -78,11 +78,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
         private static object locker = new object();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            lock (locker)
-            {
-                var fld = typeof(OrgConfigurationExtensions).GetField("hasAddedServices", BindingFlags.NonPublic | BindingFlags.Static);
-                fld.SetValue(null, false);
-
                 builder.ConfigureAppConfiguration(cfgBuilder =>
                 {
                     cfgBuilder.AddInMemoryCollection(new Dictionary<string, string>()
@@ -121,6 +116,5 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     });
                 });
             }
-        }
     }
 }
