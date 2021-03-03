@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetResourceAllocationRequests : IRequest<QueryPagedList<QueryResourceAllocationRequest>>
+    public class GetResourceAllocationRequests : IRequest<QueryRangedList<QueryResourceAllocationRequest>>
     {
 
         public GetResourceAllocationRequests(ODataQueryParams? query = null)
@@ -41,8 +41,33 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        /// <summary>
+        /// Only include unassigned requests in the result
+        /// </summary>
+        public GetResourceAllocationRequests WithUnassignedFilter(bool onlyIncludeUnassigned)
+        {
+            Unassigned = onlyIncludeUnassigned;
+            return this;
+        }
+
+        public GetResourceAllocationRequests WithOnlyCount(bool onlyReturnCount)
+        {
+            OnlyCount = onlyReturnCount;
+            return this;
+        }
+
+        public GetResourceAllocationRequests WithExcludeDrafts(bool excludeDrafts = true)
+        {
+            ExcludeDrafts = excludeDrafts;
+            return this;
+        }
+
         public Guid? ProjectId { get; private set; }
         public string? DepartmentString { get; private set; }
+        public bool Unassigned { get; private set; }
+        public bool OnlyCount { get; private set; }
+        public bool? ExcludeDrafts { get; private set; }
+
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
 
@@ -54,7 +79,7 @@ namespace Fusion.Resources.Domain.Queries
             OrgPositionInstance = 1 << 1,
             TaskOwner = 1 << 2
         }
-        public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryPagedList<QueryResourceAllocationRequest>>
+        public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
@@ -70,7 +95,7 @@ namespace Fusion.Resources.Domain.Queries
                 this.log = log;
             }
 
-            public async Task<QueryPagedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
+            public async Task<QueryRangedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
             {
 
                 var query = db.ResourceAllocationRequests
@@ -82,37 +107,54 @@ namespace Fusion.Resources.Domain.Queries
                     .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterias.
                     .AsQueryable();
 
+                if (request.ExcludeDrafts.HasValue && request.ExcludeDrafts.Value)
+                    query = query.Where(c => c.IsDraft == false);
+
                 if (request.Query.HasFilter)
                 {
                     query = query.ApplyODataFilters(request.Query, m =>
                     {
                         m.MapField(nameof(QueryResourceAllocationRequest.AssignedDepartment), i => i.AssignedDepartment);
                         m.MapField(nameof(QueryResourceAllocationRequest.Discipline), i => i.Discipline);
+                        m.MapField("isDraft", i => i.IsDraft);
+                        m.MapField("project.id", i => i.Project.OrgProjectId);
+                        m.MapField("updated", i => i.Updated);
+                        m.MapField("state", i => i.State);
+                        m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
                     });
                 }
+
+                
 
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
 
                 if (request.DepartmentString != null)
                     query = query.Where(c => c.AssignedDepartment == request.DepartmentString);
+                if (request.Unassigned)
+                    query = query.Where(c => c.AssignedDepartment == null);
 
-                var pagedQuery = await QueryPagedList<DbResourceAllocationRequest>.ToPagedListAsync(query,
-                    request.Query.Skip.GetValueOrDefault(1), request.Query.Top.GetValueOrDefault(DefaultPageSize));
 
-                var requestItems = new QueryPagedList<QueryResourceAllocationRequest>(pagedQuery.Select(x => new QueryResourceAllocationRequest(x)), pagedQuery.TotalCount,
-                    pagedQuery.CurrentPage, pagedQuery.PageSize);
+                var skip = request.Query.Skip.GetValueOrDefault(0);
+                var take = request.Query.Top.GetValueOrDefault(DefaultPageSize);
 
-                await AddTaskOwners(requestItems, request.Expands);
 
-                await AddWorkFlows(requestItems);
+                var countOnly = request.OnlyCount;
 
-                await AddOrgPositions(requestItems, request.Expands);
+                var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take, countOnly);
+                
 
-                return requestItems;
+                if (!countOnly)
+                {
+                    await AddTaskOwners(pagedQuery, request.Expands);
+                    await AddWorkFlows(pagedQuery);
+                    await AddOrgPositions(pagedQuery, request.Expands);
+                }
+
+                return pagedQuery;
             }
 
-            private async Task AddTaskOwners(QueryPagedList<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
+            private async Task AddTaskOwners(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
             {
                 if (expands.HasFlag(ExpandFields.TaskOwner))
                 {
