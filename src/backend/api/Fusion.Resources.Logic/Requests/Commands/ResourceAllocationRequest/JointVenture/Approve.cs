@@ -21,9 +21,7 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     RequestId = requestId;
                 }
-
                 public Guid RequestId { get; }
-
                 public class Validator : AbstractValidator<Approve>
                 {
                     public Validator(ResourcesDbContext db)
@@ -34,6 +32,7 @@ namespace Fusion.Resources.Logic.Commands
                         }).WithMessage($"Request of type: '{DbResourceAllocationRequest.DbAllocationRequestType.JointVenture}' must exist to be able to approve.");
                     }
                 }
+
                 public class Handler : AsyncRequestHandler<Approve>
                 {
                     private readonly IMediator mediator;
@@ -50,11 +49,13 @@ namespace Fusion.Resources.Logic.Commands
                         switch (dbRequest!.State)
                         {
                             case DbResourceAllocationRequestState.Created:
-                            case DbResourceAllocationRequestState.Accepted:
+                                await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Proposed));
+                                break;
+                            case DbResourceAllocationRequestState.Proposed:
                                 await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
                                 break;
                             default:
-                                throw new NotSupportedException($"Invalid state change. Only supporting Created and Accepted. State was:{dbRequest.State}");
+                                throw new NotSupportedException($"Invalid state change. Only supporting Created and Proposed. State was:{dbRequest.State}");
                         }
                     }
                 }
