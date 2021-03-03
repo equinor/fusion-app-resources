@@ -3,9 +3,9 @@ using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class ApiTaskOwnerWithPerson 
+    public class ApiTaskOwner 
     {
-        public ApiTaskOwnerWithPerson(QueryTaskOwnerWithPerson query)
+        public ApiTaskOwner(QueryTaskOwner query)
         {
             this.PositionId = query.PositionId;
             this.Person = ApiPerson.FromEntityOrDefault(query.Person);

@@ -118,7 +118,7 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     foreach (var requestItem in requestItems)
                     {
-                        requestItem.TaskOwner = new QueryTaskOwnerWithPerson();
+                        requestItem.TaskOwner = new QueryTaskOwner();
                         if (TemporaryRandomTrue())
                         {
                             var randomRequest = await db.ResourceAllocationRequests.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();

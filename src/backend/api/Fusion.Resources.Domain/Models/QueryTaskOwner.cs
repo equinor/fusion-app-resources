@@ -2,7 +2,7 @@
 
 namespace Fusion.Resources.Domain
 {
-    public class QueryTaskOwnerWithPerson
+    public class QueryTaskOwner
     {
         public Guid? PositionId { get; set; }
         public QueryPerson? Person { get; set; }

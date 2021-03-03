@@ -33,7 +33,7 @@ namespace Fusion.Resources.Api.Controllers
                 ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
             if (query.TaskOwner != null) 
-                TaskOwner = new ApiTaskOwnerWithPerson(query.TaskOwner);
+                TaskOwner = new ApiTaskOwner(query.TaskOwner);
 
             Created = query.Created;
             Updated = query.Updated;
@@ -67,7 +67,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public ApiPerson? ProposedPerson { get; set; }
 
-        public ApiTaskOwnerWithPerson? TaskOwner { get; set; }
+        public ApiTaskOwner? TaskOwner { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public ApiPerson CreatedBy { get; set; }

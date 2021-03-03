@@ -87,7 +87,7 @@ namespace Fusion.Resources.Domain
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
         public IEnumerable<QueryRequestComment>? Comments { get; set; }
-        public QueryTaskOwnerWithPerson? TaskOwner { get; set; }
+        public QueryTaskOwner? TaskOwner { get; set; }
 
         public enum QueryAllocationRequestType
         {
