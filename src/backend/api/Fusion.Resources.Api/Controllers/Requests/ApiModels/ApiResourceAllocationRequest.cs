@@ -48,8 +48,6 @@ namespace Fusion.Resources.Api.Controllers
             
             if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
-
-            
         }
 
         public Guid Id { get; set; }
