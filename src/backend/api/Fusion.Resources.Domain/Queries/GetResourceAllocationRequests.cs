@@ -21,6 +21,12 @@ namespace Fusion.Resources.Domain.Queries
         {
             this.Query = query ?? new ODataQueryParams();
 
+            if (Query.ShoudExpand("OrgPosition"))
+                Expands |= ExpandFields.OrgPosition;
+            if (Query.ShoudExpand("OrgPositionInstance"))
+                Expands |= ExpandFields.OrgPositionInstance;
+            if (Query.ShoudExpand("TaskOwner"))
+                Expands |= ExpandFields.TaskOwner;
         }
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
@@ -70,7 +76,8 @@ namespace Fusion.Resources.Domain.Queries
         {
             None = 0,
             OrgPosition = 1 << 0,
-            OrgPositionInstance = 1 << 1
+            OrgPositionInstance = 1 << 1,
+            TaskOwner = 1 << 2
         }
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
@@ -90,11 +97,6 @@ namespace Fusion.Resources.Domain.Queries
 
             public async Task<QueryRangedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
             {
-                if (request.Query.ShoudExpand("OrgPosition"))
-                    request.Expands |= ExpandFields.OrgPosition;
-                if (request.Query.ShoudExpand("OrgPositionInstance"))
-                    request.Expands |= ExpandFields.OrgPositionInstance;
-
 
                 var query = db.ResourceAllocationRequests
                     .Include(r => r.OrgPositionInstance)
@@ -140,14 +142,41 @@ namespace Fusion.Resources.Domain.Queries
                 var countOnly = request.OnlyCount;
 
                 var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take, countOnly);
+                
 
                 if (!countOnly)
                 {
+                    await AddTaskOwners(requestItems, request.Expands);
                     await AddWorkFlows(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
                 }
 
                 return pagedQuery;
+            }
+
+            private async Task AddTaskOwners(QueryPagedList<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
+            {
+                if (expands.HasFlag(ExpandFields.TaskOwner))
+                {
+                    foreach (var requestItem in requestItems)
+                    {
+                        requestItem.TaskOwner = new QueryTaskOwner();
+                        if (TemporaryRandomTrue())
+                        {
+                            var randomRequest = await db.ResourceAllocationRequests.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
+                            requestItem.TaskOwner.PositionId = randomRequest.OrgPositionId;
+                            var randomPerson = await db.Persons.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
+                            requestItem.TaskOwner.Person = new QueryPerson(randomPerson);
+                        }
+                    }
+                }
+                static bool TemporaryRandomTrue()
+                {
+                    var random = new Random();
+                    var outcome = random.Next(100);
+                    return outcome <= 70;
+                }
+
             }
 
             private async Task AddOrgPositions(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
