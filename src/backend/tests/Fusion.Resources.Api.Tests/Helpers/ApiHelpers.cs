@@ -49,8 +49,10 @@ namespace Fusion.Resources.Api.Tests
 
         public static async Task<Guid> CreateRequestAsync(this HttpClient client, FusionTestProjectBuilder project, Action<FusionTestResourceAllocationBuilder> setup)
         {
+            var position = project.AddPosition();
+
             var builder = new FusionTestResourceAllocationBuilder()
-                .WithOrgPositionId(project.Positions.PickRandom())
+                .WithOrgPositionId(position)
                 .WithProject(project.Project);
 
             setup(builder);

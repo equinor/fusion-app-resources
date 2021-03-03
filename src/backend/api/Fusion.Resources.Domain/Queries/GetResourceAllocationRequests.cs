@@ -146,7 +146,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 if (!countOnly)
                 {
-                    await AddTaskOwners(requestItems, request.Expands);
+                    await AddTaskOwners(pagedQuery, request.Expands);
                     await AddWorkFlows(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
                 }
@@ -154,7 +154,7 @@ namespace Fusion.Resources.Domain.Queries
                 return pagedQuery;
             }
 
-            private async Task AddTaskOwners(QueryPagedList<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
+            private async Task AddTaskOwners(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
             {
                 if (expands.HasFlag(ExpandFields.TaskOwner))
                 {
