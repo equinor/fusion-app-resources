@@ -22,7 +22,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     public class InternalResourceAllocationRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;
-        private readonly ITestOutputHelper testOutputHelper;
         private readonly TestLoggingScope loggingScope;
 
         /// <summary>
@@ -38,10 +37,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject = null!;
         private Guid? testCommentId;
 
-        public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output, ITestOutputHelper testOutputHelper)
+        public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
             this.fixture = fixture;
-            this.testOutputHelper = testOutputHelper;
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
@@ -196,13 +194,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             foreach (var m in result.Value.Value)
             {
                 m.TaskOwner.Should().NotBeNull();
-                if (m.TaskOwner!.PositionId != null)
-                    TestLogger.TryLog(
-                        $"PositionId: {m.TaskOwner.PositionId}, Person:{m.TaskOwner.Person?.AzureUniquePersonId}");
-                else
-                {
-                    TestLogger.TryLog("Taskowner expanded but not found");
-                }
+                TestLogger.TryLog(
+                    m.TaskOwner!.PositionId != null
+                        ? $"PositionId: {m.TaskOwner.PositionId}, Person:{m.TaskOwner.Person?.AzureUniquePersonId}"
+                        : "Taskowner expanded but not found");
             }
         }
 
