@@ -306,6 +306,47 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
 
+        [HttpGet("/resources/requests/internal/unassigned")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetUnassignedRequests([FromQuery] ODataQueryParams query)
+        {
+            var countEnabled = Request.Query.ContainsKey("$count");
+
+            var requestCommand = new GetResourceAllocationRequests(query)
+                .WithUnassignedFilter(true)
+                .WithOnlyCount(countEnabled)
+                .WithExcludeDrafts();
+
+            var result = await DispatchAsync(requestCommand);
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+
+            var start = result.Skip;
+            var end = start + result.Count;
+            Request.Headers.Add("Accept-Ranges", "requests");
+            Request.Headers.Add("Content-Range", $"requests {start}-{end}/{result.TotalCount}");
+
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel)
+            {
+                TotalCount = countEnabled ? result.TotalCount : null
+            };
+        }
+
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)

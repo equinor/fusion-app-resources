@@ -261,6 +261,48 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task UnassignedRequests_ShouldReturnRequestsWithoutDepartment()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var newRequestId = await Client.CreateRequestAsync(testProject, r => r.WithAssignedDepartment(null));
+            
+            var response = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned", new { value = new[] { new { id = Guid.Empty, assignedDepartment = string.Empty } } });
+            response.Should().BeSuccessfull();
+
+            response.Value.value.Should().Contain(r => r.id == newRequestId);
+            response.Value.value.Should().OnlyContain(r => r.assignedDepartment == null);
+        }
+
+        [Fact]
+        public async Task UnassignedRequests_ShouldReturnCountOnly_WhenCountQueryParameter()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            for (int i = 0; i < 10; i++) await Client.CreateRequestAsync(testProject, r => r.WithAssignedDepartment(null));
+
+
+            var response = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned?$count=only", new { value = Array.Empty<object>(), totalCount = 0 });
+            response.Should().BeSuccessfull();
+
+            response.Value.totalCount.Should().BeGreaterOrEqualTo(10);
+            response.Value.value.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task UnassignedRequests_ShouldNotReturnDraftRequests_WhenUsingGlobal()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var newRequestId = await Client.CreateRequestAsync(testProject, r => r.WithAssignedDepartment(null).WithIsDraft(true));
+
+            var response = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned", new { value = new[] { new { id = Guid.Empty, assignedDepartment = string.Empty } } });
+            response.Should().BeSuccessfull();
+
+            response.Value.value.Should().NotContain(r => r.id == newRequestId);
+        }
+
+        [Fact]
         public async Task GetDepartmentRequests_ShouldIncludeRequest_WhenCurrentDepartment()
         {
             using var adminScope = fixture.AdminScope();
@@ -537,6 +579,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
     public class ResourceAllocationRequestTestModel
     {
+        public Guid Id { get; set; }
         public string? State { get; set; }
         public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }

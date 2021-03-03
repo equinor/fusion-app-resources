@@ -23,6 +23,7 @@ using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Services;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -32,6 +33,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
         public readonly OrgServiceMock orgServiceMock;
         public readonly ContextResolverMock contextResolverMock;
         internal readonly RolesClientMock roleClientMock;
+
+        public readonly Mock<IQueueSender> queueMock;
 
         private string resourceDbConnectionString = TestDbConnectionStrings.LocalDb($"resources-app-{DateTime.Now:yyyy-MM-dd-HHmmss}-{Guid.NewGuid()}");
 
@@ -48,6 +51,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
             orgServiceMock = new OrgServiceMock();
             contextResolverMock = new ContextResolverMock();
             roleClientMock = new RolesClientMock();
+            queueMock = new Mock<IQueueSender>();
+            queueMock.Setup(c => c.SendMessageAsync(It.IsAny<QueuePath>(), It.IsAny<object>())).Returns(Task.CompletedTask);
 
             EnsureDatabase();
         }
@@ -102,6 +107,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
                     services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
                     services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
+                    services.AddTransient<IQueueSender>(sp => queueMock.Object);
 
                     services.AddSingleton(sp =>
                     {
