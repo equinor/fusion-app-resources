@@ -13,6 +13,7 @@ using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 #nullable enable 
@@ -439,15 +440,29 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #region Update request
 
-        [Fact]
-        public async Task UpdateRequest_ShouldBeSuccessfull_WhenPatchingIsDraft()
+        [Theory]
+        [InlineData("isDraft", true)]
+        [InlineData("additionalNote", "Some test note")]
+        [InlineData("assignedDepartment", "TPD PRD 123")]
+        [InlineData("proposedPersonAzureUniqueId", null)]
+        public async Task UpdateRequest_ShouldUpdate_WhenPatching(string property, object value)
         {
             using var adminScope = fixture.AdminScope();
 
+            if (property == "proposedPersonAzureUniqueId")
+                value = this.testUser.AzureUniqueId!.Value;
 
-            var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}", null);
+            var requestId = await Client.CreateRequestAsync(testProject, r => r.WithIsDraft(true));
+
+            JObject payload = new JObject();
+            payload.Add(property, JToken.FromObject(value));
+
+
+            var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{requestId}", payload);
             response.Should().BeSuccessfull();
-            response.Value.ProvisioningStatus.State.Should().Be("Provisioned");
+
+            var updatedProp = response.Value.Property(property)?.ToObject(value.GetType());
+            updatedProp.Should().Be(value);
         }
 
         #endregion
