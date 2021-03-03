@@ -22,6 +22,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     public class InternalResourceAllocationRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;
+        private readonly ITestOutputHelper testOutputHelper;
         private readonly TestLoggingScope loggingScope;
 
         /// <summary>
@@ -37,9 +38,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject = null!;
         private Guid? testCommentId;
 
-        public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output)
+        public InternalResourceAllocationRequestTests(ResourceApiFixture fixture, ITestOutputHelper output, ITestOutputHelper testOutputHelper)
         {
             this.fixture = fixture;
+            this.testOutputHelper = testOutputHelper;
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
@@ -181,6 +183,29 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Value.Count().Should().BeGreaterOrEqualTo(3);
 
         }
+
+        [Fact]
+        public async Task Get_ProjectRequestsExpandTaskOwner_ShouldBeAuthorized()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var result = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>(
+                    $"/projects/{normalRequest.Project.ProjectId}/requests?$expand=taskowner");
+
+            result.Should().BeSuccessfull();
+            foreach (var m in result.Value.Value)
+            {
+                m.TaskOwner.Should().NotBeNull();
+                if (m.TaskOwner!.PositionId != null)
+                    TestLogger.TryLog(
+                        $"PositionId: {m.TaskOwner.PositionId}, Person:{m.TaskOwner.Person?.AzureUniquePersonId}");
+                else
+                {
+                    TestLogger.TryLog("Taskowner expanded but not found");
+                }
+            }
+        }
+
         [Fact]
         public async Task Get_ProjectRequestsExpanded_ShouldBeAuthorized()
         {
@@ -223,7 +248,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             var response = await Client.TestClientGetAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{normalRequest.Request.Id}?$expand=comments");
             response.Should().BeSuccessfull();
-            
+
             // Test comment expansion
             response.Value.Comments!.Count().Should().BeGreaterOrEqualTo(1);
 
@@ -517,6 +542,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public ObjectWithAzureUniquePerson CreatedBy { get; set; } = null!;
         public ObjectWithAzureUniquePerson? UpdatedBy { get; set; }
 
+        public ObjectWithPositionIdAndPerson? TaskOwner { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public DateTimeOffset? LastActivity { get; set; }
@@ -526,6 +552,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public IEnumerable<ObjectWithId>? Comments { get; set; }
 
 
+    }
+
+    public class ObjectWithPositionIdAndPerson
+    {
+        public Guid? PositionId { get; set; }
+        public ObjectWithAzureUniquePerson? Person { get; set; }
     }
     public class ObjectWithAzureUniquePerson
     {

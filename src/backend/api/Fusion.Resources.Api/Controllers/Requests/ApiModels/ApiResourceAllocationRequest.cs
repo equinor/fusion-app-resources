@@ -32,6 +32,9 @@ namespace Fusion.Resources.Api.Controllers
             if (query.ProposedChanges.Count > 0)
                 ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
+            if (query.TaskOwner != null) 
+                TaskOwner = new ApiTaskOwnerWithPerson(query.TaskOwner);
+
             Created = query.Created;
             Updated = query.Updated;
             CreatedBy = new ApiPerson(query.CreatedBy);
@@ -45,6 +48,8 @@ namespace Fusion.Resources.Api.Controllers
             
             if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
+
+            
         }
 
         public Guid Id { get; set; }
@@ -63,6 +68,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public ApiPerson? ProposedPerson { get; set; }
+
+        public ApiTaskOwnerWithPerson? TaskOwner { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public ApiPerson CreatedBy { get; set; }

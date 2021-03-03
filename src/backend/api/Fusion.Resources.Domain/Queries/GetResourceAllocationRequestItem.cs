@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
@@ -22,13 +23,17 @@ namespace Fusion.Resources.Domain.Queries
             {
                 Expands |= ExpandProperties.RequestComments;
             }
+            if (query.ShoudExpand("taskOwner"))
+            {
+                Expands |= ExpandProperties.TaskOwner;
+            }
 
-           
+
             return this;
         }
         public Guid RequestId { get; }
 
-        
+
         public ExpandProperties Expands { get; set; }
 
         [Flags]
@@ -36,7 +41,7 @@ namespace Fusion.Resources.Domain.Queries
         {
             None = 0,
             RequestComments = 1 << 0,
-            All = RequestComments
+            TaskOwner = 1 << 1
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -69,6 +74,23 @@ namespace Fusion.Resources.Domain.Queries
                 var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
                 var requestItem = new QueryResourceAllocationRequest(row, workflow);
 
+                if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
+                {
+                    requestItem.TaskOwner = new QueryTaskOwnerWithPerson();
+                    if (TemporaryRandomTrue())
+                    {
+                        var randomRequest = await db.ResourceAllocationRequests.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
+                        requestItem.TaskOwner.PositionId = randomRequest.OrgPositionId;
+                        var randomPerson = await db.Persons.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
+                        requestItem.TaskOwner.Person = new QueryPerson(randomPerson);
+                    }
+                    static bool TemporaryRandomTrue()
+                    {
+                        var random = new Random();
+                        var outcome = random.Next(100);
+                        return outcome <= 70;
+                    }
+                }
 
                 if (request.Expands.HasFlag(ExpandProperties.RequestComments))
                 {
@@ -77,9 +99,9 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
 
-                if (requestItem.OrgPositionId == null) 
+                if (requestItem.OrgPositionId == null)
                     return requestItem;
-                
+
                 var position = await orgResolver.ResolvePositionAsync(requestItem.OrgPositionId.Value);
                 if (position != null)
                 {
