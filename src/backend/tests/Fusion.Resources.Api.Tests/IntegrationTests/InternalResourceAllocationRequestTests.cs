@@ -443,7 +443,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("isDraft", true)]
         [InlineData("additionalNote", "Some test note")]
-        [InlineData("assignedDepartment", "TPD PRD 123")]
+        [InlineData("assignedDepartment", "TPD PRD FE MMS MAT1")]
         [InlineData("proposedPersonAzureUniqueId", null)]
         public async Task UpdateRequest_ShouldUpdate_WhenPatching(string property, object value)
         {
@@ -463,6 +463,28 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var updatedProp = response.Value.Property(property)?.ToObject(value.GetType());
             updatedProp.Should().Be(value);
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ShouldBeBadRequest_WhenPatchingInvalidDepartment()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestId = await Client.CreateRequestAsync(testProject, r => r.WithIsDraft(true));
+
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { assignedDepartment = "Invalid" });
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ShouldBadRequest_WhenPatchingInvalidProposedChanges()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestId = await Client.CreateRequestAsync(testProject, r => r.WithIsDraft(true));
+
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { proposedChanges = new { someRandomProp = DateTime.UtcNow } });
+            response.Should().BeBadRequest();
         }
 
         #endregion
