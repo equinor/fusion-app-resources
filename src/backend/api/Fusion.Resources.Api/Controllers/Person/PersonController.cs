@@ -176,7 +176,7 @@ namespace Fusion.Resources.Api.Controllers
             var departmentSectors = new Dictionary<string, string>();
 
             using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Controllers.Person.departmentSectors.json"))
-            using (var r = new StreamReader(s))
+            using (var r = new StreamReader(s!))
             {
                 var json = r.ReadToEnd();
 

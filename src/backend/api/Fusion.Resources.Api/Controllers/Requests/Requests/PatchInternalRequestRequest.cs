@@ -23,7 +23,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<PatchInternalRequestRequest>
         {
-            private static Dictionary<string, string> sectors = PersonController.FetchSectors();
+            private static readonly Dictionary<string, string> sectors = PersonController.FetchSectors();
 
             public Validator()
             {
@@ -46,6 +46,9 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.AssignedDepartment)
                     .Must(d =>
                     {
+                        if (d.Value is null)
+                            return true;
+
                         return sectors.ContainsKey(d.Value.ToUpper());
                     })
                     .WithMessage("Invalid department specified")

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
+
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class DepartmentRequestsTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
@@ -240,10 +241,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             return Task.CompletedTask;
         }
+
         public class DepartmentRequestsWithTimelineTestModel
         {
-            public List<SimpleRequestTestModel>? Requests { get; set; }
-            public List<DepartmentRequestsTimelineRangeTestModel>? Timeline { get; set; }
+            public List<SimpleRequestTestModel> Requests { get; set; }
+            public List<DepartmentRequestsTimelineRangeTestModel> Timeline { get; set; }
 
             public class SimpleRequestTestModel
             {
