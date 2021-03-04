@@ -18,6 +18,13 @@ namespace Fusion.Resources.Api.Controllers
             AccountType = profile.AccountType;
         }
 
+        internal static ApiPerson? FromEntityOrDefault(ApiPersonV2? person)
+        {
+            if (person is not null)
+                return new ApiPerson(person);
+            return null;
+        }
+
         internal static ApiPerson? FromEntityOrDefault(QueryPerson? person)
         {
             if (person != null)

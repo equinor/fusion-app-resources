@@ -184,22 +184,30 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Get_ProjectRequestsExpandTaskOwner_ShouldBeAuthorized()
+        public async Task GetRequest_ShouldExpandTaskOwner_WhenTaskOwnerExists()
         {
             using var adminScope = fixture.AdminScope();
 
-            var result = await Client.TestClientGetAsync<PagedCollection<ResourceAllocationRequestTestModel>>(
-                    $"/projects/{normalRequest.Project.ProjectId}/requests?$expand=taskowner");
+            var taskOwnerPerson = fixture.AddProfile(FusionAccountType.Employee);
+            var taskOwnerPosition = testProject.AddPosition().WithEnsuredFutureInstances().WithAssignedPerson(taskOwnerPerson);
+            var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
+            testProject.SetTaskOwner(requestPosition.Id, taskOwnerPosition.Id);
+            var requestId = await Client.CreateRequestAsync(testProject.Project.ProjectId, r => r.WithProject(testProject.Project).WithOrgPositionId(requestPosition));
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{requestId}?$expand=taskowner", new
+            {
+                taskOwner = new
+                {
+                    positionId = (Guid?)null,
+                    person = new { mail = string.Empty }
+                }
+            });
+
 
             result.Should().BeSuccessfull();
-            foreach (var m in result.Value.Value)
-            {
-                m.TaskOwner.Should().NotBeNull();
-                TestLogger.TryLog(
-                    m.TaskOwner!.PositionId != null
-                        ? $"PositionId: {m.TaskOwner.PositionId}, Person:{m.TaskOwner.Person?.AzureUniquePersonId}"
-                        : "Taskowner expanded but not found");
-            }
+            result.Value.taskOwner.Should().NotBeNull();
+            result.Value.taskOwner.positionId.Should().Be(taskOwnerPosition.Id);
+            result.Value.taskOwner.person.mail.Should().Be(taskOwnerPerson.Mail);
         }
 
         [Fact]
