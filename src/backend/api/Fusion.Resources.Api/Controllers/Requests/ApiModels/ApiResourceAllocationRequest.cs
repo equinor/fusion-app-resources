@@ -18,7 +18,10 @@ namespace Fusion.Resources.Api.Controllers
 
 
             if (query.ProposedPerson != null)
+            {
                 ProposedPerson = new ApiPerson(query.ProposedPerson);
+                ProposedPersonAzureUniqueId = query.ProposedPerson.AzureUniqueId;
+            }
 
             Project = new ApiProjectReference(query.Project);
 
@@ -65,6 +68,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? AdditionalNote { get; set; }
 
         public ApiPropertiesCollection? ProposedChanges { get; set; }
+        public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiPerson? ProposedPerson { get; set; }
 
         public ApiTaskOwner? TaskOwner { get; set; }

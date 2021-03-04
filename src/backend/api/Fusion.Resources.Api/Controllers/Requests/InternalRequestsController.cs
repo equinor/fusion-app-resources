@@ -225,6 +225,54 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        [HttpPatch("/resources/requests/internal/{requestId}")]
+        [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest([FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId, [FromBody] PatchInternalRequestRequest request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            try
+            {
+                var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+                if (item == null)
+                    return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+
+                var updateCommand = new UpdateInternalRequest(requestId);
+
+                if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
+                if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
+                if (request.IsDraft.HasValue) updateCommand.IsDraft = request.IsDraft.Value;
+                if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
+                if (request.ProposedPersonAzureUniqueId.HasValue) updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
+
+                await using var scope = await BeginTransactionAsync();
+                var updatedRequest = await DispatchAsync(updateCommand);
+                await scope.CommitAsync();
+
+                return new ApiResourceAllocationRequest(updatedRequest);
+            }
+            catch (ValidationException ve)
+            {
+                return ApiErrors.InvalidOperation(ve);
+            }
+        }
+
 
         [HttpGet("/resources/requests/internal")]
         [HttpGet("/projects/{projectIdentifier}/requests")]

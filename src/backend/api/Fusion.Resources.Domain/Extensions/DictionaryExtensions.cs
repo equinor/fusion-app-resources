@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json;
 
-namespace Fusion.Resources.Logic.Commands
+namespace Fusion.Resources
 {
     public static class DictionaryExtensions
     {

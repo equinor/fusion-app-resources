@@ -13,6 +13,7 @@ using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 #nullable enable 
@@ -435,6 +436,57 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPutAsync<ObjectWithId>($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
             response.Should().BeSuccessfull();
         }
+        #endregion
+
+        #region Update request
+
+        [Theory]
+        [InlineData("isDraft", true)]
+        [InlineData("additionalNote", "Some test note")]
+        [InlineData("assignedDepartment", "TPD PRD FE MMS MAT1")]
+        [InlineData("proposedPersonAzureUniqueId", null)]
+        public async Task UpdateRequest_ShouldUpdate_WhenPatching(string property, object value)
+        {
+            using var adminScope = fixture.AdminScope();
+
+            if (property == "proposedPersonAzureUniqueId")
+                value = this.testUser.AzureUniqueId!.Value;
+
+            var requestId = await Client.CreateRequestAsync(testProject, r => r.WithIsDraft(true));
+
+            JObject payload = new JObject();
+            payload.Add(property, JToken.FromObject(value));
+
+
+            var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{requestId}", payload);
+            response.Should().BeSuccessfull();
+
+            var updatedProp = response.Value.Property(property)?.ToObject(value.GetType());
+            updatedProp.Should().Be(value);
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ShouldBeBadRequest_WhenPatchingInvalidDepartment()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestId = await Client.CreateRequestAsync(testProject, r => r.WithIsDraft(true));
+
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { assignedDepartment = "Invalid" });
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ShouldBadRequest_WhenPatchingInvalidProposedChanges()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestId = await Client.CreateRequestAsync(testProject, r => r.WithIsDraft(true));
+
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { proposedChanges = new { someRandomProp = DateTime.UtcNow } });
+            response.Should().BeBadRequest();
+        }
+
         #endregion
 
         #region post tests

@@ -163,7 +163,7 @@ namespace Fusion.Resources.Api.Controllers
                 }));
         }
    
-        private static string ToLowerFirstChar(this string input)
+        public static string ToLowerFirstChar(this string input)
         {
             string newString = input;
             if (!String.IsNullOrEmpty(newString) && Char.IsUpper(newString[0]))
