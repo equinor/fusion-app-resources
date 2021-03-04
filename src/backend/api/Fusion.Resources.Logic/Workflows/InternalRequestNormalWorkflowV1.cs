@@ -45,16 +45,16 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access resources.")
+                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so changes are visible in the org chart.")
                 .Complete(approver, true)
                 .StartNext();
         }
 
         public void Proposed(DbPerson proposer)
         {
-            Step(APPROVAL)
-                .SetName("Approved")
-                .SetDescription($"{proposer.Name} approved the request. The provisioning process will start so the person can access resources.")
+            Step(PROPOSAL)
+                .SetName("Proposed")
+                .SetDescription($"{proposer.Name} have proposed a candidate. The project must approve the proposal for the changes to be provisioned.")
                 .Complete(proposer, true)
                 .StartNext();
         }
