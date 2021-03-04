@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Logic.Commands;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
+using System.Reflection;
 
 namespace Fusion.Resources.Api
 {

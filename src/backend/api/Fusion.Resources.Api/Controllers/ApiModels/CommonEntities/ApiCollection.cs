@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -8,6 +9,10 @@ namespace Fusion.Resources.Api.Controllers
         {
             Value = items;
         }
+
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? TotalCount { get; set; }
 
         public IEnumerable<T> Value { get; set; }
     }

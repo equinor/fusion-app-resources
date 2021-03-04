@@ -167,22 +167,29 @@ namespace Fusion.Resources.Api.Controllers
         {
             if (departmentSectors is null)
             {
-                using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Controllers.Person.departmentSectors.json"))
-                using (var r = new StreamReader(s))
+                departmentSectors = FetchSectors();
+            }
+        }
+
+        public static Dictionary<string, string> FetchSectors()
+        {
+            var departmentSectors = new Dictionary<string, string>();
+
+            using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Controllers.Person.departmentSectors.json"))
+            using (var r = new StreamReader(s))
+            {
+                var json = r.ReadToEnd();
+
+                var sectorInfo = JsonConvert.DeserializeAnonymousType(json, new[] { new { sector = string.Empty, departments = Array.Empty<string>() } });
+
+
+                foreach (var sector in sectorInfo)
                 {
-                    var json = r.ReadToEnd();
-
-                    var sectorInfo = JsonConvert.DeserializeAnonymousType(json, new[] { new { sector = string.Empty, departments = Array.Empty<string>() } });
-
-                    departmentSectors = new Dictionary<string, string>();
-
-                    foreach (var sector in sectorInfo)
-                    {
-                        sector.departments.ToList().ForEach(d => departmentSectors[d] = sector.sector);
-                        departmentSectors[sector.sector] = sector.sector;
-                    }
+                    sector.departments.ToList().ForEach(d => departmentSectors[d] = sector.sector);
+                    departmentSectors[sector.sector] = sector.sector;
                 }
             }
+            return departmentSectors;
         }
 
         private IEnumerable<string> ResolveDepartmentsWithResponsibility(Guid? azureUniqueId)

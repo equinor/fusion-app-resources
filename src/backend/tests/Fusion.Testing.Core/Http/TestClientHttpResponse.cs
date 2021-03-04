@@ -357,7 +357,7 @@ namespace Fusion.Testing
 
         #region PATCH
 
-        public static async Task<TestClientHttpResponse<TResponse>> PatchAsJsonAsync<TResponse>(this HttpClient client, string requestUri, object value)
+        public static async Task<TestClientHttpResponse<TResponse>> TestClientPatchAsync<TResponse>(this HttpClient client, string requestUri, object value)
         {
             string content = JsonConvert.SerializeObject(value);
             StringContent stringContent = new StringContent(content, Encoding.UTF8, "application/json");

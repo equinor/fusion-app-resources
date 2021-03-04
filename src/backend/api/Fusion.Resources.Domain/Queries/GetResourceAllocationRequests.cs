@@ -1,23 +1,32 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
+using Fusion.Integration.Diagnostics;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetResourceAllocationRequests : IRequest<QueryPagedList<QueryResourceAllocationRequest>>
+    public class GetResourceAllocationRequests : IRequest<QueryRangedList<QueryResourceAllocationRequest>>
     {
 
         public GetResourceAllocationRequests(ODataQueryParams? query = null)
         {
             this.Query = query ?? new ODataQueryParams();
 
+            if (Query.ShoudExpand("OrgPosition"))
+                Expands |= ExpandFields.OrgPosition;
+            if (Query.ShoudExpand("OrgPositionInstance"))
+                Expands |= ExpandFields.OrgPositionInstance;
+            if (Query.ShoudExpand("TaskOwner"))
+                Expands |= ExpandFields.TaskOwner;
         }
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
@@ -32,8 +41,33 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        /// <summary>
+        /// Only include unassigned requests in the result
+        /// </summary>
+        public GetResourceAllocationRequests WithUnassignedFilter(bool onlyIncludeUnassigned)
+        {
+            Unassigned = onlyIncludeUnassigned;
+            return this;
+        }
+
+        public GetResourceAllocationRequests WithOnlyCount(bool onlyReturnCount)
+        {
+            OnlyCount = onlyReturnCount;
+            return this;
+        }
+
+        public GetResourceAllocationRequests WithExcludeDrafts(bool excludeDrafts = true)
+        {
+            ExcludeDrafts = excludeDrafts;
+            return this;
+        }
+
         public Guid? ProjectId { get; private set; }
         public string? DepartmentString { get; private set; }
+        public bool Unassigned { get; private set; }
+        public bool OnlyCount { get; private set; }
+        public bool? ExcludeDrafts { get; private set; }
+
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
 
@@ -42,26 +76,27 @@ namespace Fusion.Resources.Domain.Queries
         {
             None = 0,
             OrgPosition = 1 << 0,
-            All = OrgPosition
+            OrgPositionInstance = 1 << 1,
+            TaskOwner = 1 << 2
         }
-        public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryPagedList<QueryResourceAllocationRequest>>
+        public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly IMediator mediator;
             private const int DefaultPageSize = 100;
+            private readonly IFusionLogger<GetResourceAllocationRequests> log;
 
-            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IFusionLogger<GetResourceAllocationRequests> log)
             {
                 this.db = db;
                 this.orgResolver = orgResolver;
+                this.mediator = mediator;
+                this.log = log;
             }
 
-            public async Task<QueryPagedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
+            public async Task<QueryRangedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
             {
-
-                if (request.Query.ShoudExpand("OrgPosition"))
-                    request.Expands |= ExpandFields.OrgPosition;
-
 
                 var query = db.ResourceAllocationRequests
                     .Include(r => r.OrgPositionInstance)
@@ -72,52 +107,121 @@ namespace Fusion.Resources.Domain.Queries
                     .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterias.
                     .AsQueryable();
 
+                if (request.ExcludeDrafts.HasValue && request.ExcludeDrafts.Value)
+                    query = query.Where(c => c.IsDraft == false);
+
                 if (request.Query.HasFilter)
                 {
                     query = query.ApplyODataFilters(request.Query, m =>
                     {
                         m.MapField(nameof(QueryResourceAllocationRequest.AssignedDepartment), i => i.AssignedDepartment);
                         m.MapField(nameof(QueryResourceAllocationRequest.Discipline), i => i.Discipline);
+                        m.MapField("isDraft", i => i.IsDraft);
+                        m.MapField("project.id", i => i.Project.OrgProjectId);
+                        m.MapField("updated", i => i.Updated);
+                        m.MapField("state", i => i.State);
+                        m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
                     });
                 }
+
+                
 
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
 
                 if (request.DepartmentString != null)
                     query = query.Where(c => c.AssignedDepartment == request.DepartmentString);
-
-                var pagedQuery = await QueryPagedList<DbResourceAllocationRequest>.ToPagedListAsync(query,
-                    request.Query.Skip.GetValueOrDefault(1), request.Query.Top.GetValueOrDefault(DefaultPageSize));
-
-                var requestItems = new QueryPagedList<QueryResourceAllocationRequest>(pagedQuery.Select(x => new QueryResourceAllocationRequest(x)), pagedQuery.TotalCount,
-                    pagedQuery.CurrentPage, pagedQuery.PageSize);
-
-                if (!request.Expands.HasFlag(ExpandFields.OrgPosition))
-                    return requestItems;
+                if (request.Unassigned)
+                    query = query.Where(c => c.AssignedDepartment == null);
 
 
-                // Expand original position.
+                var skip = request.Query.Skip.GetValueOrDefault(0);
+                var take = request.Query.Top.GetValueOrDefault(DefaultPageSize);
+
+
+                var countOnly = request.OnlyCount;
+
+                var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take, countOnly);
+                
+
+                if (!countOnly)
+                {
+                    await AddTaskOwners(pagedQuery, request.Expands);
+                    await AddWorkFlows(pagedQuery);
+                    await AddOrgPositions(pagedQuery, request.Expands);
+                }
+
+                return pagedQuery;
+            }
+
+            private async Task AddTaskOwners(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
+            {
+                if (expands.HasFlag(ExpandFields.TaskOwner))
+                {
+                    foreach (var requestItem in requestItems)
+                    {
+                        requestItem.TaskOwner = new QueryTaskOwner();
+                        if (TemporaryRandomTrue())
+                        {
+                            var randomRequest = await db.ResourceAllocationRequests.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
+                            requestItem.TaskOwner.PositionId = randomRequest.OrgPositionId;
+                            var randomPerson = await db.Persons.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
+                            requestItem.TaskOwner.Person = new QueryPerson(randomPerson);
+                        }
+                    }
+                }
+                static bool TemporaryRandomTrue()
+                {
+                    var random = new Random();
+                    var outcome = random.Next(100);
+                    return outcome <= 70;
+                }
+
+            }
+
+            private async Task AddOrgPositions(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
+            {
+                if ((expands.HasFlag(ExpandFields.OrgPosition) || expands.HasFlag(ExpandFields.OrgPositionInstance)) == false)
+                    return;
+
+                // Expand org position.
                 var resolvedOrgChartPositions =
                     (await orgResolver.ResolvePositionsAsync(requestItems.Where(r => r.OrgPositionId.HasValue)
                         .Select(r => r.OrgPositionId!.Value))).ToList();
 
                 // If none resolved, return.
                 if (!resolvedOrgChartPositions.Any())
-                    return requestItems;
+                    return;
 
-                foreach (var queryResourceAllocationRequest in requestItems)
+                foreach (var req in requestItems)
                 {
-                    if (queryResourceAllocationRequest.OrgPositionId == null) continue;
+                    if (req.OrgPositionId == null) continue;
 
-                    var position = resolvedOrgChartPositions.FirstOrDefault(p =>
-                        p.Id == queryResourceAllocationRequest.OrgPositionId);
+                    var position = resolvedOrgChartPositions.FirstOrDefault(p => p.Id == req.OrgPositionId);
 
                     if (position != null)
-                        queryResourceAllocationRequest.WithResolvedOriginalPosition(position, queryResourceAllocationRequest.OrgPositionInstanceId);
+                    {
+                        req.WithResolvedOriginalPosition(position, expands.HasFlag(ExpandFields.OrgPositionInstance) ? req.OrgPositionInstanceId : null);
+                    }
                 }
+            }
 
-                return requestItems;
+            private async Task AddWorkFlows(List<QueryResourceAllocationRequest> requestItems)
+            {
+                var workFlows = await mediator.Send(new GetRequestWorkflows(requestItems.Select(r => r.RequestId)));
+                var workFlowList = workFlows.ToList();
+
+                foreach (var req in requestItems)
+                {
+                    var wf = workFlowList.FirstOrDefault(x => x.RequestId == req.RequestId);
+                    if (wf == null)
+                    {
+                        // log critical event
+                        log.LogCritical($"Workflow not found for request id: {req.RequestId}");
+                        continue;
+                    }
+                    req.Workflow = wf;
+                }
             }
         }
     }

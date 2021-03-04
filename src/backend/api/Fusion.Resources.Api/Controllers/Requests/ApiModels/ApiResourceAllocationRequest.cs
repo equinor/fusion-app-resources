@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain;
 
@@ -16,7 +18,10 @@ namespace Fusion.Resources.Api.Controllers
 
 
             if (query.ProposedPerson != null)
+            {
                 ProposedPerson = new ApiPerson(query.ProposedPerson);
+                ProposedPersonAzureUniqueId = query.ProposedPerson.AzureUniqueId;
+            }
 
             Project = new ApiProjectReference(query.Project);
 
@@ -30,6 +35,9 @@ namespace Fusion.Resources.Api.Controllers
             if (query.ProposedChanges.Count > 0)
                 ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
+            if (query.TaskOwner != null) 
+                TaskOwner = new ApiTaskOwner(query.TaskOwner);
+
             Created = query.Created;
             Updated = query.Updated;
             CreatedBy = new ApiPerson(query.CreatedBy);
@@ -38,7 +46,9 @@ namespace Fusion.Resources.Api.Controllers
 
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
-
+            
+            Comments = query.Comments?.Select(x => new ApiRequestComment(x));
+            
             if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
@@ -58,7 +68,10 @@ namespace Fusion.Resources.Api.Controllers
         public string? AdditionalNote { get; set; }
 
         public ApiPropertiesCollection? ProposedChanges { get; set; }
+        public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiPerson? ProposedPerson { get; set; }
+
+        public ApiTaskOwner? TaskOwner { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public ApiPerson CreatedBy { get; set; }
@@ -68,7 +81,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
-
+        public IEnumerable<ApiRequestComment>? Comments { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
 
     }

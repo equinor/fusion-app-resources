@@ -86,6 +86,8 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
+        public IEnumerable<QueryRequestComment>? Comments { get; set; }
+        public QueryTaskOwner? TaskOwner { get; set; }
 
         public enum QueryAllocationRequestType
         {
@@ -99,6 +101,12 @@ namespace Fusion.Resources.Domain
             OrgPosition = position;
             if (positionInstanceId.HasValue)
                 OrgPositionInstance = position.Instances.FirstOrDefault(x => x.Id == positionInstanceId);
+            return this;
+        }
+
+        public QueryResourceAllocationRequest WithComments(IEnumerable<QueryRequestComment> comments)
+        {
+            Comments = comments;
             return this;
         }
 

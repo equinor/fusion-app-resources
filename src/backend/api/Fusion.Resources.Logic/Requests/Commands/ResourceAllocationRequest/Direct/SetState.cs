@@ -23,7 +23,7 @@ namespace Fusion.Resources.Logic.Commands
                 }
                 public Guid RequestId { get; set; }
                 public DbResourceAllocationRequestState State { get; set; }
-             
+
                 public class Handler : AsyncRequestHandler<SetState>
                 {
                     private readonly ResourcesDbContext resourcesDb;
@@ -47,7 +47,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (dbItem == null)
                             throw new RequestNotFoundError(request.RequestId);
-                        
+
                         var dbWorkflow = await mediator.GetRequestWorkflowAsync(dbItem.Id);
                         workflow = new InternalRequestDirectWorkflowV1(dbWorkflow);
 
@@ -55,6 +55,7 @@ namespace Fusion.Resources.Logic.Commands
                         switch (dbItem.State)
                         {
                             case DbResourceAllocationRequestState.Created:
+                                await mediator.Send(QueueRequestProvisioning.InternalPersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId));
                                 break;
 
                             default:

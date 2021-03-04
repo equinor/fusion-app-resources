@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Folder Include="Events\" />
-    <Folder Include="Requests\Commands\ResourceAllocationRequest\Extensions\" />
   </ItemGroup>
 
 </Project>
