@@ -12,49 +12,112 @@ namespace Fusion.Testing.Mocks.OrgService.Resolvers
     {
         public Task<IEnumerable<ApiBasePositionV2>> GetBasePositionsAsync()
         {
-            return Task.FromResult(PositionBuilder.AllBasePositions.AsEnumerable());
+            OrgServiceMock.semaphore.Wait();
+
+            try
+            {
+                return Task.FromResult(PositionBuilder.AllBasePositions.AsEnumerable());
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
 
         public Task<ApiBasePositionV2> ResolveBasePositionAsync(Guid basePositionId)
         {
-            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => bp.Id == basePositionId);
-            return Task.FromResult(bp);
+            OrgServiceMock.semaphore.Wait();
+
+            try
+            {
+                var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => bp.Id == basePositionId);
+                return Task.FromResult(bp);
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
 
         public Task<ApiBasePositionV2> ResolveBasePositionAsync(string name, OrgProjectType projectType)
         {
-            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => string.Equals(name, bp.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(projectType.Name, bp.ProjectType));
-            return Task.FromResult(bp);
+            OrgServiceMock.semaphore.Wait();
+
+            try
+            {
+                var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => string.Equals(name, bp.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(projectType.Name, bp.ProjectType));
+                return Task.FromResult(bp);
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
 
         public Task<ApiProjectContractV2> ResolveContractAsync(Guid projectId, Guid contractId)
         {
-            var contract = OrgServiceMock.contracts.ContainsKey(projectId) ? OrgServiceMock.contracts[projectId].FirstOrDefault(c => c.Id == contractId) : null;
-            return Task.FromResult(contract);
+            OrgServiceMock.semaphore.Wait();
+
+            try
+            {
+                var contract = OrgServiceMock.contracts.ContainsKey(projectId) ? OrgServiceMock.contracts[projectId].FirstOrDefault(c => c.Id == contractId) : null;
+                return Task.FromResult(contract);
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
 
         public Task<ApiPositionV2> ResolvePositionAsync(Guid positionId)
         {
-            var pos = OrgServiceMock.positions.Union(OrgServiceMock.contractPositions).FirstOrDefault(p => p.Id == positionId);
-            return Task.FromResult(pos);
+            OrgServiceMock.semaphore.Wait();
+
+            try
+            {
+                var pos = OrgServiceMock.positions.Union(OrgServiceMock.contractPositions).FirstOrDefault(p => p.Id == positionId);
+                return Task.FromResult(pos);
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
 
         public Task<IEnumerable<ApiPositionV2>> ResolvePositionsAsync(IEnumerable<Guid> positionIds)
         {
-            var allPositions = OrgServiceMock.positions.Union(OrgServiceMock.contractPositions).Where(p => positionIds.Contains(p.Id));
-            return Task.FromResult(allPositions.ToList().AsEnumerable());
+            OrgServiceMock.semaphore.Wait();
+
+            try
+            {
+                var allPositions = OrgServiceMock.positions.Union(OrgServiceMock.contractPositions).Where(p => positionIds.Contains(p.Id));
+                return Task.FromResult(allPositions.ToList().AsEnumerable());
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
 
         public Task<ApiProjectV2> ResolveProjectAsync(OrgProjectId projectIdentifier)
         {
-            var resolvedProject = projectIdentifier.Type switch
-            {
-                OrgProjectId.IdentifierType.DomainId => OrgServiceMock.projects.FirstOrDefault(p => string.Equals(p.DomainId, projectIdentifier.DomainId, StringComparison.OrdinalIgnoreCase)),
-                OrgProjectId.IdentifierType.Id => OrgServiceMock.projects.FirstOrDefault(p => p.ProjectId == projectIdentifier.ProjectId),
-                _ => throw new NotImplementedException($"Resolving by type {projectIdentifier.Type} is not implemented in mock")
-            };
+            OrgServiceMock.semaphore.Wait();
 
-            return Task.FromResult(resolvedProject);
+            try
+            {
+                var resolvedProject = projectIdentifier.Type switch
+                {
+                    OrgProjectId.IdentifierType.DomainId => OrgServiceMock.projects.FirstOrDefault(p => string.Equals(p.DomainId, projectIdentifier.DomainId, StringComparison.OrdinalIgnoreCase)),
+                    OrgProjectId.IdentifierType.Id => OrgServiceMock.projects.FirstOrDefault(p => p.ProjectId == projectIdentifier.ProjectId),
+                    _ => throw new NotImplementedException($"Resolving by type {projectIdentifier.Type} is not implemented in mock")
+                };
+
+                return Task.FromResult(resolvedProject);
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
     }
 }

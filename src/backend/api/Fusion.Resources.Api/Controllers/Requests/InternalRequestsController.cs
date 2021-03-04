@@ -114,6 +114,8 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (InvalidOperationException ioe)
             {
+                Console.WriteLine(ioe.ToString());
+                System.Diagnostics.Debugger.Launch();
                 return ApiErrors.InvalidOperation(ioe);
             }
             catch (InvalidOrgChartPositionError ioe)
