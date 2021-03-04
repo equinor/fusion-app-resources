@@ -8,8 +8,7 @@ using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    [ModelBinder(typeof(PatchRequestBinder))]
-    public class PatchInternalRequestRequest //: PatchRequest
+    public class PatchInternalRequestRequest : PatchRequest
     {
         public PatchProperty<bool> IsDraft { get; set; } = new();
         public PatchProperty<string?> AdditionalNote { get; set; } = new();
