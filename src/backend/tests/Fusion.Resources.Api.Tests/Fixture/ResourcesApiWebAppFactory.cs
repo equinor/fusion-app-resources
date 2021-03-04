@@ -46,6 +46,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             Environment.SetEnvironmentVariable("AzureAd__ClientId", TestConstants.APP_CLIENT_ID);
             Environment.SetEnvironmentVariable("FORWARD_JWT", "True");
             Environment.SetEnvironmentVariable("FORWARD_COOKIE", "True");
+            // Must set the config mode so the sql token generator does not try to refresh the access token, which kills the test run.
             Environment.SetEnvironmentVariable("Database__ConnectionMode", "Default");
 
             peopleServiceMock = new PeopleServiceMock();
@@ -79,43 +80,43 @@ namespace Fusion.Resources.Api.Tests.Fixture
         private static object locker = new object();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-                builder.ConfigureAppConfiguration(cfgBuilder =>
+            builder.ConfigureAppConfiguration(cfgBuilder =>
+            {
+                cfgBuilder.AddInMemoryCollection(new Dictionary<string, string>()
                 {
-                    cfgBuilder.AddInMemoryCollection(new Dictionary<string, string>()
-                    {
                     { $"ConnectionStrings:{nameof(ResourcesDbContext)}", resourceDbConnectionString }
-                    });
                 });
+            });
 
-                builder.ConfigureTestServices(services =>
-                {
-                    services.AddIntegrationTestingAuthentication();
-                    services.TryRemoveTransientEventHandlers();
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddIntegrationTestingAuthentication();
+                services.TryRemoveTransientEventHandlers();
 
-                    services.TryRemoveImplementationService("PeopleEventReceiver");
-                    services.TryRemoveImplementationService("OrgEventReceiver");
-                    services.TryRemoveImplementationService("ContextEventReceiver");
-                    services.TryRemoveImplementationService<ICompanyResolver>();
+                services.TryRemoveImplementationService("PeopleEventReceiver");
+                services.TryRemoveImplementationService("OrgEventReceiver");
+                services.TryRemoveImplementationService("ContextEventReceiver");
+                services.TryRemoveImplementationService<ICompanyResolver>();
 
                     //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                     services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
-                    services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
-                    services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
-                    services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
-                    services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
-                    services.AddTransient<IQueueSender>(sp => queueMock.Object);
+                services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
+                services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
+                services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
+                services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
+                services.AddTransient<IQueueSender>(sp => queueMock.Object);
 
-                    services.AddSingleton(sp =>
-                    {
-                        var clientFactoryMock = new Mock<IHttpClientFactory>();
+                services.AddSingleton(sp =>
+                {
+                    var clientFactoryMock = new Mock<IHttpClientFactory>();
 
-                        clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
-                        clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
-                        clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
 
-                        return clientFactoryMock.Object;
-                    });
+                    return clientFactoryMock.Object;
                 });
-            }
+            });
+        }
     }
 }
