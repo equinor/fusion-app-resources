@@ -45,8 +45,6 @@ namespace Fusion.Resources.Domain
             {
                 var timelineRange = new TimeRange(current, date);
 
-                //bool overlap = a.start < b.end && b.start < a.end;
-
                 var affectedItems = position.Where(p =>
                 {
                     var posTimeRange = new TimeRange(p.AppliesFrom.Date, p.AppliesTo.Date);
@@ -86,7 +84,9 @@ namespace Fusion.Resources.Domain
         {
             //gather all dates from orgPositionInstances of each request
             var orgPositionInstances = requests.Select(r => r.OrgPositionInstance)
-                .Where(p => p != null);
+                .Where(p => p != null)
+                .Cast<ApiClients.Org.ApiPositionInstanceV2>();
+
             var dates = orgPositionInstances.SelectMany(p => new[] { (DateTime?)p.AppliesFrom.Date, (DateTime?)p.AppliesTo.Date })
                 .Where(d => d.HasValue)
                 .Select(d => d!.Value)
