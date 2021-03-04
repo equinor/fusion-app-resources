@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -22,6 +23,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<PatchInternalRequestRequest>
         {
+            private static readonly Dictionary<string, string> sectors = PersonController.FetchSectors();
+
             public Validator()
             {
                 RuleFor(x => x.ProposedPersonAzureUniqueId)
@@ -43,7 +46,9 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.AssignedDepartment)
                     .Must(d =>
                     {
-                        var sectors = PersonController.FetchSectors();
+                        if (d.Value is null)
+                            return true;
+
                         return sectors.ContainsKey(d.Value.ToUpper());
                     })
                     .WithMessage("Invalid department specified")

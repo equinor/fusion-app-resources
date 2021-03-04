@@ -112,10 +112,6 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.InvalidOperation(pef);
             }
-            catch (InvalidOperationException ioe)
-            {
-                return ApiErrors.InvalidOperation(ioe);
-            }
             catch (InvalidOrgChartPositionError ioe)
             {
                 return ApiErrors.InvalidOperation(ioe);
