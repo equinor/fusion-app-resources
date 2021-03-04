@@ -165,9 +165,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             created.Should().BeSuccessfull();
 
             //use generated dates from request to make sure it is within time range
-            var timelineStart = position.Instances.First().AppliesFrom.Date;
-            var timelineEnd = position.Instances.First().AppliesTo.Date;
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{newRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var timelineStart = DateTime.SpecifyKind(position.Instances.First().AppliesFrom.Date, DateTimeKind.Utc);
+            var timelineEnd = DateTime.SpecifyKind(position.Instances.First().AppliesTo.Date, DateTimeKind.Utc);
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{newRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
             response.Value.Requests.Should().OnlyContain(r => r.Id == created.Value.Id.ToString());
             response.Value.Timeline.Should().Contain(t => t.AppliesFrom == timelineStart && t.AppliesTo == timelineEnd && t.Items.Exists(i => i.Id == created.Value.Id.ToString()));
         }
@@ -186,9 +186,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             created.Should().BeSuccessfull();
 
             //use generated dates from request to make sure it is within time range
-            var timelineStart = position.Instances.First().AppliesFrom.Date;
-            var timelineEnd = position.Instances.First().AppliesTo.Date;
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var timelineStart = DateTime.SpecifyKind(position.Instances.First().AppliesFrom.Date, DateTimeKind.Utc);
+            var timelineEnd = DateTime.SpecifyKind(position.Instances.First().AppliesTo.Date, DateTimeKind.Utc);
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
             response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         }
 
@@ -207,9 +207,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             created.Should().BeSuccessfull();
 
             //use generated dates from request to make sure it is within time range
-            var timelineStart = position.Instances.First().AppliesFrom.Date;
-            var timelineEnd = position.Instances.First().AppliesTo.Date;
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var timelineStart = DateTime.SpecifyKind(position.Instances.First().AppliesFrom.Date, DateTimeKind.Utc);
+            var timelineEnd = DateTime.SpecifyKind(position.Instances.First().AppliesTo.Date, DateTimeKind.Utc);
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
             response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         }
 
@@ -228,9 +228,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             created.Should().BeSuccessfull();
 
             //use generated dates from request to make sure it is NOT within time range
-            var timelineStart = position.Instances.First().AppliesTo.Date.AddDays(1);
-            var timelineEnd = timelineStart.Date.AddDays(10);
-            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart}&timelineEnd={timelineEnd}");
+            var timelineStart = DateTime.SpecifyKind(position.Instances.First().AppliesTo.Date.AddDays(1), DateTimeKind.Utc);
+            var timelineEnd = DateTime.SpecifyKind(timelineStart.Date.AddDays(10), DateTimeKind.Utc);
+            var response = await Client.TestClientGetAsync<DepartmentRequestsWithTimelineTestModel>($"/departments/{testRequest.Request.AssignedDepartment}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
             response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         }
 
