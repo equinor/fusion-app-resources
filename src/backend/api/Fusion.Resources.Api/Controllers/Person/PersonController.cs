@@ -1,6 +1,8 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Integration;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -28,11 +30,13 @@ namespace Fusion.Resources.Api.Controllers
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionProfileResolver profileResolver;
+        private readonly IMediator mediator;
 
-        public PersonController(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver)
+        public PersonController(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver, IMediator mediator)
         {
             this.httpClientFactory = httpClientFactory;
             this.profileResolver = profileResolver;
+            this.mediator = mediator;
         }
 
         [HttpGet("/persons/me/resources/profile")]
@@ -50,7 +54,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AlwaysAccessWhen().FullControlInternal();
 
-                r.AnyOf(or => {
+                r.AnyOf(or =>
+                {
                     or.CurrentUserIs(personId);
                 });
             });
@@ -81,7 +86,8 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.FailedDependency("Lineorg", $"Could not resolve line info: {resp.StatusCode}");
 
             var content = await resp.Content.ReadAsStringAsync();
-            var lineOrgProfile = JsonConvert.DeserializeAnonymousType(content, new {
+            var lineOrgProfile = JsonConvert.DeserializeAnonymousType(content, new
+            {
                 isResourceOwner = false,
                 fullDepartment = string.Empty,
                 manager = new
@@ -90,41 +96,52 @@ namespace Fusion.Resources.Api.Controllers
                 }
             });
 
-
-            var sector = ResolveSector(lineOrgProfile.fullDepartment);
+            var sector = await ResolveSector(lineOrgProfile.fullDepartment);
 
             // Resolve departments with responsibility
             var isDepartmentManager = lineOrgProfile.isResourceOwner && lineOrgProfile.fullDepartment != lineOrgProfile.manager?.fullDepartment;
-            isDepartmentManager |= IsDelegatedResourceOwner(user.AzureUniqueId, lineOrgProfile.fullDepartment);
 
             var departmentsWithResponsibility = new List<string>();
 
             // Add the current department if the user is resource owner in the department.
             if (isDepartmentManager)
                 departmentsWithResponsibility.Add(lineOrgProfile.fullDepartment);
-            
-            // Add all departments the user has been delegated responsibility for.
-            departmentsWithResponsibility.AddRange(ResolveDepartmentsWithResponsibility(user.AzureUniqueId));
 
+            // Add all departments the user has been delegated responsibility for.
+            var delegatedResponsibilities = await mediator.Send(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
+            isDepartmentManager |= delegatedResponsibilities.Any(r => r.DepartmentId == lineOrgProfile.fullDepartment);
+            departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
 
             // Get sectors the user have responsibility in, to find all relevant departments
-            var relevantSectors = departmentsWithResponsibility
-                .Select(d => ResolveSector(d))
-                .Where(s => !string.IsNullOrEmpty(s))
-                .Cast<string>()
-                .Distinct()
-                .ToList();
+            var relevantSectors = new HashSet<string>();
+            foreach (var department in departmentsWithResponsibility)
+            {
+                var resolvedSector = await ResolveSector(department);
+                if (resolvedSector != null && !relevantSectors.Contains(resolvedSector))
+                {
+                    relevantSectors.Add(resolvedSector);
+                }
+            }
 
             // If the sector does not exist, the person might be higher up. 
             if (sector is null && isDepartmentManager)
             {
-                relevantSectors.AddRange(ResolveDownstreamSectors(lineOrgProfile.fullDepartment));
+                var downstreamSectors = await ResolveDownstreamSectors(lineOrgProfile.fullDepartment);
+                foreach (var department in downstreamSectors)
+                {
+                    var resolvedSector = await ResolveSector(department);
+                    if (resolvedSector != null && !relevantSectors.Contains(resolvedSector))
+                    {
+                        relevantSectors.Add(resolvedSector);
+                    }
+                }
             }
 
-            var relevantDepartments = relevantSectors
-                .SelectMany(s => ResolveSectorDepartments(s))
-                .ToList();
-
+            var relevantDepartments = new List<string>();
+            foreach (var relevantSector in relevantSectors)
+            {
+                relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
+            }
 
             var respObject = new ApiResourceOwnerProfile(lineOrgProfile.fullDepartment)
             {
@@ -132,87 +149,30 @@ namespace Fusion.Resources.Api.Controllers
                 Sector = sector,
                 ResponsibilityInDepartments = departmentsWithResponsibility,
                 RelevantDepartments = relevantDepartments,
-                RelevantSectors = relevantSectors
+                RelevantSectors = relevantSectors.ToList()
             };
 
             return respObject;
         }
 
-
-        private static Dictionary<string, string> departmentSectors = null!;
-        private string? ResolveSector(string department)
+        private async Task<string?> ResolveSector(string department)
         {
-            LoadSectorInfo();
-
-            return departmentSectors.TryGetValue(department.ToUpper(), out string? depSector) ? depSector : null;
+            var request = new GetDepartmentSector(department);
+            return await mediator.Send(request);
         }
-        private IEnumerable<string> ResolveSectorDepartments(string sector)
+        private async Task<IEnumerable<string>> ResolveSectorDepartments(string sector)
         {
-            LoadSectorInfo();
-
-            return departmentSectors
-                .Where(kv => kv.Value == sector.ToUpper())
-                .Select(kv => kv.Key)
-                .ToList();
+            var departments = await mediator.Send(new GetDepartments() { Sector = sector });
+            return departments
+                .Select(dpt => dpt.DepartmentId);
         }
 
-        private IEnumerable<string> ResolveDownstreamSectors(string department)
+        private async Task<IEnumerable<string>> ResolveDownstreamSectors(string department)
         {
-            LoadSectorInfo();
-
-            return departmentSectors.Values.Distinct().Where(s => s.StartsWith(department, StringComparison.OrdinalIgnoreCase));
+            var departments = await mediator.Send(new GetDepartments() { DepartmentFilter = department });
+            return departments
+                .Select(dpt => dpt.SectorId!).Distinct();
         }
-
-        private void LoadSectorInfo()
-        {
-            if (departmentSectors is null)
-            {
-                departmentSectors = FetchSectors();
-            }
-        }
-
-        public static Dictionary<string, string> FetchSectors()
-        {
-            var departmentSectors = new Dictionary<string, string>();
-
-            using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Controllers.Person.departmentSectors.json"))
-            using (var r = new StreamReader(s!))
-            {
-                var json = r.ReadToEnd();
-
-                var sectorInfo = JsonConvert.DeserializeAnonymousType(json, new[] { new { sector = string.Empty, departments = Array.Empty<string>() } });
-
-
-                foreach (var sector in sectorInfo)
-                {
-                    sector.departments.ToList().ForEach(d => departmentSectors[d] = sector.sector);
-                    departmentSectors[sector.sector] = sector.sector;
-                }
-            }
-            return departmentSectors;
-        }
-
-        private IEnumerable<string> ResolveDepartmentsWithResponsibility(Guid? azureUniqueId)
-        {
-            if (azureUniqueId is null)
-                yield break;
-
-            foreach (var dep in delegatedDepartmentLeaders.Where(d => d.Item1 == azureUniqueId.Value))
-                yield return dep.Item2;
-        }
-
-        private bool IsDelegatedResourceOwner(Guid? azureUniqueId, string fullDepartment)
-        {
-            if (azureUniqueId is null)
-                return false;
-
-            return delegatedDepartmentLeaders.Any(kv => kv.Item1 == azureUniqueId && string.Equals(kv.Item2, fullDepartment, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static List<ValueTuple<Guid, string>> delegatedDepartmentLeaders = new()
-        {
-            ( new Guid("20621fbc-dc4e-4958-95c9-2ac56e166973"), "TPD PRD PMC PCA PCA7" )
-        };
     }
 
     public class ApiResourceOwnerProfile
@@ -234,5 +194,5 @@ namespace Fusion.Resources.Api.Controllers
         public List<string> RelevantSectors { get; set; } = new();
     }
 
-    
+
 }

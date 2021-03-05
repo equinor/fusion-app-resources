@@ -21,6 +21,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class InternalResourceAllocationRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
+        const string TestDepartmentId = "TPD PRD FE MMS MAT1";
+
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
 
@@ -45,6 +47,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.External);
+         
+            fixture.RequireDepartment(TestDepartmentId);
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
@@ -72,9 +76,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
+<<<<<<< HEAD
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
             //commentResponse.Should().BeSuccessfull();
             //testCommentId = commentResponse.Value.Id;
+=======
+            var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
+            commentResponse.Should().BeSuccessfull();
+            testCommentId = commentResponse.Value.Id;
+
+>>>>>>> 2bedbdd... move department/sector info to db
         }
 
         public Task DisposeAsync()
@@ -435,7 +446,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         [Theory]
         [InlineData("additionalNote", "Some test note")]
-        [InlineData("assignedDepartment", "TPD PRD FE MMS MAT1")]
+        [InlineData("assignedDepartment", TestDepartmentId)]
         [InlineData("proposedPersonAzureUniqueId", null)]
         public async Task UpdateRequest_ShouldUpdate_WhenPatching(string property, object value)
         {
