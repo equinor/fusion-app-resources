@@ -79,11 +79,6 @@ namespace Fusion.Resources.Domain.Queries
                 var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
                 var requestItem = new QueryResourceAllocationRequest(row, workflow);
 
-                if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
-                {
-                    await ExpandTaskOwnerAsync(requestItem);
-                }
-
                 if (request.Expands.HasFlag(ExpandProperties.RequestComments))
                 {
                     var comments = await mediator.Send(new GetRequestComments(request.RequestId));
@@ -100,6 +95,11 @@ namespace Fusion.Resources.Domain.Queries
                     requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
                 }
 
+                if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
+                {
+                    await ExpandTaskOwnerAsync(requestItem);
+                }
+
                 return requestItem;
             }
 
@@ -108,15 +108,22 @@ namespace Fusion.Resources.Domain.Queries
                 if (request.OrgPositionId is null)
                     return;
 
+                // Get the instance and use the relevant date to resolve that task owner
+
+                var applicableDate = request.OrgPositionInstance?.AppliesFrom ?? DateTime.UtcNow;
+
                 // If the resolving fails, let the property be null which will be an indication to the consumer that it has failed.
                 try
                 {
-                    var taskOwnerResponse = await orgClient.GetTaskOwnerAsync(request.Project.OrgProjectId, request.OrgPositionId.Value);
+                    var taskOwnerResponse = await orgClient.GetTaskOwnerAsync(request.Project.OrgProjectId, request.OrgPositionId.Value, applicableDate);
 
-                    request.TaskOwner = new QueryTaskOwner()
+                    var instances = taskOwnerResponse.Value?.Instances.Where(i => i.AppliesFrom <= applicableDate.Date && i.AppliesTo >= applicableDate.Date);
+
+                    request.TaskOwner = new QueryTaskOwner(applicableDate)
                     {
                         PositionId = taskOwnerResponse.Value?.Id,
-                        Person = taskOwnerResponse.Value?.GetActiveInstance()?.AssignedPerson
+                        InstanceIds = instances?.Select(i => i.Id).ToArray(),
+                        Persons = instances?.Select(i => i.AssignedPerson).ToArray()
                     };
                 }
                 catch (Exception ex)

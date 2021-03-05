@@ -47,7 +47,7 @@ namespace Fusion.Resources.Domain
         /// <summary>
         /// Resolve the task owner for the position.
         /// 
-        /// The task owner could be empty, this could be scenarios where the report path cannot be calculated. Will maybe default to project director here.
+        /// The task owner could be empty, however this is unlikely. The default is that if no task owner can be located the project director is used.
         /// </summary>
         /// <param name="projectId">The project the position exists in</param>
         /// <param name="positionId">The position id</param>
@@ -64,6 +64,29 @@ namespace Fusion.Resources.Domain
                 url += $"&date={date:yyyy-MM-dd}";
 
             return await GetAsync<ApiPositionV2?>(client, url);
+        }
+
+        /// <summary>
+        /// Resolve the task owner for a specific instance on the position.
+        /// This operation will return the task owner at the start of the instance (applies from date) if no other date is specified.
+        /// 
+        /// The dates are validated on the instance and returns error if it is out of bounds.
+        /// </summary>
+        /// <param name="projectId">The project the position exists in</param>
+        /// <param name="positionId">The position id</param>
+        /// <param name="date">Optionally provide a date to use for calculating the report path. If left out today is used.</param>
+        /// <returns>The return object is a bit different </returns>
+        public static async Task<RequestResponse<ApiTaskOwnerV2?>> GetInstanceTaskOwnerAsync(this IOrgApiClient client, Guid projectId, Guid positionId, Guid instanceId, DateTime? date = null)
+        {
+            if (positionId == Guid.Empty)
+                throw new ArgumentException("Position id cannot be empty when updating.");
+
+            var url = $"projects/{projectId}/positions/{positionId}/instances/{instanceId}/task-owner?api-version=2.0";
+
+            if (date != null)
+                url += $"&date={date:yyyy-MM-dd}";
+
+            return await GetAsync<ApiTaskOwnerV2?>(client, url);
         }
 
         /// <summary>
@@ -154,5 +177,29 @@ namespace Fusion.Resources.Domain
 
             return new RequestResponse<TResponse>(response, content);
         }
+    }
+
+    public class ApiTaskOwnerV2
+    {
+        /// <summary>
+        /// The date used to resolve the task owner.
+        /// </summary>
+        public DateTime Date { get; set; }
+
+        /// <summary>
+        /// The position id of the task owner
+        /// </summary>
+        public Guid? PositionId { get; set; }
+
+        /// <summary>
+        /// Instances that are active at the date. This is usually related to rotations.
+        /// Could also be delegated responsibility.
+        /// </summary>
+        public Guid[]? InstanceIds { get; set; }
+
+        /// <summary>
+        /// The persons assigned to the resolved instances.
+        /// </summary>
+        public ApiPersonV2[]? Persons { get; set; }
     }
 }

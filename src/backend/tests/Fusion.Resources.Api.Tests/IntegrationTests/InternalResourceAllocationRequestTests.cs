@@ -198,8 +198,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 taskOwner = new
                 {
+                    date = DateTime.Now,
                     positionId = (Guid?)null,
-                    person = new { mail = string.Empty }
+                    instanceIds = Array.Empty<Guid>(),
+                    persons = new[] { new { mail = string.Empty } }
                 }
             });
 
@@ -207,7 +209,49 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             result.Value.taskOwner.Should().NotBeNull();
             result.Value.taskOwner.positionId.Should().Be(taskOwnerPosition.Id);
-            result.Value.taskOwner.person.mail.Should().Be(taskOwnerPerson.Mail);
+            result.Value.taskOwner.persons.Should().Contain(p => p.mail == taskOwnerPerson.Mail);
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldUserInstanceStartDate_WhenExpandTaskOwner()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            // Create a task owner position that has different persons assigned currently and when the requested instance starts.
+            // We should expect that the future task owner is returned.
+            var currentTaskOwnerPerson = fixture.AddProfile(FusionAccountType.Employee);
+            var futureTaskOwnerPerson = fixture.AddProfile(FusionAccountType.Employee);
+            var taskOwnerPosition = testProject.AddPosition().WithInstances(ib =>
+            {
+                ib.AddInstance(DateTime.UtcNow.AddDays(-10).Date, TimeSpan.FromDays(20)).SetAssignedPerson(currentTaskOwnerPerson);
+                ib.AddInstance(DateTime.UtcNow.AddDays(21).Date, TimeSpan.FromDays(20)).SetAssignedPerson(futureTaskOwnerPerson);
+            });
+
+            // Create the position so that the instance starts when the future task owner is assigned.
+            var requestPosition = testProject.AddPosition().WithInstances(ib =>
+            {
+                ib.AddInstance(DateTime.UtcNow.AddDays(40), TimeSpan.FromDays(10));
+            });
+
+            testProject.SetTaskOwner(requestPosition.Id, taskOwnerPosition.Id);
+            var requestId = await Client.CreateRequestAsync(testProject.Project.ProjectId, r => r.WithProject(testProject.Project).WithOrgPositionId(requestPosition));
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{requestId}?$expand=taskowner", new
+            {
+                taskOwner = new
+                {
+                    date = DateTime.Now,
+                    positionId = (Guid?)null,
+                    instanceIds = Array.Empty<Guid>(),
+                    persons = new[] { new { mail = string.Empty } }
+                }
+            });
+
+
+            result.Should().BeSuccessfull();
+            result.Value.taskOwner.Should().NotBeNull();
+            result.Value.taskOwner.positionId.Should().Be(taskOwnerPosition.Id);
+            result.Value.taskOwner.persons.Should().Contain(p => p.mail == futureTaskOwnerPerson.Mail);
         }
 
         [Fact]
