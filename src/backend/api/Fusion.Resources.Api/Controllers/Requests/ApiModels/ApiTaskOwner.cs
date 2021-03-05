@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
@@ -7,10 +8,15 @@ namespace Fusion.Resources.Api.Controllers
     {
         public ApiTaskOwner(QueryTaskOwner query)
         {
-            this.PositionId = query.PositionId;
-            this.Person = ApiPerson.FromEntityOrDefault(query.Person);
+            Date = query.Date;
+            PositionId = query.PositionId;
+            InstanceIds = query.InstanceIds;
+            Persons = query.Persons?.Select(p => ApiPerson.FromEntityOrDefault(p)!).ToArray();
         }
+
+        public DateTime Date { get; set; }
         public Guid? PositionId { get; set; }
-        public ApiPerson? Person { get; set; }
+        public Guid[]? InstanceIds { get; set; }
+        public ApiPerson[]? Persons { get; set; }
     }
 }

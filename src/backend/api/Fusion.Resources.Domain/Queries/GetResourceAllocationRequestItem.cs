@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
 using Fusion.Integration.Org;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -46,15 +47,19 @@ namespace Fusion.Resources.Domain.Queries
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
         {
+            private readonly ILogger<Handler> logger;
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
+            private readonly IOrgApiClient orgClient;
 
-            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator)
+            public Handler(ILogger<Handler> logger, ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IOrgApiClientFactory apiClientFactory)
             {
+                this.logger = logger;
                 this.db = db;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
+                this.orgClient = apiClientFactory.CreateClient(ApiClientMode.Application);
             }
 
             public async Task<QueryResourceAllocationRequest?> Handle(GetResourceAllocationRequestItem request, CancellationToken cancellationToken)
@@ -74,24 +79,6 @@ namespace Fusion.Resources.Domain.Queries
                 var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
                 var requestItem = new QueryResourceAllocationRequest(row, workflow);
 
-                if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
-                {
-                    requestItem.TaskOwner = new QueryTaskOwner();
-                    if (TemporaryRandomTrue())
-                    {
-                        var randomRequest = await db.ResourceAllocationRequests.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
-                        requestItem.TaskOwner.PositionId = randomRequest.OrgPositionId;
-                        var randomPerson = await db.Persons.OrderBy(r => Guid.NewGuid()).FirstOrDefaultAsync();
-                        requestItem.TaskOwner.Person = new QueryPerson(randomPerson);
-                    }
-                    static bool TemporaryRandomTrue()
-                    {
-                        var random = new Random();
-                        var outcome = random.Next(100);
-                        return outcome <= 70;
-                    }
-                }
-
                 if (request.Expands.HasFlag(ExpandProperties.RequestComments))
                 {
                     var comments = await mediator.Send(new GetRequestComments(request.RequestId));
@@ -108,7 +95,47 @@ namespace Fusion.Resources.Domain.Queries
                     requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
                 }
 
+                if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
+                {
+                    await ExpandTaskOwnerAsync(requestItem);
+                }
+
                 return requestItem;
+            }
+
+            private async Task ExpandTaskOwnerAsync(QueryResourceAllocationRequest request)
+            {
+                if (request.OrgPositionId is null)
+                    return;
+
+                // Get the instance and use the relevant date to resolve that task owner
+
+                var applicableDate = DateTime.UtcNow.Date;
+
+                if (applicableDate <= request.OrgPositionInstance?.AppliesFrom)
+                    applicableDate = request.OrgPositionInstance.AppliesFrom;
+
+                if (applicableDate >= request.OrgPositionInstance?.AppliesTo)
+                    applicableDate = request.OrgPositionInstance.AppliesTo;
+
+                // If the resolving fails, let the property be null which will be an indication to the consumer that it has failed.
+                try
+                {
+                    var taskOwnerResponse = await orgClient.GetTaskOwnerAsync(request.Project.OrgProjectId, request.OrgPositionId.Value, applicableDate);
+
+                    var instances = taskOwnerResponse.Value?.Instances.Where(i => i.AppliesFrom <= applicableDate.Date && i.AppliesTo >= applicableDate.Date);
+
+                    request.TaskOwner = new QueryTaskOwner(applicableDate)
+                    {
+                        PositionId = taskOwnerResponse.Value?.Id,
+                        InstanceIds = instances?.Select(i => i.Id).ToArray(),
+                        Persons = instances?.Select(i => i.AssignedPerson).ToArray()
+                    };
+                }
+                catch (Exception ex)
+                {
+                    logger.LogCritical(ex, "Could not resolve task owner from org chart");
+                }
             }
         }
     }

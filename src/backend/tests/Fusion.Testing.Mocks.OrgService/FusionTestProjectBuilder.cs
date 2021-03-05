@@ -99,6 +99,12 @@ namespace Fusion.Testing.Mocks.OrgService
             return this;
         }
 
+        public FusionTestProjectBuilder SetTaskOwner(Guid position, Guid taskOwnerPosition)
+        {
+            OrgServiceMock.SetTaskOwner(position, taskOwnerPosition);
+            return this;
+        }
+
         public ApiPositionV2 AddContractPosition(Guid contractId)
         {
             var position = PositionBuilder.NewPosition();
@@ -140,9 +146,8 @@ namespace Fusion.Testing.Mocks.OrgService
                 ProjectType = project.ProjectType
             };
 
-            OrgServiceMock.contractPositions.Add(position);
-            
             var clone = position.JsonClone();
+            OrgServiceMock.positions.Add(clone);
             return clone;
         }
     }

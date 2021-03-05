@@ -95,5 +95,21 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
             return position;
         }
+
+        [MapToApiVersion("2.0")]
+        [HttpGet("/projects/{projectId}/positions/{positionId}/task-owner")]
+        public ActionResult<ApiPositionV2> GetPositionTaskOwner([FromRoute] ProjectIdentifier projectId, Guid positionId)
+        {
+            if (OrgServiceMock.taskOwnerMapping.TryGetValue(positionId, out Guid taskOwnerPositionId))
+            {
+                var taskOwner = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == taskOwnerPositionId);
+                if (taskOwner is null)
+                    return NoContent();
+
+                return taskOwner;
+            }
+
+            return OrgServiceMock.projects.FirstOrDefault(p => p.ProjectId == projectId.ProjectId).Director;
+        }
     }
 }
