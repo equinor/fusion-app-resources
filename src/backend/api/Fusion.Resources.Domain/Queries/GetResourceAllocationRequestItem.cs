@@ -110,7 +110,13 @@ namespace Fusion.Resources.Domain.Queries
 
                 // Get the instance and use the relevant date to resolve that task owner
 
-                var applicableDate = request.OrgPositionInstance?.AppliesFrom ?? DateTime.UtcNow;
+                var applicableDate = DateTime.UtcNow.Date;
+
+                if (applicableDate <= request.OrgPositionInstance?.AppliesFrom)
+                    applicableDate = request.OrgPositionInstance.AppliesFrom;
+
+                if (applicableDate >= request.OrgPositionInstance?.AppliesTo)
+                    applicableDate = request.OrgPositionInstance.AppliesTo;
 
                 // If the resolving fails, let the property be null which will be an indication to the consumer that it has failed.
                 try
