@@ -54,9 +54,15 @@ namespace Fusion.Resources.Domain.Commands
                 modified |= await request.ProposedPersonAzureUniqueId.IfSetAsync(async personId =>
                 {
                     if (personId is not null)
-                        dbRequest.ProposedPerson = await profileService.EnsurePersonAsync(new PersonId(personId.Value));
+                    {
+                        var resolvedPerson = await profileService.EnsurePersonAsync(new PersonId(personId.Value));
+                        dbRequest.ProposedPerson.AzureUniqueId = resolvedPerson?.AzureUniqueId;
+                        dbRequest.ProposedPerson.Mail = resolvedPerson?.Mail;
+                        dbRequest.ProposedPerson.HasBeenProposed = true;
+                        dbRequest.ProposedPerson.ProposedAt = DateTimeOffset.Now;
+                    }
                     else
-                        dbRequest.ProposedPerson = null;
+                        dbRequest.ProposedPerson.Clear();
                 });
 
 
@@ -72,7 +78,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                 return requestItem!;
-            }
+            }            
         }
     }
 }

@@ -2,25 +2,28 @@
 using System;
 using System.Linq;
 using System.Text.Json.Serialization;
-using FluentValidation.Results;
-using FluentValidation.Validators;
+using Microsoft.Extensions.DependencyInjection;
+using Fusion.Integration.Org;
+using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public class CreateResourceAllocationRequest
     {
-        internal Guid? Id { get; set; }
-        internal Guid? ProjectId { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ApiAllocationRequestType Type { get; set; }
+        public string Type { get; set; } = null!;
         public string? AssignedDepartment { get; set; }
-        public string? Discipline { get; set; }
-        public Guid? OrgPositionId { get; set; }
-        public ApiPositionInstance? OrgPositionInstance { get; set; } = null!;
+        public bool? IsDraft { get; set; }
+
+        // Not required unless created from the resource owner side. Change requests.
+        internal Guid? OrgProjectId { get; set; }
+        public Guid OrgPositionId { get; set; }
+        public Guid OrgPositionInstanceId { get; set; }
+        
         public string? AdditionalNote { get; set; }
         public ApiPropertiesCollection? ProposedChanges { get; set; }
+
+
         public Guid? ProposedPersonAzureUniqueId { get; set; }
-        public bool? IsDraft { get; set; }
 
 
         #region Validator
@@ -29,21 +32,54 @@ namespace Fusion.Resources.Api.Controllers
         {
             public Validator()
             {
-                RuleFor(x => x.ProjectId).NotEmpty().When(x => x.ProjectId != null);
+                RuleFor(x => x.Type).NotNull().NotEmpty();
+                RuleFor(x => x.Type).IsEnumName(typeof(ApiAllocationRequestType), false)
+                    .WithMessage((req, p) => $"Type '{p}' is not valid, allowed values are [{string.Join(", ", Enum.GetNames<ApiAllocationRequestType>())}]");
+
+                RuleFor(x => x.OrgProjectId).NotEmpty().When(x => x.OrgProjectId != null);
 
                 RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
-                RuleFor(x => x.Discipline).NotContainScriptTag().MaximumLength(500);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
-                RuleFor(x => x.OrgPositionId).NotEmpty().When(x => x.OrgPositionId != null);
-                RuleFor(x => x.OrgPositionInstance).NotNull();
-                RuleFor(x => x.OrgPositionInstance).BeValidPositionInstance().When(x => x.OrgPositionInstance != null);
+                RuleFor(x => x.OrgPositionId).NotEmpty();
+                RuleFor(x => x.OrgPositionInstanceId).NotEmpty();
+
+
                 RuleFor(x => x.ProposedChanges).BeValidProposedChanges().When(x => x.ProposedChanges != null);
 
                 RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
+
+
+                RuleFor(x => x)
+                    .CustomAsync(async (req, context, ct) =>
+                    {
+                        var orgResolver = context.GetServiceProvider().GetRequiredService<IProjectOrgResolver>();
+                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
+
+                        try
+                        {
+                            var position = await orgResolver.ResolvePositionAsync(req.OrgPositionId);
+
+                            if (position is null)
+                                context.AddFailure("Position does not exist");
+                            else
+                            {
+                                var instance = position?.Instances.FirstOrDefault(i => i.Id == req.OrgPositionInstanceId);
+                                if (instance is null)
+                                    context.AddFailure($"Instance with id '{req.OrgPositionInstanceId}' does not exist on position");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "Could not resolve position from org chart");
+                            context.AddFailure($"Could not resolve position from org chart: {ex.Message}");
+                        }
+                    });
             }
         }
 
         #endregion
+
+        public Domain.InternalRequestType ResolveType() => Enum.Parse<Domain.InternalRequestType>(Type, true);
     }
 }

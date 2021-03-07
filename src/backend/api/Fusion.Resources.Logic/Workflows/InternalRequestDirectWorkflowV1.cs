@@ -27,7 +27,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(CREATED)
                 .SetName("Created")
-                .SetDescription($"{creator.Name} approved the request. The provisioning process will start so the person can access resources.")
+                .SetDescription($"{creator.Name} created the request. The provisioning process will start so changes are reflected in the org chart.")
                 .Complete(creator, true)
                 .StartNext();
         }
@@ -46,6 +46,13 @@ namespace Fusion.Resources.Logic.Workflows
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
             .WithDescription("If the request is approved, the new position or changes will be provisioned to the organisational chart.")
             .WithPreviousStep(CREATED);
+
+
+        public override WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user)
+        {
+            // Not supported - workflow does not have approval step
+            throw new System.NotImplementedException();
+        }
 
         #endregion
     }

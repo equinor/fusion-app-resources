@@ -33,11 +33,11 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     public Validator(ResourcesDbContext db, IProjectOrgResolver projectOrgResolver)
                     {
-                        RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
-                        {
-                            return await db.ResourceAllocationRequests.AnyAsync(y =>
-                                y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Direct);
-                        }).WithMessage($"Request must exist.");
+                        //RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
+                        //{
+                        //    return await db.ResourceAllocationRequests.AnyAsync(y =>
+                        //        y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Direct);
+                        //}).WithMessage($"Request must exist.");
 
                         // Based on request, does the org position instance exist ?
                         RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
@@ -90,7 +90,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (dbRequest.ProposedChanges != null || dbRequest.ProposedPerson != null)
                         {
-                            var patchDoc = CreatePatchPositionInstanceV2(dbRequest.ProposedChanges, dbRequest.ProposedPerson);
+                            var patchDoc = CreatePatchPositionInstanceV2(dbRequest.ProposedChanges, dbRequest.ProposedPerson?.AzureUniqueId);
                             var updatePositionCommand = new UpdatePositionInstance(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value, dbRequest.OrgPositionInstance.Id, patchDoc);
 
                             dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
@@ -99,7 +99,9 @@ namespace Fusion.Resources.Logic.Commands
                             {
                                 var position = await mediator.Send(updatePositionCommand);
                                 dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Provisioned;
-                                dbRequest.ProvisioningStatus.PositionId = position.Id;
+                                dbRequest.ProvisioningStatus.OrgPositionId = position.Id;
+                                dbRequest.ProvisioningStatus.OrgProjectId = dbRequest.Project.OrgProjectId;
+                                dbRequest.ProvisioningStatus.OrgInstanceId = dbRequest.OrgPositionInstance.Id;
 
                                 dbRequest.ProvisioningStatus.ErrorMessage = null;
                                 dbRequest.ProvisioningStatus.ErrorPayload = null;
@@ -125,7 +127,7 @@ namespace Fusion.Resources.Logic.Commands
                     /// <param name="changes">Proposed changes json</param>
                     /// <param name="proposedPerson">Proposed person</param>
                     /// <returns></returns>
-                    private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(string? changes, DbPerson? proposedPerson)
+                    private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(string? changes, Guid? personAzureUniqueId)
                     {
                         var proposedChanges = new JObject();
 
@@ -133,8 +135,8 @@ namespace Fusion.Resources.Logic.Commands
                             proposedChanges = JObject.Parse(changes);
 
                         var patchDoc = new PatchPositionInstanceV2();
-                        if (proposedPerson != null)
-                            patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = proposedPerson.AzureUniqueId };
+                        if (personAzureUniqueId != null)
+                            patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = personAzureUniqueId };
 
                         if (proposedChanges.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
                             patchDoc.Obs = obs.ToObject<string?>();

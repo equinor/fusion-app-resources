@@ -8,6 +8,12 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPerson
     {
+        public ApiPerson(Guid azureId, string mail)
+        {
+            AzureUniquePersonId = azureId;
+            Mail = mail;
+        }
+
         public ApiPerson(FusionFullPersonProfile profile)
         {
             AzureUniquePersonId = profile.AzureUniqueId;

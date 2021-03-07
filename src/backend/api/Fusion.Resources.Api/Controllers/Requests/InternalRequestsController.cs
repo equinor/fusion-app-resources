@@ -19,7 +19,7 @@ namespace Fusion.Resources.Api.Controllers
     public class InternalRequestsController : ResourceControllerBase
     {
         [HttpPost("/projects/{projectIdentifier}/requests")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> AllocateProjectRequest(
+        public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequest request)
         {
             #region Authorization
@@ -38,188 +38,140 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
+            var command = new Domain.Commands.CreateInternalRequest(request.ResolveType(), request.IsDraft ?? false)
+            {
+                AdditionalNote = request.AdditionalNote,
+                OrgPositionId = request.OrgPositionId,
+                OrgProjectId = projectIdentifier.ProjectId,
+                OrgPositionInstanceId = request.OrgPositionInstanceId,
+                AssignedDepartment = request.AssignedDepartment
+            };
+
             try
             {
-                QueryResourceAllocationRequest? result = null;
-                switch (request.Type)
+                using var transaction = await BeginTransactionAsync();
+
+                var newRequest = await DispatchAsync(command);
+
+                if (request.ProposedChanges is not null || request.ProposedPersonAzureUniqueId is not null)
                 {
-                    case ApiAllocationRequestType.Normal:
-                        var command = new Logic.Commands.ResourceAllocationRequest.Normal.Create(projectIdentifier.ProjectId)
-                            .WithAssignedDepartment(request.AssignedDepartment)
-                            .WithDiscipline(request.Discipline)
-                            .WithType($"{request.Type}")
-                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
-                            .WithProposedChanges(request.ProposedChanges)
-                            .WithIsDraft(request.IsDraft)
-                            .WithAdditionalNode(request.AdditionalNote);
-
-                        if (request.OrgPositionInstance != null)
-                            command.WithPositionInstance(request.OrgPositionInstance.Id,
-                                request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
-
-                        result = await DispatchAsync(command);
-                        break;
-                    case ApiAllocationRequestType.Direct:
-                        var direct = new Logic.Commands.ResourceAllocationRequest.Direct.Create(projectIdentifier.ProjectId)
-                            .WithAssignedDepartment(request.AssignedDepartment)
-                            .WithDiscipline(request.Discipline)
-                            .WithType($"{request.Type}")
-                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
-                            .WithProposedChanges(request.ProposedChanges)
-                            .WithIsDraft(request.IsDraft)
-                            .WithAdditionalNode(request.AdditionalNote);
-
-                        if (request.OrgPositionInstance != null)
-                            direct.WithPositionInstance(request.OrgPositionInstance.Id,
-                                request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
-
-                        result = await DispatchAsync(direct);
-                        break;
-                    case ApiAllocationRequestType.JointVenture:
-                        var jointVenture = new Logic.Commands.ResourceAllocationRequest.JointVenture.Create(projectIdentifier.ProjectId)
-                            .WithAssignedDepartment(request.AssignedDepartment)
-                            .WithDiscipline(request.Discipline)
-                            .WithType($"{request.Type}")
-                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithOrgPosition(request.OrgPositionId)
-                            .WithProposedChanges(request.ProposedChanges)
-                            .WithIsDraft(request.IsDraft)
-                            .WithAdditionalNode(request.AdditionalNote);
-
-                        if (request.OrgPositionInstance != null)
-                            jointVenture.WithPositionInstance(request.OrgPositionInstance.Id,
-                                request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-
-
-                        result = await DispatchAsync(jointVenture);
-                        break;
-
+                    newRequest = await DispatchAsync(new UpdateInternalRequest(newRequest.RequestId)
+                    {
+                        ProposedChanges = request.ProposedChanges,
+                        ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId
+                    });
                 }
 
-                return Created($"/projects/{projectIdentifier}/requests/{result!.RequestId}", new ApiResourceAllocationRequest(result));
-            }
-            catch (ProfileNotFoundError pef)
-            {
-                return ApiErrors.InvalidOperation(pef);
-            }
-            catch (InvalidOrgChartPositionError ioe)
-            {
-                return ApiErrors.InvalidOperation(ioe);
+                await transaction.CommitAsync();
+
+                return Created($"/projects/{projectIdentifier}/requests/{newRequest.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (ValidationException ex)
             {
                 return ApiErrors.InvalidOperation(ex);
             }
+
         }
 
-        [HttpPut("/resources/requests/internal/{requestId}")]
-        [HttpPut("/projects/{projectIdentifier}/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> UpdateProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId,
-            [FromBody] UpdateResourceAllocationRequest request)
-        {
-            #region Authorization
+        //[HttpPut("/resources/requests/internal/{requestId}")]
+        //[HttpPut("/projects/{projectIdentifier}/requests/{requestId}")]
+        //public async Task<ActionResult<ApiResourceAllocationRequest>> UpdateProjectAllocationRequest(
+        //    [FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId,
+        //    [FromBody] UpdateResourceAllocationRequest request)
+        //{
+        //    #region Authorization
 
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
+        //    var authResult = await Request.RequireAuthorizationAsync(r =>
+        //    {
+        //        r.AlwaysAccessWhen().FullControl().FullControlInternal();
+        //        r.AnyOf(or =>
+        //        {
 
-                });
-            });
+        //        });
+        //    });
 
 
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
+        //    if (authResult.Unauthorized)
+        //        return authResult.CreateForbiddenResponse();
 
-            #endregion
-            try
-            {
-                var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+        //    #endregion
+        //    try
+        //    {
+        //        var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
-                if (item == null)
-                    return ApiErrors.NotFound("Could not locate request", $"{requestId}");
-                QueryResourceAllocationRequest? result = null;
-                switch (item.Type)
-                {
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
-                        var normal = new Logic.Commands.ResourceAllocationRequest.Normal.Update(requestId)
-                            .WithAssignedDepartment(request.AssignedDepartment)
-                            .WithDiscipline(request.Discipline)
-                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithProposedChanges(request.ProposedChanges)
-                            .WithIsDraft(request.IsDraft)
-                            .WithAdditionalNode(request.AdditionalNote);
+        //        if (item == null)
+        //            return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+        //        QueryResourceAllocationRequest? result = null;
+        //        switch (item.Type)
+        //        {
+        //            case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
+        //                var normal = new Logic.Commands.ResourceAllocationRequest.Normal.Update(requestId)
+        //                    .WithAssignedDepartment(request.AssignedDepartment)
+        //                    .WithDiscipline(request.Discipline)
+        //                    .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+        //                    .WithProposedChanges(request.ProposedChanges)
+        //                    .WithIsDraft(request.IsDraft)
+        //                    .WithAdditionalNode(request.AdditionalNote);
 
-                        if (request.OrgPositionInstance != null)
-                            normal.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+        //                if (request.OrgPositionInstance != null)
+        //                    normal.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+        //                        request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+        //                        request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
 
-                        result = await DispatchAsync(normal);
-                        break;
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
-                        var direct = new Logic.Commands.ResourceAllocationRequest.Direct.Update(requestId)
-                            .WithAssignedDepartment(request.AssignedDepartment)
-                            .WithDiscipline(request.Discipline)
-                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithProposedChanges(request.ProposedChanges)
-                            .WithIsDraft(request.IsDraft)
-                            .WithAdditionalNode(request.AdditionalNote);
+        //                result = await DispatchAsync(normal);
+        //                break;
+        //            case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
+        //                var direct = new Logic.Commands.ResourceAllocationRequest.Direct.Update(requestId)
+        //                    .WithAssignedDepartment(request.AssignedDepartment)
+        //                    .WithDiscipline(request.Discipline)
+        //                    .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+        //                    .WithProposedChanges(request.ProposedChanges)
+        //                    .WithIsDraft(request.IsDraft)
+        //                    .WithAdditionalNode(request.AdditionalNote);
 
-                        if (request.OrgPositionInstance != null)
-                            direct.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+        //                if (request.OrgPositionInstance != null)
+        //                    direct.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+        //                        request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+        //                        request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
 
-                        result = await DispatchAsync(direct);
-                        break;
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
-                        var jointVenture = new Logic.Commands.ResourceAllocationRequest.JointVenture.Update(requestId)
-                            .WithAssignedDepartment(request.AssignedDepartment)
-                            .WithDiscipline(request.Discipline)
-                            .WithProposedPerson(request.ProposedPersonAzureUniqueId)
-                            .WithProposedChanges(request.ProposedChanges)
-                            .WithIsDraft(request.IsDraft)
-                            .WithAdditionalNode(request.AdditionalNote);
+        //                result = await DispatchAsync(direct);
+        //                break;
+        //            case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
+        //                var jointVenture = new Logic.Commands.ResourceAllocationRequest.JointVenture.Update(requestId)
+        //                    .WithAssignedDepartment(request.AssignedDepartment)
+        //                    .WithDiscipline(request.Discipline)
+        //                    .WithProposedPerson(request.ProposedPersonAzureUniqueId)
+        //                    .WithProposedChanges(request.ProposedChanges)
+        //                    .WithIsDraft(request.IsDraft)
+        //                    .WithAdditionalNode(request.AdditionalNote);
 
-                        if (request.OrgPositionInstance != null)
-                            jointVenture.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
-                                request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
-                                request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
-                        result = await DispatchAsync(jointVenture);
-                        break;
-                }
-                return new ApiResourceAllocationRequest(result!);
-            }
-            catch (ProfileNotFoundError pef)
-            {
-                return ApiErrors.InvalidOperation(pef);
-            }
-            catch (InvalidOperationException ioe)
-            {
-                return ApiErrors.InvalidOperation(ioe);
-            }
-            catch (InvalidOrgChartPositionError ioe)
-            {
-                return ApiErrors.InvalidOperation(ioe);
-            }
-            catch (ValidationException ve)
-            {
-                return ApiErrors.InvalidOperation(ve);
-            }
-        }
+        //                if (request.OrgPositionInstance != null)
+        //                    jointVenture.WithPositionInstance(request.OrgPositionInstance.Id, request.OrgPositionInstance.AppliesFrom,
+        //                        request.OrgPositionInstance.AppliesTo, request.OrgPositionInstance.Workload,
+        //                        request.OrgPositionInstance.Obs, request.OrgPositionInstance.LocationId);
+        //                result = await DispatchAsync(jointVenture);
+        //                break;
+        //        }
+        //        return new ApiResourceAllocationRequest(result!);
+        //    }
+        //    catch (ProfileNotFoundError pef)
+        //    {
+        //        return ApiErrors.InvalidOperation(pef);
+        //    }
+        //    catch (InvalidOperationException ioe)
+        //    {
+        //        return ApiErrors.InvalidOperation(ioe);
+        //    }
+        //    catch (InvalidOrgChartPositionError ioe)
+        //    {
+        //        return ApiErrors.InvalidOperation(ioe);
+        //    }
+        //    catch (ValidationException ve)
+        //    {
+        //        return ApiErrors.InvalidOperation(ve);
+        //    }
+        //}
 
         [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
@@ -371,6 +323,35 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result);
         }
 
+        [HttpPost("/resources/requests/internal/{requestId}/start")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> StartRequestWorkflow(Guid requestId)
+        {
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
+
+            return new ApiResourceAllocationRequest(result);
+        }
+
         [HttpDelete("/resources/requests/internal/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
         public async Task<ActionResult> DeleteProjectAllocationRequest(Guid requestId)
@@ -397,24 +378,13 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            try
-            {
-                await using var scope = await BeginTransactionAsync();
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Delete(requestId));
 
-                await scope.CommitAsync();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ApiErrors.InvalidOperation(ex);
-            }
-            catch (ValidationException ex)
-            {
-                return ApiErrors.InvalidOperation(ex);
-            }
+            await using var transaction = await BeginTransactionAsync();
+            await DispatchAsync(new DeleteInternalRequest(requestId));
 
-            return Ok();
+            await transaction.CommitAsync();
 
+            return NoContent();
         }
 
         [HttpPost("/resources/requests/internal/{requestId}/provision")]
@@ -448,7 +418,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 switch (result.Type)
                 {
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
+                    case InternalRequestType.Direct:
                         await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Provision(requestId));
                         break;
                 }
@@ -464,9 +434,45 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        {
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                });
+
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            
+            await using var scope = await BeginTransactionAsync();
+
+            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+
+            await scope.CommitAsync();
+
+            
+            result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            return new ApiResourceAllocationRequest(result!);
+        }
+
+        [HttpPost("/departments/{departmentPath}/requests/{requestId}/approve")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] string departmentPath, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -490,37 +496,17 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            try
-            {
-                await using var scope = await BeginTransactionAsync();
+            await using var scope = await BeginTransactionAsync();
 
-                switch (result.Type)
-                {
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Normal:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Normal.Approve(requestId));
-                        break;
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.Direct:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Approve(requestId));
-                        break;
-                    case QueryResourceAllocationRequest.QueryAllocationRequestType.JointVenture:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.JointVenture.Approve(requestId));
-                        break;
-                }
+            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
 
-                await scope.CommitAsync();
+            await scope.CommitAsync();
 
-                result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-                return new ApiResourceAllocationRequest(result!);
-            }
-            catch (NotSupportedException ex)
-            {
-                return ApiErrors.InvalidOperation(ex);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ApiErrors.InvalidOperation(ex);
-            }
+
+            result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            return new ApiResourceAllocationRequest(result!);
         }
+
 
         #region Comments
         [HttpPost("/resources/requests/internal/{requestId}/comments")]

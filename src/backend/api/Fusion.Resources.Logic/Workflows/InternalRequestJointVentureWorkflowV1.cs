@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Database.Entities;
+using System;
 using System.Collections.Generic;
 
 namespace Fusion.Resources.Logic.Workflows
@@ -39,13 +40,29 @@ namespace Fusion.Resources.Logic.Workflows
         {
         }
 
-        public void Approved(DbPerson approver)
+        public WorkflowStep Approved(DbPerson approver)
         {
-            Step(APPROVAL)
+            return Step(APPROVAL)
                 .SetName("Approved")
                 .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(approver, true)
-                .StartNext();
+                .StartNext().Current;
+        }
+
+        public override WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user)
+        {
+            var current = GetCurrent();
+
+            if (state == DbWFStepState.Rejected)
+                throw new NotImplementedException("Rejected not supported");
+
+            switch (current.Id)
+            {
+                case CREATED:
+                    return Approved(user);
+            }
+
+            return null;
         }
 
         #region Step definitions

@@ -102,6 +102,12 @@ namespace Fusion.Resources.Logic.Workflows
                 .SetWorkflowError(errorMessage);
         }
 
+        public override WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user)
+        {
+            // This is not implemented for this workflow.
+            throw new NotImplementedException();
+        }
+
         #region Step definitions
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")

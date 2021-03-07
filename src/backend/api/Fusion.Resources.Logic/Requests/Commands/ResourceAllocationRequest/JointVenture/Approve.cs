@@ -29,10 +29,10 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     public Validator(ResourcesDbContext db)
                     {
-                        RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
-                        {
-                            return await db.ResourceAllocationRequests.AnyAsync(y => y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.JointVenture);
-                        }).WithMessage($"Request of type: '{DbResourceAllocationRequest.DbAllocationRequestType.JointVenture}' must exist to be able to approve.");
+                        //RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
+                        //{
+                        //    return await db.ResourceAllocationRequests.AnyAsync(y => y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.JointVenture);
+                        //}).WithMessage($"Request of type: '{DbResourceAllocationRequest.DbAllocationRequestType.JointVenture}' must exist to be able to approve.");
                     }
                 }
                 public class Handler : AsyncRequestHandler<Approve>
@@ -48,14 +48,14 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         var dbRequest = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId), CancellationToken.None);
                         
-                        switch (dbRequest!.State)
-                        {
-                            case DbResourceAllocationRequestState.Created:
-                                await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
-                                break;
-                            default:
-                                throw new NotSupportedException($"Invalid state change. Only supporting Created and Proposed. State was:{dbRequest.State}");
-                        }
+                        //switch (dbRequest!.State)
+                        //{
+                        //    case DbResourceAllocationRequestState.Created:
+                        //        await mediator.Send(new SetState(request.RequestId, DbResourceAllocationRequestState.Accepted));
+                        //        break;
+                        //    default:
+                        //        throw new NotSupportedException($"Invalid state change. Only supporting Created and Proposed. State was:{dbRequest.State}");
+                        //}
                     }
                 }
             }
