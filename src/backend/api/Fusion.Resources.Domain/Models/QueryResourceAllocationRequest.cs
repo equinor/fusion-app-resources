@@ -8,6 +8,12 @@ using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {
+    public enum InternalRequestOwner
+    {
+        Project,
+        ResourceOwner
+    }
+
     public enum InternalRequestType
     {
         Normal,

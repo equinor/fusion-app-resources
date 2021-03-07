@@ -97,16 +97,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-
+            var otherDepartment = InternalRequestData.PickRandomDepartment(testRequest.AssignedDepartment);
 
             var otherDepartmentRequest = await Client.CreateDefaultRequestAsync(testProject);
-            await Client.AssignDepartmentAsync(otherDepartmentRequest.Id, InternalRequestData.PickRandomDepartment(testRequest.AssignedDepartment));
+            await Client.AssignDepartmentAsync(otherDepartmentRequest.Id, otherDepartment);
 
             var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
                 $"/departments/{testRequest.AssignedDepartment}/resources/requests?{ApiVersion}");
             response.Should().BeSuccessfull();
 
-            response.Value.Value.Should().NotContain(r => r.AssignedDepartment == "Other department");
+            response.Value.Value.Should().NotContain(r => r.AssignedDepartment == otherDepartment);
         }
 
         #endregion

@@ -4,12 +4,19 @@ using System;
 
 namespace Fusion.Resources.Database.Entities
 {
+    public enum DbInternalRequestOwner { Project, ResourceOwner }
+
     public class DbResourceAllocationRequest
     {
         public Guid Id { get; set; }
         public string? AssignedDepartment { get;set; }
         public bool IsDraft { get; set; }
 
+        /// <summary>
+        /// The group that ownes the request. This is needed to be able to query for relevant requests. 
+        /// Ex draft requests of some types should not be visible for others.
+        /// </summary>
+        public DbInternalRequestOwner RequestOwner { get; set; }
 
         public string? Discipline { get; set; }
         
@@ -60,6 +67,8 @@ namespace Fusion.Resources.Database.Entities
                 entity.Property(e => e.Created);
 
                 entity.HasOne(e => e.UpdatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.RequestOwner).HasConversion(new EnumToStringConverter<DbInternalRequestOwner>());
 
                 entity.OwnsOne(e => e.ProvisioningStatus, op =>
                 {

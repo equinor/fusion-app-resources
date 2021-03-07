@@ -39,7 +39,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var command = new Domain.Commands.CreateInternalRequest(request.ResolveType(), request.IsDraft ?? false)
+            // Create all requests as draft
+            var command = new Domain.Commands.CreateInternalRequest(request.ResolveType(), true)
             {
                 AdditionalNote = request.AdditionalNote,
                 OrgPositionId = request.OrgPositionId,
@@ -205,7 +206,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
-                if (request.IsDraft.HasValue) updateCommand.IsDraft = request.IsDraft.Value;
+                //if (request.IsDraft.HasValue) updateCommand.IsDraft = request.IsDraft.Value;
                 if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
                 if (request.ProposedPersonAzureUniqueId.HasValue) updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
 
@@ -260,9 +261,9 @@ namespace Fusion.Resources.Api.Controllers
             var countEnabled = Request.Query.ContainsKey("$count");
 
             var requestCommand = new GetResourceAllocationRequests(query)
+                .ForResourceOwners()
                 .WithUnassignedFilter(true)
-                .WithOnlyCount(countEnabled)
-                .WithExcludeDrafts();
+                .WithOnlyCount(countEnabled);
 
             var result = await DispatchAsync(requestCommand);
 
@@ -323,13 +324,18 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result);
         }
 
-        [HttpPost("/resources/requests/internal/{requestId}/start")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> StartRequestWorkflow(Guid requestId)
+   
+        [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            if (result.Project.OrgProjectId != projectIdentifier.ProjectId)
+                return ApiErrors.NotFound("Could not locate request in project", $"{requestId}");
+
 
             #region Authorization
 
@@ -347,7 +353,9 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-
+            await using var transaction = await BeginTransactionAsync();
+            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
+            await transaction.CommitAsync();
 
             return new ApiResourceAllocationRequest(result);
         }

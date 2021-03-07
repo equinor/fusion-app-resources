@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain.Commands
         public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; set; } = new();
         public MonitorableProperty<string?> AdditionalNote { get; set; } = new();
         public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; set; } = new();
-        public MonitorableProperty<bool> IsDraft { get; set; } = new();
+        //public MonitorableProperty<bool> IsDraft { get; set; } = new();
 
 
 
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain.Commands
                 modified |= request.AssignedDepartment.IfSet(dep => dbRequest.AssignedDepartment = dep);
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= request.ProposedChanges.IfSet(changes => dbRequest.ProposedChanges = changes.SerializeToString());
-                modified |= request.IsDraft.IfSet(d => dbRequest.IsDraft = d);
+                //modified |= request.IsDraft.IfSet(d => dbRequest.IsDraft = d);
                 modified |= await request.ProposedPersonAzureUniqueId.IfSetAsync(async personId =>
                 {
                     if (personId is not null)

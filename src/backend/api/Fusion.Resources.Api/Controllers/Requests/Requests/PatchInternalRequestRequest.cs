@@ -11,7 +11,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class PatchInternalRequestRequest : PatchRequest
     {
-        public PatchProperty<bool> IsDraft { get; set; } = new();
+        //public PatchProperty<bool> IsDraft { get; set; } = new();
         public PatchProperty<string?> AdditionalNote { get; set; } = new();
         public PatchProperty<string?> AssignedDepartment { get; set; } = new();
         public PatchProperty<Guid?> ProposedPersonAzureUniqueId { get; set; } = new();

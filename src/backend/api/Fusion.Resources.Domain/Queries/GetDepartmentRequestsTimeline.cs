@@ -2,6 +2,7 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using Itenso.TimePeriod;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +61,7 @@ namespace Fusion.Resources.Domain
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)
                     .Include(r => r.ProposedPerson)
+                    .Where(r => r.IsDraft == false || r.RequestOwner == DbInternalRequestOwner.ResourceOwner)
                     .Where(r => r.AssignedDepartment == request.DepartmentString)
                     .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterias.
                     .ToList();

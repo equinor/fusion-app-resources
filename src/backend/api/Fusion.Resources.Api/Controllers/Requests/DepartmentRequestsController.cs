@@ -37,6 +37,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var requestCommand = new GetResourceAllocationRequests(query)
+                .ForResourceOwners()
                 .WithAssignedDepartment(departmentString);
             var result = await DispatchAsync(requestCommand);
 

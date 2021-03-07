@@ -72,11 +72,11 @@ namespace Fusion.Testing.Mocks
             return this;
         }
 
-        public ApiCreateInternalRequestModel WithIsDraft(bool isDraft)
-        {
-            IsDraft = IsDraft;
-            return this;
-        }
+        //public ApiCreateInternalRequestModel WithIsDraft(bool isDraft)
+        //{
+        //    IsDraft = IsDraft;
+        //    return this;
+        //}
 
     }
 

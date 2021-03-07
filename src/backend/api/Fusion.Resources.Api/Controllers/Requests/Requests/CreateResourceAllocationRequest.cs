@@ -12,7 +12,9 @@ namespace Fusion.Resources.Api.Controllers
     {
         public string Type { get; set; } = null!;
         public string? AssignedDepartment { get; set; }
-        public bool? IsDraft { get; set; }
+        
+        // All requests should be created as drafts. Initializing the workflow shoud set the flag to false.
+        //public bool? IsDraft { get; set; }
 
         // Not required unless created from the resource owner side. Change requests.
         internal Guid? OrgProjectId { get; set; }

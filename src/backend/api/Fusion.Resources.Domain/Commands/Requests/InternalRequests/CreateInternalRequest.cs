@@ -17,8 +17,9 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class CreateInternalRequest : TrackableRequest<QueryResourceAllocationRequest>
     {
-        public CreateInternalRequest(InternalRequestType type, bool isDraft)
+        public CreateInternalRequest(InternalRequestOwner owner, InternalRequestType type, bool isDraft)
         {
+            Owner = owner;
             Type = type;
             IsDraft = isDraft;
         }
@@ -26,13 +27,14 @@ namespace Fusion.Resources.Domain.Commands
         public Guid OrgProjectId { get; set; }
         public string? AssignedDepartment { get; set; }
 
-        public InternalRequestType Type { get; set; }
+        public InternalRequestOwner Owner { get; private set; }
+        public InternalRequestType Type { get; private set; }
 
         public Guid OrgPositionId { get; set; }
         public Guid OrgPositionInstanceId { get; set; }
         public string? AdditionalNote { get; set; }
         public Dictionary<string, object>? ProposedChanges { get; set; }
-        public bool IsDraft { get; set; }
+        public bool IsDraft { get; private set; }
 
 
         public class Validator : AbstractValidator<CreateInternalRequest>
@@ -99,6 +101,12 @@ namespace Fusion.Resources.Domain.Commands
                         InternalRequestType.Direct => DbInternalRequestType.Direct,
                         InternalRequestType.JointVenture => DbInternalRequestType.JointVenture,
                         _ => throw new NotSupportedException("Query request type ")
+                    },
+                    RequestOwner = request.Owner switch
+                    {
+                        InternalRequestOwner.Project => DbInternalRequestOwner.Project,
+                        InternalRequestOwner.ResourceOwner => DbInternalRequestOwner.ResourceOwner,
+                        _ => throw new NotSupportedException("Owner type not supported by db")
                     },
 
                     Project = resolvedProject,

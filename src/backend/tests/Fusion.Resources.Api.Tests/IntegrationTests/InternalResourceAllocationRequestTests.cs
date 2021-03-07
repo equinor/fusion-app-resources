@@ -149,7 +149,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var request = await Client.CreateDefaultRequestAsync(testProject, r => r.WithIsDraft(true));
+            var request = await Client.CreateDefaultRequestAsync(testProject);
 
             var topResponseTest = await Client.TestClientGetAsync($"/projects/{projectId}/requests", new
             {
@@ -434,7 +434,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #region Update request
 
         [Theory]
-        [InlineData("isDraft", true)]
         [InlineData("additionalNote", "Some test note")]
         [InlineData("assignedDepartment", "TPD PRD FE MMS MAT1")]
         [InlineData("proposedPersonAzureUniqueId", null)]
@@ -445,7 +444,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             if (property == "proposedPersonAzureUniqueId")
                 value = this.testUser.AzureUniqueId!.Value;
 
-            var request = await Client.CreateDefaultRequestAsync(testProject, r => r.WithIsDraft(true));
+            var request = await Client.CreateDefaultRequestAsync(testProject);
 
             JObject payload = new JObject();
             payload.Add(property, JToken.FromObject(value));
@@ -463,7 +462,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var requestId = await Client.CreateDefaultRequestAsync(testProject, r => r.WithIsDraft(true));
+            var requestId = await Client.CreateDefaultRequestAsync(testProject);
 
             var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { assignedDepartment = "Invalid" });
             response.Should().BeBadRequest();
@@ -474,7 +473,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var requestId = await Client.CreateDefaultRequestAsync(testProject, r => r.WithIsDraft(true));
+            var requestId = await Client.CreateDefaultRequestAsync(testProject);
 
             var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { proposedChanges = new { someRandomProp = DateTime.UtcNow } });
             response.Should().BeBadRequest();
