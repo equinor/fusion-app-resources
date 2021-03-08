@@ -56,7 +56,8 @@ namespace Fusion.Resources.Logic.Workflows
 
         public WorkflowStepFlow Step(string id) => new WorkflowStepFlow(this, id);
 
-        public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending);
+        public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending && s.Started != null);
+        //public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending &&);
 
         public abstract WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user);
 
@@ -97,6 +98,7 @@ namespace Fusion.Resources.Logic.Workflows
                 Created = DateTimeOffset.Now,
                 LogicAppName = Name,
                 LogicAppVersion = Version,
+                WorkflowClassType = GetType().FullName,
                 State = DbWorkflowState.Running,
                 RequestId = requestId,
                 RequestType = type,

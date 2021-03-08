@@ -13,6 +13,4 @@ namespace Fusion.Testing.Mocks
 
         public IEnumerable<T> Value { get; set; }
     }
-
-
 }

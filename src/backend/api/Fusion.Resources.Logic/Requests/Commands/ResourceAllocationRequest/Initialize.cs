@@ -1,5 +1,5 @@
-﻿using FluentValidation;
-using Fusion.Resources.Database;
+﻿using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using MediatR;
@@ -42,24 +42,27 @@ namespace Fusion.Resources.Logic.Commands
                     if (dbRequest is null)
                         throw new InvalidOperationException($"Could not locate request with id {request.RequestId}");
 
+                    dbRequest.IsDraft = false;
 
-                    switch (dbRequest.Type)
+                    await resourcesDb.SaveChangesAsync();
+
+
+                    var type = dbRequest.Type switch
                     {
-                        case Database.Entities.DbInternalRequestType.Normal:
-                            await mediator.Publish(new RequestInitialized(dbRequest.Id, InternalRequestType.Normal, request.Editor.Person));
-                            break;
+                        DbInternalRequestType.Normal => InternalRequestType.Normal,
+                        DbInternalRequestType.JointVenture => InternalRequestType.JointVenture,
+                        DbInternalRequestType.Direct => InternalRequestType.Direct,
 
-                        case Database.Entities.DbInternalRequestType.JointVenture:
-                            break;
+                        _ => throw new NotSupportedException($"Workflow init of type {dbRequest.Type} is not supported")
+                    };
 
-                        case Database.Entities.DbInternalRequestType.Direct:
-                            break;
-                    }
+                    await mediator.Publish(new RequestInitialized(dbRequest.Id, type, request.Editor.Person));
                 }
 
 
             }
 
         }
+
     }
 }

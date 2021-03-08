@@ -17,24 +17,24 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class CreateInternalRequest : TrackableRequest<QueryResourceAllocationRequest>
     {
-        public CreateInternalRequest(InternalRequestOwner owner, InternalRequestType type, bool isDraft)
+        public CreateInternalRequest(InternalRequestOwner owner, InternalRequestType type)
         {
             Owner = owner;
             Type = type;
-            IsDraft = isDraft;
+            IsDraft = true;
         }
 
         public Guid OrgProjectId { get; set; }
         public string? AssignedDepartment { get; set; }
 
-        public InternalRequestOwner Owner { get; private set; }
-        public InternalRequestType Type { get; private set; }
+        public InternalRequestOwner Owner { get; set; }
+        public InternalRequestType Type { get; set; }
 
         public Guid OrgPositionId { get; set; }
         public Guid OrgPositionInstanceId { get; set; }
         public string? AdditionalNote { get; set; }
         public Dictionary<string, object>? ProposedChanges { get; set; }
-        public bool IsDraft { get; private set; }
+        public bool IsDraft { get; set; }
 
 
         public class Validator : AbstractValidator<CreateInternalRequest>

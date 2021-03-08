@@ -39,24 +39,24 @@ namespace Fusion.Resources.Logic.Commands
                         throw new InvalidOperationException("Could not locate request");
 
                     var dbWorkflow = await mediator.GetRequestWorkflowAsync(dbRequest.Id);
-
                     var workflow = WorkflowDefinition.ResolveWorkflow(dbWorkflow);
 
                     if (dbRequest.State.State is null)
                         throw new InvalidOperationException("Workflow has not been initialized");
 
-
-                    var currentStep = workflow[dbRequest.State.State];
-
-                    workflow.CompleteCurrentStep(Database.Entities.DbWFStepState.Approved, request.Editor.Person);
-
                     
-                    dbRequest.State.State = workflow.GetCurrent().Id;
+                    var currentStep = workflow[dbRequest.State.State];
+                    await mediator.Publish(new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId));
+
+
+                    currentStep = workflow.CompleteCurrentStep(Database.Entities.DbWFStepState.Approved, request.Editor.Person);
+
+                    dbRequest.State.State = currentStep!.Id;
                     workflow.SaveChanges();
 
                     await dbContext.SaveChangesAsync(cancellationToken);
 
-                    var notification = new RequestStateChanged(dbRequest.Id, InternalRequestType.Normal, workflow.GetCurrent().PreviousStepId, workflow.GetCurrent().Id);
+                    var notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep.PreviousStepId, currentStep.Id);
                     await mediator.Publish(notification, cancellationToken);
                 }
             }

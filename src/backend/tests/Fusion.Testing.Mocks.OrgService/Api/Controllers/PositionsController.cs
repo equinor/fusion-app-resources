@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion.ApiClients.Org;
+using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 {
@@ -92,6 +94,36 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
                 return NotFound();
 
             // Do some updates based on request if required.
+            if (request.AppliesFrom.HasValue)
+                instance.AppliesFrom = request.AppliesFrom.Value.Value;
+
+            if (request.AppliesTo.HasValue)
+                instance.AppliesTo = request.AppliesTo.Value.Value;
+
+            if (request.Calendar.HasValue)
+                instance.Calendar = request.Calendar.Value;
+
+            if (request.ExternalId.HasValue)
+                instance.ExternalId = request.ExternalId.Value;
+
+            if (request.ExternalId.HasValue)
+                instance.ExternalId = request.ExternalId.Value;
+
+            if (request.Location.HasValue)
+                instance.Location = new ApiPositionLocationV2()
+                {
+                    Id = request.Location.Value.Id
+                };
+
+            if (request.AssignedPerson.HasValue)
+            {
+                var person = new ApiPersonV2()
+                {
+                    AzureUniqueId = request.AssignedPerson.Value.AzureUniqueId,
+                    Mail = request.AssignedPerson.Value.Mail
+                };
+            }
+
 
             return position;
         }

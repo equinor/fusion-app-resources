@@ -60,7 +60,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .AddContext(testProject.Project);
 
             testRequest = await adminClient.CreateDefaultRequestAsync(testProject);
+            testRequest = await adminClient.StartProjectRequestAsync(testProject, testRequest.Id);
             testRequest = await adminClient.AssignAnDepartmentAsync(testRequest.Id);
+
         }
 
         #region GetDeparmentRequests

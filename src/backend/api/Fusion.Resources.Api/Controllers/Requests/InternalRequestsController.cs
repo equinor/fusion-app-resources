@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
-using Fusion.Integration;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
@@ -18,6 +17,7 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class InternalRequestsController : ResourceControllerBase
     {
+        [HttpPost("/projects/{projectIdentifier}/resources/requests")]
         [HttpPost("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequest(
             [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequest request)
@@ -40,7 +40,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             // Create all requests as draft
-            var command = new Domain.Commands.CreateInternalRequest(request.ResolveType(), true)
+            var command = new CreateInternalRequest(InternalRequestOwner.Project, request.ResolveType())
             {
                 AdditionalNote = request.AdditionalNote,
                 OrgPositionId = request.OrgPositionId,
@@ -176,6 +176,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
+        [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest([FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId, [FromBody] PatchInternalRequestRequest request)
         {
             #region Authorization
@@ -206,7 +207,6 @@ namespace Fusion.Resources.Api.Controllers
 
                 if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
-                //if (request.IsDraft.HasValue) updateCommand.IsDraft = request.IsDraft.Value;
                 if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
                 if (request.ProposedPersonAzureUniqueId.HasValue) updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
 
@@ -225,6 +225,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/resources/requests/internal")]
         [HttpGet("/projects/{projectIdentifier}/requests")]
+        [HttpGet("/projects/{projectIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
             [FromRoute] ProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
         {
@@ -298,6 +299,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
+        [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
@@ -326,6 +328,7 @@ namespace Fusion.Resources.Api.Controllers
 
    
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
+        [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/start")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -362,6 +365,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpDelete("/resources/requests/internal/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
+        [HttpDelete("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> DeleteProjectAllocationRequest(Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -424,12 +428,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 await using var scope = await BeginTransactionAsync();
 
-                switch (result.Type)
-                {
-                    case InternalRequestType.Direct:
-                        await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Direct.Provision(requestId));
-                        break;
-                }
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Provision(requestId));
 
                 await scope.CommitAsync();
 
@@ -444,6 +443,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
+        [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -480,6 +480,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/departments/{departmentPath}/requests/{requestId}/approve")]
+        [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] string departmentPath, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -639,6 +640,7 @@ namespace Fusion.Resources.Api.Controllers
         #endregion Comments
 
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}/approve")]
+        [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -658,7 +660,9 @@ namespace Fusion.Resources.Api.Controllers
 
             return NoContent();
         }
+        
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
+        [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>

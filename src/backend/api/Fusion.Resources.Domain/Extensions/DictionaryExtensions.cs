@@ -1,16 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace Fusion.Resources
 {
     public static class DictionaryExtensions
     {
+        private static JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Formatting = Formatting.Indented
+        };
+
         public static string SerializeToString(this Dictionary<string, object>? properties)
         {
-            var propertiesJson = JsonSerializer.Serialize(properties ?? new Dictionary<string, object>(),
-                new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
-            return propertiesJson;
+            var propertiesJsonTest = JsonConvert.SerializeObject(properties, serializerSettings);
+            return propertiesJsonTest;
         }
     }
 }

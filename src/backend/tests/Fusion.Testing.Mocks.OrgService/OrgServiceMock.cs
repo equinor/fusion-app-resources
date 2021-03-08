@@ -1,5 +1,6 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Testing.Mocks.OrgService.Api;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,9 +13,19 @@ using System.Threading;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
+    public class ApiInvocation
+    {
+        public HttpMethod Method { get; set; }
+        public string Body { get; set; }
+        public string Path { get; set; }
+        public QueryString Query { get; internal set; }
+    }
+
     public class OrgServiceMock
     {
         readonly WebApplicationFactory<Startup> factory;
+
+        public static ConcurrentBag<ApiInvocation> Invocations = new ConcurrentBag<ApiInvocation>();
 
         internal static List<ApiClients.Org.ApiProjectV2> projects = new List<ApiClients.Org.ApiProjectV2>();
         internal static List<ApiClients.Org.ApiPositionV2> positions = new List<ApiClients.Org.ApiPositionV2>();

@@ -13,7 +13,7 @@ namespace Fusion.Resources.Api.Controllers
             Id = query.RequestId;
             AssignedDepartment = query.AssignedDepartment;
             Discipline = query.Discipline;
-            State = $"{query.State}";
+            State = query.State;
             Type = $"{query.Type}";
 
 

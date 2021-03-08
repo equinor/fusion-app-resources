@@ -1,4 +1,5 @@
 ﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile.ApiClient;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
@@ -88,6 +89,25 @@ namespace Fusion.Resources.Api.Tests
             newRequestResponse.Should().BeSuccessfull();
 
             return newRequestResponse.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> StartProjectRequestAsync(this HttpClient client, FusionTestProjectBuilder project, Guid requestId)
+        {
+            var newRequestResponse = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{project.Project.ProjectId}/requests/{requestId}/start", null);
+            newRequestResponse.Should().BeSuccessfull();
+
+            return newRequestResponse.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> ProposePersonAsync(this HttpClient client, Guid requestId, ApiPersonProfileV3 profile)
+        {
+            var resp = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
+            {
+                proposedPersonAzureUniqueId = profile.AzureUniqueId
+            });
+            resp.Should().BeSuccessfull();
+
+            return resp.Value;
         }
     }
 }

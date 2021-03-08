@@ -458,13 +458,36 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task UpdateRequest_ShouldSetProposedChanges_WhenPatchingInstanceLocation()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var location = new
+            {
+                id = Guid.NewGuid(),
+                name = "Test location"
+            };
+
+            var response = await Client.TestClientPatchAsync($"/resources/requests/internal/{normalRequest.Id}", new 
+            { 
+                proposedChanges = new { location }
+            }, new
+            {
+                proposedChanges = new { location }
+            });
+
+            response.Should().BeSuccessfull();
+            response.Value.proposedChanges.location.Should().NotBeNull();
+            response.Value.proposedChanges.location.id.Should().Be(location.id);
+            response.Value.proposedChanges.location.name.Should().Be(location.name);
+        }
+
+        [Fact]
         public async Task UpdateRequest_ShouldBeBadRequest_WhenPatchingInvalidDepartment()
         {
             using var adminScope = fixture.AdminScope();
 
-            var requestId = await Client.CreateDefaultRequestAsync(testProject);
-
-            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { assignedDepartment = "Invalid" });
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{normalRequest.Id}", new { assignedDepartment = "Invalid" });
             response.Should().BeBadRequest();
         }
 
@@ -473,9 +496,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var requestId = await Client.CreateDefaultRequestAsync(testProject);
-
-            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{requestId}", new { proposedChanges = new { someRandomProp = DateTime.UtcNow } });
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{normalRequest.Id}", new { proposedChanges = new { someRandomProp = DateTime.UtcNow } });
             response.Should().BeBadRequest();
         }
 
@@ -534,44 +555,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response.Should().BeBadRequest();
         }
-
-
-        //[Fact]
-        //public async Task Post_ProjectRequest_NormalApprovalSteps_ShouldBeAssigned()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-
-        //    var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{normalRequest.Project.ProjectId}/requests/{normalRequest.Request.Id}/approve", null);
-        //    response.Value.State.Should().Be("Proposed");
-        //    response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{normalRequest.Project.ProjectId}/requests/{normalRequest.Request.Id}/approve", null);
-        //    response.Value.State.Should().Be("Accepted");
-        //}
-
-        //[Fact]
-        //public async Task Post_ProjectRequest_JointVentureApprovalSteps_ShouldBeAssigned()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-
-        //    var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{jointVentureRequest.Project.ProjectId}/requests/{jointVentureRequest.Request.Id}/approve", null);
-        //    response.Value.State.Should().Be("Accepted");
-        //}
-        //[Fact]
-        //public async Task Post_ProjectRequest_DirectApprovalSteps_ShouldBeAssigned()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-
-        //    var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/projects/{directRequest.Project.ProjectId}/requests/{directRequest.Request.Id}/approve", null);
-        //    response.Value.State.Should().Be("Accepted");
-        //}
-        //[Fact]
-        //public async Task Post_ProjectRequest_DirectApproval_ShouldBeProvisioned()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-
-        //    var response = await Client.TestClientPostAsync<ResourceAllocationRequestTestModel>($"/resources/requests/internal/{directRequest.Request.Id}/provision", null);
-        //    response.Should().BeSuccessfull();
-        //    response.Value.ProvisioningStatus.State.Should().Be("Provisioned");
-        //}
 
         #endregion
     }

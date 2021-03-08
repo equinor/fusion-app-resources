@@ -43,6 +43,7 @@ namespace Fusion.Resources.Logic.Commands
                     await dbContext.SaveChangesAsync();
                 }
             }
+
         }
     }
 }

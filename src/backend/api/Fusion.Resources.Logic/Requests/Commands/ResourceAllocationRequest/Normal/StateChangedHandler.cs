@@ -1,4 +1,6 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Database;
+using Fusion.Resources.Domain;
+using Fusion.Resources.Integration.Models.Queue;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using System.Threading;
@@ -13,18 +15,32 @@ namespace Fusion.Resources.Logic.Commands
         {
             public class StateChangedHandler : INotificationHandler<RequestStateChanged>
             {
+                private readonly ResourcesDbContext dbContext;
+                private readonly IQueueSender queueSender;
 
-                public Task Handle(RequestStateChanged notification, CancellationToken cancellationToken)
+                public StateChangedHandler(ResourcesDbContext dbContext, IQueueSender queueSender)
                 {
-                    if (notification.Type != InternalRequestType.Normal)
-                        return Task.CompletedTask;
+                    this.dbContext = dbContext;
+                    this.queueSender = queueSender;
+                }
+
+                public async Task Handle(RequestStateChanged notification, CancellationToken cancellationToken)
+                {
+                    if (notification.Type != Database.Entities.DbInternalRequestType.Normal)
+                        return;
+
+                    var request = await dbContext.ResourceAllocationRequests.FindAsync(notification.RequestId);
 
                     if (notification.ToState == InternalRequestNormalWorkflowV1.PROVISIONING)
                     {
-                        // Queue provisiong
+                        // Workflow has no more steps, queue provisioning
+                        await queueSender.SendMessageAsync(QueuePath.ProvisionPosition, new ProvisionPositionMessageV1
+                        {
+                            RequestId = request.Id,
+                            ProjectOrgId = request.Project.OrgProjectId,
+                            Type = ProvisionPositionMessageV1.RequestTypeV1.InternalPersonnel
+                        });
                     }
-
-                    return Task.CompletedTask;
                 }
             }
         }

@@ -20,7 +20,9 @@ namespace Fusion.Testing.Mocks
         public string Type { get; set; } = null!;
         public TestApiProjectReference Project { get; set; } = null!;
         public ApiPositionV2? OrgPosition { get; set; }
+        public Guid? OrgPositionId { get; set; }
         public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
+        public Guid? OrgPositionInstanceId { get; set; }
         public string? AdditionalNote { get; set; }
 
         public Dictionary<string, object>? ProposedChanges { get; set; }
