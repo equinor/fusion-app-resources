@@ -67,7 +67,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 await transaction.CommitAsync();
 
-                return Created($"/projects/{projectIdentifier}/requests/{newRequest.RequestId}", new ApiResourceAllocationRequest(newRequest));
+                newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+                return Created($"/projects/{projectIdentifier}/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (ValidationException ex)
             {
@@ -215,7 +216,8 @@ namespace Fusion.Resources.Api.Controllers
                 var updatedRequest = await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
 
-                return new ApiResourceAllocationRequest(updatedRequest);
+                updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandAll());
+                return new ApiResourceAllocationRequest(updatedRequest!);
             }
             catch (ValidationException ve)
             {

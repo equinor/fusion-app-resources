@@ -37,12 +37,19 @@ namespace Fusion.Resources.Domain.Queries
 
         public ExpandProperties Expands { get; set; }
 
+        public GetResourceAllocationRequestItem ExpandAll()
+        {
+            Expands = ExpandProperties.All;
+            return this;
+        }
+
         [Flags]
         public enum ExpandProperties
         {
             None = 0,
             RequestComments = 1 << 0,
-            TaskOwner = 1 << 1
+            TaskOwner = 1 << 1,
+            All = RequestComments | TaskOwner
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
