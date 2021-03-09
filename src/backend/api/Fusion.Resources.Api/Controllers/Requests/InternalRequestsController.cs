@@ -8,6 +8,7 @@ using Fusion.AspNetCore.OData;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
+using Fusion.Resources.Logic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -356,11 +357,19 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            await using var transaction = await BeginTransactionAsync();
-            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
-            await transaction.CommitAsync();
+            try
+            {
+                await using var transaction = await BeginTransactionAsync();
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
+                await transaction.CommitAsync();
+            }
+            catch (InvalidWorkflowError ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
 
-            return new ApiResourceAllocationRequest(result);
+            result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            return new ApiResourceAllocationRequest(result!);
         }
 
         [HttpDelete("/resources/requests/internal/{requestId}")]

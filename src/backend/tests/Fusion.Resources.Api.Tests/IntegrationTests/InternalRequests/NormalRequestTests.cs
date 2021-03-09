@@ -72,7 +72,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             // Create a default request we can work with
-            normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
+            normalRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeNormal());
         }
 
         public Task DisposeAsync()

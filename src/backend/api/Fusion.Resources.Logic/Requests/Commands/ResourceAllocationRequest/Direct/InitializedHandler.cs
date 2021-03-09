@@ -18,12 +18,12 @@ namespace Fusion.Resources.Logic.Commands
             public class InitializedHandler : INotificationHandler<RequestInitialized>
             {
                 private readonly ResourcesDbContext dbContext;
-                private readonly IQueueSender queueSender;
+                private readonly IMediator mediator;
 
-                public InitializedHandler(ResourcesDbContext dbContext, IQueueSender queueSender)
+                public InitializedHandler(ResourcesDbContext dbContext, IMediator mediator)
                 {
                     this.dbContext = dbContext;
-                    this.queueSender = queueSender;
+                    this.mediator = mediator;
                 }
 
                 public async Task Handle(RequestInitialized notification, CancellationToken cancellationToken)
@@ -35,22 +35,16 @@ namespace Fusion.Resources.Logic.Commands
                     var request = await dbContext.ResourceAllocationRequests.FirstAsync(r => r.Id == notification.RequestId);
 
 
-                    var workflow = new InternalRequestNormalWorkflowV1(initiatedBy);
+                    var workflow = new InternalRequestDirectWorkflowV1(initiatedBy);
                     dbContext.Workflows.Add(workflow.CreateDatabaseEntity(notification.RequestId, DbRequestType.InternalRequest));
 
                     request.LastActivity = DateTime.UtcNow;
-                    request.State.State = InternalRequestNormalWorkflowV1.CREATED;
+                    request.State.State = InternalRequestDirectWorkflowV1.CREATED;
 
                     await dbContext.SaveChangesAsync();
 
-
                     // Workflow has no more steps, queue provisioning
-                    await queueSender.SendMessageAsync(QueuePath.ProvisionPosition, new ProvisionPositionMessageV1
-                    {
-                        RequestId = request.Id,
-                        ProjectOrgId = request.Project.OrgProjectId,
-                        Type = ProvisionPositionMessageV1.RequestTypeV1.InternalPersonnel
-                    });
+                    await mediator.Send(new QueueProvisioning(request.Id));
                 }
             }
         }

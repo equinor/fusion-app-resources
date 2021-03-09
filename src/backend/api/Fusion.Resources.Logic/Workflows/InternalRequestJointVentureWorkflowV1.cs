@@ -49,6 +49,15 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext().Current;
         }
 
+        public WorkflowStep SkipApproval()
+        {
+            return Step(APPROVAL)
+                .SetName("Approved")
+                .SetDescription($"No resource owner could be automatically be located, so approval step is skipped.")
+                .Skip()
+                .StartNext().Current;
+        }
+
         public override WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user)
         {
             var current = GetCurrent();

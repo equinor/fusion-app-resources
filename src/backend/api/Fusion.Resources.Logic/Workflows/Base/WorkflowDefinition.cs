@@ -59,6 +59,8 @@ namespace Fusion.Resources.Logic.Workflows
         public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending && s.Started != null);
         //public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending &&);
 
+        public WorkflowStepFlow Resume() => Step(GetCurrent().Id);
+
         public abstract WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user);
 
         public void SaveChanges()
