@@ -11,6 +11,9 @@ namespace Fusion.Resources.Api.Controllers
             WasNotified = proposedPerson.WasNotified;
             Person = new ApiPerson(proposedPerson.AzureUniqueId, proposedPerson.Mail!);
 
+            if (proposedPerson.Person is not null)
+                Person = new ApiPerson(proposedPerson.Person);
+
             if (proposedPerson.ResourceOwner is not null)
             {
                 ResourceOwner = new ApiPerson(proposedPerson.ResourceOwner);

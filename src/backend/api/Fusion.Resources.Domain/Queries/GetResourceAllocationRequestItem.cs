@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain.Queries
             }
             if (query.ShoudExpand("proposedPerson.resourceOwner"))
             {
-                Expands |= ExpandProperties.TaskOwner;
+                Expands |= ExpandProperties.ResourceOwner;
             }
 
 
@@ -106,6 +106,8 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
                 }
+                if (requestItem.ProposedPerson?.AzureUniqueId != null)
+                    requestItem.ProposedPerson.Person = await mediator.Send(new GetPersonProfile(requestItem.ProposedPerson.AzureUniqueId));
 
                 if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
                 {
