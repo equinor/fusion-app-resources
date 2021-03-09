@@ -14,7 +14,7 @@ namespace Fusion.Resources.Api.Controllers
             Mail = mail;
         }
 
-        public ApiPerson(FusionFullPersonProfile profile)
+        public ApiPerson(FusionPersonProfile profile)
         {
             AzureUniquePersonId = profile.AzureUniqueId;
             Mail = profile.Mail;

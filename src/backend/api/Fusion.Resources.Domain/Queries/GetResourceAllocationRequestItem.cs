@@ -28,6 +28,10 @@ namespace Fusion.Resources.Domain.Queries
             {
                 Expands |= ExpandProperties.TaskOwner;
             }
+            if (query.ShoudExpand("proposedPerson.resourceOwner"))
+            {
+                Expands |= ExpandProperties.TaskOwner;
+            }
 
 
             return this;
@@ -49,7 +53,8 @@ namespace Fusion.Resources.Domain.Queries
             None = 0,
             RequestComments = 1 << 0,
             TaskOwner = 1 << 1,
-            All = RequestComments | TaskOwner
+            ResourceOwner = 1 << 2,
+            All = RequestComments | TaskOwner | ResourceOwner
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -106,6 +111,10 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await ExpandTaskOwnerAsync(requestItem);
                 }
+                if (request.Expands.HasFlag(ExpandProperties.ResourceOwner))
+                {
+                    await ExpandResourceOwnerAsync(requestItem);
+                }
 
                 return requestItem;
             }
@@ -142,6 +151,15 @@ namespace Fusion.Resources.Domain.Queries
                 catch (Exception ex)
                 {
                     logger.LogCritical(ex, "Could not resolve task owner from org chart");
+                }
+            }
+
+            private async Task ExpandResourceOwnerAsync(QueryResourceAllocationRequest request)
+            {
+                if (request.ProposedPerson?.AzureUniqueId is not null)
+                {
+                    var manager = await mediator.Send(new GetResourceOwner(request.ProposedPerson.AzureUniqueId));
+                    request.ProposedPerson.ResourceOwner = manager;
                 }
             }
         }
