@@ -1,6 +1,4 @@
 ﻿using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -46,17 +44,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     await resourcesDb.SaveChangesAsync();
 
-
-                    var type = dbRequest.Type switch
-                    {
-                        DbInternalRequestType.Normal => InternalRequestType.Normal,
-                        DbInternalRequestType.JointVenture => InternalRequestType.JointVenture,
-                        DbInternalRequestType.Direct => InternalRequestType.Direct,
-
-                        _ => throw new NotSupportedException($"Workflow init of type {dbRequest.Type} is not supported")
-                    };
-
-                    await mediator.Publish(new RequestInitialized(dbRequest.Id, type, request.Editor.Person));
+                    await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, request.Editor.Person));
                 }
 
 

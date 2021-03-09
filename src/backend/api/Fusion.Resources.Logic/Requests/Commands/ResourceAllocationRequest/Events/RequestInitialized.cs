@@ -9,7 +9,7 @@ namespace Fusion.Resources.Logic.Commands
     {
         public class RequestInitialized : INotification
         {
-            public RequestInitialized(Guid requestId, InternalRequestType type, DbPerson person)
+            public RequestInitialized(Guid requestId, DbInternalRequestType type, DbPerson person)
             {
                 RequestId = requestId;
                 Type = type;
@@ -17,7 +17,7 @@ namespace Fusion.Resources.Logic.Commands
             }
 
             public Guid RequestId { get; set; }
-            public InternalRequestType Type { get; set; }
+            public DbInternalRequestType Type { get; set; }
 
             public Guid InitiatedByDbPersonId { get; set; }
         }
