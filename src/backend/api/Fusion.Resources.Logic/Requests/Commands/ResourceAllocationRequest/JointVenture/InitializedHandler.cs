@@ -27,7 +27,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 public async Task Handle(RequestInitialized notification, CancellationToken cancellationToken)
                 {
-                    if (notification.Type != InternalRequestType.JointVenture)
+                    if (notification.Type != DbInternalRequestType.JointVenture)
                         return;
 
                     var initiatedBy = await dbContext.Persons.FirstAsync(p => p.Id == notification.InitiatedByDbPersonId);
