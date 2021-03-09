@@ -4,8 +4,10 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
@@ -53,11 +55,13 @@ namespace Fusion.Resources.Logic.Commands
 
             public class Handler : AsyncRequestHandler<Provision>
             {
+                private readonly ILogger<Handler> logger;
                 private readonly ResourcesDbContext resourcesDb;
                 private readonly IMediator mediator;
 
-                public Handler(ResourcesDbContext resourcesDb, IMediator mediator)
+                public Handler(ILogger<Handler> logger, ResourcesDbContext resourcesDb, IMediator mediator)
                 {
+                    this.logger = logger;
                     this.resourcesDb = resourcesDb;
                     this.mediator = mediator;
                 }
@@ -74,16 +78,24 @@ namespace Fusion.Resources.Logic.Commands
                         throw new RequestNotFoundError(request.RequestId);
 
 
-                    switch (dbRequest.Type)
+                    try
                     {
-                        case DbInternalRequestType.Direct:
-                        case DbInternalRequestType.JointVenture:
-                        case DbInternalRequestType.Normal:
-                            await ProvisionAllocationRequestAsync(dbRequest);
-                            break;
+                        switch (dbRequest.Type)
+                        {
+                            case DbInternalRequestType.Direct:
+                            case DbInternalRequestType.JointVenture:
+                            case DbInternalRequestType.Normal:
+                                await ProvisionAllocationRequestAsync(dbRequest);
+                                await UpdateWorkflowStatusAsync(request, dbRequest);
+                                break;
 
-                        default:
-                            throw new NotSupportedException($"Provisioning for request of type {dbRequest.Type} is not supported");
+                            default:
+                                throw new NotSupportedException($"Provisioning for request of type {dbRequest.Type} is not supported");
+                        }
+                    }
+                    catch (ProvisioningError pEx)
+                    {
+                        logger.LogCritical(pEx, "Could not provision request: {0}", pEx.Message);
                     }
 
                     await resourcesDb.SaveChangesAsync();
@@ -94,13 +106,14 @@ namespace Fusion.Resources.Logic.Commands
                     if (dbRequest.OrgPositionId == null)
                         throw new InvalidOperationException("Cannot provision change request when original position id is empty.");
 
+                    dbRequest.LastActivity = DateTime.UtcNow;
+
                     if (dbRequest.ProposedChanges != null || dbRequest.ProposedPerson != null)
                     {
                         var patchDoc = CreatePatchPositionInstanceV2(dbRequest.ProposedChanges, dbRequest.ProposedPerson?.AzureUniqueId);
                         var updatePositionCommand = new UpdatePositionInstance(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value, dbRequest.OrgPositionInstance.Id, patchDoc);
 
                         dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
-                        dbRequest.LastActivity = DateTime.UtcNow;
                         try
                         {
                             var position = await mediator.Send(updatePositionCommand);
@@ -114,17 +127,34 @@ namespace Fusion.Resources.Logic.Commands
                         }
                         catch (OrgApiError apiError)
                         {
-                            dbRequest.ProvisioningStatus.ErrorMessage =
-                                $"Received error from Org service when trying to create the position: '{apiError.Error?.Message}'";
+                            dbRequest.ProvisioningStatus.ErrorMessage = $"Received error from Org service when trying to update the position: '{apiError.Error?.Message}'";
                             dbRequest.ProvisioningStatus.ErrorPayload = apiError.ResponseText;
                             dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+
+                            throw new ProvisioningError($"Error communicating with org chart: {apiError.Message}", apiError);
                         }
                     }
                     else
                     {
                         dbRequest.ProvisioningStatus.ErrorMessage = $"Request payload of proposed changes and proposed person was null or empty. Unable to provision";
                         dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+                        
+                        throw new ProvisioningError("No changes registered on request");
                     }
+                }
+
+                private async Task UpdateWorkflowStatusAsync(Provision request, DbResourceAllocationRequest dbRequest)
+                {
+                    var dbWorkflow = await mediator.GetRequestWorkflowAsync(dbRequest.Id);
+                    var workflow = WorkflowDefinition.ResolveWorkflow(dbWorkflow);
+
+                    // Assumes the next step is provisioning.
+                    workflow.CompleteCurrentStep(DbWFStepState.Approved, request.Editor.Person);                    
+                    workflow.SaveChanges();
+                    await resourcesDb.SaveChangesAsync();
+
+                    dbRequest.State.IsCompleted = true;
+                    dbRequest.State.State = "completed";
                 }
 
                 /// <summary>
@@ -160,9 +190,13 @@ namespace Fusion.Resources.Logic.Commands
                         patchDoc.Location = location.ToObject<ApiPositionLocationV2?>()!;
 
                     return patchDoc;
-                }
+                }           
             }
         }
 
+        public class ProvisioningError : Exception
+        {
+            public ProvisioningError(string message, Exception? inner = null) : base(message, inner) { }
+        }
     }
 }

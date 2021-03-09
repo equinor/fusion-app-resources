@@ -74,6 +74,14 @@ namespace Fusion.Resources.Logic.Workflows
 
                 case APPROVAL:
                     return Approved(user);
+
+                case PROVISIONING:
+                    Step(PROVISIONING)
+                        .SetName("Provisioned")
+                        .SetDescription($"Changes has been published to the org chart.")
+                        .Complete(user, true)
+                        .CompleteWorkflow();
+                    break;
             }
 
             return null;

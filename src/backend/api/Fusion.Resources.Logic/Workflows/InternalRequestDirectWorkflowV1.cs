@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Database.Entities;
+using System;
 using System.Collections.Generic;
 
 namespace Fusion.Resources.Logic.Workflows
@@ -50,8 +51,23 @@ namespace Fusion.Resources.Logic.Workflows
 
         public override WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user)
         {
-            // Not supported - workflow does not have approval step
-            throw new System.NotImplementedException();
+            var current = GetCurrent();
+
+            if (state == DbWFStepState.Rejected)
+                throw new NotImplementedException("Rejected not supported");
+
+            switch (current.Id)
+            {
+                case PROVISIONING:
+                    Step(PROVISIONING)
+                        .SetName("Provisioned")
+                        .SetDescription($"Changes has been published to the org chart.")
+                        .Complete(user, true)
+                        .CompleteWorkflow();
+                    break;
+            }
+
+            return null;
         }
 
         #endregion
