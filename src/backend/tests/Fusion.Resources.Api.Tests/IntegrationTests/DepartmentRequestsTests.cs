@@ -223,6 +223,41 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    response.Value.Requests.Should().NotContain(r => r.Id == created.Value.Id.ToString());
         //}
 
+        [Fact]
+        public async Task GetRequestTimelineShouldNotHaveSegmentsWithOverlappingDates()
+        {
+            string department = InternalRequestData.RandomDepartment;
+
+            using var adminScope = fixture.AdminScope();
+
+            var rq1 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 03, 09), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq1.Id);
+            await Client.AssignDepartmentAsync(rq1.Id, department);
+
+            var rq2 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 03, 15), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq2.Id);
+            await Client.AssignDepartmentAsync(rq2.Id, department);
+
+            var timelineStart = new DateTime(2021, 03, 01);
+            var timelineEnd = new DateTime(2021, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestApiDepartmentRequests>($"/departments/{department}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
+
+            var previousEnd = (DateTime?)null;
+            response.Value.Requests.Should().NotBeEmpty();
+            foreach (var segment in response.Value.Timeline.OrderBy(s => s.AppliesFrom))
+            {
+                if (previousEnd.HasValue)
+                {
+                    segment.AppliesFrom.Should().NotBe(previousEnd.Value);
+                }
+
+                previousEnd = segment.AppliesTo;
+            }
+        }
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();

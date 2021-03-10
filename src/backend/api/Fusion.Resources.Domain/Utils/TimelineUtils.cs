@@ -43,7 +43,7 @@ namespace Fusion.Resources.Domain
             var current = validDates.First();
             foreach (var date in validDates.Skip(1))
             {
-                var timelineRange = new TimeRange(current, date);
+                var timelineRange = new TimeRange(current, date.AddSeconds(-1));
 
                 var affectedItems = position.Where(p =>
                 {
@@ -108,7 +108,8 @@ namespace Fusion.Resources.Domain
             //create timeline
             foreach (var date in validDates.Skip(1))
             {
-                var timelineRange = new TimeRange(current, date);
+                var end = (date == filterEnd) ? date : date.AddSeconds(-1);
+                var timelineRange = new TimeRange(current, end);
 
                 var affectedItems = FilterRequests(requests, timelineRange);
                 // create timelinerange with TimelineItems

@@ -156,5 +156,21 @@ namespace Fusion.Testing.Mocks.OrgService
 
             return clone;
         }
+
+        public ApiPositionV2 AddPosition(ApiPositionV2 position)
+        {
+            position.ProjectId = project.ProjectId;
+            position.Project = new ApiProjectReferenceV2
+            {
+                DomainId = project.DomainId,
+                Name = project.Name,
+                ProjectId = project.ProjectId,
+                ProjectType = project.ProjectType
+            };
+
+            var clone = position.JsonClone();
+            OrgServiceMock.positions.Add(clone);
+            return clone;
+        }
     }
 }
