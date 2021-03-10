@@ -85,6 +85,7 @@ namespace Fusion.Resources.Logic.Commands
                             case DbInternalRequestType.Direct:
                             case DbInternalRequestType.JointVenture:
                             case DbInternalRequestType.Normal:
+                            case DbInternalRequestType.TaskOwnerChange:
                                 await ProvisionAllocationRequestAsync(dbRequest);
                                 await UpdateWorkflowStatusAsync(request, dbRequest);
                                 break;
