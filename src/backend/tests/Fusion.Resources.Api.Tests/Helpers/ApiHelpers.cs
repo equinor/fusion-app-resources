@@ -1,4 +1,6 @@
-﻿using Fusion.Testing;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile.ApiClient;
+using Fusion.Testing;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using System;
@@ -35,32 +37,77 @@ namespace Fusion.Resources.Api.Tests
         }
 
 
-        public static async Task<Guid> CreateRequestAsync(this HttpClient client, Guid projectId, Action<FusionTestResourceAllocationBuilder> setup)
+        public static async Task<TestApiInternalRequestModel> CreateRequestAsync(this HttpClient client, Guid projectId, Action<ApiCreateInternalRequestModel> setup)
         {
-            var builder = new FusionTestResourceAllocationBuilder();
+            var model = new ApiCreateInternalRequestModel();
 
-            setup(builder);
+            setup(model);
 
-            var newRequestResponse = await client.TestClientPostAsync($"/projects/{projectId}/requests", builder.Request, new { Id = Guid.Empty });
+            var newRequestResponse = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", model);
             newRequestResponse.Should().BeSuccessfull();
 
-            return newRequestResponse.Value.Id;
+            return newRequestResponse.Value;
         }
 
-        public static async Task<Guid> CreateRequestAsync(this HttpClient client, FusionTestProjectBuilder project, Action<FusionTestResourceAllocationBuilder> setup)
+
+        public static async Task<TestApiInternalRequestModel> CreateDefaultRequestAsync(this HttpClient client, FusionTestProjectBuilder project, 
+            Action<ApiCreateInternalRequestModel> setup = null, Action<ApiPositionV2> positionSetup = null)
         {
             var position = project.AddPosition();
 
-            var builder = new FusionTestResourceAllocationBuilder()
-                .WithOrgPositionId(position)
-                .WithProject(project.Project);
+            positionSetup?.Invoke(position);
 
-            setup(builder);
+            var requestModel = new ApiCreateInternalRequestModel()
+                .AsTypeNormal()
+                .WithPosition(position);
 
-            var newRequestResponse = await client.TestClientPostAsync($"/projects/{project.Project.ProjectId}/requests", builder.Request, new { Id = Guid.Empty });
+            setup?.Invoke(requestModel);
+
+            var newRequestResponse = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{project.Project.ProjectId}/requests", requestModel);
             newRequestResponse.Should().BeSuccessfull();
 
-            return newRequestResponse.Value.Id;
+            return newRequestResponse.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> AssignDepartmentAsync(this HttpClient client, Guid requestId, string? department)
+        {
+            var newRequestResponse = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
+            {
+                assignedDepartment = department
+            });
+            newRequestResponse.Should().BeSuccessfull();
+
+            return newRequestResponse.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> AssignAnDepartmentAsync(this HttpClient client, Guid requestId)
+        {
+            var newRequestResponse = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
+            {
+                assignedDepartment = InternalRequestData.RandomDepartment
+            });
+            newRequestResponse.Should().BeSuccessfull();
+
+            return newRequestResponse.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> StartProjectRequestAsync(this HttpClient client, FusionTestProjectBuilder project, Guid requestId)
+        {
+            var newRequestResponse = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{project.Project.ProjectId}/requests/{requestId}/start", null);
+            newRequestResponse.Should().BeSuccessfull();
+
+            return newRequestResponse.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> ProposePersonAsync(this HttpClient client, Guid requestId, ApiPersonProfileV3 profile)
+        {
+            var resp = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
+            {
+                proposedPersonAzureUniqueId = profile.AzureUniqueId
+            });
+            resp.Should().BeSuccessfull();
+
+            return resp.Value;
         }
     }
 }

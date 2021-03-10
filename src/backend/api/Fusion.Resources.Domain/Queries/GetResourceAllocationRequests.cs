@@ -54,9 +54,20 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
-        public GetResourceAllocationRequests WithExcludeDrafts(bool excludeDrafts = true)
+        //public GetResourceAllocationRequests WithExcludeDrafts(bool excludeDrafts = true)
+        //{
+        //    ExcludeDrafts = excludeDrafts;
+        //    return this;
+        //}
+
+        public GetResourceAllocationRequests ForResourceOwners()
         {
-            ExcludeDrafts = excludeDrafts;
+            Owner = DbInternalRequestOwner.ResourceOwner;
+            return this;
+        }
+        public GetResourceAllocationRequests ForTaskOwners()
+        {
+            Owner = DbInternalRequestOwner.Project;
             return this;
         }
 
@@ -65,6 +76,8 @@ namespace Fusion.Resources.Domain.Queries
         public bool Unassigned { get; private set; }
         public bool OnlyCount { get; private set; }
         public bool? ExcludeDrafts { get; private set; }
+
+        private DbInternalRequestOwner? Owner { get; set; }
 
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
@@ -76,6 +89,8 @@ namespace Fusion.Resources.Domain.Queries
             OrgPosition = 1 << 0,
             OrgPositionInstance = 1 << 1
         }
+
+
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
             private readonly ResourcesDbContext db;
@@ -104,8 +119,11 @@ namespace Fusion.Resources.Domain.Queries
                     .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterias.
                     .AsQueryable();
 
-                if (request.ExcludeDrafts.HasValue && request.ExcludeDrafts.Value)
-                    query = query.Where(c => c.IsDraft == false);
+                if (request.Owner is not null)
+                    query = query.Where(r => r.IsDraft == false || r.RequestOwner == request.Owner);
+
+                //if (request.ExcludeDrafts.HasValue && request.ExcludeDrafts.Value)
+                //    query = query.Where(c => c.IsDraft == false);
 
                 if (request.Query.HasFilter)
                 {

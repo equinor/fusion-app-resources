@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Fusion.Resources.Logic.Workflows
 {
@@ -55,6 +56,13 @@ namespace Fusion.Resources.Logic.Workflows
 
         public WorkflowStepFlow Step(string id) => new WorkflowStepFlow(this, id);
 
+        public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending && s.Started != null);
+        //public WorkflowStep GetCurrent() => Steps.First(s => s.State == DbWFStepState.Pending &&);
+
+        public WorkflowStepFlow Resume() => Step(GetCurrent().Id);
+
+        public abstract WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user);
+
         public void SaveChanges()
         {
             if (dbWorkflow is null)
@@ -66,6 +74,7 @@ namespace Fusion.Resources.Logic.Workflows
             dbWorkflow.State = State;
             dbWorkflow.TerminatedBy = TerminatedBy;
             dbWorkflow.SystemMessage = SystemMessage;
+            dbWorkflow.WorkflowClassType = GetType().FullName;
 
             // Remove steps not there anymore
             dbWorkflow.WorkflowSteps.RemoveAll(dbs => Steps.Any(s => dbs.Id == s.Id));
@@ -91,6 +100,7 @@ namespace Fusion.Resources.Logic.Workflows
                 Created = DateTimeOffset.Now,
                 LogicAppName = Name,
                 LogicAppVersion = Version,
+                WorkflowClassType = GetType().FullName,
                 State = DbWorkflowState.Running,
                 RequestId = requestId,
                 RequestType = type,
@@ -98,6 +108,20 @@ namespace Fusion.Resources.Logic.Workflows
             };
 
             return entity;
+        }
+    
+        public static WorkflowDefinition ResolveWorkflow(DbWorkflow dbWorkflow)
+        {
+            if (dbWorkflow.WorkflowClassType is null)
+                throw new InvalidOperationException($"Workflow '{dbWorkflow.Id}' does not contain clr type");
+
+            var type = Assembly.GetAssembly(typeof(WorkflowDefinition))?.GetType(dbWorkflow.WorkflowClassType);
+
+            if (type is null)
+                throw new InvalidOperationException($"Could not load workflow type {dbWorkflow.WorkflowClassType}");
+
+            var wfDefinition = Activator.CreateInstance(type, dbWorkflow) as WorkflowDefinition;
+            return wfDefinition!;
         }
     }
 

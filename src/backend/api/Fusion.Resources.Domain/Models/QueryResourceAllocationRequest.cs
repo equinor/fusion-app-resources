@@ -3,10 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {
+    public enum InternalRequestOwner
+    {
+        Project,
+        ResourceOwner
+    }
+
+    public enum InternalRequestType
+    {
+        Normal,
+        JointVenture,
+        Direct
+    }
+
     public class QueryResourceAllocationRequest
     {
 
@@ -15,17 +29,32 @@ namespace Fusion.Resources.Domain
             RequestId = entity.Id;
             AssignedDepartment = entity.AssignedDepartment;
             Discipline = entity.Discipline;
-            Type = Enum.Parse<QueryAllocationRequestType>($"{entity.Type}");
+            Type = entity.Type switch
+            {
+                DbInternalRequestType.Normal => InternalRequestType.Normal,
+                DbInternalRequestType.Direct => InternalRequestType.Direct,
+                DbInternalRequestType.JointVenture => InternalRequestType.JointVenture,
+                _ => throw new NotSupportedException($"Invalid query type received from database entity {entity.Type}")
+            };
+
             Workflow = workflow;
-            State = entity.State;
+            State = entity.State.State;
+            IsCompleted = entity.State.IsCompleted;
 
             Project = new QueryProject(entity.Project);
 
             OrgPositionId = entity.OrgPositionId;
             OrgPositionInstanceId = entity.OrgPositionInstance?.Id;
 
-            if (entity.ProposedPerson != null)
-                ProposedPerson = new QueryPerson(entity.ProposedPerson);
+            if (entity.ProposedPerson.HasBeenProposed)
+                ProposedPerson = new QueryProposedPerson()
+                {
+                    WasNotified = entity.ProposedPerson.WasNotified,
+                    AzureUniqueId = entity.ProposedPerson.AzureUniqueId!.Value,
+                    Mail = entity.ProposedPerson.Mail,
+                    ProposedDate = entity.ProposedPerson.ProposedAt!.Value
+                };
+
 
             AdditionalNote = entity.AdditionalNote;
 
@@ -41,22 +70,24 @@ namespace Fusion.Resources.Domain
             ProvisioningStatus = new QueryProvisioningStatus(entity.ProvisioningStatus);
         }
 
-        internal Guid? OrgPositionId { get; set; }
-        internal Guid? OrgPositionInstanceId { get; set; }
-
         public Guid RequestId { get; set; }
+
+        public Guid? OrgPositionId { get; set; }
+        public Guid? OrgPositionInstanceId { get; set; }
+
         public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
-        public QueryAllocationRequestType Type { get; set; }
+        public InternalRequestType Type { get; set; }
         public QueryWorkflow? Workflow { get; set; }
-        public DbResourceAllocationRequestState State { get; set; }
+        public string? State { get; set; }
+        public bool IsCompleted { get; set; }
 
         public QueryProject Project { get; set; }
         public ApiPositionV2? OrgPosition { get; set; }
 
         public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
 
-        public QueryPerson? ProposedPerson { get; set; }
+        public QueryProposedPerson? ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
 
         public string? ProposedChangesJson { get; set; }
@@ -79,6 +110,7 @@ namespace Fusion.Resources.Domain
             }
         }
 
+
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public QueryPerson CreatedBy { get; set; }
@@ -89,12 +121,7 @@ namespace Fusion.Resources.Domain
         public IEnumerable<QueryRequestComment>? Comments { get; set; }
         public QueryTaskOwner? TaskOwner { get; set; }
 
-        public enum QueryAllocationRequestType
-        {
-            Normal,
-            JointVenture,
-            Direct
-        }
+
 
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {
@@ -110,5 +137,18 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
+
+        public class QueryProposedPerson
+        {
+            public DateTimeOffset ProposedDate { get; set; }
+            public Guid AzureUniqueId { get; set; }
+            public string? Mail { get; set; }
+
+            public FusionPersonProfile? Person { get; set; }
+
+            public FusionPersonProfile? ResourceOwner { get; set; }
+
+            public bool WasNotified { get; set; }
+        }
     }
 }

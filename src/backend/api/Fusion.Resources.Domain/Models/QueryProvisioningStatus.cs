@@ -13,10 +13,11 @@ namespace Fusion.Resources.Domain
             ErrorMessage = status.ErrorMessage;
             ErrorPayload = status.ErrorPayload;
         }
-        public QueryProvisioningStatus(DbResourceAllocationRequest.ProvisionStatus status)
+
+        public QueryProvisioningStatus(DbResourceAllocationRequest.DbOpProvisionStatus status)
         {
             State = status.State.ToString();
-            PositionId = status.PositionId;
+            PositionId = status.OrgPositionId;
             Provisioned = status.Provisioned;
             ErrorMessage = status.ErrorMessage;
             ErrorPayload = status.ErrorPayload;

@@ -28,6 +28,10 @@ namespace Fusion.Resources.Domain.Queries
             {
                 Expands |= ExpandProperties.TaskOwner;
             }
+            if (query.ShoudExpand("proposedPerson.resourceOwner"))
+            {
+                Expands |= ExpandProperties.ResourceOwner;
+            }
 
 
             return this;
@@ -37,12 +41,20 @@ namespace Fusion.Resources.Domain.Queries
 
         public ExpandProperties Expands { get; set; }
 
+        public GetResourceAllocationRequestItem ExpandAll()
+        {
+            Expands = ExpandProperties.All;
+            return this;
+        }
+
         [Flags]
         public enum ExpandProperties
         {
             None = 0,
             RequestComments = 1 << 0,
-            TaskOwner = 1 << 1
+            TaskOwner = 1 << 1,
+            ResourceOwner = 1 << 2,
+            All = RequestComments | TaskOwner | ResourceOwner
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -94,10 +106,16 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
                 }
+                if (requestItem.ProposedPerson?.AzureUniqueId != null)
+                    requestItem.ProposedPerson.Person = await mediator.Send(new GetPersonProfile(requestItem.ProposedPerson.AzureUniqueId));
 
                 if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
                 {
                     await ExpandTaskOwnerAsync(requestItem);
+                }
+                if (request.Expands.HasFlag(ExpandProperties.ResourceOwner))
+                {
+                    await ExpandResourceOwnerAsync(requestItem);
                 }
 
                 return requestItem;
@@ -135,6 +153,22 @@ namespace Fusion.Resources.Domain.Queries
                 catch (Exception ex)
                 {
                     logger.LogCritical(ex, "Could not resolve task owner from org chart");
+                }
+            }
+
+            private async Task ExpandResourceOwnerAsync(QueryResourceAllocationRequest request)
+            {
+                try
+                {
+                    if (request.ProposedPerson?.AzureUniqueId is not null)
+                    {
+                        var manager = await mediator.Send(new GetResourceOwner(request.ProposedPerson.AzureUniqueId));
+                        request.ProposedPerson.ResourceOwner = manager;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Could not expand resource owner: {Message}", ex.Message);
                 }
             }
         }

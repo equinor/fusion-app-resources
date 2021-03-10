@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +35,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
@@ -41,4 +44,57 @@ namespace Fusion.Testing.Mocks.OrgService.Api
             });
         }
     }
+
+    public class RequestLoggingMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public RequestLoggingMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            await OrgServiceMock.semaphore.WaitAsync();
+
+            try
+            {
+                //First, get the incoming request
+                context.Request.EnableBuffering();
+
+                using (var membuffer = new MemoryStream())
+                {
+                    await context.Request.Body.CopyToAsync(membuffer);
+
+                    using (var reader = new StreamReader(membuffer))
+                    {
+                        membuffer.Seek(0, SeekOrigin.Begin);
+                        var content = await reader.ReadToEndAsync();
+
+                        OrgServiceMock.Invocations.Add(new ApiInvocation()
+                        {
+                            Method = new HttpMethod(context.Request.Method),
+                            Body = content,
+                            Path = context.Request.Path,
+                            Query = context.Request.QueryString
+                        });
+                    }
+                }
+
+                context.Request.Body.Seek(0, SeekOrigin.Begin);
+
+                await _next(context);
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
+        }
+
+   
+
+       
+    }
+
 }

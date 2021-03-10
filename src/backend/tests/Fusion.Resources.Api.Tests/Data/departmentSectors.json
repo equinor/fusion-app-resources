@@ -1,0 +1,120 @@
+﻿[
+  {
+    "sector": "TPD PRD PMC PCA",
+    "departments": [
+      "TPD PRD PMC PCA PCA1",
+      "TPD PRD PMC PCA PCA2",
+      "TPD PRD PMC PCA PCA3",
+      "TPD PRD PMC PCA PCA4",
+      "TPD PRD PMC PCA PCA5",
+      "TPD PRD PMC PCA PCA6",
+      "TPD PRD PMC PCA PCA7"
+    ]
+  },
+  {
+    "sector": "TPD PRD PMC CCH",
+    "departments": [
+      "TPD PRD PMC CCH CHU1",
+      "TPD PRD PMC CCH CHU2",
+      "TPD PRD PMC CCH CHU3",
+      "TPD PRD PMC CCH CM1",
+      "TPD PRD PMC CCH CM2",
+      "TPD PRD PMC CCH CM3",
+      "TPD PRD PMC CCH CM4"
+    ]
+  },
+  {
+    "sector": "TPD PRD PMC PM",
+    "departments": [
+      "TPD PRD PMC PM PM1",
+      "TPD PRD PMC PM PM2",
+      "TPD PRD PMC PM PM3",
+      "TPD PRD PMC PM PM4"
+    ]
+  },
+  {
+    "sector": "TPD PRD PMC QA",
+    "departments": [
+
+      "TPD PRD PMC QA ADM1",
+      "TPD PRD PMC QA ADM2",
+      "TPD PRD PMC QA ADM3",
+      "TPD PRD PMC QA DM2",
+      "TPD PRD PMC QA IDM1",
+      "TPD PRD PMC QA QRM1",
+      "TPD PRD PMC QA QRM2",
+      "TPD PRD PMC QA RES"
+    ]
+  },
+  {
+    "sector": "TPD PRD FE EA",
+    "departments": [
+      "TPD PRD FE EA EA1",
+      "TPD PRD FE EA EA2",
+      "TPD PRD FE EA EA3",
+      "TPD PRD FE EA EA3 CON",
+      "TPD PRD FE EA EA4",
+      "TPD PRD FE EA EA4 CON",
+      "TPD PRD FE EA EA5"
+    ]
+  },
+  {
+    "sector": "TPD PRD FE EM",
+    "departments": [
+
+      "TPD PRD FE EM EM1",
+      "TPD PRD FE EM EM2",
+      "TPD PRD FE EM EM3",
+      "TPD PRD FE EM EM4",
+      "TPD PRD FE EM EM5"
+    ]
+  },
+  {
+    "sector": "TPD PRD FE MMS",
+    "departments": [
+
+      "TPD PRD FE MMS MAT1",
+      "TPD PRD FE MMS MAT2",
+      "TPD PRD FE MMS MEC1",
+      "TPD PRD FE MMS MEC2",
+      "TPD PRD FE MMS MEC3",
+      "TPD PRD FE MMS MEC4",
+      "TPD PRD FE MMS STR1",
+      "TPD PRD FE MMS STR2"
+    ]
+  },
+  {
+    "sector": "TPD PRD FE MO",
+    "departments": [
+
+      "TPD PRD FE MO GEO",
+      "TPD PRD FE MO GMS",
+      "TPD PRD FE MO MAP",
+      "TPD PRD FE MO MAR1",
+      "TPD PRD FE MO MAR2"
+    ]
+  },
+  {
+    "sector": "TPD PRD FE SE",
+    "departments": [
+      "TPD PRD FE SE FA",
+      "TPD PRD FE SE PR1",
+      "TPD PRD FE SE PR2",
+      "TPD PRD FE SE SUS",
+      "TPD PRD FE SE TDS",
+      "TPD PRD FE SE TS",
+      "TPD PRD FE SE TWE"
+    ]
+  },
+  {
+    "sector": "TPD PRD FE SP",
+    "departments": [
+      "TPD PRD FE SP SP1",
+      "TPD PRD FE SP SP2",
+      "TPD PRD FE SP SP3",
+      "TPD PRD FE SP SP4",
+      "TPD PRD FE SP SP5",
+      "TPD PRD FE SP SP6"
+    ]
+  }
+]

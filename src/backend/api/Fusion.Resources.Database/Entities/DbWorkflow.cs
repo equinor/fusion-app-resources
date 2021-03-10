@@ -21,6 +21,8 @@ namespace Fusion.Resources.Database.Entities
         /// </summary>
         public string LogicAppVersion { get; set; } = string.Empty;
 
+        public string? WorkflowClassType { get; set; }
+
         public DbWorkflowState State { get; set; }
         public string? SystemMessage { get; set; }
 

@@ -1,16 +1,30 @@
 ﻿using Fusion.Resources.Domain;
+using System;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiProposedPerson
     {
-        public ApiProposedPerson(QueryProposedPerson query)
+        public ApiProposedPerson(QueryResourceAllocationRequest.QueryProposedPerson proposedPerson)
         {
-            this.Person = new ApiPerson(query.Person);
-            this.WasNotified = query.WasNotified;
+            ProposedAt = proposedPerson.ProposedDate;
+            WasNotified = proposedPerson.WasNotified;
+            Person = new ApiPerson(proposedPerson.AzureUniqueId, proposedPerson.Mail!);
+
+            if (proposedPerson.Person is not null)
+                Person = new ApiPerson(proposedPerson.Person);
+
+            if (proposedPerson.ResourceOwner is not null)
+            {
+                ResourceOwner = new ApiPerson(proposedPerson.ResourceOwner);
+            }
         }
 
+
+        public DateTimeOffset ProposedAt { get; set; }
         public ApiPerson Person { get; set; }
         public bool WasNotified { get; set; }
+
+        public ApiPerson? ResourceOwner { get; set; }
     }
 }

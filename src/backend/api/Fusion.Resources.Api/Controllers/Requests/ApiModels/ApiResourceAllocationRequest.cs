@@ -13,21 +13,23 @@ namespace Fusion.Resources.Api.Controllers
             Id = query.RequestId;
             AssignedDepartment = query.AssignedDepartment;
             Discipline = query.Discipline;
-            State = $"{query.State}";
+            State = query.State;
             Type = $"{query.Type}";
 
 
             if (query.ProposedPerson != null)
             {
-                ProposedPerson = new ApiPerson(query.ProposedPerson);
+                ProposedPerson = new ApiProposedPerson(query.ProposedPerson);
                 ProposedPersonAzureUniqueId = query.ProposedPerson.AzureUniqueId;
             }
 
             Project = new ApiProjectReference(query.Project);
 
+            OrgPositionId = query.OrgPositionId;
             if (query.OrgPosition != null)
                 OrgPosition = query.OrgPosition;
 
+            OrgPositionInstanceId = query.OrgPositionInstanceId;
             if (query.OrgPositionInstance != null)
                 OrgPositionInstance = query.OrgPositionInstance;
 
@@ -64,12 +66,14 @@ namespace Fusion.Resources.Api.Controllers
         public ApiWorkflow? Workflow { get; set; }
         public ApiProjectReference Project { get; set; }
         public ApiPositionV2? OrgPosition { get; set; }
+        public Guid? OrgPositionId { get; set; }
         public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
+        public Guid? OrgPositionInstanceId { get; set; }
         public string? AdditionalNote { get; set; }
 
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
-        public ApiPerson? ProposedPerson { get; set; }
+        public ApiProposedPerson? ProposedPerson { get; set; }
 
         public ApiTaskOwner? TaskOwner { get; set; }
 
@@ -83,6 +87,7 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsDraft { get; set; }
         public IEnumerable<ApiRequestComment>? Comments { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
+
 
     }
 }

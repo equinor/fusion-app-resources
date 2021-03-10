@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetRequestWorkflow : IRequest<QueryWorkflow>
+    public class GetRequestWorkflow : IRequest<QueryWorkflow?>
     {
         public GetRequestWorkflow(Guid requestId)
         {
@@ -16,7 +16,7 @@ namespace Fusion.Resources.Domain.Queries
 
         public Guid RequestId { get; }
 
-        public class Handler : IRequestHandler<GetRequestWorkflow, QueryWorkflow>
+        public class Handler : IRequestHandler<GetRequestWorkflow, QueryWorkflow?>
         {
             private readonly ResourcesDbContext resourcesDb;
 
@@ -25,12 +25,15 @@ namespace Fusion.Resources.Domain.Queries
                 this.resourcesDb = resourcesDb;
             }
 
-            public async Task<QueryWorkflow> Handle(GetRequestWorkflow request, CancellationToken cancellationToken)
+            public async Task<QueryWorkflow?> Handle(GetRequestWorkflow request, CancellationToken cancellationToken)
             {
                 var workflow = await resourcesDb.Workflows
                     .Include(wf => wf.WorkflowSteps).ThenInclude(s => s.CompletedBy)
                     .Include(wf => wf.TerminatedBy)
                     .FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId);
+
+                if (workflow is null)
+                    return null;
 
                 return new QueryWorkflow(workflow);
             }

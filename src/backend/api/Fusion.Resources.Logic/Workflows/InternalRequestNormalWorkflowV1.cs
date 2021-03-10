@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Database.Entities;
+using System;
 using System.Collections.Generic;
 
 namespace Fusion.Resources.Logic.Workflows
@@ -41,23 +42,51 @@ namespace Fusion.Resources.Logic.Workflows
         {
         }
 
-        public void Approved(DbPerson approver)
+        public WorkflowStep Approved(DbPerson approver)
         {
-            Step(APPROVAL)
+            return Step(APPROVAL)
                 .SetName("Approved")
                 .SetDescription($"{approver.Name} approved the request. The provisioning process will start so changes are visible in the org chart.")
                 .Complete(approver, true)
-                .StartNext();
+                .StartNext().Current;
         }
 
-        public void Proposed(DbPerson proposer)
+        public WorkflowStep Proposed(DbPerson proposer)
         {
-            Step(PROPOSAL)
+            return Step(PROPOSAL)
                 .SetName("Proposed")
                 .SetDescription($"{proposer.Name} have proposed a candidate. The project must approve the proposal for the changes to be provisioned.")
                 .Complete(proposer, true)
-                .StartNext();
+                .StartNext().Current;
         }
+
+        public override WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user)
+        {
+            var current = GetCurrent();
+
+            if (state == DbWFStepState.Rejected)
+                throw new NotImplementedException("Rejected not supported");
+
+            switch (current.Id)
+            {
+                case PROPOSAL:
+                    return Proposed(user);
+
+                case APPROVAL:
+                    return Approved(user);
+
+                case PROVISIONING:
+                    Step(PROVISIONING)
+                        .SetName("Provisioned")
+                        .SetDescription($"Changes has been published to the org chart.")
+                        .Complete(user, true)
+                        .CompleteWorkflow();
+                    break;
+            }
+
+            return null;
+        }
+
 
         #region Step definitions
 

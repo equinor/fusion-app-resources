@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Database.Entities;
+using System;
 using System.Collections.Generic;
 
 namespace Fusion.Resources.Logic.Workflows
@@ -27,7 +28,7 @@ namespace Fusion.Resources.Logic.Workflows
         {
             Step(CREATED)
                 .SetName("Created")
-                .SetDescription($"{creator.Name} approved the request. The provisioning process will start so the person can access resources.")
+                .SetDescription($"{creator.Name} created the request. The provisioning process will start so changes are reflected in the org chart.")
                 .Complete(creator, true)
                 .StartNext();
         }
@@ -46,6 +47,28 @@ namespace Fusion.Resources.Logic.Workflows
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
             .WithDescription("If the request is approved, the new position or changes will be provisioned to the organisational chart.")
             .WithPreviousStep(CREATED);
+
+
+        public override WorkflowStep? CompleteCurrentStep(DbWFStepState state, DbPerson user)
+        {
+            var current = GetCurrent();
+
+            if (state == DbWFStepState.Rejected)
+                throw new NotImplementedException("Rejected not supported");
+
+            switch (current.Id)
+            {
+                case PROVISIONING:
+                    Step(PROVISIONING)
+                        .SetName("Provisioned")
+                        .SetDescription($"Changes has been published to the org chart.")
+                        .Complete(user, true)
+                        .CompleteWorkflow();
+                    break;
+            }
+
+            return null;
+        }
 
         #endregion
     }

@@ -11,7 +11,7 @@ namespace Fusion.Resources.Domain
             {
             }
             public QueryPositionInstance(
-                DbResourceAllocationRequest.DbPositionInstance entity)
+                DbResourceAllocationRequest.DbOpPositionInstance entity)
             {
                 Id = entity.Id;
                 Workload = entity.Workload;
@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain
             public DateTime AppliesTo { get; set; }
             public Guid? LocationId { get; set; }
 
-            public DbResourceAllocationRequest.DbPositionInstance ToEntity()
+            public DbResourceAllocationRequest.DbOpPositionInstance ToEntity()
             {
                 return new()
                 {
