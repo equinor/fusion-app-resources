@@ -42,6 +42,11 @@ namespace Fusion.Testing.Mocks
             Type = "direct";
             return this;
         }
+        public ApiCreateInternalRequestModel AsTypeTaskOwnerChange()
+        {
+            Type = "taskOwnerChange";
+            return this;
+        }
 
         public ApiCreateInternalRequestModel WithPosition(ApiPositionV2 position, Guid? instanceId = null)
         {

@@ -21,9 +21,9 @@ namespace Fusion.Resources.Domain.Queries
         {
             this.Query = query ?? new ODataQueryParams();
 
-            if (Query.ShoudExpand("OrgPosition"))
+            if (ODataParamsExtensions.ShouldExpand(Query, "OrgPosition"))
                 Expands |= ExpandFields.OrgPosition;
-            if (Query.ShoudExpand("OrgPositionInstance"))
+            if (ODataParamsExtensions.ShouldExpand(Query, "OrgPositionInstance"))
                 Expands |= ExpandFields.OrgPositionInstance;
         }
 

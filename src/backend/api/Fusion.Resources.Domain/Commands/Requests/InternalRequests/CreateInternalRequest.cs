@@ -100,6 +100,7 @@ namespace Fusion.Resources.Domain.Commands
                         InternalRequestType.Normal => DbInternalRequestType.Normal,
                         InternalRequestType.Direct => DbInternalRequestType.Direct,
                         InternalRequestType.JointVenture => DbInternalRequestType.JointVenture,
+                        InternalRequestType.TaskOwnerChange => DbInternalRequestType.TaskOwnerChange,
                         _ => throw new NotSupportedException("Query request type ")
                     },
                     RequestOwner = request.Owner switch

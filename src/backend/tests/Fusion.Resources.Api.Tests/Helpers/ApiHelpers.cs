@@ -109,5 +109,16 @@ namespace Fusion.Resources.Api.Tests
 
             return resp.Value;
         }
+
+        public static async Task<TestApiInternalRequestModel> ProposeChangesAsync(this HttpClient client, Guid requestId, object changes)
+        {
+            var resp = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
+            {
+                proposedChanges = changes
+            });
+            resp.Should().BeSuccessfull();
+
+            return resp.Value;
+        }
     }
 }

@@ -80,7 +80,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest([FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId, [FromBody] PatchInternalRequestRequest request)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest([FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId, 
+            [FromBody] PatchInternalRequestRequest request,
+            [FromQuery] ODataExpandParams query)
         {
             #region Authorization
 
@@ -117,7 +119,7 @@ namespace Fusion.Resources.Api.Controllers
                 var updatedRequest = await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
 
-                updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandAll());
+                updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
                 return new ApiResourceAllocationRequest(updatedRequest!);
             }
             catch (ValidationException ve)

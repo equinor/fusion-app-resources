@@ -18,7 +18,8 @@ namespace Fusion.Resources.Domain
     {
         Normal,
         JointVenture,
-        Direct
+        Direct,
+        TaskOwnerChange
     }
 
     public class QueryResourceAllocationRequest
@@ -34,6 +35,7 @@ namespace Fusion.Resources.Domain
                 DbInternalRequestType.Normal => InternalRequestType.Normal,
                 DbInternalRequestType.Direct => InternalRequestType.Direct,
                 DbInternalRequestType.JointVenture => InternalRequestType.JointVenture,
+                DbInternalRequestType.TaskOwnerChange => InternalRequestType.TaskOwnerChange,
                 _ => throw new NotSupportedException($"Invalid query type received from database entity {entity.Type}")
             };
 

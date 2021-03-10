@@ -34,10 +34,10 @@ namespace Fusion.Resources.Domain
 
                 if (value != null)
                 {
-                    if (value.ShoudExpand("requests"))
+                    if (ODataParamsExtensions.ShouldExpand(value, "requests"))
                         Expands |= ExpandProperties.Requests;
 
-                    if (value.ShoudExpand("positions"))
+                    if (ODataParamsExtensions.ShouldExpand(value, "positions"))
                         Expands |= ExpandProperties.Positions;
                 }
             }
