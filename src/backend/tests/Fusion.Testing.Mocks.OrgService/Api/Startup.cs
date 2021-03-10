@@ -56,31 +56,40 @@ namespace Fusion.Testing.Mocks.OrgService.Api
 
         public async Task Invoke(HttpContext context)
         {
-            //First, get the incoming request
-            context.Request.EnableBuffering();
+            await OrgServiceMock.semaphore.WaitAsync();
 
-            using (var membuffer = new MemoryStream())
+            try
             {
-                await context.Request.Body.CopyToAsync(membuffer);
+                //First, get the incoming request
+                context.Request.EnableBuffering();
 
-                using (var reader = new StreamReader(membuffer))
+                using (var membuffer = new MemoryStream())
                 {
-                    membuffer.Seek(0, SeekOrigin.Begin);
-                    var content = await reader.ReadToEndAsync();
+                    await context.Request.Body.CopyToAsync(membuffer);
 
-                    OrgServiceMock.Invocations.Add(new ApiInvocation()
+                    using (var reader = new StreamReader(membuffer))
                     {
-                        Method = new HttpMethod(context.Request.Method),
-                        Body = content,
-                        Path = context.Request.Path,
-                        Query = context.Request.QueryString
-                    });
-                }
-            }
-            
-            context.Request.Body.Seek(0, SeekOrigin.Begin);
+                        membuffer.Seek(0, SeekOrigin.Begin);
+                        var content = await reader.ReadToEndAsync();
 
-            await _next(context);
+                        OrgServiceMock.Invocations.Add(new ApiInvocation()
+                        {
+                            Method = new HttpMethod(context.Request.Method),
+                            Body = content,
+                            Path = context.Request.Path,
+                            Query = context.Request.QueryString
+                        });
+                    }
+                }
+
+                context.Request.Body.Seek(0, SeekOrigin.Begin);
+
+                await _next(context);
+            }
+            finally
+            {
+                OrgServiceMock.semaphore.Release();
+            }
         }
 
    

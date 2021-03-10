@@ -158,10 +158,17 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task ExpandResourceOwnerAsync(QueryResourceAllocationRequest request)
             {
-                if (request.ProposedPerson?.AzureUniqueId is not null)
+                try
                 {
-                    var manager = await mediator.Send(new GetResourceOwner(request.ProposedPerson.AzureUniqueId));
-                    request.ProposedPerson.ResourceOwner = manager;
+                    if (request.ProposedPerson?.AzureUniqueId is not null)
+                    {
+                        var manager = await mediator.Send(new GetResourceOwner(request.ProposedPerson.AzureUniqueId));
+                        request.ProposedPerson.ResourceOwner = manager;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Could not expand resource owner: {Message}", ex.Message);
                 }
             }
         }
