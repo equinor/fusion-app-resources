@@ -47,7 +47,8 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionId = request.OrgPositionId,
                 OrgProjectId = projectIdentifier.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
-                AssignedDepartment = request.AssignedDepartment
+                AssignedDepartment = request.AssignedDepartment,
+                ApplicableChangeDate = request.ApplicableChangeDate
             };
 
             try
@@ -114,6 +115,7 @@ namespace Fusion.Resources.Api.Controllers
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
                 if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
                 if (request.ProposedPersonAzureUniqueId.HasValue) updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
+                if (request.ApplicableChangeDate.HasValue) updateCommand.ApplicableChangeDate = request.ApplicableChangeDate.Value;
 
                 await using var scope = await BeginTransactionAsync();
                 var updatedRequest = await DispatchAsync(updateCommand);

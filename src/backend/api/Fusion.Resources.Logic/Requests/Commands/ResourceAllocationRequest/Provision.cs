@@ -85,8 +85,12 @@ namespace Fusion.Resources.Logic.Commands
                             case DbInternalRequestType.Direct:
                             case DbInternalRequestType.JointVenture:
                             case DbInternalRequestType.Normal:
-                            case DbInternalRequestType.TaskOwnerChange:
                                 await ProvisionAllocationRequestAsync(dbRequest);
+                                await UpdateWorkflowStatusAsync(request, dbRequest);
+                                break;
+
+                            case DbInternalRequestType.TaskOwnerChange:
+                                await ProvisionTaskOwnerChangeAsync(dbRequest);
                                 await UpdateWorkflowStatusAsync(request, dbRequest);
                                 break;
 
@@ -100,6 +104,27 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     await resourcesDb.SaveChangesAsync();
+                }
+
+                private async Task ProvisionTaskOwnerChangeAsync(DbResourceAllocationRequest dbRequest)
+                {
+                    try
+                    {
+                        await mediator.Send(new ProjectChange.Provision(dbRequest.Id));
+
+                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Provisioned;
+                        dbRequest.ProvisioningStatus.OrgPositionId = dbRequest.OrgPositionId;
+                        dbRequest.ProvisioningStatus.OrgProjectId = dbRequest.Project.OrgProjectId;
+                        dbRequest.ProvisioningStatus.OrgInstanceId = dbRequest.OrgPositionInstance.Id;
+                    }
+                    catch (OrgApiError ex)
+                    {
+                        dbRequest.ProvisioningStatus.ErrorMessage = $"Received error from Org service when trying to update the position: '{ex.Error?.Message}'";
+                        dbRequest.ProvisioningStatus.ErrorPayload = ex.ResponseText;
+                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+
+                        throw new ProvisioningError($"Error communicating with org chart: {ex.Message}", ex);
+                    }
                 }
 
                 private async Task ProvisionAllocationRequestAsync(DbResourceAllocationRequest dbRequest)

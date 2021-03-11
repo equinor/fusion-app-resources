@@ -21,6 +21,7 @@ namespace Fusion.Resources.Database.Entities
         public string? Discipline { get; set; }
         
         public DbInternalRequestType Type { get; set; } = DbInternalRequestType.Normal;
+        public string? SubType { get; set; }
 
         public DbOpState State { get; set; } = new DbOpState();
 
@@ -45,6 +46,7 @@ namespace Fusion.Resources.Database.Entities
         /// </summary>
         public string? ProposedChanges { get; set; }
         public DbOpProposedPerson ProposedPerson { get; set; } = DbOpProposedPerson.Empty;
+        public DateTime? ApplicableChangeDate { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }

@@ -13,9 +13,6 @@ namespace Fusion.Resources.Api.Controllers
         public string Type { get; set; } = null!;
         public string? AssignedDepartment { get; set; }
         
-        // All requests should be created as drafts. Initializing the workflow shoud set the flag to false.
-        //public bool? IsDraft { get; set; }
-
         // Not required unless created from the resource owner side. Change requests.
         internal Guid? OrgProjectId { get; set; }
         public Guid OrgPositionId { get; set; }
@@ -23,6 +20,11 @@ namespace Fusion.Resources.Api.Controllers
         
         public string? AdditionalNote { get; set; }
         public ApiPropertiesCollection? ProposedChanges { get; set; }
+
+        /// <summary>
+        /// The date the change should be applicable from. 
+        /// </summary>
+        public DateTime? ApplicableChangeDate { get; set; }
 
 
         public Guid? ProposedPersonAzureUniqueId { get; set; }

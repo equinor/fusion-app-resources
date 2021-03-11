@@ -38,6 +38,8 @@ namespace Fusion.Resources.Domain
                 DbInternalRequestType.TaskOwnerChange => InternalRequestType.TaskOwnerChange,
                 _ => throw new NotSupportedException($"Invalid query type received from database entity {entity.Type}")
             };
+            SubType = entity.SubType;
+            ApplicableChangeDate = entity.ApplicableChangeDate;
 
             Workflow = workflow;
             State = entity.State.State;
@@ -122,8 +124,8 @@ namespace Fusion.Resources.Domain
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
         public IEnumerable<QueryRequestComment>? Comments { get; set; }
         public QueryTaskOwner? TaskOwner { get; set; }
-
-
+        public string? SubType { get; set; }
+        public DateTime? ApplicableChangeDate { get; set; }
 
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {

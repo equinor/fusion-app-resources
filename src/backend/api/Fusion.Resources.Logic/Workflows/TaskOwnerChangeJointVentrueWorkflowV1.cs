@@ -5,16 +5,16 @@ using System.Collections.Generic;
 namespace Fusion.Resources.Logic.Workflows
 {
 
-    public class InternalRequestTaskOwnerChangeWorkflowV1 : WorkflowDefinition
+    public class TaskOwnerChangeJointVentrueWorkflowV1 : WorkflowDefinition
     {
         public const string CREATED = "created";
         public const string APPROVAL = "approval";
         public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
-        public override string Name => "Normal personnel assignment request";
+        public override string Name => "Joint venture personnel assignment request";
 
-        public InternalRequestTaskOwnerChangeWorkflowV1()
+        public TaskOwnerChangeJointVentrueWorkflowV1()
             : base(null)
         {
             Steps = new List<WorkflowStep>()
@@ -25,7 +25,7 @@ namespace Fusion.Resources.Logic.Workflows
             };
         }
 
-        public InternalRequestTaskOwnerChangeWorkflowV1(DbPerson creator)
+        public TaskOwnerChangeJointVentrueWorkflowV1(DbPerson creator)
             : this()
         {
             Step(CREATED)
@@ -35,7 +35,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public InternalRequestTaskOwnerChangeWorkflowV1(DbWorkflow workflow)
+        public TaskOwnerChangeJointVentrueWorkflowV1(DbWorkflow workflow)
             : base(workflow)
         {
         }
@@ -44,8 +44,17 @@ namespace Fusion.Resources.Logic.Workflows
         {
             return Step(APPROVAL)
                 .SetName("Approved")
-                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so changes are visible in the org chart.")
+                .SetDescription($"{approver.Name} approved the request. The provisioning process will start so the person can access resources.")
                 .Complete(approver, true)
+                .StartNext().Current;
+        }
+
+        public WorkflowStep SkipApproval()
+        {
+            return Step(APPROVAL)
+                .SetName("Approved")
+                .SetDescription($"No resource owner could be automatically be located, so approval step is skipped.")
+                .Skip()
                 .StartNext().Current;
         }
 
@@ -58,7 +67,7 @@ namespace Fusion.Resources.Logic.Workflows
 
             switch (current.Id)
             {
-                case APPROVAL:
+                case CREATED:
                     return Approved(user);
 
                 case PROVISIONING:
@@ -73,7 +82,6 @@ namespace Fusion.Resources.Logic.Workflows
             return null;
         }
 
-
         #region Step definitions
 
         public static WorkflowStep Created => new WorkflowStep(CREATED, "Created")
@@ -81,8 +89,8 @@ namespace Fusion.Resources.Logic.Workflows
             .WithNextStep(APPROVAL);
 
         public static WorkflowStep Approval => new WorkflowStep(APPROVAL, "Approve")
-            .WithDescription("Review change request and approve or reject")
-            .WithPreviousStep(CREATED)
+            .WithDescription("Review personnel request and approve/reject")
+            .WithPreviousStep(APPROVAL)
             .WithNextStep(PROVISIONING);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")

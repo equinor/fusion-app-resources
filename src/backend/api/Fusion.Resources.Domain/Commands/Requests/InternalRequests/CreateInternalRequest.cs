@@ -36,6 +36,9 @@ namespace Fusion.Resources.Domain.Commands
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public bool IsDraft { get; set; }
 
+        public DateTime? ApplicableChangeDate { get; set; }
+
+
 
         public class Validator : AbstractValidator<CreateInternalRequest>
         {

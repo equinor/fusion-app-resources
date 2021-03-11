@@ -15,7 +15,8 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<string?> AssignedDepartment { get; set; } = new();
         public PatchProperty<Guid?> ProposedPersonAzureUniqueId { get; set; } = new();
         public PatchProperty<ApiPropertiesCollection?> ProposedChanges { get; set; } = new();
-
+        public PatchProperty<DateTime?> ApplicableChangeDate { get; set; } = new();
+        
 
         #region Validator
 

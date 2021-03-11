@@ -15,7 +15,9 @@ namespace Fusion.Resources.Api.Controllers
             Discipline = query.Discipline;
             State = query.State;
             Type = $"{query.Type}";
+            SubType = query.SubType;
 
+            ApplicableChangeDate = query.ApplicableChangeDate;
 
             if (query.ProposedPerson != null)
             {
@@ -63,6 +65,8 @@ namespace Fusion.Resources.Api.Controllers
         /// <para>Check valid values used in request model <see cref="ApiAllocationRequestType"/> for information.</para>
         /// </summary>
         public string Type { get; set; }
+        public string? SubType { get; set; }
+
         public ApiWorkflow? Workflow { get; set; }
         public ApiProjectReference Project { get; set; }
         public ApiPositionV2? OrgPosition { get; set; }
@@ -71,6 +75,7 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? OrgPositionInstanceId { get; set; }
         public string? AdditionalNote { get; set; }
 
+        public DateTime? ApplicableChangeDate { get; set; }
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiProposedPerson? ProposedPerson { get; set; }
