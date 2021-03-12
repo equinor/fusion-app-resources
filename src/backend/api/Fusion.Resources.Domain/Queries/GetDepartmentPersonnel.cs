@@ -96,7 +96,7 @@ namespace Fusion.Resources.Domain
                 return departmentPersonnel;
             }
 
-            private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds) 
+            private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)
             {
                 var ids = azureIds.ToArray();
 

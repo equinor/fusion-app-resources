@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
@@ -22,7 +20,16 @@ namespace Fusion.Resources.Domain
             if (filterEnd.Kind != DateTimeKind.Utc)
                 filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
 
-
+            var timeline = GeneratePersonnelTimelineInternal(position, absences, filterStart, filterEnd).ToList();
+            FixOverlappingPeriods(timeline);
+            return timeline;
+        }
+        private static IEnumerable<QueryTimelineRange<QueryPersonnelTimelineItem>> GeneratePersonnelTimelineInternal(
+            List<QueryPersonnelPosition> position,
+            List<QueryPersonAbsenceBasic> absences,
+            DateTime filterStart,
+            DateTime filterEnd)
+        {
             // Gather all dates 
             var dates = position.SelectMany(p => new[] { (DateTime?)p.AppliesFrom.Date, (DateTime?)p.AppliesTo.Date })
                 .Union(absences.SelectMany(a => new[] { a.AppliesFrom.Date, a.AppliesTo?.Date }))
@@ -82,40 +89,43 @@ namespace Fusion.Resources.Domain
             DateTime filterStart,
             DateTime filterEnd)
         {
-            //gather all dates from orgPositionInstances of each request
-            var orgPositionInstances = requests.Select(r => r.OrgPositionInstance)
-                .Where(p => p != null)
-                .Cast<ApiClients.Org.ApiPositionInstanceV2>();
+            var segments = new List<QueryTimelineRange<QueryRequestsTimelineItem>>();
 
-            var dates = orgPositionInstances.SelectMany(p => new[] { (DateTime?)p.AppliesFrom.Date, (DateTime?)p.AppliesTo.Date })
-                .Where(d => d.HasValue)
-                .Select(d => d!.Value)
-                .Distinct()
-                .OrderBy(d => d)
+            var applicableRequests = requests
+                .Where(r => r.OrgPositionInstance is not null
+                    && r.OrgPositionInstance!.AppliesFrom >= filterStart
+                    && r.OrgPositionInstance!.AppliesTo <= filterEnd)
+                .OrderBy(r => r.OrgPositionInstance!.AppliesFrom)
+                .ThenBy(r => r.OrgPositionInstance!.AppliesTo)
                 .ToList();
 
-            if (!dates.Any())
-                yield break;
+            var keyDates = new HashSet<DateTime>();
 
-            // choose dates within filter range
-            var validDates = dates.Where(d => d > filterStart && d < filterEnd).ToList();
-
-            validDates.Insert(0, filterStart);
-            validDates.Add(filterEnd);
-
-            var current = validDates.First();
-
-            //create timeline
-            foreach (var date in validDates.Skip(1))
+            foreach (var req in applicableRequests)
             {
-                var end = (date == filterEnd) ? date : date.AddSeconds(-1);
-                var timelineRange = new TimeRange(current, end);
-
-                var affectedItems = FilterRequests(requests, timelineRange);
-                // create timelinerange with TimelineItems
-                yield return new QueryTimelineRange<QueryRequestsTimelineItem>(timelineRange.Start, timelineRange.End)
+                if (!keyDates.Contains(req.OrgPositionInstance!.AppliesTo))
                 {
-                    Items = affectedItems.Select(r => new QueryRequestsTimelineItem
+                    keyDates.Add(req.OrgPositionInstance!.AppliesTo);
+                }
+
+                if (!keyDates.Contains(req.OrgPositionInstance!.AppliesFrom))
+                {
+                    keyDates.Add(req.OrgPositionInstance!.AppliesFrom);
+                }
+            }
+
+            var orderedKeyDates = keyDates.OrderBy(d => d);
+
+            var timeline = orderedKeyDates.Zip(orderedKeyDates.Skip(1), (start, end) =>
+            {
+                var range = new TimeRange(start, end, isReadOnly: true);
+                var requestsInRange = applicableRequests.Where(req =>
+                    new TimeRange(req.OrgPositionInstance!.AppliesFrom, req.OrgPositionInstance!.AppliesTo).OverlapsWith(range)
+                );
+
+                return new QueryTimelineRange<QueryRequestsTimelineItem>(start, end)
+                {
+                    Items = requestsInRange.Select(r => new QueryRequestsTimelineItem
                     {
                         Workload = r.OrgPositionInstance?.Workload,
                         Id = r.RequestId.ToString(),
@@ -123,10 +133,15 @@ namespace Fusion.Resources.Domain
                         ProjectName = r.Project.Name
                     })
                     .ToList(),
-                    Workload = affectedItems.Sum(r => r.OrgPositionInstance?.Workload ?? 0)
+                    Workload = requestsInRange.Sum(r => r.OrgPositionInstance?.Workload ?? 0)
                 };
-                current = date;
-            }
+            })
+            .Where(range => range.Items.Any())
+            .ToList();
+
+            FixOverlappingPeriods(timeline);
+
+            return timeline;
         }
 
         public static IEnumerable<QueryResourceAllocationRequest> FilterRequests(List<QueryResourceAllocationRequest> requests, TimeRange timelineRange)
@@ -139,6 +154,19 @@ namespace Fusion.Resources.Domain
             });
 
             return affectedItems;
+        }
+
+        private static void FixOverlappingPeriods<T>(List<QueryTimelineRange<T>> timeline)
+        {
+            // Tweek ranges where end date == next start date
+            for (int i = 0; i < timeline.Count; i++)
+            {
+                var now = timeline.ElementAt(i);
+                var next = timeline.ElementAtOrDefault(i + 1);
+
+                if (next != null && now.AppliesTo == next.AppliesFrom)
+                    now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
+            }
         }
     }
 }
