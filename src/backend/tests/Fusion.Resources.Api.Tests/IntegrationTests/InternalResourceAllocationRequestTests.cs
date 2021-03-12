@@ -76,16 +76,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
-<<<<<<< HEAD
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
             //commentResponse.Should().BeSuccessfull();
             //testCommentId = commentResponse.Value.Id;
-=======
-            var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
-            commentResponse.Should().BeSuccessfull();
-            testCommentId = commentResponse.Value.Id;
-
->>>>>>> 2bedbdd... move department/sector info to db
         }
 
         public Task DisposeAsync()
