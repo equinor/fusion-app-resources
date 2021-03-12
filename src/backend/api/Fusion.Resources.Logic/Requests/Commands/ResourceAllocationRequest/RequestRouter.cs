@@ -2,6 +2,7 @@
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,9 @@ namespace Fusion.Resources.Logic.Commands
                 if (notification.Type != DbInternalRequestType.Normal && notification.Type != DbInternalRequestType.JointVenture) return;
 
                 var request = await db.ResourceAllocationRequests
-                    .SingleAsync(r => r.Id == notification.RequestId);
+                    .SingleAsync(r => r.Id == notification.RequestId, cancellationToken);
+
+                if (!string.IsNullOrEmpty(request.AssignedDepartment)) return;
 
                 var matrix = await db.ResponsibilityMatrices
                     .Include(m => m.Responsible)
@@ -36,14 +39,14 @@ namespace Fusion.Resources.Logic.Commands
                         Row = m
                     })
                     .OrderByDescending(x => x.Score)
-                    .FirstOrDefaultAsync(x => x.Score >= 5);
+                    .FirstOrDefaultAsync(x => x.Score >= 5, cancellationToken);
 
                 if(matrix != null)
                 {
                     request.AssignedDepartment = matrix.Row.Unit;
                 }
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync(cancellationToken);
             }
         }
     }

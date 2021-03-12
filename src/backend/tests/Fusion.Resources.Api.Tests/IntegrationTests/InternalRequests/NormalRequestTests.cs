@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Integration.Models.Queue;
 using Fusion.Testing;
@@ -153,6 +154,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
             response.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task NormalRequest_Should_Be_Routed_To_Correct_Department()
+        {
+            var department = "ABC DEF";
+            using var adminScope = fixture.AdminScope();
+
+            var matrixRequest = new UpdateResponsibilityMatrixRequest
+            {
+                ProjectId = testProject.Project.ProjectId,
+                LocationId = Guid.NewGuid(),
+                Discipline = normalRequest.Discipline,
+                BasePositionId = testProject.Positions.First().BasePosition.Id,
+                Sector = "ABC",
+                Unit = department,
+                ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
+            };
+
+            var matrixResponse = await Client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", matrixRequest);
+            matrixResponse.Should().BeSuccessfull();
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
+            response.Should().BeSuccessfull();
+
+            response.Value.AssignedDepartment.Should().Be(department);
         }
 
         [Theory]
