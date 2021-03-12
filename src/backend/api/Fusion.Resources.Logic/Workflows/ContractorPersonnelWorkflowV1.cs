@@ -15,6 +15,7 @@ namespace Fusion.Resources.Logic.Workflows
 
         public override string Version => "v1";
         public override string Name => "Contractor personnel request";
+        public override string TypeName => "contractorPersonnel";
 
         public ContractorPersonnelWorkflowV1() 
             : base(null)

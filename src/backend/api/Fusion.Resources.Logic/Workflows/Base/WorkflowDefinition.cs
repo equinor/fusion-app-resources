@@ -35,6 +35,11 @@ namespace Fusion.Resources.Logic.Workflows
         }
 
         public abstract string Name { get; }
+        /// <summary>
+        /// An identifier for the type, this should be static and not change.
+        /// External parties should be able to use this identifier to make choices.
+        /// </summary>
+        public abstract string TypeName { get; }
         public abstract string Version { get; }
 
         public List<WorkflowStep> Steps { get; set; }

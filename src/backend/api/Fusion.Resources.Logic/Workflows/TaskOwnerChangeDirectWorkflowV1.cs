@@ -12,6 +12,7 @@ namespace Fusion.Resources.Logic.Workflows
 
         public override string Version => "v1";
         public override string Name => "Direct task owner change request";
+        public override string TypeName => "directTaskOwnerChange";
 
         public TaskOwnerChangeDirectWorkflowV1()
             : base(null)

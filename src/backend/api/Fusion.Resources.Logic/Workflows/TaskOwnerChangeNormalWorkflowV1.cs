@@ -13,6 +13,7 @@ namespace Fusion.Resources.Logic.Workflows
 
         public override string Version => "v1";
         public override string Name => "Normal personnel assignment request";
+        public override string TypeName => "normalTaskOwnerChange";
 
         public TaskOwnerChangeNormalWorkflowV1()
             : base(null)

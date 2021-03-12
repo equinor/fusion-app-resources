@@ -13,6 +13,7 @@ namespace Fusion.Resources.Logic.Workflows
 
         public override string Version => "v1";
         public override string Name => "Joint venture personnel assignment request";
+        public override string TypeName => "jointVentureTaskOwnerChange";
 
         public TaskOwnerChangeJointVentrueWorkflowV1()
             : base(null)

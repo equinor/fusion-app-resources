@@ -12,6 +12,7 @@ namespace Fusion.Resources.Logic.Workflows
 
         public override string Version => "v1";
         public override string Name => "Direct personnel assignment request";
+        public override string TypeName => "directAllocation";
 
         public InternalRequestDirectWorkflowV1()
             : base(null)
