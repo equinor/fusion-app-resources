@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain
             var current = validDates.First();
             foreach (var date in validDates.Skip(1))
             {
-                var timelineRange = new TimeRange(current, date.AddSeconds(-1));
+                var timelineRange = new TimeRange(current, date);
 
                 var affectedItems = position.Where(p =>
                 {
@@ -93,8 +93,7 @@ namespace Fusion.Resources.Domain
 
             var applicableRequests = requests
                 .Where(r => r.OrgPositionInstance is not null
-                    && r.OrgPositionInstance!.AppliesFrom >= filterStart
-                    && r.OrgPositionInstance!.AppliesTo <= filterEnd)
+                    && (r.OrgPositionInstance!.AppliesTo >= filterStart || r.OrgPositionInstance!.AppliesFrom <= filterEnd))
                 .OrderBy(r => r.OrgPositionInstance!.AppliesFrom)
                 .ThenBy(r => r.OrgPositionInstance!.AppliesTo)
                 .ToList();
