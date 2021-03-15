@@ -227,28 +227,41 @@ namespace Fusion.Resources.Database.Migrations
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDepartmentResponsible", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("DateFrom")
-                        .HasColumnType("datetime2");
+                b.Property<DateTimeOffset>("DateCreated")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("datetimeoffset")
+                    .HasDefaultValueSql("getutcdate()");
 
-                    b.Property<DateTime>("DateTo")
-                        .HasColumnType("datetime2");
+                b.Property<DateTimeOffset>("DateFrom")
+                    .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("DepartmentId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<DateTimeOffset>("DateTo")
+                    .HasColumnType("datetimeoffset");
 
-                    b.Property<Guid>("ResponsibleAzureObjectId")
-                        .HasColumnType("uniqueidentifier");
+                b.Property<DateTimeOffset>("DateUpdated")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("datetimeoffset")
+                    .HasDefaultValueSql("getutcdate()");
 
-                    b.HasKey("Id");
+                b.Property<string>("DepartmentId")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("DepartmentResponsibles");
-                });
+                b.Property<Guid>("ResponsibleAzureObjectId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<Guid?>("UpdatedBy")
+                    .HasColumnType("uniqueidentifier");
+
+                b.HasKey("Id");
+
+                b.ToTable("DepartmentResponsibles");
+            });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", b =>
                 {
