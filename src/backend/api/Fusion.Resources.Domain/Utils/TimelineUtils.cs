@@ -98,16 +98,20 @@ namespace Fusion.Resources.Domain
                 .ThenBy(r => r.OrgPositionInstance!.AppliesTo)
                 .ToList();
 
-            var keyDates = new HashSet<DateTime>();
+            var keyDates = new HashSet<DateTime>
+            {
+                filterStart,
+                filterEnd
+            };
 
             foreach (var req in applicableRequests)
             {
-                if (!keyDates.Contains(req.OrgPositionInstance!.AppliesTo))
+                if (req.OrgPositionInstance!.AppliesTo <= filterEnd && !keyDates.Contains(req.OrgPositionInstance!.AppliesTo))
                 {
                     keyDates.Add(req.OrgPositionInstance!.AppliesTo);
                 }
 
-                if (!keyDates.Contains(req.OrgPositionInstance!.AppliesFrom))
+                if (req.OrgPositionInstance!.AppliesFrom >= filterStart && !keyDates.Contains(req.OrgPositionInstance!.AppliesFrom))
                 {
                     keyDates.Add(req.OrgPositionInstance!.AppliesFrom);
                 }
