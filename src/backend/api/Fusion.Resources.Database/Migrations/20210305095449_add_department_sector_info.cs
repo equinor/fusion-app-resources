@@ -33,6 +33,42 @@ namespace Fusion.Resources.Database.Migrations
                 {
                     table.PrimaryKey("PK_Departments", x => x.DepartmentId);
                 });
+
+            migrationBuilder.AlterColumn<DateTimeOffset>(
+                name: "DateTo",
+                table: "DepartmentResponsibles",
+                type: "datetimeoffset",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "datetime2");
+
+            migrationBuilder.AlterColumn<DateTimeOffset>(
+                name: "DateFrom",
+                table: "DepartmentResponsibles",
+                type: "datetimeoffset",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "datetime2");
+
+            migrationBuilder.AddColumn<DateTimeOffset>(
+                name: "DateCreated",
+                table: "DepartmentResponsibles",
+                type: "datetimeoffset",
+                nullable: false,
+                defaultValueSql: "getutcdate()");
+
+            migrationBuilder.AddColumn<DateTimeOffset>(
+                name: "DateUpdated",
+                table: "DepartmentResponsibles",
+                type: "datetimeoffset",
+                nullable: false,
+                defaultValueSql: "getutcdate()");
+
+            migrationBuilder.AddColumn<Guid>(
+                name: "UpdatedBy",
+                table: "DepartmentResponsibles",
+                type: "uniqueidentifier",
+                nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
