@@ -22,7 +22,7 @@ namespace Fusion.Resources.Domain.Services
         {
             this.client = httpClientFactory.CreateClient("FusionClient.People.Application");
             
-            cacheRestTimer = new Timer((state) => companies = null, null, TimeSpan.FromHours(12), TimeSpan.FromHours(12));
+            cacheRestTimer = new Timer((state) => companies = null, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
         }
 
         public void Dispose()
