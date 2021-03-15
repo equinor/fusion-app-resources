@@ -53,7 +53,7 @@ namespace Fusion.Resources.Domain.Commands
                     telemetryClient.TrackTrace("Role was not found when trying to update. It must have expired - creating new...");
 
                     // If the role was not updated, it might have expired or not been created - ensure new exists.
-                    await mediator.Publish(new CreateContractReadRoleAssignment(notification.DelegatedRoleId));
+                    await mediator.Send(new CreateContractReadRoleAssignment(notification.DelegatedRoleId));
                 }                
                 catch (Exception ex)
                 {
