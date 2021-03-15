@@ -111,6 +111,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Value.Should().NotContain(r => r.AssignedDepartment == otherDepartment);
         }
 
+
+        [Fact]
+        public async Task GetDepartmentRequests_ShouldIncludeNameOnProposedPerson()
+        {
+            using var adminScope = fixture.AdminScope();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            await Client.ProposePersonAsync(testRequest.Id, proposedPerson);
+
+            var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
+                $"/departments/{testRequest.AssignedDepartment}/resources/requests?api-version=1.0-preview");
+            
+            response.Value.Value.Should().OnlyContain(req => !String.IsNullOrEmpty(req.ProposedPerson.Person.Name));
+        }
+
         #endregion
 
         [Fact]
