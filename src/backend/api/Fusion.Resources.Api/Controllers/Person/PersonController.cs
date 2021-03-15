@@ -162,14 +162,14 @@ namespace Fusion.Resources.Api.Controllers
         }
         private async Task<IEnumerable<string>> ResolveSectorDepartments(string sector)
         {
-            var departments = await mediator.Send(new GetDepartments() { Sector = sector });
+            var departments = await mediator.Send(new GetDepartments().InSector(sector));
             return departments
                 .Select(dpt => dpt.DepartmentId);
         }
 
         private async Task<IEnumerable<string>> ResolveDownstreamSectors(string department)
         {
-            var departments = await mediator.Send(new GetDepartments() { DepartmentFilter = department });
+            var departments = await mediator.Send(new GetDepartments().StartsWith(department));
             return departments
                 .Select(dpt => dpt.SectorId!).Distinct();
         }

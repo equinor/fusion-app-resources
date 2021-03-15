@@ -6,7 +6,7 @@ namespace Fusion.Resources.Database.Entities
     public class DbDepartment
     {
         public string? SectorId { get; set; }
-        public string DepartmentId { get; set; }
+        public string DepartmentId { get; set; } = null!;
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {

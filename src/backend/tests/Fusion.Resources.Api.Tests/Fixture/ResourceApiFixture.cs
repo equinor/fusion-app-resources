@@ -68,7 +68,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             return account;
         }
 
-        internal void RequireDepartment(string departmentId, string sectorId = null)
+        internal void EnsureDepartment(string departmentId, string sectorId = null)
         {
             using var scope = ApiFactory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();

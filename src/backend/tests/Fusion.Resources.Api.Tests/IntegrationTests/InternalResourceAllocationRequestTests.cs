@@ -48,7 +48,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.External);
          
-            fixture.RequireDepartment(TestDepartmentId);
+            fixture.EnsureDepartment(TestDepartmentId);
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();

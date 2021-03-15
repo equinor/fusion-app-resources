@@ -7,10 +7,15 @@ namespace Fusion.Resources.Database.Entities
     public class DbDepartmentResponsible
     {
         public Guid Id { get; set; }
-        public string DepartmentId { get; set; }
+        public string DepartmentId { get; set; } = null!;
         public Guid ResponsibleAzureObjectId { get; set; }
-        public DateTime DateFrom { get; set; }
-        public DateTime DateTo { get; set; }
+        public DateTimeOffset DateFrom { get; set; }
+        public DateTimeOffset DateTo { get; set; }
+
+        public DateTimeOffset DateCreated { get; set; }
+        public DateTimeOffset DateUpdated { get; set; }
+        public Guid? UpdatedBy { get; set; }
+
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {

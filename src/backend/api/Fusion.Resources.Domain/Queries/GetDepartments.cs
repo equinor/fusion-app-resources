@@ -12,22 +12,33 @@ namespace Fusion.Resources.Domain
 {
     public class GetDepartments : IRequest<IEnumerable<QueryDepartment>>
     {
-        public string? DepartmentFilter { get; set; }
-        public string Sector { get; set; }
+        private string? departmentFilter { get; set; }
+        private string? sector { get; set; }
 
         public IQueryable<QueryDepartment> Execute(IQueryable<DbDepartment> departments)
         {
-            if(!string.IsNullOrEmpty(Sector))
+            if(!string.IsNullOrEmpty(sector))
             {
-                departments = departments.Where(dpt => dpt.SectorId == Sector);
+                departments = departments.Where(dpt => dpt.SectorId == sector);
             }
 
-            if(!string.IsNullOrEmpty(DepartmentFilter))
+            if(!string.IsNullOrEmpty(departmentFilter))
             {
-                departments = departments.Where(dpt => dpt.DepartmentId.StartsWith(DepartmentFilter));
+                departments = departments.Where(dpt => dpt.DepartmentId.StartsWith(departmentFilter));
             }
 
             return departments.Select(dpt => new QueryDepartment(dpt));
+        }
+
+        public GetDepartments StartsWith(string department)
+        {
+            this.departmentFilter = department;
+            return this;
+        }
+        public GetDepartments InSector(string sector)
+        {
+            this.sector = sector;
+            return this;
         }
 
         public class Handler : IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
