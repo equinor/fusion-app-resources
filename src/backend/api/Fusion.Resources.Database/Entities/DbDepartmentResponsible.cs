@@ -22,6 +22,13 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbDepartmentResponsible>()
                 .HasKey(r => r.Id);
             modelBuilder.Entity<DbDepartmentResponsible>()
+                .Property(r => r.DateCreated)
+                .HasDefaultValueSql("getutcdate()");
+            modelBuilder.Entity<DbDepartmentResponsible>()
+                .Property(r => r.DateUpdated)
+                .HasDefaultValueSql("getutcdate()");
+
+            modelBuilder.Entity<DbDepartmentResponsible>()
                 .HasData(CreateSeedData());
         }
 
