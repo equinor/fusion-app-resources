@@ -99,14 +99,18 @@ namespace Fusion.Resources.Domain
                 if (ProposedChangesJson is null)
                     return new Dictionary<string, object>();
 
+                Dictionary<string, object>? value = null;
+
                 try
                 {
-                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson)!;
+                    value = JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson);
                 }
-                catch
+                catch (JsonException)
                 {
-                    return new Dictionary<string, object>();
+                    // Invalid JSON?
                 }
+
+                return value ?? new Dictionary<string, object>();
             }
         }
 

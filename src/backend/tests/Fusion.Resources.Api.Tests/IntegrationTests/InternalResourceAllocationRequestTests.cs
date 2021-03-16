@@ -556,6 +556,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        [Fact]
+        public async Task CreateRequest_ShouldBeCreated_WhenProposedChangesIsNull()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
+            {
+                type = "Normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.First().Id,
+                proposedPersonAzureUniqueId = this.testUser.AzureUniqueId!.Value
+            }, new { Id = Guid.Empty });
+
+            response.Should().BeSuccessfull();
+        }
         #endregion
     }
 
