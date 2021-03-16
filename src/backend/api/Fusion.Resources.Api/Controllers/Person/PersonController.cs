@@ -30,13 +30,11 @@ namespace Fusion.Resources.Api.Controllers
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionProfileResolver profileResolver;
-        private readonly IMediator mediator;
 
-        public PersonController(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver, IMediator mediator)
+        public PersonController(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver)
         {
             this.httpClientFactory = httpClientFactory;
             this.profileResolver = profileResolver;
-            this.mediator = mediator;
         }
 
         [HttpGet("/persons/me/resources/profile")]
@@ -108,7 +106,7 @@ namespace Fusion.Resources.Api.Controllers
                 departmentsWithResponsibility.Add(lineOrgProfile.fullDepartment);
 
             // Add all departments the user has been delegated responsibility for.
-            var delegatedResponsibilities = await mediator.Send(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
+            var delegatedResponsibilities = await DispatchAsync(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
             isDepartmentManager |= delegatedResponsibilities.Any(r => r.DepartmentId == lineOrgProfile.fullDepartment);
             departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
 
@@ -158,18 +156,18 @@ namespace Fusion.Resources.Api.Controllers
         private async Task<string?> ResolveSector(string department)
         {
             var request = new GetDepartmentSector(department);
-            return await mediator.Send(request);
+            return await DispatchAsync(request);
         }
         private async Task<IEnumerable<string>> ResolveSectorDepartments(string sector)
         {
-            var departments = await mediator.Send(new GetDepartments().InSector(sector));
+            var departments = await DispatchAsync(new GetDepartments().InSector(sector));
             return departments
                 .Select(dpt => dpt.DepartmentId);
         }
 
         private async Task<IEnumerable<string>> ResolveDownstreamSectors(string department)
         {
-            var departments = await mediator.Send(new GetDepartments().StartsWith(department));
+            var departments = await DispatchAsync(new GetDepartments().StartsWith(department));
             return departments
                 .Select(dpt => dpt.SectorId!).Distinct();
         }
