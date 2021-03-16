@@ -13,7 +13,7 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset DateTo { get; set; }
 
         public DateTimeOffset DateCreated { get; set; }
-        public DateTimeOffset DateUpdated { get; set; }
+        public DateTimeOffset? DateUpdated { get; set; }
         public Guid? UpdatedBy { get; set; }
 
 
