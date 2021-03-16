@@ -613,7 +613,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<DateTimeOffset>("DateTo")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTimeOffset>("DateUpdated")
+                    b.Property<DateTimeOffset?>("DateUpdated")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
                         .HasDefaultValueSql("getutcdate()");
@@ -639,7 +639,6 @@ namespace Fusion.Resources.Database.Migrations
                             DateCreated = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             DateFrom = new DateTimeOffset(new DateTime(2020, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 1, 0, 0, 0)),
                             DateTo = new DateTimeOffset(new DateTime(2021, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 1, 0, 0, 0)),
-                            DateUpdated = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             DepartmentId = "TPD PRD PMC PCA PCA7",
                             ResponsibleAzureObjectId = new Guid("20621fbc-dc4e-4958-95c9-2ac56e166973")
                         });
