@@ -163,6 +163,7 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await AddWorkFlows(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
+                    await AddProposedPersons(pagedQuery);
                 }
 
                 return pagedQuery;
@@ -210,6 +211,20 @@ namespace Fusion.Resources.Domain.Queries
                         continue;
                     }
                     req.Workflow = wf;
+                }
+            }
+
+            private async Task AddProposedPersons(List<QueryResourceAllocationRequest> requestItems)
+            {
+                var ids = requestItems
+                    .Where(r => r.ProposedPerson is not null)
+                    .Select(r => r.ProposedPerson!.AzureUniqueId);
+                var profiles = await mediator.Send(new GetPersonProfiles(ids));
+                foreach(var request in requestItems)
+                {
+                    var id = request.ProposedPerson?.AzureUniqueId;
+                    if (id is not null && profiles.ContainsKey(id.Value))
+                        request.ProposedPerson!.Person = profiles[id.Value];
                 }
             }
         }
