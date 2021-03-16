@@ -81,17 +81,6 @@ namespace Fusion.Resources.Domain
                         p.Timeline = TimelineUtils.GeneratePersonnelTimeline(p.PositionInstances, p.Absence, request.TimelineStart!.Value, request.TimelineEnd!.Value).OrderBy(p => p.AppliesFrom)
                             .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
                             .ToList();
-
-                        // Tweek ranges where end date == next start date
-                        var indexToMoveBack = new List<int>();
-                        for (int i = 0; i < p.Timeline.Count; i++)
-                        {
-                            var now = p.Timeline.ElementAt(i);
-                            var next = p.Timeline.ElementAtOrDefault(i + 1);
-
-                            if (next != null && now.AppliesTo == next.AppliesFrom)
-                                now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
-                        }
                     }
                 });
 
@@ -107,7 +96,7 @@ namespace Fusion.Resources.Domain
                 return departmentPersonnel;
             }
 
-            private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds) 
+            private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)
             {
                 var ids = azureIds.ToArray();
 
