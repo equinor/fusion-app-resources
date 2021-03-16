@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Resources.Api.Controllers
 {
+    [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
     public class InternalRequestsController : ResourceControllerBase
@@ -80,7 +82,12 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest([FromRoute] ProjectIdentifier? projectIdentifier, Guid requestId, [FromBody] PatchInternalRequestRequest request)
+        [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
+            [FromRoute] ProjectIdentifier? projectIdentifier, 
+            string? departmentString, 
+            Guid requestId, 
+            [FromBody] PatchInternalRequestRequest request)
         {
             #region Authorization
 
@@ -204,6 +211,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
+        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
@@ -278,7 +286,8 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/resources/requests/internal/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult> DeleteProjectAllocationRequest(Guid requestId)
+        [HttpDelete("/departments/{departmentString}/resources/requests/{requestId}")]
+        public async Task<ActionResult> DeleteAllocationRequest(Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
