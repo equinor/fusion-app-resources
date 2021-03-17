@@ -52,7 +52,7 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     // Check that the workflow can be started. This requires that a person is proposed.
                     if (!request.ProposedPerson.HasBeenProposed)
-                        throw InvalidWorkflowError.ValidationError<InternalRequestJointVentureWorkflowV1>("Cannot start joint venture request without a person proposed", s =>
+                        throw InvalidWorkflowError.ValidationError<AllocationJointVentureWorkflowV1>("Cannot start joint venture request without a person proposed", s =>
                             s.AddFailure("proposedPerson", "Must provide a person to be assigned the position"));
                 }
 
