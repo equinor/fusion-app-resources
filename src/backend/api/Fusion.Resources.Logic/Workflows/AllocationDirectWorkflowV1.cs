@@ -5,15 +5,16 @@ using System.Collections.Generic;
 namespace Fusion.Resources.Logic.Workflows
 {
 
-    public class InternalRequestDirectWorkflowV1 : WorkflowDefinition
+    public class AllocationDirectWorkflowV1 : WorkflowDefinition
     {
+        public const string SUBTYPE = "direct";
+
         public const string CREATED = "created";
-        public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
         public override string Name => "Direct personnel assignment request";
 
-        public InternalRequestDirectWorkflowV1()
+        public AllocationDirectWorkflowV1()
             : base(null)
         {
             Steps = new List<WorkflowStep>()
@@ -23,7 +24,7 @@ namespace Fusion.Resources.Logic.Workflows
             };
         }
 
-        public InternalRequestDirectWorkflowV1(DbPerson creator)
+        public AllocationDirectWorkflowV1(DbPerson creator)
             : this()
         {
             Step(CREATED)
@@ -33,7 +34,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public InternalRequestDirectWorkflowV1(DbWorkflow workflow)
+        public AllocationDirectWorkflowV1(DbWorkflow workflow)
             : base(workflow)
         {
         }

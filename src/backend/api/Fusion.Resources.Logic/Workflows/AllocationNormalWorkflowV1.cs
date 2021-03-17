@@ -5,17 +5,18 @@ using System.Collections.Generic;
 namespace Fusion.Resources.Logic.Workflows
 {
 
-    public class InternalRequestNormalWorkflowV1 : WorkflowDefinition
+    public class AllocationNormalWorkflowV1 : WorkflowDefinition
     {
+        public const string SUBTYPE = "normal";
+
         public const string CREATED = "created";
         public const string PROPOSAL = "proposal";
         public const string APPROVAL = "approval";
-        public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
         public override string Name => "Normal personnel assignment request";
 
-        public InternalRequestNormalWorkflowV1()
+        public AllocationNormalWorkflowV1()
             : base(null)
         {
             Steps = new List<WorkflowStep>()
@@ -27,7 +28,7 @@ namespace Fusion.Resources.Logic.Workflows
             };
         }
 
-        public InternalRequestNormalWorkflowV1(DbPerson creator)
+        public AllocationNormalWorkflowV1(DbPerson creator)
             : this()
         {
             Step(CREATED)
@@ -37,7 +38,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public InternalRequestNormalWorkflowV1(DbWorkflow workflow)
+        public AllocationNormalWorkflowV1(DbWorkflow workflow)
             : base(workflow)
         {
         }

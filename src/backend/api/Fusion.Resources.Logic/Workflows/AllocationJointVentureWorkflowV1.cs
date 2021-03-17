@@ -5,16 +5,17 @@ using System.Collections.Generic;
 namespace Fusion.Resources.Logic.Workflows
 {
 
-    public class InternalRequestJointVentureWorkflowV1 : WorkflowDefinition
+    public class AllocationJointVentureWorkflowV1 : WorkflowDefinition
     {
+        public const string SUBTYPE = "jointVenture";
+
         public const string CREATED = "created";
         public const string APPROVAL = "approval";
-        public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
         public override string Name => "Joint venture personnel assignment request";
 
-        public InternalRequestJointVentureWorkflowV1()
+        public AllocationJointVentureWorkflowV1()
             : base(null)
         {
             Steps = new List<WorkflowStep>()
@@ -25,7 +26,7 @@ namespace Fusion.Resources.Logic.Workflows
             };
         }
 
-        public InternalRequestJointVentureWorkflowV1(DbPerson creator)
+        public AllocationJointVentureWorkflowV1(DbPerson creator)
             : this()
         {
             Step(CREATED)
@@ -35,7 +36,7 @@ namespace Fusion.Resources.Logic.Workflows
                 .StartNext();
         }
 
-        public InternalRequestJointVentureWorkflowV1(DbWorkflow workflow)
+        public AllocationJointVentureWorkflowV1(DbWorkflow workflow)
             : base(workflow)
         {
         }

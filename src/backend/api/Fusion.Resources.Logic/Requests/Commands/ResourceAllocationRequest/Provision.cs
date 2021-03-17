@@ -82,9 +82,7 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         switch (dbRequest.Type)
                         {
-                            case DbInternalRequestType.Direct:
-                            case DbInternalRequestType.JointVenture:
-                            case DbInternalRequestType.Normal:
+                            case DbInternalRequestType.Allocation:
                                 await ProvisionAllocationRequestAsync(dbRequest);
                                 await UpdateWorkflowStatusAsync(request, dbRequest);
                                 break;

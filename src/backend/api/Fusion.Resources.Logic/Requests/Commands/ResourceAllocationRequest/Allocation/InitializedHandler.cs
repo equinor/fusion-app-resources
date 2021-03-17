@@ -4,16 +4,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database;
-using Fusion.Resources.Domain;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.EntityFrameworkCore;
-using Fusion.Resources.Integration.Models.Queue;
 
 namespace Fusion.Resources.Logic.Commands
 {
     public partial class ResourceAllocationRequest
     {
-        public partial class Direct
+        public partial class Allocation
         {
             public class InitializedHandler : INotificationHandler<RequestInitialized>
             {
@@ -28,24 +26,41 @@ namespace Fusion.Resources.Logic.Commands
 
                 public async Task Handle(RequestInitialized notification, CancellationToken cancellationToken)
                 {
-                    if (notification.Type != DbInternalRequestType.Direct)
+                    if (notification.Type != DbInternalRequestType.Allocation)
                         return;
 
                     var initiatedBy = await dbContext.Persons.FirstAsync(p => p.Id == notification.InitiatedByDbPersonId);
                     var request = await dbContext.ResourceAllocationRequests.FirstAsync(r => r.Id == notification.RequestId);
 
+                    var subType = notification.SubType;
 
-                    var workflow = new InternalRequestDirectWorkflowV1(initiatedBy);
+                    if (subType is null)
+                    {
+                        if (request.OrgPositionId is null)
+                            throw new InvalidOperationException("Org position id is null for request. Cannot resolve sub type.");
+
+                        subType = await mediator.Send(new ResolveSubType(request.OrgPositionId.Value, request.OrgPositionInstance.Id));
+                    }
+
+                    WorkflowDefinition workflow = subType.ToLower() switch
+                    {
+                        AllocationDirectWorkflowV1.SUBTYPE => new AllocationDirectWorkflowV1(initiatedBy),
+                        AllocationJointVentureWorkflowV1.SUBTYPE => new AllocationJointVentureWorkflowV1(initiatedBy),
+                        AllocationNormalWorkflowV1.SUBTYPE => new AllocationNormalWorkflowV1(initiatedBy),
+                        _ => throw new NotSupportedException($"Sub type '{subType}' is not supported for initialization.")
+                    };
+
                     dbContext.Workflows.Add(workflow.CreateDatabaseEntity(notification.RequestId, DbRequestType.InternalRequest));
 
                     request.LastActivity = DateTime.UtcNow;
-                    request.State.State = InternalRequestDirectWorkflowV1.CREATED;
+                    request.State.State = AllocationDirectWorkflowV1.CREATED;
 
                     await dbContext.SaveChangesAsync();
 
-                    // Workflow has no more steps, queue provisioning
-                    await mediator.Send(new QueueProvisioning(request.Id));
+                    await mediator.Publish(new AllocationRequestStarted(request.Id, workflow));
                 }
+
+
             }
         }
     }

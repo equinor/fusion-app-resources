@@ -8,6 +8,8 @@ namespace Fusion.Resources.Logic.Workflows
 {
     public abstract class WorkflowDefinition
     {
+        public const string PROVISIONING = "provisioning";
+
         protected DbWorkflow? dbWorkflow;
 
         public WorkflowDefinition(DbWorkflow? dbWorkflow)
