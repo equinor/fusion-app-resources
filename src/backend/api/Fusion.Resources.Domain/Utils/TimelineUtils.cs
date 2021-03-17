@@ -106,14 +106,17 @@ namespace Fusion.Resources.Domain
 
             foreach (var req in applicableRequests)
             {
-                if (req.OrgPositionInstance!.AppliesTo <= filterEnd && !keyDates.Contains(req.OrgPositionInstance!.AppliesTo))
+                var startDate = req.OrgPositionInstance!.AppliesFrom.Date;
+                var endDate = req.OrgPositionInstance!.AppliesTo.Date;
+
+                if (endDate <= filterEnd && !keyDates.Contains(endDate))
                 {
-                    keyDates.Add(req.OrgPositionInstance!.AppliesTo);
+                    keyDates.Add(endDate);
                 }
 
-                if (req.OrgPositionInstance!.AppliesFrom >= filterStart && !keyDates.Contains(req.OrgPositionInstance!.AppliesFrom))
+                if (startDate >= filterStart && !keyDates.Contains(startDate))
                 {
-                    keyDates.Add(req.OrgPositionInstance!.AppliesFrom);
+                    keyDates.Add(startDate);
                 }
             }
 
