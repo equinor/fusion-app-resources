@@ -106,14 +106,17 @@ namespace Fusion.Resources.Domain
 
             foreach (var req in applicableRequests)
             {
-                if (req.OrgPositionInstance!.AppliesTo <= filterEnd && !keyDates.Contains(req.OrgPositionInstance!.AppliesTo))
+                var startDate = req.OrgPositionInstance!.AppliesFrom.Date;
+                var endDate = req.OrgPositionInstance!.AppliesTo.Date;
+
+                if (endDate <= filterEnd && !keyDates.Contains(endDate))
                 {
-                    keyDates.Add(req.OrgPositionInstance!.AppliesTo);
+                    keyDates.Add(endDate);
                 }
 
-                if (req.OrgPositionInstance!.AppliesFrom >= filterStart && !keyDates.Contains(req.OrgPositionInstance!.AppliesFrom))
+                if (startDate >= filterStart && !keyDates.Contains(startDate))
                 {
-                    keyDates.Add(req.OrgPositionInstance!.AppliesFrom);
+                    keyDates.Add(startDate);
                 }
             }
 
@@ -123,7 +126,7 @@ namespace Fusion.Resources.Domain
             {
                 var range = new TimeRange(start, end, isReadOnly: true);
                 var requestsInRange = applicableRequests.Where(req =>
-                    new TimeRange(req.OrgPositionInstance!.AppliesFrom, req.OrgPositionInstance!.AppliesTo).OverlapsWith(range)
+                    new TimeRange(req.OrgPositionInstance!.AppliesFrom.Date, req.OrgPositionInstance!.AppliesTo.Date).OverlapsWith(range)
                 );
 
                 return new QueryTimelineRange<QueryRequestsTimelineItem>(start, end)
@@ -162,12 +165,12 @@ namespace Fusion.Resources.Domain
         private static void FixOverlappingPeriods<T>(List<QueryTimelineRange<T>> timeline)
         {
             // Tweek ranges where end date == next start date
-            for (int i = 0; i < timeline.Count; i++)
+            for (int i = 0; i < timeline.Count - 1; i++)
             {
-                var now = timeline.ElementAt(i);
-                var next = timeline.ElementAtOrDefault(i + 1);
+                var now = timeline[i];
+                var next = timeline[i + 1];
 
-                if (next != null && now.AppliesTo == next.AppliesFrom)
+                if (now.AppliesTo == next.AppliesFrom)
                     now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
             }
         }
