@@ -126,7 +126,7 @@ namespace Fusion.Resources.Domain
             {
                 var range = new TimeRange(start, end, isReadOnly: true);
                 var requestsInRange = applicableRequests.Where(req =>
-                    new TimeRange(req.OrgPositionInstance!.AppliesFrom, req.OrgPositionInstance!.AppliesTo).OverlapsWith(range)
+                    new TimeRange(req.OrgPositionInstance!.AppliesFrom.Date, req.OrgPositionInstance!.AppliesTo.Date).OverlapsWith(range)
                 );
 
                 return new QueryTimelineRange<QueryRequestsTimelineItem>(start, end)
