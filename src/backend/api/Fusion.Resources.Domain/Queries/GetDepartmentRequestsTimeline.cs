@@ -94,7 +94,6 @@ namespace Fusion.Resources.Domain
                 var relevantRequests = TimelineUtils.FilterRequests(departmentRequests, new TimeRange(filterStart, filterEnd)).ToList();
                 
                 var timeline = TimelineUtils.GenerateRequestsTimeline(relevantRequests, filterStart, filterEnd).OrderBy(p => p.AppliesFrom)
-                            //.Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
                             .ToList();
 
                 var result = new QueryRequestsTimeline
