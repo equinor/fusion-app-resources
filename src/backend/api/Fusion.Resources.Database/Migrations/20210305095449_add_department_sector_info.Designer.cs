@@ -243,7 +243,7 @@ namespace Fusion.Resources.Database.Migrations
                 b.Property<DateTimeOffset>("DateTo")
                     .HasColumnType("datetimeoffset");
 
-                b.Property<DateTimeOffset>("DateUpdated")
+                b.Property<DateTimeOffset?>("DateUpdated")
                     .ValueGeneratedOnAdd()
                     .HasColumnType("datetimeoffset")
                     .HasDefaultValueSql("getutcdate()");
