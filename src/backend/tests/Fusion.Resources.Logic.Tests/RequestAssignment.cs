@@ -18,7 +18,7 @@ namespace Fusion.Resources.Logic.Tests
         private DbPerson proposed;
         private DbPerson initiator;
         private DbResourceAllocationRequest request;
-        private ResourceAllocationRequest.RequestRouter handler;
+        private Queries.ResolveResponsibleDepartment.Handler handler;
 
         public RequestAssignment()
         {
@@ -43,8 +43,8 @@ namespace Fusion.Resources.Logic.Tests
                 OrgPositionInstance = new DbResourceAllocationRequest.DbOpPositionInstance
                 {
                     LocationId = Guid.NewGuid(),
-                    AppliesFrom = new DateTime(2021,01,01),
-                    AppliesTo = new DateTime(2021,12,31),
+                    AppliesFrom = new DateTime(2021, 01, 01),
+                    AppliesTo = new DateTime(2021, 12, 31),
                     Workload = 50
                 },
                 ProposedPerson = new DbResourceAllocationRequest.DbOpProposedPerson
@@ -56,13 +56,13 @@ namespace Fusion.Resources.Logic.Tests
             db.Add(request);
             db.SaveChanges();
 
-            handler = new ResourceAllocationRequest.RequestRouter(db);
+            handler = new Queries.ResolveResponsibleDepartment.Handler(db);
         }
 
         [Fact]
         public async Task Should_Match_On_Project_Discipline_And_Location()
         {
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner"};
+            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
 
             var matrix = new DbResponsibilityMatrix
             {
@@ -77,13 +77,12 @@ namespace Fusion.Resources.Logic.Tests
             db.Add(matrix);
             db.SaveChanges();
 
-            await handler.Handle(
-                new ResourceAllocationRequest.RequestInitialized(request.Id, DbInternalRequestType.Normal, initiator),
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
                 new System.Threading.CancellationToken()
             );
 
-            var updatedRequest = db.ResourceAllocationRequests.Find(request.Id);
-            updatedRequest.AssignedDepartment.Should().Be(matrix.Unit);
+            resolvedDepartment.Should().Be(matrix.Unit);
         }
 
         [Fact]
@@ -104,13 +103,12 @@ namespace Fusion.Resources.Logic.Tests
             db.Add(matrix);
             db.SaveChanges();
 
-            await handler.Handle(
-                 new ResourceAllocationRequest.RequestInitialized(request.Id, DbInternalRequestType.Normal, initiator),
-                 new System.Threading.CancellationToken()
-             );
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
+                new System.Threading.CancellationToken()
+                );
 
-            var updatedRequest = db.ResourceAllocationRequests.Find(request.Id);
-            updatedRequest.AssignedDepartment.Should().Be(matrix.Unit);
+            resolvedDepartment.Should().Be(matrix.Unit);
         }
 
         [Fact]
@@ -141,13 +139,12 @@ namespace Fusion.Resources.Logic.Tests
             db.Add(approximate);
             db.SaveChanges();
 
-            await handler.Handle(
-                new ResourceAllocationRequest.RequestInitialized(request.Id, DbInternalRequestType.Normal, initiator),
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
                 new System.Threading.CancellationToken()
             );
 
-            var updatedRequest = db.ResourceAllocationRequests.Find(request.Id);
-            updatedRequest.AssignedDepartment.Should().Be(exact.Unit);
+            resolvedDepartment.Should().Be(exact.Unit);
         }
 
         [Fact]
@@ -178,13 +175,12 @@ namespace Fusion.Resources.Logic.Tests
             db.Add(approximate);
             db.SaveChanges();
 
-            await handler.Handle(
-                new ResourceAllocationRequest.RequestInitialized(request.Id, DbInternalRequestType.Normal, initiator),
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
                 new System.Threading.CancellationToken()
             );
-
-            var updatedRequest = db.ResourceAllocationRequests.Find(request.Id);
-            updatedRequest.AssignedDepartment.Should().Be(exact.Unit);
+            
+            resolvedDepartment.Should().Be(exact.Unit);
         }
     }
 }
