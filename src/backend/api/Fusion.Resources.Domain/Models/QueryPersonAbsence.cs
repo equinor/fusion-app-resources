@@ -53,6 +53,6 @@ namespace Fusion.Resources.Domain
 
     public enum QueryAbsenceType
     {
-        Absence, Vacation
+        Absence, Vacation, OtherTasks
     }
 }
