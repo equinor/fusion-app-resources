@@ -165,12 +165,12 @@ namespace Fusion.Resources.Domain
         private static void FixOverlappingPeriods<T>(List<QueryTimelineRange<T>> timeline)
         {
             // Tweek ranges where end date == next start date
-            for (int i = 0; i < timeline.Count; i++)
+            for (int i = 0; i < timeline.Count - 1; i++)
             {
-                var now = timeline.ElementAt(i);
-                var next = timeline.ElementAtOrDefault(i + 1);
+                var now = timeline[i];
+                var next = timeline[i + 1];
 
-                if (next != null && now.AppliesTo == next.AppliesFrom)
+                if (now.AppliesTo == next.AppliesFrom)
                     now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
             }
         }
