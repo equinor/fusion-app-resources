@@ -96,10 +96,7 @@ namespace Fusion.Resources.Domain.Commands
                 {
                     Id = Guid.NewGuid(),
                     AssignedDepartment = request.AssignedDepartment,
-                    Type = request.Type switch {
-                        InternalRequestType.Allocation => DbInternalRequestType.Allocation,
-                        _ => throw new NotSupportedException("Query request type ")
-                    },
+                    Type = request.Type.MapToDatabase(),
                     SubType = request.SubType,
                     RequestOwner = request.Owner switch
                     {

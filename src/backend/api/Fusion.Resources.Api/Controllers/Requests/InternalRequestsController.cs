@@ -87,6 +87,70 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
+        [HttpPost("/departments/{departmentPath}/resources/requests")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> CreateResourceOwnerRequest(
+            [FromRoute] string departmentPath, [FromBody] CreateResourceOwnerAllocationRequest request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            // Resolve position
+            var position = await ResolvePositionAsync(request.OrgPositionId);
+            if (position is null)
+                return ApiErrors.InvalidInput($"Could not resolve org chart position with id '{request.OrgPositionId}'");
+
+            var command = new CreateInternalRequest(InternalRequestOwner.ResourceOwner, request.ResolveType())
+            {
+                SubType = request.SubType,
+                AdditionalNote = request.AdditionalNote,
+                OrgPositionId = request.OrgPositionId,
+                OrgProjectId = position.ProjectId,
+                OrgPositionInstanceId = request.OrgPositionInstanceId,
+                AssignedDepartment = departmentPath
+            };
+
+            try
+            {
+
+                using var transaction = await BeginTransactionAsync();
+
+                var newRequest = await DispatchAsync(command);
+
+                if (request.ProposedChanges is not null || request.ProposedPersonAzureUniqueId is not null)
+                {
+                    newRequest = await DispatchAsync(new UpdateInternalRequest(newRequest.RequestId)
+                    {
+                        ProposedChanges = request.ProposedChanges,
+                        ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId
+                    });
+                }
+
+                await transaction.CommitAsync();
+
+                newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+                return Created($"/departments/{departmentPath}/resources/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
+            }
+            catch (ValidationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+
+        }
+
         [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]

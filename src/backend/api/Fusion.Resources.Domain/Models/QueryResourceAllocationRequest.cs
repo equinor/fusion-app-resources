@@ -16,7 +16,8 @@ namespace Fusion.Resources.Domain
 
     public enum InternalRequestType
     {
-        Allocation
+        Allocation,
+        ResourceOwnerChange,
     }
 
     public class QueryResourceAllocationRequest
@@ -27,11 +28,7 @@ namespace Fusion.Resources.Domain
             RequestId = entity.Id;
             AssignedDepartment = entity.AssignedDepartment;
             Discipline = entity.Discipline;
-            Type = entity.Type switch
-            {
-                DbInternalRequestType.Allocation => InternalRequestType.Allocation,
-                _ => throw new NotSupportedException($"Invalid query type received from database entity {entity.Type}")
-            };
+            Type = entity.Type.MapToDomain();
 
             SubType = entity.SubType;
 

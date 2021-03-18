@@ -1,6 +1,6 @@
 ﻿namespace Fusion.Resources.Database.Entities
 {
-    public enum DbInternalRequestType { Allocation }
+    public enum DbInternalRequestType { Allocation, ResourceOwnerChange }
 
 
 }

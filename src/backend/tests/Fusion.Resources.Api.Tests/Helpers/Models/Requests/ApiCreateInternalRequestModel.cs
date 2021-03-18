@@ -28,6 +28,13 @@ namespace Fusion.Testing.Mocks
 
         public Guid? ProposedPersonAzureUniqueId { get; set; }
 
+        public ApiCreateInternalRequestModel AsTypeResourceOwner(string? subType = null)
+        {
+            Type = "resourceOwnerChange";
+            SubType = subType;
+            return this;
+        }
+
         public ApiCreateInternalRequestModel AsTypeNormal()
         {
             Type = "allocation";

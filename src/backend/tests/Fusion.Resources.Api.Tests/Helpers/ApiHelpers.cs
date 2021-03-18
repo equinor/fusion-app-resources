@@ -69,6 +69,25 @@ namespace Fusion.Resources.Api.Tests
             return newRequestResponse.Value;
         }
 
+        public static async Task<TestApiInternalRequestModel> CreateDefaultResourceOwnerRequestAsync(this HttpClient client, string department, FusionTestProjectBuilder project,
+            Action<ApiCreateInternalRequestModel> setup = null, Action<ApiPositionV2> positionSetup = null)
+        {
+            var position = project.AddPosition();
+
+            positionSetup?.Invoke(position);
+
+            var requestModel = new ApiCreateInternalRequestModel()
+                .AsTypeResourceOwner()
+                .WithPosition(position);
+
+            setup?.Invoke(requestModel);
+
+            var newRequestResponse = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{department}/resources/requests", requestModel);
+            newRequestResponse.Should().BeSuccessfull();
+
+            return newRequestResponse.Value;
+        }
+
         public static async Task<TestApiInternalRequestModel> AssignDepartmentAsync(this HttpClient client, Guid requestId, string? department)
         {
             var newRequestResponse = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
