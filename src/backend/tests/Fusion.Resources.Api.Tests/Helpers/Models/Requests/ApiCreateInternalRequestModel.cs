@@ -14,6 +14,7 @@ namespace Fusion.Testing.Mocks
     public class ApiCreateInternalRequestModel
     {
         public string Type { get; set; } = null!;
+        public string? SubType { get; set; }
         public bool? IsDraft { get; set; }
 
         // Not required unless created from the resource owner side. Change requests.
@@ -29,17 +30,20 @@ namespace Fusion.Testing.Mocks
 
         public ApiCreateInternalRequestModel AsTypeNormal()
         {
-            Type = "normal";
+            Type = "allocation";
+            SubType = "normal";
             return this;
         }
         public ApiCreateInternalRequestModel AsTypeJointVenture()
         {
-            Type = "jointVenture";
+            Type = "allocation";
+            SubType = "jointVenture";
             return this;
         }
         public ApiCreateInternalRequestModel AsTypeDirect()
         {
-            Type = "direct";
+            Type = "allocation";
+            SubType = "direct";
             return this;
         }
 

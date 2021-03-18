@@ -7,7 +7,7 @@ namespace Fusion.Resources.Logic.Workflows
 
     public class AllocationJointVentureWorkflowV1 : WorkflowDefinition
     {
-        public const string SUBTYPE = "jointVenture";
+        public const string SUBTYPE = "jointventure";
 
         public const string CREATED = "created";
         public const string APPROVAL = "approval";

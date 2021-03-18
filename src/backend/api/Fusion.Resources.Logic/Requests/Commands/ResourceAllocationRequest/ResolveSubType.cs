@@ -40,16 +40,16 @@ namespace Fusion.Resources.Logic.Commands
                     if (position is null) throw new InvalidOperationException("Could not resolve org position");
 
                     var basePosition = await orgResolver.ResolveBasePositionAsync(position.BasePosition.Id);
-                    var bpSettings = basePosition!.GetTypedSettings();
+                    var bpSettings = basePosition?.GetTypedSettings();
 
-                    if (bpSettings.DirectAssignmentEnabled.GetValueOrDefault(false))
+                    if (bpSettings is not null && bpSettings.DirectAssignmentEnabled.GetValueOrDefault(false))
                         return AllocationDirectWorkflowV1.SUBTYPE;
                     else
                     {
                         // Check if joint venture
                         var instance = position.Instances.First(i => i.Id == request.OrgInstanceId);
 
-                        if (string.Equals(instance.Properties.GetProperty<string>("type", "normal"), "jointVenture", StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(instance?.Properties?.GetProperty<string>("type", "normal"), "jointVenture", StringComparison.OrdinalIgnoreCase))
                             return AllocationJointVentureWorkflowV1.SUBTYPE;
                         else
                             return AllocationNormalWorkflowV1.SUBTYPE;
