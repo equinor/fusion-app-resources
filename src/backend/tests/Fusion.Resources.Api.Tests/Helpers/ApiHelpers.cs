@@ -109,5 +109,27 @@ namespace Fusion.Resources.Api.Tests
 
             return resp.Value;
         }
+
+        public static async Task ProvisionRequestAsync(this HttpClient client, Guid requestId)
+        {
+            var resp = await client.TestClientPostAsync<object>($"/resources/requests/internal/{requestId}/provision", null);
+            resp.Should().BeSuccessfull();
+        }
+
+        public static async Task<TestApiInternalRequestModel> TaskOwnerApproveAsync(this HttpClient client, FusionTestProjectBuilder project, Guid requestId)
+        {
+            var resp = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{project.Project.ProjectId}/resources/requests/{requestId}/approve", null);
+            resp.Should().BeSuccessfull();
+
+            return resp.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> ResourceOwnerApproveAsync(this HttpClient client, string department, Guid requestId)
+        {
+            var resp = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{department}/resources/requests/{requestId}/approve", null);
+            resp.Should().BeSuccessfull();
+
+            return resp.Value;
+        }
     }
 }
