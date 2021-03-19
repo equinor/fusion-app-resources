@@ -123,5 +123,15 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
+
+        [HttpGet("departments/{departmentString}/resources/requests/tbn")]
+        public async Task<ActionResult> GetTBNPositions(string departmentString)
+        {
+            var request = new GetTBNPositions(departmentString);
+
+            var data = await DispatchAsync(request);
+
+            return Ok(data);
+        }
     }
 }
