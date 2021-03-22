@@ -57,7 +57,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var client = httpClientFactory.CreateClient(org_client_name); ;
 
-                var result = await client.GetAsync(tbn_endpoint);
+                var result = await client.GetAsync(tbn_endpoint, cancellationToken);
 
                 var positions = await JsonSerializer.DeserializeAsync<ApiPositionV2[]>(
                     await result.Content.ReadAsStreamAsync(cancellationToken),

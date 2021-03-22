@@ -22,7 +22,12 @@ namespace Fusion.Resources.Domain
 
         public async Task<string?> Route(DbResourceAllocationRequest request, CancellationToken cancellationToken)
         {
-            var matches = Match(request.Project.OrgProjectId, request.Discipline, request.OrgPositionInstance.LocationId);
+            var props = new MatchingProperties(request.Project.OrgProjectId)
+            {
+                Discipline = request.Discipline,
+                LocationId = request.OrgPositionInstance.LocationId,
+            };
+            var matches = Match(props);
             var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= 5, cancellationToken);
 
             return bestMatch?.Row.Unit;
@@ -30,28 +35,44 @@ namespace Fusion.Resources.Domain
 
         public async Task<string?> Route(ApiPositionV2 tbnPosition, ApiPositionInstanceV2 instance, CancellationToken cancellationToken)
         {
-            var matches = Match(tbnPosition.ProjectId, tbnPosition.BasePosition.Discipline, instance.Location?.Id);
+            var props = new MatchingProperties(tbnPosition.ProjectId)
+            {
+                BasePositionDepartment = tbnPosition.BasePosition.Department,
+                Discipline = tbnPosition.BasePosition.Discipline,
+                LocationId = instance.Location?.Id,
+            };
+            var matches = Match(props);
             var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= 5, cancellationToken);
 
             return bestMatch.Row?.Unit;
         }
 
-        private IQueryable<ResponsibilityMatch> Match(
-            Guid orgProjectId, 
-            string? discipline, 
-            Guid? locationId)
+        private IQueryable<ResponsibilityMatch> Match(MatchingProperties props)
         {
             return db.ResponsibilityMatrices
                 .Include(m => m.Responsible)
                 .Include(m => m.Project)
                 .Select(m => new ResponsibilityMatch
                 {
-                    Score = (m.Project!.OrgProjectId == orgProjectId ? 5 : 0)
-                            + (m.Discipline == discipline ? 2 : 0)
-                            + (m.LocationId == locationId ? 1 : 0),
+                    Score = (props.BasePositionDepartment != null && m.Unit.StartsWith(props.BasePositionDepartment) ? 7 : 0)
+                            + (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
+                            + (m.Discipline == props.Discipline ? 2 : 0)
+                            + (m.LocationId == props.LocationId ? 1 : 0),
                     Row = m
                 })
                 .OrderByDescending(x => x.Score);
+        }
+
+        private class MatchingProperties
+        {
+            public MatchingProperties(Guid orgProjectId)
+            {
+                OrgProjectId = orgProjectId;
+            }
+            public Guid OrgProjectId { get;  }
+            public string? Discipline { get; set; }
+            public string? BasePositionDepartment { get; set; }
+            public Guid? LocationId { get; set; }
         }
 
         public class ResponsibilityMatch
