@@ -133,5 +133,60 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             return Ok(data);
         }
+
+        [HttpGet("departments/{departmentString}/resources/tbn-positions/timeline")]
+
+        public async Task<ActionResult> GetTbnPositionsTimeline(
+            [FromRoute] string departmentString,
+            [FromQuery] ODataQueryParams query,
+            [FromQuery] DateTime? timelineStart = null,
+            [FromQuery] string? timelineDuration = null,
+            [FromQuery] DateTime? timelineEnd = null)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    // add requirements
+                });
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            #region validate timeline input
+
+            if (timelineStart is null)
+                return ApiErrors.MissingInput(nameof(timelineStart), "Must specify 'timelineStart'");
+
+            TimeSpan? duration;
+
+            try { duration = timelineDuration != null ? XmlConvert.ToTimeSpan("P5M") : null; }
+            catch (Exception ex)
+            {
+                return ApiErrors.InvalidInput("Invalid duration value: " + ex.Message);
+            }
+
+            if (timelineEnd is null)
+            {
+                if (duration is null)
+                    return ApiErrors.MissingInput(nameof(timelineDuration), "Must specify either 'timelineDuration' or 'timelineEnd' when expanding timeline");
+
+                timelineEnd = timelineStart.Value.Add(duration.Value);
+            }
+            #endregion
+
+            var request = new GetTBNPositions(departmentString);
+
+            var data = await DispatchAsync(request);
+
+            var timeline = TimelineUtils.GenerateTbnPositionsTimeline(data, timelineStart.Value, timelineEnd.Value);
+
+            return Ok(timeline);
+        }
     }
 }

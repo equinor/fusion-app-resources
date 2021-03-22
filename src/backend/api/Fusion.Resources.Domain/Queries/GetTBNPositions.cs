@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetTBNPositions : IRequest<IEnumerable<TBNPosition>>
+    public class GetTBNPositions : IRequest<IEnumerable<TbnPosition>>
     {
         public GetTBNPositions(string department)
         {
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain.Queries
 
         public string Department { get; }
 
-        public class Handler : IRequestHandler<GetTBNPositions, IEnumerable<TBNPosition>>
+        public class Handler : IRequestHandler<GetTBNPositions, IEnumerable<TbnPosition>>
         {
             private readonly IHttpClientFactory httpClientFactory;
             private readonly ResourcesDbContext db;
@@ -41,7 +41,7 @@ namespace Fusion.Resources.Domain.Queries
                 this.options.Converters.Add(new JsonStringEnumConverter());
             }
 
-            public async Task<IEnumerable<TBNPosition>> Handle(GetTBNPositions request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<TbnPosition>> Handle(GetTBNPositions request, CancellationToken cancellationToken)
             {
                 const string tbn_endpoint = "/admin/positions/tbn";
                 const string org_client_name = "Org.Integration.Application";
@@ -66,7 +66,7 @@ namespace Fusion.Resources.Domain.Queries
                 );
 
                 var requestRouter = new RequestRouter(db);
-                var tbnPositions = new List<TBNPosition>();
+                var tbnPositions = new List<TbnPosition>();
 
                 foreach (var pos in positions)
                 {
@@ -79,12 +79,12 @@ namespace Fusion.Resources.Domain.Queries
                         var department = await requestRouter.Route(pos, instance, cancellationToken);
                         if(department == request.Department)
                         {
-                            tbnPositions.Add(new TBNPosition
+                            tbnPositions.Add(new TbnPosition
                             {
                                 PositionId = pos.Id,
                                 InstanceId = instance.Id,
                                 ParentPositionId = pos.ExternalId,
-                                Project = pos.Project,
+                                ProjectId = pos.ProjectId,
                                 BasePosition = pos.BasePosition,
                                 Name = pos.Name,
 
@@ -107,14 +107,14 @@ namespace Fusion.Resources.Domain.Queries
         }
     }
 
-    public class TBNPosition
+    public class TbnPosition
     {
         public Guid PositionId { get; set; }
         public Guid InstanceId { get; set; }
         public string ParentPositionId { get; set; }
 
         public string Name { get; set; }
-        public ApiProjectReferenceV2 Project { get; set; }
+        public Guid ProjectId { get; set; }
         public ApiPositionBasePositionV2 BasePosition { get; set; }
 
         public DateTime AppliesTo { get; set; }

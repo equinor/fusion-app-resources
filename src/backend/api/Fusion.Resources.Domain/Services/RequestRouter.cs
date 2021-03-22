@@ -3,9 +3,7 @@ using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +11,7 @@ namespace Fusion.Resources.Domain
 {
     public class RequestRouter
     {
+        private const int min_score = 7;
         private readonly ResourcesDbContext db;
 
         public RequestRouter(ResourcesDbContext db)
@@ -28,7 +27,7 @@ namespace Fusion.Resources.Domain
                 LocationId = request.OrgPositionInstance.LocationId,
             };
             var matches = Match(props);
-            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= 5, cancellationToken);
+            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
 
             return bestMatch?.Row.Unit;
         }
@@ -42,7 +41,7 @@ namespace Fusion.Resources.Domain
                 LocationId = instance.Location?.Id,
             };
             var matches = Match(props);
-            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= 5, cancellationToken);
+            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
 
             return bestMatch.Row?.Unit;
         }
@@ -54,8 +53,8 @@ namespace Fusion.Resources.Domain
                 .Include(m => m.Project)
                 .Select(m => new ResponsibilityMatch
                 {
-                    Score = (props.BasePositionDepartment != null && m.Unit.StartsWith(props.BasePositionDepartment) ? 7 : 0)
-                            + (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
+                    Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 7 : 0)
+                            + (props.BasePositionDepartment != null && m.Unit.StartsWith(props.BasePositionDepartment) ? 5 : 0)
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
                     Row = m

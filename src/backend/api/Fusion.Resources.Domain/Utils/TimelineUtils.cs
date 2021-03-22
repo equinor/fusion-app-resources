@@ -1,4 +1,5 @@
-﻿using Itenso.TimePeriod;
+﻿using Fusion.Resources.Domain.Queries;
+using Itenso.TimePeriod;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -140,6 +141,71 @@ namespace Fusion.Resources.Domain
                     })
                     .ToList(),
                     Workload = requestsInRange.Sum(r => r.OrgPositionInstance?.Workload ?? 0)
+                };
+            })
+            .Where(range => range.Items.Any())
+            .ToList();
+
+            FixOverlappingPeriods(timeline);
+
+            return timeline;
+        }
+
+        public static IEnumerable<QueryTimelineRange<QueryTBNPositionTimelineItem>> GenerateTbnPositionsTimeline(
+           IEnumerable<TbnPosition> tbnPositions,
+           DateTime filterStart,
+           DateTime filterEnd)
+        {
+            var segments = new List<QueryTimelineRange<QueryTBNPositionTimelineItem>>();
+
+            var applicatablePositions = tbnPositions
+                .Where(r => r.AppliesTo >= filterStart || r.AppliesFrom <= filterEnd)
+                .OrderBy(r => r.AppliesFrom)
+                .ThenBy(r => r.AppliesTo)
+                .ToList();
+
+            var keyDates = new HashSet<DateTime>
+            {
+                filterStart,
+                filterEnd
+            };
+
+            foreach (var req in applicatablePositions)
+            {
+                var startDate = req.AppliesFrom.Date;
+                var endDate = req.AppliesTo.Date;
+
+                if (endDate <= filterEnd && !keyDates.Contains(endDate))
+                {
+                    keyDates.Add(endDate);
+                }
+
+                if (startDate >= filterStart && !keyDates.Contains(startDate))
+                {
+                    keyDates.Add(startDate);
+                }
+            }
+
+            var orderedKeyDates = keyDates.OrderBy(d => d);
+
+            var timeline = orderedKeyDates.Zip(orderedKeyDates.Skip(1), (start, end) =>
+            {
+                var range = new TimeRange(start, end, isReadOnly: true);
+                var requestsInRange = applicatablePositions.Where(req =>
+                    new TimeRange(req.AppliesFrom.Date, req.AppliesTo.Date).OverlapsWith(range)
+                );
+
+                return new QueryTimelineRange<QueryTBNPositionTimelineItem>(start, end)
+                {
+                    Items = requestsInRange.Select(r => new QueryTBNPositionTimelineItem
+                    {
+                        Workload = r.Workload,
+                        Id = r.InstanceId.ToString(),
+                        PositionName = r.Name,
+                        ProjectId = r.ProjectId
+                    })
+                    .ToList(),
+                    Workload = requestsInRange.Sum(r => r.Workload ?? 0)
                 };
             })
             .Where(range => range.Items.Any())
