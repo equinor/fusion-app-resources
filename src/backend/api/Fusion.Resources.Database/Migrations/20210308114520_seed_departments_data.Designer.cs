@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210308114520_seed_departments_data")]
+    partial class seed_departments_data
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -602,30 +604,17 @@ namespace Fusion.Resources.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("DateCreated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetimeoffset")
-                        .HasDefaultValueSql("getutcdate()");
+                    b.Property<DateTime>("DateFrom")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateTimeOffset>("DateFrom")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("DateTo")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset?>("DateUpdated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetimeoffset")
-                        .HasDefaultValueSql("getutcdate()");
+                    b.Property<DateTime>("DateTo")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DepartmentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("ResponsibleAzureObjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("UpdatedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -636,9 +625,8 @@ namespace Fusion.Resources.Database.Migrations
                         new
                         {
                             Id = new Guid("20621fbc-dc4e-4958-95c9-2ac56e166973"),
-                            DateCreated = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            DateFrom = new DateTimeOffset(new DateTime(2020, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 1, 0, 0, 0)),
-                            DateTo = new DateTimeOffset(new DateTime(2021, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 1, 0, 0, 0)),
+                            DateFrom = new DateTime(2020, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DateTo = new DateTime(2021, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DepartmentId = "TPD PRD PMC PCA PCA7",
                             ResponsibleAzureObjectId = new Guid("20621fbc-dc4e-4958-95c9-2ac56e166973")
                         });
@@ -893,7 +881,13 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<string>("ProposedChanges")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RequestOwner")
+                    b.Property<Guid?>("ProposedPersonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("ProposedPersonWasNotified")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("State")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -912,6 +906,8 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("ProposedPersonId");
 
                     b.HasIndex("UpdatedById");
 
@@ -1005,9 +1001,6 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<Guid?>("TerminatedbyId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("WorkflowClassType")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -1357,12 +1350,16 @@ namespace Fusion.Resources.Database.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "ProposedPerson")
+                        .WithMany()
+                        .HasForeignKey("ProposedPersonId");
+
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpPositionInstance", "OrgPositionInstance", b1 =>
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbPositionInstance", "OrgPositionInstance", b1 =>
                         {
                             b1.Property<Guid>("DbResourceAllocationRequestId")
                                 .HasColumnType("uniqueidentifier");
@@ -1372,12 +1369,6 @@ namespace Fusion.Resources.Database.Migrations
 
                             b1.Property<DateTime>("AppliesTo")
                                 .HasColumnType("datetime2");
-
-                            b1.Property<string>("AssignedToMail")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<Guid?>("AssignedToUniqueId")
-                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<Guid>("Id")
                                 .HasColumnType("uniqueidentifier");
@@ -1399,35 +1390,7 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasForeignKey("DbResourceAllocationRequestId");
                         });
 
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpProposedPerson", "ProposedPerson", b1 =>
-                        {
-                            b1.Property<Guid>("DbResourceAllocationRequestId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid?>("AzureUniqueId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<bool>("HasBeenProposed")
-                                .HasColumnType("bit");
-
-                            b1.Property<string>("Mail")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<DateTimeOffset?>("ProposedAt")
-                                .HasColumnType("datetimeoffset");
-
-                            b1.Property<bool>("WasNotified")
-                                .HasColumnType("bit");
-
-                            b1.HasKey("DbResourceAllocationRequestId");
-
-                            b1.ToTable("ResourceAllocationRequests");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DbResourceAllocationRequestId");
-                        });
-
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpProvisionStatus", "ProvisioningStatus", b1 =>
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+ProvisionStatus", "ProvisioningStatus", b1 =>
                         {
                             b1.Property<Guid>("DbResourceAllocationRequestId")
                                 .HasColumnType("uniqueidentifier");
@@ -1438,13 +1401,7 @@ namespace Fusion.Resources.Database.Migrations
                             b1.Property<string>("ErrorPayload")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid?>("OrgInstanceId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid?>("OrgPositionId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid?>("OrgProjectId")
+                            b1.Property<Guid?>("PositionId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<DateTimeOffset?>("Provisioned")
@@ -1462,25 +1419,6 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasForeignKey("DbResourceAllocationRequestId");
                         });
 
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpState", "State", b1 =>
-                        {
-                            b1.Property<Guid>("DbResourceAllocationRequestId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<bool>("IsCompleted")
-                                .HasColumnType("bit");
-
-                            b1.Property<string>("State")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("DbResourceAllocationRequestId");
-
-                            b1.ToTable("ResourceAllocationRequests");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DbResourceAllocationRequestId");
-                        });
-
                     b.Navigation("CreatedBy");
 
                     b.Navigation("OrgPositionInstance")
@@ -1488,13 +1426,9 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Navigation("Project");
 
-                    b.Navigation("ProposedPerson")
-                        .IsRequired();
+                    b.Navigation("ProposedPerson");
 
                     b.Navigation("ProvisioningStatus")
-                        .IsRequired();
-
-                    b.Navigation("State")
                         .IsRequired();
 
                     b.Navigation("UpdatedBy");

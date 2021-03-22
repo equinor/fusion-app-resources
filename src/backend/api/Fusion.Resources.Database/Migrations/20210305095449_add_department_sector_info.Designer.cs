@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210305095449_add_department_sector_info")]
+    partial class add_department_sector_info
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -222,427 +224,44 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasKey("DepartmentId");
 
                     b.ToTable("Departments");
-
-                    b.HasData(
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA EA1",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA EA2",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA EA3",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA EA3 CON",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA EA4",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA EA4 CON",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EA EA5",
-                            SectorId = "TPD PRD FE EA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EM",
-                            SectorId = "TPD PRD FE EM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EM EM1",
-                            SectorId = "TPD PRD FE EM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EM EM2",
-                            SectorId = "TPD PRD FE EM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EM EM3",
-                            SectorId = "TPD PRD FE EM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EM EM4",
-                            SectorId = "TPD PRD FE EM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE EM EM5",
-                            SectorId = "TPD PRD FE EM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS MAT1",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS MAT2",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS MEC1",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS MEC2",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS MEC3",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS MEC4",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS STR1",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MMS STR2",
-                            SectorId = "TPD PRD FE MMS"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MO",
-                            SectorId = "TPD PRD FE MO"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MO GEO",
-                            SectorId = "TPD PRD FE MO"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MO GMS",
-                            SectorId = "TPD PRD FE MO"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MO MAP",
-                            SectorId = "TPD PRD FE MO"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MO MAR1",
-                            SectorId = "TPD PRD FE MO"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE MO MAR2",
-                            SectorId = "TPD PRD FE MO"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE FA",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE PR1",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE PR2",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE SUS",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE TDS",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE TS",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SE TWE",
-                            SectorId = "TPD PRD FE SE"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SP",
-                            SectorId = "TPD PRD FE SP"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SP SP1",
-                            SectorId = "TPD PRD FE SP"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SP SP2",
-                            SectorId = "TPD PRD FE SP"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SP SP3",
-                            SectorId = "TPD PRD FE SP"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SP SP4",
-                            SectorId = "TPD PRD FE SP"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SP SP5",
-                            SectorId = "TPD PRD FE SP"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD FE SP SP6",
-                            SectorId = "TPD PRD FE SP"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH CHU1",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH CHU2",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH CHU3",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH CM1",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH CM2",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH CM3",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC CCH CM4",
-                            SectorId = "TPD PRD PMC CCH"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA PCA1",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA PCA2",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA PCA3",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA PCA4",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA PCA5",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA PCA6",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PCA PCA7",
-                            SectorId = "TPD PRD PMC PCA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PM",
-                            SectorId = "TPD PRD PMC PM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PM PM1",
-                            SectorId = "TPD PRD PMC PM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PM PM2",
-                            SectorId = "TPD PRD PMC PM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PM PM3",
-                            SectorId = "TPD PRD PMC PM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC PM PM4",
-                            SectorId = "TPD PRD PMC PM"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA ADM1",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA ADM2",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA ADM3",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA DM2",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA IDM1",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA QRM1",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA QRM2",
-                            SectorId = "TPD PRD PMC QA"
-                        },
-                        new
-                        {
-                            DepartmentId = "TPD PRD PMC QA RES",
-                            SectorId = "TPD PRD PMC QA"
-                        });
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDepartmentResponsible", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("DateCreated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetimeoffset")
-                        .HasDefaultValueSql("getutcdate()");
+                b.Property<DateTimeOffset>("DateCreated")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("datetimeoffset")
+                    .HasDefaultValueSql("getutcdate()");
 
-                    b.Property<DateTimeOffset>("DateFrom")
-                        .HasColumnType("datetimeoffset");
+                b.Property<DateTimeOffset>("DateFrom")
+                    .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTimeOffset>("DateTo")
-                        .HasColumnType("datetimeoffset");
+                b.Property<DateTimeOffset>("DateTo")
+                    .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTimeOffset?>("DateUpdated")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetimeoffset")
-                        .HasDefaultValueSql("getutcdate()");
+                b.Property<DateTimeOffset?>("DateUpdated")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("datetimeoffset")
+                    .HasDefaultValueSql("getutcdate()");
 
-                    b.Property<string>("DepartmentId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("DepartmentId")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ResponsibleAzureObjectId")
-                        .HasColumnType("uniqueidentifier");
+                b.Property<Guid>("ResponsibleAzureObjectId")
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uniqueidentifier");
+                b.Property<Guid?>("UpdatedBy")
+                    .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.ToTable("DepartmentResponsibles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("20621fbc-dc4e-4958-95c9-2ac56e166973"),
-                            DateCreated = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            DateFrom = new DateTimeOffset(new DateTime(2020, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 1, 0, 0, 0)),
-                            DateTo = new DateTimeOffset(new DateTime(2021, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 1, 0, 0, 0)),
-                            DepartmentId = "TPD PRD PMC PCA PCA7",
-                            ResponsibleAzureObjectId = new Guid("20621fbc-dc4e-4958-95c9-2ac56e166973")
-                        });
-                });
+                b.ToTable("DepartmentResponsibles");
+            });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbExternalPersonnelPerson", b =>
                 {
@@ -893,7 +512,13 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<string>("ProposedChanges")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RequestOwner")
+                    b.Property<Guid?>("ProposedPersonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("ProposedPersonWasNotified")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("State")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -912,6 +537,8 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("ProposedPersonId");
 
                     b.HasIndex("UpdatedById");
 
@@ -1005,9 +632,6 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<Guid?>("TerminatedbyId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("WorkflowClassType")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -1357,12 +981,16 @@ namespace Fusion.Resources.Database.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "ProposedPerson")
+                        .WithMany()
+                        .HasForeignKey("ProposedPersonId");
+
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpPositionInstance", "OrgPositionInstance", b1 =>
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbPositionInstance", "OrgPositionInstance", b1 =>
                         {
                             b1.Property<Guid>("DbResourceAllocationRequestId")
                                 .HasColumnType("uniqueidentifier");
@@ -1372,12 +1000,6 @@ namespace Fusion.Resources.Database.Migrations
 
                             b1.Property<DateTime>("AppliesTo")
                                 .HasColumnType("datetime2");
-
-                            b1.Property<string>("AssignedToMail")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<Guid?>("AssignedToUniqueId")
-                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<Guid>("Id")
                                 .HasColumnType("uniqueidentifier");
@@ -1399,35 +1021,7 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasForeignKey("DbResourceAllocationRequestId");
                         });
 
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpProposedPerson", "ProposedPerson", b1 =>
-                        {
-                            b1.Property<Guid>("DbResourceAllocationRequestId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid?>("AzureUniqueId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<bool>("HasBeenProposed")
-                                .HasColumnType("bit");
-
-                            b1.Property<string>("Mail")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<DateTimeOffset?>("ProposedAt")
-                                .HasColumnType("datetimeoffset");
-
-                            b1.Property<bool>("WasNotified")
-                                .HasColumnType("bit");
-
-                            b1.HasKey("DbResourceAllocationRequestId");
-
-                            b1.ToTable("ResourceAllocationRequests");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DbResourceAllocationRequestId");
-                        });
-
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpProvisionStatus", "ProvisioningStatus", b1 =>
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+ProvisionStatus", "ProvisioningStatus", b1 =>
                         {
                             b1.Property<Guid>("DbResourceAllocationRequestId")
                                 .HasColumnType("uniqueidentifier");
@@ -1438,13 +1032,7 @@ namespace Fusion.Resources.Database.Migrations
                             b1.Property<string>("ErrorPayload")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid?>("OrgInstanceId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid?>("OrgPositionId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid?>("OrgProjectId")
+                            b1.Property<Guid?>("PositionId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<DateTimeOffset?>("Provisioned")
@@ -1462,25 +1050,6 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasForeignKey("DbResourceAllocationRequestId");
                         });
 
-                    b.OwnsOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest+DbOpState", "State", b1 =>
-                        {
-                            b1.Property<Guid>("DbResourceAllocationRequestId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<bool>("IsCompleted")
-                                .HasColumnType("bit");
-
-                            b1.Property<string>("State")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("DbResourceAllocationRequestId");
-
-                            b1.ToTable("ResourceAllocationRequests");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DbResourceAllocationRequestId");
-                        });
-
                     b.Navigation("CreatedBy");
 
                     b.Navigation("OrgPositionInstance")
@@ -1488,13 +1057,9 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Navigation("Project");
 
-                    b.Navigation("ProposedPerson")
-                        .IsRequired();
+                    b.Navigation("ProposedPerson");
 
                     b.Navigation("ProvisioningStatus")
-                        .IsRequired();
-
-                    b.Navigation("State")
                         .IsRequired();
 
                     b.Navigation("UpdatedBy");

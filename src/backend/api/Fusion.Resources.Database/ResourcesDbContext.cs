@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Linq;
 
 #nullable disable
 
@@ -38,6 +39,9 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbResponsibilityMatrix> ResponsibilityMatrices { get; set; }
         public DbSet<DbPersonAbsence> PersonAbsences { get; set; }
+        
+        public DbSet<DbDepartment> Departments { get; set; }
+        public DbSet<DbDepartmentResponsible> DepartmentResponsibles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +56,8 @@ namespace Fusion.Resources.Database
             DbPersonAbsence.OnModelCreating(modelBuilder);
             DbResponsibilityMatrix.OnModelCreating(modelBuilder);
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
+            DbDepartment.OnModelCreating(modelBuilder);
+            DbDepartmentResponsible.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
