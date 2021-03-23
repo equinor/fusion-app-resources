@@ -11,6 +11,10 @@ namespace Fusion.Resources.Api.Controllers
     public class CreateResourceAllocationRequest
     {
         public string Type { get; set; } = null!;
+        
+        // Will be auto-detected by the api, but can be specified.
+        public string? SubType { get; set; }
+
         public string? AssignedDepartment { get; set; }
         
         // All requests should be created as drafts. Initializing the workflow shoud set the flag to false.
@@ -82,6 +86,6 @@ namespace Fusion.Resources.Api.Controllers
 
         #endregion
 
-        public Domain.InternalRequestType ResolveType() => Enum.Parse<Domain.InternalRequestType>(Type, true);
+        public Domain.InternalRequestType ResolveType() => Type == "normal" ? Domain.InternalRequestType.Allocation : Enum.Parse<Domain.InternalRequestType>(Type, true);
     }
 }

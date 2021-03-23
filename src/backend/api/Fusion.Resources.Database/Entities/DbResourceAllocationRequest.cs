@@ -20,7 +20,8 @@ namespace Fusion.Resources.Database.Entities
 
         public string? Discipline { get; set; }
         
-        public DbInternalRequestType Type { get; set; } = DbInternalRequestType.Normal;
+        public DbInternalRequestType Type { get; set; } = DbInternalRequestType.Allocation;
+        public string? SubType { get; set; }
 
         public DbOpState State { get; set; } = new DbOpState();
 

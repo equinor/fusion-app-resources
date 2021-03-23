@@ -1,14 +1,14 @@
-﻿using MediatR;
+﻿using Fusion.Resources.Database.Entities;
+using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Database;
 using Fusion.Resources.Logic.Workflows;
 
 namespace Fusion.Resources.Logic.Commands
 {
     public partial class ResourceAllocationRequest
     {
-        public partial class JointVenture
+        public partial class Allocation
         {
             public class StateChangedHandler : INotificationHandler<RequestStateChanged>
             {
@@ -21,10 +21,10 @@ namespace Fusion.Resources.Logic.Commands
 
                 public async Task Handle(RequestStateChanged notification, CancellationToken cancellationToken)
                 {
-                    if (notification.Type != Database.Entities.DbInternalRequestType.JointVenture)
+                    if (notification.Type != DbInternalRequestType.Allocation)
                         return;
 
-                    if (notification.ToState == InternalRequestJointVentureWorkflowV1.PROVISIONING)
+                    if (notification.ToState == WorkflowDefinition.PROVISIONING)
                     {
                         await mediator.Send(new QueueProvisioning(notification.RequestId));
                     }

@@ -9,32 +9,11 @@ namespace Fusion.Resources.Logic
 {
     public class InvalidWorkflowError : ValidationException
     {
-        //public List<WorkflowFieldError> FieldErrors { get; } = new List<WorkflowFieldError>();
-
-        public string WorkflowTypeName { get; set; }
+        public string? WorkflowTypeName { get; set; }
 
         public InvalidWorkflowError(string message, IEnumerable<ValidationFailure> errors) : base(message, errors)
         {
         }
-
-        //public InvalidWorkflowError AddError(string field, params string[] messages)
-        //{
-        //    this.
-        //    FieldErrors.Add(new WorkflowFieldError(field, messages));
-        //    return this;
-        //}
-
-        //public class WorkflowFieldError
-        //{
-        //    public WorkflowFieldError(string name, params string[] errors)
-        //    {
-        //        Name = name;
-        //        Messages = errors.ToList();
-        //    }
-
-        //    public string Name { get; set; }
-        //    public List<string> Messages { get; set; }
-        //}
 
         public static InvalidWorkflowError ValidationError<TWorkflow>(string message, Action<ErrorBuilder>? setup)
             where TWorkflow : WorkflowDefinition

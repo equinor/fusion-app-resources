@@ -11,7 +11,6 @@ namespace Fusion.Resources.Logic.Workflows
         public const string CREATED = "created";
         public const string CONTRACTOR_APPROVAL = "contractorApproval";
         public const string COMPANY_APPROVAL = "companyApproval";
-        public const string PROVISIONING = "provisioning";
 
         public override string Version => "v1";
         public override string Name => "Contractor personnel request";

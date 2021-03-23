@@ -17,75 +17,75 @@ namespace Fusion.Resources.Logic.Tests
         [Fact]
         public void Create_Should_InitializeWithAllSteps()
         {
-            var workflow = new InternalRequestNormalWorkflowV1();
+            var workflow = new AllocationNormalWorkflowV1();
 
             workflow.Steps.Should().HaveCount(4);
-            workflow.Steps.Should().Contain(s => s.Id == InternalRequestNormalWorkflowV1.CREATED);
-            workflow.Steps.Should().Contain(s => s.Id == InternalRequestNormalWorkflowV1.PROPOSAL);
-            workflow.Steps.Should().Contain(s => s.Id == InternalRequestNormalWorkflowV1.APPROVAL);
-            workflow.Steps.Should().Contain(s => s.Id == InternalRequestNormalWorkflowV1.PROVISIONING);
+            workflow.Steps.Should().Contain(s => s.Id == AllocationNormalWorkflowV1.CREATED);
+            workflow.Steps.Should().Contain(s => s.Id == AllocationNormalWorkflowV1.PROPOSAL);
+            workflow.Steps.Should().Contain(s => s.Id == AllocationNormalWorkflowV1.APPROVAL);
+            workflow.Steps.Should().Contain(s => s.Id == AllocationNormalWorkflowV1.PROVISIONING);
         }
 
         [Theory]
-        [InlineData(InternalRequestNormalWorkflowV1.CREATED, InternalRequestNormalWorkflowV1.PROPOSAL)]
-        [InlineData(InternalRequestNormalWorkflowV1.PROPOSAL, InternalRequestNormalWorkflowV1.APPROVAL)]
-        [InlineData(InternalRequestNormalWorkflowV1.APPROVAL, InternalRequestNormalWorkflowV1.PROVISIONING)]
-        [InlineData(InternalRequestNormalWorkflowV1.PROVISIONING, null)]
+        [InlineData(AllocationNormalWorkflowV1.CREATED, AllocationNormalWorkflowV1.PROPOSAL)]
+        [InlineData(AllocationNormalWorkflowV1.PROPOSAL, AllocationNormalWorkflowV1.APPROVAL)]
+        [InlineData(AllocationNormalWorkflowV1.APPROVAL, AllocationNormalWorkflowV1.PROVISIONING)]
+        [InlineData(AllocationNormalWorkflowV1.PROVISIONING, null)]
         
         public void Steps_Should_HaveNextStep(string stepId, string nextStep)
         {
-            var workflow = new InternalRequestNormalWorkflowV1();
+            var workflow = new AllocationNormalWorkflowV1();
             workflow[stepId].NextStepId.Should().Be(nextStep);
         }
 
         [Theory]
-        [InlineData(InternalRequestNormalWorkflowV1.CREATED, null)]
-        [InlineData(InternalRequestNormalWorkflowV1.PROPOSAL, InternalRequestNormalWorkflowV1.CREATED)]
-        [InlineData(InternalRequestNormalWorkflowV1.APPROVAL, InternalRequestNormalWorkflowV1.PROPOSAL)]
-        [InlineData(InternalRequestNormalWorkflowV1.PROVISIONING, InternalRequestNormalWorkflowV1.APPROVAL)]
+        [InlineData(AllocationNormalWorkflowV1.CREATED, null)]
+        [InlineData(AllocationNormalWorkflowV1.PROPOSAL, AllocationNormalWorkflowV1.CREATED)]
+        [InlineData(AllocationNormalWorkflowV1.APPROVAL, AllocationNormalWorkflowV1.PROPOSAL)]
+        [InlineData(AllocationNormalWorkflowV1.PROVISIONING, AllocationNormalWorkflowV1.APPROVAL)]
         public void Steps_Should_HavePreviousStep(string stepId, string prevStep)
         {
-            var workflow = new InternalRequestNormalWorkflowV1();
+            var workflow = new AllocationNormalWorkflowV1();
             workflow[stepId].PreviousStepId.Should().Be(prevStep);
         }
 
         [Fact]
         public void NewRequest_Should_PopulateCreatedStep()
         {
-            var workflow = new InternalRequestNormalWorkflowV1(creator);
+            var workflow = new AllocationNormalWorkflowV1(creator);
 
-            workflow[InternalRequestNormalWorkflowV1.CREATED].CompletedBy.Should().Be(creator);
-            workflow[InternalRequestNormalWorkflowV1.CREATED].Completed.Should().NotBeNull();
-            workflow[InternalRequestNormalWorkflowV1.PROPOSAL].State.Should().Be(DbWFStepState.Pending);
-            workflow[InternalRequestNormalWorkflowV1.PROPOSAL].Started.Should().NotBeNull();
+            workflow[AllocationNormalWorkflowV1.CREATED].CompletedBy.Should().Be(creator);
+            workflow[AllocationNormalWorkflowV1.CREATED].Completed.Should().NotBeNull();
+            workflow[AllocationNormalWorkflowV1.PROPOSAL].State.Should().Be(DbWFStepState.Pending);
+            workflow[AllocationNormalWorkflowV1.PROPOSAL].Started.Should().NotBeNull();
         }
 
         [Fact]
         public void CreatedRequest_Should_UpdateCorrectly_WhenApproved()
         {
-            var workflow = new InternalRequestNormalWorkflowV1(creator);
+            var workflow = new AllocationNormalWorkflowV1(creator);
 
             workflow.Proposed(resourceOwner);
 
-            workflow[InternalRequestNormalWorkflowV1.PROPOSAL].CompletedBy.Should().Be(resourceOwner);
-            workflow[InternalRequestNormalWorkflowV1.PROPOSAL].State.Should().Be(DbWFStepState.Approved);
-            workflow[InternalRequestNormalWorkflowV1.PROPOSAL].Completed.Should().NotBeNull();
-            workflow[InternalRequestNormalWorkflowV1.APPROVAL].State.Should().Be(DbWFStepState.Pending);
-            workflow[InternalRequestNormalWorkflowV1.APPROVAL].Started.Should().NotBeNull();
+            workflow[AllocationNormalWorkflowV1.PROPOSAL].CompletedBy.Should().Be(resourceOwner);
+            workflow[AllocationNormalWorkflowV1.PROPOSAL].State.Should().Be(DbWFStepState.Approved);
+            workflow[AllocationNormalWorkflowV1.PROPOSAL].Completed.Should().NotBeNull();
+            workflow[AllocationNormalWorkflowV1.APPROVAL].State.Should().Be(DbWFStepState.Pending);
+            workflow[AllocationNormalWorkflowV1.APPROVAL].Started.Should().NotBeNull();
         }
 
         [Fact]
         public void ProposedRequest_Should_UpdateCorrectly_WhenApproved()
         {
-            var workflow = new InternalRequestNormalWorkflowV1(creator);
+            var workflow = new AllocationNormalWorkflowV1(creator);
             workflow.Proposed(resourceOwner);
             workflow.Approved(taskOwner);
 
-            workflow[InternalRequestNormalWorkflowV1.APPROVAL].CompletedBy.Should().Be(taskOwner);
-            workflow[InternalRequestNormalWorkflowV1.APPROVAL].State.Should().Be(DbWFStepState.Approved);
-            workflow[InternalRequestNormalWorkflowV1.APPROVAL].Completed.Should().NotBeNull();
-            workflow[InternalRequestNormalWorkflowV1.PROVISIONING].State.Should().Be(DbWFStepState.Pending);
-            workflow[InternalRequestNormalWorkflowV1.PROVISIONING].Started.Should().NotBeNull();
+            workflow[AllocationNormalWorkflowV1.APPROVAL].CompletedBy.Should().Be(taskOwner);
+            workflow[AllocationNormalWorkflowV1.APPROVAL].State.Should().Be(DbWFStepState.Approved);
+            workflow[AllocationNormalWorkflowV1.APPROVAL].Completed.Should().NotBeNull();
+            workflow[AllocationNormalWorkflowV1.PROVISIONING].State.Should().Be(DbWFStepState.Pending);
+            workflow[AllocationNormalWorkflowV1.PROVISIONING].Started.Should().NotBeNull();
         }
     }
 }

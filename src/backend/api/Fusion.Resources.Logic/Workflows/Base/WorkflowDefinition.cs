@@ -8,6 +8,8 @@ namespace Fusion.Resources.Logic.Workflows
 {
     public abstract class WorkflowDefinition
     {
+        public const string PROVISIONING = "provisioning";
+
         protected DbWorkflow? dbWorkflow;
 
         public WorkflowDefinition(DbWorkflow? dbWorkflow)
@@ -95,7 +97,7 @@ namespace Fusion.Resources.Logic.Workflows
 
         public DbWorkflow CreateDatabaseEntity(Guid requestId, DbRequestType type)
         {
-            var entity = new DbWorkflow()
+            dbWorkflow = new DbWorkflow()
             {
                 Created = DateTimeOffset.Now,
                 LogicAppName = Name,
@@ -107,7 +109,7 @@ namespace Fusion.Resources.Logic.Workflows
                 WorkflowSteps = Steps.Select(s => s.CreateDatabaseEntity()).ToList()
             };
 
-            return entity;
+            return dbWorkflow;
         }
     
         public static WorkflowDefinition ResolveWorkflow(DbWorkflow dbWorkflow)

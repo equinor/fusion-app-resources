@@ -44,7 +44,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     await resourcesDb.SaveChangesAsync();
 
-                    await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, request.Editor.Person));
+                    await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, dbRequest.SubType, request.Editor.Person));
                 }
 
 

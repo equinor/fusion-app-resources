@@ -42,9 +42,16 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
+            if (request.ResolveType() == InternalRequestType.Allocation)
+            {
+                // Must resolve the subType to use when allocation request.
+                if (string.IsNullOrEmpty(request.SubType))
+                    request.SubType = await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.ResolveSubType(request.OrgPositionId, request.OrgPositionInstanceId));
+            }
             // Create all requests as draft
             var command = new CreateInternalRequest(InternalRequestOwner.Project, request.ResolveType())
             {
+                SubType = request.SubType,
                 AdditionalNote = request.AdditionalNote,
                 OrgPositionId = request.OrgPositionId,
                 OrgProjectId = projectIdentifier.ProjectId,
@@ -54,6 +61,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
+
                 using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
@@ -212,7 +220,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
+        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]        
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));

@@ -29,13 +29,13 @@ namespace Fusion.Resources.Domain.Commands
 
         public InternalRequestOwner Owner { get; set; }
         public InternalRequestType Type { get; set; }
+        public string? SubType { get; set; }
 
         public Guid OrgPositionId { get; set; }
         public Guid OrgPositionInstanceId { get; set; }
         public string? AdditionalNote { get; set; }
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public bool IsDraft { get; set; }
-
 
         public class Validator : AbstractValidator<CreateInternalRequest>
         {
@@ -97,11 +97,10 @@ namespace Fusion.Resources.Domain.Commands
                     Id = Guid.NewGuid(),
                     AssignedDepartment = request.AssignedDepartment,
                     Type = request.Type switch {
-                        InternalRequestType.Normal => DbInternalRequestType.Normal,
-                        InternalRequestType.Direct => DbInternalRequestType.Direct,
-                        InternalRequestType.JointVenture => DbInternalRequestType.JointVenture,
+                        InternalRequestType.Allocation => DbInternalRequestType.Allocation,
                         _ => throw new NotSupportedException("Query request type ")
                     },
+                    SubType = request.SubType,
                     RequestOwner = request.Owner switch
                     {
                         InternalRequestOwner.Project => DbInternalRequestOwner.Project,

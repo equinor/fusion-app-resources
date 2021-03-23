@@ -16,9 +16,7 @@ namespace Fusion.Resources.Domain
 
     public enum InternalRequestType
     {
-        Normal,
-        JointVenture,
-        Direct
+        Allocation
     }
 
     public class QueryResourceAllocationRequest
@@ -31,11 +29,11 @@ namespace Fusion.Resources.Domain
             Discipline = entity.Discipline;
             Type = entity.Type switch
             {
-                DbInternalRequestType.Normal => InternalRequestType.Normal,
-                DbInternalRequestType.Direct => InternalRequestType.Direct,
-                DbInternalRequestType.JointVenture => InternalRequestType.JointVenture,
+                DbInternalRequestType.Allocation => InternalRequestType.Allocation,
                 _ => throw new NotSupportedException($"Invalid query type received from database entity {entity.Type}")
             };
+
+            SubType = entity.SubType;
 
             Workflow = workflow;
             State = entity.State.State;
@@ -78,6 +76,8 @@ namespace Fusion.Resources.Domain
         public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
         public InternalRequestType Type { get; set; }
+        public string? SubType { get; set; }
+
         public QueryWorkflow? Workflow { get; set; }
         public string? State { get; set; }
         public bool IsCompleted { get; set; }
