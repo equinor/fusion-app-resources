@@ -138,7 +138,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
         public async Task<ActionResult> GetTbnPositionsTimeline(
             [FromRoute] string departmentString,
-            [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
             [FromQuery] string? timelineDuration = null,
             [FromQuery] DateTime? timelineEnd = null)
@@ -180,13 +179,10 @@ namespace Fusion.Resources.Api.Controllers.Requests
             }
             #endregion
 
-            var request = new GetTBNPositions(departmentString);
+            var request = new GetTbnPositionsTimeline(departmentString, timelineStart.Value, timelineEnd.Value);
+            var timeline = await DispatchAsync(request);
 
-            var data = await DispatchAsync(request);
-
-            var timeline = TimelineUtils.GenerateTbnPositionsTimeline(data, timelineStart.Value, timelineEnd.Value);
-
-            return Ok(timeline);
+            return Ok(new ApiTbnPositionTimeline( timeline));
         }
     }
 }

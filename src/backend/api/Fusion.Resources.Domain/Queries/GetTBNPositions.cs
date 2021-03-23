@@ -1,5 +1,6 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Integration.Http;
+using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -27,12 +28,14 @@ namespace Fusion.Resources.Domain.Queries
         public class Handler : IRequestHandler<GetTBNPositions, IEnumerable<TbnPosition>>
         {
             private readonly IHttpClientFactory httpClientFactory;
+            private readonly IProjectOrgResolver projectOrgResolver;
             private readonly ResourcesDbContext db;
             private readonly JsonSerializerOptions options;
 
-            public Handler(IHttpClientFactory httpClientFactory, ResourcesDbContext db)
+            public Handler(IHttpClientFactory httpClientFactory, IProjectOrgResolver projectOrgResolver, ResourcesDbContext db)
             {
                 this.httpClientFactory = httpClientFactory;
+                this.projectOrgResolver = projectOrgResolver;
                 this.db = db;
                 this.options = new JsonSerializerOptions()
                 {
@@ -79,12 +82,14 @@ namespace Fusion.Resources.Domain.Queries
                         var department = await requestRouter.Route(pos, instance, cancellationToken);
                         if(department == request.Department)
                         {
+                            var project = await projectOrgResolver.ResolveProjectAsync(pos.ProjectId);
                             tbnPositions.Add(new TbnPosition
                             {
                                 PositionId = pos.Id,
                                 InstanceId = instance.Id,
                                 ParentPositionId = pos.ExternalId,
                                 ProjectId = pos.ProjectId,
+                                Project = new QueryProjectRef(project.ProjectId, project.Name, project.DomainId),
                                 BasePosition = pos.BasePosition,
                                 Name = pos.Name,
 
@@ -122,5 +127,6 @@ namespace Fusion.Resources.Domain.Queries
         public string? Department { get; set; }
         public double? Workload { get; set; }
         public string Obs { get; set; }
+        public QueryProjectRef? Project { get; internal set; }
     }
 }
