@@ -175,6 +175,7 @@ namespace Fusion.Resources.Api.Controllers
             var requestCommand = new GetResourceAllocationRequests(query)
                 .ForResourceOwners()
                 .WithUnassignedFilter(true)
+                .WithExcludeCompleted(true)
                 .WithOnlyCount(countEnabled);
 
             var result = await DispatchAsync(requestCommand);
