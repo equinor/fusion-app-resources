@@ -9,13 +9,26 @@ namespace Fusion.Resources.Logic
 {
     public class InvalidWorkflowError : ValidationException
     {
+
         public string? WorkflowTypeName { get; set; }
 
         public InvalidWorkflowError(string message, IEnumerable<ValidationFailure> errors) : base(message, errors)
         {
         }
 
-        public static InvalidWorkflowError ValidationError<TWorkflow>(string message, Action<ErrorBuilder>? setup)
+        public InvalidWorkflowError SetWorkflowName(string type)
+        {
+            WorkflowTypeName = type;
+            return this;
+        }
+
+        public InvalidWorkflowError SetWorkflowName(WorkflowDefinition workflow)
+        {
+            WorkflowTypeName = workflow.GetType().Name;
+            return this;
+        }
+
+        public static InvalidWorkflowError ValidationError<TWorkflow>(string message, Action<ErrorBuilder>? setup = null)
             where TWorkflow : WorkflowDefinition
         {
             var builder = new ErrorBuilder();
@@ -25,6 +38,14 @@ namespace Fusion.Resources.Logic
             {
                 WorkflowTypeName = typeof(TWorkflow).Name
             };
+        }
+
+        public static InvalidWorkflowError ValidationError(string message, Action<ErrorBuilder>? setup = null)
+        {
+            var builder = new ErrorBuilder();
+            setup?.Invoke(builder);
+
+            return new InvalidWorkflowError(message, builder.Failures);
         }
 
 

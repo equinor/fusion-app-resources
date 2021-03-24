@@ -120,7 +120,7 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionId = request.OrgPositionId,
                 OrgProjectId = position.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
-                AssignedDepartment = departmentPath
+                AssignedDepartment = departmentPath                
             };
 
             try
@@ -130,12 +130,16 @@ namespace Fusion.Resources.Api.Controllers
 
                 var newRequest = await DispatchAsync(command);
 
-                if (request.ProposedChanges is not null || request.ProposedPersonAzureUniqueId is not null)
+                if (request.ProposedChanges is not null || request.ProposedPersonAzureUniqueId is not null || request.ProposalParameters is not null)
                 {
                     newRequest = await DispatchAsync(new UpdateInternalRequest(newRequest.RequestId)
                     {
                         ProposedChanges = request.ProposedChanges,
-                        ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId
+                        ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId,
+                        ProposalChangeFrom = request.ProposalParameters?.ChangeDateFrom,
+                        ProposalChangeTo = request.ProposalParameters?.ChangeDateTo,
+                        ProposalScope = request.ProposalParameters?.ResolveScope() ?? ProposalChangeScope.Default,
+                        ProposalChangeType = request.ProposalParameters?.Type
                     });
                 }
 
@@ -191,6 +195,15 @@ namespace Fusion.Resources.Api.Controllers
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
                 if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
                 if (request.ProposedPersonAzureUniqueId.HasValue) updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
+                if (request.ProposalParameters.HasValue)
+                {
+                    var @params = request.ProposalParameters.Value;
+
+                    updateCommand.ProposalChangeFrom = @params.ChangeDateFrom;
+                    updateCommand.ProposalChangeTo = @params.ChangeDateTo;
+                    updateCommand.ProposalScope = @params.ResolveScope();
+                    updateCommand.ProposalChangeType = @params.Type;
+                }
 
                 await using var scope = await BeginTransactionAsync();
                 var updatedRequest = await DispatchAsync(updateCommand);

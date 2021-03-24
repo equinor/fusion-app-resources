@@ -20,6 +20,12 @@ namespace Fusion.Resources.Domain
         ResourceOwnerChange,
     }
 
+    public enum ProposalChangeScope
+    {
+        Default,
+        InstanceOnly
+    }
+
     public class QueryResourceAllocationRequest
     {
 
@@ -54,6 +60,7 @@ namespace Fusion.Resources.Domain
             AdditionalNote = entity.AdditionalNote;
 
             ProposedChangesJson = entity.ProposedChanges;
+            ProposalParameters = new QueryPropsalParameters(entity.ProposalParameters);
 
             Created = entity.Created;
             Updated = entity.Updated;
@@ -88,7 +95,6 @@ namespace Fusion.Resources.Domain
         public string? AdditionalNote { get; set; }
 
         public string? ProposedChangesJson { get; set; }
-
         public Dictionary<string, object> ProposedChanges
         {
             get
@@ -106,6 +112,7 @@ namespace Fusion.Resources.Domain
                 }
             }
         }
+        public QueryPropsalParameters ProposalParameters { get; set; }
 
 
         public DateTimeOffset Created { get; set; }
@@ -146,6 +153,23 @@ namespace Fusion.Resources.Domain
             public FusionPersonProfile? ResourceOwner { get; set; }
 
             public bool WasNotified { get; set; }
+        }
+
+        public class QueryPropsalParameters
+        {
+            public QueryPropsalParameters(DbResourceAllocationRequest.DbOpProposalParameters proposalParameters)
+            {
+                ChangeFrom = proposalParameters.ChangeFrom;
+                ChangeTo = proposalParameters.ChangeTo;
+                Scope = $"{proposalParameters.Scope}";
+                ChangeType = proposalParameters.ChangeType;
+            }
+
+            public DateTime? ChangeFrom { get; set; }
+            public DateTime? ChangeTo { get; set; }
+            public string Scope { get; set; } 
+
+            public string? ChangeType { get; set; }
         }
     }
 }

@@ -29,5 +29,24 @@ namespace Fusion.Resources
                 _ => throw new NotSupportedException($"Cannot map '{originalEnum}' to {nameof(InternalRequestType)}")
             };
         }
+
+        public static DbResourceAllocationRequest.DbChangeScope MapToDatabase(this ProposalChangeScope value)
+        {
+            return value switch
+            {
+                ProposalChangeScope.Default => DbResourceAllocationRequest.DbChangeScope.Default,
+                ProposalChangeScope.InstanceOnly => DbResourceAllocationRequest.DbChangeScope.InstanceOnly,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbResourceAllocationRequest.DbChangeScope)}")
+            };
+        }
+        public static ProposalChangeScope MapToDomain(this DbResourceAllocationRequest.DbChangeScope value)
+        {
+            return value switch
+            {
+                DbResourceAllocationRequest.DbChangeScope.Default => ProposalChangeScope.Default,
+                DbResourceAllocationRequest.DbChangeScope.InstanceOnly => ProposalChangeScope.InstanceOnly,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(ProposalChangeScope)}")
+            };
+        }
     }
 }

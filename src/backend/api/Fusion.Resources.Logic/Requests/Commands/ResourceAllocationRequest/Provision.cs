@@ -70,7 +70,6 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     var dbRequest = await resourcesDb.ResourceAllocationRequests
                         .Include(r => r.Project)
-                        .Include(r => r.ProposedPerson)
                         .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
 
@@ -84,6 +83,11 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbInternalRequestType.Allocation:
                                 await ProvisionAllocationRequestAsync(dbRequest);
+                                await UpdateWorkflowStatusAsync(request, dbRequest);
+                                break;
+
+                            case DbInternalRequestType.ResourceOwnerChange:
+                                await mediator.Send(new ResourceOwner.ProvisionResourceOwnerRequest(dbRequest.Id));
                                 await UpdateWorkflowStatusAsync(request, dbRequest);
                                 break;
 
