@@ -476,10 +476,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             segments[4].AppliesTo.Should().Be(new DateTime(2020, 03, 09));
         }
 
-        public async Task DisposeAsync()
+        public Task DisposeAsync()
         {
             loggingScope.Dispose();
-            fixture.Dispose();
+
+            return Task.CompletedTask;
         }
 
         public class TestApiDepartmentRequests
