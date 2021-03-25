@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Database;
+using Fusion.Resources.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -30,21 +31,7 @@ namespace Fusion.Resources.Logic.Queries
             {
                 var dbRequest = await resourcesDb.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId, cancellationToken);
 
-
-                var matrix = await resourcesDb.ResponsibilityMatrices
-                    .Include(m => m.Responsible)
-                    .Include(m => m.Project)
-                    .Select(m => new
-                    {
-                        Score = (m.Project!.Id == dbRequest.ProjectId ? 5 : 0)
-                              + (m.Discipline == dbRequest.Discipline ? 2 : 0)
-                              + (m.LocationId == dbRequest.OrgPositionInstance.LocationId ? 1 : 0),
-                        Row = m
-                    })
-                    .OrderByDescending(x => x.Score)
-                    .FirstOrDefaultAsync(x => x.Score >= 5, cancellationToken);
-
-                return matrix?.Row.Unit;
+                return await new RequestRouter(resourcesDb).Route(dbRequest, cancellationToken);
             }
         }
     }
