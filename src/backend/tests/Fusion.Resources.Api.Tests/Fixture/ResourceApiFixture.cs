@@ -8,6 +8,7 @@ using Fusion.Integration.Profile;
 using Fusion.Testing;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Tests.FusionMocks;
+using System.Data;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -60,11 +61,30 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
         internal ApiPersonProfileV3 AddProfile(FusionAccountType accountType)
         {
-            var account = new FusionTestUserBuilder(accountType)                
+            var account = new FusionTestUserBuilder(accountType)
                 .SaveProfile();
 
-            
+
             return account;
+        }
+
+        internal void EnsureDepartment(string departmentId, string sectorId = null)
+        {
+            using var scope = ApiFactory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+
+            var dept = db.Departments.Find(departmentId) ?? new Database.Entities.DbDepartment();
+            var entry = db.Entry(dept);
+
+            dept.DepartmentId = departmentId;
+            dept.SectorId = sectorId;
+
+            if (entry.State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+            {
+                entry.State = Microsoft.EntityFrameworkCore.EntityState.Added;
+            }
+
+            try { db.SaveChanges(); } catch (DBConcurrencyException) { }
         }
     }
 }

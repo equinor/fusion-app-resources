@@ -34,6 +34,6 @@ namespace Fusion.Resources.Database.Entities
 
     public enum DbAbsenceType
     {
-        Absence, Vacation
+        Absence, Vacation, OtherTasks
     }
 }

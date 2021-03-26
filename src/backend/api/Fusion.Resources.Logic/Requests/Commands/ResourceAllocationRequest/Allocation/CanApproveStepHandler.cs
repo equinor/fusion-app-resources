@@ -22,6 +22,10 @@ namespace Fusion.Resources.Logic.Commands
                 if (notification.Type != DbInternalRequestType.Allocation)
                     return Task.CompletedTask;
 
+                // Should be implemented when we need to authorize / validate. 
+                // But at the moment these rules are not set, so would be back and forth to implement
+
+
                 //var initiatedBy = await dbContext.Persons.FirstAsync(p => p.Id == notification.InitiatedByDbPersonId);
                 //var request = await dbContext.ResourceAllocationRequests.FirstAsync(r => r.Id == notification.RequestId);
 

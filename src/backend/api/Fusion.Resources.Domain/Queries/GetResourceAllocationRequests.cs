@@ -60,6 +60,12 @@ namespace Fusion.Resources.Domain.Queries
         //    return this;
         //}
 
+        public GetResourceAllocationRequests WithExcludeCompleted(bool exclude = false)
+        {
+            ExcludeCompleted = exclude;
+            return this;
+        }
+
         public GetResourceAllocationRequests ForResourceOwners()
         {
             Owner = DbInternalRequestOwner.ResourceOwner;
@@ -76,6 +82,7 @@ namespace Fusion.Resources.Domain.Queries
         public bool Unassigned { get; private set; }
         public bool OnlyCount { get; private set; }
         public bool? ExcludeDrafts { get; private set; }
+        public bool? ExcludeCompleted { get; private set; }
 
         private DbInternalRequestOwner? Owner { get; set; }
 
@@ -124,6 +131,8 @@ namespace Fusion.Resources.Domain.Queries
 
                 //if (request.ExcludeDrafts.HasValue && request.ExcludeDrafts.Value)
                 //    query = query.Where(c => c.IsDraft == false);
+                if (request.ExcludeCompleted.GetValueOrDefault(false))
+                    query = query.Where(c => c.State.IsCompleted == false);
 
                 if (request.Query.HasFilter)
                 {

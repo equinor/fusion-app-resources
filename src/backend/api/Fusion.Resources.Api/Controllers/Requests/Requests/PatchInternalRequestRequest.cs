@@ -6,7 +6,8 @@ using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Collections.Generic;
-
+using Fusion.Resources.Database;
+using Microsoft.EntityFrameworkCore;
 namespace Fusion.Resources.Api.Controllers
 {
     public class PatchInternalRequestRequest : PatchRequest
@@ -23,9 +24,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<PatchInternalRequestRequest>
         {
-            private static readonly Dictionary<string, string> sectors = PersonController.FetchSectors();
-
-            public Validator()
+            public Validator(ResourcesDbContext db)
             {
                 RuleFor(x => x.ProposedPersonAzureUniqueId)
                     .MustAsync(async (req, p, context, cancel) =>
@@ -44,12 +43,12 @@ namespace Fusion.Resources.Api.Controllers
 
 
                 RuleFor(x => x.AssignedDepartment)
-                    .Must(d =>
+                    .MustAsync(async (d, cancellationToken) =>
                     {
                         if (d.Value is null)
                             return true;
 
-                        return sectors.ContainsKey(d.Value.ToUpper());
+                        return await db.Departments.AnyAsync(dpt => dpt.DepartmentId == d.Value, cancellationToken);
                     })
                     .WithMessage("Invalid department specified")
                     .When(x => x.AssignedDepartment.HasValue && x.AssignedDepartment.Value != null);

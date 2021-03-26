@@ -65,6 +65,28 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
 
+        [Fact]
+        public async Task GetUnassigned_ShouldNotBeIncluded_WhenCompleted()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+            await Client.ProposePersonAsync(testRequest.Id, testPerson);
+            await Client.ResourceOwnerApproveAsync(InternalRequestData.RandomDepartment, testRequest.Id);
+            await Client.TaskOwnerApproveAsync(testProject, testRequest.Id);
+            await Client.ProvisionRequestAsync(testRequest.Id);
+
+            var list = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned", new
+            {
+                value = new[] { new { id = Guid.Empty } }
+            });
+
+            list.Value.value.Should().NotContain(r => r.id == testRequest.Id);
+        }
+
         #region GetDeparmentRequests
 
         [Fact]
@@ -356,6 +378,98 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             segments[2].Items.Should().HaveCount(1);
             segments[2].AppliesFrom.Date.Should().Be(new DateTime(2021, 03, 23));
             segments[2].AppliesTo.Date.Should().Be(new DateTime(2021, 03, 29));
+        }
+
+        [Fact]
+        public async Task GetRequestTimelineShouldDisregardTimeOfDay()
+        {
+            string department = InternalRequestData.RandomDepartment;
+
+            using var adminScope = fixture.AdminScope();
+
+            var rq1 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 02, 27, 09, 43, 43), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq1.Id);
+            await Client.AssignDepartmentAsync(rq1.Id, department);
+
+            var rq2 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 03, 15), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq2.Id);
+            await Client.AssignDepartmentAsync(rq2.Id, department);
+
+            var rq3 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 03, 23, 14, 44, 58), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq3.Id);
+            await Client.AssignDepartmentAsync(rq3.Id, department);
+
+            var timelineStart = new DateTime(2021, 03, 01);
+            var timelineEnd = new DateTime(2021, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestApiDepartmentRequests>($"/departments/{department}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
+
+            var segments = response.Value.Timeline.OrderBy(s => s.AppliesFrom).ToList();
+
+            segments[0].Items.Should().HaveCount(1);
+            segments[0].AppliesFrom.Should().Be(new DateTime(2021, 03, 01));
+            segments[0].AppliesTo.Should().Be(new DateTime(2021, 03, 05));
+
+            segments[1].Items.Should().HaveCount(1);
+            segments[1].AppliesFrom.Should().Be(new DateTime(2021, 03, 15));
+            segments[1].AppliesTo.Should().Be(new DateTime(2021, 03, 21));
+
+            segments[2].Items.Should().HaveCount(1);
+            segments[2].AppliesFrom.Should().Be(new DateTime(2021, 03, 23));
+            segments[2].AppliesTo.Should().Be(new DateTime(2021, 03, 29));
+        }
+
+        [Fact]
+        public async Task GetRequestTimelineShouldNotHaveGaps()
+        {
+            string department = InternalRequestData.RandomDepartment;
+
+            using var adminScope = fixture.AdminScope();
+
+            var rq1 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 03, 01), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq1.Id);
+            await Client.AssignDepartmentAsync(rq1.Id, department);
+
+            var rq2 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 03, 02), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq2.Id);
+            await Client.AssignDepartmentAsync(rq2.Id, department);
+
+            var rq3 = await Client.CreateDefaultRequestAsync(testProject, null, p => p
+                .WithInstances(i => i.AddInstance(new DateTime(2021, 03, 03), TimeSpan.FromDays(6))));
+            await Client.StartProjectRequestAsync(testProject, rq3.Id);
+            await Client.AssignDepartmentAsync(rq3.Id, department);
+
+            var timelineStart = new DateTime(2021, 03, 01);
+            var timelineEnd = new DateTime(2021, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestApiDepartmentRequests>($"/departments/{department}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
+
+            var segments = response.Value.Timeline.OrderBy(s => s.AppliesFrom).ToList();
+
+            segments[0].Items.Should().HaveCount(1);
+            segments[0].AppliesFrom.Should().Be(new DateTime(2021, 03, 01));
+            segments[0].AppliesTo.Should().Be(new DateTime(2021, 03, 01));
+
+            segments[1].Items.Should().HaveCount(2);
+            segments[1].AppliesFrom.Should().Be(new DateTime(2021, 03, 02));
+            segments[1].AppliesTo.Should().Be(new DateTime(2021, 03, 02));
+
+            segments[2].Items.Should().HaveCount(3);
+            segments[2].AppliesFrom.Should().Be(new DateTime(2021, 03, 03));
+            segments[2].AppliesTo.Should().Be(new DateTime(2021, 03, 06));
+
+            segments[3].Items.Should().HaveCount(2);
+            segments[3].AppliesFrom.Should().Be(new DateTime(2021, 03, 07));
+            segments[3].AppliesTo.Should().Be(new DateTime(2021, 03, 07));
+
+            segments[4].Items.Should().HaveCount(1);
+            segments[4].AppliesFrom.Should().Be(new DateTime(2021, 03, 08));
+            segments[4].AppliesTo.Should().Be(new DateTime(2021, 03, 09));
         }
 
         public Task DisposeAsync()

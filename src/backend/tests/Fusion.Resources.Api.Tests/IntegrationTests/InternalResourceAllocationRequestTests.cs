@@ -21,6 +21,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class InternalResourceAllocationRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
+        const string TestDepartmentId = "TPD PRD FE MMS MAT1";
+
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
 
@@ -45,6 +47,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.External);
+         
+            fixture.EnsureDepartment(TestDepartmentId);
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
@@ -435,7 +439,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         [Theory]
         [InlineData("additionalNote", "Some test note")]
-        [InlineData("assignedDepartment", "TPD PRD FE MMS MAT1")]
+        [InlineData("assignedDepartment", TestDepartmentId)]
         [InlineData("proposedPersonAzureUniqueId", null)]
         public async Task UpdateRequest_ShouldUpdate_WhenPatching(string property, object value)
         {

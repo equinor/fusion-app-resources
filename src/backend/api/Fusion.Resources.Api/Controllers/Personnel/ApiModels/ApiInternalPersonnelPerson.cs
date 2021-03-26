@@ -133,6 +133,8 @@ namespace Fusion.Resources.Api.Controllers
                 Id = absence.Id;
                 AppliesFrom = absence.AppliesFrom.UtcDateTime;
                 AppliesTo = absence.AppliesTo is null ? absence.AppliesFrom.UtcDateTime : absence.AppliesTo!.Value.UtcDateTime;
+                Type = $"{absence.Type}";
+                AbsencePercentage = absence.AbsencePercentage;
             }
 
             public Guid Id { get; set; }

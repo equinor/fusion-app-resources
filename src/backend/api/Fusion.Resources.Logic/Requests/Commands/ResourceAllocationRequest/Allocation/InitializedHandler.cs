@@ -56,7 +56,8 @@ namespace Fusion.Resources.Logic.Commands
                     request.State.State = AllocationDirectWorkflowV1.CREATED;
 
                     // Try to resolve the default assigned department
-                    request.AssignedDepartment = await mediator.Send(new Queries.ResolveResponsibleDepartment(request.Id));
+                    if (request.AssignedDepartment is null)
+                        request.AssignedDepartment = await mediator.Send(new Queries.ResolveResponsibleDepartment(request.Id));
 
 
                     await dbContext.SaveChangesAsync();
