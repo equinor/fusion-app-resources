@@ -220,18 +220,8 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpGet("/resources/requests/internal")]
-        [HttpGet("/projects/{projectIdentifier}/requests")]
-        [HttpGet("/projects/{projectIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
-            [FromRoute] ProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetAllRequests([FromQuery] ODataQueryParams query)
         {
-            var requestCommand = new GetResourceAllocationRequests(query);
-
-            if (projectIdentifier != null)
-                requestCommand.WithProjectId(projectIdentifier.ProjectId);
-
-            var result = await DispatchAsync(requestCommand);
-
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -247,6 +237,42 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
+
+            var requestCommand = new GetResourceAllocationRequests(query);
+            var result = await DispatchAsync(requestCommand);
+
+
+            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
+        }
+
+        [HttpGet("/projects/{projectIdentifier}/requests")]
+        [HttpGet("/projects/{projectIdentifier}/resources/requests")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
+            [FromRoute] ProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var requestCommand = new GetResourceAllocationRequests(query)
+                .ForTaskOwners()
+                .WithProjectId(projectIdentifier.ProjectId);
+
+            var result = await DispatchAsync(requestCommand);
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);

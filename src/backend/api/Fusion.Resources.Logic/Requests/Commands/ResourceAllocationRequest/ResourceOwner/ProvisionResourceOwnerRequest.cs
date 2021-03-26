@@ -15,6 +15,7 @@ namespace Fusion.Resources.Logic.Commands
     {
         public partial class ResourceOwner
         {
+
             internal class ProvisionResourceOwnerRequest : IRequest
             {
                 public ProvisionResourceOwnerRequest(Guid requestId)
@@ -52,6 +53,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         var position = rawPosition.Value.ToObject<ApiPositionV2>();
                         var positionInstance = position!.Instances.First(i => i.Id == dbRequest.OrgPositionInstance.Id);
+                        var assignedPersonAzureId = positionInstance.AssignedPerson?.AzureUniqueId;
 
                         var isFuture = positionInstance.AppliesFrom >= DateTime.UtcNow.Date;
 
@@ -66,21 +68,49 @@ namespace Fusion.Resources.Logic.Commands
                             await UpdateFutureSplitAsync(dbRequest, rawPosition.Value);
                         else
                         {
-
                             var equalStart = effectiveChangeFrom.Date == positionInstance.AppliesFrom.Date;
                             var equalEnd = effectiveChangeTo.Date == positionInstance.AppliesTo.Date;
 
+                            var jsonPosition = rawPosition.Value;
 
                             if (equalStart)
-                                await UpdateStartAsync(dbRequest, rawPosition.Value, effectiveChangeTo);
+                                UpdateStart(dbRequest, jsonPosition, effectiveChangeTo);
                             else if (equalEnd)
-                                await UpdateEndAsync(dbRequest, rawPosition.Value, effectiveChangeFrom);
+                                UpdateEnd(dbRequest, jsonPosition, effectiveChangeFrom);
                             else
-                                await UpdateCenterAsync(dbRequest, rawPosition.Value, effectiveChangeFrom, effectiveChangeTo);
+                                UpdateCenter(dbRequest, jsonPosition, effectiveChangeFrom, effectiveChangeTo);
+
+                            var subType = new SubType(dbRequest.SubType);
+                            switch (subType.Value)
+                            {
+                                case SubType.Types.ChangeResource or SubType.Types.RemoveResource:
+
+                                    if (dbRequest.ProposalParameters.ChangeFrom is not null &&
+                                        dbRequest.ProposalParameters.ChangeTo is null && 
+                                        assignedPersonAzureId is not null)
+                                    {
+                                        UpdateResourceOnInstancesAfter(jsonPosition, assignedPersonAzureId.Value, dbRequest.ProposedPerson.AzureUniqueId, dbRequest.ProposalParameters.ChangeFrom.Value);
+                                    }
+
+                                    break;
+                            }
+
+                            await SavePositionAsync(dbRequest, jsonPosition);
                         }
                     }
 
-                    private async Task UpdateStartAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeTo)
+                    private async Task SavePositionAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition)
+                    {
+
+                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
+
+                        var resp = await client.PutAsync(url, rawPosition);
+
+                        if (!resp.IsSuccessStatusCode)
+                            throw new OrgApiError(resp.Response, resp.Content);
+                    }
+
+                    private void UpdateStart(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeTo)
                     {
                         // Update existing 
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
@@ -105,16 +135,9 @@ namespace Fusion.Resources.Logic.Commands
 
                         // Add the new instance with the changes to the position
                         instances.Add(newInstance);
-
-                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
-
-                        var resp = await client.PutAsync(url, rawPosition);
-
-                        if (!resp.IsSuccessStatusCode)
-                            throw new OrgApiError(resp.Response, resp.Content);
                     }
 
-                    private async Task UpdateEndAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeFrom)
+                    private void UpdateEnd(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeFrom)
                     {
                         // Update existing 
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
@@ -138,15 +161,9 @@ namespace Fusion.Resources.Logic.Commands
                         // Add the new instance with the changes to the position
                         instances.Add(newInstance);
 
-                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
-
-                        var resp = await client.PutAsync(url, rawPosition);
-
-                        if (!resp.IsSuccessStatusCode)
-                            throw new OrgApiError(resp.Response, resp.Content);
                     }
 
-                    private async Task UpdateCenterAsync(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeFrom, DateTime changeTo)
+                    private void UpdateCenter(DbResourceAllocationRequest dbRequest, JObject rawPosition, DateTime changeFrom, DateTime changeTo)
                     {
                         /*
                          * Basically we are splitting the current instance in to three parts.
@@ -157,8 +174,6 @@ namespace Fusion.Resources.Logic.Commands
                          * Create two new splits, 1 with the changeFrom and changeTo date; and 1 with changeTo + 1 day and the original end date.
                          * 
                          * */
-
-
 
                         // Update existing 
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
@@ -196,13 +211,6 @@ namespace Fusion.Resources.Logic.Commands
                         // Add the new instance with the changes to the position
                         instances.Add(newCenterInstance);
                         instances.Add(newTrailingInstance);
-
-                        var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
-
-                        var resp = await client.PutAsync(url, rawPosition);
-
-                        if (!resp.IsSuccessStatusCode)
-                            throw new OrgApiError(resp.Response, resp.Content);
                     }
 
                     private void ApplyProposedChanges(DbResourceAllocationRequest dbRequest, JObject instance)
@@ -273,7 +281,22 @@ namespace Fusion.Resources.Logic.Commands
                         }
                     }
 
+                    private void UpdateResourceOnInstancesAfter(JObject rawPosition, Guid existingPersonAzureId, Guid? newPersonAzureId, DateTime changeFrom)
+                    {
+                        var position = rawPosition.ToObject<ApiPositionV2>();
+                        var rawInstances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
+                        var instances = position!.Instances.Where(i => i.AssignedPerson?.AzureUniqueId == existingPersonAzureId && i.AppliesFrom > changeFrom).ToList();
+
+
+                        ApiPersonV2? newAssignment = newPersonAzureId is null ? null : new ApiPersonV2() { AzureUniqueId = newPersonAzureId };
+
+                        foreach (var instance in instances)
+                        {
+                            var instanceToUpdate = rawInstances.Cast<JObject>().First(i => i.GetPropertyValue<ApiPositionInstanceV2, Guid>(p => p.Id) == instance.Id);
+                            instanceToUpdate.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, newAssignment!);
+                        }
+                    }
                 }
             }
         }

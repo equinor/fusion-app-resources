@@ -11,7 +11,7 @@ namespace Fusion.Resources.Api.Controllers
     {
         public string Type { get; set; } = null!;
 
-        public string? SubType { get; set; }
+        public string SubType { get; set; } = null!;
 
         public Guid OrgPositionId { get; set; }
         public Guid OrgPositionInstanceId { get; set; }
@@ -31,12 +31,16 @@ namespace Fusion.Resources.Api.Controllers
             /// Allowed types for this request type
             /// </summary>
             private enum ApiResourceOwnerRequestType { ResourceOwnerChange }
+            private enum ApiResourceOwnerRequestSubType { Adjustment, ResourceChange, ResourceRemoval }
 
             public Validator()
             {
                 RuleFor(x => x.Type).NotNull().NotEmpty();                
                 RuleFor(x => x.Type).IsEnumName(typeof(ApiResourceOwnerRequestType), false)
                     .WithMessage((req, p) => $"Type '{p}' is not valid, allowed values are [{string.Join(", ", Enum.GetNames<ApiResourceOwnerRequestType>())}]");
+
+                RuleFor(x => x.SubType).IsEnumName(typeof(ApiResourceOwnerRequestSubType), false)
+                    .WithMessage((req, p) => $"Type '{p}' is not valid, allowed values are [{string.Join(", ", Enum.GetNames<ApiResourceOwnerRequestSubType>())}]");
 
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 

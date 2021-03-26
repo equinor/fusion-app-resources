@@ -66,16 +66,30 @@ namespace Fusion.Resources.Logic.Commands
                         throw InvalidWorkflowError.ValidationError("Cannot create change request on expired instance.")
                             .SetWorkflowName(workflow);
 
-                    // Check that the workflow can be started. This requires that a person is proposed.
-                    if ((!hasChanges && !hasPersonChange) || (!isFutureSplit && !hasChangeDate))
-                        throw InvalidWorkflowError.ValidationError("Required properties are missing in order to start the workflow.", s =>
-                        {
-                            if (!isFutureSplit && !hasChangeDate)
-                                s.AddFailure("applicableChangeDate", "When the instance to change is currently active, a date the change is going to take effect is required.");
 
-                            if (!hasChanges && !hasPersonChange)
-                                s.AddFailure("changes", "Either proposed changes or proposed person must be set.");
-                        }).SetWorkflowName(workflow);
+                    switch (request.SubType?.ToLower())
+                    {
+                        case "adjustment":
+                        case "resourcechange":
+                            if ((!hasChanges && !hasPersonChange) || (!isFutureSplit && !hasChangeDate))
+                                throw InvalidWorkflowError.ValidationError("Required properties are missing in order to start the workflow.", s =>
+                                {
+                                    if (!isFutureSplit && !hasChangeDate)
+                                        s.AddFailure("applicableChangeDate", "When the instance to change is currently active, a date the change is going to take effect is required.");
+
+                                    if (!hasChanges && !hasPersonChange)
+                                        s.AddFailure("changes", "Either proposed changes or proposed person must be set.");
+                                }).SetWorkflowName(workflow);
+                            break;
+                        case "resourceremoval":
+                            break;
+                        default:
+                            throw InvalidWorkflowError.ValidationError($"Sub type '{request.SubType}' is not valid")
+                                .SetWorkflowName(workflow);
+                    }
+
+                    // Check that the workflow can be started. This requires that a person is proposed.
+
                 }
             }
         }

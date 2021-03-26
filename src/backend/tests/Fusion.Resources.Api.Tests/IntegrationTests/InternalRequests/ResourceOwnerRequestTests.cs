@@ -76,7 +76,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testDepartment = InternalRequestData.PickRandomDepartment();
             // Create a default request we can work with
 
-            normalRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner());
+            normalRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner("adjustment"));
         }
 
         public Task DisposeAsync()
@@ -93,7 +93,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientPostAsync($"/departments/{testDepartment}/resources/requests", new { }, new { Id = Guid.Empty });
+            var response = await Client.TestClientPostAsync($"/departments/{testDepartment}/resources/requests", new { type = "ResourceOwnerChange", subtype = "adjustment" }, new { Id = Guid.Empty });
 
             response.Should().BeBadRequest();
         }
@@ -127,6 +127,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", new
             {
                 type = "resourceOwnerChange",
+                subType = "adjustment",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
             });
@@ -141,6 +142,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync($"/departments/{testDepartment}/resources/requests/{normalRequest.Id}", new { isDraft = false });
             resp.Should().BeSuccessfull();
             resp.Value.isDraft.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ResourceOwnerRequest_ShouldNotDisplayForProject_WhenDraft()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/resources/requests", new { value = new[] { new { Id = Guid.Empty } } });
+            resp.Should().BeSuccessfull();
+
+            resp.Value.value.Should().NotContain(r => r.Id == normalRequest.Id);
         }
 
         [Fact]
