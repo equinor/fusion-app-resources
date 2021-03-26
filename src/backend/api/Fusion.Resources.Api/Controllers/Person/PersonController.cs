@@ -153,6 +153,15 @@ namespace Fusion.Resources.Api.Controllers
             return respObject;
         }
 
+        [HttpGet("/persons/resource-owners")]
+        public async Task<ActionResult<List<ApiPerson>>> GetResourceOwners([FromQuery(Name = "q")] string query)
+        {
+            var request = new SearchResourceOwners(query);
+            var result = await DispatchAsync(request);
+
+            return Ok(result);
+        }
+
         private async Task<string?> ResolveSector(string department)
         {
             var request = new GetDepartmentSector(department);
