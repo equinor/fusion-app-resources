@@ -18,7 +18,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     {
         [HttpGet("departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentRequests(
-            [FromRoute] string departmentString, 
+            [FromRoute] string departmentString,
             [FromQuery] ODataQueryParams query)
         {
             #region Authorization
@@ -182,7 +182,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var request = new GetTbnPositionsTimeline(departmentString, timelineStart.Value, timelineEnd.Value);
             var timeline = await DispatchAsync(request);
 
-            return Ok(new ApiTbnPositionTimeline( timeline));
+            return Ok(new ApiTbnPositionTimeline(timeline, timelineStart.Value, timelineEnd.Value));
         }
     }
 }

@@ -93,8 +93,8 @@ namespace Fusion.Resources.Domain.Queries
                                 BasePosition = pos.BasePosition,
                                 Name = pos.Name,
 
-                                AppliesFrom = instance.AppliesFrom,
-                                AppliesTo = instance.AppliesTo,
+                                AppliesFrom = instance.AppliesFrom.Date,
+                                AppliesTo = instance.AppliesTo.Date,
 
                                 Workload = instance.Workload,
                                 Obs = instance.Obs,
