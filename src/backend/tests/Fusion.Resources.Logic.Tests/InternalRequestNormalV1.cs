@@ -2,10 +2,12 @@
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Logic.Workflows;
 using System;
+using System.Collections;
 using Xunit;
 
 namespace Fusion.Resources.Logic.Tests
 {
+
     public class InternalRequestNormalV1
     {
 
@@ -31,7 +33,7 @@ namespace Fusion.Resources.Logic.Tests
         [InlineData(AllocationNormalWorkflowV1.PROPOSAL, AllocationNormalWorkflowV1.APPROVAL)]
         [InlineData(AllocationNormalWorkflowV1.APPROVAL, AllocationNormalWorkflowV1.PROVISIONING)]
         [InlineData(AllocationNormalWorkflowV1.PROVISIONING, null)]
-        
+
         public void Steps_Should_HaveNextStep(string stepId, string nextStep)
         {
             var workflow = new AllocationNormalWorkflowV1();
