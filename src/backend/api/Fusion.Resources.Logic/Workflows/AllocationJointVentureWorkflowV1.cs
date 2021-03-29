@@ -91,7 +91,8 @@ namespace Fusion.Resources.Logic.Workflows
 
         public static WorkflowStep Approval => new WorkflowStep(APPROVAL, "Approve")
             .WithDescription("Review personnel request and approve/reject")
-            .WithPreviousStep(CREATED)
+            //.WithPreviousStep(CREATED)
+            .WithPreviousStep(APPROVAL)
             .WithNextStep(PROVISIONING);
 
         public static WorkflowStep Provisioning => new WorkflowStep(PROVISIONING, "Provisioning")
