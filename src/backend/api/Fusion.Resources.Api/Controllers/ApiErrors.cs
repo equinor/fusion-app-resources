@@ -2,6 +2,7 @@
 using Fusion.Resources.Api.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -19,6 +20,12 @@ namespace Fusion.Resources.Api.Controllers
                 Status = (int)System.Net.HttpStatusCode.BadRequest
             };
             problem.Extensions.Add("error", new ApiProblem.ApiError(error.GetType().Name, error.Message));
+
+            // Validation errors
+            var propertyErrors = error.Errors.GroupBy(e => e.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(f => f.ErrorMessage));
+
+            problem.Extensions.Add("errors", propertyErrors);
 
             return new ObjectResult(problem)
             {
