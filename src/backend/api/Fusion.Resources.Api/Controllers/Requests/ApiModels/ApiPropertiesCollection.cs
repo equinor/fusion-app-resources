@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
+
     public class ApiPropertiesCollection : Dictionary<string, object>
     {
         public ApiPropertiesCollection()

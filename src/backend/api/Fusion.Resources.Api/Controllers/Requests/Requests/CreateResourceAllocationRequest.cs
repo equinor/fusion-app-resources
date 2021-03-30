@@ -31,7 +31,8 @@ namespace Fusion.Resources.Api.Controllers
         public Guid OrgPositionInstanceId { get; set; }
         
         public string? AdditionalNote { get; set; }
-        public ApiPropertiesCollection? ProposedChanges { get; set; }
+        [JsonConverter(typeof(Json.DictionaryStringObjectJsonConverter))]
+        public Dictionary<string, object>? ProposedChanges { get; set; }
 
 
         public Guid? ProposedPersonAzureUniqueId { get; set; }

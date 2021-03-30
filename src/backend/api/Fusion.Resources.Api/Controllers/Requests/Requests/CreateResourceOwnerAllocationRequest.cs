@@ -4,9 +4,12 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Fusion.Integration.Org;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
+
     public class CreateResourceOwnerAllocationRequest
     {
         public string Type { get; set; } = null!;
@@ -17,7 +20,10 @@ namespace Fusion.Resources.Api.Controllers
         public Guid OrgPositionInstanceId { get; set; }
 
         public string? AdditionalNote { get; set; }
-        public ApiPropertiesCollection? ProposedChanges { get; set; }
+        
+        
+        [JsonConverter(typeof(Json.DictionaryStringObjectJsonConverter))]
+        public Dictionary<string, object>? ProposedChanges { get; set; }
         public ProposalParametersRequest? ProposalParameters { get; set; }
 
         public Guid? ProposedPersonAzureUniqueId { get; set; }
@@ -47,10 +53,8 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.OrgPositionId).NotEmpty();
                 RuleFor(x => x.OrgPositionInstanceId).NotEmpty();
 
-
-                RuleFor(x => x.ProposedChanges).BeValidProposedChanges().When(x => x.ProposedChanges != null);
-
                 RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
+                RuleFor(x => x.ProposedChanges).BeValidProposedChanges().When(x => x.ProposedChanges != null);
 
                 RuleFor(x => x.ProposalParameters!).SetValidator(new ProposalParametersRequest.Validator())
                     .When(x => x.ProposalParameters != null);
