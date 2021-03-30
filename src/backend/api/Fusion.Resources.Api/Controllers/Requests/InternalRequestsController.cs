@@ -395,6 +395,45 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result!);
         }
 
+        [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/start")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> StartResourceOwnerRequestWorkflow([FromRoute] string departmentPath, Guid requestId)
+        {
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            try
+            {
+                await using var transaction = await BeginTransactionAsync();
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
+                await transaction.CommitAsync();
+            }
+            catch (InvalidWorkflowError ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+
+            result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            return new ApiResourceAllocationRequest(result!);
+        }
+
         [HttpDelete("/resources/requests/internal/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpDelete("/projects/{projectIdentifier}/resources/requests/{requestId}")]
