@@ -10,11 +10,12 @@ namespace Fusion.Resources.Domain
             Name = department.DepartmentId;
             Sector = department.SectorId;
 
-            Responsible = responsible;
+            LineOrgResponsible = responsible;
         }
 
         public string Name { get; }
         public string? Sector { get; }
-        public FusionPersonProfile? Responsible { get; }
+        public FusionPersonProfile? LineOrgResponsible { get; }
+        public FusionPersonProfile? DefactoResponsible { get; set; }
     }
 }
