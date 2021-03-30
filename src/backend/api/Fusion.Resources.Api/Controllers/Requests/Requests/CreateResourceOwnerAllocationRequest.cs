@@ -31,7 +31,7 @@ namespace Fusion.Resources.Api.Controllers
             /// Allowed types for this request type
             /// </summary>
             private enum ApiResourceOwnerRequestType { ResourceOwnerChange }
-            private enum ApiResourceOwnerRequestSubType { Adjustment, ResourceChange, ResourceRemoval }
+            private enum ApiResourceOwnerRequestSubType { Adjustment, ChangeResource, RemoveResource }
 
             public Validator()
             {
