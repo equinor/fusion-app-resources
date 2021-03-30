@@ -98,27 +98,32 @@ namespace Fusion.Resources.Logic.Commands
 
                                     // Change request requires that there is defined a person in the proposed changes
                                     var changes = JsonConvert.DeserializeAnonymousType(request.ProposedChanges ?? "{}", new { assignedPerson = new { AzureUniqueId = Guid.Empty } });
-                                    var hasPersonToChangeTo = (changes.assignedPerson?.AzureUniqueId).GetValueOrDefault(Guid.Empty) != Guid.Empty;
-                                    var hasPersonToChangeFrom = hasPersonChange;
 
-                                    if (!hasPersonToChangeTo)
-                                        s.AddFailure("proposedChanges.assignedPerson.azureUniqueId", "Must specify person to change to");
+                                    var hasPersonToChangeTo = hasPersonChange;
+                                    //var hasPersonToChangeTo = (changes.assignedPerson?.AzureUniqueId).GetValueOrDefault(Guid.Empty) != Guid.Empty;
+                                    //var hasPersonToChangeFrom = hasPersonChange;
 
-                                    if (hasPersonToChangeFrom)
-                                        s.AddFailure("proposedPersonAzureUniqueId", "Must specify person to change from");
+                                    //if (!hasPersonToChangeTo)
+                                    //    s.AddFailure("proposedChanges.assignedPerson.azureUniqueId", "Must specify person to change to");
+
+                                    if (hasPersonToChangeTo)
+                                        s.AddFailure("proposedPersonAzureUniqueId", "Must specify person to change to");
 
                                 }).SetWorkflowName(workflow);
                             break;
 
                         case SubType.Types.RemoveResource:
-                            if ((!hasPersonChange) || (!isFutureSplit && !hasChangeDate))
+                            if (!isFutureSplit && !hasChangeDate)
                                 throw InvalidWorkflowError.ValidationError("Required properties are missing in order to start the workflow.", s =>
                                 {
                                     if (!isFutureSplit && !hasChangeDate)
                                         s.AddFailure("proposalParameters.changeDateFrom", "When the instance to change is currently active, a date the change is going to take effect is required.");
 
-                                    if (hasPersonChange)
-                                        s.AddFailure("proposedPersonAzureUniqueId", "Must specify person to unassign");
+                                    if (request.OrgPositionInstance.AssignedToUniqueId is null)
+                                        s.AddFailure("instance.assignedPerson", "Must specify person to unassign");
+
+                                    //if (hasPersonChange)
+                                    //    s.AddFailure("proposedPersonAzureUniqueId", "Must specify person to unassign");
 
                                 }).SetWorkflowName(workflow);
                             break;

@@ -80,22 +80,41 @@ namespace Fusion.Resources.Logic.Commands
                             else
                                 UpdateCenter(dbRequest, jsonPosition, effectiveChangeFrom, effectiveChangeTo);
 
-                            var subType = new SubType(dbRequest.SubType);
-                            switch (subType.Value)
-                            {
-                                case SubType.Types.ChangeResource or SubType.Types.RemoveResource:
-
-                                    if (dbRequest.ProposalParameters.ChangeFrom is not null &&
-                                        dbRequest.ProposalParameters.ChangeTo is null && 
-                                        assignedPersonAzureId is not null)
-                                    {
-                                        UpdateResourceOnInstancesAfter(jsonPosition, assignedPersonAzureId.Value, dbRequest.ProposedPerson.AzureUniqueId, dbRequest.ProposalParameters.ChangeFrom.Value);
-                                    }
-
-                                    break;
-                            }
+                            // Update successor instance, either update the resource of remove.
+                            UpdateSuccessorInstances(dbRequest, jsonPosition, assignedPersonAzureId);
 
                             await SavePositionAsync(dbRequest, jsonPosition);
+                        }
+                    }
+
+                    private void UpdateSuccessorInstances(DbResourceAllocationRequest dbRequest, JObject rawPosition, Guid? assignedPersonAzureId)
+                    {
+                        var subType = new SubType(dbRequest.SubType);
+
+                        // Must specify a change date
+                        if (dbRequest.ProposalParameters.ChangeFrom is null)
+                            return;
+
+                        // Do not update if there is set a to date, meaning change is temporary
+                        if (dbRequest.ProposalParameters.ChangeTo is not null)
+                            return;
+
+                        if (assignedPersonAzureId is null)
+                            return;
+
+                        // If the scope is just the current instance, do not touch future instances
+                        if (dbRequest.ProposalParameters.Scope == DbResourceAllocationRequest.DbChangeScope.InstanceOnly)
+                            return;
+
+                        switch (subType.Value)
+                        {
+                            case SubType.Types.ChangeResource:
+                                UpdateResourceOnInstancesAfter(rawPosition, assignedPersonAzureId.Value, dbRequest.ProposedPerson.AzureUniqueId, dbRequest.ProposalParameters.ChangeFrom!.Value);
+                                break;
+
+                            case SubType.Types.RemoveResource:
+                                UpdateResourceOnInstancesAfter(rawPosition, assignedPersonAzureId.Value, null, dbRequest.ProposalParameters.ChangeFrom!.Value);
+                                break;
                         }
                     }
 
@@ -115,8 +134,8 @@ namespace Fusion.Resources.Logic.Commands
                         // Update existing 
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
-                        var newInstanceStartDate = changeTo.Date.AddDays(1);
-                        var existingInstanceEndDate = changeTo;
+                        var newInstanceStartDate = changeTo.Date;
+                        var existingInstanceEndDate = changeTo.Date.AddDays(-1);
 
 
                         // Update the instance we are targeting to end at the applicable date
@@ -143,8 +162,8 @@ namespace Fusion.Resources.Logic.Commands
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
 
-                        var originalInstanceEndDate = changeFrom.Date;
-                        var newInstanceStartDate = originalInstanceEndDate.AddDays(1);
+                        var originalInstanceEndDate = changeFrom.Date.AddDays(-1);
+                        var newInstanceStartDate = originalInstanceEndDate.Date;
 
                         // Update the instance we are targeting to end at the applicable date
                         var instanceToUpdate = instances.Cast<JObject>().First(i => i.GetPropertyValue<ApiPositionInstanceV2, Guid>(p => p.Id) == dbRequest.OrgPositionInstance.Id);
@@ -179,13 +198,8 @@ namespace Fusion.Resources.Logic.Commands
                         var instances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
 
-                        var existingInstanceEndDate = changeFrom.AddDays(-1);
-                        var trailingInstanceStartDate = changeTo.AddDays(1);
-
-
-                        var originalInstanceEndDate = changeFrom.Date;
-                        var newInstanceStartDate = originalInstanceEndDate.AddDays(1);
-
+                        var existingInstanceEndDate = changeFrom.Date.AddDays(-1);
+                        var trailingInstanceStartDate = changeTo.Date.AddDays(1);
 
 
                         // Update the instance we are targeting to end at the applicable date
@@ -218,7 +232,7 @@ namespace Fusion.Resources.Logic.Commands
                         var subType = new SubType(dbRequest.SubType);
                         
                         var proposedChanges = new JObject();
-                        if (!string.IsNullOrEmpty(dbRequest.ProposedChanges))
+                        if (!string.IsNullOrEmpty(dbRequest.ProposedChanges) && dbRequest.ProposedChanges != "null")
                             proposedChanges = JObject.Parse(dbRequest.ProposedChanges);
 
                         switch (subType.Value)
@@ -232,8 +246,8 @@ namespace Fusion.Resources.Logic.Commands
                                 break;
 
                             case SubType.Types.ChangeResource:
-                                if (proposedChanges.TryGetValue("assignedPerson", StringComparison.InvariantCultureIgnoreCase, out var assignedPerson))
-                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, assignedPerson.ToObject<ApiPositionLocationV2>()!);
+                                if (dbRequest.ProposedPerson.AzureUniqueId != null)
+                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
                                 break;
 
                             case SubType.Types.RemoveResource:
@@ -257,17 +271,25 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest.ProposedPerson.AzureUniqueId != null)
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
 
-                        if (proposedChanges.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
-                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Obs, obs);
+                        
 
                         if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
+
+                        /*
+                        //
+                        // For now we disable letting the resource owner change these properties
+                        //
+                        
+                        if (proposedChanges.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
+                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Obs, obs);
 
                         if (proposedChanges.TryGetValue("appliesFrom", StringComparison.InvariantCultureIgnoreCase, out var appliesFrom))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AppliesFrom, appliesFrom);
 
                         if (proposedChanges.TryGetValue("appliesTo", StringComparison.InvariantCultureIgnoreCase, out var appliesTo))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AppliesTo, appliesTo);
+                        */
 
                         if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
                             instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
@@ -279,18 +301,6 @@ namespace Fusion.Resources.Logic.Commands
                         if (!updateResp.IsSuccessStatusCode)
                             throw new OrgApiError(updateResp.Response, updateResp.Content);
 
-
-                        // Update next instance if applies to date has changed
-                        if (proposedChanges.TryGetValue("appliesTo", StringComparison.InvariantCultureIgnoreCase, out appliesTo))
-                        {
-                            var pos = rawPosition.ToObject<ApiPositionV2>();
-                            pos.Instances
-                                .Where(i => i.Type == ApiInstanceType.Normal && i.AppliesFrom > appliesTo.ToObject<DateTime?>())
-                                .OrderBy(i => i.AppliesFrom)
-                                .FirstOrDefault();
-
-
-                        }
                     }
 
                     private void UpdateResourceOnInstancesAfter(JObject rawPosition, Guid existingPersonAzureId, Guid? newPersonAzureId, DateTime changeFrom)
@@ -299,7 +309,6 @@ namespace Fusion.Resources.Logic.Commands
                         var rawInstances = rawPosition.GetPropertyCollection<ApiPositionV2>(p => p.Instances)!;
 
                         var instances = position!.Instances.Where(i => i.AssignedPerson?.AzureUniqueId == existingPersonAzureId && i.AppliesFrom > changeFrom).ToList();
-
 
                         ApiPersonV2? newAssignment = newPersonAzureId is null ? null : new ApiPersonV2() { AzureUniqueId = newPersonAzureId };
 
