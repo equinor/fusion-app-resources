@@ -2,6 +2,7 @@
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
+using Fusion.Resources.Domain.LineOrg;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -39,7 +40,7 @@ namespace Fusion.Resources.Domain
 
             public async Task<QueryDepartmentWithResponsible> Handle(GetDepartmentWithResponsible request, CancellationToken cancellationToken)
             {
-                var department = await db.Departments.FindAsync(request.DepartmentId);
+                var department = await db.Departments.FindAsync(request.DepartmentId, cancellationToken);
 
                 var client = httpClientFactory.CreateClient("lineorg");
 
@@ -48,8 +49,8 @@ namespace Fusion.Resources.Domain
                     + $"and fulldepartment eq '{department.DepartmentId}'";
 
                 var response = await client.GetAsync(uri);
-                var lineOrgDpt = JsonSerializer.Deserialize<PaginatedResponse>(
-                    await response.Content.ReadAsStringAsync(),
+                var lineOrgDpt = JsonSerializer.Deserialize<PaginatedResponse<ProfileWithDepartment>>(
+                    await response.Content.ReadAsStringAsync(cancellationToken),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                 );
                 var responsibleAzureId = lineOrgDpt?.Value.FirstOrDefault()?.AzureUniqueId;
@@ -58,7 +59,7 @@ namespace Fusion.Resources.Domain
                 var responsibleOverride = await db.DepartmentResponsibles
                    .Where(r => r.DateFrom <= DateTime.Now && r.DateTo >= DateTime.Now)
                    .Where(r => r.DepartmentId == request.DepartmentId)
-                   .FirstOrDefaultAsync();
+                   .FirstOrDefaultAsync(cancellationToken);
 
                 var result = new QueryDepartmentWithResponsible(department, responsible);
 
@@ -70,17 +71,5 @@ namespace Fusion.Resources.Domain
                 return result;
             }
         }
-    }
-
-
-    class PaginatedResponse
-    {
-        public int TotalCount { get; set; }
-        public int Count { get; set; }
-        public List<Profile> Value { get; set; }
-    }
-    class Profile
-    {
-        public Guid AzureUniqueId { get; set; }
     }
 }
