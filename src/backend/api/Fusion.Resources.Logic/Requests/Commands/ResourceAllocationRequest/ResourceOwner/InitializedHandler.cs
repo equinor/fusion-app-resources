@@ -67,10 +67,12 @@ namespace Fusion.Resources.Logic.Commands
                             .SetWorkflowName(workflow);
 
 
-                    switch (request.SubType?.ToLower())
+                    var subType = new SubType(request.SubType);
+
+                    switch (subType.Value)
                     {
-                        case "adjustment":
-                        case "resourcechange":
+                        case SubType.Types.Adjustment:
+                        case SubType.Types.ChangeResource:
                             if ((!hasChanges && !hasPersonChange) || (!isFutureSplit && !hasChangeDate))
                                 throw InvalidWorkflowError.ValidationError("Required properties are missing in order to start the workflow.", s =>
                                 {
@@ -81,8 +83,10 @@ namespace Fusion.Resources.Logic.Commands
                                         s.AddFailure("changes", "Either proposed changes or proposed person must be set.");
                                 }).SetWorkflowName(workflow);
                             break;
-                        case "resourceremoval":
+
+                        case SubType.Types.RemoveResource:
                             break;
+
                         default:
                             throw InvalidWorkflowError.ValidationError($"Sub type '{request.SubType}' is not valid")
                                 .SetWorkflowName(workflow);
