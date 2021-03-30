@@ -33,6 +33,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
         public readonly OrgServiceMock orgServiceMock;
         public readonly ContextResolverMock contextResolverMock;
         internal readonly RolesClientMock roleClientMock;
+        public readonly MockHttpClientBuilder lineOrgMock;
 
         public readonly Mock<IQueueSender> queueMock;
 
@@ -53,6 +54,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             orgServiceMock = new OrgServiceMock();
             contextResolverMock = new ContextResolverMock();
             roleClientMock = new RolesClientMock();
+            lineOrgMock = new MockHttpClientBuilder();
             queueMock = new Mock<IQueueSender>();
             queueMock.Setup(c => c.SendMessageAsync(It.IsAny<QueuePath>(), It.IsAny<object>())).Returns(Task.CompletedTask);
 
@@ -113,6 +115,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient("lineorg")).Returns(lineOrgMock.Build());
 
                     return clientFactoryMock.Object;
                 });

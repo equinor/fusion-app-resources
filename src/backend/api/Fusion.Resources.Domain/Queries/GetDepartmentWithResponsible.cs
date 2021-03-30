@@ -45,7 +45,7 @@ namespace Fusion.Resources.Domain
                 var client = httpClientFactory.CreateClient("lineorg");
 
                 var uri = "/lineorg/persons/?$filter="
-                    + "isresourceowner eq true "
+                    + $"isresourceowner eq true "
                     + $"and fulldepartment eq '{department.DepartmentId}'";
 
                 var response = await client.GetAsync(uri);

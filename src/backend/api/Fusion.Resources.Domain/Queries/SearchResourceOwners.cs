@@ -42,7 +42,7 @@ namespace Fusion.Resources.Domain.Queries
             {
                 var client = httpClientFactory.CreateClient("lineorg");
 
-                var uri = "/lineorg/persons/?$filter=isresourceowner eq true"
+                var uri = "/lineorg/persons?$filter=isresourceowner eq true"
                     + $"&$search={request.Query}";
 
                 var managedDepartments = await db.Departments

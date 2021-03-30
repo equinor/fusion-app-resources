@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Integration;
+using Fusion.Resources.Api.Controllers.Departments;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
@@ -154,12 +155,12 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/persons/resource-owners")]
-        public async Task<ActionResult<List<ApiPerson>>> GetResourceOwners([FromQuery(Name = "q")] string query)
+        public async Task<ActionResult<List<ApiDepartment>>> GetResourceOwners([FromQuery(Name = "q")] string query)
         {
             var request = new SearchResourceOwners(query);
             var result = await DispatchAsync(request);
 
-            return Ok(result);
+            return Ok(result.Select(x => new ApiDepartment(x)));
         }
 
         private async Task<string?> ResolveSector(string department)
