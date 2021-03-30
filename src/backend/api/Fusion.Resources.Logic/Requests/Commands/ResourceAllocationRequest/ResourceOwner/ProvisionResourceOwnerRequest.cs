@@ -215,19 +215,31 @@ namespace Fusion.Resources.Logic.Commands
 
                     private void ApplyProposedChanges(DbResourceAllocationRequest dbRequest, JObject instance)
                     {
+                        var subType = new SubType(dbRequest.SubType);
+                        
                         var proposedChanges = new JObject();
-
                         if (!string.IsNullOrEmpty(dbRequest.ProposedChanges))
                             proposedChanges = JObject.Parse(dbRequest.ProposedChanges);
 
-                        if (dbRequest.ProposedPerson.AzureUniqueId != null)
-                            instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
+                        switch (subType.Value)
+                        {
+                            case SubType.Types.Adjustment:
+                                if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
+                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
 
-                        if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
-                            instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
+                                if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
+                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
+                                break;
 
-                        if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                            instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
+                            case SubType.Types.ChangeResource:
+                                if (proposedChanges.TryGetValue("assignedPerson", StringComparison.InvariantCultureIgnoreCase, out var assignedPerson))
+                                    instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, assignedPerson.ToObject<ApiPositionLocationV2>()!);
+                                break;
+
+                            case SubType.Types.RemoveResource:
+                                instance.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, null!);
+                                break;
+                        }
                     }
 
 
