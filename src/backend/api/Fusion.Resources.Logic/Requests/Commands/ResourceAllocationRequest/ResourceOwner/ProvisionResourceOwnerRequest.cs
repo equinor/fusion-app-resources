@@ -163,7 +163,7 @@ namespace Fusion.Resources.Logic.Commands
 
 
                         var originalInstanceEndDate = changeFrom.Date.AddDays(-1);
-                        var newInstanceStartDate = originalInstanceEndDate.Date;
+                        var newInstanceStartDate = changeFrom.Date;
 
                         // Update the instance we are targeting to end at the applicable date
                         var instanceToUpdate = instances.Cast<JObject>().First(i => i.GetPropertyValue<ApiPositionInstanceV2, Guid>(p => p.Id) == dbRequest.OrgPositionInstance.Id);
