@@ -35,7 +35,8 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionInstance = query.OrgPositionInstance;
 
             AdditionalNote = query.AdditionalNote;
-            if (query.ProposedChanges.Count > 0)
+
+            if (query.ProposedChanges is not null)
                 ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
             ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
