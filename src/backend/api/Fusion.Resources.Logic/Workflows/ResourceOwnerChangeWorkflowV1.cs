@@ -7,8 +7,6 @@ namespace Fusion.Resources.Logic.Workflows
 
     public class ResourceOwnerChangeWorkflowV1 : WorkflowDefinition
     {
-        //public const string SUBTYPE = "normal";
-
         public const string CREATED = "created";
         public const string ACCEPTANCE = "acceptance";
 
