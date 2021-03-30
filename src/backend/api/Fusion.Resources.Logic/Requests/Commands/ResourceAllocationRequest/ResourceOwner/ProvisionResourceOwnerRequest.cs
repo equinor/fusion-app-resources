@@ -48,7 +48,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     private async Task ProvisionAsync(DbResourceAllocationRequest dbRequest)
                     {
-                        // Need to get the raw position, in case model has changed.. When putting position, fields not 
+                        // Need to get the raw position, in case model has changed.. When putting position, fields not in the model will be overwritten
                         var rawPosition = await client.GetAsync<JObject>($"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0");
 
                         var position = rawPosition.Value.ToObject<ApiPositionV2>();
