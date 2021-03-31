@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Fusion.Resources.Domain.Tests
+namespace Fusion.Resources.Api.Tests
 {
     public class SearchResourceOwners : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
