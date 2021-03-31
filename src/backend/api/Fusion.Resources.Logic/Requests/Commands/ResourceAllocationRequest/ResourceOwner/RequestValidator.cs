@@ -18,19 +18,53 @@ namespace Fusion.Resources.Logic.Commands
                     RuleFor(x => x.SubType).NotNull();
                     RuleFor(x => x.SubType).IsEnumName(typeof(SubType.Types), false)
                         .WithMessage($"Subtype must be any of [{string.Join(", ", Enum.GetNames<SubType.Types>())}]");
-                        
 
-                    RuleFor(x => x).SetValidator(new AdjustmentValidator()).When(x => new SubType(x.SubType).Value == SubType.Types.Adjustment);
-                    RuleFor(x => x).SetValidator(new RemoveResourceValidator()).When(x => new SubType(x.SubType).Value == SubType.Types.RemoveResource);
-                    RuleFor(x => x).SetValidator(new ChangeResourceValidator()).When(x => new SubType(x.SubType).Value == SubType.Types.ChangeResource);
+
+                    // Will determine the subtype validator to use. 
+                    // If no validator is registered for the type, an error is thrown.
+                    // This reduces the chance of forgetting to add validator when adding subtype.
+                    RuleFor(x => x).SetValidator(DbResourceAllocationRequest);
+
 
                     RuleFor(x => x).Must(x => !IsExpiredSplit(x))
                         .WithMessage("Cannot run request on an expired instance");
                         
                 }
 
+                private AbstractValidator<DbResourceAllocationRequest> DbResourceAllocationRequest(DbResourceAllocationRequest req)
+                {
+                    try
+                    {
+                        var type = new SubType(req.SubType);
 
+                        switch (type.Value)
+                        {
+                            case SubType.Types.Adjustment: return new AdjustmentValidator();
+                            case SubType.Types.ChangeResource: return new ChangeResourceValidator();
+                            case SubType.Types.RemoveResource: return new RemoveResourceValidator();
+                            default:
+                                throw new NotSupportedException($"No validator registered for sub type {req.SubType}");
+                        }
+                    }
+                    catch
+                    {
+                        // Sub type validity will be validated on the request itself.
+                        return new MissingValidator("Could not determine validator to use for subtype");
+                    }
+                }
+                
                 #region Sub type validators
+
+                private class MissingValidator : AbstractValidator<DbResourceAllocationRequest>
+                {
+                    public MissingValidator(string message)
+                    {
+                        RuleFor(x => x).Custom((r, ctx) =>
+                        {
+                            ctx.AddFailure("validator", message);
+                        });
+                    }
+                }
 
                 private class AdjustmentValidator : AbstractValidator<DbResourceAllocationRequest>
                 {
@@ -44,10 +78,10 @@ namespace Fusion.Resources.Logic.Commands
 
                             // When split is currently active, a change date is required.
                             if (IsCurrentSplit(r) && HasChangeDate(r) == false)
-                                ctx.AddFailure("proposalParameters.changeDateFrom", "When the instance to change is currently active, a date the change is going to take effect is required.");
+                                ctx.AddFailure("ProposalParameters", "When the instance to change is currently active, a date the change is going to take effect is required.");
 
                             if (missingAdjustmentChanges)
-                                ctx.AddFailure("changes", "Either proposed changes or proposed person must be set.");
+                                ctx.AddFailure("Changes", "Either proposed changes or proposed person must be set.");
 
                         });
                     }
@@ -77,6 +111,11 @@ namespace Fusion.Resources.Logic.Commands
                             .Must(x => x.ChangeFrom != null || x.ChangeTo != null)
                             .WithMessage("When the instance to change is currently active, a date the change is going to take effect is required.")
                             .When(x => IsCurrentSplit(x));
+
+                        RuleFor(x => x.OrgPositionInstance.AssignedToUniqueId)
+                            .NotNull()
+                            .NotEmpty()
+                            .WithMessage("There is no person assigned to the instance. Person might already be removed?");
 
                         RuleFor(x => x.ProposedPerson.AzureUniqueId)
                             .NotNull()
