@@ -125,7 +125,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public static IRuleBuilderOptions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
         {
-            return ruleBuilder.SetValidator(new CustomValidator<ApiPropertiesCollection>(
+            return ruleBuilder.SetValidator(new CustomValidator<Dictionary<string, object>>(
                 (prop, context) =>
                 {
                     var serialized = JsonConvert.SerializeObject(prop);
