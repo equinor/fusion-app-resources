@@ -71,10 +71,33 @@ namespace Fusion.Testing.Mocks.OrgService
         /// <summary>
         /// Assigns the person to all instances
         /// </summary>
-        public static ApiPositionV2 WithAssignedPerson(this ApiPositionV2 position, Integration.Profile.ApiClient.ApiPersonProfileV3 person) => WithAssignedPerson(position, person.Mail);
+        public static ApiPositionV2 WithAssignedPerson(this ApiPositionV2 position, Integration.Profile.ApiClient.ApiPersonProfileV3 person)
+        {
+            position.Instances.ForEach(i => i.AssignedPerson = new ApiPersonV2
+            {
+
+                Mail = person.Mail,
+                AzureUniqueId = person.AzureUniqueId,
+                AccountType = $"{person.AccountType}",
+                Department = person.Department,
+                JobTitle = person.JobTitle,
+                MobilePhone = person.MobilePhone,
+                Name = person.Name,
+                OfficeLocation = person.OfficeLocation,
+                IsAffiliateAccess = person.AccountType == Integration.Profile.FusionAccountType.External
+            });
+            return position;
+        }
         public static ApiPositionV2 WithAssignedPerson(this ApiPositionV2 position, string personMail)
         {
-            position.Instances.ForEach(i => i.AssignedPerson = new ApiPersonV2 { Mail = personMail });
+            position.Instances.ForEach(i => i.AssignedPerson = new ApiPersonV2 { 
+                Mail = personMail 
+            });
+            return position;
+        }
+        public static ApiPositionV2 WithNoAssignedPerson(this ApiPositionV2 position)
+        {
+            position.Instances.ForEach(i => i.AssignedPerson = null);
             return position;
         }
 

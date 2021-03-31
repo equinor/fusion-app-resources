@@ -15,6 +15,7 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,6 +25,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class ResourceOwnerRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
+        private const string SUBTYPE_CHANGE = "changeResource";
+        private const string SUBTYPE_REMOVE = "removeResource";
+        private const string SUBTYPE_ADJUST = "adjustment";
+
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
 
@@ -34,7 +39,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
         // Created by the async lifetime
-        private TestApiInternalRequestModel normalRequest = null!;
+        private TestApiInternalRequestModel adjustmentRequest = null!;
         private FusionTestProjectBuilder testProject = null!;
         private string testDepartment = null!;
 
@@ -76,7 +81,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testDepartment = InternalRequestData.PickRandomDepartment();
             // Create a default request we can work with
 
-            normalRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner("adjustment"));
+            // Create adjustment request on a position instance currently active
+            adjustmentRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_ADJUST));
         }
 
         public Task DisposeAsync()
@@ -93,7 +99,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var response = await Client.TestClientPostAsync($"/departments/{testDepartment}/resources/requests", new { type = "ResourceOwnerChange", subtype = "adjustment" }, new { Id = Guid.Empty });
+            var response = await Client.TestClientPostAsync($"/departments/{testDepartment}/resources/requests", new { type = "ResourceOwnerChange", subtype = SUBTYPE_ADJUST }, new { Id = Guid.Empty });
 
             response.Should().BeBadRequest();
         }
@@ -139,7 +145,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync($"/departments/{testDepartment}/resources/requests/{normalRequest.Id}", new { isDraft = false });
+            var resp = await Client.TestClientGetAsync($"/departments/{testDepartment}/resources/requests/{adjustmentRequest.Id}", new { isDraft = false });
             resp.Should().BeSuccessfull();
             resp.Value.isDraft.Should().BeTrue();
         }
@@ -152,25 +158,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/resources/requests", new { value = new[] { new { Id = Guid.Empty } } });
             resp.Should().BeSuccessfull();
 
-            resp.Value.value.Should().NotContain(r => r.Id == normalRequest.Id);
+            resp.Value.value.Should().NotContain(r => r.Id == adjustmentRequest.Id);
         }
 
         [Fact]
-        public async Task NormalRequest_Create_ShouldHaveWorkflowNull()
+        public async Task ResourceOwnerRequest_Create_ShouldHaveWorkflowNull()
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync($"/departments/{testDepartment}/resources/requests/{normalRequest.Id}", new { workflow = new { } });
+            var resp = await Client.TestClientGetAsync($"/departments/{testDepartment}/resources/requests/{adjustmentRequest.Id}", new { workflow = new { } });
             resp.Should().BeSuccessfull();
             resp.Value.workflow.Should().BeNull();
         }
 
         [Fact]
-        public async Task NormalRequest_Create_ShouldHaveStateNull()
+        public async Task ResourceOwnerRequest_Create_ShouldHaveStateNull()
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync($"/departments/{testDepartment}/resources/requests/{normalRequest.Id}", new { state = (string?)null });
+            var resp = await Client.TestClientGetAsync($"/departments/{testDepartment}/resources/requests/{adjustmentRequest.Id}", new { state = (string?)null });
             resp.Should().BeSuccessfull();
             resp.Value.state.Should().BeNull();
         }
@@ -180,235 +186,112 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //#region Request flow tests
 
         //#region Start
-        //[Fact]
-        //public async Task NormalRequest_Start_ShouldBeSuccessfull_WhenStartingRequest()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Fact]
+        public async Task AdjustmentRequest_Start_ShouldBeSuccessfull_WhenChangesProposed()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
-        //    response.Should().BeSuccessfull();
-        //}
+            // Propose changes
 
-        //[Fact]
-        //public async Task NormalRequest_Should_Be_Routed_To_Correct_Department()
-        //{
-        //    var department = "ABC DEF";
-        //    using var adminScope = fixture.AdminScope();
+            await Client.ProposeChangesAsync(adjustmentRequest.Id, new { workload = 50 });
+            await Client.SetChangeParamsAsync(adjustmentRequest.Id, DateTime.Today.AddDays(1));
 
-        //    var matrixRequest = new UpdateResponsibilityMatrixRequest
-        //    {
-        //        ProjectId = testProject.Project.ProjectId,
-        //        LocationId = Guid.NewGuid(),
-        //        Discipline = normalRequest.Discipline,
-        //        BasePositionId = testProject.Positions.First().BasePosition.Id,
-        //        Sector = "ABC",
-        //        Unit = department,
-        //        ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
-        //    };
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{adjustmentRequest.Id}/start", null);
+            response.Should().BeSuccessfull();
+        }
 
-        //    var matrixResponse = await Client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", matrixRequest);
-        //    matrixResponse.Should().BeSuccessfull();
+        [Fact]
+        public async Task AdjustmentRequest_Start_ShouldBeBadRequest_WhenMissingProposedChanges()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
-        //    response.Should().BeSuccessfull();
+            await Client.SetChangeParamsAsync(adjustmentRequest.Id, DateTime.Today.AddDays(1));
 
-        //    response.Value.AssignedDepartment.Should().Be(department);
-        //}
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{adjustmentRequest.Id}/start", null);
+            response.Should().BeBadRequest();
+        }
 
-        //[Theory]
-        //[InlineData("isDraft", false)]
-        //[InlineData("state", "created")]
-        //public async Task NormalRequest_Start_ShouldSet(string property, object value)
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Theory]
+        [InlineData(SUBTYPE_ADJUST)]
+        [InlineData(SUBTYPE_CHANGE)]
+        [InlineData(SUBTYPE_REMOVE)]
+        public async Task ChangeRequest_Start_ShouldBeBadRequest_WhenMissingChangeDateAndActiveInstance(string subType)
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(subType));
 
-        //    var resp = await Client.TestClientGetAsync<JObject>($"/projects/{projectId}/requests/{normalRequest.Id}");
-        //    resp.Should().BeSuccessfull();
+            await Client.ProposeChangesAsync(request.Id, new { workload = 50 });
+            await Client.ProposePersonAsync(request.Id, testUser);
 
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
+            response.Should().BeBadRequest();
 
-        //    var propertyValue = resp.Value.GetValue(property, StringComparison.OrdinalIgnoreCase);
-        //    var typedValue = propertyValue?.ToObject(value.GetType());
+            // The body should mention property that failed.
+            response.Should().ContainErrorOnProperty("ProposalParameters");
+        }
 
-        //    typedValue.Should().Be(value);
-        //}
+        [Fact]
+        public async Task ChangeResourceRequest_Start_ShouldBeBadRequest_WhenMissingProposedPerson()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //[Fact]
-        //public async Task NormalRequest_Start_ShouldAddWorkflowInfo_WhenStartingRequest()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+            var oldUser = fixture.AddProfile(FusionAccountType.Employee);
+            var newUser = fixture.AddProfile(FusionAccountType.Employee);
 
-        //    await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_CHANGE), p => p.WithAssignedPerson(oldUser));
 
-        //    var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { workflow = new { } });
-        //    resp.Should().BeSuccessfull();
-        //    resp.Value.workflow.Should().NotBeNull();
-        //}
-        //#endregion
+            await Client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
 
-        //#region Proposal state
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
+            response.Should().BeBadRequest();
 
-        //[Fact]
-        //public async Task NormalRequest_Propose_ShouldBeSuccessfull_WhenSettingProposedPerson()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-        //    var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+            response.Should().ContainErrorOnProperty("ProposedPerson.AzureUniqueId");
+        }
 
-        //    var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+        [Fact]
+        public async Task ChangeResourceRequest_Start_ShouldBeSuccessfull_WhenPersonProposed()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var resp = await Client.TestClientPatchAsync($"/resources/requests/internal/{normalRequest.Id}", new
-        //    {
-        //        proposedPersonAzureUniqueId = testPerson.AzureUniqueId
-        //    }, new
-        //    {
-        //        proposedPersonAzureUniqueId = testPerson.AzureUniqueId,
-        //        proposedPerson = new { person = new { mail = string.Empty, azureUniquePersonId = Guid.Empty } }
-        //    });
+            var oldUser = fixture.AddProfile(FusionAccountType.Employee);
+            var newUser = fixture.AddProfile(FusionAccountType.Employee);
 
-        //    resp.Should().BeSuccessfull();
-        //    resp.Value.proposedPersonAzureUniqueId.Should().Be(testPerson.AzureUniqueId);
-        //    resp.Value.proposedPerson.Should().NotBeNull();
-        //    resp.Value.proposedPerson.person.mail.Should().Be(testPerson.Mail);
-        //    resp.Value.proposedPerson.person.azureUniquePersonId.Should().Be(testPerson.AzureUniqueId!.Value);
-        //}
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_CHANGE), p => p.WithAssignedPerson(oldUser));
 
+            await Client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
+            await Client.ProposePersonAsync(request.Id, newUser);
 
-        //[Fact]
-        //public async Task NormalRequest_Propose_ShouldBeSuccessfull_WhenApproving()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-        //    var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
+            response.Should().BeSuccessfull();
+        }
 
-        //    await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-        //    var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
-        //    await Client.ProposePersonAsync(normalRequest.Id, testPerson);
+        [Fact]
+        public async Task RemoveResourceRequest_Start_ShouldBeSuccessfull_WhenChangeDateSet()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_REMOVE), p => p.WithAssignedPerson(testUser));
 
-        //    resp.Should().BeSuccessfull();
-        //}
+            await Client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
 
-        //[Fact]
-        //public async Task NormalRequest_Propose_ShouldSetState_WhenApproving()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
+            response.Should().BeSuccessfull();
+        }
+        [Fact]
+        public async Task RemoveResourceRequest_Start_ShouldBeBadRequest_WhenNoCurrentlyAssignedPersons()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    await FastForward_ProposedRequest();
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_REMOVE), p => p.WithNoAssignedPerson());
 
-        //    var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { state = (string?)null });
-        //    resp.Should().BeSuccessfull();
-        //    resp.Value.state.Should().Be("approval");
-        //}
+            await Client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
 
-        //[Fact]
-        //public async Task NormalRequest_Propose_ShouldSetWorkflow_WhenApproving()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
+            response.Should().BeBadRequest();
 
-        //    await FastForward_ProposedRequest();
-
-        //    var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { workflow = new TestApiWorkflow() });
-        //    resp.Should().BeSuccessfull();
-
-        //    resp.Value.workflow.Should().NotBeNull();
-        //    resp.Value.workflow.State.Should().Be("Running");
-
-        //    resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "proposal");
-        //    resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");
-        //}
-
-        //#endregion
-
-        //#region Approval state
-
-        //[Fact]
-        //public async Task NormalRequest_Approval_ShouldBeSuccessfull_WhenApproving()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-        //    var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
-        //    await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-        //    var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
-        //    await Client.ProposePersonAsync(normalRequest.Id, testPerson);
-
-        //    await FastForward_ProposedRequest();
-
-        //    var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/approve", null);
-        //    resp.Should().BeSuccessfull();
-        //}
-
-        //[Fact]
-        //public async Task NormalRequest_Approval_ShouldSetWorkflow_WhenApproving()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-
-        //    await FastForward_ApprovalRequest();
-
-        //    var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { workflow = new TestApiWorkflow() });
-        //    resp.Should().BeSuccessfull();
-
-        //    resp.Value.workflow.Should().NotBeNull();
-        //    resp.Value.workflow.State.Should().Be("Running");
-
-        //    resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "approval");
-        //    resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
-        //}
-
-        //[Fact]
-        //public async Task NormalRequest_Approval_ShouldQueueProvisioning_WhenApproving()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-
-        //    await FastForward_ApprovalRequest();
-
-        //    fixture.ApiFactory.queueMock.Verify(q => q.SendMessageAsync(QueuePath.ProvisionPosition, It.Is<ProvisionPositionMessageV1>(q => q.RequestId == normalRequest.Id)), Times.Once);
-        //}
-
-        //[Fact]
-        //public async Task NormalRequest_Provisioning_ShouldUpdateOrgInstance()
-        //{
-        //    using var adminScope = fixture.AdminScope();
-
-        //    await FastForward_ApprovalRequest();
-
-        //    var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}/provision", null);
-        //    resp.Should().BeSuccessfull();
-
-        //    OrgServiceMock.Invocations.Should().Contain(i => i.Method == HttpMethod.Patch && i.Path.Contains($"{normalRequest.OrgPositionInstanceId}"));
-        //}
-
-        //#endregion
-
-
-        //#endregion
-
-
-        ///// <summary>
-        ///// Perform steps required to end up with a proposed request
-        ///// </summary>
-        ///// <returns></returns>
-        //private async Task FastForward_ProposedRequest()
-        //{
-        //    var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
-        //    await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-        //    var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
-        //    await Client.ProposePersonAsync(normalRequest.Id, testPerson);
-
-        //    var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);
-        //    resp.Should().BeSuccessfull();
-        //}
-
-        //private async Task FastForward_ApprovalRequest()
-        //{
-        //    await FastForward_ProposedRequest();
-
-        //    var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/approve", null);
-        //    resp.Should().BeSuccessfull();
-        //}
-
-
+            response.Should().ContainErrorOnProperty("OrgPositionInstance.AssignedToUniqueId");
+        }
     }
 
 }

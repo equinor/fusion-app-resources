@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using FluentAssertions.Primitives;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -135,6 +136,24 @@ namespace Fusion.Testing
                 .BecauseOf(because, becauseArgs)
                 .ForCondition(Subject.Response.StatusCode == HttpStatusCode.Accepted)
                 .FailWith($"Expected Accepted (202), but found {Subject.Response.StatusCode} ({(int)Subject.Response.StatusCode}). {Subject.Response.RequestMessage.RequestUri}");
+
+            return new AndConstraint<TestClientHttpResponseAssertions<T>>(this);
+        }
+
+        public AndConstraint<TestClientHttpResponseAssertions<T>> ContainErrorOnProperty(string propertyName, string because = "", params object[] becauseArgs)
+        {
+            var validationErrors = new Dictionary<string, string[]>();
+
+            try
+            {
+                var errorsResponse = JsonConvert.DeserializeAnonymousType(Subject.Content, new { errors = new Dictionary<string, string[]>() });
+                validationErrors = errorsResponse.errors;
+            } catch { TestLogger.TryLog("Could not deserialize validation errors"); }
+
+            Execute.Assertion
+                .BecauseOf(because, becauseArgs)
+                .ForCondition(Subject.Response.StatusCode == HttpStatusCode.BadRequest && validationErrors.Keys.Contains(propertyName, StringComparer.OrdinalIgnoreCase))
+                .FailWith("Expected BadRequest response to contain property, but found {0} and invalid properties {1}", Subject.Response.StatusCode, JsonConvert.SerializeObject(validationErrors));
 
             return new AndConstraint<TestClientHttpResponseAssertions<T>>(this);
         }

@@ -72,7 +72,7 @@ namespace Fusion.Resources.Api.Tests
         public static async Task<TestApiInternalRequestModel> CreateDefaultResourceOwnerRequestAsync(this HttpClient client, string department, FusionTestProjectBuilder project,
             Action<ApiCreateInternalRequestModel> setup = null, Action<ApiPositionV2> positionSetup = null)
         {
-            var position = project.AddPosition();
+            var position = project.AddPosition().WithInstances(1).WithEnsuredFutureInstances();
 
             positionSetup?.Invoke(position);
 
@@ -123,6 +123,32 @@ namespace Fusion.Resources.Api.Tests
             var resp = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
             {
                 proposedPersonAzureUniqueId = profile.AzureUniqueId
+            });
+            resp.Should().BeSuccessfull();
+
+            return resp.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> ProposeChangesAsync(this HttpClient client, Guid requestId, object changes)
+        {
+            var resp = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
+            {
+                proposedChanges = changes
+            });
+            resp.Should().BeSuccessfull();
+
+            return resp.Value;
+        }
+
+        public static async Task<TestApiInternalRequestModel> SetChangeParamsAsync(this HttpClient client, Guid requestId, DateTime? changeDateFrom, DateTime? changeDateTo = null)
+        {
+            var resp = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
+            {
+                proposalParameters = new
+                {
+                    changeDateFrom = changeDateFrom,
+                    changeDateTo = changeDateTo
+                }
             });
             resp.Should().BeSuccessfull();
 
