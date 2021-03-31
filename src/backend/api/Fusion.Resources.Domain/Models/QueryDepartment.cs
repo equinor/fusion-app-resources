@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain
         public string DepartmentId { get; }
         public string? SectorId { get; }
 
-        public FusionPersonProfile? LineOrgResponsible { get; }
+        public FusionPersonProfile? LineOrgResponsible { get; set; }
         public FusionPersonProfile? DefactoResponsible { get; set; }
     }
 }

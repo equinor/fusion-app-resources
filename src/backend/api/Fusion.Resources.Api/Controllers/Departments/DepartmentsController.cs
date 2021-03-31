@@ -16,16 +16,22 @@ namespace Fusion.Resources.Api.Controllers.Departments
         [HttpGet("resources/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
         {
-            var request = new GetDepartmentWithResponsible(departmentString);
-            var department = await DispatchAsync(request);
+            var request = new GetDepartments()
+                .ById(departmentString)
+                .ExpandResourceOwners();
 
-            return Ok(new ApiDepartment(department));
+            var departments = await DispatchAsync(request);
+
+            return Ok(new ApiDepartment(departments.Single()));
         }
 
         [HttpGet("/resources/departments/search")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "q")] string query)
         {
-            var request = new SearchDepartments(query);
+            var request = new GetDepartments()
+                .ExpandResourceOwners()
+                .WhereResourceOwnerMatches(query);
+
             var result = await DispatchAsync(request);
 
             return Ok(result.Select(x => new ApiDepartment(x)));
