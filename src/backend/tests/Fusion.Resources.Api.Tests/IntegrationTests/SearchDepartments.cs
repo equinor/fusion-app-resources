@@ -2,29 +2,18 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Moq.Protected;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests
 {
-    public class SearchResourceOwners : IClassFixture<ResourceApiFixture>, IAsyncLifetime
+    public class SearchDepartments : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
@@ -32,7 +21,7 @@ namespace Fusion.Resources.Api.Tests
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
 
-        public SearchResourceOwners(ResourceApiFixture fixture, ITestOutputHelper output)
+        public SearchDepartments(ResourceApiFixture fixture, ITestOutputHelper output)
         {
             this.fixture = fixture;
 
@@ -72,7 +61,7 @@ namespace Fusion.Resources.Api.Tests
 
             using var authScope = fixture.AdminScope();
 
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/persons/resource-owners?api-version=1.0-preview&q=kel");
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/resources/departments/search?api-version=1.0-preview&q=kel");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
         }
 
@@ -104,7 +93,7 @@ namespace Fusion.Resources.Api.Tests
 
             using var authScope = fixture.AdminScope();
 
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/persons/resource-owners?api-version=1.0-preview&q=kel");
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/resources/departments/search?api-version=1.0-preview&q=kel");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
             
             result.Value.Single().DefactoResponsible.Should().NotBeNull();

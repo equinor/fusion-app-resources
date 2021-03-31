@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -19,6 +20,15 @@ namespace Fusion.Resources.Api.Controllers.Departments
             var department = await DispatchAsync(request);
 
             return Ok(new ApiDepartment(department));
+        }
+
+        [HttpGet("/resources/departments/search")]
+        public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "q")] string query)
+        {
+            var request = new SearchDepartments(query);
+            var result = await DispatchAsync(request);
+
+            return Ok(result.Select(x => new ApiDepartment(x)));
         }
     }
 }
