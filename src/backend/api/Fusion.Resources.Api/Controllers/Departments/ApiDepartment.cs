@@ -4,10 +4,10 @@ namespace Fusion.Resources.Api.Controllers.Departments
 {
     public class ApiDepartment
     {
-        public ApiDepartment(QueryDepartmentWithResponsible department)
+        public ApiDepartment(QueryDepartment department)
         {
-            Name = department.Name;
-            Sector = department.Sector;
+            Name = department.DepartmentId;
+            Sector = department.SectorId;
             LineOrgResponsible = (department.LineOrgResponsible is not null) ? new ApiPerson(department.LineOrgResponsible) : null;
             DefactoResponsible = (department.DefactoResponsible is not null) ? new ApiPerson(department.DefactoResponsible) : null;
         }

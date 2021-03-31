@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetDepartmentWithResponsible : IRequest<QueryDepartmentWithResponsible>
+    public class GetDepartmentWithResponsible : IRequest<QueryDepartment>
     {
         public GetDepartmentWithResponsible(string departmentId)
         {
@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain
 
         public string DepartmentId { get; }
 
-        public class Handler : IRequestHandler<GetDepartmentWithResponsible, QueryDepartmentWithResponsible>
+        public class Handler : IRequestHandler<GetDepartmentWithResponsible, QueryDepartment>
         {
             private readonly ResourcesDbContext db;
             private readonly IHttpClientFactory httpClientFactory;
@@ -38,7 +38,7 @@ namespace Fusion.Resources.Domain
                 this.profileResolver = profileResolver;
             }
 
-            public async Task<QueryDepartmentWithResponsible> Handle(GetDepartmentWithResponsible request, CancellationToken cancellationToken)
+            public async Task<QueryDepartment> Handle(GetDepartmentWithResponsible request, CancellationToken cancellationToken)
             {
                 var department = await db.Departments.FindAsync(request.DepartmentId, cancellationToken);
 
@@ -61,9 +61,9 @@ namespace Fusion.Resources.Domain
                    .Where(r => r.DepartmentId == request.DepartmentId)
                    .FirstOrDefaultAsync(cancellationToken);
 
-                var result = new QueryDepartmentWithResponsible(department, responsible);
+                var result = new QueryDepartment(department, responsible);
 
-                if (responsibleOverride is object)
+                if (responsibleOverride is not null)
                 {
                     result.DefactoResponsible = await profileResolver.ResolvePersonBasicProfileAsync(responsibleOverride.ResponsibleAzureObjectId);
                 }

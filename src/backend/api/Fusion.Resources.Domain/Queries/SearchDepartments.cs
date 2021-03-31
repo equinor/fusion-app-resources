@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class SearchDepartments : IRequest<List<QueryDepartmentWithResponsible>>
+    public class SearchDepartments : IRequest<List<QueryDepartment>>
     {
         public SearchDepartments(string query)
         {
@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain.Queries
 
         public string Query { get; }
 
-        public class Handler : IRequestHandler<SearchDepartments, List<QueryDepartmentWithResponsible>>
+        public class Handler : IRequestHandler<SearchDepartments, List<QueryDepartment>>
         {
             private readonly ResourcesDbContext db;
             private readonly IHttpClientFactory httpClientFactory;
@@ -38,9 +38,9 @@ namespace Fusion.Resources.Domain.Queries
                 this.profileResolver = profileResolver;
             }
 
-            public async Task<List<QueryDepartmentWithResponsible>> Handle(SearchDepartments request, CancellationToken cancellationToken)
+            public async Task<List<QueryDepartment>> Handle(SearchDepartments request, CancellationToken cancellationToken)
             {
-                var result = new List<QueryDepartmentWithResponsible>();
+                var result = new List<QueryDepartment>();
 
                 var managedDepartments = await db.Departments
                     .Where(dpt => dpt.DepartmentId != dpt.SectorId)
@@ -69,7 +69,7 @@ namespace Fusion.Resources.Domain.Queries
                         if (!managedDepartments.ContainsKey(resourceOwner.FullDepartment)) continue;
 
                         var responsible = await profileResolver.ResolvePersonBasicProfileAsync(resourceOwner.AzureUniqueId);
-                        var department = new QueryDepartmentWithResponsible(managedDepartments[resourceOwner.FullDepartment], responsible);
+                        var department = new QueryDepartment(managedDepartments[resourceOwner.FullDepartment], responsible);
 
                         var delegatedResourceOwner = await db.DepartmentResponsibles
                             .Where(r => r.DateFrom <= DateTime.UtcNow && r.DateTo >= DateTime.UtcNow)
