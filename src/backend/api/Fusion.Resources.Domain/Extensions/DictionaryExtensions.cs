@@ -13,8 +13,11 @@ namespace Fusion.Resources
             Formatting = Formatting.Indented
         };
 
-        public static string SerializeToString(this Dictionary<string, object>? properties)
+        public static string? SerializeToStringOrDefault(this Dictionary<string, object>? properties)
         {
+            if (properties is null)
+                return null;
+
             var propertiesJsonTest = JsonConvert.SerializeObject(properties, serializerSettings);
             return propertiesJsonTest;
         }

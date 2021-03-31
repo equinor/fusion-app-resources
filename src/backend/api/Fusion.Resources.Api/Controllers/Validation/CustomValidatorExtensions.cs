@@ -3,6 +3,7 @@ using FluentValidation.Results;
 using FluentValidation.Validators;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -127,6 +128,10 @@ namespace Fusion.Resources.Api.Controllers
             return ruleBuilder.SetValidator(new CustomValidator<ApiPropertiesCollection>(
                 (prop, context) =>
                 {
+                    var serialized = JsonConvert.SerializeObject(prop);
+                    if (serialized.Length > 5000)
+                        context.AddFailure("Total size of change dictionary cannot be larger than 5000 characters");
+
                     foreach (var k in prop.Keys.Where(k => k.Length > 100))
                     {
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",

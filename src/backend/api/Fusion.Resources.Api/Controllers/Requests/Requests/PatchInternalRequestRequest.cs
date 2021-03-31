@@ -17,6 +17,7 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<Guid?> ProposedPersonAzureUniqueId { get; set; } = new();
         public PatchProperty<ApiPropertiesCollection?> ProposedChanges { get; set; } = new();
 
+        public PatchProperty<ProposalParametersRequest> ProposalParameters { get; set; } = new();
 
         #region Validator
 
@@ -79,6 +80,10 @@ namespace Fusion.Resources.Api.Controllers
 
                         }
                     });
+
+                RuleFor(x => x.ProposalParameters.Value).SetValidator(new ProposalParametersRequest.Validator())
+                    .OverridePropertyName(x => x.ProposalParameters)
+                    .When(x => x.ProposalParameters != null && x.ProposalParameters.HasValue);
             }
         }
 

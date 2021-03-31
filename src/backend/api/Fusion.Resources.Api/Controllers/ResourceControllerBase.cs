@@ -1,9 +1,12 @@
-﻿using Fusion.Integration.Profile;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Org;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,6 +64,12 @@ namespace Fusion.Resources.Api.Controllers
         {
             var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
             return mediator.Send(command);
+        }
+
+        protected Task<ApiPositionV2?> ResolvePositionAsync(Guid positionId)
+        {
+            var orgResolver = HttpContext.RequestServices.GetRequiredService<IProjectOrgResolver>();
+            return orgResolver.ResolvePositionAsync(positionId);
         }
 
         public class CommandDispatcher

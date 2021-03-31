@@ -25,6 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\api\Fusion.Resources.Logic\Fusion.Resources.Logic.csproj" />
     <ProjectReference Include="..\Fusion.Resources.Test.Core\Fusion.Resources.Test.Core.csproj" />
+    <ProjectReference Include="..\Fusion.Testing.Mocks.OrgService\Fusion.Testing.Mocks.OrgService.csproj" />
+    <ProjectReference Include="..\Fusion.Testing.Mocks.ProfileService\Fusion.Testing.Mocks.ProfileService.csproj" />
   </ItemGroup>
 
 </Project>

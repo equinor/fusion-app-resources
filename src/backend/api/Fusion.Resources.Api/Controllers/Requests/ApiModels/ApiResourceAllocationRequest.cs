@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain;
 
@@ -34,8 +35,11 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionInstance = query.OrgPositionInstance;
 
             AdditionalNote = query.AdditionalNote;
-            if (query.ProposedChanges.Count > 0)
+
+            if (query.ProposedChanges is not null)
                 ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
+
+            ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
 
             if (query.TaskOwner != null) 
                 TaskOwner = new ApiTaskOwner(query.TaskOwner);
@@ -75,6 +79,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiProposedPerson? ProposedPerson { get; set; }
+        public ApiProposalParameters ProposalParameters { get; set; }
 
         public ApiTaskOwner? TaskOwner { get; set; }
 
@@ -88,7 +93,5 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsDraft { get; set; }
         public IEnumerable<ApiRequestComment>? Comments { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
-
-
     }
 }

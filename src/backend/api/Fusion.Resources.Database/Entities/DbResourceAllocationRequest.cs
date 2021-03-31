@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
@@ -9,6 +10,8 @@ namespace Fusion.Resources.Database.Entities
     public class DbResourceAllocationRequest
     {
         public Guid Id { get; set; }
+
+        [MaxLength(100)]
         public string? AssignedDepartment { get;set; }
         public bool IsDraft { get; set; }
 
@@ -18,9 +21,12 @@ namespace Fusion.Resources.Database.Entities
         /// </summary>
         public DbInternalRequestOwner RequestOwner { get; set; }
 
+        [MaxLength(100)]
         public string? Discipline { get; set; }
-        
+
         public DbInternalRequestType Type { get; set; } = DbInternalRequestType.Allocation;
+
+        [MaxLength(50)]
         public string? SubType { get; set; }
 
         public DbOpState State { get; set; } = new DbOpState();
@@ -40,12 +46,15 @@ namespace Fusion.Resources.Database.Entities
         #endregion
 
         public string? AdditionalNote { get; set; }
-        
+
         /// <summary>
         /// Json serialized object with changes.
         /// </summary>
         public string? ProposedChanges { get; set; }
         public DbOpProposedPerson ProposedPerson { get; set; } = DbOpProposedPerson.Empty;
+        public DbOpProposalParameters ProposalParameters { get; set; } = new DbOpProposalParameters();
+
+
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
@@ -78,6 +87,10 @@ namespace Fusion.Resources.Database.Entities
                 entity.OwnsOne(e => e.OrgPositionInstance);
                 entity.OwnsOne(e => e.ProposedPerson);
                 entity.OwnsOne(e => e.State);
+                entity.OwnsOne(e => e.ProposalParameters, op => 
+                {
+                    op.Property(ps => ps.Scope).HasConversion(new EnumToStringConverter<DbChangeScope>());
+                });
 
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbInternalRequestType>());
                 entity.Property(e => e.LastActivity);
@@ -88,11 +101,14 @@ namespace Fusion.Resources.Database.Entities
         {
             public Guid Id { get; set; }
             public double? Workload { get; set; }
+            [MaxLength(100)]
             public string? Obs { get; set; } = null!;
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
             public Guid? LocationId { get; set; }
             public Guid? AssignedToUniqueId { get; set; }
+
+            [MaxLength(100)]
             public string? AssignedToMail { get; set; }
         }
 
@@ -101,6 +117,7 @@ namespace Fusion.Resources.Database.Entities
             public bool HasBeenProposed { get; set; }
             public DateTimeOffset? ProposedAt { get; set; }
             public Guid? AzureUniqueId { get; set; }
+            [MaxLength(100)]
             public string? Mail { get; set; }
             public bool WasNotified { get; set; }
 
@@ -118,8 +135,19 @@ namespace Fusion.Resources.Database.Entities
     
         public class DbOpState
         {
+            [MaxLength(50)]
             public string? State { get; set; }
             public bool IsCompleted { get; set; }
+        }
+
+        public class DbOpProposalParameters
+        {
+            public DateTime? ChangeFrom { get; set; }
+            public DateTime? ChangeTo { get; set; }
+            public DbChangeScope Scope { get; set; } = DbChangeScope.Default;
+            
+            [MaxLength(50)]
+            public string? ChangeType { get; set; }
         }
 
         public class DbOpProvisionStatus
@@ -133,7 +161,6 @@ namespace Fusion.Resources.Database.Entities
             public string? ErrorPayload { get; set; }
         }
         public enum DbProvisionState { NotProvisioned, Provisioned, Error }
+        public enum DbChangeScope { Default, InstanceOnly }
     }
-
-
 }

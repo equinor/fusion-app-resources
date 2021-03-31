@@ -20,6 +20,12 @@ namespace Fusion.Testing.Mocks.OrgService
             return instance;
         }
 
+        public static ApiPositionInstanceV2 SetWorkload(this ApiPositionInstanceV2 instance, double workload)
+        {
+            instance.Workload = workload;
+            return instance;
+        }
+
         public static ApiPositionInstanceV2 SetExternalId(this ApiPositionInstanceV2 instance, string externalId)
         {
             instance.ExternalId = externalId;

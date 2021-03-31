@@ -1,66 +1,63 @@
 ﻿using FluentValidation;
 using System;
 using System.Linq;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Fusion.Integration.Org;
 using Microsoft.Extensions.Logging;
-using FluentValidation.Validators;
 using System.Collections.Generic;
-using FluentValidation.Results;
-using System.Threading.Tasks;
-using System.Threading;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class CreateResourceAllocationRequest
+
+    public class CreateResourceOwnerAllocationRequest
     {
         public string Type { get; set; } = null!;
-        
-        // Will be auto-detected by the api, but can be specified.
-        public string? SubType { get; set; }
 
-        public string? AssignedDepartment { get; set; }
-        
-        // All requests should be created as drafts. Initializing the workflow shoud set the flag to false.
-        //public bool? IsDraft { get; set; }
+        public string SubType { get; set; } = null!;
 
-        // Not required unless created from the resource owner side. Change requests.
-        internal Guid? OrgProjectId { get; set; }
         public Guid OrgPositionId { get; set; }
         public Guid OrgPositionInstanceId { get; set; }
-        
+
         public string? AdditionalNote { get; set; }
+        
+        
         [JsonConverter(typeof(Json.DictionaryStringObjectJsonConverter))]
         public Dictionary<string, object>? ProposedChanges { get; set; }
-
+        public ProposalParametersRequest? ProposalParameters { get; set; }
 
         public Guid? ProposedPersonAzureUniqueId { get; set; }
 
 
         #region Validator
 
-        public class Validator : AbstractValidator<CreateResourceAllocationRequest>
+        public class Validator : AbstractValidator<CreateResourceOwnerAllocationRequest>
         {
+            /// <summary>
+            /// Allowed types for this request type
+            /// </summary>
+            private enum ApiResourceOwnerRequestType { ResourceOwnerChange }
+            private enum ApiResourceOwnerRequestSubType { Adjustment, ChangeResource, RemoveResource }
+
             public Validator()
             {
-                RuleFor(x => x.Type).NotNull().NotEmpty();
-                RuleFor(x => x.Type).IsEnumName(typeof(ApiAllocationRequestType), false)
-                    .WithMessage((req, p) => $"Type '{p}' is not valid, allowed values are [{string.Join(", ", Enum.GetNames<ApiAllocationRequestType>())}]");
+                RuleFor(x => x.Type).NotNull().NotEmpty();                
+                RuleFor(x => x.Type).IsEnumName(typeof(ApiResourceOwnerRequestType), false)
+                    .WithMessage((req, p) => $"Type '{p}' is not valid, allowed values are [{string.Join(", ", Enum.GetNames<ApiResourceOwnerRequestType>())}]");
 
-                RuleFor(x => x.OrgProjectId).NotEmpty().When(x => x.OrgProjectId != null);
+                RuleFor(x => x.SubType).IsEnumName(typeof(ApiResourceOwnerRequestSubType), false)
+                    .WithMessage((req, p) => $"Type '{p}' is not valid, allowed values are [{string.Join(", ", Enum.GetNames<ApiResourceOwnerRequestSubType>())}]");
 
-                RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
                 RuleFor(x => x.OrgPositionId).NotEmpty();
                 RuleFor(x => x.OrgPositionInstanceId).NotEmpty();
 
-
+                RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
                 RuleFor(x => x.ProposedChanges).BeValidProposedChanges().When(x => x.ProposedChanges != null);
 
-                RuleFor(x => x.ProposedPersonAzureUniqueId).NotEmpty().When(x => x.ProposedPersonAzureUniqueId != null);
-
+                RuleFor(x => x.ProposalParameters!).SetValidator(new ProposalParametersRequest.Validator())
+                    .When(x => x.ProposalParameters != null);
 
                 RuleFor(x => x)
                     .CustomAsync(async (req, context, ct) =>
@@ -92,7 +89,7 @@ namespace Fusion.Resources.Api.Controllers
 
         #endregion
 
-        public Domain.InternalRequestType ResolveType() => Type == "normal" ? Domain.InternalRequestType.Allocation : Enum.Parse<Domain.InternalRequestType>(Type, true);
+        public Domain.InternalRequestType ResolveType() => Enum.Parse<Domain.InternalRequestType>(Type, true);
     }
 
 }

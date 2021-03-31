@@ -70,7 +70,6 @@ namespace Fusion.Resources.Logic.Commands
                 {
                     var dbRequest = await resourcesDb.ResourceAllocationRequests
                         .Include(r => r.Project)
-                        .Include(r => r.ProposedPerson)
                         .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
 
@@ -84,12 +83,18 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbInternalRequestType.Allocation:
                                 await ProvisionAllocationRequestAsync(dbRequest);
-                                await UpdateWorkflowStatusAsync(request, dbRequest);
+                                break;
+
+                            case DbInternalRequestType.ResourceOwnerChange:
+                                await ProvisionChangeRequestAsync(dbRequest);
                                 break;
 
                             default:
                                 throw new NotSupportedException($"Provisioning for request of type {dbRequest.Type} is not supported");
                         }
+
+                        await UpdateWorkflowStatusAsync(request, dbRequest);
+
                     }
                     catch (ProvisioningError pEx)
                     {
@@ -138,6 +143,27 @@ namespace Fusion.Resources.Logic.Commands
                         dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
                         
                         throw new ProvisioningError("No changes registered on request");
+                    }
+                }
+
+                private async Task ProvisionChangeRequestAsync(DbResourceAllocationRequest dbRequest)
+                {
+                    try
+                    {
+                        await mediator.Send(new ResourceOwner.ProvisionResourceOwnerRequest(dbRequest.Id));
+
+                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Provisioned;
+                        dbRequest.ProvisioningStatus.OrgPositionId = dbRequest.OrgPositionId;
+                        dbRequest.ProvisioningStatus.OrgProjectId = dbRequest.Project.OrgProjectId;
+                        dbRequest.ProvisioningStatus.OrgInstanceId = dbRequest.OrgPositionInstance.Id;
+                    }
+                    catch (OrgApiError apiError)
+                    {
+                        dbRequest.ProvisioningStatus.ErrorMessage = $"Received error from Org service when trying to update the position: '{apiError.Error?.Message}'";
+                        dbRequest.ProvisioningStatus.ErrorPayload = apiError.ResponseText;
+                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+
+                        throw new ProvisioningError($"Error communicating with org chart: {apiError.Message}", apiError);
                     }
                 }
 

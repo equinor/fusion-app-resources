@@ -14,6 +14,7 @@ namespace Fusion.Resources.Domain.Queries
         public GetPersonProfiles(IEnumerable<Guid> azureObjectIds)
         {
             Identifiers = azureObjectIds
+                .Distinct()
                 .Select(aadId => new PersonIdentifier(aadId))
                 .ToList();
         }

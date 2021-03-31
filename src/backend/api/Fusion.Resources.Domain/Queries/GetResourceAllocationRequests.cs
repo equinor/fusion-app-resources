@@ -227,8 +227,11 @@ namespace Fusion.Resources.Domain.Queries
             {
                 var ids = requestItems
                     .Where(r => r.ProposedPerson is not null)
-                    .Select(r => r.ProposedPerson!.AzureUniqueId);
+                    .Select(r => r.ProposedPerson!.AzureUniqueId)
+                    .Distinct();
+
                 var profiles = await mediator.Send(new GetPersonProfiles(ids));
+
                 foreach(var request in requestItems)
                 {
                     var id = request.ProposedPerson?.AzureUniqueId;
