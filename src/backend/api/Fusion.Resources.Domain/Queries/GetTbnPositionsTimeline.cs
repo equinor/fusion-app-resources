@@ -57,11 +57,13 @@ namespace Fusion.Resources.Domain
 
                 var tbnPositions = await mediator.Send(new GetTBNPositions(request.DepartmentString));
                 var relevantPositions = tbnPositions
-                    .Where(pos => pos.AppliesTo >= filterStart || pos.AppliesFrom <= filterEnd)
+                    .Where(pos => 
+                       (pos.AppliesTo >= filterStart && pos.AppliesTo < filterEnd)
+                    || (pos.AppliesFrom > filterStart && pos.AppliesFrom <= filterEnd))
                     .ToList();
 
                 var timeline = TimelineUtils
-                    .GenerateTbnPositionsTimeline(tbnPositions, filterStart, filterEnd)
+                    .GenerateTbnPositionsTimeline(relevantPositions, filterStart, filterEnd)
                     .ToList();
 
                 return new QueryTbnPositionsTimeline

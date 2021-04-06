@@ -91,10 +91,11 @@ namespace Fusion.Resources.Domain
             DateTime filterEnd)
         {
             var segments = new List<QueryTimelineRange<QueryRequestsTimelineItem>>();
+            var filterPeriod = new TimeRange(filterStart, filterEnd);
 
             var applicableRequests = requests
                 .Where(r => r.OrgPositionInstance is not null
-                    && (r.OrgPositionInstance!.AppliesTo >= filterStart || r.OrgPositionInstance!.AppliesFrom <= filterEnd))
+                    && new TimeRange(r.OrgPositionInstance!.AppliesTo, r.OrgPositionInstance!.AppliesFrom).OverlapsWith(filterPeriod))
                 .OrderBy(r => r.OrgPositionInstance!.AppliesFrom)
                 .ThenBy(r => r.OrgPositionInstance!.AppliesTo)
                 .ToList();
@@ -157,9 +158,10 @@ namespace Fusion.Resources.Domain
            DateTime filterEnd)
         {
             var segments = new List<QueryTimelineRange<QueryTBNPositionTimelineItem>>();
+            var filterPeriod = new TimeRange(filterStart, filterEnd);
 
             var applicatablePositions = tbnPositions
-                .Where(r => r.AppliesTo >= filterStart || r.AppliesFrom <= filterEnd)
+                .Where(r => new TimeRange(r.AppliesTo, filterEnd).OverlapsWith(filterPeriod))
                 .OrderBy(r => r.AppliesFrom)
                 .ThenBy(r => r.AppliesTo)
                 .ToList();
