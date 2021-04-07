@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain
         {
             // Gather all dates 
             var dates = position.SelectMany(p => new[] { (DateTime?)p.AppliesFrom.Date, (DateTime?)p.AppliesTo.Date })
-                .Union(absences.SelectMany(a => new[] { a.AppliesFrom.LocalDateTime.Date, a.AppliesTo?.LocalDateTime.Date }))
+                .Union(absences.SelectMany(a => new[] { a.AppliesFrom.Date, a.AppliesTo?.Date }))
                 .Where(d => d.HasValue)
                 .Select(d => d!.Value)
                 .Distinct()
