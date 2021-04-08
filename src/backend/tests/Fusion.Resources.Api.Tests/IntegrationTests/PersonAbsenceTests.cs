@@ -69,8 +69,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var request = new CreatePersonAbsenceRequest
             {
-                AppliesFrom = DateTimeOffset.UtcNow,
-                AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
+                AppliesFrom = new DateTime(2021,04,30),
+                AppliesTo = new DateTime(2022, 04, 30),
                 Comment = "A comment",
                 Type = ApiPersonAbsence.ApiAbsenceType.Vacation,
                 AbsencePercentage = null // Clearing absencePercentage = 100% 
@@ -106,8 +106,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = new CreatePersonAbsenceRequest
             {
-                AppliesFrom = DateTimeOffset.UtcNow,
-                AppliesTo = DateTimeOffset.UtcNow.AddYears(1),
+                AppliesFrom = new DateTime(2021, 04, 30),
+                AppliesTo = new DateTime(2022, 04, 30),
                 Comment = "A comment",
                 Type = ApiPersonAbsence.ApiAbsenceType.Absence,
                 AbsencePercentage = 100
