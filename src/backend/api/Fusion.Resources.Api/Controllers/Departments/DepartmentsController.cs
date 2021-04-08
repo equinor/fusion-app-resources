@@ -1,5 +1,4 @@
 ﻿using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
     {
-        [HttpGet("resources/departments/{departmentString}")]
+        [HttpGet("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
         {
             var request = new GetDepartments()
@@ -25,8 +24,8 @@ namespace Fusion.Resources.Api.Controllers.Departments
             return Ok(new ApiDepartment(departments.Single()));
         }
 
-        [HttpGet("/resources/departments/search")]
-        public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "q")] string query)
+        [HttpGet("/departments/search")]
+        public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
             var request = new GetDepartments()
                 .ExpandResourceOwners()
