@@ -1,18 +1,14 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Integration;
-using Fusion.Resources.Api.Controllers.Departments;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers

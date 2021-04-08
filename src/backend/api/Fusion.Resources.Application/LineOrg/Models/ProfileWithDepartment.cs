@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Fusion.Resources.Domain.LineOrg
+namespace Fusion.Resources.Application.LineOrg
 {
-    public class ProfileWithDepartment
+    internal class ProfileWithDepartment
     {
         public Guid AzureUniqueId { get; set; }
         public string Name { get; set; }

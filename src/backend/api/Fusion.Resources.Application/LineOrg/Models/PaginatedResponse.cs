@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Fusion.Resources.Domain.LineOrg
+namespace Fusion.Resources.Application.LineOrg
 {
-    public class PaginatedResponse<T>
+    internal class PaginatedResponse<T>
     {
         public int Count { get; set; }
         public int TotalCount { get; set; }

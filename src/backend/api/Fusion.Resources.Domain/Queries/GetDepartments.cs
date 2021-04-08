@@ -1,15 +1,13 @@
 ﻿using Fusion.Integration;
+using Fusion.Resources.Application.LineOrg;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain.LineOrg;
-using Fusion.Resources.Domain.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
+
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -77,72 +75,44 @@ namespace Fusion.Resources.Domain
         public class Handler : IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
         {
             private readonly ResourcesDbContext db;
-            private readonly IHttpClientFactory httpClientFactory;
+            private readonly ILineOrgResolver lineOrgResolver;
             private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ResourcesDbContext db, IHttpClientFactory httpClientFactory,
-                IFusionProfileResolver profileResolver)
+            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
             { 
                 this.db = db;
-                this.httpClientFactory = httpClientFactory;
+                this.lineOrgResolver = lineOrgResolver;
                 this.profileResolver = profileResolver;
             }
 
             public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
             {
-                var departments = await request.Execute(db.Departments).ToListAsync(cancellationToken);
+                var result = new List<QueryDepartment>();
+                var departments = await request.Execute(db.Departments)
+                    .ToDictionaryAsync(dpt => dpt.DepartmentId, cancellationToken);
 
                 if(request.shouldExpandResourceOwners)
                 {
-                    return await ExpandResourceOwners(departments, request.resourceOwnerSearch, cancellationToken);
-                }
+                    var resourceOwners = await lineOrgResolver
+                        .GetResourceOwners(departments.Keys!.ToList(), request.resourceOwnerSearch, cancellationToken);
 
-                return departments;
-            }
-
-            private async Task<List<QueryDepartment>> ExpandResourceOwners(List<QueryDepartment> departments, string? filter, CancellationToken cancellationToken)
-            {
-                var result = new List<QueryDepartment>();
-                var managedDepartments = departments.ToDictionary(dpt => dpt.DepartmentId);
-
-                var client = httpClientFactory.CreateClient("lineorg");
-
-                var uri = "/lineorg/persons?$filter=isresourceowner eq true";
-
-                if (!string.IsNullOrEmpty(filter))
-                    uri += $"&$search={filter}";
-
-                do
-                {
-                    var response = await client.GetAsync(uri, cancellationToken);
-                    response.EnsureSuccessStatusCode();
-
-                    var page = JsonSerializer.Deserialize<PaginatedResponse<ProfileWithDepartment>>(
-                        await response.Content.ReadAsStringAsync(cancellationToken),
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                    );
-
-                    uri = page?.NextPage;
-                    var resourceOwners = page!.Value;
-
-                    foreach (var resourceOwner in resourceOwners)
+                    foreach(var resourceOwner in resourceOwners)
                     {
-                        if (!managedDepartments.ContainsKey(resourceOwner.FullDepartment)) continue;
-
-                        var department = managedDepartments[resourceOwner.FullDepartment];
-                        department.LineOrgResponsible = await profileResolver.ResolvePersonBasicProfileAsync(resourceOwner.AzureUniqueId);
-
+                        var department = departments[resourceOwner.DepartmentId];
+                        department.LineOrgResponsible = resourceOwner.Responsible;
+                        
                         var delegatedResourceOwner = await db.DepartmentResponsibles
-                            .Where(r => r.DateFrom <= DateTime.UtcNow && r.DateTo >= DateTime.UtcNow)
-                            .FirstOrDefaultAsync(r => r.DepartmentId == resourceOwner.FullDepartment, cancellationToken);
+                        .Where(r => r.DateFrom <= DateTime.UtcNow && r.DateTo >= DateTime.UtcNow)
+                        .FirstOrDefaultAsync(r => r.DepartmentId == department.DepartmentId, cancellationToken);
 
                         if (delegatedResourceOwner is not null)
                         {
                             department.DefactoResponsible = await profileResolver.ResolvePersonBasicProfileAsync(delegatedResourceOwner.ResponsibleAzureObjectId);
                         }
-                        result.Add(department);
+
+                        result.Add(department!);
                     }
-                } while (!string.IsNullOrEmpty(uri));
+                }
 
                 return result;
             }

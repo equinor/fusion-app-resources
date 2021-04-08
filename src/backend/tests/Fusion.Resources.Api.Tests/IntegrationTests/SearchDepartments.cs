@@ -61,7 +61,7 @@ namespace Fusion.Resources.Api.Tests
 
             using var authScope = fixture.AdminScope();
 
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/resources/departments/search?api-version=1.0-preview&q=kel");
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/departments/search?api-version=1.0-preview&$search=kel");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
         }
 
@@ -93,7 +93,7 @@ namespace Fusion.Resources.Api.Tests
 
             using var authScope = fixture.AdminScope();
 
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/resources/departments/search?api-version=1.0-preview&q=kel");
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/departments/search?api-version=1.0-preview&$search=kel");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
             
             result.Value.Single().DefactoResponsible.Should().NotBeNull();

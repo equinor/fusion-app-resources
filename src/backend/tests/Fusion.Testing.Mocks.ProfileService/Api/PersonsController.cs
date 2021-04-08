@@ -46,5 +46,43 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
 
             return copy;
         }
+
+        [MapToApiVersion("2.0")]
+        [HttpPost("/persons/ensure")]
+        public ActionResult<ApiEnsuredProfileV2> ResolveProfileV3(ProfilesRequest request)
+        {
+            var results = new List<ApiEnsuredProfileV2>();
+            
+            foreach(var id in request.PersonIdentifiers)
+            {
+                var result = new ApiEnsuredProfileV2
+                {
+                    Identifier = id,
+                    StatusCode = 404,
+                    Success = false
+                };
+
+                var profile = PeopleServiceMock.profiles
+                    .FirstOrDefault(p => p.AzureUniqueId.ToString() == id || p.Mail == id);
+
+                if (profile is not null)
+                {
+                    var copy = JsonConvert.DeserializeObject<ApiPersonProfileV2>(JsonConvert.SerializeObject(profile));
+
+                    result.StatusCode = 200;
+                    result.Success = true;
+                    result.Person = copy;
+                }
+
+                results.Add(result);
+            }
+
+            return Ok(results);
+        }
+
+        public class ProfilesRequest
+        {
+            public List<string> PersonIdentifiers { get; set; }
+        }
     }
 }

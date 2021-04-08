@@ -13,6 +13,7 @@ using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Logic.Commands;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 using System.Reflection;
+using Fusion.Resources.Application.LineOrg;
 
 namespace Fusion.Resources.Api
 {
@@ -71,7 +72,7 @@ namespace Fusion.Resources.Api
             });
             services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
 
-
+            services.AddSingleton<ILineOrgResolver, LineOrgResolver>();
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
