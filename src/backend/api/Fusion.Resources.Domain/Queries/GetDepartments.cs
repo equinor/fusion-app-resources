@@ -1,4 +1,5 @@
 ﻿using Fusion.Integration;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Application.LineOrg;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
@@ -15,6 +16,7 @@ namespace Fusion.Resources.Domain
 {
     public class GetDepartments : IRequest<IEnumerable<QueryDepartment>>
     {
+        private bool shouldExpandDelegatedResourceOwners = false;
         private bool shouldExpandResourceOwners = false;
         private string? resourceOwnerSearch;
 
@@ -66,6 +68,12 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
+        public GetDepartments ExpandDelegatedResourceOwners()
+        {
+            shouldExpandDelegatedResourceOwners = true;
+            return this;
+        }
+
         public GetDepartments WhereResourceOwnerMatches(string search)
         {
             resourceOwnerSearch = search;
@@ -101,17 +109,34 @@ namespace Fusion.Resources.Domain
                         var department = departments[resourceOwner.DepartmentId];
                         department.LineOrgResponsible = resourceOwner.Responsible;
                         
-                        var delegatedResourceOwner = await db.DepartmentResponsibles
-                        .Where(r => r.DateFrom <= DateTime.UtcNow && r.DateTo >= DateTime.UtcNow)
-                        .FirstOrDefaultAsync(r => r.DepartmentId == department.DepartmentId, cancellationToken);
-
-                        if (delegatedResourceOwner is not null)
-                        {
-                            department.DefactoResponsible = await profileResolver.ResolvePersonBasicProfileAsync(delegatedResourceOwner.ResponsibleAzureObjectId);
-                        }
-
                         result.Add(department!);
                     }
+                }
+                else
+                {
+                    result = departments.Values.ToList();
+                }
+
+                if(request.shouldExpandDelegatedResourceOwners)
+                {
+                    foreach (var department in result)
+                    {
+                        var delegatedResourceOwners = await db.DepartmentResponsibles
+                            .Where(r => r.DepartmentId == department.DepartmentId)
+                            .ToListAsync(cancellationToken);
+
+                        if (delegatedResourceOwners is not null)
+                        {
+                            var resolvedProfiles = await profileResolver
+                                .ResolvePersonsAsync(delegatedResourceOwners.Select(p => new PersonIdentifier(p.ResponsibleAzureObjectId)));
+
+                            department.DelegatedResourceOwners = resolvedProfiles
+                                .Where(res => res.Success)
+                                .Select(res => res.Profile!)
+                                .ToList();
+                        }
+                    }
+                    
                 }
 
                 return result;

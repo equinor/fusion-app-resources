@@ -28,6 +28,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
             var request = new GetDepartments()
+                .ExpandDelegatedResourceOwners()
                 .ExpandResourceOwners()
                 .WhereResourceOwnerMatches(query);
 

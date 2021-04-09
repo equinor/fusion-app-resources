@@ -1,4 +1,6 @@
 ﻿using Fusion.Resources.Domain;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers.Departments
 {
@@ -9,13 +11,15 @@ namespace Fusion.Resources.Api.Controllers.Departments
             Name = department.DepartmentId;
             Sector = department.SectorId;
             LineOrgResponsible = (department.LineOrgResponsible is not null) ? new ApiPerson(department.LineOrgResponsible) : null;
-            DefactoResponsible = (department.DefactoResponsible is not null) ? new ApiPerson(department.DefactoResponsible) : null;
+            DelegatedResponsibles = (department.DelegatedResourceOwners is not null) 
+                ? department.DelegatedResourceOwners.Select(x => new ApiPerson(x)).ToList() 
+                : null;
         }
 
         public string Name { get; set; }
         public string? Sector { get; set; }
         public ApiPerson? LineOrgResponsible { get; set; }
-        public ApiPerson? DefactoResponsible { get; set; }
+        public List<ApiPerson>? DelegatedResponsibles { get; set; }
 
     }
 }

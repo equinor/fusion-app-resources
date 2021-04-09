@@ -1,5 +1,6 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Resources.Database.Entities;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Domain
 {
@@ -29,6 +30,6 @@ namespace Fusion.Resources.Domain
         public string? SectorId { get; }
 
         public FusionPersonProfile? LineOrgResponsible { get; set; }
-        public FusionPersonProfile? DefactoResponsible { get; set; }
+        public List<FusionPersonProfile>? DelegatedResourceOwners { get; set; }
     }
 }

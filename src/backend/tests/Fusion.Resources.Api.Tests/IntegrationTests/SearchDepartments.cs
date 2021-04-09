@@ -98,9 +98,10 @@ namespace Fusion.Resources.Api.Tests
             var search = fakeResourceOwner.Name.Substring(0, Math.Min(4, fakeResourceOwner.Name.Length));
             var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments/search?api-version=1.0-preview&$search={search}");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
-            
-            result.Value.Single().DefactoResponsible.Should().NotBeNull();
-            result.Value.Single().DefactoResponsible.AzureUniquePersonId.Should().Be(fakeDefactoResourceOwner.AzureUniqueId.Value);
+
+            var delegatedResponsible = result.Value.Single().DelegatedResponsibles.Single();
+            delegatedResponsible.Should().NotBeNull();
+            delegatedResponsible.AzureUniquePersonId.Should().Be(fakeDefactoResourceOwner.AzureUniqueId.Value);
         }
     }
 
@@ -109,6 +110,6 @@ namespace Fusion.Resources.Api.Tests
         public string Name { get; set; }
         public string? Sector { get; set; }
         public TestApiPerson LineOrgResponsible { get; set; }
-        public TestApiPerson? DefactoResponsible { get; set; }
+        public List<TestApiPerson>? DelegatedResponsibles { get; set; }
     }
 }
