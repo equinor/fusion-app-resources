@@ -46,7 +46,16 @@ namespace Fusion.Resources.Logic
             var property = jObject.Properties().FirstOrDefault(p => p.Name.EqualsIgnCase(prop.Name));
 
             var tempObject = JsonConvert.DeserializeObject<JObject>(JsonConvert.SerializeObject(new { prop = propertyValue }));
-            jObject[property!.Name] = tempObject.Property("prop")!.Value;
+
+            if (property == null)
+            {
+                var camelCasedPropertyName = CamelCaseProperty(prop.Name);
+                jObject.Add(camelCasedPropertyName, tempObject.Property("prop")!.Value);
+            }
+            else
+            {
+                jObject[property.Name] = tempObject.Property("prop")!.Value;
+            }
         }
 
 

@@ -79,22 +79,8 @@ namespace Fusion.Resources.Logic.Commands
 
                     try
                     {
-                        switch (dbRequest.Type)
-                        {
-                            case DbInternalRequestType.Allocation:
-                                await ProvisionAllocationRequestAsync(dbRequest);
-                                break;
-
-                            case DbInternalRequestType.ResourceOwnerChange:
-                                await ProvisionChangeRequestAsync(dbRequest);
-                                break;
-
-                            default:
-                                throw new NotSupportedException($"Provisioning for request of type {dbRequest.Type} is not supported");
-                        }
-
+                        await ExecuteProvisioningAsync(dbRequest);
                         await UpdateWorkflowStatusAsync(request, dbRequest);
-
                     }
                     catch (ProvisioningError pEx)
                     {
@@ -104,58 +90,34 @@ namespace Fusion.Resources.Logic.Commands
                     await resourcesDb.SaveChangesAsync();
                 }
 
-                private async Task ProvisionAllocationRequestAsync(DbResourceAllocationRequest dbRequest)
+
+                private async Task ExecuteProvisioningAsync(DbResourceAllocationRequest dbRequest)
                 {
-                    if (dbRequest.OrgPositionId == null)
-                        throw new InvalidOperationException("Cannot provision change request when original position id is empty.");
+                    dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
 
-                    dbRequest.LastActivity = DateTime.UtcNow;
-
-                    if (dbRequest.ProposedChanges != null || dbRequest.ProposedPerson != null)
-                    {
-                        var patchDoc = CreatePatchPositionInstanceV2(dbRequest.ProposedChanges, dbRequest.ProposedPerson?.AzureUniqueId);
-                        var updatePositionCommand = new UpdatePositionInstance(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value, dbRequest.OrgPositionInstance.Id, patchDoc);
-
-                        dbRequest.ProvisioningStatus.Provisioned = DateTime.UtcNow;
-                        try
-                        {
-                            var position = await mediator.Send(updatePositionCommand);
-                            dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Provisioned;
-                            dbRequest.ProvisioningStatus.OrgPositionId = position.Id;
-                            dbRequest.ProvisioningStatus.OrgProjectId = dbRequest.Project.OrgProjectId;
-                            dbRequest.ProvisioningStatus.OrgInstanceId = dbRequest.OrgPositionInstance.Id;
-
-                            dbRequest.ProvisioningStatus.ErrorMessage = null;
-                            dbRequest.ProvisioningStatus.ErrorPayload = null;
-                        }
-                        catch (OrgApiError apiError)
-                        {
-                            dbRequest.ProvisioningStatus.ErrorMessage = $"Received error from Org service when trying to update the position: '{apiError.Error?.Message}'";
-                            dbRequest.ProvisioningStatus.ErrorPayload = apiError.ResponseText;
-                            dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
-
-                            throw new ProvisioningError($"Error communicating with org chart: {apiError.Message}", apiError);
-                        }
-                    }
-                    else
-                    {
-                        dbRequest.ProvisioningStatus.ErrorMessage = $"Request payload of proposed changes and proposed person was null or empty. Unable to provision";
-                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
-                        
-                        throw new ProvisioningError("No changes registered on request");
-                    }
-                }
-
-                private async Task ProvisionChangeRequestAsync(DbResourceAllocationRequest dbRequest)
-                {
                     try
                     {
-                        await mediator.Send(new ResourceOwner.ProvisionResourceOwnerRequest(dbRequest.Id));
+                        switch (dbRequest.Type)
+                        {
+                            case DbInternalRequestType.Allocation:
+                                await mediator.Send(new Allocation.ProvisionAllocationRequest(dbRequest.Id));
+                                break;
+
+                            case DbInternalRequestType.ResourceOwnerChange:
+                                await mediator.Send(new ResourceOwner.ProvisionResourceOwnerRequest(dbRequest.Id));
+                                break;
+
+                            default:
+                                throw new NotSupportedException($"Provisioning for request of type {dbRequest.Type} is not supported");
+                        }
 
                         dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Provisioned;
                         dbRequest.ProvisioningStatus.OrgPositionId = dbRequest.OrgPositionId;
                         dbRequest.ProvisioningStatus.OrgProjectId = dbRequest.Project.OrgProjectId;
                         dbRequest.ProvisioningStatus.OrgInstanceId = dbRequest.OrgPositionInstance.Id;
+
+                        dbRequest.ProvisioningStatus.ErrorMessage = null;
+                        dbRequest.ProvisioningStatus.ErrorPayload = null;
                     }
                     catch (OrgApiError apiError)
                     {
@@ -166,6 +128,7 @@ namespace Fusion.Resources.Logic.Commands
                         throw new ProvisioningError($"Error communicating with org chart: {apiError.Message}", apiError);
                     }
                 }
+
 
                 private async Task UpdateWorkflowStatusAsync(Provision request, DbResourceAllocationRequest dbRequest)
                 {
@@ -180,41 +143,6 @@ namespace Fusion.Resources.Logic.Commands
                     dbRequest.State.IsCompleted = true;
                     dbRequest.State.State = "completed";
                 }
-
-                /// <summary>
-                /// Based upon ApiPositionInstanceV2. Consider re-mapping if updating API version.
-                /// </summary>
-                /// <param name="changes">Proposed changes json</param>
-                /// <param name="proposedPerson">Proposed person</param>
-                /// <returns></returns>
-                private static PatchPositionInstanceV2 CreatePatchPositionInstanceV2(string? changes, Guid? personAzureUniqueId)
-                {
-                    var proposedChanges = new JObject();
-
-                    if (!string.IsNullOrEmpty(changes))
-                        proposedChanges = JObject.Parse(changes);
-
-                    var patchDoc = new PatchPositionInstanceV2();
-                    if (personAzureUniqueId != null)
-                        patchDoc.AssignedPerson = new ApiPersonV2 { AzureUniqueId = personAzureUniqueId };
-
-                    if (proposedChanges.TryGetValue("obs", StringComparison.InvariantCultureIgnoreCase, out var obs))
-                        patchDoc.Obs = obs.ToObject<string?>();
-
-                    if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
-                        patchDoc.Workload = workload.ToObject<double?>();
-
-                    if (proposedChanges.TryGetValue("appliesFrom", StringComparison.InvariantCultureIgnoreCase, out var appliesFrom))
-                        patchDoc.AppliesFrom = appliesFrom.ToObject<DateTime?>();
-
-                    if (proposedChanges.TryGetValue("appliesTo", StringComparison.InvariantCultureIgnoreCase, out var appliesTo))
-                        patchDoc.AppliesTo = appliesTo.ToObject<DateTime?>();
-
-                    if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                        patchDoc.Location = location.ToObject<ApiPositionLocationV2?>()!;
-
-                    return patchDoc;
-                }           
             }
         }
 

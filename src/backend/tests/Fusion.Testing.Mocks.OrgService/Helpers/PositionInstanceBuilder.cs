@@ -6,49 +6,53 @@ using System.Linq;
 namespace Fusion.Testing.Mocks.OrgService
 {
     public class PositionInstanceBuilder
+    {
+        private readonly ApiPositionV2 position;
+
+        public PositionInstanceBuilder(ApiPositionV2 position)
         {
-            private readonly ApiPositionV2 position;
+            this.position = position;
 
-            public PositionInstanceBuilder(ApiPositionV2 position)
+            // Clear instance auto generated
+            this.position.Instances = new List<ApiPositionInstanceV2>();
+        }
+
+        public ApiPositionInstanceV2 AddInstance(DateTime from, TimeSpan duration, Guid? parentPositionId = null)
+        {
+            var instance = CreateInstance().Generate();
+            instance.AppliesFrom = from;
+            instance.AppliesTo = from.Add(duration);
+            instance.ParentPositionId = parentPositionId;
+
+            instance.PositionId = position.Id;
+
+            position.Instances.Add(instance);
+
+            return instance;
+        }
+
+        public ApiPositionInstanceV2 AddInstance(TimeSpan duration, Guid? parentPositionId = null)
+        {
+            var lastInstance = position.Instances.OrderBy(i => i.AppliesTo).LastOrDefault();
+
+            var startDate = lastInstance?.AppliesTo.AddDays(1);
+
+            if (startDate == null)
             {
-                this.position = position;
-
-                // Clear instance auto generated
-                this.position.Instances = new List<ApiPositionInstanceV2>();
+                startDate = new Bogus.Faker().Date.Past(2);
             }
 
-            public ApiPositionInstanceV2 AddInstance(DateTime from, TimeSpan duration, Guid? parentPositionId = null)
-            {
-                var instance = CreateInstance().Generate();
-                instance.AppliesFrom = from;
-                instance.AppliesTo = from.Add(duration);
-                instance.ParentPositionId = parentPositionId;
+            var instance = CreateInstance().Generate();
+            instance.AppliesFrom = startDate.Value;
+            instance.AppliesTo = startDate.Value.Add(duration);
+            instance.ParentPositionId = parentPositionId;
 
-                position.Instances.Add(instance);
+            instance.PositionId = position.Id;
 
-                return instance;
-            }
+            position.Instances.Add(instance);
 
-            public ApiPositionInstanceV2 AddInstance(TimeSpan duration, Guid? parentPositionId = null)
-            {
-                var lastInstance = position.Instances.OrderBy(i => i.AppliesTo).LastOrDefault();
-
-                var startDate = lastInstance?.AppliesTo.AddDays(1);
-
-                if (startDate == null)
-                {
-                    startDate = new Bogus.Faker().Date.Past(2);
-                }
-
-                var instance = CreateInstance().Generate();
-                instance.AppliesFrom = startDate.Value;
-                instance.AppliesTo = startDate.Value.Add(duration);
-                instance.ParentPositionId = parentPositionId;
-
-                position.Instances.Add(instance);
-
-                return instance;
-            }
+            return instance;
+        }
 
         public static List<ApiPositionInstanceV2> CreateInstanceStack(int maxCount = 4, int minCount = 1) => CreateInstanceStack(new Bogus.Faker(), maxCount, minCount);
         public static List<ApiPositionInstanceV2> CreateInstanceStack(Bogus.Faker rangeFaker, int maxCount = 4, int minCount = 1)
