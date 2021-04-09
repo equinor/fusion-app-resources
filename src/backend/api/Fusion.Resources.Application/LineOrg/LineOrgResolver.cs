@@ -1,6 +1,8 @@
 ﻿using Fusion.Integration;
 using Fusion.Resources.Application.LineOrg.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -12,37 +14,98 @@ namespace Fusion.Resources.Application.LineOrg
 {
     public class LineOrgResolver : ILineOrgResolver
     {
-        private readonly IMemoryCache cache;
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private DepartmentCache cache;
         private readonly IHttpClientFactory httpClientFactory;
+        private readonly IHostingEnvironment hostingEnvironment;
         private readonly IFusionProfileResolver profileResolver;
 
-        public LineOrgResolver(/*IMemoryCache cache, */IHttpClientFactory httpClientFactory,
+        public LineOrgResolver(IHttpClientFactory httpClientFactory,
+            IHostingEnvironment hostingEnvironment,
                 IFusionProfileResolver profileResolver)
         {
-            //this.cache = cache;
+            this.cache = new DepartmentCache();
             this.httpClientFactory = httpClientFactory;
+            this.hostingEnvironment = hostingEnvironment;
             this.profileResolver = profileResolver;
         }
 
         public async Task<List<LineOrgDepartment>> GetResourceOwners(List<string> departmentIds, string? filter, CancellationToken cancellationToken)
         {
+            if (!cache.IsValid)
+            {
+                await RehydrateCache();
+            }
+
+            var searchedDepartments = departmentIds.ToHashSet();
+
+            var departments = cache.Search(filter);
+            if (!departments.Any())
+            {
+                await UpdateCacheItems(filter);
+                departments = cache.Search(filter);
+            }
+
+            var profiles = await profileResolver.ResolvePersonsAsync(
+                departments.Select(r => new Integration.Profile.PersonIdentifier(r.LineOrgResponsibleId))
+            );
+
+            var resolvedProfiles = profiles
+                .Where(p => p.Success)
+                .ToDictionary(p => p.Profile.AzureUniqueId);
+
             var result = new List<LineOrgDepartment>();
-            var managedDepartments = new HashSet<string>(departmentIds);
 
+            foreach (var department in departments)
+            {
+                if (!searchedDepartments.Contains(department.DepartmentId)) continue;
+                if (!resolvedProfiles.ContainsKey(department.LineOrgResponsibleId)) continue;
+
+                result.Add(new LineOrgDepartment(department.DepartmentId)
+                {
+                    Responsible = resolvedProfiles[department.LineOrgResponsibleId].Profile
+                });
+            }
+            return result;
+        }
+
+        private async Task RehydrateCache()
+        {
+            await semaphoreSlim.WaitAsync();
+
+            if (cache.IsValid) return; // rehydration completed on other thread
+
+            var rebuiltCache = new DepartmentCache();
+
+            await UpdateCacheItemsUnsafe(rebuiltCache);
+
+            cache = rebuiltCache;
+            semaphoreSlim.Release();
+        }
+
+        private async Task UpdateCacheItems(string? filter = null)
+        {
+            await semaphoreSlim.WaitAsync();
+            await UpdateCacheItemsUnsafe(cache, filter);
+            semaphoreSlim.Release();
+        }
+
+        private async Task UpdateCacheItemsUnsafe(DepartmentCache cache, string? filter = null)
+        {
             var client = httpClientFactory.CreateClient("lineorg");
-
             var uri = "/lineorg/persons?top=2000&$filter=isresourceowner eq true";
-
             if (!string.IsNullOrEmpty(filter))
-                uri += $"&$search={filter}";
+            {
+                uri += $"&$search={Uri.EscapeDataString(filter)}";
+            }
 
             do
             {
-                var response = await client.GetAsync(uri, cancellationToken);
+                var response = await client.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
 
                 var page = JsonSerializer.Deserialize<PaginatedResponse<ProfileWithDepartment>>(
-                    await response.Content.ReadAsStringAsync(cancellationToken),
+                    await response.Content.ReadAsStringAsync(),
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                 );
 
@@ -57,22 +120,23 @@ namespace Fusion.Resources.Application.LineOrg
                     .Where(p => p.Success)
                     .ToDictionary(p => p.Profile.AzureUniqueId);
 
-
                 foreach (var resourceOwner in resourceOwners)
                 {
-                    if (!managedDepartments.Contains(resourceOwner.FullDepartment)) continue;
                     if (!resolvedProfiles.ContainsKey(resourceOwner.AzureUniqueId)) continue;
 
-                    var department = new LineOrgDepartment(resourceOwner.FullDepartment)
-                    {
-                        Responsible = resolvedProfiles[resourceOwner.AzureUniqueId].Profile
-                    };
+                    var profile = resolvedProfiles[resourceOwner.AzureUniqueId].Profile;
+                    var shortname = profile.Mail.Contains('@') ? profile.Mail.Split("@")[0] : "";
+                    var searchText = $"{shortname}|{profile.Name}|{resourceOwner.FullDepartment}";
 
-                    result.Add(department);
+                    var cacheItem = new DepartmentCacheItem(resourceOwner.FullDepartment, searchText, resourceOwner.AzureUniqueId);
+                    if (cache.Contains(cacheItem.DepartmentId))
+                    {
+                        cache.Remove(cacheItem.DepartmentId);
+                    }
+
+                    cache.Add(cacheItem);
                 }
             } while (!string.IsNullOrEmpty(uri));
-
-            return result;
         }
     }
 }

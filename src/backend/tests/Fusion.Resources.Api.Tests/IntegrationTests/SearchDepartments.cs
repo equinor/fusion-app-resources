@@ -4,6 +4,7 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -61,7 +62,8 @@ namespace Fusion.Resources.Api.Tests
 
             using var authScope = fixture.AdminScope();
 
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/departments/search?api-version=1.0-preview&$search=kel");
+            var search = fakeResourceOwner.Name.Substring(0, Math.Min(4, fakeResourceOwner.Name.Length));
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments/search?api-version=1.0-preview&$search={search}");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
         }
 
@@ -92,8 +94,9 @@ namespace Fusion.Resources.Api.Tests
             fixture.EnsureDepartment("TPD PRD FE MMS STR2", "TPD PRD FE MMS", fakeDefactoResourceOwner);
 
             using var authScope = fixture.AdminScope();
-
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>("/departments/search?api-version=1.0-preview&$search=kel");
+            
+            var search = fakeResourceOwner.Name.Substring(0, Math.Min(4, fakeResourceOwner.Name.Length));
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments/search?api-version=1.0-preview&$search={search}");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
             
             result.Value.Single().DefactoResponsible.Should().NotBeNull();
