@@ -245,29 +245,6 @@ namespace Fusion.Resources.Logic.Tests
         }
 
 
-        #region Setups
-        private (ApiPositionInstanceV2, DbResourceAllocationRequest) SetupDefaultRemoveTest(DateTime changeDate, ApiPersonProfileV3 testPerson)
-        {
-            ApiPositionInstanceV2 testInstance = null!;
-
-            var testPosition = GeneratePosition(p => {
-                p.WithInstances(s =>
-                {
-                    testInstance = s.AddInstance(DateTime.Today.AddDays(-100), TimeSpan.FromDays(200))
-                        .SetAssignedPerson(testPerson)
-                        .SetExternalId("123");
-                });
-            });
-
-            var request = GenerateRequest(testInstance, r => r
-                .AsResourceRemoval()
-                .WithChangeDate(changeDate));
-
-            return (testInstance, request);
-        }
-
-        #endregion
-
         #region Helpers
 
         public void Dispose()
