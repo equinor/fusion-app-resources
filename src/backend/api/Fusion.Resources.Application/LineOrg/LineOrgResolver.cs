@@ -92,8 +92,10 @@ namespace Fusion.Resources.Application.LineOrg
 
         private async Task UpdateCacheItemsUnsafe(DepartmentCache cache, string? filter = null)
         {
+            const int page_size = 500; //max resolved people from people service simultanously = 500.
+
             var client = httpClientFactory.CreateClient("lineorg");
-            var uri = "/lineorg/persons?top=2000&$filter=isresourceowner eq true";
+            var uri = $"/lineorg/persons?$top={page_size}&$filter=isresourceowner eq true";
             if (!string.IsNullOrEmpty(filter))
             {
                 uri += $"&$search={Uri.EscapeDataString(filter)}";
