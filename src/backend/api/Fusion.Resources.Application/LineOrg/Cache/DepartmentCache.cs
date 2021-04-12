@@ -7,7 +7,7 @@ namespace Fusion.Resources.Application.LineOrg
 {
     class DepartmentCache : KeyedCollection<string, DepartmentCacheItem>
     {
-        private static TimeSpan CacheDuration = TimeSpan.FromHours(1);
+        private static TimeSpan CacheDuration = TimeSpan.FromDays(1);
         private DateTime? Expiry = null;
         public bool IsValid => DateTime.Now < Expiry;
 
