@@ -14,6 +14,8 @@ namespace Fusion.Resources.Application.LineOrg
 {
     public class LineOrgResolver : ILineOrgResolver
     {
+        const int page_size = 500; //max resolved people from people service simultanously = 500.
+
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         private DepartmentCache cache;
         private readonly IHttpClientFactory httpClientFactory;
@@ -45,17 +47,15 @@ namespace Fusion.Resources.Application.LineOrg
             }
 
             var profiles = new List<Integration.Profile.ResolvedPersonProfile>();
-            for (int i = 0; i < departments.Count(); i += 500)
+            for (int i = 0; i < departments.Count(); i += page_size)
             {
                 profiles.AddRange(await profileResolver.ResolvePersonsAsync(
                     departments
-                        .Skip(i * 500)
-                        .Take(Math.Min(500, departments.Count() - 500 * i))
+                        .Skip(i * page_size)
+                        .Take(Math.Min(page_size, departments.Count() - page_size * i))
                         .Select(r => new Integration.Profile.PersonIdentifier(r.LineOrgResponsibleId))
                 ));
             }
-
-
 
             var resolvedProfiles = profiles
                 .Where(p => p.Success)
@@ -98,8 +98,6 @@ namespace Fusion.Resources.Application.LineOrg
 
         private async Task UpdateCacheItemsUnsafe(DepartmentCache cache, string? filter = null)
         {
-            const int page_size = 500; //max resolved people from people service simultanously = 500.
-
             var client = httpClientFactory.CreateClient("lineorg");
             var uri = $"/lineorg/persons?$top={page_size}&$filter=isresourceowner eq true";
             if (!string.IsNullOrEmpty(filter))
