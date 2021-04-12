@@ -22,7 +22,7 @@ namespace Fusion.Resources.Domain
                 filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
 
             var timeline = GeneratePersonnelTimelineInternal(position, absences, filterStart, filterEnd).ToList();
-            FixOverlappingPeriods(timeline);
+            //FixOverlappingPeriods(timeline);
             return timeline;
         }
         private static IEnumerable<QueryTimelineRange<QueryPersonnelTimelineItem>> GeneratePersonnelTimelineInternal(
@@ -147,7 +147,7 @@ namespace Fusion.Resources.Domain
             .Where(range => range.Items.Any())
             .ToList();
 
-            FixOverlappingPeriods(timeline);
+            //FixOverlappingPeriods(timeline);
 
             return timeline;
         }
@@ -213,7 +213,7 @@ namespace Fusion.Resources.Domain
             .Where(range => range.Items.Any())
             .ToList();
 
-            FixOverlappingPeriods(timeline);
+            //FixOverlappingPeriods(timeline);
 
             return timeline;
         }
