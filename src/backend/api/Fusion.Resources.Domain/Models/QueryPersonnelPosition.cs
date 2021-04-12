@@ -16,5 +16,12 @@ namespace Fusion.Resources.Domain
         public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
         public double Workload { get; set; }
         public QueryProjectRef Project { get; set; } = null!;
+
+        /// <summary>
+        /// Indicates that the allocation has been changed outside approved channels.
+        /// Null or "ChangedByTaskOwner". 
+        /// </summary>
+        public string? AllocationState { get; set; }
+        public DateTime? AllocationUpdated { get; set; }
     }
 }

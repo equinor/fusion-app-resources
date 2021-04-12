@@ -39,6 +39,6 @@ namespace Fusion.Resources.Domain
         public List<QueryTimelineRange<QueryPersonnelTimelineItem>>? Timeline { get; set; }
         public List<QueryPersonnelPosition> PositionInstances { get; set; }
         public List<QueryPersonAbsenceBasic> Absence { get; set; }
-
+        public bool IsResourceOwner { get; set; }
     }
 }

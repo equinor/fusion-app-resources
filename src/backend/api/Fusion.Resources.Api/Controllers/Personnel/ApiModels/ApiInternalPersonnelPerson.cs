@@ -20,6 +20,7 @@ namespace Fusion.Resources.Api.Controllers
             OfficeLocation = p.OfficeLocation;
             Department = p.Department!;
             FullDepartment = p.FullDepartment!;
+            IsResourceOwner = p.IsResourceOwner;
 
             if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti)).ToList();
 
@@ -42,6 +43,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? OfficeLocation { get; set; }
         public string Department { get; set; }
         public string FullDepartment { get; set; }
+        public bool IsResourceOwner { get; set; }
 
         /// <summary>
         /// Enum, <see cref="FusionAccountType"/>.
@@ -109,6 +111,9 @@ namespace Fusion.Resources.Api.Controllers
                 Name = pos.Name;
                 Location = pos.Location;
                 Workload = pos.Workload;
+                AllocationState = pos.AllocationState;
+                AllocationUpdated = pos.AllocationUpdated;
+
                 Project = new ApiProjectReference(pos.Project);
                 BasePosition = new ApiBasePosition(pos.BasePosition);
             }
@@ -121,6 +126,8 @@ namespace Fusion.Resources.Api.Controllers
             public ApiBasePosition BasePosition { get; set; } = null!;
             public string Name { get; set; } = null!;
             public string? Location { get; set; }
+            public string? AllocationState { get; set; }
+            public DateTime? AllocationUpdated { get; set; }
 
             public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
             public double Workload { get; set; }
