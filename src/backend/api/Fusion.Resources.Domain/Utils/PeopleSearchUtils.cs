@@ -87,7 +87,7 @@ namespace Fusion.Resources.Domain
                 OfficeLocation = i.document.officeLocation,
                 Department = i.document.department,
                 IsResourceOwner = i.document.isResourceOwner,
-                FullDepartment = departments.Where(d => d.EndsWith(i.document.department)).FirstOrDefault(),
+                FullDepartment = i.document.fullDepartment,
                 PositionInstances = i.document.positions.Select(p => new QueryPersonnelPosition
                 {
                     PositionId = p.id,
