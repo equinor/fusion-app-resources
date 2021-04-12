@@ -16,7 +16,7 @@ namespace Fusion.Resources.Domain
         {
             var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
             {
-                filter = string.Join(" or ", departments.Select(dep => $"fullDepartment eq '{dep}'")),
+                filter = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'")),
                 top = 500
             });
 
@@ -42,6 +42,7 @@ namespace Fusion.Resources.Domain
                             upn = string.Empty,
                             accountType = string.Empty,
                             isExpired = false,
+                            isResourceOwner = false,
 
                             positions = new [] {
                                 new {
@@ -54,11 +55,14 @@ namespace Fusion.Resources.Domain
                                     obs = string.Empty,
                                     locationName = string.Empty,
                                     workload = 0.0,
+                                    allocationState = string.Empty,
+                                    allicationUpdated = (DateTime?)null,
                                     project = new
                                     {
                                         name = string.Empty,
                                         id = Guid.Empty,
-                                        domainId = string.Empty
+                                        domainId = string.Empty,
+                                        type = string.Empty
                                     },
 
                                     basePosition = new
@@ -66,7 +70,7 @@ namespace Fusion.Resources.Domain
                                         id = Guid.Empty,
                                         name = string.Empty,
                                         discipline = string.Empty,
-                                        projectType = string.Empty
+                                        type = string.Empty
                                     }
                                 }
 
@@ -82,7 +86,8 @@ namespace Fusion.Resources.Domain
                 JobTitle = i.document.jobTitle,
                 OfficeLocation = i.document.officeLocation,
                 Department = i.document.department,
-                FullDepartment = departments.Where(d => d.EndsWith(i.document.department)).FirstOrDefault(),
+                IsResourceOwner = i.document.isResourceOwner,
+                FullDepartment = i.document.fullDepartment,
                 PositionInstances = i.document.positions.Select(p => new QueryPersonnelPosition
                 {
                     PositionId = p.id,
@@ -91,9 +96,11 @@ namespace Fusion.Resources.Domain
                     AppliesTo = p.appliesTo!.Value,
                     Name = p.name,
                     Location = p.locationName,
-                    BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.projectType),
-                    Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId),
-                    Workload = p.workload
+                    BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
+                    Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
+                    Workload = p.workload,
+                    AllocationState = p.allocationState,
+                    AllocationUpdated = p.allicationUpdated
                 }).OrderBy(p => p.AppliesFrom).ToList()
             }).ToList();
 
