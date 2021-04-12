@@ -72,7 +72,7 @@ namespace Fusion.Resources.Api
             });
             services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
 
-            services.AddSingleton<ILineOrgResolver, LineOrgResolver>();
+            services.UseLineOrgIntegration();
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 

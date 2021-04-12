@@ -30,14 +30,12 @@ namespace Fusion.Resources.Application.LineOrg
             this.profileResolver = profileResolver;
         }
 
-        public async Task<List<LineOrgDepartment>> GetResourceOwners(List<string> departmentIds, string? filter, CancellationToken cancellationToken)
+        public async Task<List<LineOrgDepartment>> GetResourceOwners(string? filter, CancellationToken cancellationToken)
         {
             if (!cache.IsValid)
             {
                 await RehydrateCache();
             }
-
-            var searchedDepartments = departmentIds.ToHashSet();
 
             var departments = cache.Search(filter);
             if (!departments.Any())
@@ -46,9 +44,18 @@ namespace Fusion.Resources.Application.LineOrg
                 departments = cache.Search(filter);
             }
 
-            var profiles = await profileResolver.ResolvePersonsAsync(
-                departments.Select(r => new Integration.Profile.PersonIdentifier(r.LineOrgResponsibleId))
-            );
+            var profiles = new List<Integration.Profile.ResolvedPersonProfile>();
+            for (int i = 0; i < departments.Count(); i += 500)
+            {
+                profiles.AddRange(await profileResolver.ResolvePersonsAsync(
+                    departments
+                        .Skip(i * 500)
+                        .Take(Math.Min(500, departments.Count() - 500 * i))
+                        .Select(r => new Integration.Profile.PersonIdentifier(r.LineOrgResponsibleId))
+                ));
+            }
+
+
 
             var resolvedProfiles = profiles
                 .Where(p => p.Success)
@@ -58,7 +65,6 @@ namespace Fusion.Resources.Application.LineOrg
 
             foreach (var department in departments)
             {
-                if (!searchedDepartments.Contains(department.DepartmentId)) continue;
                 if (!resolvedProfiles.ContainsKey(department.LineOrgResponsibleId)) continue;
 
                 result.Add(new LineOrgDepartment(department.DepartmentId)

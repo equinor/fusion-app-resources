@@ -101,11 +101,15 @@ namespace Fusion.Resources.Domain
 
                 if(request.shouldExpandResourceOwners)
                 {
+                    var searchedDepartments = departments.Keys!.ToHashSet();
+
                     var resourceOwners = await lineOrgResolver
-                        .GetResourceOwners(departments.Keys!.ToList(), request.resourceOwnerSearch, cancellationToken);
+                        .GetResourceOwners(request.resourceOwnerSearch, cancellationToken);
 
                     foreach(var resourceOwner in resourceOwners)
                     {
+                        if (!searchedDepartments.Contains(resourceOwner.DepartmentId)) continue;
+
                         var department = departments[resourceOwner.DepartmentId];
                         department.LineOrgResponsible = resourceOwner.Responsible;
                         

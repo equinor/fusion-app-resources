@@ -8,8 +8,8 @@ namespace Fusion.Resources.Application.LineOrg
     class DepartmentCache : KeyedCollection<string, DepartmentCacheItem>
     {
         private static TimeSpan CacheDuration = TimeSpan.FromDays(1);
-        private DateTime? Expiry = null;
-        public bool IsValid => DateTime.Now < Expiry;
+        private DateTime? firstExpiry = null;
+        public bool IsValid => firstExpiry.HasValue && DateTime.Now < firstExpiry;
 
         protected override void SetItem(int index, DepartmentCacheItem item)
             => base.SetItem(index, item with { Expiry = ItemExpiry() });
@@ -19,7 +19,7 @@ namespace Fusion.Resources.Application.LineOrg
 
         protected override void ClearItems()
         {
-            Expiry = DateTime.MaxValue;
+            firstExpiry = null;
             base.ClearItems();
         }
 
@@ -34,7 +34,7 @@ namespace Fusion.Resources.Application.LineOrg
         private DateTime ItemExpiry()
         {
             var itemExpiry = DateTime.Now.Add(CacheDuration);
-            Expiry = (Expiry is null || itemExpiry < Expiry) ? itemExpiry : Expiry;
+            firstExpiry = (firstExpiry is null || itemExpiry < firstExpiry) ? itemExpiry : firstExpiry;
             return itemExpiry;
         }
     }

@@ -7,6 +7,6 @@ namespace Fusion.Resources.Application.LineOrg
 {
     public interface ILineOrgResolver
     {
-        Task<List<LineOrgDepartment>> GetResourceOwners(List<string> departmentIds, string? filter, CancellationToken cancellationToken);
+        Task<List<LineOrgDepartment>> GetResourceOwners(string? filter, CancellationToken cancellationToken);
     }
 }
