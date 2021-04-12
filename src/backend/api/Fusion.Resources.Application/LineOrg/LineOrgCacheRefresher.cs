@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Fusion.Integration.Diagnostics;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,17 +11,26 @@ namespace Fusion.Resources.Application.LineOrg
     {
         private Timer timer;
         private readonly ILineOrgResolver lineOrgResolver;
+        private readonly IFusionLogger logger;
 
-        public LineOrgCacheRefresher(ILineOrgResolver lineOrgResolver)
+        public LineOrgCacheRefresher(ILineOrgResolver lineOrgResolver, IFusionLogger logger)
         {
             this.lineOrgResolver = lineOrgResolver;
+            this.logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             timer = new Timer(async _ =>
             {
-                await lineOrgResolver.GetResourceOwners(filter: "", cancellationToken);
+                try
+                {
+                    await lineOrgResolver.GetResourceOwners(filter: "", cancellationToken);
+                }
+                catch(Exception ex)
+                {
+                    logger.Log(LogLevel.Error, ex, "Line org integration: Failed to refresh departments cache.");
+                }
             }, null, TimeSpan.Zero, TimeSpan.FromDays(1));
 
             return Task.CompletedTask;

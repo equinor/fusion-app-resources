@@ -21,7 +21,15 @@ namespace Fusion.Resources.Api.Tests.Fixture
         private const string baseaddress = "http://mock-api.local";
         private readonly MockApi stubs = new MockApi();
 
-        public void WithResponse(StubResponse response) => stubs.Add(response);
+        public void WithResponse(StubResponse response)
+        {
+            if(stubs.Contains(response.Url))
+            {
+                stubs.Remove(response.Url);
+            }
+            stubs.Add(response);    
+        }
+
         public void WithResponse(string url, string content, HttpStatusCode statusCode = HttpStatusCode.OK)
             => WithResponse(new StubResponse(url, content, statusCode));
         public void WithResponse<T>(string url, T data, HttpStatusCode statusCode = HttpStatusCode.OK)
@@ -47,7 +55,5 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
             return new HttpClient(handler.Object) { BaseAddress = new Uri(baseaddress) };
         }
-
-        public void Reset() => stubs.Clear();
     }
 }

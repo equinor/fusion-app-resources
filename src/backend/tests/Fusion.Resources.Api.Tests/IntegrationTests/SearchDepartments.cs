@@ -33,7 +33,7 @@ namespace Fusion.Resources.Api.Tests
             testUser = fixture.AddProfile(FusionAccountType.Employee);
         }
 
-        public async Task DisposeAsync() => fixture.LineOrg.Reset();
+        public async Task DisposeAsync() { }
         public  Task InitializeAsync() => Task.CompletedTask;
 
         [Fact]

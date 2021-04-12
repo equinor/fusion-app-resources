@@ -24,6 +24,7 @@ using Fusion.Resources.Domain.Services;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Fusion.Resources.Application.LineOrg;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -99,6 +100,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("OrgEventReceiver");
                 services.TryRemoveImplementationService("ContextEventReceiver");
                 services.TryRemoveImplementationService<ICompanyResolver>();
+                services.TryRemoveImplementationService<LineOrgCacheRefresher>();
 
                     //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                     services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
