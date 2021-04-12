@@ -29,7 +29,7 @@ namespace Fusion.Testing.Mocks
             /// <summary>
             /// Pending, Approved, Rejected, Skipped, Unknown
             /// </summary>
-            public string State { get; set; }
+            public string State { get; set; } = null!;
 
             public DateTimeOffset? Started { get; set; }
             public DateTimeOffset? Completed { get; set; }

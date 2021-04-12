@@ -140,6 +140,50 @@ namespace Fusion.Resources.Domain
         public static Task<RequestResponse<ApiPositionV2>> GetPositionV2Async(this IOrgApiClient client, Guid projectId, Guid positionId) =>
             client.GetAsync<ApiPositionV2>($"/projects/{projectId}/positions/{positionId}?api-version=2.0");
 
+        public static async Task<ApiDraftV2> CreateProjectDraftAsync(this IOrgApiClient client, Guid projectId, string name, string? description = null)
+        {
+            var resp = await client.PostAsync<ApiDraftV2>($"/projects/{projectId}/drafts?api-version=2.0", new ApiDraftV2() { Name = name, Description = description });
+
+            if (!resp.IsSuccessStatusCode)
+                throw new OrgApiError(resp.Response, resp.Content);
+
+            return resp.Value;
+        }
+
+        public static async Task<ApiDraftV2> PublishAndWaitAsync(this IOrgApiClient client, ApiDraftV2 draft)
+        {
+            var publishResp = await client.PostAsync<ApiDraftV2>($"/projects/{draft.ProjectId}/drafts/{draft.Id}/publish", null!);
+            var publishedDraft = publishResp.Value;
+
+            if (!publishResp.IsSuccessStatusCode)
+                throw new OrgApiError(publishResp.Response, publishResp.Content);
+
+            var response = publishResp.Response;
+            if (response.StatusCode == HttpStatusCode.Accepted)
+            {
+                do
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+
+                    var locationUrl = response.Headers.Location?.ToString() ?? $"/drafts/{draft.Id}/publish";    // Get poll location URL
+
+                    var checkResp = await client.GetAsync<ApiDraftV2>(locationUrl);
+
+                    if (!checkResp.IsSuccessStatusCode)
+                        throw new OrgApiError(checkResp.Response, checkResp.Content);
+
+                    response = checkResp.Response;
+                    publishedDraft = checkResp.Value;
+                }
+                while (response.StatusCode == HttpStatusCode.Accepted);
+            }
+
+            if (publishedDraft.Status == "PublishFailed")
+                throw new DraftPublishingError(publishedDraft);
+
+            return publishedDraft;
+        }
+
     }
 
     public class RequestResponse<TResponse>
@@ -201,5 +245,15 @@ namespace Fusion.Resources.Domain
         /// The persons assigned to the resolved instances.
         /// </summary>
         public ApiPersonV2[]? Persons { get; set; }
+    }
+
+    public class DraftPublishingError : Exception
+    {
+        public ApiDraftV2 OrgChartDraft { get; set; }
+        public DraftPublishingError(ApiDraftV2 draft) 
+            : base($"Publishing of draft resulted in error: {draft.Error?.Message}")
+        {
+            OrgChartDraft = draft;
+        }
     }
 }

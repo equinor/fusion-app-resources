@@ -14,6 +14,14 @@ namespace Fusion.Testing.Mocks.OrgService
             return instance;
         }
 
+        public static ApiPositionInstanceV2 SetRotation(this ApiPositionInstanceV2 instance, int id)
+        {
+            instance.Type = ApiInstanceType.Rotation;
+            instance.RotationId = $"{id}";
+
+            return instance;
+        }
+
         public static ApiPositionInstanceV2 SetAssignedPerson(this ApiPositionInstanceV2 instance, ApiPersonProfileV3 person)
         {
             instance.AssignedPerson = new ApiPersonV2 { AzureUniqueId = person.AzureUniqueId, Mail = person.Mail };

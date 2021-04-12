@@ -29,4 +29,8 @@
     <ProjectReference Include="..\Fusion.Testing.Mocks.ProfileService\Fusion.Testing.Mocks.ProfileService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Mock\" />
+  </ItemGroup>
+
 </Project>

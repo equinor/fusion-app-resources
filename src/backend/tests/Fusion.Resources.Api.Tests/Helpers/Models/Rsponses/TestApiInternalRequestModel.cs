@@ -32,7 +32,7 @@ namespace Fusion.Testing.Mocks
         //public ApiTaskOwner? TaskOwner { get; set; }
 
         public DateTimeOffset Created { get; set; }
-        public TestApiPerson CreatedBy { get; set; }
+        public TestApiPerson CreatedBy { get; set; } = null!;
 
         public DateTimeOffset? Updated { get; set; }
         public TestApiPerson? UpdatedBy { get; set; }
