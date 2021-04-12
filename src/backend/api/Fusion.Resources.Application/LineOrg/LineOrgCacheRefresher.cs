@@ -11,9 +11,9 @@ namespace Fusion.Resources.Application.LineOrg
     {
         private Timer timer;
         private readonly ILineOrgResolver lineOrgResolver;
-        private readonly IFusionLogger logger;
+        private readonly ILogger<LineOrgCacheRefresher> logger;
 
-        public LineOrgCacheRefresher(ILineOrgResolver lineOrgResolver, IFusionLogger logger)
+        public LineOrgCacheRefresher(ILineOrgResolver lineOrgResolver, ILogger<LineOrgCacheRefresher> logger)
         {
             this.lineOrgResolver = lineOrgResolver;
             this.logger = logger;

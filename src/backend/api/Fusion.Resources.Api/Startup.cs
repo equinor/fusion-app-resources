@@ -72,7 +72,6 @@ namespace Fusion.Resources.Api
             });
             services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
 
-            services.UseLineOrgIntegration();
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
@@ -95,7 +94,6 @@ namespace Fusion.Resources.Api
 
             services.AddResourcesAuthorizationHandlers();
             services.AddMediatR(typeof(Startup));   // Add notification handlers in api project
-
             #endregion
 
             services.AddHealthChecks()
@@ -106,6 +104,8 @@ namespace Fusion.Resources.Api
 
             services.AddCommonLibHttpClient();
             services.AddLineOrgHttpClient();
+
+            services.UseLineOrgIntegration();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
