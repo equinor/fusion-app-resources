@@ -24,7 +24,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
             return Ok(new ApiDepartment(departments.Single()));
         }
 
-        [HttpGet("/departments/search")]
+        [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
             var request = new GetDepartments()

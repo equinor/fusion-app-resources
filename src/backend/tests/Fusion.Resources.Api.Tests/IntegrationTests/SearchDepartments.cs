@@ -63,7 +63,7 @@ namespace Fusion.Resources.Api.Tests
             using var authScope = fixture.AdminScope();
 
             var search = fakeResourceOwner.Name.Substring(0, Math.Min(4, fakeResourceOwner.Name.Length));
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments/search?api-version=1.0-preview&$search={search}");
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?api-version=1.0-preview&$search={search}");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
         }
 
@@ -96,7 +96,7 @@ namespace Fusion.Resources.Api.Tests
             using var authScope = fixture.AdminScope();
             
             var search = fakeResourceOwner.Name.Substring(0, Math.Min(4, fakeResourceOwner.Name.Length));
-            var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments/search?api-version=1.0-preview&$search={search}");
+            var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?api-version=1.0-preview&$search={search}");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
 
             var delegatedResponsible = result.Value.Single().DelegatedResponsibles.Single();
