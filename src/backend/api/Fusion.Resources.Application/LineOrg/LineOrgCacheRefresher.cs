@@ -1,5 +1,4 @@
-﻿using Fusion.Integration.Diagnostics;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -9,7 +8,7 @@ namespace Fusion.Resources.Application.LineOrg
 {
     public sealed class LineOrgCacheRefresher : IHostedService, IDisposable
     {
-        private Timer timer;
+        private Timer? timer;
         private readonly ILineOrgResolver lineOrgResolver;
         private readonly ILogger<LineOrgCacheRefresher> logger;
 
@@ -42,6 +41,6 @@ namespace Fusion.Resources.Application.LineOrg
             return Task.CompletedTask;
         }
 
-        public void Dispose() => timer.Dispose();
+        public void Dispose() => timer?.Dispose();
     }
 }

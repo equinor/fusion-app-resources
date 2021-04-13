@@ -10,6 +10,6 @@ namespace Fusion.Resources.Application.LineOrg.Models
         }
 
         public string DepartmentId { get; set; }
-        public FusionPersonProfile Responsible { get; internal set; }
+        public FusionPersonProfile? Responsible { get; set; }
     }
 }

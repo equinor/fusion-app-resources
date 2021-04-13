@@ -59,7 +59,7 @@ namespace Fusion.Resources.Application.LineOrg
 
             var resolvedProfiles = profiles
                 .Where(p => p.Success)
-                .ToDictionary(p => p.Profile.AzureUniqueId);
+                .ToDictionary(p => p.Profile!.AzureUniqueId!.Value);
 
             var result = new List<LineOrgDepartment>();
 
@@ -69,7 +69,7 @@ namespace Fusion.Resources.Application.LineOrg
 
                 result.Add(new LineOrgDepartment(department.DepartmentId)
                 {
-                    Responsible = resolvedProfiles[department.LineOrgResponsibleId].Profile
+                    Responsible = resolvedProfiles[department.LineOrgResponsibleId]?.Profile
                 });
             }
             return result;
@@ -115,26 +115,26 @@ namespace Fusion.Resources.Application.LineOrg
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                 );
 
-                uri = page?.NextPage;
-                var resourceOwners = page!.Value;
+                uri = page!.NextPage;
+                var resourceOwners = page!.Value!;
 
                 var profiles = await profileResolver.ResolvePersonsAsync(
                     resourceOwners.Select(r => new Integration.Profile.PersonIdentifier(r.AzureUniqueId))
                 );
 
                 var resolvedProfiles = profiles
-                    .Where(p => p.Success)
-                    .ToDictionary(p => p.Profile.AzureUniqueId);
+                    .Where(p => p.Success && p.Profile!.AzureUniqueId.HasValue)
+                    .ToDictionary(p => p.Profile!.AzureUniqueId!.Value);
 
                 foreach (var resourceOwner in resourceOwners)
                 {
                     if (!resolvedProfiles.ContainsKey(resourceOwner.AzureUniqueId)) continue;
 
-                    var profile = resolvedProfiles[resourceOwner.AzureUniqueId].Profile;
-                    var shortname = profile.Mail.Contains('@') ? profile.Mail.Split("@")[0] : "";
+                    var profile = resolvedProfiles[resourceOwner.AzureUniqueId].Profile!;
+                    var shortname = profile.Mail?.Contains('@') == true ? profile.Mail.Split("@")[0] : "";
                     var searchText = $"{shortname}|{profile.Name}|{resourceOwner.FullDepartment}";
 
-                    var cacheItem = new DepartmentCacheItem(resourceOwner.FullDepartment, searchText, resourceOwner.AzureUniqueId);
+                    var cacheItem = new DepartmentCacheItem(resourceOwner!.FullDepartment, searchText, resourceOwner.AzureUniqueId);
                     if (cache.Contains(cacheItem.DepartmentId))
                     {
                         cache.Remove(cacheItem.DepartmentId);

@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests
 {
-    public class SearchDepartments : IClassFixture<ResourceApiFixture>, IAsyncLifetime
+    public class SearchDepartments : IClassFixture<ResourceApiFixture>
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
@@ -32,9 +32,6 @@ namespace Fusion.Resources.Api.Tests
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.Employee);
         }
-
-        public async Task DisposeAsync() { }
-        public  Task InitializeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task ShouldGetDataFromLineOrg()
