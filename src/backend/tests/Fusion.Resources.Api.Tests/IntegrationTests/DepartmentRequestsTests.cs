@@ -74,6 +74,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var testRequest = await Client.CreateDefaultRequestAsync(testProject);
             await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+
+            //TODO: Should request be auto-assigned?
+            testRequest = await Client.AssignAnDepartmentAsync(testRequest.Id);
+
             await Client.ProposePersonAsync(testRequest.Id, testPerson);
             await Client.ResourceOwnerApproveAsync(InternalRequestData.RandomDepartment, testRequest.Id);
             await Client.TaskOwnerApproveAsync(testProject, testRequest.Id);
