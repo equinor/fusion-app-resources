@@ -45,6 +45,14 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 )
                 .ReturnsAsync((HttpRequestMessage x, CancellationToken _) =>
                 {
+                    if(!stubs.Contains(x.RequestUri.LocalPath))
+                    {
+                        return new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.NotFound
+                        };
+                    }
+
                     var response = stubs[x.RequestUri.LocalPath];
                     return new HttpResponseMessage
                     {
