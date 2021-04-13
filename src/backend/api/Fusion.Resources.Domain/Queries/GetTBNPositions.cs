@@ -89,7 +89,7 @@ namespace Fusion.Resources.Domain.Queries
                                 InstanceId = instance.Id,
                                 ParentPositionId = pos.ExternalId,
                                 ProjectId = pos.ProjectId,
-                                Project = new QueryProjectRef(project.ProjectId, project.Name, project.DomainId),
+                                Project = new QueryProjectRef(project.ProjectId, project.Name, project.DomainId, project.ProjectType),
                                 BasePosition = pos.BasePosition,
                                 Name = pos.Name,
 
