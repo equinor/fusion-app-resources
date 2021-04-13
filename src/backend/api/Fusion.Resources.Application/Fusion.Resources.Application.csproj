@@ -15,8 +15,4 @@
 
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
-  </ItemGroup>
-
 </Project>
