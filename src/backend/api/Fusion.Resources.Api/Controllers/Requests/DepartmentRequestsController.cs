@@ -98,5 +98,30 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             return apiModel;
         }
+
+        [HttpGet("departments/{departmentString}/resources/requests/unassigned")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentUnassignedRequests(string departmentString) 
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    // add requirements
+                });
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var requestCommand = new GetDepartmentUnassignedRequests(departmentString);
+            var result = await DispatchAsync(requestCommand);
+
+            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
+        }
     }
 }

@@ -69,6 +69,24 @@ namespace Fusion.Resources.Api.Tests
             return newRequestResponse.Value;
         }
 
+        /// <summary>
+        /// Create new request and start it.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<TestApiInternalRequestModel> CreateAndStartDefaultRequestOnPositionAsync(this HttpClient client, FusionTestProjectBuilder project, ApiPositionV2 position)
+        {
+            var requestModel = new ApiCreateInternalRequestModel()
+                .AsTypeNormal()
+                .WithPosition(position);
+
+            var newRequestResponse = await client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{project.Project.ProjectId}/requests", requestModel);
+            newRequestResponse.Should().BeSuccessfull();
+
+            var startedRequest = await client.StartProjectRequestAsync(project, newRequestResponse.Value.Id);
+
+            return startedRequest;
+        }
+
         public static async Task<TestApiInternalRequestModel> CreateDefaultResourceOwnerRequestAsync(this HttpClient client, string department, FusionTestProjectBuilder project,
             Action<ApiCreateInternalRequestModel> setup = null, Action<ApiPositionV2> positionSetup = null)
         {
