@@ -49,6 +49,11 @@ namespace Fusion.Resources.Domain
             return new PersonId(uniqueId);
         }
 
+        public static implicit operator PersonId(PersonnelId personId)
+        {
+            return new PersonId(personId.OriginalIdentifier);
+        }
+
         public static implicit operator PersonId?(ApiPersonV2? assignedPerson)
         {
             if (assignedPerson is null)

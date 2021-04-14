@@ -158,6 +158,43 @@ namespace Fusion.Resources.Api.Controllers
             var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
+    
+        [HttpPost("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}/allocations/{instanceId}/allocation-state/reset")]
+        public async Task<ActionResult> ResetAllocationState(string fullDepartmentString, string personIdentifier, Guid instanceId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AnyOf(or =>
+                {
+                    or.BeTrustedApplication();
+                    or.FullControl();
+
+                    or.FullControlInternal();
+
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var personnelItem = await DispatchAsync(new GetPersonnelAllocation(personIdentifier));
+
+            if (personnelItem is null)
+                throw new InvalidOperationException("Could locate profile for person");
+
+            var allocation = personnelItem.PositionInstances.FirstOrDefault(i => i.InstanceId == instanceId);
+            if (allocation is null)
+                return ApiErrors.NotFound("Could not locate allocation on person");
+
+
+            await DispatchAsync(new Domain.Commands.ResetAllocationState(allocation.Project.OrgProjectId, allocation.PositionId, instanceId));
+
+            return NoContent();
+        }
     }
 
 }
