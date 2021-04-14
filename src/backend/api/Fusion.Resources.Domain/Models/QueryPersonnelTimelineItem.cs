@@ -11,5 +11,7 @@ namespace Fusion.Resources.Domain
 
         public QueryProjectRef? Project { get; set; }
         public QueryBasePosition? BasePosition { get; set; }
+        public DateTime AppliesFrom { get; set; }
+        public DateTime AppliesTo { get; set; }
     }
 }

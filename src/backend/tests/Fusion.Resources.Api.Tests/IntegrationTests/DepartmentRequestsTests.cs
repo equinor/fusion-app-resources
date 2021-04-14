@@ -330,15 +330,19 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             segments[0].Items.Should().HaveCount(1);
             segments[0].AppliesFrom.Date.Should().Be(new DateTime(2022, 03, 09));
-            segments[0].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 15));
+            segments[0].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 14));
 
-            segments[1].Items.Should().HaveCount(1);
+            segments[1].Items.Should().HaveCount(2);
             segments[1].AppliesFrom.Date.Should().Be(new DateTime(2022, 03, 15));
-            segments[1].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 21));
+            segments[1].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 15));
 
             segments[2].Items.Should().HaveCount(1);
-            segments[2].AppliesFrom.Date.Should().Be(new DateTime(2022, 03, 23));
-            segments[2].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 29));
+            segments[2].AppliesFrom.Date.Should().Be(new DateTime(2022, 03, 16));
+            segments[2].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 21));
+
+            segments[3].Items.Should().HaveCount(1);
+            segments[3].AppliesFrom.Date.Should().Be(new DateTime(2022, 03, 23));
+            segments[3].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 29));
         }
 
 
@@ -457,22 +461,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             segments[0].Items.Should().HaveCount(1);
             segments[0].AppliesFrom.Should().Be(new DateTime(2020, 03, 01));
-            segments[0].AppliesTo.Should().Be(new DateTime(2020, 03, 02));
+            segments[0].AppliesTo.Should().Be(new DateTime(2020, 03, 01));
 
             segments[1].Items.Should().HaveCount(2);
             segments[1].AppliesFrom.Should().Be(new DateTime(2020, 03, 02));
-            segments[1].AppliesTo.Should().Be(new DateTime(2020, 03, 03));
+            segments[1].AppliesTo.Should().Be(new DateTime(2020, 03, 02));
 
             segments[2].Items.Should().HaveCount(3);
             segments[2].AppliesFrom.Should().Be(new DateTime(2020, 03, 03));
             segments[2].AppliesTo.Should().Be(new DateTime(2020, 03, 07));
 
             segments[3].Items.Should().HaveCount(2);
-            segments[3].AppliesFrom.Should().Be(new DateTime(2020, 03, 07));
+            segments[3].AppliesFrom.Should().Be(new DateTime(2020, 03, 08));
             segments[3].AppliesTo.Should().Be(new DateTime(2020, 03, 08));
 
             segments[4].Items.Should().HaveCount(1);
-            segments[4].AppliesFrom.Should().Be(new DateTime(2020, 03, 08));
+            segments[4].AppliesFrom.Should().Be(new DateTime(2020, 03, 09));
             segments[4].AppliesTo.Should().Be(new DateTime(2020, 03, 09));
         }
 
