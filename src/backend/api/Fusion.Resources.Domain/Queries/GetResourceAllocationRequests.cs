@@ -33,6 +33,13 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests ExpandPositions(bool shouldExpand = true)
+        {
+            if (shouldExpand)
+                Expands |= ExpandFields.OrgPosition;
+            return this;
+        }
+
         public GetResourceAllocationRequests WithAssignedDepartment(string departmentString)
         {
             DepartmentString = departmentString;

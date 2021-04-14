@@ -136,6 +136,20 @@ namespace Fusion.Testing.Mocks.OrgService
             return clone;
         }
 
+        public ApiBasePositionV2 AddBasePosition(string name, Action<ApiBasePositionV2> setup = null)
+        {
+            var bp = new ApiBasePositionV2()
+            {
+                Id = Guid.NewGuid(),
+                Name = name
+            };
+
+            setup?.Invoke(bp);
+
+
+            return bp;
+        }
+
         public ApiPositionV2 AddPosition()
         {
             var position = PositionBuilder.NewPosition();

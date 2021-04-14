@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain.Queries
 
             public async Task<IEnumerable<QueryResourceAllocationRequest>> Handle(GetDepartmentUnassignedRequests request, CancellationToken cancellationToken)
             {
-                var unassignedRequests = await mediator.Send(new GetResourceAllocationRequests().WithUnassignedFilter(true));
+                var unassignedRequests = await mediator.Send(new GetResourceAllocationRequests().ExpandPositions().WithUnassignedFilter(true));
 
                 var relevantRequests = unassignedRequests
                     .Where(r => r.OrgPosition != null && IsRelevantBasePosition(request.DepartmentString, r.OrgPosition.BasePosition.Department))
