@@ -14,10 +14,23 @@ namespace Fusion.Resources.Domain
             => await GetDepartmentFromSearchIndexAsync(peopleClient, departments.AsEnumerable());
         public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, IEnumerable<string> departments)
         {
+            var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, 500);
+            return searchResponse;
+        }
+        
+        public static async Task<QueryInternalPersonnelPerson?> GetPersonFromSearchIndexAsync(HttpClient peopleClient, Guid uniqueId)
+        {
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, $"azureUniqueId eq '{uniqueId}'", 1);
+            return searchResponse.FirstOrDefault();
+        }
+
+        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string filter, int top)
+        {
             var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
             {
-                filter = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'")),
-                top = 500
+                filter = filter,
+                top = top
             });
 
             var data = await response.Content.ReadAsStringAsync();
@@ -106,5 +119,6 @@ namespace Fusion.Resources.Domain
 
             return departmentPersonnel;
         }
+
     }
 }

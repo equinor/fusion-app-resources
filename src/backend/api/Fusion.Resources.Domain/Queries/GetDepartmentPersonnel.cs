@@ -2,19 +2,18 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Integration.Http;
 using Fusion.Resources.Database;
-using Itenso.TimePeriod;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
+
     public class GetDepartmentPersonnel : IRequest<IEnumerable<QueryInternalPersonnelPerson>>
     {
 
