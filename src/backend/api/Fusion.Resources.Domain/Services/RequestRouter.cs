@@ -54,7 +54,9 @@ namespace Fusion.Resources.Domain
                 .Select(m => new ResponsibilityMatch
                 {
                     Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 7 : 0)
+#pragma warning disable CS8602 // Dereference of a possibly null reference. This is translated to sql.
                             + (props.BasePositionDepartment != null && m.Unit.StartsWith(props.BasePositionDepartment) ? 5 : 0)
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
                     Row = m
