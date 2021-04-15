@@ -127,7 +127,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpGet("departments/{departmentString}/resources/requests/tbn")]
         public async Task<ActionResult> GetTBNPositions(string departmentString)
         {
-            var request = new GetTBNPositions(departmentString);
+            var request = new GetTbnPositions(departmentString);
 
             var data = await DispatchAsync(request);
 

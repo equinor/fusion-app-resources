@@ -18,12 +18,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         public List<ApiTbnPositionItem>? Positions { get; }
-        public List<QueryTimelineRange<QueryTBNPositionTimelineItem>>? Timeline { get; }
+        public List<QueryTimelineRange<QueryTbnPositionTimelineItem>>? Timeline { get; }
     }
 
     public class ApiTbnPositionItem
     {
-        public ApiTbnPositionItem(TbnPosition position, DateTime minDateValue, DateTime maxDateValue)
+        public ApiTbnPositionItem(QueryTbnPosition position, DateTime minDateValue, DateTime maxDateValue)
         {
             PositionId = position.PositionId;
             InstanceId = position.InstanceId;
@@ -37,7 +37,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             FilteredAppliesFrom = position.AppliesFrom < minDateValue ? minDateValue : position.AppliesFrom;
             FilteredAppliesTo = position.AppliesTo > maxDateValue ? maxDateValue : position.AppliesTo;
 
-            Department = position.Department;
+            Department = position.BasePosition.Department;
             Workload = position.Workload;
             Obs = position.Obs;
             Project = position.Project != null ? new ApiProjectReference(position.Project) : null;

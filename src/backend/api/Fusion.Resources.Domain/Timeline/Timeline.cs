@@ -46,7 +46,7 @@ namespace Fusion.Resources.Domain.Timeline
 
                 foreach (var overlap in overlappingSegments)
                 {
-                    if (overlap.Combine(newSegment, out Segment<T> split) && split is not null)
+                    if (overlap.Combine(newSegment, out Segment<T>? split) && split is not null)
                         splits.Add(split);
                 }
 

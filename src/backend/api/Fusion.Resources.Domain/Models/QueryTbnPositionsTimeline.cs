@@ -5,8 +5,14 @@ namespace Fusion.Resources.Domain
 {
     public class QueryTbnPositionsTimeline
     {
-        public List<QueryTimelineRange<QueryTBNPositionTimelineItem>>? Timeline { get; set; }
-        public List<TbnPosition>? Positions { get; set; }
+        public QueryTbnPositionsTimeline(List<QueryTimelineRange<QueryTbnPositionTimelineItem>> timeline, List<QueryTbnPosition> relevantPositions)
+        {
+            Timeline = timeline;
+            Positions = relevantPositions;
+        }
+
+        public List<QueryTimelineRange<QueryTbnPositionTimelineItem>> Timeline { get; set; }
+        public List<QueryTbnPosition> Positions { get; set; }
 
     }
 }

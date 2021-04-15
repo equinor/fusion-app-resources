@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
 using System;
@@ -55,7 +54,7 @@ namespace Fusion.Resources.Domain
                 if (filterEnd.Kind != DateTimeKind.Utc)
                     filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
 
-                var tbnPositions = await mediator.Send(new GetTBNPositions(request.DepartmentString));
+                var tbnPositions = await mediator.Send(new GetTbnPositions(request.DepartmentString));
                 var relevantPositions = tbnPositions
                     .Where(pos => 
                        (pos.AppliesTo >= filterStart && pos.AppliesTo < filterEnd)
@@ -66,11 +65,7 @@ namespace Fusion.Resources.Domain
                     .GenerateTbnPositionsTimeline(relevantPositions, filterStart, filterEnd)
                     .ToList();
 
-                return new QueryTbnPositionsTimeline
-                {
-                    Timeline = timeline,
-                    Positions = relevantPositions
-                };
+                return new QueryTbnPositionsTimeline(timeline, relevantPositions);
             }
         }
     }

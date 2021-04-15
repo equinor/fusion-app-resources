@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
+    /// <summary>
+    /// This needs to be refactored into an injectable service, that cache the whole responsibility matrix. 
+    /// The number of items here should not be that great...
+    /// </summary>
     public class RequestRouter
     {
         private const int min_score = 7;
@@ -19,7 +23,7 @@ namespace Fusion.Resources.Domain
             this.db = db;
         }
 
-        public async Task<string?> Route(DbResourceAllocationRequest request, CancellationToken cancellationToken)
+        public async Task<string?> RouteAsync(DbResourceAllocationRequest request, CancellationToken cancellationToken)
         {
             var props = new MatchingProperties(request.Project.OrgProjectId)
             {
@@ -32,19 +36,19 @@ namespace Fusion.Resources.Domain
             return bestMatch?.Row.Unit;
         }
 
-        public async Task<string?> Route(ApiPositionV2 tbnPosition, ApiPositionInstanceV2 instance, CancellationToken cancellationToken)
-        {
-            var props = new MatchingProperties(tbnPosition.ProjectId)
-            {
-                BasePositionDepartment = tbnPosition.BasePosition.Department,
-                Discipline = tbnPosition.BasePosition.Discipline,
-                LocationId = instance.Location?.Id,
-            };
-            var matches = Match(props);
-            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
+        //public async Task<string?> Route(ApiPositionV2 tbnPosition, ApiPositionInstanceV2 instance, CancellationToken cancellationToken)
+        //{
+        //    var props = new MatchingProperties(tbnPosition.ProjectId)
+        //    {
+        //        BasePositionDepartment = tbnPosition.BasePosition.Department,
+        //        Discipline = tbnPosition.BasePosition.Discipline,
+        //        LocationId = instance.Location?.Id,
+        //    };
+        //    var matches = Match(props);
+        //    var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
 
-            return bestMatch.Row?.Unit;
-        }
+        //    return bestMatch.Row?.Unit;
+        //}
 
         private IQueryable<ResponsibilityMatch> Match(MatchingProperties props)
         {
@@ -54,9 +58,7 @@ namespace Fusion.Resources.Domain
                 .Select(m => new ResponsibilityMatch
                 {
                     Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 7 : 0)
-#pragma warning disable CS8602 // Dereference of a possibly null reference. This is translated to sql.
-                            + (props.BasePositionDepartment != null && m.Unit.StartsWith(props.BasePositionDepartment) ? 5 : 0)
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                            + (props.BasePositionDepartment != null && m.Unit!.StartsWith(props.BasePositionDepartment) ? 5 : 0)
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
                     Row = m

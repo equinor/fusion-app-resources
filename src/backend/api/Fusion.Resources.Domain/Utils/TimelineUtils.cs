@@ -26,6 +26,7 @@ namespace Fusion.Resources.Domain
             //FixOverlappingPeriods(timeline);
             return timeline;
         }
+
         private static IEnumerable<QueryTimelineRange<QueryPersonnelTimelineItem>> GeneratePersonnelTimelineInternal(
             List<QueryPersonnelPosition> positions,
             List<QueryPersonAbsenceBasic> absences,
@@ -33,34 +34,9 @@ namespace Fusion.Resources.Domain
             DateTime filterEnd)
         {
             var timeline = new Timeline<QueryPersonnelTimelineItem>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
-            
-            foreach (var p in positions)
-            {
-                timeline.Add(new QueryPersonnelTimelineItem
-                {
-                    Type = "PositionInstance",
-                    Workload = p.Workload,
-                    Id = p.PositionId,
-                    Description = $"{p.Name}",
-                    BasePosition = p.BasePosition,
-                    Project = p.Project,
-                    AppliesFrom = p.AppliesFrom,
-                    AppliesTo = p.AppliesTo
-                });
-            }
 
-            foreach(var a in absences)
-            {
-                timeline.Add(new QueryPersonnelTimelineItem
-                {
-                    Id = a.Id,
-                    Type = "Absence",
-                    Workload = a.AbsencePercentage,
-                    Description = $"{a.Type}",
-                    AppliesFrom = a.AppliesFrom.Date,
-                    AppliesTo = a.AppliesTo.GetValueOrDefault(DateTime.MaxValue).Date
-                });
-            }
+            positions.ForEach(p => timeline.Add(new QueryPersonnelTimelineItem("PositionInstance", p)));
+            absences.ForEach(a => timeline.Add(new QueryPersonnelTimelineItem("Absence", a)));
 
             var view = timeline.GetView(filterStart, filterEnd);
             return view.Segments.Select(x => new QueryTimelineRange<QueryPersonnelTimelineItem>(x.FromDate, x.ToDate)
@@ -86,15 +62,7 @@ namespace Fusion.Resources.Domain
             var timeline = new Timeline<QueryRequestsTimelineItem>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
             foreach (var req in applicableRequests)
             {
-                timeline.Add(new QueryRequestsTimelineItem
-                {
-                    Workload = req.OrgPositionInstance?.Workload,
-                    Id = req.RequestId.ToString(),
-                    PositionName = req.OrgPosition?.Name,
-                    ProjectName = req.Project.Name,
-                    AppliesFrom = req.OrgPositionInstance!.AppliesFrom,
-                    AppliesTo = req.OrgPositionInstance!.AppliesTo
-                });
+                timeline.Add(new QueryRequestsTimelineItem(req));
             }
 
             var view = timeline.GetView(filterStart, filterEnd);
@@ -105,34 +73,28 @@ namespace Fusion.Resources.Domain
             });
         }
 
-        public static IEnumerable<QueryTimelineRange<QueryTBNPositionTimelineItem>> GenerateTbnPositionsTimeline(
-           IEnumerable<TbnPosition> tbnPositions,
+        public static IEnumerable<QueryTimelineRange<QueryTbnPositionTimelineItem>> GenerateTbnPositionsTimeline(
+           IEnumerable<QueryTbnPosition> tbnPositions,
            DateTime filterStart,
            DateTime filterEnd)
         {
-            var segments = new List<QueryTimelineRange<QueryTBNPositionTimelineItem>>();
+            var segments = new List<QueryTimelineRange<QueryTbnPositionTimelineItem>>();
             var filterPeriod = new TimeRange(filterStart, filterEnd);
 
             var filteredPositions = tbnPositions
                 .Where(r => new TimeRange(r.AppliesFrom, r.AppliesTo).OverlapsWith(filterPeriod))
                 .ToList();
 
-            var timeline = new Timeline<TbnPosition>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
+            var timeline = new Timeline<QueryTbnPosition>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
             foreach(var position in filteredPositions)
             {
                 timeline.Add(position);
             }
 
             var view = timeline.GetView(filterStart, filterEnd);
-            return view.Segments.Select(x => new QueryTimelineRange<QueryTBNPositionTimelineItem>(x.FromDate, x.ToDate)
+            return view.Segments.Select(x => new QueryTimelineRange<QueryTbnPositionTimelineItem>(x.FromDate, x.ToDate)
             {
-                Items = x.Items.Select(r => new QueryTBNPositionTimelineItem
-                {
-                    Workload = r.Workload,
-                    Id = r.InstanceId.ToString(),
-                    PositionName = r.Name,
-                    ProjectId = r.ProjectId
-                }).ToList(),
+                Items = x.Items.Select(r => new QueryTbnPositionTimelineItem(r)).ToList(),
                 Workload = x.Items.Sum(item => item.Workload ?? 0)
             });
         }
@@ -147,19 +109,6 @@ namespace Fusion.Resources.Domain
             });
 
             return affectedItems;
-        }
-
-        private static void FixOverlappingPeriods<T>(List<QueryTimelineRange<T>> timeline)
-        {
-            // Tweek ranges where end date == next start date
-            for (int i = 0; i < timeline.Count - 1; i++)
-            {
-                var now = timeline[i];
-                var next = timeline[i + 1];
-
-                if (now.AppliesTo == next.AppliesFrom)
-                    now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
-            }
         }
     }
 }

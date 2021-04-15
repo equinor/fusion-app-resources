@@ -16,16 +16,16 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Queries
 {
-    public class GetTBNPositions : IRequest<IEnumerable<TbnPosition>>
+    public class GetTbnPositions : IRequest<IEnumerable<QueryTbnPosition>>
     {
-        public GetTBNPositions(string department)
+        public GetTbnPositions(string department)
         {
             Department = department;
         }
 
         public string Department { get; }
 
-        public class Handler : IRequestHandler<GetTBNPositions, IEnumerable<TbnPosition>>
+        public class Handler : IRequestHandler<GetTbnPositions, IEnumerable<QueryTbnPosition>>
         {
             private readonly IHttpClientFactory httpClientFactory;
             private readonly IProjectOrgResolver projectOrgResolver;
@@ -44,7 +44,7 @@ namespace Fusion.Resources.Domain.Queries
                 this.options.Converters.Add(new JsonStringEnumConverter());
             }
 
-            public async Task<IEnumerable<TbnPosition>> Handle(GetTBNPositions request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryTbnPosition>> Handle(GetTbnPositions request, CancellationToken cancellationToken)
             {
                 const string tbn_endpoint = "/admin/positions/tbn";
                 const string org_client_name = "Org.Integration.Application";
@@ -62,8 +62,8 @@ namespace Fusion.Resources.Domain.Queries
 
                 var result = await client.GetAsync(tbn_endpoint, cancellationToken);
                 if(!result.IsSuccessStatusCode)
-                {
-                    throw new IntegrationError("Failed to retrieve tbn positions from org service.", null!);
+                {                    
+                    throw new IntegrationError("Failed to retrieve tbn positions from org service.", new OrgApiError(result,  await result.Content.ReadAsStringAsync()));
                 }
 
                 var positions = await JsonSerializer.DeserializeAsync<ApiPositionV2[]>(
@@ -73,7 +73,7 @@ namespace Fusion.Resources.Domain.Queries
                 );
 
                 var requestRouter = new RequestRouter(db);
-                var tbnPositions = new List<TbnPosition>();
+                var tbnPositions = new List<QueryTbnPosition>();
 
                 foreach (var pos in positions!)
                 {
@@ -86,28 +86,13 @@ namespace Fusion.Resources.Domain.Queries
                         var project = await projectOrgResolver.ResolveProjectAsync(pos.ProjectId);
                         if (project is null) continue;
 
-                        var department = await requestRouter.Route(pos, instance, cancellationToken);
 
-                        if (department == request.Department)
+                        // This logic will not scale, if there is ex. 1k tbn positions in the system, this will kill the database, with 1 round trip pr instance, pr api request.
+                        //var department = await requestRouter.Route(pos, instance, cancellationToken);
+
+                        if (IsRelevantBasePositionDepartment(request.Department, pos.BasePosition.Department))
                         {
-                            tbnPositions.Add(new TbnPosition
-                            {
-                                PositionId = pos.Id,
-                                InstanceId = instance.Id,
-                                ParentPositionId = pos.ExternalId,
-                                ProjectId = pos.ProjectId,
-                                Project = new QueryProjectRef(project.ProjectId, project.Name, project.DomainId, project.ProjectType),
-                                BasePosition = pos.BasePosition,
-                                Name = pos.Name,
-
-                                AppliesFrom = instance.AppliesFrom.Date,
-                                AppliesTo = instance.AppliesTo.Date,
-
-                                Workload = instance.Workload,
-                                Obs = instance.Obs,
-
-                                Department = department
-                            });
+                            tbnPositions.Add(new QueryTbnPosition(pos, instance));
                         }
                     }
 
@@ -116,24 +101,20 @@ namespace Fusion.Resources.Domain.Queries
                 return tbnPositions;
             }
 
+            private static bool IsRelevantBasePositionDepartment(string sourceDepartment, string basePositionDepartment)
+            {
+                if (sourceDepartment is null || basePositionDepartment is null)
+                    return false;
+
+                if (sourceDepartment.StartsWith(basePositionDepartment, System.StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                if (basePositionDepartment.StartsWith(sourceDepartment, System.StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                return false;
+            }
+
         }
-    }
-
-    public class TbnPosition
-    {
-        public Guid PositionId { get; set; }
-        public Guid InstanceId { get; set; }
-        public string? ParentPositionId { get; set; }
-
-        public string Name { get; set; } = null!;
-        public Guid ProjectId { get; set; }
-        public ApiPositionBasePositionV2 BasePosition { get; set; } = null!;
-
-        public DateTime AppliesTo { get; set; }
-        public DateTime AppliesFrom { get; set; }
-        public string? Department { get; set; }
-        public double? Workload { get; set; }
-        public string? Obs { get; set; }
-        public QueryProjectRef? Project { get; internal set; }
     }
 }
