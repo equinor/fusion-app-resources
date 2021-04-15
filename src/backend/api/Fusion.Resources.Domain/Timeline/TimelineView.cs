@@ -8,13 +8,18 @@ namespace Fusion.Resources.Domain.Timeline
     {
         public DateTime FromDate { get; }
         public DateTime ToDate { get; }
+        public TimelineView(DateTime fromDate, DateTime toDate)
+        {
+            FromDate = fromDate;
+            ToDate = toDate;
+        }
 
         public List<T> Items { get; } = new List<T>();
         public List<Segment<T>> Segments { get; } = new List<Segment<T>>();
 
         public static TimelineView<T> Create(DateTime fromDate, DateTime toDate, IList<Segment<T>> segments)
         {
-            var view = new TimelineView<T>();
+            var view = new TimelineView<T>(fromDate, toDate);
 
             bool hasTruncatedFirst = false;
             bool hasTruncatedLast = false;
@@ -32,19 +37,19 @@ namespace Fusion.Resources.Domain.Timeline
 
             foreach(var segment in segments)
             {
-                if(segment.FromDate < fromDate)
+                if(segment.FromDate < fromDate && segment.ToDate >= fromDate)
                 {
                     hasTruncatedFirst = true;
                     first.ToDate = Max(first.ToDate, segment.ToDate);
                     first.Items = first.Items.Union(segment.Items).ToList();
                 }
-                else if(segment.ToDate > toDate)
+                else if(segment.ToDate > toDate && segment.FromDate <= toDate)
                 {
                     hasTruncatedLast = true;
                     last.FromDate = Min(last.FromDate, segment.FromDate);
                     last.Items = last.Items.Union(segment.Items).ToList();
                 }
-                else
+                else if(segment.FromDate >= fromDate && segment.ToDate <= toDate)
                 {
                     view.Segments.Add(segment);
                 }
