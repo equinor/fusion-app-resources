@@ -113,12 +113,12 @@ namespace Fusion.Resources.Domain
             var segments = new List<QueryTimelineRange<QueryTBNPositionTimelineItem>>();
             var filterPeriod = new TimeRange(filterStart, filterEnd);
 
-            var applicatablePositions = tbnPositions
-                .Where(r => new TimeRange(r.AppliesTo, filterEnd).OverlapsWith(filterPeriod))
+            var filteredPositions = tbnPositions
+                .Where(r => new TimeRange(r.AppliesFrom, r.AppliesTo).OverlapsWith(filterPeriod))
                 .ToList();
 
             var timeline = new Timeline<TbnPosition>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
-            foreach(var position in applicatablePositions)
+            foreach(var position in filteredPositions)
             {
                 timeline.Add(position);
             }
