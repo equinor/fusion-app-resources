@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class DepartmentRequestsTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
-
+        const string TimelineDepartment = "TPD TST TIL DPT3";
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
         private FusionTestProjectBuilder testProject;
@@ -63,6 +63,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testRequest = await adminClient.StartProjectRequestAsync(testProject, testRequest.Id);
             testRequest = await adminClient.AssignAnDepartmentAsync(testRequest.Id);
 
+            fixture.EnsureDepartment(TimelineDepartment);
         }
 
         [Fact]
@@ -302,7 +303,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetRequestTimelineShouldSegmentRequests()
         {
-            string department = InternalRequestData.RandomDepartment;
+            string department = TimelineDepartment;
 
             using var adminScope = fixture.AdminScope();
 
@@ -349,7 +350,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetRequestTimelineShouldTruncateSegmentsToFromToDate()
         {
-            string department = InternalRequestData.RandomDepartment;
+            string department = TimelineDepartment;
 
             using var adminScope = fixture.AdminScope();
 
@@ -391,7 +392,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetRequestTimelineShouldDisregardTimeOfDay()
         {
-            string department = InternalRequestData.RandomDepartment;
+            string department = TimelineDepartment;
 
             using var adminScope = fixture.AdminScope();
 
@@ -433,7 +434,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetRequestTimelineShouldNotHaveGaps()
         {
-            string department = InternalRequestData.RandomDepartment;
+            string department = TimelineDepartment;
 
             using var adminScope = fixture.AdminScope();
 
