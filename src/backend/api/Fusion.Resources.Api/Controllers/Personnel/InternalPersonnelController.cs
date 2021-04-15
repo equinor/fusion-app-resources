@@ -24,13 +24,24 @@ namespace Fusion.Resources.Api.Controllers
         public InternalPersonnelController()
         {
         }
-
+        /// <summary>
+        /// Get personnel for a department
+        /// </summary>
+        /// <param name="fullDepartmentString">The department to retrieve personnel list from.</param>
+        /// <param name="timelineStart">Start date of timeline</param>
+        /// <param name="timelineDuration">Optional: duration of timeline i.e. P1M for 1 month</param>
+        /// <param name="timelineEnd">Optional: specific end date of timeline</param>
+        /// <param name="includeSubdepartments">Certain departments in line org exists where a 
+        /// person in the department manages external users. Setting this flag to true will 
+        /// include such personnel in the result.</param>
+        /// <returns></returns>
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString, 
             [FromQuery] ODataQueryParams query, 
             [FromQuery]DateTime? timelineStart = null, 
             [FromQuery]string? timelineDuration = null, 
-            [FromQuery]DateTime? timelineEnd = null)
+            [FromQuery]DateTime? timelineEnd = null,
+            [FromQuery]bool includeSubdepartments = false)
         {
             #region Authorization
 
@@ -83,9 +94,11 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
+            var command = new GetDepartmentPersonnel(fullDepartmentString, query)
+                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
+            command.IncludeSubdepartments = includeSubdepartments;
 
-            var department = await DispatchAsync(new GetDepartmentPersonnel(fullDepartmentString, query)
-                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
+            var department = await DispatchAsync(command);
 
 
             var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
