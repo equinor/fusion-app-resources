@@ -11,7 +11,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     {
         public ApiTbnPositionTimeline(QueryTbnPositionsTimeline timeline, DateTime filterStart, DateTime filterEnd)
         {
-            Positions = timeline.Positions
+            Positions = timeline.Positions?
                 .Select(x => new ApiTbnPositionItem(x, filterStart, filterEnd))
                 .ToList();
             Timeline = timeline.Timeline;
@@ -44,7 +44,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
         public Guid PositionId { get; set; }
         public Guid InstanceId { get; set; }
-        public string ParentPositionId { get; set; }
+        public string? ParentPositionId { get; set; }
 
         public string Name { get; set; }
         public Guid ProjectId { get; set; }
@@ -58,7 +58,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
         public string? Department { get; set; }
         public double? Workload { get; set; }
-        public string Obs { get; set; }
+        public string? Obs { get; set; }
         public ApiProjectReference? Project { get; internal set; }
     }
 }

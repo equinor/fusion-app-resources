@@ -61,6 +61,10 @@ namespace Fusion.Resources.Domain.Queries
                 var client = httpClientFactory.CreateClient(org_client_name); ;
 
                 var result = await client.GetAsync(tbn_endpoint, cancellationToken);
+                if(!result.IsSuccessStatusCode)
+                {
+                    throw new IntegrationError("Failed to retrieve tbn positions from org service.", null!);
+                }
 
                 var positions = await JsonSerializer.DeserializeAsync<ApiPositionV2[]>(
                     await result.Content.ReadAsStreamAsync(cancellationToken),
@@ -71,7 +75,7 @@ namespace Fusion.Resources.Domain.Queries
                 var requestRouter = new RequestRouter(db);
                 var tbnPositions = new List<TbnPosition>();
 
-                foreach (var pos in positions)
+                foreach (var pos in positions!)
                 {
                     if (!departmentProjects.Contains(pos.ProjectId)) continue;
 
@@ -79,10 +83,13 @@ namespace Fusion.Resources.Domain.Queries
                     {
                         if (instance.AssignedPerson is not null) continue;
 
+                        var project = await projectOrgResolver.ResolveProjectAsync(pos.ProjectId);
+                        if (project is null) continue;
+
                         var department = await requestRouter.Route(pos, instance, cancellationToken);
-                        if(department == request.Department)
+
+                        if (department == request.Department)
                         {
-                            var project = await projectOrgResolver.ResolveProjectAsync(pos.ProjectId);
                             tbnPositions.Add(new TbnPosition
                             {
                                 PositionId = pos.Id,
@@ -116,17 +123,17 @@ namespace Fusion.Resources.Domain.Queries
     {
         public Guid PositionId { get; set; }
         public Guid InstanceId { get; set; }
-        public string ParentPositionId { get; set; }
+        public string? ParentPositionId { get; set; }
 
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public Guid ProjectId { get; set; }
-        public ApiPositionBasePositionV2 BasePosition { get; set; }
+        public ApiPositionBasePositionV2 BasePosition { get; set; } = null!;
 
         public DateTime AppliesTo { get; set; }
         public DateTime AppliesFrom { get; set; }
         public string? Department { get; set; }
         public double? Workload { get; set; }
-        public string Obs { get; set; }
+        public string? Obs { get; set; }
         public QueryProjectRef? Project { get; internal set; }
     }
 }
