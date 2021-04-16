@@ -23,7 +23,7 @@ namespace Fusion.Resources.Domain
             QueryParams = queryParams;
         }
 
-
+        private bool includeSubdepartments  = false;
         public bool ExpandTimeline { get; set; }
         public string Department { get; set; }
         public ODataQueryParams? QueryParams { get; }
@@ -41,6 +41,11 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
+        public GetDepartmentPersonnel IncludeSubdepartments(bool includeSubdepartments)
+        {
+            this.includeSubdepartments = includeSubdepartments;
+            return this;
+        }
 
         public class Validator : AbstractValidator<GetDepartmentPersonnel>
         {
@@ -66,7 +71,7 @@ namespace Fusion.Resources.Domain
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
             {
-                var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department);
+                var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments);
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
 
 
@@ -87,11 +92,11 @@ namespace Fusion.Resources.Domain
             }
 
 
-            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString)
+            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments)
             {
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
-                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
+                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments, fullDepartmentString);
                 return departmentPersonnel;
             }
 
