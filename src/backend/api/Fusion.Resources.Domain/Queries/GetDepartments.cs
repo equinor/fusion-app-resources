@@ -103,6 +103,12 @@ namespace Fusion.Resources.Domain
                 {
                     var searchedDepartments = departments.Keys!.ToHashSet();
 
+                    //TODO: maybe solve this in a smarter way
+                    if(request.resourceOwnerSearch is null && request.departmentId is not null)
+                    {
+                        request.resourceOwnerSearch = request.departmentId;
+                    }
+
                     var resourceOwners = await lineOrgResolver
                         .GetResourceOwners(request.resourceOwnerSearch, cancellationToken);
 
