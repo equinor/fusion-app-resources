@@ -1,15 +1,11 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
-using Fusion.Integration.Http;
 using Fusion.Resources.Domain;
-using Itenso.TimePeriod;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -36,12 +32,12 @@ namespace Fusion.Resources.Api.Controllers
         /// include such personnel in the result.</param>
         /// <returns></returns>
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString, 
-            [FromQuery] ODataQueryParams query, 
-            [FromQuery]DateTime? timelineStart = null, 
-            [FromQuery]string? timelineDuration = null, 
-            [FromQuery]DateTime? timelineEnd = null,
-            [FromQuery]bool includeSubdepartments = false)
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
+            [FromQuery] ODataQueryParams query,
+            [FromQuery] DateTime? timelineStart = null,
+            [FromQuery] string? timelineDuration = null,
+            [FromQuery] DateTime? timelineEnd = null,
+            [FromQuery] bool includeSubdepartments = false)
         {
             #region Authorization
 
@@ -96,7 +92,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
-            command.IncludeSubdepartments = includeSubdepartments;
+            command.IncludeSubdepartments(includeSubdepartments);
 
             var department = await DispatchAsync(command);
 
