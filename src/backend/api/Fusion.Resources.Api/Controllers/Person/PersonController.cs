@@ -82,6 +82,13 @@ namespace Fusion.Resources.Api.Controllers
 
             ChildDepartments = resourceOwnerProfile.ChildDepartments;
             SiblingDepartments = resourceOwnerProfile.SiblingDepartments;
+
+            // Compile the relevant department list
+            RelevantDepartments = ResponsibilityInDepartments
+                .Union(resourceOwnerProfile.ChildDepartments ?? new ())
+                .Union(resourceOwnerProfile.SiblingDepartments ?? new ())
+                .Distinct()
+                .ToList();
         }
 
         public string FullDepartment { get; set; }
