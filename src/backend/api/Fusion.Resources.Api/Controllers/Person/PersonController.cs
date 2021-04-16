@@ -63,121 +63,25 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
+            var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
 
-            var user = await profileResolver.ResolvePersonBasicProfileAsync(personId);
-
-            if (user is null)
-                return ApiErrors.NotFound($"Could not locate any usser with id '{personId}'");
-
-            if (user.AzureUniqueId is null)
-                return FusionApiError.InvalidOperation("InvalidUser", "The user does not have an azure unique id and cannot be used.");
-
-
-            var client = httpClientFactory.CreateClient("lineorg");
-
-            var resp = await client.GetAsync($"lineorg/persons/{user.AzureUniqueId}");
-
-            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
-                return ApiErrors.InvalidInput("Invalid account, user does not exist in the line.");
-
-            if (!resp.IsSuccessStatusCode)
-                return ApiErrors.FailedDependency("Lineorg", $"Could not resolve line info: {resp.StatusCode}");
-
-            var content = await resp.Content.ReadAsStringAsync();
-            var lineOrgProfile = JsonConvert.DeserializeAnonymousType(content, new
-            {
-                isResourceOwner = false,
-                fullDepartment = string.Empty,
-                manager = new
-                {
-                    fullDepartment = string.Empty
-                }
-            });
-
-            var sector = await ResolveSector(lineOrgProfile.fullDepartment);
-
-            // Resolve departments with responsibility
-            var isDepartmentManager = lineOrgProfile.isResourceOwner && lineOrgProfile.fullDepartment != lineOrgProfile.manager?.fullDepartment;
-
-            var departmentsWithResponsibility = new List<string>();
-
-            // Add the current department if the user is resource owner in the department.
-            if (isDepartmentManager)
-                departmentsWithResponsibility.Add(lineOrgProfile.fullDepartment);
-
-            // Add all departments the user has been delegated responsibility for.
-            var delegatedResponsibilities = await DispatchAsync(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
-            isDepartmentManager |= delegatedResponsibilities.Any(r => r.DepartmentId == lineOrgProfile.fullDepartment);
-            departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
-
-            // Get sectors the user have responsibility in, to find all relevant departments
-            var relevantSectors = new HashSet<string>();
-            foreach (var department in departmentsWithResponsibility)
-            {
-                var resolvedSector = await ResolveSector(department);
-                if (resolvedSector != null && !relevantSectors.Contains(resolvedSector))
-                {
-                    relevantSectors.Add(resolvedSector);
-                }
-            }
-
-            // If the sector does not exist, the person might be higher up. 
-            if (sector is null && isDepartmentManager)
-            {
-                var downstreamSectors = await ResolveDownstreamSectors(lineOrgProfile.fullDepartment);
-                foreach (var department in downstreamSectors)
-                {
-                    var resolvedSector = await ResolveSector(department);
-                    if (resolvedSector != null && !relevantSectors.Contains(resolvedSector))
-                    {
-                        relevantSectors.Add(resolvedSector);
-                    }
-                }
-            }
-
-            var relevantDepartments = new List<string>();
-            foreach (var relevantSector in relevantSectors)
-            {
-                relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
-            }
-
-            var respObject = new ApiResourceOwnerProfile(lineOrgProfile.fullDepartment)
-            {
-                IsResourceOwner = isDepartmentManager,
-                Sector = sector,
-                ResponsibilityInDepartments = departmentsWithResponsibility,
-                RelevantDepartments = relevantDepartments,
-                RelevantSectors = relevantSectors.ToList()
-            };
-
+            var respObject = new ApiResourceOwnerProfile(resourceOwnerProfile);
             return respObject;
-        }
-
-        private async Task<string?> ResolveSector(string department)
-        {
-            var request = new GetDepartmentSector(department);
-            return await DispatchAsync(request);
-        }
-        private async Task<IEnumerable<string>> ResolveSectorDepartments(string sector)
-        {
-            var departments = await DispatchAsync(new GetDepartments().InSector(sector));
-            return departments
-                .Select(dpt => dpt.DepartmentId);
-        }
-
-        private async Task<IEnumerable<string>> ResolveDownstreamSectors(string department)
-        {
-            var departments = await DispatchAsync(new GetDepartments().StartsWith(department));
-            return departments
-                .Select(dpt => dpt.SectorId!).Distinct();
         }
     }
 
     public class ApiResourceOwnerProfile
     {
-        public ApiResourceOwnerProfile(string fullDepartmentString)
+        public ApiResourceOwnerProfile(QueryResourceOwnerProfile resourceOwnerProfile)
         {
-            FullDepartment = fullDepartmentString;
+            FullDepartment = resourceOwnerProfile.FullDepartment!;
+            Sector = resourceOwnerProfile.Sector;
+            IsResourceOwner = resourceOwnerProfile.IsDepartmentManager;
+            ResponsibilityInDepartments = resourceOwnerProfile.DepartmentsWithResponsibility;
+            RelevantSectors = resourceOwnerProfile.RelevantSectors;
+
+            ChildDepartments = resourceOwnerProfile.ChildDepartments;
+            SiblingDepartments = resourceOwnerProfile.SiblingDepartments;
         }
 
         public string FullDepartment { get; set; }
@@ -190,6 +94,9 @@ namespace Fusion.Resources.Api.Controllers
 
         public List<string> RelevantDepartments { get; set; } = new();
         public List<string> RelevantSectors { get; set; } = new();
+
+        public List<string>? ChildDepartments { get; set; } 
+        public List<string>? SiblingDepartments { get; set; }
     }
 
 
