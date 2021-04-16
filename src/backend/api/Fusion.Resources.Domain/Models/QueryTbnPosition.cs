@@ -11,7 +11,9 @@ namespace Fusion.Resources.Domain.Queries
             InstanceId = instance.Id;
             ParentPositionId = pos.ExternalId;
             ProjectId = pos.ProjectId;
+
             Project = new QueryProjectRef(pos.Project.ProjectId, pos.Project.Name, pos.Project.DomainId, pos.Project.ProjectType);
+
             BasePosition = pos.BasePosition;
             Name = pos.Name;
 
@@ -34,6 +36,6 @@ namespace Fusion.Resources.Domain.Queries
         public DateTime AppliesFrom { get; set; }
         public double? Workload { get; set; }
         public string? Obs { get; set; }
-        public QueryProjectRef? Project { get; internal set; }
+        public QueryProjectRef Project { get; internal set; }
     }
 }
