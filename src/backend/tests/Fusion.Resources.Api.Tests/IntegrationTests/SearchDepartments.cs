@@ -105,8 +105,8 @@ namespace Fusion.Resources.Api.Tests
     public class TestDepartment
     {
         public string Name { get; set; }
-        public string? Sector { get; set; }
+        public string Sector { get; set; }
         public TestApiPerson LineOrgResponsible { get; set; }
-        public List<TestApiPerson>? DelegatedResponsibles { get; set; }
+        public List<TestApiPerson> DelegatedResponsibles { get; set; }
     }
 }
