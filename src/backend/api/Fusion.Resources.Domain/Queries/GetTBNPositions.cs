@@ -4,6 +4,7 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,68 +28,34 @@ namespace Fusion.Resources.Domain.Queries
 
         public class Handler : IRequestHandler<GetTbnPositions, IEnumerable<QueryTbnPosition>>
         {
-            private readonly IHttpClientFactory httpClientFactory;
-            private readonly IProjectOrgResolver projectOrgResolver;
-            private readonly ResourcesDbContext db;
-            private readonly JsonSerializerOptions options;
+            private static readonly JsonSerializerOptions options;
 
-            public Handler(IHttpClientFactory httpClientFactory, IProjectOrgResolver projectOrgResolver, ResourcesDbContext db)
+            private readonly IMemoryCache memoryCache;
+            private readonly IOrgApiClientFactory orgApiClientFactory;
+
+            static Handler()
             {
-                this.httpClientFactory = httpClientFactory;
-                this.projectOrgResolver = projectOrgResolver;
-                this.db = db;
-                this.options = new JsonSerializerOptions()
-                {
-                    PropertyNameCaseInsensitive = true,
-                };
-                this.options.Converters.Add(new JsonStringEnumConverter());
+                options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+                options.Converters.Add(new JsonStringEnumConverter());
+            }
+
+            public Handler(IMemoryCache memoryCache, IOrgApiClientFactory orgApiClientFactory)
+            {
+                this.memoryCache = memoryCache;
+                this.orgApiClientFactory = orgApiClientFactory;
             }
 
             public async Task<IEnumerable<QueryTbnPosition>> Handle(GetTbnPositions request, CancellationToken cancellationToken)
             {
-                const string tbn_endpoint = "/admin/positions/tbn";
-                const string org_client_name = "Org.Integration.Application";
+                var positions = await GetTbnPositionsAsync(cancellationToken);
 
-                var matrix = await db.ResponsibilityMatrices
-                    .Include(row => row.Project)
-                    .Where(row => row.Unit == request.Department && row.Project != null)
-                    .ToListAsync();
-
-                var departmentProjects = new HashSet<Guid>(
-                    matrix.Select(row => row.Project!.OrgProjectId).Distinct()
-                );
-
-                var client = httpClientFactory.CreateClient(org_client_name); ;
-
-                var result = await client.GetAsync(tbn_endpoint, cancellationToken);
-                if(!result.IsSuccessStatusCode)
-                {                    
-                    throw new IntegrationError("Failed to retrieve tbn positions from org service.", new OrgApiError(result,  await result.Content.ReadAsStringAsync()));
-                }
-
-                var positions = await JsonSerializer.DeserializeAsync<ApiPositionV2[]>(
-                    await result.Content.ReadAsStreamAsync(cancellationToken),
-                    options,
-                    cancellationToken: cancellationToken
-                );
-
-                var requestRouter = new RequestRouter(db);
                 var tbnPositions = new List<QueryTbnPosition>();
 
-                foreach (var pos in positions!)
+                foreach (var pos in positions)
                 {
-                    if (!departmentProjects.Contains(pos.ProjectId)) continue;
-
                     foreach (var instance in pos.Instances)
                     {
                         if (instance.AssignedPerson is not null) continue;
-
-                        var project = await projectOrgResolver.ResolveProjectAsync(pos.ProjectId);
-                        if (project is null) continue;
-
-
-                        // This logic will not scale, if there is ex. 1k tbn positions in the system, this will kill the database, with 1 round trip pr instance, pr api request.
-                        //var department = await requestRouter.Route(pos, instance, cancellationToken);
 
                         if (IsRelevantBasePositionDepartment(request.Department, pos.BasePosition.Department))
                         {
@@ -115,6 +82,23 @@ namespace Fusion.Resources.Domain.Queries
                 return false;
             }
 
+            private async Task<List<ApiPositionV2>> GetTbnPositionsAsync(CancellationToken cancellationToken)
+            {
+                const string cacheKey = "tbn-positions";
+
+                if (memoryCache.TryGetValue(cacheKey, out List<ApiPositionV2> positions))
+                    return positions;
+
+
+                var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                var resp = await client.GetAsync<List<ApiPositionV2>>("/admin/positions/tbn");
+
+                if (!resp.IsSuccessStatusCode)
+                    throw new IntegrationError("Failed to retrieve tbn positions from org service.", new OrgApiError(resp.Response, resp.Content));
+
+                memoryCache.Set(cacheKey, resp.Value, TimeSpan.FromMinutes(10));
+                return resp.Value;
+            }
         }
     }
 }
