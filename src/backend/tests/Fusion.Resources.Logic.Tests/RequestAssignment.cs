@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Fusion.Resources.Logic.Tests
 {
-    public class RequestAssignment
+    public class RequestAssignment : IAsyncLifetime
     {
         private ResourcesDbContext db;
         private DbPerson proposed;
@@ -20,13 +20,13 @@ namespace Fusion.Resources.Logic.Tests
         private DbResourceAllocationRequest request;
         private Queries.ResolveResponsibleDepartment.Handler handler;
 
-        public RequestAssignment()
+        public async Task InitializeAsync()
         {
             this.db = new ResourcesDbContext(
-                new DbContextOptionsBuilder<ResourcesDbContext>()
-                .UseInMemoryDatabase("unit-test-db")
-                .Options
-            );
+               new DbContextOptionsBuilder<ResourcesDbContext>()
+               .UseInMemoryDatabase($"unit-test-db-{Guid.NewGuid()}")
+               .Options
+           );
 
             proposed = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Robert C. Martin" };
             initiator = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Wobert D. Martin" };
@@ -54,10 +54,12 @@ namespace Fusion.Resources.Logic.Tests
             };
 
             db.Add(request);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             handler = new Queries.ResolveResponsibleDepartment.Handler(db);
         }
+
+
 
         [Fact]
         public async Task Should_Match_On_Project_Discipline_And_Location()
@@ -75,7 +77,7 @@ namespace Fusion.Resources.Logic.Tests
             };
 
             db.Add(matrix);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
@@ -101,12 +103,12 @@ namespace Fusion.Resources.Logic.Tests
             };
 
             db.Add(matrix);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
-                new System.Threading.CancellationToken()
-                );
+                 System.Threading.CancellationToken.None
+             );
 
             resolvedDepartment.Should().Be(matrix.Unit);
         }
@@ -137,11 +139,11 @@ namespace Fusion.Resources.Logic.Tests
 
             db.Add(exact);
             db.Add(approximate);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
-                new System.Threading.CancellationToken()
+                System.Threading.CancellationToken.None
             );
 
             resolvedDepartment.Should().Be(exact.Unit);
@@ -173,14 +175,21 @@ namespace Fusion.Resources.Logic.Tests
 
             db.Add(exact);
             db.Add(approximate);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
-                new System.Threading.CancellationToken()
+                System.Threading.CancellationToken.None
             );
             
             resolvedDepartment.Should().Be(exact.Unit);
+        }
+
+        
+
+        public async  Task DisposeAsync()
+        {
+            await this.db.DisposeAsync();
         }
     }
 }

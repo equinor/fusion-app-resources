@@ -9,8 +9,8 @@ namespace Fusion.Resources.Api.Controllers
     public class CreatePersonAbsenceRequest
     {
         public string? Comment { get; set; }
-        public DateTimeOffset AppliesFrom { get; set; }
-        public DateTimeOffset? AppliesTo { get; set; }
+        public DateTime AppliesFrom { get; set; }
+        public DateTime? AppliesTo { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiPersonAbsence.ApiAbsenceType Type { get; set; }
 
@@ -19,6 +19,9 @@ namespace Fusion.Resources.Api.Controllers
 
         public void LoadCommand(CreatePersonAbsence command)
         {
+            DateTime.SpecifyKind(AppliesFrom, DateTimeKind.Utc);
+            if(AppliesTo.HasValue) DateTime.SpecifyKind(AppliesTo.Value, DateTimeKind.Utc);
+
             command.Comment = Comment;
             command.AppliesFrom = AppliesFrom;
             command.AppliesTo = AppliesTo;
