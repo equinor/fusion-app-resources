@@ -82,7 +82,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId), cancellationToken);
 
-                var returnItem = new QueryPersonnelRequest(dbRequest, position, workflow);
+                var returnItem = new QueryPersonnelRequest(dbRequest, position, workflow!);
 
                 if (request.Expands.HasFlag(ExpandProperties.RequestComments))
                 {

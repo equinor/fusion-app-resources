@@ -96,7 +96,7 @@ namespace Fusion.Resources.Domain
                     .ToListAsync();
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
-                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, departments);
+                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments: false, departments);
 
                 return sectorPersonnel;
             }
