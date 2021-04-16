@@ -13,6 +13,7 @@ using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Logic.Commands;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 using System.Reflection;
+using Fusion.Resources.Application.LineOrg;
 
 namespace Fusion.Resources.Api
 {
@@ -72,7 +73,6 @@ namespace Fusion.Resources.Api
             services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
 
 
-
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 
             services.AddControllers()
@@ -94,7 +94,6 @@ namespace Fusion.Resources.Api
 
             services.AddResourcesAuthorizationHandlers();
             services.AddMediatR(typeof(Startup));   // Add notification handlers in api project
-
             #endregion
 
             services.AddHealthChecks()
@@ -105,6 +104,10 @@ namespace Fusion.Resources.Api
 
             services.AddCommonLibHttpClient();
             services.AddLineOrgHttpClient();
+
+            services.UseLineOrgIntegration();
+
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

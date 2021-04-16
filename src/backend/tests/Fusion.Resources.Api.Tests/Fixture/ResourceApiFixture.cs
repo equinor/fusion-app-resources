@@ -51,6 +51,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
         }
 
         public ContextResolverMock ContextResolver => ApiFactory.contextResolverMock;
+        public MockHttpClientBuilder LineOrg => ApiFactory.lineOrgMock;
 
         public void Dispose()
         {
@@ -68,7 +69,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             return account;
         }
 
-        internal void EnsureDepartment(string departmentId, string sectorId = null)
+        internal void EnsureDepartment(string departmentId, string sectorId = null, ApiPersonProfileV3 defactoResponsible = null)
         {
             using var scope = ApiFactory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
@@ -82,6 +83,17 @@ namespace Fusion.Resources.Api.Tests.Fixture
             if (entry.State == Microsoft.EntityFrameworkCore.EntityState.Detached)
             {
                 entry.State = Microsoft.EntityFrameworkCore.EntityState.Added;
+            }
+
+            if(defactoResponsible is not null)
+            {
+                db.DepartmentResponsibles.Add(new Database.Entities.DbDepartmentResponsible
+                {
+                    DateFrom = DateTime.Today.AddDays(-1),
+                    DateTo = DateTime.Today.AddDays(1),
+                    DepartmentId = departmentId,
+                    ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.Value,
+                });
             }
 
             try { db.SaveChanges(); } catch (DBConcurrencyException) { }

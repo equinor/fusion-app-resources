@@ -22,6 +22,18 @@ namespace Fusion.Testing.Mocks.OrgService
             return position;
         }
 
+        public static ApiPositionV2 WithBasePosition(this ApiPositionV2 position, ApiBasePositionV2 basePosition)
+        {
+            position.BasePosition = basePosition;
+
+            bool hasBpName = position.Name == position.BasePosition.Name;
+
+            if (hasBpName)
+                position.Name = basePosition.Name;
+
+            return position;
+        }
+
         public static ApiPositionV2 WithRandomBasePosition(this ApiPositionV2 position, string except = null)
         {
             var faker = new Bogus.Faker();

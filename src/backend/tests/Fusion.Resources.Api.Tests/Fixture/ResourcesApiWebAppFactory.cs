@@ -24,6 +24,7 @@ using Fusion.Resources.Domain.Services;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Fusion.Resources.Application.LineOrg;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -33,6 +34,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
         public readonly OrgServiceMock orgServiceMock;
         public readonly ContextResolverMock contextResolverMock;
         internal readonly RolesClientMock roleClientMock;
+        public readonly MockHttpClientBuilder lineOrgMock;
 
         public readonly Mock<IQueueSender> queueMock;
 
@@ -53,6 +55,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             orgServiceMock = new OrgServiceMock();
             contextResolverMock = new ContextResolverMock();
             roleClientMock = new RolesClientMock();
+            lineOrgMock = new MockHttpClientBuilder();
             queueMock = new Mock<IQueueSender>();
             queueMock.Setup(c => c.SendMessageAsync(It.IsAny<QueuePath>(), It.IsAny<object>())).Returns(Task.CompletedTask);
 
@@ -97,6 +100,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("OrgEventReceiver");
                 services.TryRemoveImplementationService("ContextEventReceiver");
                 services.TryRemoveImplementationService<ICompanyResolver>();
+                services.TryRemoveImplementationService<LineOrgCacheRefresher>();
 
                     //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                     services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
@@ -113,6 +117,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient("lineorg")).Returns(lineOrgMock.Build());
 
                     return clientFactoryMock.Object;
                 });

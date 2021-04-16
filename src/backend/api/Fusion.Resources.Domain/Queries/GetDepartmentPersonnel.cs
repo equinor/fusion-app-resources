@@ -2,19 +2,18 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Integration.Http;
 using Fusion.Resources.Database;
-using Itenso.TimePeriod;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
+
     public class GetDepartmentPersonnel : IRequest<IEnumerable<QueryInternalPersonnelPerson>>
     {
 
@@ -24,7 +23,7 @@ namespace Fusion.Resources.Domain
             QueryParams = queryParams;
         }
 
-
+        private bool includeSubdepartments  = false;
         public bool ExpandTimeline { get; set; }
         public string Department { get; set; }
         public ODataQueryParams? QueryParams { get; }
@@ -42,6 +41,11 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
+        public GetDepartmentPersonnel IncludeSubdepartments(bool includeSubdepartments)
+        {
+            this.includeSubdepartments = includeSubdepartments;
+            return this;
+        }
 
         public class Validator : AbstractValidator<GetDepartmentPersonnel>
         {
@@ -67,7 +71,7 @@ namespace Fusion.Resources.Domain
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
             {
-                var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department);
+                var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments);
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
 
 
@@ -79,7 +83,7 @@ namespace Fusion.Resources.Domain
                     {
                         // Timeline date input has been verified when shouldExpandTimline is true.
                         p.Timeline = TimelineUtils.GeneratePersonnelTimeline(p.PositionInstances, p.Absence, request.TimelineStart!.Value, request.TimelineEnd!.Value).OrderBy(p => p.AppliesFrom)
-                            .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
+                            //.Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
                             .ToList();
                     }
                 });
@@ -88,11 +92,11 @@ namespace Fusion.Resources.Domain
             }
 
 
-            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString)
+            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments)
             {
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
-                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
+                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments, fullDepartmentString);
                 return departmentPersonnel;
             }
 

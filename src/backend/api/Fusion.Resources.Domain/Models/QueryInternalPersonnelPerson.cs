@@ -40,5 +40,6 @@ namespace Fusion.Resources.Domain
         public List<QueryPersonnelPosition> PositionInstances { get; set; }
         public List<QueryPersonAbsenceBasic> Absence { get; set; }
         public bool IsResourceOwner { get; set; }
+        public Guid? ManagerAzureId { get; internal set; }
     }
 }

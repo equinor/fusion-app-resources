@@ -18,7 +18,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     {
         [HttpGet("departments/{departmentString}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentRequests(
-            [FromRoute] string departmentString, 
+            [FromRoute] string departmentString,
             [FromQuery] ODataQueryParams query)
         {
             #region Authorization
@@ -97,6 +97,92 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var apiModel = new ApiRequestsTimeline(departmentRequestsTimeline, timelineStart.Value, timelineEnd.Value);
 
             return apiModel;
+        }
+
+        [HttpGet("departments/{departmentString}/resources/requests/unassigned")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetDepartmentUnassignedRequests(string departmentString) 
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    // add requirements
+                });
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var requestCommand = new GetDepartmentUnassignedRequests(departmentString);
+            var result = await DispatchAsync(requestCommand);
+
+            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
+        }
+
+        [HttpGet("departments/{departmentString}/resources/requests/tbn")]
+        public async Task<ActionResult> GetTBNPositions(string departmentString)
+        {
+            var request = new GetTbnPositions(departmentString);
+
+            var data = await DispatchAsync(request);
+
+            return Ok(data);
+        }
+
+        [HttpGet("departments/{departmentString}/resources/tbn-positions/timeline")]
+
+        public async Task<ActionResult> GetTbnPositionsTimeline(
+            [FromRoute] string departmentString,
+            [FromQuery] DateTime? timelineStart = null,
+            [FromQuery] string? timelineDuration = null,
+            [FromQuery] DateTime? timelineEnd = null)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    // add requirements
+                });
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            #region validate timeline input
+
+            if (timelineStart is null)
+                return ApiErrors.MissingInput(nameof(timelineStart), "Must specify 'timelineStart'");
+
+            TimeSpan? duration;
+
+            try { duration = timelineDuration != null ? XmlConvert.ToTimeSpan("P5M") : null; }
+            catch (Exception ex)
+            {
+                return ApiErrors.InvalidInput("Invalid duration value: " + ex.Message);
+            }
+
+            if (timelineEnd is null)
+            {
+                if (duration is null)
+                    return ApiErrors.MissingInput(nameof(timelineDuration), "Must specify either 'timelineDuration' or 'timelineEnd' when expanding timeline");
+
+                timelineEnd = timelineStart.Value.Add(duration.Value);
+            }
+            #endregion
+
+            var request = new GetTbnPositionsTimeline(departmentString, timelineStart.Value, timelineEnd.Value);
+            var timeline = await DispatchAsync(request);
+
+            return Ok(new ApiTbnPositionTimeline(timeline, timelineStart.Value, timelineEnd.Value));
         }
     }
 }

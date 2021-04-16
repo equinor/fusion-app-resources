@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fusion.Integration.Profile;
+using System;
 
 namespace Fusion.Resources.Domain
 {
@@ -45,6 +46,11 @@ namespace Fusion.Resources.Domain
         public static implicit operator PersonnelId(Guid uniqueId)
         {
             return new PersonnelId(uniqueId);
+        }
+
+        public static implicit operator PersonIdentifier(PersonnelId personId)
+        {
+            return PersonIdentifier.Parse(personId.OriginalIdentifier);
         }
     }
 

@@ -41,6 +41,15 @@ namespace Fusion.Resources.Domain
             Type = Enum.Parse<QueryAbsenceType>($"{absence.Type}", true);
             AbsencePercentage = absence.AbsencePercentage;
         }
+        public QueryPersonAbsenceBasic(QueryPersonAbsence absence)
+        {
+            Id = absence.Id;
+            Comment = absence.Comment;
+            AppliesFrom = absence.AppliesFrom;
+            AppliesTo = absence.AppliesTo;
+            Type = Enum.Parse<QueryAbsenceType>($"{absence.Type}", true);
+            AbsencePercentage = absence.AbsencePercentage;
+        }
 
         public Guid Id { get; set; }
         public string? Comment { get; set; }

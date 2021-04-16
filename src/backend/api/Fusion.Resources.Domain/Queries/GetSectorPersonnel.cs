@@ -90,15 +90,13 @@ namespace Fusion.Resources.Domain
 
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString)
             {
-                var sectorInfo = LoadSectorInfo();
-                if (!sectorInfo.TryGetValue(fullDepartmentString.ToUpper(), out string? sector))
-                    throw new InvalidOperationException($"Could not locate any sector for the department '{fullDepartmentString}'");
-
-                var departments = sectorInfo.Where(kv => kv.Value == sector && kv.Key != sector).Select(kv => kv.Key).ToList();
-
+                var departments = await db.Departments
+                    .Where(dpt => dpt.SectorId == fullDepartmentString)
+                    .Select(dpt => dpt.DepartmentId)
+                    .ToListAsync();
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
-                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, departments);
+                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments: false, departments);
 
                 return sectorPersonnel;
             }
@@ -115,33 +113,6 @@ namespace Fusion.Resources.Domain
                     .ToDictionary(i => i.id, i => i.items.Select(a => new QueryPersonAbsenceBasic(a)).ToList());
 
                 return personsAbsence;
-            }
-
-           
-            private static Dictionary<string, string> departmentSectors = null!;
-
-            private Dictionary<string, string> LoadSectorInfo()
-            {
-                if (departmentSectors is null)
-                {
-                    using (var s = Assembly.GetEntryAssembly().GetManifestResourceStream("Fusion.Resources.Api.Controllers.Person.departmentSectors.json"))
-                    using (var r = new StreamReader(s))
-                    {
-                        var json = r.ReadToEnd();
-
-                        var sectorInfo = JsonConvert.DeserializeAnonymousType(json, new[] { new { sector = string.Empty, departments = Array.Empty<string>() } });
-
-                        departmentSectors = new Dictionary<string, string>();
-
-                        foreach (var sector in sectorInfo)
-                        {
-                            sector.departments.ToList().ForEach(d => departmentSectors[d] = sector.sector);
-                            departmentSectors[sector.sector] = sector.sector;
-                        }
-                    }
-                }
-
-                return departmentSectors;
             }
         }
     }

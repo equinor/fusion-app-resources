@@ -46,8 +46,8 @@ namespace Fusion.Resources.Domain.Commands
                     Created = DateTimeOffset.UtcNow,
                     CreatedBy = request.Editor.Person,
                     Comment = request.Comment,
-                    AppliesFrom = request.AppliesFrom,
-                    AppliesTo = request.AppliesTo,
+                    AppliesFrom = request.AppliesFrom.Date,
+                    AppliesTo = request.AppliesTo?.Date,
                     Type = Enum.Parse<DbAbsenceType>($@"{request.Type}"),
                     AbsencePercentage = request.AbsencePercentage
                 };

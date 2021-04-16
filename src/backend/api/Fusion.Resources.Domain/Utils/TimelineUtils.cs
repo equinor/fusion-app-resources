@@ -1,4 +1,6 @@
-﻿using Itenso.TimePeriod;
+﻿using Fusion.Resources.Domain.Queries;
+using Fusion.Resources.Domain.Timeline;
+using Itenso.TimePeriod;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,67 +23,27 @@ namespace Fusion.Resources.Domain
                 filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
 
             var timeline = GeneratePersonnelTimelineInternal(position, absences, filterStart, filterEnd).ToList();
-            FixOverlappingPeriods(timeline);
+            //FixOverlappingPeriods(timeline);
             return timeline;
         }
+
         private static IEnumerable<QueryTimelineRange<QueryPersonnelTimelineItem>> GeneratePersonnelTimelineInternal(
-            List<QueryPersonnelPosition> position,
+            List<QueryPersonnelPosition> positions,
             List<QueryPersonAbsenceBasic> absences,
             DateTime filterStart,
             DateTime filterEnd)
         {
-            // Gather all dates 
-            var dates = position.SelectMany(p => new[] { (DateTime?)p.AppliesFrom.Date, (DateTime?)p.AppliesTo.Date })
-                .Union(absences.SelectMany(a => new[] { a.AppliesFrom.Date, a.AppliesTo?.Date }))
-                .Where(d => d.HasValue)
-                .Select(d => d!.Value)
-                .Distinct()
-                .OrderBy(d => d)
-                .ToList();
+            var timeline = new Timeline<QueryPersonnelTimelineItem>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
 
-            if (!dates.Any())
-                yield break;
+            positions.ForEach(p => timeline.Add(new QueryPersonnelTimelineItem("PositionInstance", p)));
+            absences.ForEach(a => timeline.Add(new QueryPersonnelTimelineItem("Absence", a)));
 
-            var validDates = dates.Where(d => d > filterStart && d < filterEnd).ToList();
-
-            validDates.Insert(0, filterStart);
-            validDates.Add(filterEnd);
-
-            var current = validDates.First();
-            foreach (var date in validDates.Skip(1))
+            var view = timeline.GetView(filterStart, filterEnd);
+            return view.Segments.Select(x => new QueryTimelineRange<QueryPersonnelTimelineItem>(x.FromDate, x.ToDate)
             {
-                var timelineRange = new TimeRange(current, date);
-
-                var affectedItems = position.Where(p =>
-                {
-                    var posTimeRange = new TimeRange(p.AppliesFrom.Date, p.AppliesTo.Date);
-                    return posTimeRange.OverlapsWith(timelineRange);
-                });
-                var relevantAbsence = absences.Where(p => p.AppliesTo.HasValue && timelineRange.OverlapsWith(new TimeRange(p.AppliesFrom.Date, p.AppliesTo!.Value.Date)));
-
-                yield return new QueryTimelineRange<QueryPersonnelTimelineItem>(current, date)
-                {
-                    Items = affectedItems.Select(p => new QueryPersonnelTimelineItem()
-                    {
-                        Type = "PositionInstance",
-                        Workload = p.Workload,
-                        Id = p.PositionId,
-                        Description = $"{p.Name}",
-                        BasePosition = p.BasePosition,
-                        Project = p.Project
-                    }).Union(relevantAbsence.Select(a => new QueryPersonnelTimelineItem()
-                    {
-                        Id = a.Id,
-                        Type = "Absence",
-                        Workload = a.AbsencePercentage,
-                        Description = $"{a.Type}"
-                    }))
-                    .ToList(),
-                    Workload = affectedItems.Sum(p => p.Workload) + relevantAbsence.Where(a => a.AbsencePercentage.HasValue).Sum(a => a.AbsencePercentage!.Value)
-                };
-
-                current = date;
-            }
+                Items = x.Items,
+                Workload = x.Items.Sum(item => item.Workload ?? 0)
+            });
         }
 
         public static IEnumerable<QueryTimelineRange<QueryRequestsTimelineItem>> GenerateRequestsTimeline(
@@ -90,64 +52,51 @@ namespace Fusion.Resources.Domain
             DateTime filterEnd)
         {
             var segments = new List<QueryTimelineRange<QueryRequestsTimelineItem>>();
+            var filterPeriod = new TimeRange(filterStart, filterEnd);
 
             var applicableRequests = requests
                 .Where(r => r.OrgPositionInstance is not null
-                    && (r.OrgPositionInstance!.AppliesTo >= filterStart || r.OrgPositionInstance!.AppliesFrom <= filterEnd))
-                .OrderBy(r => r.OrgPositionInstance!.AppliesFrom)
-                .ThenBy(r => r.OrgPositionInstance!.AppliesTo)
+                    && new TimeRange(r.OrgPositionInstance!.AppliesTo, r.OrgPositionInstance!.AppliesFrom).OverlapsWith(filterPeriod))
                 .ToList();
 
-            var keyDates = new HashSet<DateTime>
-            {
-                filterStart,
-                filterEnd
-            };
-
+            var timeline = new Timeline<QueryRequestsTimelineItem>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
             foreach (var req in applicableRequests)
             {
-                var startDate = req.OrgPositionInstance!.AppliesFrom.Date;
-                var endDate = req.OrgPositionInstance!.AppliesTo.Date;
-
-                if (endDate <= filterEnd && !keyDates.Contains(endDate))
-                {
-                    keyDates.Add(endDate);
-                }
-
-                if (startDate >= filterStart && !keyDates.Contains(startDate))
-                {
-                    keyDates.Add(startDate);
-                }
+                timeline.Add(new QueryRequestsTimelineItem(req));
             }
 
-            var orderedKeyDates = keyDates.OrderBy(d => d);
-
-            var timeline = orderedKeyDates.Zip(orderedKeyDates.Skip(1), (start, end) =>
+            var view = timeline.GetView(filterStart, filterEnd);
+            return view.Segments.Select(x => new QueryTimelineRange<QueryRequestsTimelineItem>(x.FromDate, x.ToDate)
             {
-                var range = new TimeRange(start, end, isReadOnly: true);
-                var requestsInRange = applicableRequests.Where(req =>
-                    new TimeRange(req.OrgPositionInstance!.AppliesFrom.Date, req.OrgPositionInstance!.AppliesTo.Date).OverlapsWith(range)
-                );
+                Items = x.Items,
+                Workload = x.Items.Sum(item => item.Workload ?? 0)
+            });
+        }
 
-                return new QueryTimelineRange<QueryRequestsTimelineItem>(start, end)
-                {
-                    Items = requestsInRange.Select(r => new QueryRequestsTimelineItem
-                    {
-                        Workload = r.OrgPositionInstance?.Workload,
-                        Id = r.RequestId.ToString(),
-                        PositionName = r.OrgPosition?.Name,
-                        ProjectName = r.Project.Name
-                    })
-                    .ToList(),
-                    Workload = requestsInRange.Sum(r => r.OrgPositionInstance?.Workload ?? 0)
-                };
-            })
-            .Where(range => range.Items.Any())
-            .ToList();
+        public static IEnumerable<QueryTimelineRange<QueryTbnPositionTimelineItem>> GenerateTbnPositionsTimeline(
+           IEnumerable<QueryTbnPosition> tbnPositions,
+           DateTime filterStart,
+           DateTime filterEnd)
+        {
+            var segments = new List<QueryTimelineRange<QueryTbnPositionTimelineItem>>();
+            var filterPeriod = new TimeRange(filterStart, filterEnd);
 
-            FixOverlappingPeriods(timeline);
+            var filteredPositions = tbnPositions
+                .Where(r => new TimeRange(r.AppliesFrom, r.AppliesTo).OverlapsWith(filterPeriod))
+                .ToList();
 
-            return timeline;
+            var timeline = new Timeline<QueryTbnPosition>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
+            foreach(var position in filteredPositions)
+            {
+                timeline.Add(position);
+            }
+
+            var view = timeline.GetView(filterStart, filterEnd);
+            return view.Segments.Select(x => new QueryTimelineRange<QueryTbnPositionTimelineItem>(x.FromDate, x.ToDate)
+            {
+                Items = x.Items.Select(r => new QueryTbnPositionTimelineItem(r)).ToList(),
+                Workload = x.Items.Sum(item => item.Workload ?? 0)
+            });
         }
 
         public static IEnumerable<QueryResourceAllocationRequest> FilterRequests(List<QueryResourceAllocationRequest> requests, TimeRange timelineRange)
@@ -160,19 +109,6 @@ namespace Fusion.Resources.Domain
             });
 
             return affectedItems;
-        }
-
-        private static void FixOverlappingPeriods<T>(List<QueryTimelineRange<T>> timeline)
-        {
-            // Tweek ranges where end date == next start date
-            for (int i = 0; i < timeline.Count - 1; i++)
-            {
-                var now = timeline[i];
-                var next = timeline[i + 1];
-
-                if (now.AppliesTo == next.AppliesFrom)
-                    now.AppliesTo = now.AppliesTo.Subtract(TimeSpan.FromDays(1));
-            }
         }
     }
 }
