@@ -193,7 +193,7 @@ namespace Fusion.Resources.Domain.Queries
                 var relevantDepartments = new RelevantDepartments();
 
                 var currentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").TakeLast(3));
-                var parentDepartment = string.Join(" ", fullDepartmentPath.SkipLast(1).TakeLast(3));
+                var parentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1).TakeLast(3));
 
 
 
