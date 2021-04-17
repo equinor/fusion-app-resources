@@ -1,9 +1,11 @@
 ﻿using Fusion.AspNetCore.OData;
+using Fusion.Integration.Diagnostics;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.ApplicationInsights;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,13 +51,15 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
             private readonly TelemetryClient telemetryClient;
+            private readonly IFusionLogger<Handler> log;
 
-            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator, TelemetryClient telemetryClient)
+            public Handler(ResourcesDbContext resourcesDb, IProjectOrgResolver orgResolver, IMediator mediator, TelemetryClient telemetryClient, IFusionLogger<Handler> log)
             {
                 this.resourcesDb = resourcesDb;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
                 this.telemetryClient = telemetryClient;
+                this.log = log;
             }
 
             public async Task<QueryPersonnelRequest> Handle(GetContractPersonnelRequest request, CancellationToken cancellationToken)
@@ -70,7 +74,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)
                     .Include(r => r.Contract)
-                    .FirstOrDefaultAsync(r => r.Id == request.RequestId);
+                    .FirstOrDefaultAsync(r => r.Id == request.RequestId, cancellationToken);
 
                 if (dbRequest is null)
                     throw new RequestNotFoundError(request.RequestId);
@@ -80,13 +84,19 @@ namespace Fusion.Resources.Domain.Queries
                 var position = new QueryPositionRequest(dbRequest.Position)
                     .WithResolvedBasePosition(basePosition);
 
-                var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
+                var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId), cancellationToken);
 
-                var returnItem = new QueryPersonnelRequest(dbRequest, position, workflow!);
+                if (workflow is null)
+                {
+                    log.LogCritical("Workflow not found for position request id: {RequestId}", dbRequest.Id);
+                    throw new InvalidOperationException("Could not locate workflow entity for contractor request");
+                }
+
+                var returnItem = new QueryPersonnelRequest(dbRequest, position, workflow);
 
                 if (request.Expands.HasFlag(ExpandProperties.RequestComments))
                 {
-                    var comments = await mediator.Send(new GetRequestComments(request.RequestId));
+                    var comments = await mediator.Send(new GetRequestComments(request.RequestId), cancellationToken);
                     returnItem.WithComments(comments);
                 }
 

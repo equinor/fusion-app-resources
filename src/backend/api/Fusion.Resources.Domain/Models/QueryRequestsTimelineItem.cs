@@ -14,7 +14,7 @@ namespace Fusion.Resources.Domain
             AppliesTo = req.OrgPositionInstance!.AppliesTo;
         }
 
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         public string? PositionName { get; set; }
         public string? ProjectName { get; set; }
         public double? Workload { get; set; }

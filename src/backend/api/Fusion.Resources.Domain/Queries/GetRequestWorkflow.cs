@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain.Queries
                 var workflow = await resourcesDb.Workflows
                     .Include(wf => wf.WorkflowSteps).ThenInclude(s => s.CompletedBy)
                     .Include(wf => wf.TerminatedBy)
-                    .FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId);
+                    .FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId, cancellationToken);
 
                 if (workflow is null)
                     return null;
