@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain.Queries
             Type = type;
         }
 
-        public static GetContractPersonnelRequests QueryContract(Guid orgProjectId, Guid orgContractId) => new GetContractPersonnelRequests(QueryType.Contract)
+        public static GetContractPersonnelRequests QueryContract(Guid orgProjectId, Guid orgContractId) => new(QueryType.Contract)
         {
             OrgProjectId = orgProjectId,
             OrgContractId = orgContractId
@@ -127,7 +127,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.Project)
                     .Include(r => r.Contract)
                     .OrderByDescending(r => r.LastActivity)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var basePositions = await Task.WhenAll(dbRequest
                     .Select(q => q.Position.BasePositionId)
@@ -139,7 +139,7 @@ namespace Fusion.Resources.Domain.Queries
                     await orgResolver.ResolvePositionsAsync(dbRequest.Where(r => r.OriginalPositionId.HasValue).Select(r => r.OriginalPositionId!.Value)) :
                     new List<ApiPositionV2>();
 
-                var workflows = await mediator.Send(new GetRequestWorkflows(dbRequest.Select(r => r.Id)));
+                var workflows = await mediator.Send(new GetRequestWorkflows(dbRequest.Select(r => r.Id)), cancellationToken);
 
                 var positions = dbRequest.Select(p =>
                 {
