@@ -1,4 +1,5 @@
-﻿using Fusion.Integration.Org;
+﻿using FluentValidation;
+using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
@@ -13,7 +14,6 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-
     public class CreateContractPersonnel : TrackableRequest<QueryContractPersonnel>
     {
         public CreateContractPersonnel(Guid projectId, Guid contractIdentifier, string mail)

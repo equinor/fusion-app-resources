@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Entities
 {
 
-
     public class DbPersonAbsence
     {
         public Guid Id { get; set; }

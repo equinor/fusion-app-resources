@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Threading;
 
 namespace Fusion.Resources.Domain.Behaviours
 {
@@ -16,12 +17,14 @@ namespace Fusion.Resources.Domain.Behaviours
             this.validators = validators;
         }
 
-        public Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
             var context = new ValidationContext<TRequest>(request);
 
-            var failures = validators
-                .Select(v => v.Validate(context))
+            var validationTasks = validators.Select(v => v.ValidateAsync(context, cancellationToken));
+            var outcome = await Task.WhenAll(validationTasks);
+
+            var failures = outcome
                 .SelectMany(result => result.Errors)
                 .Where(f => f != null)
                 .ToList();
@@ -31,7 +34,7 @@ namespace Fusion.Resources.Domain.Behaviours
                 throw new ValidationException(failures);
             }
 
-            return next();
+            return await next();
         }
     }
 

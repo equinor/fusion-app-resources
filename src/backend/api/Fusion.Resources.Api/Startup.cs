@@ -56,6 +56,8 @@ namespace Fusion.Resources.Api
             // Configure fusion integration
             services.AddFusionIntegration(options =>
             {
+                options.AddProfileSync<FusionEvents.ProfileSyncHandler>();
+
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
                 options.AddFusionRoles();
