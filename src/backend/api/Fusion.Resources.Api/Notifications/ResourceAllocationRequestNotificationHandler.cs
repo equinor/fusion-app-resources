@@ -15,7 +15,7 @@ using Fusion.Resources.Domain.Notifications;
 namespace Fusion.Resources.Api.Notifications
 {
     public class ResourceAllocationRequestNotificationHandler :
-        INotificationHandler<ResourceAllocationRequestProvisioned>,
+        INotificationHandler<ResourceAllocationWorkflowChanged>,
         INotificationHandler<ResourceAllocationRequestAllocatedPersonProposal>,
         INotificationHandler<ResourceAllocationRequestAssignedPersonAccepted>,
         INotificationHandler<ResourceAllocationRequestTaskOwnerAssigned>,
@@ -33,7 +33,7 @@ namespace Fusion.Resources.Api.Notifications
             this.orgResolver = orgResolver;
         }
 
-        public async Task Handle(ResourceAllocationRequestProvisioned notification, CancellationToken cancellationToken)
+        public async Task Handle(ResourceAllocationWorkflowChanged notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId);
             var recipients = GenerateTaskOwnerRecipients(request.Instance);
@@ -117,7 +117,7 @@ namespace Fusion.Resources.Api.Notifications
             var internalRequest = await GetInternalRequestAsync(requestId);
             if (internalRequest is null)
                 throw new InvalidOperationException($"Internal request {requestId} not found");
-
+            
             var orgPosition = await orgResolver.ResolvePositionAsync(internalRequest.OrgPositionId.GetValueOrDefault());
             if (orgPosition == null)
                 throw new InvalidOperationException($"Cannot resolve position for request {internalRequest.RequestId}");
@@ -138,7 +138,8 @@ namespace Fusion.Resources.Api.Notifications
         private static IEnumerable<Guid> GenerateTaskOwnerRecipients(ApiPositionInstanceV2 instance)
         {
             var recipients = new List<Guid>();
-            recipients.AddRange(instance.TaskOwnerIds);
+            if (instance.TaskOwnerIds != null) 
+                recipients.AddRange(instance.TaskOwnerIds);
             return recipients;
         }
 

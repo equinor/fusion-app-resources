@@ -13,6 +13,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Notifications;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -88,6 +89,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     await resourcesDb.SaveChangesAsync();
+                    await mediator.Publish(new ResourceAllocationWorkflowChanged(dbRequest.Id));
                 }
 
 
