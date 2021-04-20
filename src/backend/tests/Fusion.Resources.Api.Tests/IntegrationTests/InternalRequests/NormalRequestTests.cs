@@ -94,7 +94,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        [Fact]
+        public async Task NormalRequest_Create_ShouldGetNewNumber()
+        {
+            using var adminScope = fixture.AdminScope();
 
+            var position = testProject.AddPosition();
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id
+            }, new 
+            { 
+                number = 0 
+            });
+
+            response.Should().BeSuccessfull();
+            response.Value.number.Should().BeGreaterThan(0);
+        }
 
         [Fact]
         public async Task NormalRequest_Create_ShouldBeSuccessfull_WhenExitingPosition()

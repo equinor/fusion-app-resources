@@ -15,6 +15,8 @@ namespace Fusion.Resources.Database.Entities
         public string? AssignedDepartment { get;set; }
         public bool IsDraft { get; set; }
 
+        public long RequestNumber { get; set; }
+
         /// <summary>
         /// The group that ownes the request. This is needed to be able to query for relevant requests. 
         /// Ex draft requests of some types should not be visible for others.
@@ -94,6 +96,10 @@ namespace Fusion.Resources.Database.Entities
 
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbInternalRequestType>());
                 entity.Property(e => e.LastActivity);
+
+                entity.Property(e => e.RequestNumber)
+                    .UseIdentityColumn(1)
+                    .ValueGeneratedOnAdd();
             });
         }
 

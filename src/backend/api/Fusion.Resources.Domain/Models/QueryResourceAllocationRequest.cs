@@ -32,6 +32,7 @@ namespace Fusion.Resources.Domain
         public QueryResourceAllocationRequest(DbResourceAllocationRequest entity, QueryWorkflow? workflow = null)
         {
             RequestId = entity.Id;
+            RequestNumber = entity.RequestNumber;
             AssignedDepartment = entity.AssignedDepartment;
             Discipline = entity.Discipline;
             Type = entity.Type.MapToDomain();
@@ -73,6 +74,11 @@ namespace Fusion.Resources.Domain
         }
 
         public Guid RequestId { get; set; }
+
+        /// <summary>
+        /// Counter to give users a reference point to a request.
+        /// </summary>
+        public long RequestNumber { get; set; }
 
         public Guid? OrgPositionId { get; set; }
         public Guid? OrgPositionInstanceId { get; set; }
