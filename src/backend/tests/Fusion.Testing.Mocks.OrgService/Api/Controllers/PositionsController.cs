@@ -84,7 +84,8 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
         [ApiVersion("2.0")]
         [HttpPatch("projects/{projectId}/positions/{positionId}/instances/{instanceId}")]
-        public ActionResult<ApiPositionV2> PatchPositionInstance([FromRoute] ProjectIdentifier projectId, Guid positionId, Guid instanceId, [FromBody] PatchInstanceRequestV2 request)
+        [HttpPatch("projects/{projectId}/drafts/{draftId}/positions/{positionId}/instances/{instanceId}")]
+        public ActionResult<ApiPositionV2> PatchPositionInstance([FromRoute] ProjectIdentifier projectId, Guid? draftId, Guid positionId, Guid instanceId, [FromBody] PatchInstanceRequestV2 request)
         {
             var position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
 
