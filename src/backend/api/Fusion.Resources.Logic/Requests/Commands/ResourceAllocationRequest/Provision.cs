@@ -8,11 +8,11 @@ using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Domain.Notifications;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -88,7 +88,6 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     await resourcesDb.SaveChangesAsync();
-                    await mediator.Publish(new WorkflowChanged(dbRequest.Id));
                 }
 
 

@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Domain.Notifications;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -59,8 +58,6 @@ namespace Fusion.Resources.Logic.Commands
 
                     var notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep.PreviousStepId, currentStep.Id);
                     await mediator.Publish(notification, cancellationToken);
-
-                    await mediator.Publish(new AssignedPersonAccepted(dbRequest.Id));
                 }
             }
         }

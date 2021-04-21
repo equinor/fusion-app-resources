@@ -277,7 +277,6 @@ namespace Fusion.Resources.Api.Notifications
                         {
                             NotifyResourceOwner = true;
                         }
-
                         break;
                     case nameof(TaskOwnerAssigned):
                         if (isAllocationRequest)
