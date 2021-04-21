@@ -143,7 +143,7 @@ namespace Fusion.Resources.Api.Notifications
             if (data.NotifyCreator)
                 recipients.Add(data.AllocationRequest.CreatedBy.AzureUniqueId);
 
-            if (data.NotifyResourceOwner && data.Instance.AssignedPerson.AzureUniqueId != null)
+            if (data.NotifyResourceOwner && data.Instance.AssignedPerson?.AzureUniqueId != null)
             {
                 var ro = await mediator.Send(new GetResourceOwner(data.Instance.AssignedPerson.AzureUniqueId.Value));
                 if (ro?.IsResourceOwner == true && ro.AzureUniqueId.HasValue)
@@ -263,7 +263,7 @@ namespace Fusion.Resources.Api.Notifications
                             NotifyTaskOwner = true;
                             NotifyCreator = true;
                         }
-                        if (isChangeRequest)
+                        else if (isChangeRequest)
                         {
                             NotifyTaskOwner = true;
                         }
@@ -273,7 +273,7 @@ namespace Fusion.Resources.Api.Notifications
                         {
                             NotifyResourceOwner = true;
                         }
-                        if (isChangeRequest)
+                        else if (isChangeRequest)
                         {
                             NotifyResourceOwner = true;
                         }
@@ -292,12 +292,8 @@ namespace Fusion.Resources.Api.Notifications
                             NotifyTaskOwner = true;
                             NotifyResourceOwner = true;
                         }
-
                         break;
                 }
-
-
-
             }
 
             public bool NotifyResourceOwner { get; private set; }
