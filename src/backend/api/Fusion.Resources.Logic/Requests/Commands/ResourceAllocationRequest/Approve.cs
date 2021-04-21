@@ -60,7 +60,7 @@ namespace Fusion.Resources.Logic.Commands
                     var notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep.PreviousStepId, currentStep.Id);
                     await mediator.Publish(notification, cancellationToken);
 
-                    await mediator.Publish(new ResourceAllocationRequestAssignedPersonAccepted(dbRequest.Id));
+                    await mediator.Publish(new AssignedPersonAccepted(dbRequest.Id));
                 }
             }
         }

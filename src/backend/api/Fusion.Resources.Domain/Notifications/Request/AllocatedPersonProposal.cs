@@ -3,9 +3,9 @@ using MediatR;
 
 namespace Fusion.Resources.Domain.Notifications
 {
-    public class ResourceAllocationRequestTaskOwnerAssigned : INotification
+    public class AllocatedPersonProposal : INotification
     {
-        public ResourceAllocationRequestTaskOwnerAssigned(Guid requestId)
+        public AllocatedPersonProposal(Guid requestId)
         {
             this.RequestId = requestId;
         }

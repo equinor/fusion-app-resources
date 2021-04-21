@@ -88,7 +88,7 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     await resourcesDb.SaveChangesAsync();
-                    await mediator.Publish(new ResourceAllocationWorkflowChanged(dbRequest.Id));
+                    await mediator.Publish(new WorkflowChanged(dbRequest.Id));
                 }
 
 

@@ -15,26 +15,26 @@ using Fusion.Resources.Logic.Workflows;
 
 namespace Fusion.Resources.Api.Notifications
 {
-    public class ResourceAllocationRequestNotificationHandler :
-        INotificationHandler<ResourceAllocationWorkflowChanged>,
-        INotificationHandler<ResourceAllocationRequestAllocatedPersonProposal>,
-        INotificationHandler<ResourceAllocationRequestAssignedPersonAccepted>,
-        INotificationHandler<ResourceAllocationRequestTaskOwnerAssigned>,
-        INotificationHandler<ResourceAllocationRequestChanged>
+    public class InternalRequestsNotificationHandler :
+        INotificationHandler<WorkflowChanged>,
+        INotificationHandler<AllocatedPersonProposal>,
+        INotificationHandler<AssignedPersonAccepted>,
+        INotificationHandler<TaskOwnerAssigned>,
+        INotificationHandler<RequestChanged>
     {
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
         private static string DefaultFollowUpText => "Please review and follow up request in Resource Allocation";
 
-        public ResourceAllocationRequestNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
+        public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
             this.orgResolver = orgResolver;
         }
 
-        public async Task Handle(ResourceAllocationWorkflowChanged notification, CancellationToken cancellationToken)
+        public async Task Handle(WorkflowChanged notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
             var recipients = await GenerateRecipientsAsync(request);
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Api.Notifications
             }
         }
 
-        public async Task Handle(ResourceAllocationRequestAllocatedPersonProposal notification, CancellationToken cancellationToken)
+        public async Task Handle(AllocatedPersonProposal notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
             var recipients = await GenerateRecipientsAsync(request);
@@ -66,7 +66,7 @@ namespace Fusion.Resources.Api.Notifications
             }
         }
 
-        public async Task Handle(ResourceAllocationRequestAssignedPersonAccepted notification, CancellationToken cancellationToken)
+        public async Task Handle(AssignedPersonAccepted notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
             var recipients = await GenerateRecipientsAsync(request);
@@ -82,7 +82,7 @@ namespace Fusion.Resources.Api.Notifications
             }
         }
 
-        public async Task Handle(ResourceAllocationRequestTaskOwnerAssigned notification, CancellationToken cancellationToken)
+        public async Task Handle(TaskOwnerAssigned notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
             var recipients = await GenerateRecipientsAsync(request);
@@ -97,7 +97,7 @@ namespace Fusion.Resources.Api.Notifications
                 });
             }
         }
-        public async Task Handle(ResourceAllocationRequestChanged notification, CancellationToken cancellationToken)
+        public async Task Handle(RequestChanged notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
             var recipients = await GenerateRecipientsAsync(request);
@@ -231,7 +231,7 @@ namespace Fusion.Resources.Api.Notifications
                 switch (notificationType.Name)
                 {
                     //Provision
-                    case nameof(ResourceAllocationWorkflowChanged):
+                    case nameof(WorkflowChanged):
                         if (isAllocationRequest)
                         {
                             if (isNormal)
@@ -257,7 +257,7 @@ namespace Fusion.Resources.Api.Notifications
                             NotifyResourceOwner = true;
                         }
                         break;
-                    case nameof(ResourceAllocationRequestAllocatedPersonProposal):
+                    case nameof(AllocatedPersonProposal):
                         if (isAllocationRequest)
                         {
                             NotifyTaskOwner = true;
@@ -268,7 +268,7 @@ namespace Fusion.Resources.Api.Notifications
                             NotifyTaskOwner = true;
                         }
                         break;
-                    case nameof(ResourceAllocationRequestAssignedPersonAccepted):
+                    case nameof(AssignedPersonAccepted):
                         if (isAllocationRequest)
                         {
                             NotifyResourceOwner = true;
@@ -279,14 +279,14 @@ namespace Fusion.Resources.Api.Notifications
                         }
 
                         break;
-                    case nameof(ResourceAllocationRequestTaskOwnerAssigned):
+                    case nameof(TaskOwnerAssigned):
                         if (isAllocationRequest)
                         {
                             NotifyTaskOwner = true;
                             NotifyCreator = true;
                         }
                         break;
-                    case nameof(ResourceAllocationRequestChanged):
+                    case nameof(RequestChanged):
                         if (isChangeRequest)
                         {
                             NotifyTaskOwner = true;

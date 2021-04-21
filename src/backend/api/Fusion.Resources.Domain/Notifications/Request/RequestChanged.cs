@@ -3,9 +3,9 @@ using MediatR;
 
 namespace Fusion.Resources.Domain.Notifications
 {
-    public class ResourceAllocationWorkflowChanged : INotification
+    public class RequestChanged : INotification
     {
-        public ResourceAllocationWorkflowChanged(Guid requestId)
+        public RequestChanged(Guid requestId)
         {
             this.RequestId = requestId;
         }

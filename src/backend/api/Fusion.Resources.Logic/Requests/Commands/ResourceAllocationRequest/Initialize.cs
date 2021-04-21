@@ -47,7 +47,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, dbRequest.SubType, request.Editor.Person));
 
-                    await mediator.Publish(new ResourceAllocationWorkflowChanged(dbRequest.Id));
+                    await mediator.Publish(new WorkflowChanged(dbRequest.Id));
                 }
 
 
