@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
@@ -100,7 +101,33 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
             var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
             resp.Value.value.Should().NotContain(r => r.id == unassignedRequest.Id);
         }
+        
+        [Fact]
+        public async Task ShouldExcludeCompletedRequests()
+        {
+            var department = "TPD PRD MY TEST DEP1";
+            fixture.EnsureDepartment(department);
 
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = department);
+            var testPosition = testProject.AddPosition().WithBasePosition(bp);
+
+            using var adminScope = fixture.AdminScope();
+
+            var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
+            await Client.StartProjectRequestAsync(testProject, unassignedRequest.Id);
+            await Client.StartProjectRequestAsync(testProject, unassignedRequest.Id);
+
+            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            await Client.ProposePersonAsync(unassignedRequest.Id, testPerson);
+            await Client.ResourceOwnerApproveAsync(InternalRequestData.RandomDepartment, unassignedRequest.Id);
+            await Client.TaskOwnerApproveAsync(testProject, unassignedRequest.Id);
+            await Client.ProvisionRequestAsync(unassignedRequest.Id);
+
+
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            resp.Value.value.Should().NotContain(r => r.id == unassignedRequest.Id);
+        }
 
 
 
