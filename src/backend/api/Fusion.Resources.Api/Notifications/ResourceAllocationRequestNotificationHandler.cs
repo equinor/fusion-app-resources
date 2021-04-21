@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Resources.Domain.Notifications;
+using Fusion.Resources.Logic.Workflows;
 
 namespace Fusion.Resources.Api.Notifications
 {
@@ -35,8 +36,8 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(ResourceAllocationWorkflowChanged notification, CancellationToken cancellationToken)
         {
-            var request = await GetResolvedOrgData(notification.RequestId);
-            var recipients = GenerateTaskOwnerRecipients(request.Instance);
+            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
+            var recipients = await GenerateRecipientsAsync(request);
 
             foreach (var recipient in recipients)
             {
@@ -51,8 +52,8 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(ResourceAllocationRequestAllocatedPersonProposal notification, CancellationToken cancellationToken)
         {
-            var request = await GetResolvedOrgData(notification.RequestId);
-            var recipients = GenerateTaskOwnerRecipients(request.Instance);
+            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
+            var recipients = await GenerateRecipientsAsync(request);
 
             foreach (var recipient in recipients)
             {
@@ -67,8 +68,8 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(ResourceAllocationRequestAssignedPersonAccepted notification, CancellationToken cancellationToken)
         {
-            var request = await GetResolvedOrgData(notification.RequestId);
-            var recipients = GenerateTaskOwnerRecipients(request.Instance);
+            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
+            var recipients = await GenerateRecipientsAsync(request);
 
             foreach (var recipient in recipients)
             {
@@ -83,8 +84,8 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(ResourceAllocationRequestTaskOwnerAssigned notification, CancellationToken cancellationToken)
         {
-            var request = await GetResolvedOrgData(notification.RequestId);
-            var recipients = GenerateTaskOwnerRecipients(request.Instance);
+            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
+            var recipients = await GenerateRecipientsAsync(request);
 
             foreach (var recipient in recipients)
             {
@@ -98,8 +99,8 @@ namespace Fusion.Resources.Api.Notifications
         }
         public async Task Handle(ResourceAllocationRequestChanged notification, CancellationToken cancellationToken)
         {
-            var request = await GetResolvedOrgData(notification.RequestId);
-            var recipients = GenerateTaskOwnerRecipients(request.Instance);
+            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
+            var recipients = await GenerateRecipientsAsync(request);
 
             foreach (var recipient in recipients)
             {
@@ -112,12 +113,12 @@ namespace Fusion.Resources.Api.Notifications
             }
         }
 
-        private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId)
+        private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId, Type notificationType)
         {
             var internalRequest = await GetInternalRequestAsync(requestId);
             if (internalRequest is null)
                 throw new InvalidOperationException($"Internal request {requestId} not found");
-            
+
             var orgPosition = await orgResolver.ResolvePositionAsync(internalRequest.OrgPositionId.GetValueOrDefault());
             if (orgPosition == null)
                 throw new InvalidOperationException($"Cannot resolve position for request {internalRequest.RequestId}");
@@ -126,7 +127,7 @@ namespace Fusion.Resources.Api.Notifications
             if (orgPositionInstance == null)
                 throw new InvalidOperationException($"Cannot resolve position instance for request {internalRequest.RequestId}");
 
-            return new NotificationRequestData(orgPosition, orgPositionInstance);
+            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance);
         }
         private async Task<QueryResourceAllocationRequest?> GetInternalRequestAsync(Guid requestId)
         {
@@ -135,11 +136,23 @@ namespace Fusion.Resources.Api.Notifications
 
             return request;
         }
-        private static IEnumerable<Guid> GenerateTaskOwnerRecipients(ApiPositionInstanceV2 instance)
+        private async Task<IEnumerable<Guid>> GenerateRecipientsAsync(NotificationRequestData data)
         {
             var recipients = new List<Guid>();
-            if (instance.TaskOwnerIds != null) 
-                recipients.AddRange(instance.TaskOwnerIds);
+
+            if (data.NotifyCreator)
+                recipients.Add(data.AllocationRequest.CreatedBy.AzureUniqueId);
+
+            if (data.NotifyResourceOwner && data.Instance.AssignedPerson.AzureUniqueId != null)
+            {
+                var ro = await mediator.Send(new GetResourceOwner(data.Instance.AssignedPerson.AzureUniqueId.Value));
+                if (ro?.IsResourceOwner == true && ro.AzureUniqueId.HasValue)
+                    recipients.Add(ro.AzureUniqueId.Value);
+            }
+
+            if (data.NotifyTaskOwner && data.Instance.TaskOwnerIds != null)
+                recipients.AddRange(data.Instance.TaskOwnerIds);
+
             return recipients;
         }
 
@@ -190,15 +203,107 @@ namespace Fusion.Resources.Api.Notifications
                 )
                 .Build();
         }
-        
+
         private class NotificationRequestData
         {
-            public NotificationRequestData(ApiPositionV2 position, ApiPositionInstanceV2 instance)
+            public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest,
+                ApiPositionV2 position, ApiPositionInstanceV2 instance)
             {
+                AllocationRequest = allocationRequest;
                 Position = position;
                 Instance = instance;
+
+                DecideWhoShouldBeNotified(notificationType, allocationRequest);
             }
-            
+
+            private void DecideWhoShouldBeNotified(Type notificationType, QueryResourceAllocationRequest allocationRequest)
+            {
+
+                bool isAllocationRequest = allocationRequest.Type == InternalRequestType.Allocation;
+                bool isChangeRequest = allocationRequest.Type == InternalRequestType.ResourceOwnerChange;
+
+                var isDirect = allocationRequest.SubType == AllocationDirectWorkflowV1.SUBTYPE;
+                var isJointVenture = allocationRequest.SubType == AllocationJointVentureWorkflowV1.SUBTYPE;
+                var isNormal = allocationRequest.SubType == AllocationNormalWorkflowV1.SUBTYPE;
+
+
+
+                switch (notificationType.Name)
+                {
+                    //Provision
+                    case nameof(ResourceAllocationWorkflowChanged):
+                        if (isAllocationRequest)
+                        {
+                            if (isNormal)
+                            {
+                                NotifyTaskOwner = true;
+                                NotifyCreator = true;
+                                NotifyResourceOwner = true;
+                            }
+                            else if (isDirect)
+                            {
+                                NotifyTaskOwner = true;
+                                NotifyCreator = true;
+                            }
+                            else if (isJointVenture)
+                            {
+                                NotifyTaskOwner = true;
+                                NotifyCreator = true;
+                            }
+                        }
+                        if (isChangeRequest)
+                        {
+                            NotifyTaskOwner = true;
+                            NotifyResourceOwner = true;
+                        }
+                        break;
+                    case nameof(ResourceAllocationRequestAllocatedPersonProposal):
+                        if (isAllocationRequest)
+                        {
+                            NotifyTaskOwner = true;
+                            NotifyCreator = true;
+                        }
+                        if (isChangeRequest)
+                        {
+                            NotifyTaskOwner = true;
+                        }
+                        break;
+                    case nameof(ResourceAllocationRequestAssignedPersonAccepted):
+                        if (isAllocationRequest)
+                        {
+                            NotifyResourceOwner = true;
+                        }
+                        if (isChangeRequest)
+                        {
+                            NotifyResourceOwner = true;
+                        }
+
+                        break;
+                    case nameof(ResourceAllocationRequestTaskOwnerAssigned):
+                        if (isAllocationRequest)
+                        {
+                            NotifyTaskOwner = true;
+                            NotifyCreator = true;
+                        }
+                        break;
+                    case nameof(ResourceAllocationRequestChanged):
+                        if (isChangeRequest)
+                        {
+                            NotifyTaskOwner = true;
+                            NotifyResourceOwner = true;
+                        }
+
+                        break;
+                }
+
+
+
+            }
+
+            public bool NotifyResourceOwner { get; private set; }
+            public bool NotifyTaskOwner { get; private set; }
+            public bool NotifyCreator { get; private set; }
+            public QueryResourceAllocationRequest AllocationRequest { get; }
             public ApiPositionV2 Position { get; }
             public ApiPositionInstanceV2 Instance { get; }
         }
