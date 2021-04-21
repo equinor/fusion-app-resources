@@ -146,6 +146,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
             resp.Value.value.Single().orgPosition.instances.Should().HaveCount(3);
         }
 
+        [Fact]
+        public async Task SupportsOnlyCount()
+        {
+            var department = "TPD PRD MY TEST DEP2";
+            fixture.EnsureDepartment(department);
+
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = department);
+
+            using var adminScope = fixture.AdminScope();
+
+            await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testProject.AddPosition().WithBasePosition(bp));
+            await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testProject.AddPosition().WithBasePosition(bp));
+
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview&$count=only",
+                new { totalCount = -1 });
+            resp.Value.totalCount.Should().Be(2);
+        }
+
         public Task DisposeAsync()
         {
             return Task.CompletedTask;

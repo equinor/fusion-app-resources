@@ -116,12 +116,17 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+            var countEnabled = Request.Query.ContainsKey("$count");
 
-            var requestCommand = new GetDepartmentUnassignedRequests(departmentString);
+            var requestCommand = new GetDepartmentUnassignedRequests(departmentString).WithOnlyCount(countEnabled);
+
             var result = await DispatchAsync(requestCommand);
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
-            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
+            return new ApiCollection<ApiResourceAllocationRequest>(apiModel)
+            {
+                TotalCount = countEnabled ? result.TotalCount : null
+            };
         }
 
         [HttpGet("departments/{departmentString}/resources/requests/tbn")]
