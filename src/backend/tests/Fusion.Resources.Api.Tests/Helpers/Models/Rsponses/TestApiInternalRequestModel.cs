@@ -10,6 +10,7 @@ namespace Fusion.Testing.Mocks
     public class TestApiInternalRequestModel
     {
         public Guid Id { get; set; }
+        public long Number { get; set; }
         public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
         public string? State { get; set; }
