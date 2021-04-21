@@ -29,6 +29,7 @@ namespace Fusion.Resources.Domain.Queries
             {
                 var unassignedRequests = await mediator.Send(new GetResourceAllocationRequests()
                     .ExpandPositions()
+                    .ExpandPositionInstances()
                     .WithUnassignedFilter(true)
                     .WithExcludeCompleted(true), cancellationToken);
 

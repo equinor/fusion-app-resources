@@ -6,6 +6,7 @@ using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -114,8 +115,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
             using var adminScope = fixture.AdminScope();
 
             var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
-            await Client.StartProjectRequestAsync(testProject, unassignedRequest.Id);
-            await Client.StartProjectRequestAsync(testProject, unassignedRequest.Id);
 
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
@@ -129,7 +128,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
             resp.Value.value.Should().NotContain(r => r.id == unassignedRequest.Id);
         }
 
+        [Fact]
+        public async Task ShouldExpandPositionInstances()
+        {
+            var department = "TPD PRD MY TEST DEP1";
+            fixture.EnsureDepartment(department);
 
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = department);
+            var testPosition = testProject.AddPosition().WithBasePosition(bp).WithInstances(3);
+
+            using var adminScope = fixture.AdminScope();
+
+            var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
+
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", 
+                new { value = new[] { new { id = Guid.Empty, orgPosition = new { instances = Array.Empty<object>() } } } });
+            resp.Value.value.Single().orgPosition.instances.Should().HaveCount(3);
+        }
 
         public Task DisposeAsync()
         {
