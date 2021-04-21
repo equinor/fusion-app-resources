@@ -251,7 +251,7 @@ namespace Fusion.Resources.Api.Notifications
                                 NotifyCreator = true;
                             }
                         }
-                        if (isChangeRequest)
+                        else if (isChangeRequest)
                         {
                             NotifyTaskOwner = true;
                             NotifyResourceOwner = true;
