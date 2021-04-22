@@ -47,6 +47,12 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests WithExcludeDrafts(bool excludeDrafts = true)
+        {
+            ExcludeDrafts = excludeDrafts;
+            return this;
+        }
+
         public GetResourceAllocationRequests WithAssignedDepartment(string departmentString)
         {
             DepartmentString = departmentString;
@@ -185,8 +191,8 @@ namespace Fusion.Resources.Domain.Queries
                 if (!countOnly)
                 {
                     await AddWorkFlows(pagedQuery);
-                    await AddOrgPositions(pagedQuery, request.Expands);
                     await AddProposedPersons(pagedQuery);
+                    await AddOrgPositions(pagedQuery, request.Expands);
                 }
 
                 return pagedQuery;
