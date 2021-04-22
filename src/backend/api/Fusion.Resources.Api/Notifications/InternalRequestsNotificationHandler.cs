@@ -49,7 +49,7 @@ namespace Fusion.Resources.Api.Notifications
                             .AddFact("Project", request.Position.Project.Name)
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
+                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
 
                 });
             }
@@ -74,7 +74,7 @@ namespace Fusion.Resources.Api.Notifications
                             .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
+                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
                 });
             }
         }
@@ -92,18 +92,18 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     builder
                         .TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
-                        .AddDescription($"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was accpeted for position {request.Position.Name}.")
+                        .AddDescription($"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was accepted for position {request.Position.Name}.")
                         .AddFacts(facts => facts
                             .AddFact("Project", request.Position.Project.Name)
                             .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
+                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
 
                 });
             }
         }
-        
+
         public async Task Handle(RequestChanged notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
@@ -121,7 +121,7 @@ namespace Fusion.Resources.Api.Notifications
                             .AddFact("Project", request.Position.Project.Name)
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
+                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
 
                 });
             }
@@ -180,13 +180,16 @@ namespace Fusion.Resources.Api.Notifications
                 Instance = instance;
 
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
+
+                var typeKey = IsChangeRequest ? "change" : "request";
+                PortalUrl = $"/apps/resource-allocation/my-requests/resource/{typeKey}/{allocationRequest.RequestId}";
             }
 
             private void DecideWhoShouldBeNotified(Type notificationType, QueryResourceAllocationRequest allocationRequest)
             {
 
-                bool isAllocationRequest = allocationRequest.Type == InternalRequestType.Allocation;
-                bool isChangeRequest = allocationRequest.Type == InternalRequestType.ResourceOwnerChange;
+                IsAllocationRequest = allocationRequest.Type == InternalRequestType.Allocation;
+                IsChangeRequest = allocationRequest.Type == InternalRequestType.ResourceOwnerChange;
 
                 var isDirect = allocationRequest.SubType == AllocationDirectWorkflowV1.SUBTYPE;
                 var isJointVenture = allocationRequest.SubType == AllocationJointVentureWorkflowV1.SUBTYPE;
@@ -198,7 +201,7 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     //Provision
                     case nameof(WorkflowChanged):
-                        if (isAllocationRequest)
+                        if (IsAllocationRequest)
                         {
                             if (isNormal)
                             {
@@ -217,42 +220,35 @@ namespace Fusion.Resources.Api.Notifications
                                 NotifyCreator = true;
                             }
                         }
-                        else if (isChangeRequest)
+                        else if (IsChangeRequest)
                         {
                             NotifyTaskOwner = true;
                             NotifyResourceOwner = true;
                         }
                         break;
                     case nameof(ProposedPersonChanged):
-                        if (isAllocationRequest)
+                        if (IsAllocationRequest)
                         {
                             NotifyTaskOwner = true;
                             NotifyCreator = true;
                         }
-                        else if (isChangeRequest)
+                        else if (IsChangeRequest)
                         {
                             NotifyTaskOwner = true;
                         }
                         break;
                     case nameof(AssignedPersonAccepted):
-                        if (isAllocationRequest)
+                        if (IsAllocationRequest)
                         {
                             NotifyResourceOwner = true;
                         }
-                        else if (isChangeRequest)
+                        else if (IsChangeRequest)
                         {
                             NotifyResourceOwner = true;
-                        }
-                        break;
-                    case nameof(TaskOwnerAssigned):
-                        if (isAllocationRequest)
-                        {
-                            NotifyTaskOwner = true;
-                            NotifyCreator = true;
                         }
                         break;
                     case nameof(RequestChanged):
-                        if (isChangeRequest)
+                        if (IsChangeRequest)
                         {
                             NotifyTaskOwner = true;
                             NotifyResourceOwner = true;
@@ -261,12 +257,15 @@ namespace Fusion.Resources.Api.Notifications
                 }
             }
 
+            private bool IsAllocationRequest { get; set; }
+            private bool IsChangeRequest { get; set; }
             public bool NotifyResourceOwner { get; private set; }
             public bool NotifyTaskOwner { get; private set; }
             public bool NotifyCreator { get; private set; }
             public QueryResourceAllocationRequest AllocationRequest { get; }
             public ApiPositionV2 Position { get; }
             public ApiPositionInstanceV2 Instance { get; }
+            public string PortalUrl { get; }
         }
     }
 }
