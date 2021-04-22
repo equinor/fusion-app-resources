@@ -67,8 +67,8 @@ namespace Fusion.Resources.Api.Notifications
                 await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
                 {
                     builder
-                        .TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
-                        .AddDescription($"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was proposed for position {request.Position.Name}.")
+                        .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
+                        .AddDescription($"{request.Instance.AssignedPerson?.Name} ({request.Instance.AssignedPerson?.Mail}) was proposed for position {request.Position.Name}.")
                         .AddFacts(facts => facts
                             .AddFact("Project", request.Position.Project.Name)
                             .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
@@ -91,8 +91,8 @@ namespace Fusion.Resources.Api.Notifications
                 await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
                 {
                     builder
-                        .TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
-                        .AddDescription($"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was accepted for position {request.Position.Name}.")
+                        .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
+                        .AddDescription($"{request.Instance.AssignedPerson?.Name} ({request.Instance.AssignedPerson?.Mail}) was accepted for position {request.Position.Name}.")
                         .AddFacts(facts => facts
                             .AddFact("Project", request.Position.Project.Name)
                             .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
