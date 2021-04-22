@@ -51,13 +51,16 @@ namespace Fusion.Resources.Domain.Queries
 
                 var tbnPositions = new List<QueryTbnPosition>();
 
+                var sourceDepartmentLevel = request.Department.Split(" ").Length;
+
                 foreach (var pos in positions)
                 {
                     foreach (var instance in pos.Instances)
                     {
                         if (instance.AssignedPerson is not null) continue;
 
-                        if (IsRelevantBasePositionDepartment(request.Department, pos.BasePosition.Department))
+                        // This should be some sort of configuration in the future
+                        if (DepartmentUtils.IsRelevantBasePositionDepartment(sourceDepartmentLevel, request.Department, pos.BasePosition.Department))
                         {
                             tbnPositions.Add(new QueryTbnPosition(pos, instance));
                         }
@@ -66,20 +69,6 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 return tbnPositions;
-            }
-
-            private static bool IsRelevantBasePositionDepartment(string sourceDepartment, string basePositionDepartment)
-            {
-                if (sourceDepartment is null || basePositionDepartment is null)
-                    return false;
-
-                if (sourceDepartment.StartsWith(basePositionDepartment, System.StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                if (basePositionDepartment.StartsWith(sourceDepartment, System.StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                return false;
             }
 
             private async Task<List<ApiPositionV2>> GetTbnPositionsAsync(CancellationToken cancellationToken)

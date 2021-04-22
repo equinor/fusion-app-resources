@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -41,26 +42,21 @@ namespace Fusion.Resources.Domain.Queries
                     .WithExcludeDrafts(true)
                     .WithExcludeCompleted(true), cancellationToken) ;
 
+                var sourceDepartmentLevel = request.DepartmentString.Split(" ").Length;
+
+
+                // This should be some sort of configuration in the future
+                Func<QueryResourceAllocationRequest, bool> departmentCheck = (r) =>
+                    DepartmentUtils.IsRelevantBasePositionDepartment(sourceDepartmentLevel, request.DepartmentString, r.OrgPosition!.BasePosition.Department);
+
                 var relevantRequests = unassignedRequests
-                    .Where(r => r.OrgPosition != null && IsRelevantBasePosition(request.DepartmentString, r.OrgPosition.BasePosition.Department))
+                    .Where(r => r.OrgPosition != null && departmentCheck(r))
                     .ToList();
 
                 return new QueryRangedList<QueryResourceAllocationRequest>(relevantRequests, relevantRequests.Count, 0);
             }
 
-            private static bool IsRelevantBasePosition(string sourceDepartment, string basePositionDepartment)
-            {
-                if (sourceDepartment is null || basePositionDepartment is null)
-                    return false;
 
-                if (sourceDepartment.StartsWith(basePositionDepartment, System.StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                if (basePositionDepartment.StartsWith(sourceDepartment, System.StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                return false;
-            }
         }
 
     }
