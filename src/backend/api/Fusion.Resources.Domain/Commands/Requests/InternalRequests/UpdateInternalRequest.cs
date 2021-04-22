@@ -6,10 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Notifications;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    
+
     public class UpdateInternalRequest : TrackableRequest<QueryResourceAllocationRequest>
     {
         public UpdateInternalRequest(Guid requestId)
@@ -52,6 +53,7 @@ namespace Fusion.Resources.Domain.Commands
 
 
                 bool modified = false;
+                bool newProposedPerson = false;
 
                 modified |= request.AssignedDepartment.IfSet(dep => dbRequest.AssignedDepartment = dep);
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
@@ -65,6 +67,7 @@ namespace Fusion.Resources.Domain.Commands
                         dbRequest.ProposedPerson.Mail = resolvedPerson?.Mail;
                         dbRequest.ProposedPerson.HasBeenProposed = true;
                         dbRequest.ProposedPerson.ProposedAt = DateTimeOffset.Now;
+                        newProposedPerson = true;
                     }
                     else
                         dbRequest.ProposedPerson.Clear();
@@ -81,12 +84,17 @@ namespace Fusion.Resources.Domain.Commands
                     dbRequest.LastActivity = dbRequest.Updated.Value;
 
                     await db.SaveChangesAsync();
+
+                    if (newProposedPerson)
+                    {
+                        await mediator.Publish(new ProposedPersonChanged(dbRequest.Id));
+                    }
                 }
 
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                 return requestItem!;
-            }            
+            }
         }
     }
 }

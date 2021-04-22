@@ -1,6 +1,5 @@
 ﻿using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
-using Fusion.Resources.Api.Notifications.Markdown;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
@@ -17,9 +16,8 @@ namespace Fusion.Resources.Api.Notifications
 {
     public class InternalRequestsNotificationHandler :
         INotificationHandler<WorkflowChanged>,
-        INotificationHandler<AllocatedPersonProposal>,
+        INotificationHandler<ProposedPersonChanged>,
         INotificationHandler<AssignedPersonAccepted>,
-        INotificationHandler<TaskOwnerAssigned>,
         INotificationHandler<RequestChanged>
     {
         private readonly IMediator mediator;
@@ -45,12 +43,19 @@ namespace Fusion.Resources.Api.Notifications
 
                 await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
                 {
-                    builder.AddDescription(NotificationDescription.RequestWorkflowChanged(request.Position, request.Instance));
+                    builder
+                        .AddDescription(DefaultFollowUpText)
+                        .AddFacts(facts => facts
+                            .AddFact("Project", request.Position.Project.Name)
+                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
+                        )
+                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
+
                 });
             }
         }
 
-        public async Task Handle(AllocatedPersonProposal notification, CancellationToken cancellationToken)
+        public async Task Handle(ProposedPersonChanged notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
             var recipients = await GenerateRecipientsAsync(request);
@@ -61,7 +66,15 @@ namespace Fusion.Resources.Api.Notifications
 
                 await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
                 {
-                    builder.AddDescription(NotificationDescription.RequestPersonProposal(request.Position, request.Instance));
+                    builder
+                        .TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
+                        .AddDescription($"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was proposed for position {request.Position.Name}.")
+                        .AddFacts(facts => facts
+                            .AddFact("Project", request.Position.Project.Name)
+                            .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
+                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
+                        )
+                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
                 });
             }
         }
@@ -77,26 +90,20 @@ namespace Fusion.Resources.Api.Notifications
 
                 await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
                 {
-                    builder.AddDescription(NotificationDescription.RequestAssignedPersonAccepted(request.Position, request.Instance));
+                    builder
+                        .TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
+                        .AddDescription($"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was accpeted for position {request.Position.Name}.")
+                        .AddFacts(facts => facts
+                            .AddFact("Project", request.Position.Project.Name)
+                            .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
+                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
+                        )
+                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
+
                 });
             }
         }
-
-        public async Task Handle(TaskOwnerAssigned notification, CancellationToken cancellationToken)
-        {
-            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
-            var recipients = await GenerateRecipientsAsync(request);
-
-            foreach (var recipient in recipients)
-            {
-                NotificationArguments arguments = new($"Workflow assigned for position {request.Position.Name}") { Priority = EmailPriority.Low };
-
-                await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
-                {
-                    builder.AddDescription(NotificationDescription.RequestWorkflowAssignedToTaskOwner(request.Position, request.Instance));
-                });
-            }
-        }
+        
         public async Task Handle(RequestChanged notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
@@ -108,7 +115,14 @@ namespace Fusion.Resources.Api.Notifications
 
                 await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
                 {
-                    builder.AddDescription(NotificationDescription.RequestChanged(request.Position, request.Instance));
+                    builder
+                        .AddDescription(DefaultFollowUpText)
+                        .AddFacts(facts => facts
+                            .AddFact("Project", request.Position.Project.Name)
+                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
+                        )
+                        .TryAddOpenPortalUrlAction("Open request", $"/apps/resource-allocation/my-requests/resource/request/{notification.RequestId}");
+
                 });
             }
         }
@@ -154,54 +168,6 @@ namespace Fusion.Resources.Api.Notifications
                 recipients.AddRange(data.Instance.TaskOwnerIds);
 
             return recipients;
-        }
-
-        private static class NotificationDescription
-        {
-            public static string RequestPersonProposal(ApiPositionV2 orgPosition, ApiPositionInstanceV2 orgPositionInstance) => new MarkdownDocument()
-                .Paragraph($"{orgPositionInstance.AssignedPerson.Name} ({orgPositionInstance.AssignedPerson.Mail}) was proposed for position {orgPosition.Name}.")
-                .Paragraph(DefaultFollowUpText)
-                .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {orgPosition.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Position:")} {orgPosition.Name}")
-                )
-                .Build();
-
-            public static string RequestAssignedPersonAccepted(ApiPositionV2 orgPosition, ApiPositionInstanceV2 orgPositionInstance) => new MarkdownDocument()
-                .Paragraph($"{orgPositionInstance.AssignedPerson.Name} ({orgPositionInstance.AssignedPerson.Mail}) was accepted for position {orgPosition.Name}.")
-                .Paragraph(DefaultFollowUpText)
-                .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {orgPosition.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Position:")} {orgPosition.Name}")
-                )
-                .Build();
-
-            public static string RequestWorkflowAssignedToTaskOwner(ApiPositionV2 orgPosition, ApiPositionInstanceV2 orgPositionInstance) => new MarkdownDocument()
-                .Paragraph($"Workflow assigned for position {orgPosition.Name}.")
-                .Paragraph(DefaultFollowUpText)
-                .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {orgPosition.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Position:")} {orgPosition.Name}")
-                )
-                .Build();
-
-            public static string RequestWorkflowChanged(ApiPositionV2 orgPosition, ApiPositionInstanceV2 orgPositionInstance) => new MarkdownDocument()
-                .Paragraph($"Workflow changed for position {orgPosition.Name}.")
-                .Paragraph(DefaultFollowUpText)
-                .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {orgPosition.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Position:")} {orgPosition.Name}")
-                )
-                .Build();
-
-            public static string RequestChanged(ApiPositionV2 orgPosition, ApiPositionInstanceV2 orgPositionInstance) => new MarkdownDocument()
-                .Paragraph($"Request changed for position {orgPosition.Name}.")
-                .Paragraph(DefaultFollowUpText)
-                .List(l => l
-                    .ListItem($"{MdToken.Bold("Project:")} {orgPosition.Project.Name}")
-                    .ListItem($"{MdToken.Bold("Position:")} {orgPosition.Name}")
-                )
-                .Build();
         }
 
         private class NotificationRequestData
@@ -257,7 +223,7 @@ namespace Fusion.Resources.Api.Notifications
                             NotifyResourceOwner = true;
                         }
                         break;
-                    case nameof(AllocatedPersonProposal):
+                    case nameof(ProposedPersonChanged):
                         if (isAllocationRequest)
                         {
                             NotifyTaskOwner = true;

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Notifications;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -45,6 +46,8 @@ namespace Fusion.Resources.Logic.Commands
                     await resourcesDb.SaveChangesAsync();
 
                     await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, dbRequest.SubType, request.Editor.Person));
+
+                    await mediator.Publish(new RequestChanged(dbRequest.Id));
                 }
 
 
