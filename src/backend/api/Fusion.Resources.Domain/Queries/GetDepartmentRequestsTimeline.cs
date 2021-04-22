@@ -19,16 +19,25 @@ namespace Fusion.Resources.Domain
     {
         public GetDepartmentRequestsTimeline(string departmentString, DateTime timelineStart, DateTime timelineEnd, ODataQueryParams? queryParams = null)
         {
-            this.QueryParams = queryParams;
-            this.DepartmentString = departmentString;
-            this.TimelineStart = timelineStart;
-            this.TimelineEnd = timelineEnd;
+            QueryParams = queryParams;
+            DepartmentString = departmentString;
+            TimelineStart = timelineStart;
+            TimelineEnd = timelineEnd;
+            ExcludeCompleted = true;
         }
 
         public string DepartmentString { get; private set; }
         public ODataQueryParams? QueryParams { get; set; }
         public DateTime? TimelineStart { get; set; }
         public DateTime? TimelineEnd { get; set; }
+
+        public bool ExcludeCompleted { get; set; }
+
+        public GetDepartmentRequestsTimeline WithExcludeCompleted(bool exclude = true)
+        {
+            ExcludeCompleted = exclude;
+            return this;
+        }
 
         public class Validator : AbstractValidator<GetDepartmentRequestsTimeline>
         {
@@ -62,11 +71,17 @@ namespace Fusion.Resources.Domain
                     .Include(r => r.Project)
                     .Include(r => r.ProposedPerson)
                     .Where(r => r.IsDraft == false || r.RequestOwner == DbInternalRequestOwner.ResourceOwner)
-                    .Where(r => r.AssignedDepartment == request.DepartmentString)
-                    .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterias.
-                    .ToList();
+                    .Where(r => r.AssignedDepartment == request.DepartmentString);
 
-                var departmentRequests = new List<QueryResourceAllocationRequest>(query.Select(x => new QueryResourceAllocationRequest(x)));
+                if (request.ExcludeCompleted)
+                    query = query.Where(c => c.State.IsCompleted == false);
+
+                var items = await query
+                    .OrderBy(x => x.Id) 
+                    .ToListAsync(); 
+                    
+
+                var departmentRequests = new List<QueryResourceAllocationRequest>(items.Select(x => new QueryResourceAllocationRequest(x)));
                 
                 foreach (var departmentRequest in departmentRequests)
                 {
