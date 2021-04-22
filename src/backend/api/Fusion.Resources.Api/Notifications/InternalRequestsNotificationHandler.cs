@@ -248,10 +248,14 @@ namespace Fusion.Resources.Api.Notifications
                         }
                         break;
                     case nameof(RequestChanged):
-                        if (IsChangeRequest)
+                        if (IsAllocationRequest)
                         {
                             NotifyTaskOwner = true;
-                            NotifyResourceOwner = true;
+                            NotifyCreator = true;
+                        }
+                        else if (IsChangeRequest)
+                        {
+                            NotifyTaskOwner = true;
                         }
                         break;
                 }
