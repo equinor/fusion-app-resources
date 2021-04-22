@@ -148,7 +148,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
                 $"/departments/{testRequest.AssignedDepartment}/resources/requests?api-version=1.0-preview");
-            
+
             response.Value.Value.Should().OnlyContain(req => !String.IsNullOrEmpty(req.ProposedPerson.Person.Name));
         }
 
@@ -187,7 +187,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //{
         //    using var adminScope = fixture.AdminScope();
 
-            
+
 
 
         //    var position = testProject.AddPosition();
@@ -418,6 +418,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var segments = response.Value.Timeline.OrderBy(s => s.AppliesFrom).ToList();
 
+            TestLogger.TryLog("=====================");
+            TestLogger.TryLog($"{response.Response.RequestMessage.Method} {response.Response.RequestMessage.RequestUri}");
+            TestLogger.TryLog($"Returned: {response.Response.StatusCode}");
+            TestLogger.TryLog(await response.Response.Content.ReadAsStringAsync());
+            TestLogger.TryLog("=====================");
+
             segments[0].Items.Should().HaveCount(1);
             segments[0].AppliesFrom.Should().Be(new DateTime(2019, 03, 01));
             segments[0].AppliesTo.Should().Be(new DateTime(2019, 03, 05));
@@ -495,7 +501,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             public class SimpleRequestTestModel
             {
-       
+
                 public string Id { get; set; }
                 public DateTime AppliesFrom { get; set; }
                 public DateTime AppliesTo { get; set; }
@@ -509,12 +515,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 public DateTime AppliesFrom { get; set; }
                 public DateTime AppliesTo { get; set; }
                 public List<RequestTimelineItemTestModel> Items { get; set; } = new List<RequestTimelineItemTestModel>();
-                public double? Workload { get; set; } 
+                public double? Workload { get; set; }
             }
 
             public class RequestTimelineItemTestModel
             {
-                public string Id { get; set; } 
+                public string Id { get; set; }
                 public string PositionName { get; set; }
                 public string ProjectName { get; set; }
                 public double? Workload { get; set; }
