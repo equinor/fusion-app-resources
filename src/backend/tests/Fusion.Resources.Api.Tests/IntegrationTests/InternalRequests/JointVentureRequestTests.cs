@@ -107,7 +107,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         [Theory]
         [InlineData("isDraft", false)]
-        [InlineData("state", "approval")]
+        [InlineData("state", "created")]
         public async Task JVRequest_Start_ShouldSet(string property, object value)
         {
             using var adminScope = fixture.AdminScope();

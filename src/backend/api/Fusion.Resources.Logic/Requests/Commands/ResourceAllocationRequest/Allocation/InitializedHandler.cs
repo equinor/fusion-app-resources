@@ -53,7 +53,7 @@ namespace Fusion.Resources.Logic.Commands
                     dbContext.Workflows.Add(workflow.CreateDatabaseEntity(notification.RequestId, DbRequestType.InternalRequest));
 
                     request.LastActivity = DateTime.UtcNow;
-                    request.State.State = workflow.GetCurrent().Id;
+                    request.State.State = AllocationDirectWorkflowV1.CREATED;
 
                     // Try to resolve the default assigned department
                     if (request.AssignedDepartment is null)

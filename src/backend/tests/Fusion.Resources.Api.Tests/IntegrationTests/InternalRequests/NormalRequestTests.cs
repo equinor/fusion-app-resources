@@ -201,7 +201,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         [Theory]
         [InlineData("isDraft", false)]
-        [InlineData("state", "proposal")]
+        [InlineData("state", "created")]
         public async Task NormalRequest_Start_ShouldSet(string property, object value)
         {
             using var adminScope = fixture.AdminScope();
