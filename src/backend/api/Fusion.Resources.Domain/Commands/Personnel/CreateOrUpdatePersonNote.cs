@@ -13,33 +13,35 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class CreateOrUpdatePersonNote : TrackableRequest<QueryPersonNote> 
     {
-        private CreateOrUpdatePersonNote(Guid? id, string? content, bool isShared)
+        private CreateOrUpdatePersonNote(Guid? id, string? content, Guid azureUniqueId)
         {
             NoteId = id;
             Content = content;
-            IsShared = isShared;
+            AzureUniqueId = azureUniqueId;
         }
 
         public Guid? NoteId { get; }
         public string? Content { get; }
-        public bool IsShared { get; }
+        public Guid AzureUniqueId { get; }
+
+        public bool IsShared { get; set;  }
 
         public string? Title { get; set; }
-        public Guid AzureUniqueId { get; set; }
 
-        public CreateOrUpdatePersonNote OnUser(Guid azureUniqueId)
-        {
-            AzureUniqueId = azureUniqueId;
-            return this;
-        }
         public CreateOrUpdatePersonNote WithTitle(string? title)
         {
             Title = title;
             return this;
         }
+        public CreateOrUpdatePersonNote SetIsShared(bool isShared = false)
+        {
+            IsShared = isShared;
+            return this;
+        }
 
-        public static CreateOrUpdatePersonNote CreateNew(string? content, bool isShared) => new CreateOrUpdatePersonNote(null, content, isShared);
-        public static CreateOrUpdatePersonNote Update(Guid id, string? content, bool isShared) => new CreateOrUpdatePersonNote(id, content, isShared);
+
+        public static CreateOrUpdatePersonNote CreateNew(string? content, Guid azureUniqueId) => new CreateOrUpdatePersonNote(null, content, azureUniqueId);
+        public static CreateOrUpdatePersonNote Update(Guid id, string? content, Guid azureUniqueId) => new CreateOrUpdatePersonNote(id, content, azureUniqueId);
 
         #region Validation
         public class Validator : AbstractValidator<CreateOrUpdatePersonNote>

@@ -124,9 +124,9 @@ namespace Fusion.Resources.Api.Controllers
             if (!notes.Any(n => n.Id == noteId))
                 return ApiErrors.NotFound("Could not locate note for user");
 
-            var updatedNote = await DispatchAsync(Domain.Commands.CreateOrUpdatePersonNote.Update(noteId, request.Content, request.IsShared)
-                .OnUser(user.azureId)
-                .WithTitle(request.Title));
+            var updatedNote = await DispatchAsync(Domain.Commands.CreateOrUpdatePersonNote.Update(noteId, request.Content, user.azureId)
+                .WithTitle(request.Title)
+                .SetIsShared(request.IsShared));
 
             return new ApiPersonNote(updatedNote);
         }
@@ -157,9 +157,9 @@ namespace Fusion.Resources.Api.Controllers
                 return user.error;
 
 
-            var newNote = await DispatchAsync(Domain.Commands.CreateOrUpdatePersonNote.CreateNew(request.Content, request.IsShared)
-                .OnUser(user.azureId)
-                .WithTitle(request.Title));
+            var newNote = await DispatchAsync(Domain.Commands.CreateOrUpdatePersonNote.CreateNew(request.Content, user.azureId)
+                .WithTitle(request.Title)
+                .SetIsShared(request.IsShared));
 
             return new ApiPersonNote(newNote);
         }
