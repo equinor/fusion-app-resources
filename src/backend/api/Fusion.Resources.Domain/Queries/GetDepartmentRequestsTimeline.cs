@@ -6,10 +6,12 @@ using Fusion.Resources.Database.Entities;
 using Itenso.TimePeriod;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,15 +43,22 @@ namespace Fusion.Resources.Domain
             }
         }
 
+        public override string ToString()
+        {
+            return $"Get Timeline for {DepartmentString}, {TimelineStart:yyyy-MM-dd}-{TimelineEnd:yyyy-MM-dd}";
+        }
+
         public class Handler : IRequestHandler<GetDepartmentRequestsTimeline, QueryRequestsTimeline>
         {
             private readonly ResourcesDbContext db;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly ILogger<GetDepartmentRequestsTimeline> logger;
 
-            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext db, IProjectOrgResolver orgResolver, ILogger<GetDepartmentRequestsTimeline> logger)
             {
                 this.db = db;
                 this.orgResolver = orgResolver;
+                this.logger = logger;
             }
 
             public async Task<QueryRequestsTimeline> Handle(GetDepartmentRequestsTimeline request, CancellationToken cancellationToken)
@@ -79,6 +88,9 @@ namespace Fusion.Resources.Domain
                         }
                     }
                 }
+
+                logger.LogInformation(request.ToString());
+                logger.LogInformation(JsonSerializer.Serialize(departmentRequests));
 
                 // Timeline date input has been verified in controller
                 var filterStart = request.TimelineStart!.Value;
