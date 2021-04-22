@@ -43,8 +43,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     if (dbRequest.State.State is null)
                         throw new InvalidOperationException("Workflow has not been initialized");
-
-
+                    
                     var currentStep = workflow[dbRequest.State.State];
                     await mediator.Publish(new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId));
 

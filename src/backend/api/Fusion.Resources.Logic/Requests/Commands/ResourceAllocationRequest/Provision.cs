@@ -103,14 +103,12 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             case DbInternalRequestType.Allocation:
                                 await mediator.Send(new Allocation.ProvisionAllocationRequest(dbRequest.Id));
-                            
                                 break;
 
                             case DbInternalRequestType.ResourceOwnerChange:
                                 await mediator.Send(new ResourceOwner.ProvisionResourceOwnerRequest(dbRequest.Id));
                                 break;
-
-
+                                
                             default:
                                 throw new NotSupportedException($"Provisioning for request of type {dbRequest.Type} is not supported");
                         }
