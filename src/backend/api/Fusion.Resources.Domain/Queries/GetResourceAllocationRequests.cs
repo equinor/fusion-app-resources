@@ -192,9 +192,8 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await AddWorkFlows(pagedQuery);
                     await AddProposedPersons(pagedQuery);
+                    await AddOrgPositions(pagedQuery, request.Expands);
                 }
-                
-                await AddOrgPositions(pagedQuery, request.Expands);
 
                 return pagedQuery;
             }
