@@ -49,7 +49,8 @@ namespace Fusion.Resources.Api.Notifications
                             .AddFact("Project", request.Position.Project.Name)
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
+                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                        ;
 
                 });
             }
@@ -74,7 +75,8 @@ namespace Fusion.Resources.Api.Notifications
                             .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
+                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                        ;
                 });
             }
         }
@@ -98,7 +100,8 @@ namespace Fusion.Resources.Api.Notifications
                             .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
+                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                        ;
 
                 });
             }
@@ -121,7 +124,8 @@ namespace Fusion.Resources.Api.Notifications
                             .AddFact("Project", request.Position.Project.Name)
                             .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                         )
-                        .TryAddOpenPortalUrlAction("Open request", request.PortalUrl);
+                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                        ;
 
                 });
             }
@@ -182,7 +186,7 @@ namespace Fusion.Resources.Api.Notifications
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
 
                 var typeKey = IsChangeRequest ? "change" : "request";
-                PortalUrl = $"/apps/resource-allocation/my-requests/resource/{typeKey}/{allocationRequest.RequestId}";
+                //PortalUrl = $"/apps/resource-allocation/my-requests/resource/{typeKey}/{allocationRequest.RequestId}";
             }
 
             private void DecideWhoShouldBeNotified(Type notificationType, QueryResourceAllocationRequest allocationRequest)
