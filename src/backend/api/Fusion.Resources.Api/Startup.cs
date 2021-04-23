@@ -56,6 +56,9 @@ namespace Fusion.Resources.Api
             // Configure fusion integration
             services.AddFusionIntegration(options =>
             {
+                try { options.AddProfileSync<FusionEvents.ProfileSyncHandler>(); } 
+                catch { /* Shitfix untill fixed in integration lib. Throws when added multitple times, which is done in the integration tests. (static bool flag) */ }
+
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
                 options.AddFusionRoles();

@@ -39,7 +39,8 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbResponsibilityMatrix> ResponsibilityMatrices { get; set; }
         public DbSet<DbPersonAbsence> PersonAbsences { get; set; }
-        
+        public DbSet<DbPersonNote> PersonNotes { get; set; }
+
         public DbSet<DbDepartment> Departments { get; set; }
         public DbSet<DbDepartmentResponsible> DepartmentResponsibles { get; set; }
 
@@ -54,6 +55,7 @@ namespace Fusion.Resources.Database
             DbPerson.OnModelCreating(modelBuilder);
             DbDelegatedRole.OnModelCreating(modelBuilder);
             DbPersonAbsence.OnModelCreating(modelBuilder);
+            DbPersonNote.OnModelCreating(modelBuilder);
             DbResponsibilityMatrix.OnModelCreating(modelBuilder);
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
             DbDepartment.OnModelCreating(modelBuilder);
