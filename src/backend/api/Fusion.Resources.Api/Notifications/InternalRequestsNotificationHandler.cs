@@ -167,7 +167,7 @@ namespace Fusion.Resources.Api.Notifications
             if (data.NotifyTaskOwner && data.Instance.TaskOwnerIds != null)
                 recipients.AddRange(data.Instance.TaskOwnerIds);
 
-            return recipients;
+            return recipients.Distinct();// A person may be a creator and/or resource owner and/or task owner.
         }
 
         private class NotificationRequestData
