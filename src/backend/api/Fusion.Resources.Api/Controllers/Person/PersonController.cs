@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -68,6 +69,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/persons/{personId}/resources/notes")]
         public async Task<ActionResult<List<ApiPersonNote>>> GetPersonNotes(string personId)
         {
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error;
 
             #region Authorization
 
@@ -78,7 +82,12 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
+                    or.BeResourceOwner(user.fullDepartment);
                 });
+
+                // Limited access to other resource owners, only return shared notes.
+                // Give access to all resource owners that share the same L2.
+                r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
             });
 
             if (authResult.Unauthorized)
@@ -86,11 +95,10 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var user = await EnsureUserAsync(personId);
-            if (user.error is not null)
-                return user.error;
-
             var notes = await DispatchAsync(new GetPersonNotes(user.azureId));
+
+            // If limited auth, only return shared notes.
+            notes = authResult.FilterWhenLimited(notes, n => n.IsShared);
 
             return notes.Select(n => new ApiPersonNote(n)).ToList();
         }
@@ -99,6 +107,10 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiPersonNote>> UpdatePersonalNote(string personId, Guid noteId, [FromBody] PersonNotesRequest request)
         {
 
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error;
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -108,6 +120,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
+                    or.BeResourceOwner(user.fullDepartment);
                 });
             });
 
@@ -116,9 +129,6 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var user = await EnsureUserAsync(personId);
-            if (user.error is not null)
-                return user.error;
 
             var notes = await DispatchAsync(new GetPersonNotes(user.azureId));
             if (!notes.Any(n => n.Id == noteId))
@@ -134,16 +144,21 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/persons/{personId}/resources/notes")]
         public async Task<ActionResult<ApiPersonNote>> CreateNewPersonalNote(string personId, [FromBody] PersonNotesRequest request)
         {
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error;
 
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal();
 
                 r.AnyOf(or =>
                 {
+                    or.BeResourceOwner(user.fullDepartment);
                 });
             });
 
@@ -151,11 +166,6 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-
-            var user = await EnsureUserAsync(personId);
-            if (user.error is not null)
-                return user.error;
-
 
             var newNote = await DispatchAsync(Domain.Commands.CreateOrUpdatePersonNote.CreateNew(request.Content, user.azureId)
                 .WithTitle(request.Title)
@@ -168,6 +178,10 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult> DeletePersonalNote(string personId, Guid noteId)
         {
 
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error!;
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -177,6 +191,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
+                    or.BeResourceOwner(user.fullDepartment);
                 });
             });
 
@@ -185,9 +200,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var user = await EnsureUserAsync(personId);
-            if (user.error is not null)
-                return user.error!;
+
 
             var notes = await DispatchAsync(new GetPersonNotes(user.azureId));
             if (!notes.Any(n => n.Id == noteId))
@@ -198,17 +211,18 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-        private async Task<(Guid azureId, ActionResult? error)> EnsureUserAsync(string personId)
+        private async Task<(Guid azureId, string fullDepartment, ActionResult? error)> EnsureUserAsync(string personId)
         {
             var user = await profileResolver.ResolvePersonBasicProfileAsync(personId);
             if (user is null)
-                return (Guid.Empty, ApiErrors.NotFound("Could not locate user"));
+                return (Guid.Empty, string.Empty, ApiErrors.NotFound("Could not locate user"));
             if (user.AzureUniqueId is null)
-                return (Guid.Empty, ApiErrors.InvalidInput("Could not locate any unique id for the user. User must exist in ad."));
+                return (Guid.Empty, string.Empty, ApiErrors.InvalidInput("Could not locate any unique id for the user. User must exist in ad."));
 
-            return (user.AzureUniqueId.Value, null);
+            return (user.AzureUniqueId.Value, user.FullDepartment ?? string.Empty, null);
         }
     }
+
 
 
 }
