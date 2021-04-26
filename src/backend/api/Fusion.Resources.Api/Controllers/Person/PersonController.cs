@@ -86,7 +86,7 @@ namespace Fusion.Resources.Api.Controllers
                 });
 
                 // Limited access to other resource owners, only return shared notes.
-                // Give access to all resource owners that share the same L2.
+                // Give access to all resource owners that share the same L3.
                 r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
             });
 

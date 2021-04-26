@@ -17,8 +17,10 @@ namespace Fusion.Resources.Api
 
         public DepartmentPath(string fullDepartmentPath)
         {
-            this.fullDepartmentPath = fullDepartmentPath;
-            path = fullDepartmentPath.Split(" ");
+            var trimedPath = (fullDepartmentPath ?? "").Trim();
+
+            this.fullDepartmentPath = trimedPath;
+            path = trimedPath.Split(" ");
         }
 
         public int Level => path.Length;

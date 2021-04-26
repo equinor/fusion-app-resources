@@ -21,7 +21,7 @@
     <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.1" />
     <PackageReference Include="Bogus" Version="32.1.1" />
 
-    <PackageReference Include="Fusion.Integration" Version="5.2.0" />
+    <PackageReference Include="Fusion.Integration" Version="5.2.1" />
     <!-- No longer need this reference, but keeping for future ref. -->
     <!--<PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />-->
     <PackageReference Include="Fusion.Integration.Authorization" Version="5.1.1" />

@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 #nullable enable
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+
     public class PersonNotesTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;
@@ -169,7 +170,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var privateNote = await CreateNoteAsAdminAsync(client, isShared: true);
 
             // Update the department for the resource owner
-            resourceOwner.FullDepartment = new Controllers.DepartmentPath(testUser.FullDepartment!).Parent();
+            resourceOwner.FullDepartment = new DepartmentPath(testUser.FullDepartment!).Parent();
 
             using var resOwnerScope = fixture.UserScope(resourceOwner);
 
