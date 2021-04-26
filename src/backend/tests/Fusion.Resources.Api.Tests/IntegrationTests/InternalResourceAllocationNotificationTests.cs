@@ -116,7 +116,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
@@ -150,7 +149,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
@@ -173,7 +171,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
@@ -198,7 +195,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resourceOwner = resourceOwnerPerson.AzureUniqueId.ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().Be(4);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == resourceOwner).Should().Be(2);
@@ -223,7 +219,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
 
