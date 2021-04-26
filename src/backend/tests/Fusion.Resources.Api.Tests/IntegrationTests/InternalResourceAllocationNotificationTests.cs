@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class InternalResourceAllocationNotificationTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
-        const string TestDepartmentId = "TPD PRD FE MMS MAT1";
+        private const string TestDepartmentId = "TPD PRD FE MMS MAT1";
 
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
@@ -28,11 +28,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// <summary>
         ///     Will be generated new for each test
         /// </summary>
-        private ApiPersonProfileV3 testUser;
-        private ApiPersonProfileV3 resourceOwnerPerson;
-        private ApiPersonProfileV3 requestAssignedPerson;
-        private ApiPositionV2 taskOwnerPosition;
-        private ApiPositionV2 requestPosition;
+        private ApiPersonProfileV3 testUser = null!;
+        private readonly ApiPersonProfileV3 resourceOwnerPerson;
+        private readonly ApiPersonProfileV3 requestAssignedPerson;
+        private ApiPositionV2 taskOwnerPosition = null!;
+        private ApiPositionV2 requestPosition = null!;
 
 
         // Created by the async lifetime
@@ -72,7 +72,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync()
         {
             // Mock profile
             testUser = PeopleServiceMock.AddTestProfile()
@@ -89,6 +89,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.ContextResolver
                 .AddContext(testProject.Project);
 
+            return Task.CompletedTask;
         }
 
         public Task DisposeAsync()
