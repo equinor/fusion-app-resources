@@ -54,6 +54,11 @@ namespace Fusion.Resources.Domain
             return new PersonId(personId.OriginalIdentifier);
         }
 
+        public static implicit operator Fusion.Integration.Profile.PersonIdentifier(PersonId personId)
+        {
+            return Fusion.Integration.Profile.PersonIdentifier.Parse(personId.OriginalIdentifier);
+        }
+
         public static implicit operator PersonId?(ApiPersonV2? assignedPerson)
         {
             if (assignedPerson is null)

@@ -14,6 +14,8 @@ using Fusion.Resources.Logic.Commands;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 using System.Reflection;
 using Fusion.Resources.Application.LineOrg;
+using Fusion.Integration.Authentication;
+using Fusion.Resources.Api.Authentication;
 
 namespace Fusion.Resources.Api
 {
@@ -56,6 +58,9 @@ namespace Fusion.Resources.Api
             // Configure fusion integration
             services.AddFusionIntegration(options =>
             {
+                try { options.AddProfileSync<FusionEvents.ProfileSyncHandler>(); } 
+                catch { /* Shitfix untill fixed in integration lib. Throws when added multitple times, which is done in the integration tests. (static bool flag) */ }
+
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
                 options.AddFusionRoles();
@@ -71,6 +76,9 @@ namespace Fusion.Resources.Api
                 options.ApplicationMode = true;
             });
             services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
+
+            // Add custom claims provider, to sort delegated responsibilities
+            services.AddScoped<ILocalClaimsTransformation, DelegatedResourceOwnerClaimsTransformer>();
 
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);

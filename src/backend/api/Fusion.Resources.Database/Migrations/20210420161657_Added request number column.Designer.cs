@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210420161657_Added request number column")]
+    partial class Addedrequestnumbercolumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -771,43 +773,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("PersonAbsences");
                 });
 
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonNote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("AzureUniqueId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Content")
-                        .HasMaxLength(2500)
-                        .HasColumnType("nvarchar(2500)");
-
-                    b.Property<bool>("IsShared")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Title")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<DateTimeOffset>("Updated")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("UpdatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AzureUniqueId")
-                        .IsClustered(false)
-                        .IncludeProperties(new[] { "Id", "Title", "Content", "IsShared", "Updated", "UpdatedById" });
-
-                    b.HasIndex("UpdatedById");
-
-                    b.ToTable("PersonNotes");
-                });
-
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonnelDiscipline", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1364,17 +1329,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Person");
-                });
-
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonNote", b =>
-                {
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonnelDiscipline", b =>

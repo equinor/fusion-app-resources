@@ -12,6 +12,8 @@ namespace Fusion.Resources.Api.Controllers
         public ApiResourceAllocationRequest(QueryResourceAllocationRequest query)
         {
             Id = query.RequestId;
+            Number = query.RequestNumber;
+
             AssignedDepartment = query.AssignedDepartment;
             Discipline = query.Discipline;
             State = query.State;
@@ -60,6 +62,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         public Guid Id { get; set; }
+        public long Number { get; set; }
+
         public string? AssignedDepartment { get; set; }
         public string? Discipline { get; set; }
         public string? State { get; set; }

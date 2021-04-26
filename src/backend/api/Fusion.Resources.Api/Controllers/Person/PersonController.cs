@@ -1,6 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Integration;
-using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -65,46 +65,164 @@ namespace Fusion.Resources.Api.Controllers
             var respObject = new ApiResourceOwnerProfile(resourceOwnerProfile);
             return respObject;
         }
-    }
 
-    public class ApiResourceOwnerProfile
-    {
-        public ApiResourceOwnerProfile(QueryResourceOwnerProfile resourceOwnerProfile)
+        [HttpGet("/persons/{personId}/resources/notes")]
+        public async Task<ActionResult<List<ApiPersonNote>>> GetPersonNotes(string personId)
         {
-            FullDepartment = resourceOwnerProfile.FullDepartment!;
-            Sector = resourceOwnerProfile.Sector;
-            IsResourceOwner = resourceOwnerProfile.IsDepartmentManager;
-            ResponsibilityInDepartments = resourceOwnerProfile.DepartmentsWithResponsibility;
-            RelevantSectors = resourceOwnerProfile.RelevantSectors;
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error;
 
-            ChildDepartments = resourceOwnerProfile.ChildDepartments;
-            SiblingDepartments = resourceOwnerProfile.SiblingDepartments;
+            #region Authorization
 
-            // Compile the relevant department list
-            RelevantDepartments = ResponsibilityInDepartments
-                .Union(resourceOwnerProfile.ChildDepartments ?? new ())
-                .Union(resourceOwnerProfile.SiblingDepartments ?? new ())                
-                .Distinct()
-                .ToList();
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
 
-            if (Sector is not null && !RelevantDepartments.Contains(Sector))
-                RelevantDepartments.Add(Sector);
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(user.fullDepartment);
+                });
+
+                // Limited access to other resource owners, only return shared notes.
+                // Give access to all resource owners that share the same L3.
+                r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var notes = await DispatchAsync(new GetPersonNotes(user.azureId));
+
+            // If limited auth, only return shared notes.
+            notes = authResult.FilterWhenLimited(notes, n => n.IsShared);
+
+            return notes.Select(n => new ApiPersonNote(n)).ToList();
         }
 
-        public string FullDepartment { get; set; }
-        public string? Sector { get; set; }
+        [HttpPut("/persons/{personId}/resources/notes/{noteId}")]
+        public async Task<ActionResult<ApiPersonNote>> UpdatePersonalNote(string personId, Guid noteId, [FromBody] PersonNotesRequest request)
+        {
+
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error;
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(user.fullDepartment);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
 
 
-        public bool IsResourceOwner { get; set; }
+            var notes = await DispatchAsync(new GetPersonNotes(user.azureId));
+            if (!notes.Any(n => n.Id == noteId))
+                return ApiErrors.NotFound("Could not locate note for user");
 
-        public List<string> ResponsibilityInDepartments { get; set; } = new();
+            var updatedNote = await DispatchAsync(Domain.Commands.CreateOrUpdatePersonNote.Update(noteId, request.Content, user.azureId)
+                .WithTitle(request.Title)
+                .SetIsShared(request.IsShared));
 
-        public List<string> RelevantDepartments { get; set; } = new();
-        public List<string> RelevantSectors { get; set; } = new();
+            return new ApiPersonNote(updatedNote);
+        }
 
-        public List<string>? ChildDepartments { get; set; } 
-        public List<string>? SiblingDepartments { get; set; }
+        [HttpPost("/persons/{personId}/resources/notes")]
+        public async Task<ActionResult<ApiPersonNote>> CreateNewPersonalNote(string personId, [FromBody] PersonNotesRequest request)
+        {
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error;
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(user.fullDepartment);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var newNote = await DispatchAsync(Domain.Commands.CreateOrUpdatePersonNote.CreateNew(request.Content, user.azureId)
+                .WithTitle(request.Title)
+                .SetIsShared(request.IsShared));
+
+            return new ApiPersonNote(newNote);
+        }
+
+        [HttpDelete("/persons/{personId}/resources/notes/{noteId}")]
+        public async Task<ActionResult> DeletePersonalNote(string personId, Guid noteId)
+        {
+
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error!;
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(user.fullDepartment);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+
+
+            var notes = await DispatchAsync(new GetPersonNotes(user.azureId));
+            if (!notes.Any(n => n.Id == noteId))
+                return ApiErrors.NotFound("Could not locate note for user");
+
+            await DispatchAsync(new Domain.Commands.DeletePersonNote(noteId, user.azureId));
+
+            return NoContent();
+        }
+
+        private async Task<(Guid azureId, string fullDepartment, ActionResult? error)> EnsureUserAsync(string personId)
+        {
+            var user = await profileResolver.ResolvePersonBasicProfileAsync(personId);
+            if (user is null)
+                return (Guid.Empty, string.Empty, ApiErrors.NotFound("Could not locate user"));
+            if (user.AzureUniqueId is null)
+                return (Guid.Empty, string.Empty, ApiErrors.InvalidInput("Could not locate any unique id for the user. User must exist in ad."));
+
+            return (user.AzureUniqueId.Value, user.FullDepartment ?? string.Empty, null);
+        }
     }
+
 
 
 }

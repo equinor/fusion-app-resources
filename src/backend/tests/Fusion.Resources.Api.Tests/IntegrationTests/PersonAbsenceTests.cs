@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 #nullable enable
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+
     public class PersonAbsenceTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;
