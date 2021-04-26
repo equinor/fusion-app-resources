@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
-
+            
             // Generate random test users
             resourceOwnerPerson = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwnerPerson.IsResourceOwner = true;
@@ -114,9 +115,19 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+        }
+
+        private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
+        {
+            foreach (var notification in sentMessages)
+            {
+                TestLogger.TryLog($"PersonIdentifier:{notification.PersonIdentifier}, Title:{notification.Title}");
+            }
+            
         }
 
         [Fact]
@@ -138,6 +149,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
@@ -160,6 +172,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
@@ -184,6 +197,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
             var resourceOwner = resourceOwnerPerson.AzureUniqueId.ToString();
 
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count.Should().Be(4);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
@@ -208,6 +222,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count.Should().Be(2);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);

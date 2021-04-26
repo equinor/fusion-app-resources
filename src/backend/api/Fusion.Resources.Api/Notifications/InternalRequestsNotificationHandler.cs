@@ -185,7 +185,7 @@ namespace Fusion.Resources.Api.Notifications
 
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
 
-                var typeKey = IsChangeRequest ? "change" : "request";
+                //var typeKey = IsChangeRequest ? "change" : "request";
                 //PortalUrl = $"/apps/resource-allocation/my-requests/resource/{typeKey}/{allocationRequest.RequestId}";
             }
 
@@ -273,7 +273,7 @@ namespace Fusion.Resources.Api.Notifications
             public QueryResourceAllocationRequest AllocationRequest { get; }
             public ApiPositionV2 Position { get; }
             public ApiPositionInstanceV2 Instance { get; }
-            public string PortalUrl { get; }
+            //public string? PortalUrl { get; }
         }
     }
 }
