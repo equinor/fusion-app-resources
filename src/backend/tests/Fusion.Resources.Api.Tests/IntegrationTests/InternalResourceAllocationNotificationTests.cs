@@ -174,56 +174,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
-
-        [Fact]
-        public async Task NormalRequest_Approve_ShouldNotify()
-        {
-            // Arrange
-            using var adminScope = fixture.AdminScope();
-            var request = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeNormal().WithPosition(requestPosition));
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{request.Id}/start", null);
-            response.Should().BeSuccessfull();
-            NotificationClientMock.SentMessages.Clear();
-
-            // Act
-            var response2 = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{request.Id}/approve", null);
-            response2.Should().BeSuccessfull();
-
-            // Assert
-            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
-            var resourceOwner = resourceOwnerPerson.AzureUniqueId.ToString();
-
-            DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == resourceOwner).Should().Be(2);
-
-        }
-
-        [Fact]
-        public async Task NormalRequest_ProposePerson_ShouldNotify()
-        {
-            // Arrange
-            using var adminScope = fixture.AdminScope();
-            var request = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeNormal().WithPosition(requestPosition));
-            NotificationClientMock.SentMessages.Clear();
-
-            // Act
-            var proposedPerson = new { ProposedPersonAzureUniqueId = testUser.AzureUniqueId };
-            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{request.Id}", proposedPerson);
-            response.Should().BeSuccessfull();
-
-            // Assert
-            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
-
-            DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
-
-        }
-
         #endregion
     }
 

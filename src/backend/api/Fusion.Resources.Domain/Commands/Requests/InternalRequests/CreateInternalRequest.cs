@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Domain.Notifications;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -76,12 +75,6 @@ namespace Fusion.Resources.Domain.Commands
                 var dbItem = await CreateDbRequestAsync(request);
 
                 await dbContext.SaveChangesAsync(cancellationToken);
-
-                if (dbItem.OrgPositionInstance.AssignedToUniqueId.HasValue ||
-                    !string.IsNullOrEmpty(dbItem.OrgPositionInstance.AssignedToMail))
-                {
-                    await mediator.Publish(new ProposedPersonChanged(dbItem.Id));
-                }
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(dbItem.Id), cancellationToken);
                 return requestItem!;
@@ -162,7 +155,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (orgProject == null)
                     throw new InvalidOperationException("Project does not exist in org chart service");
 
-                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ??
+                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ?? 
                     new DbProject
                     {
                         Name = orgProject.Name,

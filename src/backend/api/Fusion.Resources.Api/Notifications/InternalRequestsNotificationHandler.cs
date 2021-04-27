@@ -9,16 +9,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
-using Fusion.Resources.Domain.Notifications;
 using Fusion.Resources.Logic.Workflows;
+using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Notifications
 {
     public class InternalRequestsNotificationHandler :
-        INotificationHandler<WorkflowChanged>,
-        INotificationHandler<ProposedPersonChanged>,
-        INotificationHandler<AssignedPersonAccepted>,
-        INotificationHandler<RequestChanged>
+        INotificationHandler<ResourceAllocationRequest.RequestInitialized>
     {
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
@@ -31,83 +28,7 @@ namespace Fusion.Resources.Api.Notifications
             this.notificationClient = notificationClient;
             this.orgResolver = orgResolver;
         }
-
-        public async Task Handle(WorkflowChanged notification, CancellationToken cancellationToken)
-        {
-            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
-            var recipients = await GenerateRecipientsAsync(request);
-
-            foreach (var recipient in recipients)
-            {
-                NotificationArguments arguments = new($"Workflow for position {request.Position.Name} changed") { Priority = EmailPriority.Low };
-
-                await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
-                {
-                    builder
-                        .AddDescription(DefaultFollowUpText)
-                        .AddFacts(facts => facts
-                            .AddFact("Project", request.Position.Project.Name)
-                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
-                        )
-                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
-                        ;
-
-                });
-            }
-        }
-
-        public async Task Handle(ProposedPersonChanged notification, CancellationToken cancellationToken)
-        {
-            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
-            var recipients = await GenerateRecipientsAsync(request);
-
-            foreach (var recipient in recipients)
-            {
-                NotificationArguments arguments = new($"Person allocation for position {request.Position.Name} proposed") { Priority = EmailPriority.Low };
-
-                await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
-                {
-                    builder
-                        .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
-                        .AddDescription($"{request.Instance.AssignedPerson?.Name} ({request.Instance.AssignedPerson?.Mail}) was proposed for position {request.Position.Name}.")
-                        .AddFacts(facts => facts
-                            .AddFact("Project", request.Position.Project.Name)
-                            .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
-                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
-                        )
-                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
-                        ;
-                });
-            }
-        }
-
-        public async Task Handle(AssignedPersonAccepted notification, CancellationToken cancellationToken)
-        {
-            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
-            var recipients = await GenerateRecipientsAsync(request);
-
-            foreach (var recipient in recipients)
-            {
-                NotificationArguments arguments = new($"Person allocation for position {request.Position.Name} accepted") { Priority = EmailPriority.Low };
-
-                await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
-                {
-                    builder
-                        .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
-                        .AddDescription($"{request.Instance.AssignedPerson?.Name} ({request.Instance.AssignedPerson?.Mail}) was accepted for position {request.Position.Name}.")
-                        .AddFacts(facts => facts
-                            .AddFact("Project", request.Position.Project.Name)
-                            .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
-                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
-                        )
-                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
-                        ;
-
-                });
-            }
-        }
-
-        public async Task Handle(RequestChanged notification, CancellationToken cancellationToken)
+        public async Task Handle(ResourceAllocationRequest.RequestInitialized notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
             var recipients = await GenerateRecipientsAsync(request);
@@ -116,18 +37,39 @@ namespace Fusion.Resources.Api.Notifications
             {
                 NotificationArguments arguments = new($"Request for position {request.Position.Name} changed") { Priority = EmailPriority.Low };
 
-                await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
+                if (request.Instance.AssignedPerson is null)
                 {
-                    builder
-                        .AddDescription(DefaultFollowUpText)
-                        .AddFacts(facts => facts
-                            .AddFact("Project", request.Position.Project.Name)
-                            .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
-                        )
-                        //.TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
-                        ;
 
-                });
+                    await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
+                    {
+                        builder
+                            .AddDescription(DefaultFollowUpText)
+                            .AddFacts(facts => facts
+                                .AddFact("Project", request.Position.Project.Name)
+                                .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
+                                .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
+                            )
+                            .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                            ;
+                    });
+                }
+                else // Person assigned, try to add profile card
+                {
+                    await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
+                    {
+                        builder
+                            .TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
+                            .AddDescription(
+                                $"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was proposed for position {request.Position.Name}.")
+                            .AddFacts(facts => facts
+                                .AddFact("Project", request.Position.Project.Name)
+                                .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
+                                .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
+                            )
+                            .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                            ;
+                    });
+                }
             }
         }
 
@@ -185,8 +127,12 @@ namespace Fusion.Resources.Api.Notifications
 
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
 
-                //var typeKey = IsChangeRequest ? "change" : "request";
-                //PortalUrl = $"/apps/resource-allocation/my-requests/resource/{typeKey}/{allocationRequest.RequestId}";
+                PortalUrl = notificationType.Name switch
+                {
+                    nameof(ResourceAllocationRequest.RequestInitialized) =>
+                        $"/apps/org-admin/{Position.Project.ProjectId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
+                    _ => $"/apps/org-admin/{Position.Project.ProjectId}"
+                };
             }
 
             private void DecideWhoShouldBeNotified(Type notificationType, QueryResourceAllocationRequest allocationRequest)
@@ -203,8 +149,8 @@ namespace Fusion.Resources.Api.Notifications
 
                 switch (notificationType.Name)
                 {
-                    //Provision
-                    case nameof(WorkflowChanged):
+                    //What and who
+                   /* case nameof(WorkflowChanged):
                         if (IsAllocationRequest)
                         {
                             if (isNormal)
@@ -250,8 +196,8 @@ namespace Fusion.Resources.Api.Notifications
                         {
                             NotifyResourceOwner = true;
                         }
-                        break;
-                    case nameof(RequestChanged):
+                        break;*/
+                    case nameof(ResourceAllocationRequest.RequestInitialized):
                         if (IsAllocationRequest)
                         {
                             NotifyTaskOwner = true;
@@ -273,7 +219,7 @@ namespace Fusion.Resources.Api.Notifications
             public QueryResourceAllocationRequest AllocationRequest { get; }
             public ApiPositionV2 Position { get; }
             public ApiPositionInstanceV2 Instance { get; }
-            //public string? PortalUrl { get; }
+            public string PortalUrl { get; }
         }
     }
 }

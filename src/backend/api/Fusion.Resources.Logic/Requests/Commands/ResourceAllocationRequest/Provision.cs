@@ -8,11 +8,11 @@ using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Domain.Notifications;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -88,8 +88,6 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     await resourcesDb.SaveChangesAsync();
-
-                    await mediator.Publish(new WorkflowChanged(dbRequest.Id));
                 }
 
 
@@ -108,7 +106,7 @@ namespace Fusion.Resources.Logic.Commands
                             case DbInternalRequestType.ResourceOwnerChange:
                                 await mediator.Send(new ResourceOwner.ProvisionResourceOwnerRequest(dbRequest.Id));
                                 break;
-                                
+
                             default:
                                 throw new NotSupportedException($"Provisioning for request of type {dbRequest.Type} is not supported");
                         }
