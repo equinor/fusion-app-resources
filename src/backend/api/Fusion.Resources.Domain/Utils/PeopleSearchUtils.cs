@@ -90,7 +90,7 @@ namespace Fusion.Resources.Domain
                                     locationName = string.Empty,
                                     workload = 0.0,
                                     allocationState = string.Empty,
-                                    allicationUpdated = (DateTime?)null,
+                                    allocationUpdated = (DateTime?)null,
                                     project = new
                                     {
                                         name = string.Empty,
@@ -154,7 +154,7 @@ namespace Fusion.Resources.Domain
                     Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
                     Workload = p.workload,
                     AllocationState = p.allocationState,
-                    AllocationUpdated = p.allicationUpdated
+                    AllocationUpdated = p.allocationUpdated
                 }).OrderBy(p => p.AppliesFrom).ToList()
             });
 
