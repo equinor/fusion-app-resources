@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
+using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
@@ -226,10 +227,14 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal()
+                    .BeTrustedApplication();
+
                 r.AnyOf(or =>
                 {
-
+                    
                 });
             });
 
@@ -256,7 +261,11 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal()
+                    .BeTrustedApplication();
+
                 r.AnyOf(or =>
                 {
 
@@ -295,7 +304,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
 
@@ -335,7 +344,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
 
@@ -483,9 +492,13 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal();
+
                 r.AnyOf(or =>
                 {
+                    or.BeTrustedApplication();
                 });
 
             });
