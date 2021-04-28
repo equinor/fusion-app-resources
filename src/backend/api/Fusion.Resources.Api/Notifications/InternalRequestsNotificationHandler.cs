@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api.Notifications
                             .AddDescription(DefaultFollowUpText)
                             .AddFacts(facts => facts
                                 .AddFact("Project", request.Position.Project.Name)
-                                .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
+                                //.AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                                 .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                             )
                             .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
@@ -63,7 +63,7 @@ namespace Fusion.Resources.Api.Notifications
                                 $"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was proposed for position {request.Position.Name}.")
                             .AddFacts(facts => facts
                                 .AddFact("Project", request.Position.Project.Name)
-                                .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
+                 //               .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                                 .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                             )
                             .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
