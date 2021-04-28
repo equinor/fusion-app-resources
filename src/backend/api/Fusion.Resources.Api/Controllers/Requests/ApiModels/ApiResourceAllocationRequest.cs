@@ -58,8 +58,6 @@ namespace Fusion.Resources.Api.Controllers
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
             
-            Comments = query.Comments?.Select(x => new ApiRequestComment(x));
-            
             if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
@@ -99,7 +97,6 @@ namespace Fusion.Resources.Api.Controllers
 
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
-        public IEnumerable<ApiRequestComment>? Comments { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
     }
 }
