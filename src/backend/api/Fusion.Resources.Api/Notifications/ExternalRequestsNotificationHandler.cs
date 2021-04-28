@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Notifications
 {
-    public class RequestsNotificationHandler :
+    public class ExternalRequestsNotificationHandler :
         INotificationHandler<RequestDeclinedByCompany>,
         INotificationHandler<RequestDeclinedByContractor>
     {
@@ -23,7 +23,7 @@ namespace Fusion.Resources.Api.Notifications
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
 
-        public RequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
+        public ExternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
