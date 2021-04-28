@@ -20,7 +20,6 @@ namespace Fusion.Resources.Api.Notifications
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
-        private static string DefaultFollowUpText => "Please review and follow up request in Resource Allocation";
 
         public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
         {
@@ -43,10 +42,9 @@ namespace Fusion.Resources.Api.Notifications
                     await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
                     {
                         builder
-                            .AddDescription(DefaultFollowUpText)
+                            .AddDescription("Please review and follow up request")
                             .AddFacts(facts => facts
                                 .AddFact("Project", request.Position.Project.Name)
-                                //.AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                                 .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                             )
                             .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
@@ -63,7 +61,6 @@ namespace Fusion.Resources.Api.Notifications
                                 $"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was proposed for position {request.Position.Name}.")
                             .AddFacts(facts => facts
                                 .AddFact("Project", request.Position.Project.Name)
-                 //               .AddFact("Applies for date", builder.Utils.FormatDateString(request.Instance.AppliesFrom))
                                 .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                             )
                             .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
@@ -130,8 +127,8 @@ namespace Fusion.Resources.Api.Notifications
                 PortalUrl = notificationType.Name switch
                 {
                     nameof(ResourceAllocationRequest.RequestInitialized) =>
-                        $"/apps/org-admin/{Position.Project.ProjectId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
-                    _ => $"/apps/org-admin/{Position.Project.ProjectId}"
+                        $"/apps/org-admin/{AllocationRequest.Project.OrgProjectId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
+                    _ => $"/apps/org-admin/{AllocationRequest.Project.OrgProjectId}"
                 };
             }
 
@@ -150,53 +147,53 @@ namespace Fusion.Resources.Api.Notifications
                 switch (notificationType.Name)
                 {
                     //What and who
-                   /* case nameof(WorkflowChanged):
-                        if (IsAllocationRequest)
-                        {
-                            if (isNormal)
-                            {
-                                NotifyTaskOwner = true;
-                                NotifyCreator = true;
-                                NotifyResourceOwner = true;
-                            }
-                            else if (isDirect)
-                            {
-                                NotifyTaskOwner = true;
-                                NotifyCreator = true;
-                            }
-                            else if (isJointVenture)
-                            {
-                                NotifyTaskOwner = true;
-                                NotifyCreator = true;
-                            }
-                        }
-                        else if (IsChangeRequest)
-                        {
-                            NotifyTaskOwner = true;
-                            NotifyResourceOwner = true;
-                        }
-                        break;
-                    case nameof(ProposedPersonChanged):
-                        if (IsAllocationRequest)
-                        {
-                            NotifyTaskOwner = true;
-                            NotifyCreator = true;
-                        }
-                        else if (IsChangeRequest)
-                        {
-                            NotifyTaskOwner = true;
-                        }
-                        break;
-                    case nameof(AssignedPersonAccepted):
-                        if (IsAllocationRequest)
-                        {
-                            NotifyResourceOwner = true;
-                        }
-                        else if (IsChangeRequest)
-                        {
-                            NotifyResourceOwner = true;
-                        }
-                        break;*/
+                    /* case nameof(WorkflowChanged):
+                         if (IsAllocationRequest)
+                         {
+                             if (isNormal)
+                             {
+                                 NotifyTaskOwner = true;
+                                 NotifyCreator = true;
+                                 NotifyResourceOwner = true;
+                             }
+                             else if (isDirect)
+                             {
+                                 NotifyTaskOwner = true;
+                                 NotifyCreator = true;
+                             }
+                             else if (isJointVenture)
+                             {
+                                 NotifyTaskOwner = true;
+                                 NotifyCreator = true;
+                             }
+                         }
+                         else if (IsChangeRequest)
+                         {
+                             NotifyTaskOwner = true;
+                             NotifyResourceOwner = true;
+                         }
+                         break;
+                     case nameof(ProposedPersonChanged):
+                         if (IsAllocationRequest)
+                         {
+                             NotifyTaskOwner = true;
+                             NotifyCreator = true;
+                         }
+                         else if (IsChangeRequest)
+                         {
+                             NotifyTaskOwner = true;
+                         }
+                         break;
+                     case nameof(AssignedPersonAccepted):
+                         if (IsAllocationRequest)
+                         {
+                             NotifyResourceOwner = true;
+                         }
+                         else if (IsChangeRequest)
+                         {
+                             NotifyResourceOwner = true;
+                         }
+                         break;*/
                     case nameof(ResourceAllocationRequest.RequestInitialized):
                         if (IsAllocationRequest)
                         {
