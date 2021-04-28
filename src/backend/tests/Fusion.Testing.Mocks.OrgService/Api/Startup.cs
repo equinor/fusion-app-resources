@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,6 +38,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiddleware<RequestLoggingMiddleware>();
+            app.UseMiddleware<RequestMockMiddleware>();
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
@@ -91,10 +94,30 @@ namespace Fusion.Testing.Mocks.OrgService.Api
                 OrgServiceMock.semaphore.Release();
             }
         }
-
-   
-
-       
     }
 
+    public class RequestMockMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public RequestMockMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            // Check if we want to intercept this
+            var interceptor = OrgRequestMocker.Current.GetInterceptor(context.Request);
+            if (interceptor is not null)
+            {
+                var content = await context.Request.ReadRequestBodyAsync();
+                await interceptor.Processor(content, context);
+            }
+            else
+            {
+                await _next(context);
+            }
+        }
+    }
 }

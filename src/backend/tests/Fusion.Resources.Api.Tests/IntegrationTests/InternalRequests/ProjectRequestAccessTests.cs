@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
@@ -111,6 +112,35 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 resp.Should().BeUnauthorized();
         }
 
+        [Fact]
+        public async Task StartAllocationRequest_ShouldHaveAccess_WhenEditAccessOnPosition()
+        {
+            // Setup org api mock to return PUT in option call
+            using var i = OrgRequestMocker.InterceptOption($"/{normalRequest.OrgPositionId}").RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
+                
+            var projectMemberUser = fixture.AddProfile(FusionAccountType.Employee);
+
+
+            using var projectMemberScope = fixture.UserScope(projectMemberUser);
+
+            var resp = await Client.TestClientPostAsync<object>($"/projects/{projectId}/resources/requests/{normalRequest.Id}/start", null);
+            resp.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task StartAllocationRequest_ShouldNotAccess_WhenProjectMember()
+        {
+            var projectMemberUser = fixture.AddProfile(FusionAccountType.Employee);
+            projectMemberUser.WithPosition(testProject.AddPosition().WithEnsuredFutureInstances().WithAssignedPerson(projectMemberUser));
+
+
+            using var projectMemberScope = fixture.UserScope(projectMemberUser);
+
+            var resp = await Client.TestClientPostAsync<object>($"/projects/{projectId}/resources/requests/{normalRequest.Id}/start", null);
+            resp.Should().BeUnauthorized();
+        }
+
+        
         public Task DisposeAsync() => Task.CompletedTask;
     }
 
