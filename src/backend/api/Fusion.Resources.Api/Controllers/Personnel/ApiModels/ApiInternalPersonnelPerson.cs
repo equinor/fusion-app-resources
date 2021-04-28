@@ -139,14 +139,14 @@ namespace Fusion.Resources.Api.Controllers
             {
                 Id = absence.Id;
                 AppliesFrom = absence.AppliesFrom.UtcDateTime;
-                AppliesTo = absence.AppliesTo is null ? absence.AppliesFrom.UtcDateTime : absence.AppliesTo!.Value.UtcDateTime;
+                AppliesTo = absence.AppliesTo?.UtcDateTime;
                 Type = $"{absence.Type}";
                 AbsencePercentage = absence.AbsencePercentage;
             }
 
             public Guid Id { get; set; }
             public DateTime AppliesFrom { get; set; }
-            public DateTime AppliesTo { get; set; }
+            public DateTime? AppliesTo { get; set; }
             public double? AbsencePercentage { get; set; }
             public string Type { get; set; } = null!;
         }

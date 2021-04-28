@@ -234,7 +234,11 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal()
+                    .BeTrustedApplication();
+
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
@@ -267,7 +271,11 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal()
+                    .BeTrustedApplication();
+
                 r.AnyOf(or =>
                 {
                     // For now everyone with a position in the project can view requests
@@ -307,7 +315,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
                     // Start with allowing PRD resource owners access. 
@@ -349,7 +357,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
                     // For now everyone with a position in the project can view requests
@@ -512,9 +520,13 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal();
+
                 r.AnyOf(or =>
                 {
+                    or.BeTrustedApplication();
                 });
 
             });
