@@ -34,7 +34,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    or.OrgChartPositionWriteAccess(projectIdentifier.ProjectId, request.OrgPositionId);
                 });
             });
 
@@ -167,6 +167,11 @@ namespace Fusion.Resources.Api.Controllers
             Guid requestId, 
             [FromBody] PatchInternalRequestRequest request)
         {
+            var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (item == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -174,7 +179,14 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if (item.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
+                    if (item.AssignedDepartment is not null)
+                        or.BeResourceOwner(new DepartmentPath(item.AssignedDepartment).Parent(), includeDescendants: true);
+
+                    if (item.AssignedDepartment is null && item.OrgPosition is not null)
+                        or.BeResourceOwner(new DepartmentPath(item.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
                 });
             });
 
@@ -185,12 +197,6 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-
-                if (item == null)
-                    return ApiErrors.NotFound("Could not locate request", $"{requestId}");
-
-
                 var updateCommand = new UpdateInternalRequest(requestId);
 
                 if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
@@ -231,7 +237,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    or.BeTrustedApplication();
 
+                    // Can start with PRD, should maybe instead trim results when competence center starts.
+                    or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
                 });
             });
 
@@ -301,7 +310,9 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    // Start with allowing PRD resource owners access. 
+                    // We must eventually allow all resource owners, but trim the list based which is relevant for the business unit.
+                    or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
                 });
             });
 
@@ -342,7 +353,16 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     // For now everyone with a position in the project can view requests
-                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(result.Project.OrgProjectId));                    
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(result.Project.OrgProjectId));
+
+                    if (result.OrgPositionId.HasValue)
+                        or.OrgChartPositionReadAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
+
+                    if (result.AssignedDepartment is not null)
+                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), includeDescendants: true);
+
+                    if (result.AssignedDepartment is null && result.OrgPosition is not null)
+                        or.BeResourceOwner(new DepartmentPath(result.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
                 });
             });
 
@@ -375,7 +395,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    if (result.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
             });
 
@@ -456,7 +477,11 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    if (result.Type == InternalRequestType.Allocation)
+                    {
+                        if (result.OrgPositionId.HasValue)
+                            or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
+                    }
                 });
 
             });
@@ -534,6 +559,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if (result.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
 
             });
@@ -719,11 +746,18 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if (result.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
 
             });
@@ -741,11 +775,18 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if (result.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
 
             });
