@@ -45,28 +45,6 @@ namespace Fusion.Resources.Domain
         }
 
         /// <summary>
-        /// Resolve the task owner for the position.
-        /// 
-        /// The task owner could be empty, however this is unlikely. The default is that if no task owner can be located the project director is used.
-        /// </summary>
-        /// <param name="projectId">The project the position exists in</param>
-        /// <param name="positionId">The position id</param>
-        /// <param name="date">Optionally provide a date to use for calculating the report path. If left out today is used.</param>
-        /// <returns>Task owner or null if none could be located</returns>
-        public static async Task<RequestResponse<ApiPositionV2?>> GetTaskOwnerAsync(this IOrgApiClient client, Guid projectId, Guid positionId, DateTime? date = null)
-        {
-            if (positionId == Guid.Empty)
-                throw new ArgumentException("Position id cannot be empty when updating.");
-
-            var url = $"projects/{projectId}/positions/{positionId}/task-owner?api-version=2.0";
-
-            if (date != null)
-                url += $"&date={date:yyyy-MM-dd}";
-
-            return await GetAsync<ApiPositionV2?>(client, url);
-        }
-
-        /// <summary>
         /// Resolve the task owner for a specific instance on the position.
         /// This operation will return the task owner at the start of the instance (applies from date) if no other date is specified.
         /// 
@@ -76,15 +54,12 @@ namespace Fusion.Resources.Domain
         /// <param name="positionId">The position id</param>
         /// <param name="date">Optionally provide a date to use for calculating the report path. If left out today is used.</param>
         /// <returns>The return object is a bit different </returns>
-        public static async Task<RequestResponse<ApiTaskOwnerV2?>> GetInstanceTaskOwnerAsync(this IOrgApiClient client, Guid projectId, Guid positionId, Guid instanceId, DateTime? date = null)
+        public static async Task<RequestResponse<ApiTaskOwnerV2?>> GetInstanceTaskOwnerAsync(this IOrgApiClient client, Guid projectId, Guid positionId, Guid instanceId)
         {
             if (positionId == Guid.Empty)
                 throw new ArgumentException("Position id cannot be empty when updating.");
 
             var url = $"projects/{projectId}/positions/{positionId}/instances/{instanceId}/task-owner?api-version=2.0";
-
-            if (date != null)
-                url += $"&date={date:yyyy-MM-dd}";
 
             return await GetAsync<ApiTaskOwnerV2?>(client, url);
         }

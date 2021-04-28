@@ -123,32 +123,23 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task ExpandTaskOwnerAsync(QueryResourceAllocationRequest request)
             {
-                if (request.OrgPositionId is null)
+                if (request.OrgPositionId is null || request.OrgPositionInstanceId is null)
                     return;
-
-                // Get the instance and use the relevant date to resolve that task owner
-
-                var applicableDate = DateTime.UtcNow.Date;
-
-                if (applicableDate <= request.OrgPositionInstance?.AppliesFrom)
-                    applicableDate = request.OrgPositionInstance.AppliesFrom;
-
-                if (applicableDate >= request.OrgPositionInstance?.AppliesTo)
-                    applicableDate = request.OrgPositionInstance.AppliesTo;
 
                 // If the resolving fails, let the property be null which will be an indication to the consumer that it has failed.
                 try
                 {
-                    var taskOwnerResponse = await orgClient.GetTaskOwnerAsync(request.Project.OrgProjectId, request.OrgPositionId.Value, applicableDate);
+                    var taskOwnerResponse = await orgClient.GetInstanceTaskOwnerAsync(request.Project.OrgProjectId, request.OrgPositionId.Value, request.OrgPositionInstanceId.Value);
 
-                    var instances = taskOwnerResponse.Value?.Instances.Where(i => i.AppliesFrom <= applicableDate.Date && i.AppliesTo >= applicableDate.Date);
-
-                    request.TaskOwner = new QueryTaskOwner(applicableDate)
+                    if (taskOwnerResponse.Value is not null)
                     {
-                        PositionId = taskOwnerResponse.Value?.Id,
-                        InstanceIds = instances?.Select(i => i.Id).ToArray(),
-                        Persons = instances?.Select(i => i.AssignedPerson).ToArray()
-                    };
+                        request.TaskOwner = new QueryTaskOwner(taskOwnerResponse.Value.Date)
+                        {
+                            PositionId = taskOwnerResponse.Value.PositionId,
+                            InstanceIds = taskOwnerResponse.Value.InstanceIds,
+                            Persons = taskOwnerResponse.Value.Persons
+                        };
+                    }
                 }
                 catch (Exception ex)
                 {
