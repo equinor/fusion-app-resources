@@ -123,7 +123,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeResourceOwner(user.fullDepartment);
                 });
             });
-
+            
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 

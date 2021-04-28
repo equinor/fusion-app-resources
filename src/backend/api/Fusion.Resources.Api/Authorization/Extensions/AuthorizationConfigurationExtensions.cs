@@ -13,6 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAuthorizationHandler, RequestAccessAuthHandler>();
             services.AddScoped<IAuthorizationHandler, ContractorInContractHandler>();
             services.AddScoped<IAuthorizationHandler, ContractorInProjectHandler>();
+            services.AddScoped<IAuthorizationHandler, OrgPositionAccessHandler>();
 
             return services;
         }

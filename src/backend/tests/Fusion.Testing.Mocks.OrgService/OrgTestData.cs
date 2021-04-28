@@ -58,4 +58,5 @@ namespace Fusion.Testing.Mocks.OrgService
             .RuleFor(c => c.Id, f => Guid.NewGuid())
             .RuleFor(c => c.Name, f => f.Company.CompanyName());
     }
+
 }

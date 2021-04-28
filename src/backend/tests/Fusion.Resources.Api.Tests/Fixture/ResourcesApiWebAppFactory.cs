@@ -25,6 +25,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Fusion.Resources.Application.LineOrg;
+using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -113,10 +114,19 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.AddSingleton(sp =>
                 {
                     var clientFactoryMock = new Mock<IHttpClientFactory>();
+                    var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
 
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
+                    
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Delegate)).Returns(() => {
+                        var currentUser = httpContextAccessor.HttpContext?.User.GetAzureUniqueId();
+
+                        var client = orgServiceMock.CreateHttpClient();
+                        client.DefaultRequestHeaders.Add("x-fusion-test-delegated", $"{currentUser}");
+                        return client;
+                    });
                     clientFactoryMock.Setup(cfm => cfm.CreateClient("lineorg")).Returns(lineOrgMock.Build());
 
                     return clientFactoryMock.Object;

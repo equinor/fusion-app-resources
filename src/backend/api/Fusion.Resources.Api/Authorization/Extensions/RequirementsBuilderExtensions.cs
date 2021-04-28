@@ -2,6 +2,7 @@
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Api.Authorization.Requirements;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
@@ -10,6 +11,46 @@ using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
+    public static class InternalRequestRequirementExtensions
+    {
+        public static IAuthorizationRequirementRule FullControlInternal(this IAuthorizationRequirementRule builder)
+        {
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.Internal.FullControl"))
+                .Build();
+
+            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
+
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule OrgChartPositionWriteAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId, Guid orgPositionId)
+        {
+            return builder.AddRule(OrgPositionAccessRequirement.OrgPositionWrite(orgProjectId, orgPositionId));
+        }
+        public static IAuthorizationRequirementRule OrgChartPositionReadAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId, Guid orgPositionId)
+        {
+            return builder.AddRule(OrgPositionAccessRequirement.OrgPositionRead(orgProjectId, orgPositionId));
+        }
+
+        /// <summary>
+        /// Indicates that the user is in any way or form a resource owner
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IAuthorizationRequirementRule IsResourceOwner(this IAuthorizationRequirementRule builder)
+        {
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAssertion(c => c.User.HasClaim(c => c.Type == FusionClaimsTypes.ResourceOwner))
+                .Build();
+
+            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
+
+            return builder;
+        }
+
+
+    }
     public static class RequirementsBuilderExtensions
     {
         public static IAuthorizationRequirementRule FullControl(this IAuthorizationRequirementRule builder)
@@ -26,17 +67,6 @@ namespace Fusion.Resources.Api.Controllers
         public static IAuthorizationRequirementRule CurrentUserIs(this IAuthorizationRequirementRule builder, PersonIdentifier personIdentifier)
         {          
             builder.AddRule(new CurrentUserIsRequirement(personIdentifier));
-            return builder;
-        }
-
-        public static IAuthorizationRequirementRule FullControlInternal(this IAuthorizationRequirementRule builder)
-        {
-            var policy = new AuthorizationPolicyBuilder()
-                .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.Internal.FullControl"))
-                .Build();
-
-            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
-
             return builder;
         }
 
