@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
+using Fusion.Integration;
+using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Logic.Workflows;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
@@ -20,12 +22,14 @@ namespace Fusion.Resources.Api.Notifications
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
+        private readonly IFusionContextResolver contextResolver;
 
-        public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
+        public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
             this.orgResolver = orgResolver;
+            this.contextResolver = contextResolver;
         }
         public async Task Handle(ResourceAllocationRequest.RequestInitialized notification, CancellationToken cancellationToken)
         {
@@ -84,8 +88,31 @@ namespace Fusion.Resources.Api.Notifications
             if (orgPositionInstance == null)
                 throw new InvalidOperationException($"Cannot resolve position instance for request {internalRequest.RequestId}");
 
-            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance);
+            var projectMasterId = await ResolveProjectMasterIdAsync(internalRequest);
+
+            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance, projectMasterId);
         }
+
+        private async Task<string> ResolveProjectMasterIdAsync(QueryResourceAllocationRequest? internalRequest)
+        {
+            if (internalRequest is null)
+                return string.Empty;
+
+            string projectMasterId;
+            try
+            {
+                ProjectIdentifier pid = new($"{internalRequest.Project.Id}", internalRequest.Project.OrgProjectId, internalRequest.Project.Name);
+                var context = await contextResolver.ResolveProjectMasterAsync(pid);
+                projectMasterId = $"{context.Id}";
+            }
+            catch (ContextResolverExtensions.ProjectMasterNotFoundError)
+            {
+                projectMasterId = string.Empty;
+            }
+
+            return projectMasterId;
+        }
+
         private async Task<QueryResourceAllocationRequest?> GetInternalRequestAsync(Guid requestId)
         {
             var query = new GetResourceAllocationRequestItem(requestId);
@@ -116,7 +143,7 @@ namespace Fusion.Resources.Api.Notifications
         private class NotificationRequestData
         {
             public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest,
-                ApiPositionV2 position, ApiPositionInstanceV2 instance)
+                ApiPositionV2 position, ApiPositionInstanceV2 instance, string projectMasterContextId)
             {
                 AllocationRequest = allocationRequest;
                 Position = position;
@@ -124,12 +151,19 @@ namespace Fusion.Resources.Api.Notifications
 
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
 
-                PortalUrl = notificationType.Name switch
+                if (string.IsNullOrEmpty(projectMasterContextId))
                 {
-                    nameof(ResourceAllocationRequest.RequestInitialized) =>
-                        $"/apps/org-admin/{AllocationRequest.Project.OrgProjectId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
-                    _ => $"/apps/org-admin/{AllocationRequest.Project.OrgProjectId}"
-                };
+                    PortalUrl = "/apps/org-admin/";
+                }
+                else
+                {
+                    PortalUrl = notificationType.Name switch
+                    {
+                        nameof(ResourceAllocationRequest.RequestInitialized) =>
+                            $"/apps/org-admin/{projectMasterContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
+                        _ => $"/apps/org-admin/{projectMasterContextId}"
+                    };
+                }
             }
 
             private void DecideWhoShouldBeNotified(Type notificationType, QueryResourceAllocationRequest allocationRequest)
