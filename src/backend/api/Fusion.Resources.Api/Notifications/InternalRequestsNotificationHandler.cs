@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
-using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Logic.Workflows;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
