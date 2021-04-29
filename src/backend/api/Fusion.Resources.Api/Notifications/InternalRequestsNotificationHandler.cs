@@ -88,30 +88,13 @@ namespace Fusion.Resources.Api.Notifications
             if (orgPositionInstance == null)
                 throw new InvalidOperationException($"Cannot resolve position instance for request {internalRequest.RequestId}");
 
-            var projectMasterId = await ResolveProjectMasterIdAsync(internalRequest);
+            var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(internalRequest.Project.OrgProjectId), FusionContextType.OrgChart);
+            var orgContextId = $"{context?.Id}";
 
-            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance, projectMasterId);
+            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance, orgContextId);
         }
 
-        private async Task<string> ResolveProjectMasterIdAsync(QueryResourceAllocationRequest? internalRequest)
-        {
-            if (internalRequest is null)
-                return string.Empty;
 
-            string projectMasterId;
-            try
-            {
-                ProjectIdentifier pid = new($"{internalRequest.Project.Id}", internalRequest.Project.OrgProjectId, internalRequest.Project.Name);
-                var context = await contextResolver.ResolveProjectMasterAsync(pid);
-                projectMasterId = $"{context.Id}";
-            }
-            catch (ContextResolverExtensions.ProjectMasterNotFoundError)
-            {
-                projectMasterId = string.Empty;
-            }
-
-            return projectMasterId;
-        }
 
         private async Task<QueryResourceAllocationRequest?> GetInternalRequestAsync(Guid requestId)
         {
@@ -143,7 +126,7 @@ namespace Fusion.Resources.Api.Notifications
         private class NotificationRequestData
         {
             public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest,
-                ApiPositionV2 position, ApiPositionInstanceV2 instance, string projectMasterContextId)
+                ApiPositionV2 position, ApiPositionInstanceV2 instance, string orgContextId)
             {
                 AllocationRequest = allocationRequest;
                 Position = position;
@@ -151,7 +134,7 @@ namespace Fusion.Resources.Api.Notifications
 
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
 
-                if (string.IsNullOrEmpty(projectMasterContextId))
+                if (string.IsNullOrEmpty(orgContextId))
                 {
                     PortalUrl = "/apps/org-admin/";
                 }
@@ -160,8 +143,8 @@ namespace Fusion.Resources.Api.Notifications
                     PortalUrl = notificationType.Name switch
                     {
                         nameof(ResourceAllocationRequest.RequestInitialized) =>
-                            $"/apps/org-admin/{projectMasterContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
-                        _ => $"/apps/org-admin/{projectMasterContextId}"
+                            $"/apps/org-admin/{orgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
+                        _ => $"/apps/org-admin/{orgContextId}"
                     };
                 }
             }

@@ -12,13 +12,12 @@ namespace Fusion.Testing.Mocks.ContextService
     public class ContextResolverMock : IFusionContextResolver
     {
         public List<FusionContext> AvailableContexts { get; } = new List<FusionContext>();
-        public List<FusionContext> AvailableRelations { get; } = new List<FusionContext>();
 
 
         public Task<FusionContext> GetContextAsync(Guid contextId)
         {
             var context = AvailableContexts.FirstOrDefault(c => c.Id == contextId);
-
+            
             if (context is null)
                 throw new ContextNotFoundError(contextId);
 
@@ -27,12 +26,7 @@ namespace Fusion.Testing.Mocks.ContextService
 
         public Task<IEnumerable<FusionContext>> GetContextRelationsAsync(Guid contextId, FusionContextType contextType = null)
         {
-            var relations = AvailableRelations.Where(x => x.ExternalId == contextId.ToString() || x.Id == contextId);
-
-            if (contextType != null)
-                relations = relations.Where(x => x.Type == contextType);
-
-            return Task.FromResult(relations);
+            throw new NotImplementedException();
         }
 
         public Task<IEnumerable<FusionRelatedContext>> QueryContextRelationssAsync(FusionContext context, Action<ContextApiQuery> query = null)
@@ -109,7 +103,7 @@ namespace Fusion.Testing.Mocks.ContextService
             }
 
             return Task.FromResult(ctx);
-
+            
         }
 
         public ContextResolverMock AddContext(ApiProjectV2 orgChart)
@@ -125,19 +119,5 @@ namespace Fusion.Testing.Mocks.ContextService
             });
             return this;
         }
-        public ContextResolverMock AddRelation(Guid externalId, FusionContextType type)
-        {
-            AvailableRelations.Add(new FusionContext()
-            {
-                ExternalId = $"{externalId}",
-                Id = Guid.NewGuid(),
-                Title = nameof(type),
-                Source = nameof(type),
-                Type = type,
-                Value = new { }
-            });
-            return this;
-        }
-
     }
 }

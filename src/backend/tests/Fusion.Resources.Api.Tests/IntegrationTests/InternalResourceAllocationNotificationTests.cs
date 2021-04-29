@@ -89,14 +89,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             requestPosition = testProject.AddPosition().WithAssignedPerson(requestAssignedPerson).WithTaskOwner(taskOwnerPosition.Id);
 
             // Prepare context resolver.
-            fixture.ContextResolver.AddContext(testProject.Project);
-
-            foreach (var ctx in fixture.ContextResolver.AvailableContexts)
-            {
-                fixture.ContextResolver.AddRelation(ctx.Id, FusionContextType.ProjectMaster);
-            }
-
-
+            fixture.ContextResolver
+                .AddContext(testProject.Project);
+            
             return Task.CompletedTask;
         }
 
