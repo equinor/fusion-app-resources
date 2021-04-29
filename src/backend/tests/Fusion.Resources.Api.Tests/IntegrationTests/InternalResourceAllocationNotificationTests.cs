@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AdaptiveCards;
 using FluentAssertions;
 using Fusion.ApiClients.Org;
-using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
@@ -50,7 +48,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
-
+            
             // Generate random test users
             resourceOwnerPerson = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwnerPerson.IsResourceOwner = true;
@@ -91,7 +89,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Prepare context resolver.
             fixture.ContextResolver
                 .AddContext(testProject.Project);
-            
+
             return Task.CompletedTask;
         }
 
@@ -120,8 +118,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
-            var cardAction = (AdaptiveOpenUrlAction)NotificationClientMock.SentMessages.First().Card.Actions.First();
-            cardAction.UrlString.Should().NotBeEmpty();
+        }
+
+        private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
+        {
+            foreach (var notification in sentMessages)
+            {
+                TestLogger.TryLog($"PersonIdentifier:{notification.PersonIdentifier}, Title:{notification.Title}");
+            }
+            
         }
 
         [Fact]
@@ -146,9 +151,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
-            var cardAction = (AdaptiveOpenUrlAction)NotificationClientMock.SentMessages.First().Card.Actions.First();
-            cardAction.UrlString.Should().NotBeEmpty();
-
         }
 
         [Fact]
@@ -169,24 +171,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
-
-            var cardAction = (AdaptiveOpenUrlAction)NotificationClientMock.SentMessages.First().Card.Actions.First();
-            cardAction.UrlString.Should().NotBeEmpty();
-
         }
         #endregion
-
-        private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
-        {
-            foreach (var notification in sentMessages)
-            {
-                TestLogger.TryLog($"PersonIdentifier:{notification.PersonIdentifier}, Title:{notification.Title}");
-            }
-
-        }
     }
 
 }
