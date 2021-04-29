@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
+using Fusion.Integration;
 using Fusion.Resources.Logic.Workflows;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
@@ -20,12 +21,14 @@ namespace Fusion.Resources.Api.Notifications
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
+        private readonly IFusionContextResolver contextResolver;
 
-        public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver)
+        public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
             this.orgResolver = orgResolver;
+            this.contextResolver = contextResolver;
         }
         public async Task Handle(ResourceAllocationRequest.RequestInitialized notification, CancellationToken cancellationToken)
         {
@@ -84,8 +87,14 @@ namespace Fusion.Resources.Api.Notifications
             if (orgPositionInstance == null)
                 throw new InvalidOperationException($"Cannot resolve position instance for request {internalRequest.RequestId}");
 
-            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance);
+            var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(internalRequest.Project.OrgProjectId), FusionContextType.OrgChart);
+            var orgContextId = $"{context?.Id}";
+
+            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance).WithContextId(orgContextId);
         }
+
+
+
         private async Task<QueryResourceAllocationRequest?> GetInternalRequestAsync(Guid requestId)
         {
             var query = new GetResourceAllocationRequestItem(requestId);
@@ -115,8 +124,7 @@ namespace Fusion.Resources.Api.Notifications
 
         private class NotificationRequestData
         {
-            public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest,
-                ApiPositionV2 position, ApiPositionInstanceV2 instance)
+            public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest, ApiPositionV2 position, ApiPositionInstanceV2 instance)
             {
                 AllocationRequest = allocationRequest;
                 Position = position;
@@ -124,14 +132,35 @@ namespace Fusion.Resources.Api.Notifications
 
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
 
-                PortalUrl = notificationType.Name switch
+                if (!string.IsNullOrEmpty(OrgContextId))
                 {
-                    nameof(ResourceAllocationRequest.RequestInitialized) =>
-                        $"/apps/org-admin/{AllocationRequest.Project.OrgProjectId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
-                    _ => $"/apps/org-admin/{AllocationRequest.Project.OrgProjectId}"
-                };
+                    PortalUrl = notificationType.Name switch
+                    {
+                        nameof(ResourceAllocationRequest.RequestInitialized) =>
+                            $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
+                        _ => $"/apps/org-admin/{OrgContextId}"
+                    };
+                }
             }
 
+            private string? OrgContextId { get; set; }
+            private bool IsAllocationRequest { get; set; }
+            private bool IsChangeRequest { get; set; }
+
+            public bool NotifyResourceOwner { get; private set; }
+            public bool NotifyTaskOwner { get; private set; }
+            public bool NotifyCreator { get; private set; }
+            public QueryResourceAllocationRequest AllocationRequest { get; }
+            public ApiPositionV2 Position { get; }
+            public ApiPositionInstanceV2 Instance { get; }
+            public string PortalUrl { get; } = "/apps/org-admin/";
+
+
+            public NotificationRequestData WithContextId(string? contextId)
+            {
+                OrgContextId = contextId;
+                return this;
+            }
             private void DecideWhoShouldBeNotified(Type notificationType, QueryResourceAllocationRequest allocationRequest)
             {
 
@@ -207,16 +236,6 @@ namespace Fusion.Resources.Api.Notifications
                         break;
                 }
             }
-
-            private bool IsAllocationRequest { get; set; }
-            private bool IsChangeRequest { get; set; }
-            public bool NotifyResourceOwner { get; private set; }
-            public bool NotifyTaskOwner { get; private set; }
-            public bool NotifyCreator { get; private set; }
-            public QueryResourceAllocationRequest AllocationRequest { get; }
-            public ApiPositionV2 Position { get; }
-            public ApiPositionInstanceV2 Instance { get; }
-            public string PortalUrl { get; }
         }
     }
 }
