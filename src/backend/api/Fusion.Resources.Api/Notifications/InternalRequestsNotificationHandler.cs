@@ -90,7 +90,7 @@ namespace Fusion.Resources.Api.Notifications
             var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(internalRequest.Project.OrgProjectId), FusionContextType.OrgChart);
             var orgContextId = $"{context?.Id}";
 
-            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance, orgContextId);
+            return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance).WithContextId(orgContextId);
         }
 
 
@@ -124,8 +124,7 @@ namespace Fusion.Resources.Api.Notifications
 
         private class NotificationRequestData
         {
-            public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest,
-                ApiPositionV2 position, ApiPositionInstanceV2 instance, string orgContextId)
+            public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest, ApiPositionV2 position, ApiPositionInstanceV2 instance)
             {
                 AllocationRequest = allocationRequest;
                 Position = position;
@@ -133,21 +132,35 @@ namespace Fusion.Resources.Api.Notifications
 
                 DecideWhoShouldBeNotified(notificationType, allocationRequest);
 
-                if (string.IsNullOrEmpty(orgContextId))
-                {
-                    PortalUrl = "/apps/org-admin/";
-                }
-                else
+                if (!string.IsNullOrEmpty(OrgContextId))
                 {
                     PortalUrl = notificationType.Name switch
                     {
                         nameof(ResourceAllocationRequest.RequestInitialized) =>
-                            $"/apps/org-admin/{orgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
-                        _ => $"/apps/org-admin/{orgContextId}"
+                            $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
+                        _ => $"/apps/org-admin/{OrgContextId}"
                     };
                 }
             }
 
+            private string? OrgContextId { get; set; }
+            private bool IsAllocationRequest { get; set; }
+            private bool IsChangeRequest { get; set; }
+
+            public bool NotifyResourceOwner { get; private set; }
+            public bool NotifyTaskOwner { get; private set; }
+            public bool NotifyCreator { get; private set; }
+            public QueryResourceAllocationRequest AllocationRequest { get; }
+            public ApiPositionV2 Position { get; }
+            public ApiPositionInstanceV2 Instance { get; }
+            public string PortalUrl { get; } = "/apps/org-admin/";
+
+
+            public NotificationRequestData WithContextId(string? contextId)
+            {
+                OrgContextId = contextId;
+                return this;
+            }
             private void DecideWhoShouldBeNotified(Type notificationType, QueryResourceAllocationRequest allocationRequest)
             {
 
@@ -223,16 +236,6 @@ namespace Fusion.Resources.Api.Notifications
                         break;
                 }
             }
-
-            private bool IsAllocationRequest { get; set; }
-            private bool IsChangeRequest { get; set; }
-            public bool NotifyResourceOwner { get; private set; }
-            public bool NotifyTaskOwner { get; private set; }
-            public bool NotifyCreator { get; private set; }
-            public QueryResourceAllocationRequest AllocationRequest { get; }
-            public ApiPositionV2 Position { get; }
-            public ApiPositionInstanceV2 Instance { get; }
-            public string PortalUrl { get; }
         }
     }
 }
