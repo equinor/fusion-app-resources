@@ -1,20 +1,24 @@
-﻿using System;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Resources.Api.Controllers.Departments;
+using Fusion.Resources.Domain;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
-using Fusion.ApiClients.Org;
-using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiResourceAllocationRequest
     {
-        public ApiResourceAllocationRequest(QueryResourceAllocationRequest query)
+        public ApiResourceAllocationRequest(QueryResourceAllocationRequest query, QueryDepartment department)
         {
             Id = query.RequestId;
             Number = query.RequestNumber;
 
             AssignedDepartment = query.AssignedDepartment;
+            
+            if (department is not null)
+                AssignedDepartmentDetails = new ApiDepartment(department);
+
             Discipline = query.Discipline;
             State = query.State;
             Type = $"{query.Type}";
@@ -65,6 +69,7 @@ namespace Fusion.Resources.Api.Controllers
         public long Number { get; set; }
 
         public string? AssignedDepartment { get; set; }
+        public ApiDepartment? AssignedDepartmentDetails { get; }
         public string? Discipline { get; set; }
         public string? State { get; set; }
         /// <summary>Type of request
