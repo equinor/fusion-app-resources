@@ -10,9 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Fusion.Resources.Api.Middleware;
-using Fusion.Resources.Logic.Commands;
-using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
-using System.Reflection;
 using Fusion.Resources.Application.LineOrg;
 using Fusion.Integration.Authentication;
 using Fusion.Resources.Api.Authentication;
@@ -40,6 +37,12 @@ namespace Fusion.Resources.Api
                     options.SaveToken = true;
                 });
 
+            services.AddEventSubscription(setup =>
+            {
+                setup.ConnectionString = Configuration.GetConnectionString("ServiceBus");
+                setup.TopicPath = "resources-sub";
+                setup.Source = "FAP Resources";
+            });
 
             services.AddApiVersioning(s =>
             {
@@ -90,7 +93,7 @@ namespace Fusion.Resources.Api
                     // Domain project
                     c.RegisterValidatorsFromAssemblyContaining<PersonId>();
                     // Logic project, where ResourceAllocationRequest having validators
-                    c.RegisterValidatorsFromAssemblyContaining<ResourceAllocationRequest>();
+                    c.RegisterValidatorsFromAssemblyContaining<Logic.Commands.ResourceAllocationRequest>();
                 });
 
             #region Resource services

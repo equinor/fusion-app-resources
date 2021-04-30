@@ -6,10 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Events;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    
+
     public class UpdateInternalRequest : TrackableRequest<QueryResourceAllocationRequest>
     {
         public UpdateInternalRequest(Guid requestId)
@@ -38,12 +39,14 @@ namespace Fusion.Resources.Domain.Commands
             private readonly ResourcesDbContext db;
             private readonly IProfileService profileService;
             private readonly IMediator mediator;
+            private readonly IEventNotificationClient notificationClient;
 
-            public Handler(ResourcesDbContext db, IProfileService profileService, IMediator mediator)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IMediator mediator, IEventNotificationClient notificationClient)
             {
                 this.db = db;
                 this.profileService = profileService;
                 this.mediator = mediator;
+                this.notificationClient = notificationClient;
             }
 
             public async Task<QueryResourceAllocationRequest> Handle(UpdateInternalRequest request, CancellationToken cancellationToken)
@@ -85,8 +88,31 @@ namespace Fusion.Resources.Domain.Commands
 
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
+                if (modified)
+                {
+                    await SendNotificationsAsync(requestItem!);
+                }
+
                 return requestItem!;
-            }            
+            }
+            private async Task SendNotificationsAsync(QueryResourceAllocationRequest request)
+            {
+                try
+                {
+                    var payload = new ResourceAllocationRequestSubscriptionEvent
+                    {
+                        Type = ResourceAllocationRequestEventType.RequestUpdated,
+                        Request = new ResourceAllocationRequestEvent(request),
+                        ItemId = request.RequestId
+                    };
+                    var @event = new FusionEvent<ResourceAllocationRequestSubscriptionEvent>(ResourceAllocationRequestEventTypes.Request, payload);
+                    await notificationClient.SendNotificationAsync(@event);
+                }
+                catch
+                {
+                    // Fails if topic doesn't exist
+                }
+            }
         }
     }
 }

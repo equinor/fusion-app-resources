@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Events;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -62,12 +62,14 @@ namespace Fusion.Resources.Domain.Commands
             private readonly ResourcesDbContext dbContext;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
+            private readonly IEventNotificationClient notificationClient;
 
-            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator)
+            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator, IEventNotificationClient notificationClient)
             {
                 this.dbContext = dbContext;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
+                this.notificationClient = notificationClient;
             }
 
             public async Task<QueryResourceAllocationRequest> Handle(CreateInternalRequest request, CancellationToken cancellationToken)
@@ -133,6 +135,11 @@ namespace Fusion.Resources.Domain.Commands
 
                 dbContext.ResourceAllocationRequests.Add(item);
 
+                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
+                if (requestItem != null)
+                    await SendNotificationsAsync(requestItem);
+
+
                 return item;
             }
 
@@ -155,7 +162,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (orgProject == null)
                     throw new InvalidOperationException("Project does not exist in org chart service");
 
-                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ?? 
+                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ??
                     new DbProject
                     {
                         Name = orgProject.Name,
@@ -165,6 +172,27 @@ namespace Fusion.Resources.Domain.Commands
 
                 return project;
             }
+
+            private async Task SendNotificationsAsync(QueryResourceAllocationRequest request)
+            {
+                try
+                {
+                    var payload = new ResourceAllocationRequestSubscriptionEvent
+                    {
+                        Type = ResourceAllocationRequestEventType.RequestCreated,
+                        Request = new ResourceAllocationRequestEvent(request),
+                        ItemId = request.RequestId
+                    };
+                    var @event = new FusionEvent<ResourceAllocationRequestSubscriptionEvent>(ResourceAllocationRequestEventTypes.Request, payload);
+                    await notificationClient.SendNotificationAsync(@event);
+                }
+                catch
+                {
+                    // Fails if topic doesn't exist
+                }
+            }
         }
     }
+
+
 }
