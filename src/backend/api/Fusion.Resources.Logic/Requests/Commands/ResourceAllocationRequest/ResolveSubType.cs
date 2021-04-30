@@ -46,12 +46,9 @@ namespace Fusion.Resources.Logic.Commands
                         return AllocationDirectWorkflowV1.SUBTYPE;
                     else
                     {
-                        // Check if joint venture
-                        var instance = position.Instances.First(i => i.Id == request.OrgInstanceId);
-
-                        if (string.Equals(instance?.Properties?.GetProperty<string>("type", "normal"), "jointVenture", StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(position?.Properties?.GetProperty<string>("resourceType", "normal"), "jointVenture", StringComparison.OrdinalIgnoreCase))
                             return AllocationJointVentureWorkflowV1.SUBTYPE;
-                        else if (string.Equals(instance?.Properties?.GetProperty<string>("type", "normal"), "enterprise", StringComparison.OrdinalIgnoreCase))
+                        else if (string.Equals(position?.Properties?.GetProperty<string>("resourceType", "normal"), "enterprise", StringComparison.OrdinalIgnoreCase))
                             return AllocationEnterpriseWorkflowV1.SUBTYPE;
                         else
                             return AllocationNormalWorkflowV1.SUBTYPE;
