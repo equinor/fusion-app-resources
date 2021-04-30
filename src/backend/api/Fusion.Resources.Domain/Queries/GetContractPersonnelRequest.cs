@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain.Queries
 
         public GetContractPersonnelRequest WithQuery(ODataQueryParams query)
         {
-            if (ODataParamsExtensions.ShouldExpand(query, "comments"))
+            if (query.ShouldExpand("comments"))
             {
                 Expands |= ExpandProperties.RequestComments;
             }

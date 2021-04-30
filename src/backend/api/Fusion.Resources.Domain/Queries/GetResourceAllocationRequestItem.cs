@@ -20,19 +20,19 @@ namespace Fusion.Resources.Domain.Queries
 
         public GetResourceAllocationRequestItem WithQuery(ODataQueryParams query)
         {
-            if (ODataParamsExtensions.ShouldExpand(query, "comments"))
+            if (query.ShouldExpand("comments"))
             {
                 Expands |= ExpandProperties.RequestComments;
             }
-            if (ODataParamsExtensions.ShouldExpand(query, "taskOwner"))
+            if (query.ShouldExpand("taskOwner"))
             {
                 Expands |= ExpandProperties.TaskOwner;
             }
-            if (ODataParamsExtensions.ShouldExpand(query, "proposedPerson.resourceOwner"))
+            if (query.ShouldExpand("proposedPerson.resourceOwner"))
             {
                 Expands |= ExpandProperties.ResourceOwner;
             }
-            if (ODataParamsExtensions.ShouldExpand(query, "departmentDetails"))
+            if (query.ShouldExpand("departmentDetails"))
             {
                 Expands |= ExpandProperties.DepartmentDetails;
             }
