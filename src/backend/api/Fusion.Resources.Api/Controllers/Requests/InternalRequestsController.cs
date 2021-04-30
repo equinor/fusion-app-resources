@@ -658,11 +658,15 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
             #endregion
+            
+            var allowedMethods = new List<string> { "OPTIONS" };
 
             if (authResult.Success)
             {
-                Request.Headers["Allow"] = "GET, POST";
+                allowedMethods.Add("GET", "POST");
             }
+
+            Request.Headers["Allow"] = string.Join(',', allowedMethods);
             return NoContent();
         }
 
@@ -693,10 +697,14 @@ namespace Fusion.Resources.Api.Controllers
             });
             #endregion
 
+            var allowedMethods = new List<string> { "OPTIONS" };
+
             if (authResult.Success)
             {
-                Request.Headers["Allow"] = "GET, PUT, DELETE";
+                allowedMethods.Add("GET", "PUT", "DELETE");
             }
+
+            Request.Headers["Allow"] = string.Join(',', allowedMethods);
             return NoContent();
         }
 
