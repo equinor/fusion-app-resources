@@ -69,7 +69,7 @@ namespace Fusion.Testing.Mocks.ProfileService
                 Type = ApiFusionRoleType.Scoped,
                 Scope = new ApiPersonRoleScopeV3()
                 {
-                    Type = scopeType,
+                    Type = $"{scopeType}",
                     Value = scopeValue
                 }
             });

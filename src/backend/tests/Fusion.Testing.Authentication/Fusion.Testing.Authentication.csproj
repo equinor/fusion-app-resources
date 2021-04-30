@@ -6,9 +6,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.2.1" />
     <PackageReference Include="Fusion.ApiClients.People" Version="2.0.0-preview-1" />
     <PackageReference Include="Fusion.Infrastructure.Authentication" Version="5.0.0" />
 
