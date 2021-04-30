@@ -21,6 +21,9 @@ namespace Fusion.Resources.Api.Tests.Fixture
         private const string baseaddress = "http://mock-api.local";
         private readonly MockApi stubs = new MockApi();
 
+        private string defaultResponseContent = null;
+        private HttpStatusCode defaultResponseCode = HttpStatusCode.NotFound;
+
         public void WithResponse(StubResponse response)
         {
             if(stubs.Contains(response.Url))
@@ -34,6 +37,14 @@ namespace Fusion.Resources.Api.Tests.Fixture
             => WithResponse(new StubResponse(url, content, statusCode));
         public void WithResponse<T>(string url, T data, HttpStatusCode statusCode = HttpStatusCode.OK)
             => WithResponse(url, JsonSerializer.Serialize(data), statusCode);
+
+        public void WithDefaultResponse(string data, HttpStatusCode statusCode = HttpStatusCode.OK)
+        {
+            defaultResponseContent = data;
+            defaultResponseCode = statusCode;
+        }
+        public void WithDefaultResponse<T>(T data, HttpStatusCode statusCode = HttpStatusCode.OK)
+            => WithDefaultResponse(JsonSerializer.Serialize(data), statusCode);
 
         public HttpClient Build()
         {
@@ -49,7 +60,10 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     {
                         return new HttpResponseMessage
                         {
-                            StatusCode = HttpStatusCode.NotFound
+                            StatusCode = defaultResponseCode,
+                            Content = defaultResponseContent is not null
+                                ? new StringContent(defaultResponseContent)
+                                : null
                         };
                     }
 

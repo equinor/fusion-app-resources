@@ -54,7 +54,7 @@ namespace Fusion.Resources.Domain.Queries
         {
             Query = query;
 
-            if (query.ShoudExpand("originalPosition"))
+            if (ODataParamsExtensions.ShouldExpand(query, "originalPosition"))
                 Expands |= ExpandFields.OriginalPosition;
 
             return this;

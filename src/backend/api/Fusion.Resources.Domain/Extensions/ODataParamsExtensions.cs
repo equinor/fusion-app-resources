@@ -6,7 +6,7 @@ namespace Fusion.Resources.Domain
 {
     public static class ODataParamsExtensions
     {
-        public static bool ShoudExpand(this ODataQueryParams query, string property)
+        public static bool ShouldExpand(this ODataQueryParams query, string property)
         {
             if (query.Expand != null && query.Expand.Contains(property, StringComparer.OrdinalIgnoreCase))
                 return true;

@@ -21,10 +21,12 @@ namespace Fusion.Resources.Domain.Queries
         {
             this.Query = query ?? new ODataQueryParams();
 
-            if (Query.ShoudExpand("OrgPosition"))
+            if (Query.ShouldExpand("OrgPosition"))
                 Expands |= ExpandFields.OrgPosition;
-            if (Query.ShoudExpand("OrgPositionInstance"))
+            if (Query.ShouldExpand("OrgPositionInstance"))
                 Expands |= ExpandFields.OrgPositionInstance;
+            if (Query.ShouldExpand("DepartmentDetails"))
+                Expands |= ExpandFields.DepartmentDetails;
         }
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
@@ -114,7 +116,8 @@ namespace Fusion.Resources.Domain.Queries
         {
             None = 0,
             OrgPosition = 1 << 0,
-            OrgPositionInstance = 1 << 1
+            OrgPositionInstance = 1 << 1,
+            DepartmentDetails = 1 << 2
         }
 
 
@@ -193,9 +196,34 @@ namespace Fusion.Resources.Domain.Queries
                     await AddWorkFlows(pagedQuery);
                     await AddProposedPersons(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
+                    await AddDepartmentDetails(pagedQuery, request.Expands);
                 }
 
                 return pagedQuery;
+            }
+
+            private async Task AddDepartmentDetails(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
+            {
+                if (!expands.HasFlag(ExpandFields.DepartmentDetails)) return;
+
+                var relevantDepartmentIds = pagedQuery
+                    .Where(r => !string.IsNullOrEmpty(r.AssignedDepartment))
+                    .Select(r => r.AssignedDepartment!)
+                    .Distinct();
+
+                var departments = await mediator.Send(new GetDepartments()
+                    .ByIds(relevantDepartmentIds.ToArray())
+                    .ExpandDelegatedResourceOwners()
+                    .ExpandResourceOwners());
+
+                var departmentMap = departments.ToDictionary(dpt => dpt.DepartmentId);
+
+                foreach (var req in pagedQuery)
+                {
+                    if (string.IsNullOrEmpty(req.AssignedDepartment)) continue;
+
+                    req.AssignedDepartmentDetails = departmentMap[req.AssignedDepartment];
+                }
             }
 
             private async Task AddOrgPositions(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)

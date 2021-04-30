@@ -84,6 +84,7 @@ namespace Fusion.Resources.Domain
         public Guid? OrgPositionInstanceId { get; set; }
 
         public string? AssignedDepartment { get; set; }
+        public QueryDepartment? AssignedDepartmentDetails { get; set; }
         public string? Discipline { get; set; }
         public InternalRequestType Type { get; set; }
         public string? SubType { get; set; }

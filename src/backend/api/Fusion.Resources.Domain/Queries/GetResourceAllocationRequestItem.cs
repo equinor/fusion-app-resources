@@ -20,17 +20,21 @@ namespace Fusion.Resources.Domain.Queries
 
         public GetResourceAllocationRequestItem WithQuery(ODataQueryParams query)
         {
-            if (query.ShoudExpand("comments"))
+            if (ODataParamsExtensions.ShouldExpand(query, "comments"))
             {
                 Expands |= ExpandProperties.RequestComments;
             }
-            if (query.ShoudExpand("taskOwner"))
+            if (ODataParamsExtensions.ShouldExpand(query, "taskOwner"))
             {
                 Expands |= ExpandProperties.TaskOwner;
             }
-            if (query.ShoudExpand("proposedPerson.resourceOwner"))
+            if (ODataParamsExtensions.ShouldExpand(query, "proposedPerson.resourceOwner"))
             {
                 Expands |= ExpandProperties.ResourceOwner;
+            }
+            if (ODataParamsExtensions.ShouldExpand(query, "departmentDetails"))
+            {
+                Expands |= ExpandProperties.DepartmentDetails;
             }
 
 
@@ -54,7 +58,8 @@ namespace Fusion.Resources.Domain.Queries
             RequestComments = 1 << 0,
             TaskOwner = 1 << 1,
             ResourceOwner = 1 << 2,
-            All = RequestComments | TaskOwner | ResourceOwner
+            DepartmentDetails = 1 << 3,
+            All = RequestComments | TaskOwner | ResourceOwner | DepartmentDetails,
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -117,8 +122,33 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await ExpandResourceOwnerAsync(requestItem);
                 }
+                if (request.Expands.HasFlag(ExpandProperties.DepartmentDetails))
+                {
+                    await ExpandDepartmentDetails(requestItem);
+                }
 
                 return requestItem;
+            }
+
+            private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
+            {
+                if (String.IsNullOrEmpty(requestItem.AssignedDepartment)) return;
+
+                try
+                {
+                    var departments = await mediator.Send(new GetDepartments()
+                   .ByIds(requestItem.AssignedDepartment)
+                   .ExpandDelegatedResourceOwners()
+                   .ExpandResourceOwners());
+
+                    var departmentMap = departments.ToDictionary(dpt => dpt.DepartmentId);
+
+                    requestItem.AssignedDepartmentDetails = departmentMap[requestItem.AssignedDepartment];
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Could not expand department details: {Message}", ex.Message);
+                }
             }
 
             private async Task ExpandTaskOwnerAsync(QueryResourceAllocationRequest request)

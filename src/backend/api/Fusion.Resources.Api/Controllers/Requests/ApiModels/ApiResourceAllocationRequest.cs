@@ -9,15 +9,14 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiResourceAllocationRequest
     {
-        public ApiResourceAllocationRequest(QueryResourceAllocationRequest query, QueryDepartment department)
+        public ApiResourceAllocationRequest(QueryResourceAllocationRequest query)
         {
             Id = query.RequestId;
             Number = query.RequestNumber;
 
             AssignedDepartment = query.AssignedDepartment;
-            
-            if (department is not null)
-                AssignedDepartmentDetails = new ApiDepartment(department);
+            if (query.AssignedDepartmentDetails is not null)
+                AssignedDepartmentDetails = new ApiDepartment(query.AssignedDepartmentDetails);
 
             Discipline = query.Discipline;
             State = query.State;
