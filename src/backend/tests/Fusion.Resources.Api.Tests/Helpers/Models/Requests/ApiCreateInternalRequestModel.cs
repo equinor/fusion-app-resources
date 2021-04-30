@@ -47,6 +47,12 @@ namespace Fusion.Testing.Mocks
             SubType = "jointVenture";
             return this;
         }
+        public ApiCreateInternalRequestModel AsTypeEnterprise()
+        {
+            Type = "allocation";
+            SubType = "enterprise";
+            return this;
+        }
         public ApiCreateInternalRequestModel AsTypeDirect()
         {
             Type = "allocation";

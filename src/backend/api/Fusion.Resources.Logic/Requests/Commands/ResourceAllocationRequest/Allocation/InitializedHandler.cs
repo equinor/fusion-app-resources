@@ -45,6 +45,7 @@ namespace Fusion.Resources.Logic.Commands
                     WorkflowDefinition workflow = subType.ToLower() switch
                     {
                         AllocationDirectWorkflowV1.SUBTYPE => new AllocationDirectWorkflowV1(initiatedBy),
+                        AllocationEnterpriseWorkflowV1.SUBTYPE => new AllocationEnterpriseWorkflowV1(initiatedBy),
                         AllocationJointVentureWorkflowV1.SUBTYPE => new AllocationJointVentureWorkflowV1(initiatedBy),
                         AllocationNormalWorkflowV1.SUBTYPE => new AllocationNormalWorkflowV1(initiatedBy),
                         _ => throw new NotSupportedException($"Sub type '{subType}' is not supported for initialization.")

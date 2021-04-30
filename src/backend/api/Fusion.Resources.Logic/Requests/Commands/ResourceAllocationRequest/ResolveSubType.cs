@@ -51,6 +51,8 @@ namespace Fusion.Resources.Logic.Commands
 
                         if (string.Equals(instance?.Properties?.GetProperty<string>("type", "normal"), "jointVenture", StringComparison.OrdinalIgnoreCase))
                             return AllocationJointVentureWorkflowV1.SUBTYPE;
+                        else if (string.Equals(instance?.Properties?.GetProperty<string>("type", "normal"), "enterprise", StringComparison.OrdinalIgnoreCase))
+                            return AllocationEnterpriseWorkflowV1.SUBTYPE;
                         else
                             return AllocationNormalWorkflowV1.SUBTYPE;
                     }
