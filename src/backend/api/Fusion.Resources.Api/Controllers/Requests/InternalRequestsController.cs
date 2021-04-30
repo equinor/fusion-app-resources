@@ -647,7 +647,7 @@ namespace Fusion.Resources.Api.Controllers
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
-                return Forbid("Cannot determine required department");
+                return FusionApiError.Forbidden("Cannot determine required department");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -666,7 +666,7 @@ namespace Fusion.Resources.Api.Controllers
                 allowedMethods.Add("GET", "POST");
             }
 
-            Request.Headers["Allow"] = string.Join(',', allowedMethods);
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
             return NoContent();
         }
 
@@ -685,7 +685,7 @@ namespace Fusion.Resources.Api.Controllers
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
-                return Forbid("Cannot determine required department");
+                return FusionApiError.Forbidden("Cannot determine required department");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -704,7 +704,7 @@ namespace Fusion.Resources.Api.Controllers
                 allowedMethods.Add("GET", "PUT", "DELETE");
             }
 
-            Request.Headers["Allow"] = string.Join(',', allowedMethods);
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
             return NoContent();
         }
 
