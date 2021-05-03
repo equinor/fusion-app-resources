@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/subscriptions/internal-requests")]
-        public async Task<IActionResult> RenewSubscription([FromBody] SubscriptionRequestV1 request)
+        public async Task<IActionResult> RenewSubscription([FromBody] SubscriptionRequest request)
         {
             if (!User.IsApplicationUser())
             {
@@ -44,7 +44,15 @@ namespace Fusion.Resources.Api.Controllers
 
             return new OkObjectResult(new ApiEventSubscriptionV1(connectionDetails, "resources-sub"));
         }
+        public class SubscriptionRequest
+        {
+            public Guid? Id { get; set; }
+            public string Identifier { get; set; }
+            public string Type { get; set; }
+            public string[] TypeFilter { get; set; }
+
+        }
     }
 
- 
+
 }
