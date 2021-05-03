@@ -83,17 +83,29 @@ namespace Fusion.Resources.Application.LineOrg
 
             var rebuiltCache = new DepartmentCache();
 
-            await UpdateCacheItemsUnsafe(rebuiltCache);
+            try
+            {
+                await UpdateCacheItemsUnsafe(rebuiltCache);
 
-            cache = rebuiltCache;
-            semaphoreSlim.Release();
+                cache = rebuiltCache;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
         }
 
         private async Task UpdateCacheItems(string? filter = null)
         {
             await semaphoreSlim.WaitAsync();
-            await UpdateCacheItemsUnsafe(cache, filter);
-            semaphoreSlim.Release();
+            try
+            {
+                await UpdateCacheItemsUnsafe(cache, filter);
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
         }
 
         private async Task UpdateCacheItemsUnsafe(DepartmentCache cache, string? filter = null)

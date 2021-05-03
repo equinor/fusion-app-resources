@@ -193,6 +193,54 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetRequest_ShouldIncludeDepartment_WhenExpanded()
+        {
+            using var adminScope = fixture.AdminScope();
+            const string expectedDepartment = "TPD PRD TST QWE";
+
+            fixture.EnsureDepartment(expectedDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            fixture.ApiFactory.lineOrgMock.WithResponse("/lineorg/persons", new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = expectedDepartment
+                    }
+                }
+            });
+
+            var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
+            var request = await Client.CreateRequestAsync(projectId, r => r.AsTypeNormal().WithPosition(requestPosition));
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+            request = await Client.AssignDepartmentAsync(request.Id, expectedDepartment);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=DepartmentDetails", new
+            {
+                assignedDepartmentDetails = new
+                {
+                    name = "",
+                    lineOrgResponsible = new { azureUniqueId = Guid.Empty, name = ""}
+                }
+            });
+
+
+            result.Should().BeSuccessfull();
+            result.Value.assignedDepartmentDetails.Should().NotBeNull();
+
+            result.Value.assignedDepartmentDetails.name.Should().Be(expectedDepartment);
+            result.Value.assignedDepartmentDetails.lineOrgResponsible.name.Should().Be(fakeResourceOwner.Name);
+        }
+
+        [Fact]
         public async Task GetRequest_ShouldUseInstanceStartDate_WhenExpandTaskOwner()
         {
             using var adminScope = fixture.AdminScope();

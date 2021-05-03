@@ -9,6 +9,7 @@ using Fusion.Testing;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using System.Data;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -68,7 +69,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
             return account;
         }
-
         internal void EnsureDepartment(string departmentId, string sectorId = null, ApiPersonProfileV3 defactoResponsible = null)
         {
             using var scope = ApiFactory.Services.CreateScope();
