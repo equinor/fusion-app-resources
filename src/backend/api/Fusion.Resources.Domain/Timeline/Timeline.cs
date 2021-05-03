@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace Fusion.Resources.Domain.Timeline
 {
-
     public class Timeline<T>
     {
         private readonly Func<T, DateTime> getFromDate;
