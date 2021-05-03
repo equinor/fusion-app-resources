@@ -47,9 +47,9 @@ namespace Fusion.Resources.Api.Controllers
         public class SubscriptionRequest
         {
             public Guid? Id { get; set; }
-            public string Identifier { get; set; }
-            public string Type { get; set; }
-            public string[] TypeFilter { get; set; }
+            public string? Identifier { get; set; }
+            public string? Type { get; set; }
+            public string[]? TypeFilter { get; set; }
 
         }
     }
