@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.2.0" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.0" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.4" />
     <PackageReference Include="Fusion.AspNetCore" Version="5.0.0" />
   </ItemGroup>
   
