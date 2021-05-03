@@ -123,6 +123,12 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
+        public static IAuthorizationRequirementRule BeRequestCreator(this IAuthorizationRequirementRule builder, Guid requestId)
+        {
+            builder.AddRule(new RequestCreatorRequirement(requestId));
+            return builder;
+        }
+
         #region Domain rules
 
         public static IAuthorizationRequirementRule CanDelegateInternalRole(this IAuthorizationRequirementRule builder, ProjectIdentifier project, Guid contractOrgId)

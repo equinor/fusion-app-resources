@@ -14,6 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAuthorizationHandler, ContractorInContractHandler>();
             services.AddScoped<IAuthorizationHandler, ContractorInProjectHandler>();
             services.AddScoped<IAuthorizationHandler, OrgPositionAccessHandler>();
+            services.AddScoped<IAuthorizationHandler, RequestCreatorHandler>();
 
             return services;
         }

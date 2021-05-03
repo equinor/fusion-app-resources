@@ -18,7 +18,6 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<ApiPropertiesCollection?> ProposedChanges { get; set; } = new();
 
         public PatchProperty<ProposalParametersRequest> ProposalParameters { get; set; } = new();
-
         #region Validator
 
 

@@ -63,7 +63,6 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-
                 using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
@@ -187,6 +186,10 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (item.AssignedDepartment is null && item.OrgPosition is not null)
                         or.BeResourceOwner(new DepartmentPath(item.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
+
+                    if (!request.AssignedDepartment.HasValue && !request.ProposedPersonAzureUniqueId.HasValue)
+                        or.BeRequestCreator(requestId);
+
                 });
             });
 
@@ -360,6 +363,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
+                    or.BeRequestCreator(requestId);
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(result.Project.OrgProjectId));
 
@@ -405,6 +409,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
+                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -487,6 +492,8 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (result.Type == InternalRequestType.Allocation)
                     {
+                        or.BeRequestCreator(requestId);
+
                         if (result.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                     }
@@ -768,6 +775,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    or.BeRequestCreator(requestId);
+
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
@@ -797,6 +806,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    or.BeRequestCreator(requestId);
+
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
