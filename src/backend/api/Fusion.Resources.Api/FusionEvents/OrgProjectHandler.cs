@@ -12,21 +12,9 @@ namespace Fusion.Resources.Api
 {
     public class OrgProjectHandler : ISubscriptionHandler
     {
-        private static readonly JsonSerializerOptions serializerOptions;
-
         private readonly ResourcesDbContext db;
         private readonly IProjectOrgResolver orgResolver;
         private readonly ILogger<OrgProjectHandler> logger;
-
-        static OrgProjectHandler()
-        {
-            serializerOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                IncludeFields = true
-            };
-            serializerOptions.Converters.Add(new JsonStringEnumConverter());
-        }
 
         public OrgProjectHandler(ResourcesDbContext db, IProjectOrgResolver orgResolver, ILogger<OrgProjectHandler> logger)
         {
@@ -34,10 +22,10 @@ namespace Fusion.Resources.Api
             this.orgResolver = orgResolver;
             this.logger = logger;
         }
-        
+
         public async Task ProcessMessageAsync(MessageContext ctx, string body, CancellationToken cancellationToken)
         {
-            var payload = JsonSerializer.Deserialize<Events.Org.OrgSubscriptionEvent>(body, serializerOptions);
+            var payload = ctx.GetBody<Events.Org.OrgSubscriptionEvent>();
 
             if (payload is null)
             {

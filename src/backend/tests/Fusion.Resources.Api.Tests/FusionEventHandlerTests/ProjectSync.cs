@@ -8,7 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
+using System.Runtime.Serialization;
+using System.Text;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -60,11 +63,22 @@ namespace Fusion.Resources.Api.Tests.FusionEventHandlerTests
                 ItemId = testProject.Project.ProjectId,
                 Type = "ProjectUpdated",
             });
-            await handler.ProcessMessageAsync(null, payload, CancellationToken.None);
+
+            var context = (Events.MessageContext)FormatterServices.GetUninitializedObject(typeof(Events.MessageContext));
+            context.Message = new Microsoft.Azure.ServiceBus.Message
+            {
+                Body = Encoding.UTF8.GetBytes(payload)
+            };
+            context.Event = new Events.CloudEventV1
+            {
+                Data = payload
+            };
+
+            await handler.ProcessMessageAsync(context, payload, CancellationToken.None);
 
             var updated = await db.Projects
                 .FirstOrDefaultAsync(p => p.OrgProjectId == testProject.Project.ProjectId);
-            
+
             updated.Name.Should().Be(testProject.Project.Name);
             updated.DomainId.Should().Be(testProject.Project.DomainId);
         }
