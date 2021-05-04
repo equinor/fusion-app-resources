@@ -65,6 +65,11 @@ namespace Fusion.Resources.Api.Controllers
             var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
             return mediator.Send(command);
         }
+        protected Task DispatchAsync(INotification notification)
+        {
+            var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
+            return mediator.Publish(notification);
+        }
 
         protected Task<ApiPositionV2?> ResolvePositionAsync(Guid positionId)
         {

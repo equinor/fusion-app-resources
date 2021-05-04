@@ -7,9 +7,11 @@ using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Integration.Org;
+using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
+using Fusion.Resources.Integration.Models.Events;
 using Fusion.Resources.Logic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -80,6 +82,9 @@ namespace Fusion.Resources.Api.Controllers
                 await transaction.CommitAsync();
 
                 newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+
+                await DispatchAsync(new InternalRequestChangedEvent(newRequest!, ResourceAllocationRequestEventType.RequestCreated));
+
                 return Created($"/projects/{projectIdentifier}/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (ValidationException ex)
@@ -122,7 +127,7 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionId = request.OrgPositionId,
                 OrgProjectId = position.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
-                AssignedDepartment = departmentPath                
+                AssignedDepartment = departmentPath
             };
 
             try
@@ -148,6 +153,7 @@ namespace Fusion.Resources.Api.Controllers
                 await transaction.CommitAsync();
 
                 newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+                await DispatchAsync(new InternalRequestChangedEvent(newRequest!, ResourceAllocationRequestEventType.RequestCreated));
                 return Created($"/departments/{departmentPath}/resources/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (ValidationException ex)
@@ -162,9 +168,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
-            [FromRoute] ProjectIdentifier? projectIdentifier, 
-            string? departmentString, 
-            Guid requestId, 
+            [FromRoute] ProjectIdentifier? projectIdentifier,
+            string? departmentString,
+            Guid requestId,
             [FromBody] PatchInternalRequestRequest request)
         {
             var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -345,7 +351,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]        
+        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
@@ -382,7 +388,7 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result);
         }
 
-   
+
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/start")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
@@ -505,6 +511,7 @@ namespace Fusion.Resources.Api.Controllers
 
             await transaction.CommitAsync();
 
+            await DispatchAsync(new InternalRequestChangedEvent(result, ResourceAllocationRequestEventType.RequestRemoved));
             return NoContent();
         }
 
@@ -582,14 +589,14 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            
+
             await using var scope = await BeginTransactionAsync();
 
             await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
 
             await scope.CommitAsync();
 
-            
+
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             return new ApiResourceAllocationRequest(result!);
         }
@@ -652,7 +659,7 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-            
+
             var comment = await DispatchAsync(new AddComment(User.GetRequestOrigin(), requestId, create.Content));
 
             return Created($"/resources/requests/internal/{requestId}/comments/{comment.Id}", new ApiRequestComment(comment));
@@ -782,7 +789,7 @@ namespace Fusion.Resources.Api.Controllers
 
             return NoContent();
         }
-        
+
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
