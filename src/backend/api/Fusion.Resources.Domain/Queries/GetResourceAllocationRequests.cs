@@ -11,6 +11,7 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using FluentValidation;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -86,6 +87,12 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests ForAll(bool? shouldIncludeAllRequests = true)
+        {
+            ShouldIncludeAllRequests = shouldIncludeAllRequests;
+            return this;
+        }
+
         public Guid? ProjectId { get; private set; }
         public string? DepartmentString { get; private set; }
         public bool Unassigned { get; private set; }
@@ -96,6 +103,7 @@ namespace Fusion.Resources.Domain.Queries
 
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
+        public bool? ShouldIncludeAllRequests { get; private set; }
 
         [Flags]
         private enum ExpandFields
@@ -106,6 +114,19 @@ namespace Fusion.Resources.Domain.Queries
             DepartmentDetails = 1 << 2
         }
 
+        public class Validator : AbstractValidator<GetResourceAllocationRequests>
+        {
+            public Validator()
+            {
+                RuleFor(x => x.Owner)
+                    .Must(o => o.HasValue).When(x => !x.ShouldIncludeAllRequests.HasValue)
+                    .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
+                
+                RuleFor(x => x.ShouldIncludeAllRequests)
+                    .Must(o => o.HasValue).When(x => !x.Owner.HasValue)
+                    .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
+            }
+        }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
