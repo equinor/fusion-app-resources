@@ -10,8 +10,7 @@ using Fusion.Testing;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using System.Data;
-using System.Linq;
-using System.Collections.Generic;
+using System.Linq; 
 using Fusion.Events;
 using Newtonsoft.Json;
 
