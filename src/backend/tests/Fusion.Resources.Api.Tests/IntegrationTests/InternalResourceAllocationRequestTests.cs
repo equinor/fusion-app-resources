@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -48,7 +47,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.External);
-
+         
             fixture.EnsureDepartment(TestDepartmentId);
         }
 
@@ -79,7 +78,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.GetNotificationMessages<ResourceAllocationRequestSubscriptionEvent>("resources-sub")
                 .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == ResourceAllocationRequestEventType.RequestCreated);
-
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
             //commentResponse.Should().BeSuccessfull();
             //testCommentId = commentResponse.Value.Id;
@@ -103,7 +101,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.GetNotificationMessages<ResourceAllocationRequestSubscriptionEvent>("resources-sub")
                 .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == ResourceAllocationRequestEventType.RequestRemoved);
-
         }
         [Fact]
         public async Task Delete_InternalRequest_NonExistingRequest_ShouldBeNotFound()
@@ -117,9 +114,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var commentResponse = await Client.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Id}/comments", new
-            {
-                Content = "Normal test request comment"
+            var commentResponse = await Client.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Id}/comments", new { 
+                Content = "Normal test request comment" 
             }, new { Id = Guid.Empty });
             commentResponse.Should().BeSuccessfull();
             var commentId = commentResponse.Value.Id;
@@ -166,7 +162,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var topResponseTest = await Client.TestClientGetAsync($"/projects/{projectId}/requests", new
             {
-                value = new[] { new { id = Guid.Empty } }
+                value = new [] { new { id = Guid.Empty }}
             });
             topResponseTest.Should().BeSuccessfull();
             topResponseTest.Value.value.Should().Contain(r => r.id == request.Id);
@@ -375,7 +371,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    using var adminScope = fixture.AdminScope();
 
         //    var newRequestId = await Client.CreateDefaultRequestAsync(testProject, r => r.WithAssignedDepartment(null));
-
+            
         //    var response = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned", new { value = new[] { new { id = Guid.Empty, assignedDepartment = string.Empty } } });
         //    response.Should().BeSuccessfull();
 
@@ -411,7 +407,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    response.Value.value.Should().NotContain(r => r.id == newRequestId);
         //}
 
-
+        
         #endregion
 
         #region put tests
@@ -529,8 +525,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 name = "Test location"
             };
 
-            var response = await Client.TestClientPatchAsync($"/resources/requests/internal/{normalRequest.Id}", new
-            {
+            var response = await Client.TestClientPatchAsync($"/resources/requests/internal/{normalRequest.Id}", new 
+            { 
                 proposedChanges = new { location }
             }, new
             {
@@ -568,7 +564,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task CreateRequest_ShouldBeBadRequest_WhenNormalAndNoPosition()
         {
             using var adminScope = fixture.AdminScope();
-
+            
             var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new { }, new { Id = Guid.Empty });
 
             response.Should().BeBadRequest();
@@ -580,8 +576,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             var position = testProject.AddPosition();
 
-            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
-            {
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new { 
                 orgPositionId = position.Id
             }, new { Id = Guid.Empty });
 
