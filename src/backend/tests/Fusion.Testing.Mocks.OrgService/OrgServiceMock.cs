@@ -19,6 +19,7 @@ namespace Fusion.Testing.Mocks.OrgService
         public string Body { get; set; }
         public string Path { get; set; }
         public QueryString Query { get; internal set; }
+        public Dictionary<string, string> Headers { get; set; }
     }
 
     public class OrgServiceMock

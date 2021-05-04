@@ -41,6 +41,10 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
 
+                // Mark changes done to org entities to come from resources.
+                using var scope = client.UseRequestHeaders()
+                    .WithChangeSource("Resources");
+
                 var resetStateUrl = $"/projects/{request.OrgProjectId}/positions/{request.OrgPositionId}/instances/{request.OrgInstanceId}/allocation-state/reset";
                 var resp = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, resetStateUrl));
 

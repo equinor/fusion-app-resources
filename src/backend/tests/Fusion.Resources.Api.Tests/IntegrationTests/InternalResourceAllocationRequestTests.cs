@@ -609,6 +609,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         #endregion
+
+        #region Provision
+
+        [Fact]
+        public async Task Provision_AllocationRequest_ShouldSetChangeSourceHeaders()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.ProposePersonAsync(request.Id, testUser);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var invocations = OrgServiceMock.Invocations.Where(i => i.Headers.Any(k => k.Key == "x-fusion-change-source"));
+            invocations.Should().Contain(e => e.Headers.Values.Any(h => h.Contains($";{request.Number}")));
+        }
+        #endregion
     }
 
 }
