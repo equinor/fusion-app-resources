@@ -29,7 +29,7 @@
     <PackageReference Include="Fusion.Integration.Org" Version="5.1.2" />
     <PackageReference Include="Fusion.Integration.Roles" Version="5.1.0" />
     <PackageReference Include="Fusion.Integration.Notification" Version="5.1.0" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.5-preview.1" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
     <PackageReference Include="Fusion.AspNetCore" Version="5.0.0" />
 
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />

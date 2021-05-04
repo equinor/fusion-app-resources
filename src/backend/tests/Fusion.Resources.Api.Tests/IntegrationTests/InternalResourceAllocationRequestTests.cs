@@ -625,7 +625,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.ProvisionRequestAsync(request.Id);
 
             var invocations = OrgServiceMock.Invocations.Where(i => i.Headers.Any(k => k.Key == "x-fusion-change-source"));
-            invocations.Should().Contain(e => e.Headers.Values.Any(h => h.Contains($";{request.Number}")));
+            invocations.Should().Contain(e => e.Headers.Any(h => h.Key == "x-fusion-change-source" && h.Value.Contains($"; {request.Number}")));
         }
         #endregion
     }
