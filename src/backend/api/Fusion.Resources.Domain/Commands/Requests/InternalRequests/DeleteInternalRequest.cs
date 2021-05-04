@@ -23,14 +23,12 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<DeleteInternalRequest>
         {
             private readonly ResourcesDbContext dbContext;
-            private readonly IMediator mediator;
             private readonly IEventNotificationClient notificationClient;
             private readonly ILogger<DeleteInternalRequest> logger;
 
-            public Handler(ResourcesDbContext dbContext, IMediator mediator, IEventNotificationClient notificationClient, ILogger<DeleteInternalRequest> logger)
+            public Handler(ResourcesDbContext dbContext, IEventNotificationClient notificationClient, ILogger<DeleteInternalRequest> logger)
             {
                 this.dbContext = dbContext;
-                this.mediator = mediator;
                 this.notificationClient = notificationClient;
                 this.logger = logger;
             }
