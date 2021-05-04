@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain.Queries
                     .ExpandPositions()
                     .ExpandPositionInstances()
                     .WithUnassignedFilter(true)
-                    .WithExcludeDrafts(true)
+                    .ForResourceOwners()
                     .WithExcludeCompleted(true), cancellationToken) ;
 
                 var sourceDepartmentLevel = request.DepartmentString.Split(" ").Length;
