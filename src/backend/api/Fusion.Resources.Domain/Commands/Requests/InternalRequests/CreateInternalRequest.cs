@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Events;
+using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -63,13 +64,15 @@ namespace Fusion.Resources.Domain.Commands
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
             private readonly IEventNotificationClient notificationClient;
+            private readonly ILogger<CreateInternalRequest> logger;
 
-            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator, IEventNotificationClient notificationClient)
+            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator, IEventNotificationClient notificationClient, ILogger<CreateInternalRequest> logger)
             {
                 this.dbContext = dbContext;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
                 this.notificationClient = notificationClient;
+                this.logger = logger;
             }
 
             public async Task<QueryResourceAllocationRequest> Handle(CreateInternalRequest request, CancellationToken cancellationToken)
@@ -186,9 +189,10 @@ namespace Fusion.Resources.Domain.Commands
                     var @event = new FusionEvent<ResourceAllocationRequestSubscriptionEvent>(ResourceAllocationRequestEventTypes.Request, payload);
                     await notificationClient.SendNotificationAsync(@event);
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Fails if topic doesn't exist
+                    logger.LogError(ex.Message);
                 }
             }
         }

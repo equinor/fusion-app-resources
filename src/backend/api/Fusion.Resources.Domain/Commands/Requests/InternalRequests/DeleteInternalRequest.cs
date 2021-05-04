@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Events;
+using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -24,12 +25,14 @@ namespace Fusion.Resources.Domain.Commands
             private readonly ResourcesDbContext dbContext;
             private readonly IMediator mediator;
             private readonly IEventNotificationClient notificationClient;
+            private readonly ILogger<DeleteInternalRequest> logger;
 
-            public Handler(ResourcesDbContext dbContext, IMediator mediator, IEventNotificationClient notificationClient)
+            public Handler(ResourcesDbContext dbContext, IMediator mediator, IEventNotificationClient notificationClient, ILogger<DeleteInternalRequest> logger)
             {
                 this.dbContext = dbContext;
                 this.mediator = mediator;
                 this.notificationClient = notificationClient;
+                this.logger = logger;
             }
 
             protected override async Task Handle(DeleteInternalRequest request, CancellationToken cancellationToken)
@@ -63,9 +66,10 @@ namespace Fusion.Resources.Domain.Commands
                     var @event = new FusionEvent<ResourceAllocationRequestSubscriptionEvent>(ResourceAllocationRequestEventTypes.Request, payload);
                     await notificationClient.SendNotificationAsync(@event);
                 }
-                catch
+                catch(Exception ex)
                 {
                     // Fails if topic doesn't exist
+                    logger.LogError(ex.Message);
                 }
             }
         }

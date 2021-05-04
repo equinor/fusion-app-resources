@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/subscriptions/internal-requests")]
-        public async Task<IActionResult> RenewSubscription([FromBody] SubscriptionRequest request)
+        public async Task<IActionResult> RenewSubscription([FromBody] ResourcesSubscriptionRequest request)
         {
             if (!User.IsApplicationUser())
             {
@@ -44,7 +44,8 @@ namespace Fusion.Resources.Api.Controllers
 
             return new OkObjectResult(new ApiEventSubscriptionV1(connectionDetails, "resources-sub"));
         }
-        public class SubscriptionRequest
+        // Not using SubscriptionRequestV1 due to missing System.Text.Json handling in event lib.
+        public class ResourcesSubscriptionRequest
         {
             public Guid? Id { get; set; }
             public string? Identifier { get; set; }
@@ -52,7 +53,6 @@ namespace Fusion.Resources.Api.Controllers
             [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
             public ApiSubscriptionType? Type { get; set; }
             public string[]? TypeFilter { get; set; }
-
         }
     }
 

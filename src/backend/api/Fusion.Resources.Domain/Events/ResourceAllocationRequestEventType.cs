@@ -3,7 +3,6 @@
     public enum ResourceAllocationRequestEventType
     {
         RequestCreated,
-        RequestUpdated,
-        RequestRemoved,
+        RequestRemoved
     }
 }

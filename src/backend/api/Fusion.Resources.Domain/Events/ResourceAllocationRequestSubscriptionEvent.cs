@@ -6,7 +6,7 @@ namespace Fusion.Events
 {
     public class ResourceAllocationRequestSubscriptionEvent
     {
-        public Guid ItemId;
+        public Guid ItemId { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ResourceAllocationRequestEvent? Request { get; set; }
