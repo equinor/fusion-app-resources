@@ -33,7 +33,7 @@ namespace Fusion.Testing.Mocks.OrgService
         internal static List<ApiClients.Org.ApiPositionV2> contractPositions = new List<ApiClients.Org.ApiPositionV2>();
         internal static List<ApiCompanyV2> companies = new List<ApiCompanyV2>();
 
-        internal static Dictionary<Guid, Guid> taskOwnerMapping = new Dictionary<Guid, Guid>();
+        internal static ConcurrentDictionary<Guid, Guid> taskOwnerMapping = new ConcurrentDictionary<Guid, Guid>();
 
         internal static SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
@@ -92,17 +92,17 @@ namespace Fusion.Testing.Mocks.OrgService
 
         public static void SetTaskOwner(Guid position, Guid taskOwnerPosition)
         {
-            semaphore.Wait();
-            try
-            {
-                taskOwnerMapping[position] = taskOwnerPosition;
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+            taskOwnerMapping.TryAdd(position, taskOwnerPosition);
         }
 
+        public static ApiPositionV2 GetPosition(Guid id)
+        {
+            return positions.FirstOrDefault(p => p.Id == id);
+        }
+        public static ApiProjectV2 GetProject(Guid id)
+        {
+            return projects.FirstOrDefault(p => p.ProjectId == id);
+        }
         //public static ApiPositionV2 ResolveContractPosition(Guid position)
         //{
 

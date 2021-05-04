@@ -144,5 +144,84 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
             return OrgServiceMock.projects.FirstOrDefault(p => p.ProjectId == projectId.ProjectId).Director;
         }
+
+        [MapToApiVersion("2.0")]
+        [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/task-owner")]
+        public ActionResult<MockApiTaskOwnerV2> GetInstanceTaskOwner([FromRoute] ProjectIdentifier projectId, Guid positionId, Guid instanceId)
+        {
+            if (OrgServiceMock.taskOwnerMapping.TryGetValue(positionId, out Guid taskOwnerPositionId))
+            {
+                var position = OrgServiceMock.GetPosition(positionId);
+                if (position is null)
+                    return NotFound(new { error = new { message = "Could not locate position" } });
+
+                var instance = position.Instances.FirstOrDefault(i => i.Id == instanceId);
+                if (instance is null)
+                    return NotFound(new { error = new { message = "Could not locate instance" } });
+
+
+                var taskOwner = OrgServiceMock.GetPosition(taskOwnerPositionId);
+
+                var date = DateTime.Today;
+                if (date <= instance.AppliesFrom)
+                    date = instance.AppliesFrom.Date;
+                if (date >= instance.AppliesTo)
+                    date = instance.AppliesTo.Date;
+
+
+                if (taskOwner is not null)
+                {
+                    var taskOwnerResp = new MockApiTaskOwnerV2(date, taskOwner);
+                    return taskOwnerResp;
+                }
+            }
+
+            var director = OrgServiceMock.GetProject(projectId.ProjectId.Value)?.Director;
+            return new MockApiTaskOwnerV2(director);
+        }
+
+        public class MockApiTaskOwnerV2
+        {
+            public MockApiTaskOwnerV2(ApiPositionV2 taskOwner) : this(DateTime.Today, taskOwner)
+            {
+            }
+            public MockApiTaskOwnerV2(DateTime date, ApiPositionV2 taskOwner)
+            {
+                Date = date;
+                PositionId = taskOwner.Id;
+
+                var instances = taskOwner.Instances.Where(i => i.AppliesFrom.Date <= Date && i.AppliesTo.Date >= Date).ToList();
+
+                if (instances.Count == 0 && taskOwner.Instances.Any())
+                    instances.Add(taskOwner.Instances.OrderBy(i => i.AppliesTo).Last());
+
+                if (instances is not null)
+                {
+                    InstanceIds = instances.Select(i => i.Id).ToArray();
+                    Persons = instances.Where(i => i.AssignedPerson is not null).Select(i => i.AssignedPerson).ToArray();
+                }
+            }
+
+            /// <summary>
+            /// The date used to resolve the task owner.
+            /// </summary>
+            public DateTime Date { get; set; }
+
+            /// <summary>
+            /// The position id of the task owner
+            /// </summary>
+            public Guid? PositionId { get; set; }
+
+            /// <summary>
+            /// Instances that are active at the date. This is usually related to rotations.
+            /// Could also be delegated responsibility.
+            /// </summary>
+            public Guid[] InstanceIds { get; set; }
+
+            /// <summary>
+            /// The persons assigned to the resolved instances.
+            /// </summary>
+            public ApiPersonV2[] Persons { get; set; }
+        }
     }
 }

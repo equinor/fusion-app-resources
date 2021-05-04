@@ -13,6 +13,9 @@ using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Application.LineOrg;
 using Fusion.Integration.Authentication;
 using Fusion.Resources.Api.Authentication;
+using Fusion.Events;
+using Fusion.Integration.Http;
+using Fusion.Integration.Org;
 
 namespace Fusion.Resources.Api
 {
@@ -79,6 +82,13 @@ namespace Fusion.Resources.Api
                 options.ApplicationMode = true;
             });
             services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
+            services.AddFusionEventHandler(s =>
+            {
+                s.AddPersistentHandler<OrgProjectHandler>(OrgConstants.HttpClients.Application, "/subscriptions/org-projects", e =>
+                {
+                    e.OnlyTriggerOn(OrgEventTypes.Project);
+                });
+            });
 
             // Add custom claims provider, to sort delegated responsibilities
             services.AddScoped<ILocalClaimsTransformation, DelegatedResourceOwnerClaimsTransformer>();

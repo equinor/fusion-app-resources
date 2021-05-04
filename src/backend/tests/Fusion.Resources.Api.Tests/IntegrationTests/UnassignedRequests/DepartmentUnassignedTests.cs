@@ -129,6 +129,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
         }
 
         [Fact]
+        public async Task ShouldExcludeDraftRequests()
+        {
+            var department = "TPD PRD MY TEST DEP1";
+            fixture.EnsureDepartment(department);
+
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = department);
+
+            using var adminScope = fixture.AdminScope();
+
+            var unassignedRequest = await Client.CreateDefaultRequestAsync(testProject, 
+                _=> { }, 
+                pos => pos.WithBasePosition(bp)
+            );
+
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            resp.Value.value.Should().NotContain(r => r.id == unassignedRequest.Id);
+        }
+
+        [Fact]
         public async Task ShouldExpandPositionInstances()
         {
             var department = "TPD PRD MY TEST DEP1";

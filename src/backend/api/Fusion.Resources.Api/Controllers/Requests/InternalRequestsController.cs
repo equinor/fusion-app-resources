@@ -260,7 +260,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            var requestCommand = new GetResourceAllocationRequests(query);
+            var requestCommand = new GetResourceAllocationRequests(query).ForAll();
             var result = await DispatchAsync(requestCommand);
 
 
