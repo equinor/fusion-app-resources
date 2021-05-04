@@ -48,7 +48,9 @@ namespace Fusion.Resources.Api.Controllers
         {
             public Guid? Id { get; set; }
             public string? Identifier { get; set; }
-            public string? Type { get; set; }
+            [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+            [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+            public ApiSubscriptionType? Type { get; set; }
             public string[]? TypeFilter { get; set; }
 
         }
