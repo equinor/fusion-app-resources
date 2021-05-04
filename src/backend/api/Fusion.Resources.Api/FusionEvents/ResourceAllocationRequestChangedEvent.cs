@@ -9,9 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Api.FusionEvents
 {
-    public class InternalRequestChangedEvent : INotification
+    public class ResourceAllocationRequestChangedEvent : INotification
     {
-        public InternalRequestChangedEvent(QueryResourceAllocationRequest request, ResourceAllocationRequestEventType type)
+        public ResourceAllocationRequestChangedEvent(QueryResourceAllocationRequest request, ResourceAllocationRequestEventType type)
         {
             RequestId = request.RequestId;
             PositionId = request.OrgPositionId!.Value;
@@ -26,18 +26,18 @@ namespace Fusion.Resources.Api.FusionEvents
         public ResourceAllocationRequestEventType Type { get; }
 
 
-        public class Handler : INotificationHandler<InternalRequestChangedEvent>
+        public class Handler : INotificationHandler<ResourceAllocationRequestChangedEvent>
         {
             private readonly IEventNotificationClient notificationClient;
-            private readonly ILogger<InternalRequestChangedEvent> logger;
+            private readonly ILogger<ResourceAllocationRequestChangedEvent> logger;
 
-            public Handler(IEventNotificationClient notificationClient, ILogger<InternalRequestChangedEvent> logger)
+            public Handler(IEventNotificationClient notificationClient, ILogger<ResourceAllocationRequestChangedEvent> logger)
             {
                 this.notificationClient = notificationClient;
                 this.logger = logger;
             }
 
-            public async Task Handle(InternalRequestChangedEvent notification, CancellationToken cancellationToken)
+            public async Task Handle(ResourceAllocationRequestChangedEvent notification, CancellationToken cancellationToken)
             {
                 try
                 {
