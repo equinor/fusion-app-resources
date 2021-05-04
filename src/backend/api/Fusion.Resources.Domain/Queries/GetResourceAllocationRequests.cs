@@ -11,12 +11,12 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using FluentValidation;
 
 namespace Fusion.Resources.Domain.Queries
 {
     public class GetResourceAllocationRequests : IRequest<QueryRangedList<QueryResourceAllocationRequest>>
     {
-
         public GetResourceAllocationRequests(ODataQueryParams? query = null)
         {
             this.Query = query ?? new ODataQueryParams();
@@ -49,12 +49,6 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
-        public GetResourceAllocationRequests WithExcludeDrafts(bool excludeDrafts = true)
-        {
-            ExcludeDrafts = excludeDrafts;
-            return this;
-        }
-
         public GetResourceAllocationRequests WithAssignedDepartment(string departmentString)
         {
             DepartmentString = departmentString;
@@ -76,12 +70,6 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
-        //public GetResourceAllocationRequests WithExcludeDrafts(bool excludeDrafts = true)
-        //{
-        //    ExcludeDrafts = excludeDrafts;
-        //    return this;
-        //}
-
         public GetResourceAllocationRequests WithExcludeCompleted(bool exclude = false)
         {
             ExcludeCompleted = exclude;
@@ -99,17 +87,23 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests ForAll(bool? shouldIncludeAllRequests = true)
+        {
+            ShouldIncludeAllRequests = shouldIncludeAllRequests;
+            return this;
+        }
+
         public Guid? ProjectId { get; private set; }
         public string? DepartmentString { get; private set; }
         public bool Unassigned { get; private set; }
         public bool OnlyCount { get; private set; }
-        public bool? ExcludeDrafts { get; private set; }
         public bool? ExcludeCompleted { get; private set; }
 
         private DbInternalRequestOwner? Owner { get; set; }
 
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
+        public bool? ShouldIncludeAllRequests { get; private set; }
 
         [Flags]
         private enum ExpandFields
@@ -120,6 +114,19 @@ namespace Fusion.Resources.Domain.Queries
             DepartmentDetails = 1 << 2
         }
 
+        public class Validator : AbstractValidator<GetResourceAllocationRequests>
+        {
+            public Validator()
+            {
+                RuleFor(x => x.Owner)
+                    .Must(o => o.HasValue).When(x => !x.ShouldIncludeAllRequests.HasValue)
+                    .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
+                
+                RuleFor(x => x.ShouldIncludeAllRequests)
+                    .Must(o => o.HasValue).When(x => !x.Owner.HasValue)
+                    .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
+            }
+        }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
@@ -152,8 +159,6 @@ namespace Fusion.Resources.Domain.Queries
                 if (request.Owner is not null)
                     query = query.Where(r => r.IsDraft == false || r.RequestOwner == request.Owner);
 
-                //if (request.ExcludeDrafts.HasValue && request.ExcludeDrafts.Value)
-                //    query = query.Where(c => c.IsDraft == false);
                 if (request.ExcludeCompleted.GetValueOrDefault(false))
                     query = query.Where(c => c.State.IsCompleted == false);
 
