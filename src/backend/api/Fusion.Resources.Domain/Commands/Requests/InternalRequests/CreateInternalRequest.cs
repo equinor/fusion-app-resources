@@ -137,10 +137,8 @@ namespace Fusion.Resources.Domain.Commands
                 };
 
                 dbContext.ResourceAllocationRequests.Add(item);
-
-                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(item.Id));
-                if (requestItem != null)
-                    await SendNotificationsAsync(requestItem);
+                
+                await SendNotificationsAsync(new QueryResourceAllocationRequest(item));
 
 
                 return item;

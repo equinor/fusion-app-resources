@@ -9,10 +9,8 @@ namespace Fusion.Events
         {
             this.RequestId = request.RequestId;
             this.PositionId = request.OrgPositionId!.Value;
-            this.InstanceId = request.OrgPositionInstance!.Id;
-            this.RequestNumber = request.RequestNumber;
+            this.InstanceId = request.OrgPositionInstanceId!.Value;
         }
-        public long RequestNumber { get; set; }
         public Guid RequestId { get; set; }
         public Guid PositionId { get; set; }
         public Guid InstanceId { get; set; }
