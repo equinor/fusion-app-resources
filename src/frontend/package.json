@@ -1,6 +1,6 @@
 {
     "name": "resources",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "description": "Manage resources in pro org chart contracts",
     "main": "src/index.tsx",
     "repository": {
@@ -15,8 +15,8 @@
     "author": "",
     "license": "ISC",
     "manifest": {
-        "name": "External personell",
-        "shortName": "External personell"
+        "name": "External personnel",
+        "shortName": "External personnel"
     },
     "dependencies": {
         "@equinor/fusion": "^3.1.1",
