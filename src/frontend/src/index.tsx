@@ -81,7 +81,7 @@ const App: FC = () => {
 
 registerApp('resources', {
     AppComponent: App,
-    name: 'Resources',
+    name: 'External personnel',
     context: {
         types: [ContextTypes.OrgChart],
         buildUrl: (context: Context | null, url: string) => {
