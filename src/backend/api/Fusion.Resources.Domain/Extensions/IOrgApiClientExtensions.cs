@@ -7,10 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Commands;
 
-namespace Fusion.Resources.Domain
+namespace Fusion.Resources
 {
     public static class IOrgApiClientExtensions
     {
+        public static IDisposable SetResourcesChangeSource(this IOrgApiClient client, Database.Entities.DbResourceAllocationRequest request)
+        {
+            return client.UseRequestHeaders()
+                .WithChangeSource("Resources Allocation", $"{request.RequestNumber}");
+        }
+
         public static async Task<RequestResponse<TResponse>> GetAsync<TResponse>(this IOrgApiClient client, string url)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);

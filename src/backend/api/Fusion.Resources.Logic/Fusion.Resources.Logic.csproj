@@ -5,8 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.4" />
+  <ItemGroup>    
   </ItemGroup>
   
   <ItemGroup>
