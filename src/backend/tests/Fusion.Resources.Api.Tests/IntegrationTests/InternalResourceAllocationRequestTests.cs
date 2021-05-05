@@ -335,21 +335,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Get_InternalRequest_ShouldBeAuthorized()
-        {
-            using var adminScope = fixture.AdminScope();
-            // Add comment to request
-            var commentResponse = await Client.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
-            commentResponse.Should().BeSuccessfull();
-
-            var response = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}?$expand=comments");
-            response.Should().BeSuccessfull();
-
-            // Test comment expansion
-            response.Value.Comments!.Count().Should().BeGreaterOrEqualTo(1);
-        }
-
-        [Fact]
         public async Task GetAllRequests_ShouldReturnEverything()
         {
             using var adminScope = fixture.AdminScope();

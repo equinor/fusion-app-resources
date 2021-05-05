@@ -20,10 +20,6 @@ namespace Fusion.Resources.Domain.Queries
 
         public GetResourceAllocationRequestItem WithQuery(ODataQueryParams query)
         {
-            if (query.ShouldExpand("comments"))
-            {
-                Expands |= ExpandProperties.RequestComments;
-            }
             if (query.ShouldExpand("taskOwner"))
             {
                 Expands |= ExpandProperties.TaskOwner;
@@ -55,11 +51,10 @@ namespace Fusion.Resources.Domain.Queries
         public enum ExpandProperties
         {
             None = 0,
-            RequestComments = 1 << 0,
             TaskOwner = 1 << 1,
             ResourceOwner = 1 << 2,
             DepartmentDetails = 1 << 3,
-            All = RequestComments | TaskOwner | ResourceOwner | DepartmentDetails,
+            All = TaskOwner | ResourceOwner | DepartmentDetails,
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -95,13 +90,6 @@ namespace Fusion.Resources.Domain.Queries
 
                 var workflow = await mediator.Send(new GetRequestWorkflow(request.RequestId));
                 var requestItem = new QueryResourceAllocationRequest(row, workflow);
-
-                if (request.Expands.HasFlag(ExpandProperties.RequestComments))
-                {
-                    var comments = await mediator.Send(new GetRequestComments(request.RequestId));
-                    requestItem.WithComments(comments);
-                }
-
 
                 if (requestItem.OrgPositionId == null)
                     return requestItem;

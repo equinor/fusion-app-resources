@@ -129,10 +129,7 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
-        public IEnumerable<QueryRequestComment>? Comments { get; set; }
         public QueryTaskOwner? TaskOwner { get; set; }
-
-
 
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {
@@ -141,13 +138,6 @@ namespace Fusion.Resources.Domain
                 OrgPositionInstance = position.Instances.FirstOrDefault(x => x.Id == positionInstanceId);
             return this;
         }
-
-        public QueryResourceAllocationRequest WithComments(IEnumerable<QueryRequestComment> comments)
-        {
-            Comments = comments;
-            return this;
-        }
-
 
         public class QueryProposedPerson
         {
