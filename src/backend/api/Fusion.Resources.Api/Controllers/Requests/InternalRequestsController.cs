@@ -580,6 +580,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
+                    or.BeRequestCreator(requestId);
                 });
 
             });

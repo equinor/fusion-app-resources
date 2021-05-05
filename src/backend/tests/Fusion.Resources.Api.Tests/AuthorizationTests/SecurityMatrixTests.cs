@@ -5,6 +5,7 @@ using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
+using Fusion.Testing.Mocks.ProfileService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -191,7 +192,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
         //TODO: [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanStartRequest(string role, string department, bool shouldBeAllowed)
+        public async Task CanStartNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateRequest();
             Users[role].FullDepartment = department;
@@ -200,6 +201,62 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPostAsync<dynamic>(
                 $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}/start", null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
+        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("creator", "TPD RND WQE FQE", false)]
+        public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
+        {
+            var request = await CreateAndStartRequest();
+            Users[role].FullDepartment = department;
+            using var userScope = fixture.UserScope(Users[role]);
+
+            var proposedPerson = PeopleServiceMock.AddTestProfile()
+                .SaveProfile();
+
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{request.Id}",
+                new { proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId });
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, false)]
+        [InlineData("resourceOwner", SiblingDepartment, false)]
+        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
+        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
+        public async Task CanAcceptNormalRequest(string role, string department, bool shouldBeAllowed)
+        {
+            var request = await CreateAndStartRequest();
+            Users[role].FullDepartment = department;
+
+            using(var adminScope = fixture.AdminScope())
+            {
+                var proposedPerson = PeopleServiceMock.AddTestProfile()
+                    .SaveProfile();
+
+                var adminClient = fixture.ApiFactory.CreateClient();
+                await adminClient.ProposePersonAsync(request.Id, proposedPerson);
+            }
+
+            using var userScope = fixture.UserScope(Users[role]);
+            
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+                null
             );
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
@@ -231,6 +288,21 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             return await creatorClient.CreateRequestAsync(testProject.Project.ProjectId,
                 req => req.AsTypeNormal().WithPosition(testPosition)
+            );
+        }
+
+        private async Task<TestApiInternalRequestModel> CreateJointVentureRequest()
+        {
+            var creatorClient = fixture.ApiFactory.CreateClient()
+                            .WithTestUser(Users["creator"])
+                            .AddTestAuthToken();
+
+            using var i = creatorInterceptor = OrgRequestMocker
+                 .InterceptOption($"/{testPosition.Id}")
+                 .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
+
+            return await creatorClient.CreateRequestAsync(testProject.Project.ProjectId,
+                req => req.AsTypeJointVenture().WithPosition(testPosition)
             );
         }
 
