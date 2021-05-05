@@ -49,8 +49,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resourceOwner.FullDepartment = testUser.FullDepartment;
             resourceOwner.IsResourceOwner = true;
 
-            //taskOwner = fixture.AddProfile(FusionAccountType.Employee);
-            //taskOwner.T
+            taskOwner = fixture.AddProfile(FusionAccountType.Employee);
         }
 
         public async Task InitializeAsync()
@@ -59,6 +58,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
                 .AddToMockService();
+            
+            var taskOwnerPosition = PositionBuilder.NewPosition();
+            taskOwnerPosition.IsTaskOwner = true;
+            taskOwnerPosition.ProjectId = testProject.Project.ProjectId;
+            taskOwnerPosition
+                .WithEnsuredFutureInstances()
+                .WithAssignedPerson(taskOwner);
+            testProject.AddPosition(taskOwnerPosition);
 
             // Prepare context resolver.
             fixture.ContextResolver
@@ -70,9 +77,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             // Create a default request we can work with
-            request = await adminClient.CreateDefaultRequestAsync(testProject, r => {
-                r.AsTypeNormal();
-            });
+            request = await adminClient.CreateDefaultRequestAsync(testProject, 
+                r => r.AsTypeNormal(),
+                pos => pos.WithParentPosition(taskOwnerPosition.Id));
             //await adminClient.StartProjectRequestAsync(testProject, request.Id);
             await adminClient.AssignDepartmentAsync(request.Id, resourceOwner.FullDepartment);
 
@@ -136,12 +143,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ShouldBeExcludedForTaskOwner()
         {
-            //TODO
+            var client = fixture.ApiFactory
+                .CreateClient()
+                .WithTestUser(taskOwner)
+                .AddTestAuthToken();
 
-            //var client = fixture.ApiFactory.CreateClient();
-            //var comments = await client.TestClientGetAsync<List<TestApiComment>>($"/resources/requests/internal/{request.Id}/comments");
+            var comments = await client.TestClientGetAsync<List<TestApiComment>>($"/resources/requests/internal/{request.Id}/comments");
 
-            //comments.Response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            comments.Response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
 
         public Task DisposeAsync() => Task.CompletedTask;
