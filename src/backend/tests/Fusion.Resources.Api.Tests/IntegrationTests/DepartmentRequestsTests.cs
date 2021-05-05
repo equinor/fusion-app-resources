@@ -329,6 +329,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var segments = response.Value.Timeline.OrderBy(s => s.AppliesFrom).ToList();
 
+
+            TestLogger.TryLog("=====================");
+            TestLogger.TryLog($"{response.Response.RequestMessage.Method} {response.Response.RequestMessage.RequestUri}");
+            TestLogger.TryLog($"Returned: {response.Response.StatusCode}");
+            TestLogger.TryLog(await response.Response.Content.ReadAsStringAsync());
+            TestLogger.TryLog("=====================");
+
             segments[0].Items.Should().HaveCount(1);
             segments[0].AppliesFrom.Date.Should().Be(new DateTime(2022, 03, 09));
             segments[0].AppliesTo.Date.Should().Be(new DateTime(2022, 03, 14));
@@ -375,6 +382,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientGetAsync<TestApiDepartmentRequests>($"/departments/{department}/resources/requests/timeline?{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
 
             var segments = response.Value.Timeline.OrderBy(s => s.AppliesFrom).ToList();
+
+
+            TestLogger.TryLog("=====================");
+            TestLogger.TryLog($"{response.Response.RequestMessage.Method} {response.Response.RequestMessage.RequestUri}");
+            TestLogger.TryLog($"Returned: {response.Response.StatusCode}");
+            TestLogger.TryLog(await response.Response.Content.ReadAsStringAsync());
+            TestLogger.TryLog("=====================");
 
             segments[0].Items.Should().HaveCount(1);
             segments[0].AppliesFrom.Date.Should().Be(new DateTime(2023, 03, 01));
