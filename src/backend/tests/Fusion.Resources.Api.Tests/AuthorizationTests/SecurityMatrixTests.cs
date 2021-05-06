@@ -47,6 +47,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.IsResourceOwner = true;
 
+            var resourceOwnerCreator = fixture.AddProfile(FusionAccountType.Employee);
+            resourceOwnerCreator.IsResourceOwner = true;
+
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
                 .AddToMockService();
@@ -62,7 +65,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             Users = new Dictionary<string, ApiPersonProfileV3>()
             {
                 ["creator"] = creator,
-                ["resourceOwner"] = resourceOwner
+                ["resourceOwner"] = resourceOwner,
+                ["resourceOwnerCreator"] = resourceOwnerCreator
             };
         }
 
@@ -263,6 +267,41 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
+        [Theory]
+        [InlineData("resourceOwnerCreator", TestDepartment, false)]
+        public async Task CanAcceptChangeRequest(string role, string department, bool shouldBeAllowed)
+        {
+            Users[role].FullDepartment = department;
+
+            var chgRequest = await CreateChangeRequest(department);
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/departments/{chgRequest.AssignedDepartment}/requests/{chgRequest.Id}/approve",
+                null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        private async Task<TestApiInternalRequestModel> CreateChangeRequest(string department)
+        {
+            var creatorClient = fixture.ApiFactory.CreateClient()
+                            .WithTestUser(Users["resourceOwnerCreator"])
+                            .AddTestAuthToken();
+
+            using var i = creatorInterceptor = OrgRequestMocker
+                 .InterceptOption($"/{testPosition.Id}")
+                 .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
+
+            var req=  await creatorClient.CreateDefaultResourceOwnerRequestAsync(department, testProject, r => r.AsTypeResourceOwner("changeResource"));
+
+            return req;
+        }
+
         private async Task<TestApiInternalRequestModel> CreateAndStartRequest()
         {
             var creatorClient = fixture.ApiFactory.CreateClient()
@@ -291,20 +330,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             );
         }
 
-        private async Task<TestApiInternalRequestModel> CreateJointVentureRequest()
-        {
-            var creatorClient = fixture.ApiFactory.CreateClient()
-                            .WithTestUser(Users["creator"])
-                            .AddTestAuthToken();
-
-            using var i = creatorInterceptor = OrgRequestMocker
-                 .InterceptOption($"/{testPosition.Id}")
-                 .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
-
-            return await creatorClient.CreateRequestAsync(testProject.Project.ProjectId,
-                req => req.AsTypeJointVenture().WithPosition(testPosition)
-            );
-        }
 
         public Task DisposeAsync()
         {

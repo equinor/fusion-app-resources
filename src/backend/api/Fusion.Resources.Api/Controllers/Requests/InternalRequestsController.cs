@@ -99,7 +99,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
                 });
             });
 
