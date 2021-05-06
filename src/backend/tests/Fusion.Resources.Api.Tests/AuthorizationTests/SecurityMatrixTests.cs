@@ -40,9 +40,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
-        }
-        public async Task InitializeAsync()
-        {
+
             var creator = fixture.AddProfile(FusionAccountType.Employee);
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.IsResourceOwner = true;
@@ -60,8 +58,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = TestDepartment);
             testPosition = testProject.AddPosition().WithBasePosition(bp);
 
-
-
             Users = new Dictionary<string, ApiPersonProfileV3>()
             {
                 ["creator"] = creator,
@@ -69,6 +65,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 ["resourceOwnerCreator"] = resourceOwnerCreator
             };
         }
+
+        public Task InitializeAsync() => Task.CompletedTask;
 
         [Theory]
         //TODO: [InlineData("resourceOwner", TestDepartment, true)]
