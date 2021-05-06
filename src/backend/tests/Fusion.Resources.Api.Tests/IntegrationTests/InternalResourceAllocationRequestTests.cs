@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Integration.Models.Events;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -76,8 +76,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
-            fixture.GetNotificationMessages<ResourceAllocationRequestSubscriptionEvent>("resources-sub")
-                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == ResourceAllocationRequestEventType.RequestCreated);
+            fixture.GetNotificationMessages<ResourceAllocationRequestChangedEvent.ResourceAllocationRequestSubscriptionEvent>("resources-sub")
+                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == ResourceAllocationRequestChangedEvent.ResourceAllocationRequestEventType.RequestCreated);
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
             //commentResponse.Should().BeSuccessfull();
             //testCommentId = commentResponse.Value.Id;
@@ -99,8 +99,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
             response.Should().BeSuccessfull();
 
-            fixture.GetNotificationMessages<ResourceAllocationRequestSubscriptionEvent>("resources-sub")
-                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == ResourceAllocationRequestEventType.RequestRemoved);
+            fixture.GetNotificationMessages<ResourceAllocationRequestChangedEvent.ResourceAllocationRequestSubscriptionEvent>("resources-sub")
+                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == ResourceAllocationRequestChangedEvent.ResourceAllocationRequestEventType.RequestRemoved);
         }
         [Fact]
         public async Task Delete_InternalRequest_NonExistingRequest_ShouldBeNotFound()

@@ -11,7 +11,6 @@ using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
-using Fusion.Resources.Integration.Models.Events;
 using Fusion.Resources.Logic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -83,7 +82,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
 
-                await DispatchAsync(new ResourceAllocationRequestChangedEvent(newRequest!, ResourceAllocationRequestEventType.RequestCreated));
+                await DispatchAsync(new ResourceAllocationRequestChangedEvent(newRequest!, ResourceAllocationRequestChangedEvent.ResourceAllocationRequestEventType.RequestCreated));
 
                 return Created($"/projects/{projectIdentifier}/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
@@ -153,7 +152,7 @@ namespace Fusion.Resources.Api.Controllers
                 await transaction.CommitAsync();
 
                 newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
-                await DispatchAsync(new ResourceAllocationRequestChangedEvent(newRequest!, ResourceAllocationRequestEventType.RequestCreated));
+                await DispatchAsync(new ResourceAllocationRequestChangedEvent(newRequest!, ResourceAllocationRequestChangedEvent.ResourceAllocationRequestEventType.RequestCreated));
                 return Created($"/departments/{departmentPath}/resources/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (ValidationException ex)
@@ -511,7 +510,7 @@ namespace Fusion.Resources.Api.Controllers
 
             await transaction.CommitAsync();
 
-            await DispatchAsync(new ResourceAllocationRequestChangedEvent(result, ResourceAllocationRequestEventType.RequestRemoved));
+            await DispatchAsync(new ResourceAllocationRequestChangedEvent(result, ResourceAllocationRequestChangedEvent.ResourceAllocationRequestEventType.RequestRemoved));
             return NoContent();
         }
 

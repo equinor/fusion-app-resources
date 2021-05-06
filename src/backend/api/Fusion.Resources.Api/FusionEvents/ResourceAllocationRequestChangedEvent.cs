@@ -4,8 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Events;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Integration.Models.Events;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Fusion.Resources.Api.FusionEvents
 {
@@ -56,6 +57,32 @@ namespace Fusion.Resources.Api.FusionEvents
                     logger.LogError(ex.Message);
                 }
             }
+        }
+        public class ResourceAllocationRequestEvent
+        {
+            public ResourceAllocationRequestEvent(Guid requestId, Guid positionId, Guid instanceId)
+            {
+                this.RequestId = requestId;
+                this.PositionId = positionId;
+                this.InstanceId = instanceId;
+            }
+            public Guid RequestId { get; set; }
+            public Guid PositionId { get; set; }
+            public Guid InstanceId { get; set; }
+        }
+        public class ResourceAllocationRequestSubscriptionEvent
+        {
+            public Guid ItemId { get; set; }
+
+            public ResourceAllocationRequestEvent Request { get; set; }
+
+            [JsonConverter(typeof(StringEnumConverter))]
+            public ResourceAllocationRequestEventType Type { get; set; }
+        }
+        public enum ResourceAllocationRequestEventType
+        {
+            RequestCreated,
+            RequestRemoved
         }
 
     }
