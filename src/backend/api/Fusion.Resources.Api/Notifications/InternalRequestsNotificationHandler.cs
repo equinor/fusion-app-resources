@@ -97,7 +97,10 @@ namespace Fusion.Resources.Api.Notifications
 
         private async Task<QueryResourceAllocationRequest?> GetInternalRequestAsync(Guid requestId)
         {
-            var query = new GetResourceAllocationRequestItem(requestId);
+            var query = new GetResourceAllocationRequestItem(requestId)
+            {
+                Expands = GetResourceAllocationRequestItem.ExpandProperties.TaskOwner
+            }; ;
             var request = await mediator.Send(query);
 
             return request;
@@ -116,8 +119,13 @@ namespace Fusion.Resources.Api.Notifications
                     recipients.Add(ro.AzureUniqueId.Value);
             }
 
-            if (data.NotifyTaskOwner && data.Instance.TaskOwnerIds != null)
-                recipients.AddRange(data.Instance.TaskOwnerIds);
+            if (data.NotifyTaskOwner)
+            {
+                var taskOwnerPersonIds = data.AllocationRequest.TaskOwner?.Persons?.Where(x => x.AzureUniqueId != null).Select(taskOwnerPerson => taskOwnerPerson.AzureUniqueId!.Value) ?? new List<Guid>();
+                recipients.AddRange(taskOwnerPersonIds);
+
+
+            }
 
             return recipients.Distinct();// A person may be a creator and/or resource owner and/or task owner.
         }
