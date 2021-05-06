@@ -244,6 +244,41 @@ namespace Fusion.Resources.Logic.Tests
             patchRequests.Should().NotContain(i => i.Item1.OriginalString.Contains($"{futureTbnInstance.Id}"), "Should execute patch request on future instance");
         }
 
+        [Fact]
+        public async Task ShouldDeleteRequestComments()
+        {
+            #region setup
+            ApiPositionInstanceV2 testInstance = null!;
+
+            var testPerson = GenerateTestPerson();
+            var testPosition = GeneratePosition(p =>
+            {
+                p.WithInstances(s =>
+                {
+                    // Future instance
+                    testInstance = s.AddInstance(DateTime.UtcNow.AddDays(100), TimeSpan.FromDays(200))
+                        .SetExternalId("123");
+                });
+            });
+
+            var request = GenerateRequest(testInstance, r => r.WithProposedPerson(testPerson));
+            dbContext.RequestComments.Add(new DbRequestComment
+            {
+                Comment = "<Insert resource owner gossip here>",
+                RequestId = request.Id,
+                Origin = DbRequestComment.DbOrigin.Company,
+            });
+            await dbContext.SaveChangesAsync();
+            #endregion
+
+            await RunProvisioningAsync(request);
+
+            var rqComments = await dbContext.RequestComments
+                .Where(c => c.RequestId == request.Id)
+                .ToListAsync();
+
+            rqComments.Should().BeEmpty();
+        }
 
         #region Helpers
 
