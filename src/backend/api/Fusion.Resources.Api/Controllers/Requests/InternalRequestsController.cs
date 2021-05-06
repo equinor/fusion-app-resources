@@ -654,16 +654,18 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    if (!request.IsCompleted)
+                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
             #endregion
-            
+
             var allowedMethods = new List<string> { "OPTIONS" };
 
             if (authResult.Success)
             {
-                allowedMethods.Add("GET", "POST");
+                if (!request.IsCompleted) allowedMethods.Add("GET");
+                allowedMethods.Add("POST");
             }
 
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
@@ -701,7 +703,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
-                allowedMethods.Add("GET", "PUT", "DELETE");
+                if (!request.IsCompleted) allowedMethods.Add("GET");
+                allowedMethods.Add("PUT", "DELETE");
             }
 
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
@@ -761,7 +764,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    if (!request.IsCompleted)
+                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
 
@@ -782,7 +786,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (request == null)
                 return FusionApiError.NotFound(requestId, "Request not found");
-            
+
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
@@ -798,7 +802,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    if (!request.IsCompleted)
+                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
 
