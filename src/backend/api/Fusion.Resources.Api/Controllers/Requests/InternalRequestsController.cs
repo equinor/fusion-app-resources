@@ -664,8 +664,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
-                if (!request.IsCompleted) allowedMethods.Add("GET");
-                allowedMethods.Add("POST");
+                allowedMethods.Add("GET", "POST");
             }
 
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
@@ -694,7 +693,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    if (!request.IsCompleted)
+                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
             #endregion
@@ -703,8 +703,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
-                if (!request.IsCompleted) allowedMethods.Add("GET");
-                allowedMethods.Add("PUT", "DELETE");
+                allowedMethods.Add("GET", "PUT", "DELETE");
             }
 
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
@@ -731,7 +730,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    if (!request.IsCompleted)
+                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
 
