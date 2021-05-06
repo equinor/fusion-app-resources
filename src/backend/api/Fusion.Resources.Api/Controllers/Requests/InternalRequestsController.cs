@@ -448,7 +448,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), includeDescendants: true);
+                    or.BeRequestCreator(requestId);
                 });
             });
 

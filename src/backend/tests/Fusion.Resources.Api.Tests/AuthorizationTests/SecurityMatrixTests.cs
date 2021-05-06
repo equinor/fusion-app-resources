@@ -47,6 +47,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var resourceOwnerCreator = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwnerCreator.IsResourceOwner = true;
+            resourceOwnerCreator.FullDepartment = TestDepartment;
 
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
@@ -244,7 +245,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var request = await CreateAndStartRequest();
             Users[role].FullDepartment = department;
 
-            using(var adminScope = fixture.AdminScope())
+            using (var adminScope = fixture.AdminScope())
             {
                 var proposedPerson = PeopleServiceMock.AddTestProfile()
                     .SaveProfile();
@@ -254,7 +255,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             }
 
             using var userScope = fixture.UserScope(Users[role]);
-            
+
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
                 $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
@@ -266,15 +267,44 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
+        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwnerCreator", TestDepartment, true)]
+        public async Task CanStartChangeRequest(string role, string department, bool shouldBeAllowed)
+        {
+            var request = await CreateChangeRequest(TestDepartment);
+
+            var client = fixture.ApiFactory.CreateClient();
+            using (var adminscope = fixture.AdminScope())
+            {
+                var testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+                await client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
+                await client.ProposePersonAsync(request.Id, testUser);
+            }
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/departments/{department}/resources/requests/{request.Id}/start",
+                null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
         [InlineData("resourceOwnerCreator", TestDepartment, false)]
         public async Task CanAcceptChangeRequest(string role, string department, bool shouldBeAllowed)
         {
-            Users[role].FullDepartment = department;
-
             var chgRequest = await CreateChangeRequest(department);
 
             using var userScope = fixture.UserScope(Users[role]);
 
+            Users[role].FullDepartment = department;
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
                 $"/departments/{chgRequest.AssignedDepartment}/requests/{chgRequest.Id}/approve",
@@ -295,7 +325,11 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                  .InterceptOption($"/{testPosition.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
 
-            var req=  await creatorClient.CreateDefaultResourceOwnerRequestAsync(department, testProject, r => r.AsTypeResourceOwner("changeResource"));
+            var req = await creatorClient.CreateDefaultResourceOwnerRequestAsync(
+                department, testProject, 
+                r => r.AsTypeResourceOwner("changeResource"), 
+                p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+            );
 
             return req;
         }

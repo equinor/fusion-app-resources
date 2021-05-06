@@ -50,7 +50,7 @@ namespace Fusion.Resources.Api.Tests
         }
 
 
-        public static async Task<TestApiInternalRequestModel> CreateDefaultRequestAsync(this HttpClient client, FusionTestProjectBuilder project, 
+        public static async Task<TestApiInternalRequestModel> CreateDefaultRequestAsync(this HttpClient client, FusionTestProjectBuilder project,
             Action<ApiCreateInternalRequestModel> setup = null, Action<ApiPositionV2> positionSetup = null)
         {
             var position = project.AddPosition();
