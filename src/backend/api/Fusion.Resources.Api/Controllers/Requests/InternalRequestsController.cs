@@ -6,6 +6,7 @@ using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Integration;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -22,6 +23,13 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class InternalRequestsController : ResourceControllerBase
     {
+        private readonly IFusionProfileResolver profileResolver;
+
+        public InternalRequestsController(IFusionProfileResolver profileResolver)
+        {
+            this.profileResolver = profileResolver;
+        }
+
         [HttpPost("/projects/{projectIdentifier}/resources/requests")]
         [HttpPost("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequest(
@@ -113,6 +121,17 @@ namespace Fusion.Resources.Api.Controllers
             var position = await ResolvePositionAsync(request.OrgPositionId);
             if (position is null)
                 return ApiErrors.InvalidInput($"Could not resolve org chart position with id '{request.OrgPositionId}'");
+
+            var positionInstance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
+            if (position is null)
+                return ApiErrors.InvalidInput($"Could not resolve org chart position instance with id '{request.OrgPositionInstanceId}'");
+
+            if (positionInstance?.AssignedPerson is null)
+                return ApiErrors.InvalidInput($"Cannot create change request for position instance without assigned person.");
+
+            var assignedPerson = await profileResolver.ResolvePersonBasicProfileAsync(positionInstance.AssignedPerson!.AzureUniqueId!);
+            if (!assignedPerson?.FullDepartment?.Equals(departmentPath, StringComparison.OrdinalIgnoreCase) == true)
+                return Forbid();
 
             var command = new CreateInternalRequest(InternalRequestOwner.ResourceOwner, request.ResolveType())
             {
