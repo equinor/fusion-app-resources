@@ -92,5 +92,35 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
+
+        [Fact]
+        public async Task ShouldGetDepartmentNotInDbWhenInLineOrg()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD LIN ORG TST"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
     }
 }
