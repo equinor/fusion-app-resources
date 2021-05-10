@@ -119,13 +119,17 @@ namespace Fusion.Resources.Api.Controllers
 
             // Resolve position
             var position = await ResolvePositionAsync(request.OrgPositionId);
-            var positionInstance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
+            var assignedPerson = position!.Instances
+                .FirstOrDefault(i => i.Id == request.OrgPositionInstanceId)
+                ?.AssignedPerson;
 
-            if (positionInstance?.AssignedPerson is null)
+            if (assignedPerson is null)
                 return ApiErrors.InvalidInput($"Cannot create change request for position instance without assigned person.");
+            if(!assignedPerson.AzureUniqueId.HasValue)
+                return ApiErrors.InvalidInput($"Cannot create change request for resource not in Active Directory.");
 
-            var assignedPerson = await profileResolver.ResolvePersonBasicProfileAsync(positionInstance.AssignedPerson!.AzureUniqueId!);
-            if (!assignedPerson?.FullDepartment?.Equals(departmentPath, StringComparison.OrdinalIgnoreCase) == true)
+            var assignedPersonProfile = await profileResolver.ResolvePersonBasicProfileAsync(assignedPerson.AzureUniqueId!);
+            if (!assignedPersonProfile?.FullDepartment?.Equals(departmentPath, StringComparison.OrdinalIgnoreCase) == true)
                 return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentPath}'");
 
             var command = new CreateInternalRequest(InternalRequestOwner.ResourceOwner, request.ResolveType())
@@ -133,7 +137,7 @@ namespace Fusion.Resources.Api.Controllers
                 SubType = request.SubType,
                 AdditionalNote = request.AdditionalNote,
                 OrgPositionId = request.OrgPositionId,
-                OrgProjectId = position.ProjectId,
+                OrgProjectId = position!.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
                 AssignedDepartment = departmentPath
             };
