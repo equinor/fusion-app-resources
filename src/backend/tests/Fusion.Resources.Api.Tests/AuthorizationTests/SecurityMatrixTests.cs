@@ -51,6 +51,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", true)
                 .AddToMockService();
 
             fixture.ContextResolver

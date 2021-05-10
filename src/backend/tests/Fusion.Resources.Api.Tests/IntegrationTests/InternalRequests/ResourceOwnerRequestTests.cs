@@ -330,7 +330,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task CreateChangeRequest_Should_ReturnBadRequest_WhenPimsWriteSyncNotEnabled()
         {
-
             // Mock project
             var disabledTestProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
@@ -344,7 +343,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var position = disabledTestProject.AddPosition();
+            var position = disabledTestProject.AddPosition()
+                .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                .WithEnsuredFutureInstances();
+
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", new
             {
                 type = "resourceOwnerChange",
@@ -357,7 +359,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var error = JsonConvert.DeserializeAnonymousType(response.Content, new { error = new { code = string.Empty, message = string.Empty } });
             error!.error.code.Should().Be("ChangeRequestsDisabled");
-            
         }
 
 

@@ -22,7 +22,8 @@ namespace Fusion.Testing.Mocks.OrgService
                     DomainId = f.Random.AlphaNumeric(5),
                     Dates = new ApiProjectDatesV2() { EndDate = f.Date.Future(), StartDate = f.Date.Past(), Gates = new ApiProjectDecisionGatesV2() { } },
                     Director = director,
-                    DirectorPositionId = director.Id
+                    DirectorPositionId = director.Id,
+                    Properties = new ApiPropertiesCollectionV2()
                 };
 
                 director.ProjectId = project.ProjectId;
