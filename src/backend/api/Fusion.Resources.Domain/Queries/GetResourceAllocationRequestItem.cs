@@ -50,6 +50,11 @@ namespace Fusion.Resources.Domain.Queries
             Expands = ExpandProperties.All;
             return this;
         }
+        public GetResourceAllocationRequestItem ExpandTaskOwner()
+        {
+            Expands = ExpandProperties.TaskOwner;
+            return this;
+        }
 
         [Flags]
         public enum ExpandProperties

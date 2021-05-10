@@ -97,10 +97,7 @@ namespace Fusion.Resources.Api.Notifications
 
         private async Task<QueryResourceAllocationRequest?> GetInternalRequestAsync(Guid requestId)
         {
-            var query = new GetResourceAllocationRequestItem(requestId)
-            {
-                Expands = GetResourceAllocationRequestItem.ExpandProperties.TaskOwner
-            }; ;
+            var query = new GetResourceAllocationRequestItem(requestId).ExpandTaskOwner();
             var request = await mediator.Send(query);
 
             return request;
