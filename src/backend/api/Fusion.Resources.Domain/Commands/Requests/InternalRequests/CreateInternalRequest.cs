@@ -76,6 +76,9 @@ namespace Fusion.Resources.Domain.Commands
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
+
+                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id));
+
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(dbItem.Id), cancellationToken);
                 return requestItem!;
             }
@@ -132,6 +135,7 @@ namespace Fusion.Resources.Domain.Commands
                 };
 
                 dbContext.ResourceAllocationRequests.Add(item);
+
 
                 return item;
             }

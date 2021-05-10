@@ -1,5 +1,6 @@
 ﻿using Fusion.Resources.Database;
 using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Fusion.Testing.Mocks.ProfileService;
 using Fusion.Integration.Profile.ApiClient;
@@ -9,7 +10,9 @@ using Fusion.Testing;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using System.Data;
-using System.Collections.Generic;
+using System.Linq; 
+using Fusion.Events;
+using Newtonsoft.Json;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -97,6 +100,23 @@ namespace Fusion.Resources.Api.Tests.Fixture
             }
 
             try { db.SaveChanges(); } catch (DBConcurrencyException) { }
+        }
+
+        public IReadOnlyCollection<CloudEventV1<TPayload>> GetNotificationMessages<TPayload>(string pathFilter)
+        {
+            var messages = TestMessageBus.GetAllMessages().Where(m => m.Path == pathFilter);
+
+            var notifications = messages.Select(m =>
+            {
+                try
+                {
+                    return JsonConvert.DeserializeObject<CloudEventV1<TPayload>>(m.BodyText);
+                }
+                catch (Exception) { return null; }
+            }).Where(m => m != null);
+
+
+            return notifications.ToList();
         }
     }
 }

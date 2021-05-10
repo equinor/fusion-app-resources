@@ -7,6 +7,7 @@ using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Integration.Org;
+using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
@@ -80,6 +81,7 @@ namespace Fusion.Resources.Api.Controllers
                 await transaction.CommitAsync();
 
                 newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+
                 return Created($"/projects/{projectIdentifier}/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (ValidationException ex)

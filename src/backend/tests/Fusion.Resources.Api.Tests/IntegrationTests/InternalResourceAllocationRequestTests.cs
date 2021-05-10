@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
@@ -76,6 +76,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
+            
+            //fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
+            //    .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
             //commentResponse.Should().BeSuccessfull();
             //testCommentId = commentResponse.Value.Id;
@@ -95,8 +98,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
-            response.Should().BeSuccessfull();
+            response.Should().BeSuccessfull();            
         }
+
+        [Fact]
+        public async Task Delete_InternalRequest_ShouldSendSubscriptionEvent()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
+
+            fixture.GetNotificationMessages<Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent>("resources-sub")
+                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestRemoved);
+        }
+
         [Fact]
         public async Task Delete_InternalRequest_NonExistingRequest_ShouldBeNotFound()
         {
@@ -549,6 +564,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response.Should().BeBadRequest();
         }
+
+        [Fact]
+        public void CreateRequest_ShouldSendSubscriptionEvent()
+        {
+            fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
+                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
+        }
+
 
         [Fact]
         public async Task CreateRequest_ShouldBeBadRequest_WhenNormalAndNoInstance()

@@ -21,15 +21,20 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<DeleteInternalRequest>
         {
             private readonly ResourcesDbContext dbContext;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext dbContext)
+            public Handler(ResourcesDbContext dbContext, IMediator mediator)
             {
                 this.dbContext = dbContext;
+                this.mediator = mediator;
             }
 
             protected override async Task Handle(DeleteInternalRequest request, CancellationToken cancellationToken)
             {
-                var req = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(c => c.Id == request.RequestId);
+                var req = await dbContext.ResourceAllocationRequests
+                    .Include(r => r.Project)
+                    .FirstOrDefaultAsync(c => c.Id == request.RequestId);
+
                 var workflow = await dbContext.Workflows.FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId);
 
                 if (req != null)
@@ -38,6 +43,10 @@ namespace Fusion.Resources.Domain.Commands
                     dbContext.Workflows.Remove(workflow);
 
                 await dbContext.SaveChangesAsync();
+
+                if (req is not null)
+                    await mediator.Publish(new Notifications.InternalRequests.InternalRequestDeleted(req.Id, req.Project.OrgProjectId, req.OrgPositionId, req.OrgPositionInstance.Id));
+
             }
         }
     }
