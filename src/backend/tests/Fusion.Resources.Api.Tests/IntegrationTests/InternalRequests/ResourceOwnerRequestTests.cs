@@ -67,6 +67,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Mock project
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", true)
                 .AddToMockService();
 
             // Prepare context resolver.
@@ -291,6 +292,39 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
 
             response.Should().ContainErrorOnProperty("OrgPositionInstance.AssignedToUniqueId");
+        }
+
+        [Fact]
+        public async Task CreateChangeRequest_Should_ReturnBadRequest_WhenPimsWriteSyncNotEnabled()
+        {
+
+            // Mock project
+            var disabledTestProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", false)
+                .AddToMockService();
+
+            // Prepare context resolver.
+            fixture.ContextResolver
+                .AddContext(disabledTestProject.Project);
+
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = disabledTestProject.AddPosition();
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", new
+            {
+                type = "resourceOwnerChange",
+                subType = "adjustment",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id
+            });
+
+            response.Should().BeBadRequest();
+
+            var error = JsonConvert.DeserializeAnonymousType(response.Content, new { error = new { code = string.Empty, message = string.Empty } });
+            error!.error.code.Should().Be("ChangeRequestsDisabled");
+            
         }
     }
 

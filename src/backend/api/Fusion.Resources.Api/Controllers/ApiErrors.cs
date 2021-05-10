@@ -33,6 +33,23 @@ namespace Fusion.Resources.Api.Controllers
             };
         }
 
+        public static ActionResult InvalidOperation(string code, string message)
+        {
+            var problem = new ProblemDetails()
+            {
+                Type = rfcProblemDetails,
+                Detail = message,
+                Title = "Invalid Operation",
+                Status = (int)System.Net.HttpStatusCode.BadRequest
+            };
+            problem.Extensions.Add("error", new ApiProblem.ApiError(code, message));
+
+            return new ObjectResult(problem)
+            {
+                StatusCode = problem.Status
+            };
+        }
+
         public static ActionResult InvalidOperation(Exception error)
         {
             var problem = new ProblemDetails()

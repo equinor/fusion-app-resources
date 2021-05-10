@@ -115,6 +115,15 @@ namespace Fusion.Resources.Api.Controllers
             if (position is null)
                 return ApiErrors.InvalidInput($"Could not resolve org chart position with id '{request.OrgPositionId}'");
 
+            // Check if change requests are disabled.
+            // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims. 
+            // Change requests are only enabled on projects that have pims write sync enabled for now.
+            var projectCheck = await IsChangeRequestsDisabledAsync(position.ProjectId);
+            if (projectCheck.isDisabled)
+            {
+                return projectCheck.response;
+            }
+
             var command = new CreateInternalRequest(InternalRequestOwner.ResourceOwner, request.ResolveType())
             {
                 SubType = request.SubType,
