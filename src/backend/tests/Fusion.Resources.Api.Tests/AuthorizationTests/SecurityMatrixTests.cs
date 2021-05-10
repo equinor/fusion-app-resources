@@ -71,10 +71,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         public Task InitializeAsync() => Task.CompletedTask;
 
         [Theory]
-        //TODO: [InlineData("resourceOwner", TestDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SiblingDepartment, true)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", TestDepartment, false)]
+        [InlineData("resourceOwner", SiblingDepartment, false)]
+        [InlineData("resourceOwner", ParentDepartment, false)]
+        [InlineData("resourceOwner", SameL2Department, false)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanDeleteRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
@@ -92,8 +92,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
 
         public async Task CanReadRequestsAssignedToDepartment(string role, string department, bool shouldBeAllowed)
@@ -112,8 +112,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
 
         public async Task CanEditGeneralOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
@@ -139,12 +139,11 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
-        [InlineData("resourceOwner", TestDepartment, true)]
-        [InlineData("resourceOwner", SiblingDepartment, true)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", TestDepartment, false)]
+        [InlineData("resourceOwner", SiblingDepartment, false)]
+        [InlineData("resourceOwner", ParentDepartment, false)]
+        [InlineData("resourceOwner", SameL2Department, false)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-
         public async Task CanEditAdditionalCommentOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -156,7 +155,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
                 new
                 {
-                    additionalComment = "updated comment"
+                    additionalNote = "updated comment"
                 }
             );
 
@@ -167,10 +166,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-
         public async Task CanReassignOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
@@ -193,8 +191,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [Theory]
         [InlineData("resourceOwner", TestDepartment, false)]
         [InlineData("resourceOwner", SiblingDepartment, false)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", ParentDepartment, false)]
+        [InlineData("resourceOwner", SameL2Department, false)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanStartNormalRequest(string role, string department, bool shouldBeAllowed)
         {
@@ -214,8 +212,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
         {
@@ -238,8 +236,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [Theory]
         [InlineData("resourceOwner", TestDepartment, false)]
         [InlineData("resourceOwner", SiblingDepartment, false)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", ParentDepartment, false)]
+        [InlineData("resourceOwner", SameL2Department, false)]
         //TODO: [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanAcceptNormalRequest(string role, string department, bool shouldBeAllowed)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
+using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
@@ -127,7 +128,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (assignedPerson is null)
                 return ApiErrors.InvalidInput($"Cannot create change request for position instance without assigned person.");
-            if(!assignedPerson.AzureUniqueId.HasValue)
+            if (!assignedPerson.AzureUniqueId.HasValue)
                 return ApiErrors.InvalidInput($"Cannot create change request for resource not in Active Directory.");
 
             var assignedPersonProfile = await profileResolver.ResolvePersonBasicProfileAsync(assignedPerson.AzureUniqueId!);
@@ -210,11 +211,20 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-                    if (item.AssignedDepartment is not null)
-                        or.BeResourceOwner(new DepartmentPath(item.AssignedDepartment).Parent(), includeDescendants: true);
+                    if (!HasChanged(request.AdditionalNote, item.AdditionalNote))
+                    {
+                        var requiredDepartment = item.AssignedDepartment
+                            ?? item.OrgPosition?.BasePosition?.Department;
 
-                    if (item.AssignedDepartment is null && item.OrgPosition is not null)
-                        or.BeResourceOwner(new DepartmentPath(item.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
+                        if (requiredDepartment is not null)
+                        {
+                            or.BeResourceOwner(
+                                new DepartmentPath(requiredDepartment).GoToLevel(2),
+                                includeParents: false,
+                                includeDescendants: true
+                            );
+                        }
+                    }
 
                     or.BeRequestCreator(requestId);
                 });
@@ -255,6 +265,12 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        private bool HasChanged<T>(PatchProperty<T?> patchValue, T? originalValue)
+            where T : IEquatable<T>
+        {
+            return patchValue.HasValue
+                && !patchValue.Value!.Equals(originalValue);
+        }
 
         [HttpGet("/resources/requests/internal")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetAllRequests([FromQuery] ODataQueryParams query)
@@ -396,11 +412,23 @@ namespace Fusion.Resources.Api.Controllers
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
 
-                    if (result.AssignedDepartment is not null)
-                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), includeDescendants: true);
 
-                    if (result.AssignedDepartment is null && result.OrgPosition is not null)
-                        or.BeResourceOwner(new DepartmentPath(result.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
+                    var requiredDepartment = result.AssignedDepartment
+                        ?? result.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    //if (result.AssignedDepartment is not null)
+                    //    or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), includeDescendants: true);
+
+                    //if (result.AssignedDepartment is null && result.OrgPosition is not null)
+                    //    or.BeResourceOwner(new DepartmentPath(result.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
                 });
             });
 
@@ -1007,7 +1035,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="requestType">The request type to create</param>
         /// <returns></returns>
         [HttpOptions("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/resources/requests")]
-        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] ProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery]string? requestType)
+        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] ProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery] string? requestType)
         {
 
             switch (requestType?.ToLower())
