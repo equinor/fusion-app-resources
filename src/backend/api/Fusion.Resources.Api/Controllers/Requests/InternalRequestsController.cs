@@ -979,7 +979,10 @@ namespace Fusion.Resources.Api.Controllers
                     var projectCheck = await IsChangeRequestsDisabledAsync(projectIdentifier.ProjectId);
                     if (projectCheck.isDisabled)
                     {
-                        return projectCheck.response!;
+                        // Creating custom response payload here, as bad request would be confusing with regards for unsupported request types. 
+                        // Instead lets return ok response without any allow header, but with an error payload.
+                        Response.Headers.Add("Allow", "");
+                        return Ok(new { error = new { code = "ChangeRequestsDisabled", message = "The project does not currently support change requests from resource owners..." } });
                     }
 
                     break;

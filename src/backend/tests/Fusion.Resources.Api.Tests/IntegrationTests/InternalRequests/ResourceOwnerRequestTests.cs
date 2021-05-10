@@ -352,7 +352,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             var response = await Client.TestClientOptionsAsync($"/projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}/resources/requests?requestType=resourceOwnerChange");
-            response.Should().BeBadRequest();
+            response.Should().BeSuccessfull();
+            response.Should().NotHaveAllowHeaders(HttpMethod.Post);
 
             var error = JsonConvert.DeserializeAnonymousType(response.Content, new { error = new { code = string.Empty, message = string.Empty } });
             error!.error.code.Should().Be("ChangeRequestsDisabled");
