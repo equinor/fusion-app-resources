@@ -667,7 +667,7 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
             #endregion
-            
+
             var allowedMethods = new List<string> { "OPTIONS" };
 
             if (authResult.Success)
@@ -791,7 +791,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (request == null)
                 return FusionApiError.NotFound(requestId, "Request not found");
-            
+
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
@@ -952,6 +952,43 @@ namespace Fusion.Resources.Api.Controllers
             else
                 Response.Headers.Add("Allow", "GET");
 
+            return NoContent();
+        }
+
+
+        /// <summary>
+        /// Check if request type is supported to create on the specific allocation.
+        /// 
+        /// The endpoint will return 'POST' in the 'Allow' header.
+        /// </summary>
+        /// <param name="projectIdentifier">Project the position exists on</param>
+        /// <param name="positionId">Position id to create the request on</param>
+        /// <param name="instanceId">Instance / allocation to target</param>
+        /// <param name="requestType">The request type to create</param>
+        /// <returns></returns>
+        [HttpOptions("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/resources/requests")]
+        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] ProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery]string? requestType)
+        {
+
+            switch (requestType?.ToLower())
+            {
+                case "resourceownerchange":
+                    // Check if change requests are disabled.
+                    // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims. 
+                    // Change requests are only enabled on projects that have pims write sync enabled for now.
+                    var projectCheck = await IsChangeRequestsDisabledAsync(projectIdentifier.ProjectId);
+                    if (projectCheck.isDisabled)
+                    {
+                        return projectCheck.response!;
+                    }
+
+                    break;
+
+                default:
+                    return ApiErrors.InvalidInput("Request type is not supported. Supported types are 'ResourceOwnerChange'");
+            }
+
+            Response.Headers.Add("Allow", "POST");
             return NoContent();
         }
     }

@@ -326,6 +326,55 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             error!.error.code.Should().Be("ChangeRequestsDisabled");
             
         }
+
+
+        [Fact]
+        public async Task CheckChangeRequest_Should_BeBadRequest_When_PimsWriteSyncNotEnabled()
+        {
+
+            // Mock project
+            var disabledTestProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", false)
+                .AddToMockService();
+
+            // Prepare context resolver.
+            fixture.ContextResolver
+                .AddContext(disabledTestProject.Project);
+
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = disabledTestProject.AddPosition()
+                .WithInstances(s => s.AddInstance(DateTime.Today.Subtract(TimeSpan.FromDays(10)), TimeSpan.FromDays(30)))
+                .WithAssignedPerson(testUser);
+            var instance = position.Instances.First();
+
+
+            var response = await Client.TestClientOptionsAsync($"/projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}/resources/requests?requestType=resourceOwnerChange");
+            response.Should().BeBadRequest();
+
+            var error = JsonConvert.DeserializeAnonymousType(response.Content, new { error = new { code = string.Empty, message = string.Empty } });
+            error!.error.code.Should().Be("ChangeRequestsDisabled");
+        }
+
+        [Fact]
+        public async Task CheckChangeRequest_Should_HaveAllowedPost_When_PimsWriteSyncEnabled()
+        {
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition()
+                .WithInstances(s => s.AddInstance(DateTime.Today.Subtract(TimeSpan.FromDays(10)), TimeSpan.FromDays(30)))
+                .WithAssignedPerson(testUser);
+            var instance = position.Instances.First();
+
+
+            var response = await Client.TestClientOptionsAsync($"/projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}/resources/requests?requestType=resourceOwnerChange");
+            
+            response.Should().BeSuccessfull();
+            response.Should().HaveAllowHeaders(HttpMethod.Post);
+        }
     }
 
 }
