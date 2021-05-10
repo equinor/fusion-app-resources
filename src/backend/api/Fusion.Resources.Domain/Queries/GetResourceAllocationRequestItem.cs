@@ -52,7 +52,7 @@ namespace Fusion.Resources.Domain.Queries
         }
         public GetResourceAllocationRequestItem ExpandTaskOwner()
         {
-            Expands = ExpandProperties.TaskOwner;
+            Expands |= ExpandProperties.TaskOwner;
             return this;
         }
 
