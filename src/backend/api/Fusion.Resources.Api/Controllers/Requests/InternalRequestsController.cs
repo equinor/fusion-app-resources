@@ -132,6 +132,15 @@ namespace Fusion.Resources.Api.Controllers
             if (!assignedPersonProfile?.FullDepartment?.Equals(departmentPath, StringComparison.OrdinalIgnoreCase) == true)
                 return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentPath}'");
 
+            // Check if change requests are disabled.
+            // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims. 
+            // Change requests are only enabled on projects that have pims write sync enabled for now.
+            var projectCheck = await IsChangeRequestsDisabledAsync(position.ProjectId);
+            if (projectCheck.isDisabled)
+            {
+                return projectCheck.response;
+            }
+
             var command = new CreateInternalRequest(InternalRequestOwner.ResourceOwner, request.ResolveType())
             {
                 SubType = request.SubType,
@@ -272,7 +281,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            var requestCommand = new GetResourceAllocationRequests(query);
+            var requestCommand = new GetResourceAllocationRequests(query).ForAll();
             var result = await DispatchAsync(requestCommand);
 
 
@@ -656,6 +665,81 @@ namespace Fusion.Resources.Api.Controllers
 
 
         #region Comments
+
+        [HttpOptions("/resources/requests/internal/{requestId}/comments")]
+        public async Task<ActionResult> GetCommentOptions(Guid requestId)
+        {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+
+            #region Authorization
+
+            var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
+
+            if (requiredDepartment is null)
+                return FusionApiError.Forbidden("Cannot determine required department");
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                });
+            });
+            #endregion
+
+            var allowedMethods = new List<string> { "OPTIONS" };
+
+            if (authResult.Success)
+            {
+                allowedMethods.Add("GET", "POST");
+            }
+
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
+            return NoContent();
+        }
+
+        [HttpOptions("/resources/requests/internal/{requestId}/comments/{commentId}")]
+        public async Task<ActionResult> GetCommentOptions(Guid requestId, Guid commentId)
+        {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+            if (comment is null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
+            #region Authorization
+            var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
+
+            if (requiredDepartment is null)
+                return FusionApiError.Forbidden("Cannot determine required department");
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                });
+            });
+            #endregion
+
+            var allowedMethods = new List<string> { "OPTIONS" };
+
+            if (authResult.Success)
+            {
+                allowedMethods.Add("GET", "PUT", "DELETE");
+            }
+
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
+            return NoContent();
+        }
+
         [HttpPost("/resources/requests/internal/{requestId}/comments")]
         public async Task<ActionResult<ApiRequestComment>> AddRequestComment(Guid requestId, [FromBody] RequestCommentRequest create)
         {
@@ -666,9 +750,18 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Authorization
 
+            var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
+
+            if (requiredDepartment is null)
+                return Forbid("Cannot determine required department");
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -690,10 +783,18 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.NotFound(requestId, "Request not found");
 
             #region Authorization
+            var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
+
+            if (requiredDepartment is null)
+                return Forbid("Cannot determine required department");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -704,14 +805,33 @@ namespace Fusion.Resources.Api.Controllers
             var comments = await DispatchAsync(new GetRequestComments(requestId));
             return comments.Select(x => new ApiRequestComment(x)).ToList();
         }
+
         [HttpGet("/resources/requests/internal/{requestId}/comments/{commentId}")]
         public async Task<ActionResult<ApiRequestComment>> GetRequestComment(Guid requestId, Guid commentId)
         {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
+
+            if (comment is null)
+                return FusionApiError.NotFound(commentId, "Comment not found");
+
             #region Authorization
+
+            var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
+
+            if (requiredDepartment is null)
+                return Forbid("Cannot determine required department access");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -719,23 +839,35 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var comment = await DispatchAsync(new GetRequestComment(commentId));
-            return new ApiRequestComment(comment!);
+            return new ApiRequestComment(comment);
         }
 
         [HttpPut("/resources/requests/internal/{requestId}/comments/{commentId}")]
         public async Task<ActionResult<ApiRequestComment>> UpdateRequestComment(Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
 
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
             #region Authorization
 
+            var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
+
+            if (requiredDepartment is null)
+                return Forbid("Cannot determine required department");
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -752,17 +884,29 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/resources/requests/internal/{requestId}/comments/{commentId}")]
         public async Task<ActionResult> DeleteRequestComment(Guid requestId, Guid commentId)
         {
+            var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             var comment = await DispatchAsync(new GetRequestComment(commentId));
+
+            if (request == null)
+                return FusionApiError.NotFound(requestId, "Request not found");
 
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
             #region Authorization
 
+            var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
+
+            if (requiredDepartment is null)
+                return Forbid("Cannot determine required department");
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
-
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -835,6 +979,46 @@ namespace Fusion.Resources.Api.Controllers
             else
                 Response.Headers.Add("Allow", "GET");
 
+            return NoContent();
+        }
+
+
+        /// <summary>
+        /// Check if request type is supported to create on the specific allocation.
+        /// 
+        /// The endpoint will return 'POST' in the 'Allow' header.
+        /// </summary>
+        /// <param name="projectIdentifier">Project the position exists on</param>
+        /// <param name="positionId">Position id to create the request on</param>
+        /// <param name="instanceId">Instance / allocation to target</param>
+        /// <param name="requestType">The request type to create</param>
+        /// <returns></returns>
+        [HttpOptions("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/resources/requests")]
+        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] ProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery]string? requestType)
+        {
+
+            switch (requestType?.ToLower())
+            {
+                case "resourceownerchange":
+                    // Check if change requests are disabled.
+                    // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims. 
+                    // Change requests are only enabled on projects that have pims write sync enabled for now.
+                    var projectCheck = await IsChangeRequestsDisabledAsync(projectIdentifier.ProjectId);
+                    if (projectCheck.isDisabled)
+                    {
+                        // Creating custom response payload here, as bad request would be confusing with regards for unsupported request types. 
+                        // Instead lets return ok response without any allow header, but with an error payload.
+                        Response.Headers.Add("Allow", "");
+                        return Ok(new { error = new { code = "ChangeRequestsDisabled", message = "The project does not currently support change requests from resource owners..." } });
+                    }
+
+                    break;
+
+                default:
+                    return ApiErrors.InvalidInput("Request type is not supported. Supported types are 'ResourceOwnerChange'");
+            }
+
+            Response.Headers.Add("Allow", "POST");
             return NoContent();
         }
     }

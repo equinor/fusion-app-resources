@@ -42,6 +42,10 @@ namespace Fusion.Resources.Logic.Commands
                     if (dbRequest is null)
                         throw new RequestNotFoundError(request.RequestId);
 
+                    // Set headers for all api calls made to the org api from the point on. This will flag the change to come from resources.
+                    using var orgChangeSourceMarker = new RequestHeadersScope()
+                        .WithChangeSource("Resources External", $"{dbRequest.Id}");
+
                     switch (dbRequest.Category)
                     {
                         case DbRequestCategory.NewRequest:

@@ -97,6 +97,8 @@ namespace Fusion.Resources.Logic.Commands
 
                     try
                     {
+                        using var changeSourceHeaders = SetOrgApiChangeSource(dbRequest);
+
                         switch (dbRequest.Type)
                         {
                             case DbInternalRequestType.Allocation:
@@ -142,6 +144,20 @@ namespace Fusion.Resources.Logic.Commands
 
                     dbRequest.State.IsCompleted = true;
                     dbRequest.State.State = "completed";
+                }
+
+                private static IDisposable SetOrgApiChangeSource(DbResourceAllocationRequest request)
+                {
+                    switch (request.Type)
+                    {
+                        case DbInternalRequestType.Allocation:
+                            return new RequestHeadersScope().WithChangeSource("Resources Allocation", $"{request.RequestNumber}");
+                        case DbInternalRequestType.ResourceOwnerChange:
+                            return new RequestHeadersScope().WithChangeSource("Resources Change", $"{request.RequestNumber}");
+                        default:
+                            return new RequestHeadersScope().WithChangeSource($"Resources {request.Type}", $"{request.RequestNumber}");
+                            
+                    }
                 }
             }
         }

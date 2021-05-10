@@ -80,7 +80,8 @@ namespace Fusion.Testing.Mocks.OrgService.Api
                             Method = new HttpMethod(context.Request.Method),
                             Body = content,
                             Path = context.Request.Path,
-                            Query = context.Request.QueryString
+                            Query = context.Request.QueryString,
+                            Headers = context.Request.Headers.ToDictionary(k => k.Key, k => k.Value.ToString())
                         });
                     }
                 }

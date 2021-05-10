@@ -22,23 +22,23 @@ namespace Fusion.Resources.Domain
 
         private string? departmentFilter;
         private string? sector;
-        private string? departmentId;
+        private string[]? departmentIds = null;
 
         public IQueryable<QueryDepartment> Execute(IQueryable<DbDepartment> departments)
         {
-            if(!string.IsNullOrEmpty(sector))
+            if (!string.IsNullOrEmpty(sector))
             {
                 departments = departments.Where(dpt => dpt.SectorId == sector);
             }
 
-            if(!string.IsNullOrEmpty(departmentFilter))
+            if (!string.IsNullOrEmpty(departmentFilter))
             {
                 departments = departments.Where(dpt => dpt.DepartmentId.StartsWith(departmentFilter));
             }
 
-            if (!string.IsNullOrEmpty(departmentId))
+            if (departmentIds?.Any() == true)
             {
-                departments = departments.Where(dpt => dpt.DepartmentId == departmentId);
+                departments = departments.Where(dpt => departmentIds.Contains(dpt.DepartmentId));
             }
 
             return departments.Select(dpt => new QueryDepartment(dpt));
@@ -52,7 +52,12 @@ namespace Fusion.Resources.Domain
 
         public GetDepartments ById(string departmentId)
         {
-            this.departmentId = departmentId;
+            departmentIds = new[] { departmentId };
+            return this;
+        }
+        public GetDepartments ByIds(params string[] departmentIds)
+        {
+            this.departmentIds = departmentIds;
             return this;
         }
 
@@ -87,7 +92,7 @@ namespace Fusion.Resources.Domain
             private readonly IFusionProfileResolver profileResolver;
 
             public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-            { 
+            {
                 this.db = db;
                 this.lineOrgResolver = lineOrgResolver;
                 this.profileResolver = profileResolver;
@@ -99,26 +104,39 @@ namespace Fusion.Resources.Domain
                 var departments = await request.Execute(db.Departments)
                     .ToDictionaryAsync(dpt => dpt.DepartmentId, cancellationToken);
 
-                if(request.shouldExpandResourceOwners)
+                if (request.shouldExpandResourceOwners)
                 {
                     var searchedDepartments = departments.Keys!.ToHashSet();
-
-                    //TODO: maybe solve this in a smarter way
-                    if(request.resourceOwnerSearch is null && request.departmentId is not null)
+                    if (request.departmentIds?.Any() == true)
                     {
-                        request.resourceOwnerSearch = request.departmentId;
+                        foreach (var departmentId in request.departmentIds)
+                        {
+                            if (!searchedDepartments.Contains(departmentId))
+                                searchedDepartments.Add(departmentId);
+                        }
+                    }
+
+                    // Optimize search when searching for a specific department
+                    if (request.resourceOwnerSearch is null && request.departmentIds?.Length == 1)
+                    {
+                        request.resourceOwnerSearch = request.departmentIds.Single();
                     }
 
                     var resourceOwners = await lineOrgResolver
                         .GetResourceOwners(request.resourceOwnerSearch, cancellationToken);
 
-                    foreach(var resourceOwner in resourceOwners)
+                    foreach (var resourceOwner in resourceOwners)
                     {
                         if (!searchedDepartments.Contains(resourceOwner.DepartmentId)) continue;
+                        // Department found in line org but is not tracked in db
+                        if (!departments.ContainsKey(resourceOwner.DepartmentId))
+                        {
+                            departments[resourceOwner.DepartmentId] = new QueryDepartment(resourceOwner.DepartmentId, null);
+                        }
 
                         var department = departments[resourceOwner.DepartmentId];
                         department.LineOrgResponsible = resourceOwner.Responsible;
-                        
+
                         result.Add(department!);
                     }
                 }
@@ -127,7 +145,7 @@ namespace Fusion.Resources.Domain
                     result = departments.Values.ToList();
                 }
 
-                if(request.shouldExpandDelegatedResourceOwners)
+                if (request.shouldExpandDelegatedResourceOwners)
                 {
                     foreach (var department in result)
                     {
@@ -146,7 +164,7 @@ namespace Fusion.Resources.Domain
                                 .ToList();
                         }
                     }
-                    
+
                 }
 
                 return result;

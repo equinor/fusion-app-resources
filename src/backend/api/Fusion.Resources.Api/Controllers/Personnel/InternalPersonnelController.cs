@@ -65,7 +65,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Validate input if timeline is expanded
 
-            var shouldExpandTimeline = query.ShoudExpand("timeline");
+            var shouldExpandTimeline = query.ShouldExpand("timeline");
             if (shouldExpandTimeline)
             {
                 if (timelineStart is null)
@@ -134,7 +134,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #region Validate input if timeline is expanded
 
-            var shouldExpandTimeline = query.ShoudExpand("timeline");
+            var shouldExpandTimeline = query.ShouldExpand("timeline");
             if (shouldExpandTimeline)
             {
                 if (timelineStart is null)
