@@ -119,19 +119,14 @@ namespace Fusion.Resources.Api.Controllers
 
             // Resolve position
             var position = await ResolvePositionAsync(request.OrgPositionId);
-            if (position is null)
-                return ApiErrors.InvalidInput($"Could not resolve org chart position with id '{request.OrgPositionId}'");
-
             var positionInstance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
-            if (position is null)
-                return ApiErrors.InvalidInput($"Could not resolve org chart position instance with id '{request.OrgPositionInstanceId}'");
 
             if (positionInstance?.AssignedPerson is null)
                 return ApiErrors.InvalidInput($"Cannot create change request for position instance without assigned person.");
 
             var assignedPerson = await profileResolver.ResolvePersonBasicProfileAsync(positionInstance.AssignedPerson!.AzureUniqueId!);
             if (!assignedPerson?.FullDepartment?.Equals(departmentPath, StringComparison.OrdinalIgnoreCase) == true)
-                return Forbid();
+                return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentPath}'");
 
             var command = new CreateInternalRequest(InternalRequestOwner.ResourceOwner, request.ResolveType())
             {
