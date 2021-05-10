@@ -168,7 +168,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
         //TODO: [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", false)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
 
         public async Task CanReassignOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
@@ -215,7 +215,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
         //TODO: [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", false)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();

@@ -206,8 +206,7 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.AssignedDepartment is null && item.OrgPosition is not null)
                         or.BeResourceOwner(new DepartmentPath(item.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
 
-                    if (!request.AssignedDepartment.HasValue && !request.ProposedPersonAzureUniqueId.HasValue)
-                        or.BeRequestCreator(requestId);
+                    or.BeRequestCreator(requestId);
                 });
             });
 
