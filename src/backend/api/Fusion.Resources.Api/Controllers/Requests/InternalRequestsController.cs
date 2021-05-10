@@ -199,6 +199,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (item == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+            if (item.IsCompleted)
+                return ApiErrors.InvalidOperation("request-completed", "Cannot change a completed request.");
 
             #region Authorization
 
