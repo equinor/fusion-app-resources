@@ -94,6 +94,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ShouldGiveNotFoundWhenRetreivingNotInLineOrg()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var lineorgData = new
+            {
+                Count = 0,
+                TotalCount = 0,
+                Value = Array.Empty<object>()
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
         public async Task ShouldGetDepartmentNotInDbWhenInLineOrg()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);

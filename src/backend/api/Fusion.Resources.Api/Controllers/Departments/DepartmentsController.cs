@@ -23,8 +23,11 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 .ExpandResourceOwners();
 
             var departments = await DispatchAsync(request);
+            var department = departments.FirstOrDefault();
 
-            return Ok(new ApiDepartment(departments.Single()));
+            if (department is null) return NotFound();
+
+            return Ok(new ApiDepartment(department));
         }
 
         [HttpGet("/departments")]
