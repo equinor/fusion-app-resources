@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using Fusion.Events;
 using Fusion.Resources.Application.LineOrg;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -83,6 +84,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
         }
 
         private static object locker = new object();
+        public bool isMemorycacheDisabled = false;
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureAppConfiguration(cfgBuilder =>
@@ -103,6 +106,12 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("ContextEventReceiver");
                 services.TryRemoveImplementationService<ICompanyResolver>();
                 services.TryRemoveImplementationService<LineOrgCacheRefresher>();
+                
+                if(isMemorycacheDisabled)
+                {
+                    services.TryRemoveImplementationService<IMemoryCache>();
+                    services.AddScoped<IMemoryCache, AlwaysEmptyCache>();
+                }
 
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();

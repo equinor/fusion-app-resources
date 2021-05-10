@@ -6,6 +6,7 @@ using FluentValidation;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Integration;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Domain;
@@ -23,6 +24,13 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class InternalRequestsController : ResourceControllerBase
     {
+        private readonly IFusionProfileResolver profileResolver;
+
+        public InternalRequestsController(IFusionProfileResolver profileResolver)
+        {
+            this.profileResolver = profileResolver;
+        }
+
         [HttpPost("/projects/{projectIdentifier}/resources/requests")]
         [HttpPost("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequest(
@@ -64,7 +72,6 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-
                 using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
@@ -102,7 +109,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -114,8 +121,18 @@ namespace Fusion.Resources.Api.Controllers
 
             // Resolve position
             var position = await ResolvePositionAsync(request.OrgPositionId);
-            if (position is null)
-                return ApiErrors.InvalidInput($"Could not resolve org chart position with id '{request.OrgPositionId}'");
+            var assignedPerson = position!.Instances
+                .FirstOrDefault(i => i.Id == request.OrgPositionInstanceId)
+                ?.AssignedPerson;
+
+            if (assignedPerson is null)
+                return ApiErrors.InvalidInput($"Cannot create change request for position instance without assigned person.");
+            if(!assignedPerson.AzureUniqueId.HasValue)
+                return ApiErrors.InvalidInput($"Cannot create change request for resource not in Active Directory.");
+
+            var assignedPersonProfile = await profileResolver.ResolvePersonBasicProfileAsync(assignedPerson.AzureUniqueId!);
+            if (!assignedPersonProfile?.FullDepartment?.Equals(departmentPath, StringComparison.OrdinalIgnoreCase) == true)
+                return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentPath}'");
 
             // Check if change requests are disabled.
             // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims. 
@@ -131,7 +148,7 @@ namespace Fusion.Resources.Api.Controllers
                 SubType = request.SubType,
                 AdditionalNote = request.AdditionalNote,
                 OrgPositionId = request.OrgPositionId,
-                OrgProjectId = position.ProjectId,
+                OrgProjectId = position!.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
                 AssignedDepartment = departmentPath
             };
@@ -198,12 +215,13 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (item.AssignedDepartment is null && item.OrgPosition is not null)
                         or.BeResourceOwner(new DepartmentPath(item.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
+
+                    or.BeRequestCreator(requestId);
                 });
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-
             #endregion
 
             try
@@ -371,6 +389,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
+                    or.BeRequestCreator(requestId);
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(result.Project.OrgProjectId));
 
@@ -416,6 +435,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
+                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -454,7 +474,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-
+                    or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), includeDescendants: true);
+                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -498,6 +519,8 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (result.Type == InternalRequestType.Allocation)
                     {
+                        or.BeRequestCreator(requestId);
+
                         if (result.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                     }
@@ -914,6 +937,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    or.BeRequestCreator(requestId);
+
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
@@ -943,6 +968,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    or.BeRequestCreator(requestId);
+
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
