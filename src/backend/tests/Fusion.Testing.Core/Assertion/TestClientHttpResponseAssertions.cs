@@ -34,16 +34,41 @@ namespace Fusion.Testing
 
             var containsHeaders = false;
 
-            IEnumerable<string> allowedMethods = new List<string>();
+            List<string> allowedMethods = new List<string>();
 
-            if (Subject.Response.Content.Headers.TryGetValues("Allow", out allowedMethods))
+            if (Subject.Response.Content.Headers.TryGetValues("Allow", out IEnumerable<string> allowedHeaders))
             {
-                containsHeaders = methods.All(m => allowedMethods.Any(h => StringComparer.OrdinalIgnoreCase.Equals(m.ToString(), h)));
+                foreach (var header in allowedHeaders)
+                    allowedMethods.AddRange(header.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
             }
+
+            containsHeaders = methods.Any(h => allowedMethods.Contains(h.Method, StringComparer.OrdinalIgnoreCase));
 
             Execute.Assertion
                 .BecauseOf("")
                 .ForCondition(containsHeaders)
+                .FailWith($"Expected Allow header to contain {string.Join(", ", methods.Select(m => m.ToString()))} but found {string.Join(", ", allowedMethods)}");
+
+            return new AndConstraint<TestClientHttpResponseAssertions<T>>(this);
+        }
+
+        public AndConstraint<TestClientHttpResponseAssertions<T>> NotHaveAllowHeaders(params HttpMethod[] methods)
+        {
+            var containsHeaders = false;
+
+            List<string> allowedMethods = new List<string>();
+
+            if (Subject.Response.Content.Headers.TryGetValues("Allow", out IEnumerable<string> allowedHeaders))
+            {
+                foreach (var header in allowedHeaders)
+                    allowedMethods.AddRange(header.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));                
+            }
+
+            containsHeaders = methods.Any(h => allowedMethods.Contains(h.Method, StringComparer.OrdinalIgnoreCase));
+
+            Execute.Assertion
+                .BecauseOf("")
+                .ForCondition(!containsHeaders)
                 .FailWith($"Expected Allow header to contain {string.Join(", ", methods.Select(m => m.ToString()))} but found {string.Join(", ", allowedMethods)}");
 
             return new AndConstraint<TestClientHttpResponseAssertions<T>>(this);

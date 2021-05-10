@@ -3,6 +3,7 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Testing.Mocks.ProfileService.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -12,7 +13,7 @@ namespace Fusion.Testing.Mocks.ProfileService
     {
         readonly WebApplicationFactory<Startup> factory;
 
-        internal static List<ApiPersonProfileV3> profiles = new List<ApiPersonProfileV3>();
+        internal static ConcurrentBag<ApiPersonProfileV3> profiles = new ConcurrentBag<ApiPersonProfileV3>();
         internal static List<ApiCompanyInfo> companies = new List<ApiCompanyInfo>();
 
         public PeopleServiceMock()

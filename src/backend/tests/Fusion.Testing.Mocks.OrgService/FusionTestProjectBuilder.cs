@@ -81,6 +81,14 @@ namespace Fusion.Testing.Mocks.OrgService
             return this;
         }
 
+        public FusionTestProjectBuilder WithProperty(string key, object value)
+        {
+            if (project.Properties is null)
+                project.Properties = new ApiPropertiesCollectionV2();
+
+            project.Properties[key] = value;
+            return this;
+        }
 
         public FusionTestProjectBuilder WithPositions(int count) => WithPositions(count, count);
         public FusionTestProjectBuilder WithPositions(int min = 3, int max = 10)
