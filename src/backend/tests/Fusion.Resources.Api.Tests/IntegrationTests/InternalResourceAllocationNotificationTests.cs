@@ -48,7 +48,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
-            
+
             // Generate random test users
             resourceOwnerPerson = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwnerPerson.IsResourceOwner = true;
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             taskOwnerPosition = testProject.AddPosition().WithAssignedPerson(testUser);
             requestPosition = testProject.AddPosition().WithAssignedPerson(requestAssignedPerson).WithTaskOwner(taskOwnerPosition.Id);
-
+            testProject.SetTaskOwner(requestPosition.Id, taskOwnerPosition.Id);
             // Prepare context resolver.
             fixture.ContextResolver
                 .AddContext(testProject.Project);
@@ -113,7 +113,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
 
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
+            var taskOwner = directRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
@@ -126,7 +126,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 TestLogger.TryLog($"PersonIdentifier:{notification.PersonIdentifier}, Title:{notification.Title}");
             }
-            
+
         }
 
         [Fact]
@@ -146,7 +146,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Assert
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
+            var taskOwner = patchPerson.Value.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
@@ -168,7 +168,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Assert
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = response.Value.OrgPositionInstance!.TaskOwnerIds.FirstOrDefault().ToString();
+            var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
