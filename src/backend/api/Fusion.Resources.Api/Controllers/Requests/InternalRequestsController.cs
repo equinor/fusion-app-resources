@@ -654,8 +654,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (!request.IsCompleted)
-                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
             #endregion
@@ -664,7 +663,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
-                allowedMethods.Add("GET", "POST");
+                if (!request.IsCompleted) allowedMethods.Add("POST");
+                allowedMethods.Add("GET");
             }
 
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
@@ -693,15 +693,14 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (!request.IsCompleted)
-                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
             #endregion
 
             var allowedMethods = new List<string> { "OPTIONS" };
 
-            if (authResult.Success)
+            if (!request.IsCompleted && authResult.Success)
             {
                 allowedMethods.Add("GET", "PUT", "DELETE");
             }
@@ -717,7 +716,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (request == null)
                 return FusionApiError.NotFound(requestId, "Request not found");
-
+            if (request.IsCompleted)
+                return FusionApiError.InvalidOperation("comment-closed-request", "Cannot add comment on closed request");
             #region Authorization
 
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -730,8 +730,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (!request.IsCompleted)
-                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
 

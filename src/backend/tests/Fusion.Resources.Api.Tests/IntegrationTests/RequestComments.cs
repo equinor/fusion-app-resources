@@ -203,6 +203,30 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             comments.Response.Headers.Should().NotContain(h => h.Key == "Allow" && h.Value.Contains("GET"));
         }
 
+        [Fact]
+        public async Task ShouldBeHiddenFromAdminOptionsWhenCompleted()
+        {
+            var client = fixture.ApiFactory
+                .CreateClient()
+                .WithTestUser(resourceOwner)
+                .AddTestAuthToken();
+
+            var proposed = fixture.AddProfile(FusionAccountType.Employee);
+
+
+            using var scope = fixture.AdminScope();
+
+            await client.ProposePersonAsync(request.Id, proposed);
+            await client.ResourceOwnerApproveAsync(testDepartment, request.Id);
+            await client.TaskOwnerApproveAsync(testProject, request.Id);
+            await client.ProvisionRequestAsync(request.Id);
+
+            var comments = await client.TestClientOptionsAsync($"/resources/requests/internal/{request.Id}/comments");
+
+            comments.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            comments.Response.Headers.Should().NotContain(h => h.Key == "Allow" && h.Value.Contains("GET"));
+        }
+
         public Task DisposeAsync() => Task.CompletedTask;
     }
 }
