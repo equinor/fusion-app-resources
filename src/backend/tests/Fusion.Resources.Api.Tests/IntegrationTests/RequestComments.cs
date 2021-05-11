@@ -155,7 +155,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldBeHiddenWhenCompleted()
+        public async Task ShouldBeForbiddenWhenCompleted()
         {
             var client = fixture.ApiFactory
                 .CreateClient()
@@ -175,7 +175,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var comments = await client.TestClientGetAsync<List<TestApiComment>>($"/resources/requests/internal/{request.Id}/comments");
 
-            comments.Response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            comments.Response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
         [Fact]

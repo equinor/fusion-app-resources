@@ -752,6 +752,9 @@ namespace Fusion.Resources.Api.Controllers
             if (request == null)
                 return FusionApiError.NotFound(requestId, "Request not found");
 
+            if (request.IsCompleted)
+                return FusionApiError.InvalidOperation("comment-closed-request", "Comments are closed on completed requests.");
+
             #region Authorization
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
@@ -763,8 +766,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (!request.IsCompleted)
-                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
 
@@ -789,6 +791,9 @@ namespace Fusion.Resources.Api.Controllers
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
+            if (request.IsCompleted)
+                return FusionApiError.InvalidOperation("comment-closed-request", "Comments are closed on completed requests.");
+
             #region Authorization
 
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -801,8 +806,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (!request.IsCompleted)
-                        or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(requiredDepartment).Parent(), includeParents: true, includeDescendants: true);
                 });
             });
 
@@ -825,6 +829,9 @@ namespace Fusion.Resources.Api.Controllers
 
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
+
+            if(request.IsCompleted)
+                return FusionApiError.InvalidOperation("comment-closed-request", "Comments are closed on completed requests.");
 
             #region Authorization
 
