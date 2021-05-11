@@ -222,7 +222,4 @@ namespace Fusion.Resources.Api.Controllers
             return (user.AzureUniqueId.Value, user.FullDepartment ?? string.Empty, null);
         }
     }
-
-
-
 }

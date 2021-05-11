@@ -1062,5 +1062,77 @@ namespace Fusion.Resources.Api.Controllers
             Response.Headers.Add("Allow", "POST");
             return NoContent();
         }
+
+        [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}")]
+        public async Task<ActionResult> CheckDepartmentRequestAccess(string departmentPath, Guid requestId)
+        {
+            var allowedVerbs = new List<string>();
+            var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            var deleteAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (item.Type == InternalRequestType.Allocation)
+                    {
+                        or.BeRequestCreator(requestId);
+
+                        if (item.OrgPositionId.HasValue)
+                            or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+                    }
+                });
+
+            });
+            if (deleteAuth.Success) allowedVerbs.Add("DELETE");
+
+            var patchAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (item.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+
+                    var requiredDepartment = item.AssignedDepartment
+                        ?? item.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    or.BeRequestCreator(requestId);
+                });
+            });
+            if (patchAuth.Success) allowedVerbs.Add("PATCH");
+
+            Response.Headers["Allow"] = String.Join(',', allowedVerbs);
+            return NoContent();
+        }
+
+        [HttpOptions("/departments/{departmentPath}/resources/requests")]
+        public async Task<ActionResult> CheckDepartmentRequestAccess(string departmentPath)
+        {
+            var allowedVerbs = new List<string>();
+
+            var postAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
+                });
+            });
+
+            if (postAuth.Success) allowedVerbs.Add("POST");
+
+
+            Response.Headers["Allow"] = String.Join(',', allowedVerbs);
+            return NoContent();
+        }
     }
 }
