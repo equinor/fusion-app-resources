@@ -14,8 +14,4 @@
     <ProjectReference Include="..\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Events\" />
-  </ItemGroup>
-
 </Project>

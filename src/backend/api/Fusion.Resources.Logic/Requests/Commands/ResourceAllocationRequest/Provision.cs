@@ -4,6 +4,7 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Logic.Events;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -88,6 +89,15 @@ namespace Fusion.Resources.Logic.Commands
                     }
 
                     await resourcesDb.SaveChangesAsync();
+
+                    if (dbRequest.ProvisioningStatus.State == DbResourceAllocationRequest.DbProvisionState.Provisioned)
+                    {
+                        await mediator.Publish(new RequestProvisioned(request.RequestId), cancellationToken);
+                    }
+                    else
+                    {
+                        await mediator.Publish(new RequestProvisioningFailed(request.RequestId), cancellationToken);
+                    }
                 }
 
 

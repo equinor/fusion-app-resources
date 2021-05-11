@@ -46,8 +46,6 @@ namespace Fusion.Resources.Logic.Commands
                         if (dbRequest.OrgPositionId is null)
                             throw new InvalidOperationException("Position id cannot be empty when provisioning request");
 
-                        await DeleteResourceOwnerNotes(request.RequestId, cancellationToken);
-
                         var position = await client.GetPositionV2Async(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value);
                         var draft = await CreateProvisionDraftAsync(dbRequest);
 
@@ -65,14 +63,6 @@ namespace Fusion.Resources.Logic.Commands
 
 
                         draft = await client.PublishAndWaitAsync(draft);
-                    }
-
-                    private async Task DeleteResourceOwnerNotes(Guid requestId, CancellationToken cancellationToken)
-                    {
-                        resourcesDb.RequestComments.RemoveRange(
-                            resourcesDb.RequestComments.Where(c => c.RequestId == requestId)
-                        );
-                        await resourcesDb.SaveChangesAsync(cancellationToken);
                     }
 
                     private async Task<ApiDraftV2> CreateProvisionDraftAsync(DbResourceAllocationRequest dbRequest)
