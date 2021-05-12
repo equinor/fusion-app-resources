@@ -1062,6 +1062,34 @@ namespace Fusion.Resources.Api.Controllers
             
             if (item is null) return NotFound();
 
+            var getAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeRequestCreator(requestId);
+                    // For now everyone with a position in the project can view requests
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(item.Project.OrgProjectId));
+
+                    if (item.OrgPositionId.HasValue)
+                        or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+
+
+                    var requiredDepartment = item.AssignedDepartment
+                        ?? item.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                });
+            });
+            if (getAuth.Success) allowedVerbs.Add("GET");
+
             var deleteAuth = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
