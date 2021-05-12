@@ -10,7 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
+using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Logic.Workflows;
+using Microsoft.EntityFrameworkCore;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Notifications
@@ -22,18 +25,20 @@ namespace Fusion.Resources.Api.Notifications
         private readonly IFusionNotificationClient notificationClient;
         private readonly IProjectOrgResolver orgResolver;
         private readonly IFusionContextResolver contextResolver;
+        private readonly ResourcesDbContext dbContext;
 
-        public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver)
+        public InternalRequestsNotificationHandler(IMediator mediator, IFusionNotificationClient notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver, ResourcesDbContext dbContext)
         {
             this.mediator = mediator;
             this.notificationClient = notificationClient;
             this.orgResolver = orgResolver;
             this.contextResolver = contextResolver;
+            this.dbContext = dbContext;
         }
         public async Task Handle(ResourceAllocationRequest.RequestInitialized notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
-            var recipients = await GenerateRecipientsAsync(request);
+            var recipients = await GenerateRecipientsAsync(notification.InitiatedByDbPersonId, request);
 
             foreach (var recipient in recipients)
             {
@@ -102,23 +107,26 @@ namespace Fusion.Resources.Api.Notifications
 
             return request;
         }
-        private async Task<IEnumerable<Guid>> GenerateRecipientsAsync(NotificationRequestData data)
+        private async Task<IEnumerable<Guid>> GenerateRecipientsAsync(Guid notificationInitiatedByPersonId, NotificationRequestData data)
         {
             var recipients = new List<Guid>();
+            var notificationInitiatedBy = await dbContext.Persons.FirstOrDefaultAsync(p => p.Id == notificationInitiatedByPersonId);
 
-            if (data.NotifyCreator)
+            if (data.NotifyCreator && data.AllocationRequest.CreatedBy.AzureUniqueId != notificationInitiatedBy?.AzureUniqueId)
                 recipients.Add(data.AllocationRequest.CreatedBy.AzureUniqueId);
 
             if (data.NotifyResourceOwner && data.Instance.AssignedPerson?.AzureUniqueId != null)
             {
                 var ro = await mediator.Send(new GetResourceOwner(data.Instance.AssignedPerson.AzureUniqueId.Value));
-                if (ro?.IsResourceOwner == true && ro.AzureUniqueId.HasValue)
+                if (ro?.IsResourceOwner == true && ro.AzureUniqueId.HasValue && ro.AzureUniqueId != notificationInitiatedBy?.AzureUniqueId)
                     recipients.Add(ro.AzureUniqueId.Value);
             }
 
             if (data.NotifyTaskOwner)
             {
-                var taskOwnerPersonIds = data.AllocationRequest.TaskOwner?.Persons?.Where(x => x.AzureUniqueId != null).Select(taskOwnerPerson => taskOwnerPerson.AzureUniqueId!.Value) ?? new List<Guid>();
+                var taskOwnerPersonIds = data.AllocationRequest.TaskOwner?.Persons?
+                    .Where(x => x.AzureUniqueId != null && x.AzureUniqueId != notificationInitiatedBy?.AzureUniqueId)
+                    .Select(taskOwnerPerson => taskOwnerPerson.AzureUniqueId!.Value) ?? new List<Guid>();
                 recipients.AddRange(taskOwnerPersonIds);
 
 
