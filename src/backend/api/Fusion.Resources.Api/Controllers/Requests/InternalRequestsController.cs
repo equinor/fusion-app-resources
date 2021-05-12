@@ -717,7 +717,7 @@ namespace Fusion.Resources.Api.Controllers
             if (request == null)
                 return FusionApiError.NotFound(requestId, "Request not found");
             if (request.IsCompleted)
-                return FusionApiError.InvalidOperation("comment-closed-request", "Cannot add comment on closed request");
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Cannot add comment on closed request");
             #region Authorization
 
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -753,7 +753,7 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.NotFound(requestId, "Request not found");
 
             if (request.IsCompleted)
-                return FusionApiError.InvalidOperation("comment-closed-request", "Comments are closed on completed requests.");
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -792,7 +792,7 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
             if (request.IsCompleted)
-                return FusionApiError.InvalidOperation("comment-closed-request", "Comments are closed on completed requests.");
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
 
@@ -831,7 +831,7 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
             if(request.IsCompleted)
-                return FusionApiError.InvalidOperation("comment-closed-request", "Comments are closed on completed requests.");
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
 

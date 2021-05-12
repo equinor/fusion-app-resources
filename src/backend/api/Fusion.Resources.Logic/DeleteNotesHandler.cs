@@ -8,10 +8,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Logic
 {
-    class DeleteNotesHandler : 
-        INotificationHandler<RequestProvisioned>,
-        INotificationHandler<RequestProvisioningFailed>
-
+    public class DeleteNotesHandler : INotificationHandler<RequestProvisioned>
     {
         private readonly ResourcesDbContext resourcesDb;
 
@@ -20,11 +17,6 @@ namespace Fusion.Resources.Logic
             this.resourcesDb = resourcesDb;
         }
         public async Task Handle(RequestProvisioned notification, CancellationToken cancellationToken)
-        {
-            await DeleteNotes(notification.RequestId, cancellationToken);
-        }
-
-        public async Task Handle(RequestProvisioningFailed notification, CancellationToken cancellationToken)
         {
             await DeleteNotes(notification.RequestId, cancellationToken);
         }
