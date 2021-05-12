@@ -110,7 +110,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -1114,8 +1114,12 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [HttpOptions("/projects/{projectIdentifier}/requests")]
+        [HttpOptions("/projects/{projectIdentifier}/resources/requests")]
         [HttpOptions("/departments/{departmentPath}/resources/requests")]
-        public async Task<ActionResult> CheckDepartmentRequestAccess(string departmentPath)
+
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsOptions(
+            [FromRoute] ProjectIdentifier projectIdentifier, [FromRoute] string? departmentPath)
         {
             var allowedVerbs = new List<string>();
 
@@ -1124,14 +1128,31 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
+                    if (departmentPath is not null)
+                        or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
                 });
             });
-
             if (postAuth.Success) allowedVerbs.Add("POST");
 
 
+            var getResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal()
+                    .BeTrustedApplication();
+
+                r.AnyOf(or =>
+                {
+                    // For now everyone with a position in the project can view requests
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                });
+            });
+
+            if (getResult.Success) allowedVerbs.Add("GET");
+
             Response.Headers["Allow"] = String.Join(',', allowedVerbs);
+
             return NoContent();
         }
     }

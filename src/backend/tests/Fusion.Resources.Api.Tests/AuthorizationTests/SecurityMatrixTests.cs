@@ -189,6 +189,33 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, false)]
+        public async Task CanCreateResourceOwnerRequest(string role, string department, bool shouldBeAllowed)
+        {
+            Users[role].FullDepartment = department;
+            using var userScope = fixture.UserScope(Users[role]);
+
+            using var i = creatorInterceptor = OrgRequestMocker
+                 .InterceptOption($"/{testPosition.Id}")
+                 .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
+            
+            var client = fixture.ApiFactory.CreateClient();
+            
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/departments/{TestDepartment}/resources/requests",
+                new ApiCreateInternalRequestModel()
+                    .AsTypeResourceOwner("changeResource")
+                    .WithPosition(testPosition)
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
         [InlineData("resourceOwner", TestDepartment, false)]
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
@@ -268,8 +295,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
-        //TODO: [InlineData("resourceOwner", ParentDepartment, true)]
-        //TODO: [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("resourceOwnerCreator", TestDepartment, true)]
         public async Task CanStartChangeRequest(string role, string department, bool shouldBeAllowed)
         {
@@ -325,8 +352,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
 
             var req = await creatorClient.CreateDefaultResourceOwnerRequestAsync(
-                department, testProject, 
-                r => r.AsTypeResourceOwner("changeResource"), 
+                department, testProject,
+                r => r.AsTypeResourceOwner("changeResource"),
                 p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
             );
 
