@@ -276,10 +276,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
         }
 
-        [Theory]
+        /*[Theory]
         [InlineData(-1, false)]
         [InlineData(0, false)]
-        [InlineData(1, true)]
+        [InlineData(1, true)]*/
         public async Task RecertifyRoleDelegation(int offset, bool expectingSuccess)
         {
             using var adminScope = fixture.AdminScope();
