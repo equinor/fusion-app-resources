@@ -192,7 +192,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .AddToMockService();
 
             fixture.ContextResolver.AddContext(testProject.Project);
-            
+
             using var adminScope = fixture.AdminScope();
 
             var response = await client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/contracts", new { value = new[] { new { id = Guid.Empty } } });
@@ -276,6 +276,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
         }
 
+        [Theory]
+        [InlineData(-1, false)]
+        [InlineData(0, false)]
+        [InlineData(1, true)]
+        public async Task RecertifyRoleDelegation(int offset, bool expectingSuccess)
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/delegated-roles", new
+            {
+                person = new { AzureUniquePersonId = testUser.AzureUniqueId }, classification = "External", type = "CR"
+            }, new { Id = Guid.Empty });
+            resp.Response.EnsureSuccessStatusCode();
+
+            var roleId = resp.Value.Id;
+
+            var response = await client.TestClientPatchAsync<object>($"/projects/{testProject.Project.ProjectId}/contracts/{contractId}/delegated-roles/{roleId}", new
+            {
+                ValidTo = DateTimeOffset.UtcNow.AddMonths(offset)
+            });
+            if (expectingSuccess)
+                response.Should().BeSuccessfull();
+            else
+                response.Should().BeBadRequest();
+        }
 
         #region Poc tests
 
