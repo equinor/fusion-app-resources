@@ -666,7 +666,7 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
             //if (result.AssignedDepartment != departmentPath)
             //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
-            
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -674,7 +674,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), false, true);
+                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
+                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
                 });
             });
 
@@ -894,7 +895,7 @@ namespace Fusion.Resources.Api.Controllers
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
-            if(request.IsCompleted)
+            if (request.IsCompleted)
                 return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
