@@ -263,14 +263,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.InvalidOperation(ve);
             }
-        }
-
-        private bool HasChanged<T>(PatchProperty<T?> patchValue, T? originalValue)
-            where T : IEquatable<T>
-        {
-            return patchValue.HasValue
-                && !patchValue.Value!.Equals(originalValue);
-        }
+        }     
 
         [HttpGet("/resources/requests/internal")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetAllRequests([FromQuery] ODataQueryParams query)
@@ -424,11 +417,6 @@ namespace Fusion.Resources.Api.Controllers
                             includeDescendants: true
                         );
                     }
-                    //if (result.AssignedDepartment is not null)
-                    //    or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), includeDescendants: true);
-
-                    //if (result.AssignedDepartment is null && result.OrgPosition is not null)
-                    //    or.BeResourceOwner(new DepartmentPath(result.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
                 });
             });
 
@@ -1071,6 +1059,8 @@ namespace Fusion.Resources.Api.Controllers
         {
             var allowedVerbs = new List<string>();
             var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            
+            if (item is null) return NotFound();
 
             var deleteAuth = await Request.RequireAuthorizationAsync(r =>
             {
@@ -1138,7 +1128,7 @@ namespace Fusion.Resources.Api.Controllers
             if (postAuth.Success) allowedVerbs.Add("POST");
 
 
-            var getResult = await Request.RequireAuthorizationAsync(r =>
+            var getAuth = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen()
                     .FullControl()
@@ -1152,11 +1142,18 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
 
-            if (getResult.Success) allowedVerbs.Add("GET");
+            if (getAuth.Success) allowedVerbs.Add("GET");
 
             Response.Headers["Allow"] = String.Join(',', allowedVerbs);
 
             return NoContent();
+        }
+
+        private bool HasChanged<T>(PatchProperty<T?> patchValue, T? originalValue)
+           where T : IEquatable<T>
+        {
+            return patchValue.HasValue
+                && !patchValue.Value!.Equals(originalValue);
         }
     }
 }
