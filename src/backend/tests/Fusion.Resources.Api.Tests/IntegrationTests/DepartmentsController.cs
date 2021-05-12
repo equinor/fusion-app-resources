@@ -141,5 +141,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
+
+        [Fact]
+        public async Task ShouldAllowAdminToAddDepartmentResponsible()
+        {
+            var testDepartment = "TPD LIN ORG TST";
+            fixture.EnsureDepartment(testDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner?api-version=1.0-preview", new
+            {
+                DateFrom = "2021-02-02",
+                DateTo = "2022-02-05",
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
     }
 }
