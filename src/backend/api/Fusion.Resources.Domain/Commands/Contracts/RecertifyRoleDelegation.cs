@@ -25,7 +25,11 @@ namespace Fusion.Resources.Domain.Commands
             public Validator(ResourcesDbContext dbContext)
             {
                 RuleFor(x => x.NewValidToDate).Must(x => x < DateTime.UtcNow.AddYears(1)).WithMessage("Cannot extend permission for longer than 1 year");
-                RuleFor(x => x.RoleId).Must(roleId => dbContext.DelegatedRoles.Any(r => r.Id == roleId)).WithMessage("Role id must exist");
+                /*RuleFor(x => x.RoleId).Must(roleId => dbContext.DelegatedRoles.Any(r => r.Id == roleId)).WithMessage("Role id must exist");
+                RuleFor(x => x.RoleId).MustAsync(async (id, cancel) =>
+                {
+                    return await dbContext.DelegatedRoles.AnyAsync(r => r.Id == id, cancel);
+                }).WithMessage("Role id must exist");*/
             }
         }
 

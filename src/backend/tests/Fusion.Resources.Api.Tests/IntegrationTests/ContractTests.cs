@@ -277,9 +277,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Theory]
+        [InlineData(-3, false)]
+        [InlineData(-2, false)]
         [InlineData(-1, false)]
         [InlineData(0, false)]
         [InlineData(1, true)]
+        [InlineData(2, true)]
+        [InlineData(3, true)]
+        [InlineData(4, true)]
+        [InlineData(5, true)]
+        [InlineData(6, true)]
+        [InlineData(7, true)]
+        [InlineData(8, true)]
+        [InlineData(9, true)]
+        [InlineData(10, true)]
+        [InlineData(11, true)]
+        [InlineData(12, true)]
+        [InlineData(13, false)]
+        [InlineData(14, false)]
+        [InlineData(15, false)]
         public async Task RecertifyRoleDelegation(int offset, bool expectingSuccess)
         {
             using var adminScope = fixture.AdminScope();
