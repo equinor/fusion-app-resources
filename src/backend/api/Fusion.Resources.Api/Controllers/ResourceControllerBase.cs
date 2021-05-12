@@ -90,6 +90,9 @@ namespace Fusion.Resources.Api.Controllers
             if (project is null)
                 throw new InvalidOperationException("Could not locate project");
 
+            if (project.Properties.GetProperty<bool>("resourceOwnerRequestsEnabled", false))
+                return (false, null);
+
             var writeEnabled = project.Properties.GetProperty<bool>("pimsWriteSyncEnabled", false);
             if (writeEnabled)
                 return (false, null);
