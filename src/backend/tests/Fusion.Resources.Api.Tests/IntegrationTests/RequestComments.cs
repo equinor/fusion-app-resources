@@ -58,7 +58,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
                 .AddToMockService();
-            
+
             var taskOwnerPosition = PositionBuilder.NewPosition();
             taskOwnerPosition.IsTaskOwner = true;
             taskOwnerPosition.ProjectId = testProject.Project.ProjectId;
@@ -77,15 +77,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             // Create a default request we can work with
-            request = await adminClient.CreateDefaultRequestAsync(testProject, 
+            request = await adminClient.CreateDefaultRequestAsync(testProject,
                 r => r.AsTypeNormal(),
                 pos => pos.WithParentPosition(taskOwnerPosition.Id));
             //await adminClient.StartProjectRequestAsync(testProject, request.Id);
+            await adminClient.StartProjectRequestAsync(testProject, request.Id);
             await adminClient.AssignDepartmentAsync(request.Id, resourceOwner.FullDepartment);
 
             var comment = new { content = "Resource owner gossip." };
             var response = await adminClient.TestClientPostAsync<TestApiComment>($"/resources/requests/internal/{request.Id}/comments", comment);
-            
+
             commentId = response.Value.Id;
         }
 
@@ -151,6 +152,79 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var comments = await client.TestClientGetAsync<List<TestApiComment>>($"/resources/requests/internal/{request.Id}/comments");
 
             comments.Response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        }
+
+        [Fact]
+        public async Task ShouldBeForbiddenWhenCompleted()
+        {
+            var client = fixture.ApiFactory
+                .CreateClient()
+                .WithTestUser(resourceOwner)
+                .AddTestAuthToken();
+
+            var proposed = fixture.AddProfile(FusionAccountType.Employee);
+
+
+            using (var scope = fixture.AdminScope())
+            {
+                await client.ProposePersonAsync(request.Id, proposed);
+                await client.ResourceOwnerApproveAsync(testDepartment, request.Id);
+                await client.TaskOwnerApproveAsync(testProject, request.Id);
+                await client.ProvisionRequestAsync(request.Id);
+            }
+
+            var comments = await client.TestClientGetAsync<List<TestApiComment>>($"/resources/requests/internal/{request.Id}/comments");
+
+            comments.Response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public async Task ShouldBeHiddenFromOptionsWhenCompleted()
+        {
+            var client = fixture.ApiFactory
+                .CreateClient()
+                .WithTestUser(resourceOwner)
+                .AddTestAuthToken();
+
+            var proposed = fixture.AddProfile(FusionAccountType.Employee);
+
+
+            using (var scope = fixture.AdminScope())
+            {
+                await client.ProposePersonAsync(request.Id, proposed);
+                await client.ResourceOwnerApproveAsync(testDepartment, request.Id);
+                await client.TaskOwnerApproveAsync(testProject, request.Id);
+                await client.ProvisionRequestAsync(request.Id);
+            }
+
+            var comments = await client.TestClientOptionsAsync($"/resources/requests/internal/{request.Id}/comments");
+
+            comments.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            comments.Response.Headers.Should().NotContain(h => h.Key == "Allow" && h.Value.Contains("GET"));
+        }
+
+        [Fact]
+        public async Task ShouldBeHiddenFromAdminOptionsWhenCompleted()
+        {
+            var client = fixture.ApiFactory
+                .CreateClient()
+                .WithTestUser(resourceOwner)
+                .AddTestAuthToken();
+
+            var proposed = fixture.AddProfile(FusionAccountType.Employee);
+
+
+            using var scope = fixture.AdminScope();
+
+            await client.ProposePersonAsync(request.Id, proposed);
+            await client.ResourceOwnerApproveAsync(testDepartment, request.Id);
+            await client.TaskOwnerApproveAsync(testProject, request.Id);
+            await client.ProvisionRequestAsync(request.Id);
+
+            var comments = await client.TestClientOptionsAsync($"/resources/requests/internal/{request.Id}/comments");
+
+            comments.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            comments.Response.Headers.Should().NotContain(h => h.Key == "Allow" && h.Value.Contains("GET"));
         }
 
         public Task DisposeAsync() => Task.CompletedTask;

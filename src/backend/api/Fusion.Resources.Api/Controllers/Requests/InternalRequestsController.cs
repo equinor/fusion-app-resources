@@ -697,7 +697,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
-                allowedMethods.Add("GET", "POST");
+                if (!request.IsCompleted) allowedMethods.Add("POST");
+                allowedMethods.Add("GET");
             }
 
             Response.Headers["Allow"] = string.Join(',', allowedMethods);
@@ -733,7 +734,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var allowedMethods = new List<string> { "OPTIONS" };
 
-            if (authResult.Success)
+            if (!request.IsCompleted && authResult.Success)
             {
                 allowedMethods.Add("GET", "PUT", "DELETE");
             }
@@ -749,7 +750,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (request == null)
                 return FusionApiError.NotFound(requestId, "Request not found");
-
+            if (request.IsCompleted)
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Cannot add comment on closed request");
             #region Authorization
 
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -783,6 +785,9 @@ namespace Fusion.Resources.Api.Controllers
 
             if (request == null)
                 return FusionApiError.NotFound(requestId, "Request not found");
+
+            if (request.IsCompleted)
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -820,6 +825,9 @@ namespace Fusion.Resources.Api.Controllers
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
+            if (request.IsCompleted)
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
+
             #region Authorization
 
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -855,6 +863,9 @@ namespace Fusion.Resources.Api.Controllers
 
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
+
+            if(request.IsCompleted)
+                return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
 
