@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
     {
         const string TestDepartment = "TPD PRD TST ASD";
         const string SiblingDepartment = "TPD PRD TST FGH";
-        const string ParentDepartment = "TPD PRD TS";
+        const string ParentDepartment = "TPD PRD TST";
 
         const string SameL2Department = "TPD PRD FE MMS STR1";
 
@@ -58,7 +58,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                .AddContext(testProject.Project);
 
             var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = TestDepartment);
-            testPosition = testProject.AddPosition().WithBasePosition(bp);
+            testPosition = testProject.AddPosition()
+                .WithBasePosition(bp)
+                .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                .WithEnsuredFutureInstances();
 
             Users = new Dictionary<string, ApiPersonProfileV3>()
             {
@@ -327,7 +330,14 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         public async Task CanAcceptChangeRequest(string role, string department, bool shouldBeAllowed)
         {
             var chgRequest = await CreateChangeRequest(department);
-
+            using (var adminScope = fixture.AdminScope())
+            {
+                var adminClient = fixture.ApiFactory.CreateClient();
+                await adminClient.TestClientPostAsync<TestApiInternalRequestModel>(
+                    $"/departments/{TestDepartment}/resources/requests/{chgRequest.Id}/start",
+                    null
+                );
+            }
             using var userScope = fixture.UserScope(Users[role]);
 
             Users[role].FullDepartment = department;
@@ -356,6 +366,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 r => r.AsTypeResourceOwner("changeResource"),
                 p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
             );
+
+            await creatorClient.SetChangeParamsAsync(req.Id, DateTime.Today.AddDays(1));
+            await creatorClient.ProposePersonAsync(req.Id, fixture.AddProfile(FusionAccountType.Employee));
 
             return req;
         }

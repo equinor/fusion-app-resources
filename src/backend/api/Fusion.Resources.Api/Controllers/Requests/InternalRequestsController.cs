@@ -664,7 +664,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
-
+            if (String.IsNullOrEmpty(result.AssignedDepartment))
+                return ApiErrors.InvalidOperation("CannotApproveUnassignedRequest", "Cannot approve step when request is unassigned.");
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -672,8 +673,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
                 });
-
             });
 
             if (authResult.Unauthorized)
