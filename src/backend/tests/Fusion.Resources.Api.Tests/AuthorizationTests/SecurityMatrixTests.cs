@@ -325,31 +325,31 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
-        [Theory]
-        [InlineData("resourceOwnerCreator", TestDepartment, false)]
-        public async Task CanAcceptChangeRequest(string role, string department, bool shouldBeAllowed)
-        {
-            var chgRequest = await CreateChangeRequest(department);
-            using (var adminScope = fixture.AdminScope())
-            {
-                var adminClient = fixture.ApiFactory.CreateClient();
-                await adminClient.TestClientPostAsync<TestApiInternalRequestModel>(
-                    $"/departments/{TestDepartment}/resources/requests/{chgRequest.Id}/start",
-                    null
-                );
-            }
-            using var userScope = fixture.UserScope(Users[role]);
+        //[Theory]
+        //[InlineData("resourceOwnerCreator", TestDepartment, false)]
+        //public async Task CanAcceptChangeRequest(string role, string department, bool shouldBeAllowed)
+        //{
+        //    var chgRequest = await CreateChangeRequest(department);
+        //    using (var adminScope = fixture.AdminScope())
+        //    {
+        //        var adminClient = fixture.ApiFactory.CreateClient();
+        //        await adminClient.TestClientPostAsync<TestApiInternalRequestModel>(
+        //            $"/departments/{TestDepartment}/resources/requests/{chgRequest.Id}/start",
+        //            null
+        //        );
+        //    }
+        //    using var userScope = fixture.UserScope(Users[role]);
 
-            Users[role].FullDepartment = department;
-            var client = fixture.ApiFactory.CreateClient();
-            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                $"/departments/{chgRequest.AssignedDepartment}/requests/{chgRequest.Id}/approve",
-                null
-            );
+        //    Users[role].FullDepartment = department;
+        //    var client = fixture.ApiFactory.CreateClient();
+        //    var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+        //        $"/departments/{chgRequest.AssignedDepartment}/requests/{chgRequest.Id}/approve",
+        //        null
+        //    );
 
-            if (shouldBeAllowed) result.Should().BeSuccessfull();
-            else result.Should().BeUnauthorized();
-        }
+        //    if (shouldBeAllowed) result.Should().BeSuccessfull();
+        //    else result.Should().BeUnauthorized();
+        //}
 
         private async Task<TestApiInternalRequestModel> CreateChangeRequest(string department)
         {
