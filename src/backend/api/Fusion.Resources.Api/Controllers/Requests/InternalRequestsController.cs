@@ -1192,7 +1192,6 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/requests")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests")]
         [HttpOptions("/departments/{departmentPath}/resources/requests")]
-
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsOptions(
             [FromRoute] ProjectIdentifier projectIdentifier, [FromRoute] string? departmentPath)
         {
@@ -1228,6 +1227,29 @@ namespace Fusion.Resources.Api.Controllers
 
             Response.Headers["Allow"] = String.Join(',', allowedVerbs);
 
+            return NoContent();
+        }
+
+        [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
+        public async Task<ActionResult> GetWorkflowApprovalOptions(string departmentPath, Guid requestId)
+        {
+            var allowedVerbs = new List<string>();
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result is null) return NotFound();
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
+                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
+                });
+            });
+            if (authResult.Success) allowedVerbs.Add("POST");
+
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
         }
 
