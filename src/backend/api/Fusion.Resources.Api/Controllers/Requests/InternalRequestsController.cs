@@ -14,6 +14,7 @@ using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Fusion.Resources.Logic;
+using Fusion.Resources.Logic.Commands;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -637,10 +638,16 @@ namespace Fusion.Resources.Api.Controllers
 
             await using var scope = await BeginTransactionAsync();
 
-            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
-
-            await scope.CommitAsync();
-
+            try
+            {
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await scope.CommitAsync();
+            }
+            catch (UnauthorizedWorkflowException ex)
+            {
+                await scope.RollbackAsync();
+                return FusionApiError.Forbidden(ex.Message);
+            }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             return new ApiResourceAllocationRequest(result!);
@@ -657,30 +664,18 @@ namespace Fusion.Resources.Api.Controllers
             //if (result.AssignedDepartment != departmentPath)
             //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
 
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
-                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
-                });
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion
-
-
             await using var scope = await BeginTransactionAsync();
 
-            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
-
-            await scope.CommitAsync();
-
+            try
+            {
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await scope.CommitAsync();
+            }
+            catch (UnauthorizedWorkflowException ex)
+            {
+                await scope.RollbackAsync();
+                return FusionApiError.Forbidden(ex.Message);
+            }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             return new ApiResourceAllocationRequest(result!);

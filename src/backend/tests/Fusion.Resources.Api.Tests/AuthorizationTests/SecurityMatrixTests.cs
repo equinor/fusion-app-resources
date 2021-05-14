@@ -44,6 +44,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             this.fixture = fixture;
             fixture.DisableMemoryCache();
 
+            fixture.EnsureDepartment(TestDepartment);
+
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
 
@@ -273,8 +275,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
+        [InlineData("creator", "TPD RND WQE FQE", false)]
+        public async Task CanProposePersonNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
             Users[role].FullDepartment = department;
@@ -293,11 +295,45 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("creator", "TPD RND WQE FQE", false)]
+        public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
+        {
+            var request = await CreateAndStartRequest();
+            Users[role].FullDepartment = department;
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                var proposedPerson = PeopleServiceMock.AddTestProfile()
+                    .SaveProfile();
+
+                var adminClient = fixture.ApiFactory.CreateClient();
+
+                await adminClient.AssignDepartmentAsync(request.Id, TestDepartment);
+                await adminClient.ProposePersonAsync(request.Id, proposedPerson);
+            }
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/departments/{TestDepartment}/resources/requests/{request.Id}/approve",
+                null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
         [InlineData("resourceOwner", TestDepartment, false)]
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
-        //TODO: [InlineData("creator", "TPD RND WQE FQE", true)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanAcceptNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -310,14 +346,18 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
                 var adminClient = fixture.ApiFactory.CreateClient();
                 await adminClient.ProposePersonAsync(request.Id, proposedPerson);
+                await adminClient.TestClientPostAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+                    null
+                );
             }
 
             using var userScope = fixture.UserScope(Users[role]);
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
-                null
+               $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+               null
             );
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();

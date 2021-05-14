@@ -3,40 +3,101 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using System;
+using Fusion.Resources.Logic.Workflows;
+using System.Collections.Generic;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Logic.Commands
 {
     public partial class ResourceAllocationRequest
     {
+        public record WorkflowAccessKey(string Subtype, string CurrentStep)
+        {
+            public static implicit operator WorkflowAccessKey((string, string) tuple)
+                => new WorkflowAccessKey(tuple.Item1, tuple.Item2);
+        }
+        public record WorkflowAccess(
+            bool IsResourceOwnerAllowed,
+            bool IsAllResourceOwnersAllowed,
+            bool IsCreatorAllowed,
+            bool IsDirectTaskOwnerAllowed,
+            bool IsOrgChartTaskOwnerAllowed,
+            bool IsOtherProjectMembersAllowed,
+            bool IsOrgChartReadAllowed,
+            bool IsOrgChartWriteAllowed,
+            bool IsOrgAdminAllowed
+        );
+
         public class CanApproveStepHandler : INotificationHandler<CanApproveStep>
         {
-            private readonly ResourcesDbContext dbContext;
+            private static Dictionary<WorkflowAccessKey, WorkflowAccess> AccessTable = new Dictionary<WorkflowAccessKey, WorkflowAccess>
+            {
+                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROPOSAL)]
+                    = new WorkflowAccess(true, true, false, false, false, false, false, false, false),
+                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.APPROVAL)]
+                    = new WorkflowAccess(false, false, true, false, false, false, false, true, true),
+                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROVISIONING)]
+                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
 
-            public CanApproveStepHandler(ResourcesDbContext dbContext)
+                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.APPROVAL)]
+                    = new WorkflowAccess(true, true, false, true, false, false, false, false, false),
+                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.PROVISIONING)]
+                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
+            };
+            private readonly ResourcesDbContext dbContext;
+            private readonly IHttpContextAccessor httpContextAccessor;
+
+            public CanApproveStepHandler(ResourcesDbContext dbContext, IHttpContextAccessor httpContextAccessor)
             {
                 this.dbContext = dbContext;
+                this.httpContextAccessor = httpContextAccessor;
             }
 
-            public Task Handle(CanApproveStep notification, CancellationToken cancellationToken)
+            public async Task Handle(CanApproveStep notification, CancellationToken cancellationToken)
             {
-                if (notification.Type != DbInternalRequestType.Allocation)
-                    return Task.CompletedTask;
+                if (notification.Type != DbInternalRequestType.Allocation) return;
 
-                // Should be implemented when we need to authorize / validate. 
-                // But at the moment these rules are not set, so would be back and forth to implement
+                var request = await dbContext.ResourceAllocationRequests
+                    .Include(p => p.Project)
+                    .FirstAsync(r => r.Id == notification.RequestId, cancellationToken: cancellationToken);
 
+                var initiator = httpContextAccessor?.HttpContext?.User;
+                if (initiator is null) throw new UnauthorizedWorkflowException();
 
-                //var initiatedBy = await dbContext.Persons.FirstAsync(p => p.Id == notification.InitiatedByDbPersonId);
-                //var request = await dbContext.ResourceAllocationRequests.FirstAsync(r => r.Id == notification.RequestId);
+                await EvaluateAccess(request, notification, initiator);
+            }
 
-                switch (notification.CurrentStepId)
+            private async Task EvaluateAccess(DbResourceAllocationRequest request, CanApproveStep notification, System.Security.Claims.ClaimsPrincipal initiator)
+            {
+                var row = AccessTable[(request.SubType!, notification.NextStepId!)];
+
+                bool isAllowed = false;
+
+                if(!string.IsNullOrEmpty(request.AssignedDepartment))
                 {
-                    case "proposed":
+                    var path = new DepartmentPath(request.AssignedDepartment);
 
-                        break;
+                    if (row.IsAllResourceOwnersAllowed)
+                        isAllowed |= initiator.IsResourceOwner(path.GoToLevel(2), includeChildDepartments: true);
+
+                    if (row.IsResourceOwnerAllowed)
+                        isAllowed |= initiator.IsResourceOwner(path.Parent(), includeChildDepartments: true);
                 }
 
-                return Task.CompletedTask;
+                if (row.IsCreatorAllowed)
+                    isAllowed |= initiator.GetAzureUniqueIdOrThrow() == request.CreatedBy.AzureUniqueId;
+                
+                if (row.IsOrgChartTaskOwnerAllowed)
+                    isAllowed |= initiator.IsTaskOwnerInProject(request.Project.OrgProjectId);
+
+                isAllowed |= initiator.IsApplicationUser();
+                isAllowed |= initiator.IsInRole("Fusion.Resources.FullControl");
+                isAllowed |= initiator.IsInRole("Fusion.Resources.Internal.FullControl");
+
+                if (!isAllowed) throw new UnauthorizedWorkflowException();
             }
         }
     }
