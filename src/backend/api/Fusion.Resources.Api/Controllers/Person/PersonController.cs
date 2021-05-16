@@ -123,7 +123,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeResourceOwner(user.fullDepartment);
                 });
             });
-            
+
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
@@ -208,6 +208,71 @@ namespace Fusion.Resources.Api.Controllers
 
             await DispatchAsync(new Domain.Commands.DeletePersonNote(noteId, user.azureId));
 
+            return NoContent();
+        }
+
+        [HttpOptions("/persons/{personId}/resources/notes")]
+        public async Task<ActionResult> GetPersonNoteOptions(string personId)
+        {
+            var user = await EnsureUserAsync(personId);
+
+            var allowedVerbs = new List<string>();
+            var postResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(user.fullDepartment);
+                });
+            });
+            if (postResult.Success) allowedVerbs.Add("POST");
+
+            var getResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(user.fullDepartment);
+                });
+
+                // Limited access to other resource owners, only return shared notes.
+                // Give access to all resource owners that share the same L3.
+                r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
+            });
+            if (getResult.Success) allowedVerbs.Add("GET");
+
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
+            return NoContent();
+        }
+        [HttpOptions("/persons/{personId}/resources/notes/{noteId}")]
+        public async Task<ActionResult> GetPersonNoteOptions(string personId, Guid noteId)
+        {
+            var allowedVerbs = new List<string>();
+
+            var (azureId, fullDepartment, error) = await EnsureUserAsync(personId);
+            if (error is not null)
+                return error;
+
+            #region Authorization
+
+            var writeResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(fullDepartment);
+                });
+            });
+            if (writeResult.Success) allowedVerbs.Add("GET", "PUT", "DELETE");
+
+
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
         }
 
