@@ -46,6 +46,12 @@ namespace Fusion.Resources.Logic.Commands
                     = new WorkflowAccess(true, true, false, true, false, false, false, false, false),
                 [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.PROVISIONING)]
                     = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
+
+                [(AllocationEnterpriseWorkflowV1.SUBTYPE, AllocationEnterpriseWorkflowV1.PROVISIONING)]
+                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
+
+                [(AllocationDirectWorkflowV1.SUBTYPE, AllocationDirectWorkflowV1.PROVISIONING)]
+                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
             };
             private readonly ResourcesDbContext dbContext;
             private readonly IHttpContextAccessor httpContextAccessor;
@@ -76,7 +82,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 bool isAllowed = false;
 
-                if(!string.IsNullOrEmpty(request.AssignedDepartment))
+                if (!string.IsNullOrEmpty(request.AssignedDepartment))
                 {
                     var path = new DepartmentPath(request.AssignedDepartment);
 
@@ -89,7 +95,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 if (row.IsCreatorAllowed)
                     isAllowed |= initiator.GetAzureUniqueIdOrThrow() == request.CreatedBy.AzureUniqueId;
-                
+
                 if (row.IsOrgChartTaskOwnerAllowed)
                     isAllowed |= initiator.IsTaskOwnerInProject(request.Project.OrgProjectId);
 
