@@ -18,7 +18,7 @@ namespace Fusion.Resources.Logic.Commands
     {
         class CanApproveResourceOwnerStepHandler : INotificationHandler<CanApproveStep>
         {
-            private static Dictionary<string, WorkflowAccess> AccessTable = new Dictionary<string, WorkflowAccess>
+            private static readonly Dictionary<string, WorkflowAccess> AccessTable = new Dictionary<string, WorkflowAccess>
             {
                 [ResourceOwnerChangeWorkflowV1.CREATED] = WorkflowAccess.Default with 
                 {
@@ -60,7 +60,7 @@ namespace Fusion.Resources.Logic.Commands
 
             private async Task EvaluateAccess(DbResourceAllocationRequest request, CanApproveStep notification, System.Security.Claims.ClaimsPrincipal initiator)
             {
-                var row = AccessTable[(request.SubType!, notification.NextStepId!)];
+                var row = AccessTable[notification.NextStepId!];
 
                 bool isAllowed = false;
 

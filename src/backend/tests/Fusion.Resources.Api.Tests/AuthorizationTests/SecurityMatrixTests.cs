@@ -461,8 +461,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, false)]
-
         public async Task CanAddPersonAbsence(string role, string department, bool shouldBeAllowed)
+
         {
             var testUser = fixture.AddProfile(FusionAccountType.Employee);
             testUser.FullDepartment = TestDepartment;

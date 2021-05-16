@@ -38,7 +38,7 @@ namespace Fusion.Resources.Logic.Commands
 
         public class CanApproveStepHandler : INotificationHandler<CanApproveStep>
         {
-            private static Dictionary<WorkflowAccessKey, WorkflowAccess> AccessTable = new Dictionary<WorkflowAccessKey, WorkflowAccess>
+            private static readonly Dictionary<WorkflowAccessKey, WorkflowAccess> AccessTable = new Dictionary<WorkflowAccessKey, WorkflowAccess>
             {
                 [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROPOSAL)] = WorkflowAccess.Default with
                 {
@@ -51,7 +51,7 @@ namespace Fusion.Resources.Logic.Commands
                     IsOrgAdminAllowed = true,
                     IsOrgChartWriteAllowed = true
                 },
-                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROVISIONING)] = WorkflowAccess.Default,
+                [(AllocationNormalWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)] = WorkflowAccess.Default,
 
                 [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.APPROVAL)]= WorkflowAccess.Default with
                 {
