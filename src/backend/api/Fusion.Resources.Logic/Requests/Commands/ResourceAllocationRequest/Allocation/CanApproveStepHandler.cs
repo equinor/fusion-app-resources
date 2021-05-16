@@ -19,39 +19,55 @@ namespace Fusion.Resources.Logic.Commands
             public static implicit operator WorkflowAccessKey((string, string) tuple)
                 => new WorkflowAccessKey(tuple.Item1, tuple.Item2);
         }
-        public record WorkflowAccess(
-            bool IsResourceOwnerAllowed,
-            bool IsAllResourceOwnersAllowed,
-            bool IsCreatorAllowed,
-            bool IsDirectTaskOwnerAllowed,
-            bool IsOrgChartTaskOwnerAllowed,
-            bool IsOtherProjectMembersAllowed,
-            bool IsOrgChartReadAllowed,
-            bool IsOrgChartWriteAllowed,
-            bool IsOrgAdminAllowed
-        );
+        public record WorkflowAccess()
+        {
+            public bool IsResourceOwnerAllowed { get; init; } = false;
+            public bool IsParentResourceOwnerAllowed { get; init; } = false;
+            public bool IsSiblingResourceOwnerAllowed { get; init; } = false;
+            public bool IsAllResourceOwnersAllowed { get; init; } = false;
+            public bool IsCreatorAllowed { get; init; } = false;
+            public bool IsDirectTaskOwnerAllowed { get; init; } = false;
+            public bool IsOrgChartTaskOwnerAllowed { get; init; } = false;
+            public bool IsOtherProjectMembersAllowed { get; init; } = false;
+            public bool IsOrgChartReadAllowed { get; init; } = false;
+            public bool IsOrgChartWriteAllowed { get; init; } = false;
+            public bool IsOrgAdminAllowed { get; init; } = false;
+
+            public static WorkflowAccess Default = new WorkflowAccess();
+        }
 
         public class CanApproveStepHandler : INotificationHandler<CanApproveStep>
         {
             private static Dictionary<WorkflowAccessKey, WorkflowAccess> AccessTable = new Dictionary<WorkflowAccessKey, WorkflowAccess>
             {
-                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROPOSAL)]
-                    = new WorkflowAccess(true, true, false, false, false, false, false, false, false),
-                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.APPROVAL)]
-                    = new WorkflowAccess(false, false, true, false, false, false, false, true, true),
-                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROVISIONING)]
-                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
+                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROPOSAL)] = WorkflowAccess.Default with
+                {
+                    IsResourceOwnerAllowed = true,
+                    IsAllResourceOwnersAllowed = true,
+                },
+                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.APPROVAL)] = WorkflowAccess.Default with
+                {
+                    IsDirectTaskOwnerAllowed = true,
+                    IsOrgAdminAllowed = true,
+                    IsOrgChartWriteAllowed = true
+                },
+                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROVISIONING)] = WorkflowAccess.Default,
 
-                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.APPROVAL)]
-                    = new WorkflowAccess(true, true, false, true, false, false, false, false, false),
-                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.PROVISIONING)]
-                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
+                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.APPROVAL)]= WorkflowAccess.Default with
+                {
+                    IsResourceOwnerAllowed = true,
+                    IsParentResourceOwnerAllowed = true,
+                    IsSiblingResourceOwnerAllowed = true,
+                    IsCreatorAllowed = true,
+                },
+                [(AllocationJointVentureWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)]
+                    = WorkflowAccess.Default,
 
-                [(AllocationEnterpriseWorkflowV1.SUBTYPE, AllocationEnterpriseWorkflowV1.PROVISIONING)]
-                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
+                [(AllocationEnterpriseWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)]
+                    = WorkflowAccess.Default,
 
-                [(AllocationDirectWorkflowV1.SUBTYPE, AllocationDirectWorkflowV1.PROVISIONING)]
-                    = new WorkflowAccess(false, false, false, false, false, false, false, false, false),
+                [(AllocationDirectWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)]
+                    = WorkflowAccess.Default,
             };
             private readonly ResourcesDbContext dbContext;
             private readonly IHttpContextAccessor httpContextAccessor;
@@ -88,9 +104,13 @@ namespace Fusion.Resources.Logic.Commands
 
                     if (row.IsAllResourceOwnersAllowed)
                         isAllowed |= initiator.IsResourceOwner(path.GoToLevel(2), includeChildDepartments: true);
-
-                    if (row.IsResourceOwnerAllowed)
+                    if (row.IsParentResourceOwnerAllowed)
+                        isAllowed |= initiator.IsResourceOwner(path.Parent(), includeChildDepartments: false);;
+                    if (row.IsSiblingResourceOwnerAllowed)
                         isAllowed |= initiator.IsResourceOwner(path.Parent(), includeChildDepartments: true);
+                             
+                    if (row.IsResourceOwnerAllowed)
+                        isAllowed |= initiator.IsResourceOwner(request.AssignedDepartment, includeChildDepartments: true);
                 }
 
                 if (row.IsCreatorAllowed)
