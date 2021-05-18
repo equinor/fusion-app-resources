@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Api.Controllers.Departments
 {
     [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
