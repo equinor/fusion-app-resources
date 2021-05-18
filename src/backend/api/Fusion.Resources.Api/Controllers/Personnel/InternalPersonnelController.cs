@@ -50,9 +50,8 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
-                    // TODO add
-                    // - Resource owner in line org chain (all departments upwrards)
-                    // - Is resource owner in general (?)
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
+
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
                 });
             });
@@ -119,10 +118,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
-                    // TODO add
-                    // - Resource owner in line org chain (all departments upwrards)
-                    // - Is resource owner in general (?)
-                    // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
+                    or.BeResourceOwner(new DepartmentPath(sectorPath).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -182,6 +178,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -216,6 +213,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
