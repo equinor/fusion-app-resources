@@ -49,7 +49,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0-preview", new
+            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0", new
             {
                 title = $"Test {Guid.NewGuid()}",
                 content = "My test note"
@@ -66,7 +66,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Create_ShouldBeSuccessful_WhenResourceOwner()
         {
             using var resOwnerScope = fixture.UserScope(resourceOwner);
-            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0-preview", new
+            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0", new
             {
                 title = $"Test {Guid.NewGuid()}",
                 content = "My test note"
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resourceOwner.FullDepartment = "L1 L2 L3 L4A";
 
             using var resOwnerScope = fixture.UserScope(resourceOwner);
-            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0-preview", new
+            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0", new
             {
                 title = $"Test {Guid.NewGuid()}",
                 content = "My test note"
@@ -95,7 +95,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.TestClientDeleteAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0-preview");
+            var resp = await client.TestClientDeleteAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0");
             resp.Should().BeSuccessfull();
         }
 
@@ -103,7 +103,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Delete_ShouldBeSuccessfull_WhenResourceOwner()
         {
             using var resOwnerScope = fixture.UserScope(resourceOwner);
-            var resp = await client.TestClientDeleteAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0-preview");
+            var resp = await client.TestClientDeleteAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0");
             resp.Should().BeSuccessfull();
         }
 
@@ -113,7 +113,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resourceOwner.FullDepartment = "L1 L2 L3 L4A";
             using var resOwnerScope = fixture.UserScope(resourceOwner);
 
-            var resp = await client.TestClientDeleteAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0-preview");
+            var resp = await client.TestClientDeleteAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0");
             resp.Should().BeUnauthorized();
         }
 
@@ -121,7 +121,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Update_ShouldBeSuccessfull_WhenResourceOwner()
         {
             using var resOwnerScope = fixture.UserScope(resourceOwner);
-            var resp = await client.TestClientPutAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0-preview", new
+            var resp = await client.TestClientPutAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0", new
             {
                 title = $"Updated title {Guid.NewGuid()}",
                 content = $"My new content {Guid.NewGuid()}",
@@ -141,7 +141,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resourceOwner.FullDepartment = department;
 
             using var resOwnerScope = fixture.UserScope(resourceOwner);
-            var resp = await client.TestClientPutAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0-preview", new
+            var resp = await client.TestClientPutAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0", new
             {
                 title = $"Updated title {Guid.NewGuid()}",
                 content = $"{Guid.NewGuid()}",
@@ -158,7 +158,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var resOwnerScope = fixture.UserScope(resourceOwner);
 
-            var resp = await client.TestClientGetAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0-preview", new[] { new { id = Guid.Empty } });
+            var resp = await client.TestClientGetAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0", new[] { new { id = Guid.Empty } });
             resp.Should().BeSuccessfull();
 
             resp.Value.Should().Contain(n => n.id == privateNote);
@@ -174,7 +174,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var resOwnerScope = fixture.UserScope(resourceOwner);
 
-            var resp = await client.TestClientGetAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0-preview", new[] { new { id = Guid.Empty } });
+            var resp = await client.TestClientGetAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0", new[] { new { id = Guid.Empty } });
             resp.Should().BeSuccessfull();
 
             resp.Value.Should().Contain(n => n.id == privateNote);
@@ -193,7 +193,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var resOwnerScope = fixture.UserScope(resourceOwner);
 
-            var resp = await client.TestClientGetAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0-preview", new[] { new { id = Guid.Empty } });
+            var resp = await client.TestClientGetAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0", new[] { new { id = Guid.Empty } });
 
             if (success)
             {
@@ -208,7 +208,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0-preview", new
+            var resp = await client.TestClientPostAsync($"persons/{testUser.AzureUniqueId}/resources/notes?api-version=1.0", new
             {
                 title = $"Test {Guid.NewGuid()}",
                 content = "My test note"
@@ -223,7 +223,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.TestClientPutAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0-preview", new
+            var resp = await client.TestClientPutAsync($"persons/{testUser.AzureUniqueId}/resources/notes/{testNoteId}?api-version=1.0", new
             {
                 title = title ?? $"Test note {Guid.NewGuid()}",
                 content = $"New content {Guid.NewGuid()}",

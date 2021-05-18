@@ -40,7 +40,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
+            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0", new
             {
                 DepartmentId = "TPD PRD TXT",
             });
@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment("TPD PRD LVL3");
 
-            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
+            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0", new
             {
                 DepartmentId = "TPD PRD LVL3 LVL4",
                 SectorId = "TPD PRD LVL3",
@@ -71,7 +71,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
+            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0", new
             {
                 DepartmentId = "TPD PRD TST DPT",
                 SectorId = "TPD PRD TST"
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPutAsync<TestDepartment>("/departments/TPD PRD TST DPT?api-version=1.0-preview", new
+            var resp = await Client.TestClientPutAsync<TestDepartment>("/departments/TPD PRD TST DPT?api-version=1.0", new
             {
                 SectorId = "TPD PRD TST"
             });
@@ -107,7 +107,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
 
-            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -137,7 +137,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
@@ -151,7 +151,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner?api-version=1.0-preview", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner?api-version=1.0", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",
