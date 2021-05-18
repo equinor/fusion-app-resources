@@ -1,15 +1,19 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.IntegrationTests;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -21,7 +25,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
     {
         const string TestDepartment = "TPD PRD TST ASD";
         const string SiblingDepartment = "TPD PRD TST FGH";
-        const string ParentDepartment = "TPD PRD TS";
+        const string ParentDepartment = "TPD PRD TST";
 
         const string SameL2Department = "TPD PRD FE MMS STR1";
 
@@ -32,6 +36,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         private OrgRequestInterceptor creatorInterceptor;
 
         public Dictionary<string, ApiPersonProfileV3> Users { get; private set; }
+
+        private ApiPersonProfileV3 testUser;
 
         public SecurityMatrixTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -66,6 +72,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 ["resourceOwner"] = resourceOwner,
                 ["resourceOwnerCreator"] = resourceOwnerCreator
             };
+
+            testUser = fixture.AddProfile(FusionAccountType.Employee);
+            testUser.FullDepartment = TestDepartment;
         }
 
         public Task InitializeAsync() => Task.CompletedTask;
@@ -316,6 +325,215 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, false)]
+
+        public async Task CanAddPersonAbsence(string role, string department, bool shouldBeAllowed)
+        {
+            var testUser = fixture.AddProfile(FusionAccountType.Employee);
+            testUser.FullDepartment = TestDepartment;
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientPostAsync<TestAbsence>(
+                $"/persons/{testUser.AzureUniqueId}/absence",
+                new CreatePersonAbsenceRequest
+                {
+                    AppliesFrom = new DateTime(2021, 04, 30),
+                    AppliesTo = new DateTime(2022, 04, 30),
+                    Comment = "A comment",
+                    Type = ApiPersonAbsence.ApiAbsenceType.Absence,
+                    AbsencePercentage = 100
+                }
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, false)]
+        public async Task CanEditPersonAbsence(string role, string department, bool shouldBeAllowed)
+        {
+            var absence = await CreateAbsence();
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientPutAsync<dynamic>(
+                $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}",
+                new UpdatePersonAbsenceRequest
+                {
+                    AppliesFrom = new DateTime(2021, 04, 30),
+                    AppliesTo = new DateTime(2022, 04, 30),
+                    Comment = "An updated comment",
+                    Type = ApiPersonAbsence.ApiAbsenceType.Absence,
+                    AbsencePercentage = 50
+                }
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, false)]
+        public async Task CanDeletePersonAbsence(string role, string department, bool shouldBeAllowed)
+        {
+            var absence = await CreateAbsence();
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientDeleteAsync<dynamic>(
+                $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}"
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, false)]
+        public async Task CanGetPersonAbsence(string role, string department, bool shouldBeAllowed)
+        {
+            var absence = await CreateAbsence();
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientGetAsync<TestAbsence>(
+                $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}"
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, false)]
+        public async Task CanGetAllAbsenceForPerson(string role, string department, bool shouldBeAllowed)
+        {
+            var absence = await CreateAbsence();
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientGetAsync<dynamic>(
+                $"/persons/{testUser.AzureUniqueId}/absence/"
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, "GET,POST")]
+        [InlineData("resourceOwner", SiblingDepartment, "GET,POST")]
+        [InlineData("resourceOwner", ParentDepartment, "GET,POST")]
+        [InlineData("resourceOwner", SameL2Department, "!GET,!POST")]
+        public async Task CanGetAbsenceOptionsForPerson(string role, string department, string allowed)
+        {
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientOptionsAsync(
+                $"/persons/{testUser.AzureUniqueId}/absence"
+            );
+
+            CheckHeaders(allowed, result);
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, "GET,PUT,DELETE")]
+        [InlineData("resourceOwner", SiblingDepartment, "GET,PUT,DELETE")]
+        [InlineData("resourceOwner", ParentDepartment, "GET,PUT,DELETE")]
+        [InlineData("resourceOwner", SameL2Department, "!GET,!PUT,!DELETE")]
+        public async Task CanGetAbsenceOptions(string role, string department, string allowed)
+        {
+            var absence = await CreateAbsence();
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientOptionsAsync(
+                $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}"
+            );
+
+            CheckHeaders(allowed, result);
+        }
+
+        private static void CheckHeaders(string allowed, TestClientHttpResponse<dynamic> result)
+        {
+            var expectedVerbs = allowed
+                            .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .Select(x =>
+                            {
+                                if (x.StartsWith('!'))
+                                    return new { Key = "disallowed", Method = new HttpMethod(x.Substring(1)) };
+                                else
+                                    return new { Key = "allowed", Method = new HttpMethod(x) };
+                            })
+                            .ToLookup(x => x.Key, x => x.Method);
+
+            if (expectedVerbs["allowed"].Any())
+                result.Should().HaveAllowHeaders(expectedVerbs["allowed"].ToArray());
+
+            if (expectedVerbs["disallowed"].Any())
+                result.Should().NotHaveAllowHeaders(expectedVerbs["disallowed"].ToArray());
+        }
+
+        private async Task<TestAbsence> CreateAbsence()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientPostAsync<TestAbsence>(
+                $"/persons/{testUser.AzureUniqueId}/absence",
+                new CreatePersonAbsenceRequest
+                {
+                    AppliesFrom = new DateTime(2021, 04, 30),
+                    AppliesTo = new DateTime(2022, 04, 30),
+                    Comment = "A comment",
+                    Type = ApiPersonAbsence.ApiAbsenceType.Absence,
+                    AbsencePercentage = 100
+                }
+            );
+
+            return result.Value;
+        }
+
         private async Task<TestApiInternalRequestModel> CreateChangeRequest(string department)
         {
             var creatorClient = fixture.ApiFactory.CreateClient()
@@ -327,8 +545,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
 
             var req = await creatorClient.CreateDefaultResourceOwnerRequestAsync(
-                department, testProject, 
-                r => r.AsTypeResourceOwner("changeResource"), 
+                department, testProject,
+                r => r.AsTypeResourceOwner("changeResource"),
                 p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
             );
 
@@ -366,7 +584,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
         public Task DisposeAsync()
         {
-            creatorInterceptor.Dispose();
+            creatorInterceptor?.Dispose();
             loggingScope.Dispose();
 
             return Task.CompletedTask;
