@@ -617,25 +617,6 @@ namespace Fusion.Resources.Api.Controllers
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    if (result.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
-                });
-
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion
-
-
             await using var scope = await BeginTransactionAsync();
 
             try
