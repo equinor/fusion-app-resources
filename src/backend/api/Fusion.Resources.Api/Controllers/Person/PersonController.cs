@@ -217,17 +217,6 @@ namespace Fusion.Resources.Api.Controllers
             var user = await EnsureUserAsync(personId);
 
             var allowedVerbs = new List<string>();
-            var postResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
-
-                r.AnyOf(or =>
-                {
-                    or.BeResourceOwner(user.fullDepartment);
-                });
-            });
-            if (postResult.Success) allowedVerbs.Add("POST");
 
             var getResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -243,32 +232,9 @@ namespace Fusion.Resources.Api.Controllers
                 // Give access to all resource owners that share the same L3.
                 r.LimitedAccessWhen(or => or.BeResourceOwner(new DepartmentPath(user.fullDepartment).GoToLevel(3), includeParents: true, includeDescendants: true));
             });
+
             if (getResult.Success) allowedVerbs.Add("GET");
-
-            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
-            return NoContent();
-        }
-
-        [HttpOptions("/persons/{personId}/resources/notes/{noteId}")]
-        public async Task<ActionResult> GetPersonNoteOptions(string personId, Guid noteId)
-        {
-            var allowedVerbs = new List<string>();
-
-            var (azureId, fullDepartment, error) = await EnsureUserAsync(personId);
-            if (error is not null)
-                return error;
-
-            var writeResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
-
-                r.AnyOf(or =>
-                {
-                    or.BeResourceOwner(fullDepartment);
-                });
-            });
-            if (writeResult.Success) allowedVerbs.Add("GET", "PUT", "DELETE");
+            if (getResult.Success && !getResult.LimitedAuth) allowedVerbs.Add("POST", "PUT", "DELETE");
 
             Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
