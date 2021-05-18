@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
+using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
@@ -109,7 +110,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -127,7 +128,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (assignedPerson is null)
                 return ApiErrors.InvalidInput($"Cannot create change request for position instance without assigned person.");
-            if(!assignedPerson.AzureUniqueId.HasValue)
+            if (!assignedPerson.AzureUniqueId.HasValue)
                 return ApiErrors.InvalidInput($"Cannot create change request for resource not in Active Directory.");
 
             var assignedPersonProfile = await profileResolver.ResolvePersonBasicProfileAsync(assignedPerson.AzureUniqueId!);
@@ -210,11 +211,20 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-                    if (item.AssignedDepartment is not null)
-                        or.BeResourceOwner(new DepartmentPath(item.AssignedDepartment).Parent(), includeDescendants: true);
+                    if (!HasChanged(request.AdditionalNote, item.AdditionalNote))
+                    {
+                        var requiredDepartment = item.AssignedDepartment
+                            ?? item.OrgPosition?.BasePosition?.Department;
 
-                    if (item.AssignedDepartment is null && item.OrgPosition is not null)
-                        or.BeResourceOwner(new DepartmentPath(item.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
+                        if (requiredDepartment is not null)
+                        {
+                            or.BeResourceOwner(
+                                new DepartmentPath(requiredDepartment).GoToLevel(2),
+                                includeParents: false,
+                                includeDescendants: true
+                            );
+                        }
+                    }
 
                     or.BeRequestCreator(requestId);
                 });
@@ -254,7 +264,6 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation(ve);
             }
         }
-
 
         [HttpGet("/resources/requests/internal")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetAllRequests([FromQuery] ODataQueryParams query)
@@ -396,11 +405,18 @@ namespace Fusion.Resources.Api.Controllers
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
 
-                    if (result.AssignedDepartment is not null)
-                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), includeDescendants: true);
 
-                    if (result.AssignedDepartment is null && result.OrgPosition is not null)
-                        or.BeResourceOwner(new DepartmentPath(result.OrgPosition.BasePosition.Department).GoToLevel(3), includeDescendants: true);
+                    var requiredDepartment = result.AssignedDepartment
+                        ?? result.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
                 });
             });
 
@@ -636,6 +652,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+            //if (result.AssignedDepartment != departmentPath)
+            //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
 
             #region Authorization
 
@@ -644,8 +662,9 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
+                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
                 });
-
             });
 
             if (authResult.Unauthorized)
@@ -864,7 +883,7 @@ namespace Fusion.Resources.Api.Controllers
             if (comment is null)
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
-            if(request.IsCompleted)
+            if (request.IsCompleted)
                 return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
@@ -969,29 +988,83 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            var allowedVerbs = new List<string>();
+            var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
-            if (result == null)
+            if (item == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var authResult = await Request.RequireAuthorizationAsync(r =>
+            var patchResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if (item.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+
+                    var requiredDepartment = item.AssignedDepartment
+                        ?? item.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+
                     or.BeRequestCreator(requestId);
-
-                    if (result.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                 });
+            });
+            if (patchResult.Success) allowedVerbs.Add("PATCH");
 
+            var deleteResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (item.Type == InternalRequestType.Allocation)
+                    {
+                        or.BeRequestCreator(requestId);
+
+                        if (item.OrgPositionId.HasValue)
+                            or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+                    }
+                });
             });
 
-            if (authResult.Success)
-                Response.Headers.Add("Allow", "GET,PUT,POST,DELETE");
-            else
-                Response.Headers.Add("Allow", "GET");
+            if (deleteResult.Success) allowedVerbs.Add("DELETE");
 
+            var getResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeRequestCreator(requestId);
+                    // For now everyone with a position in the project can view requests
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(item.Project.OrgProjectId));
+
+                    if (item.OrgPositionId.HasValue)
+                        or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+
+
+                    var requiredDepartment = item.AssignedDepartment
+                        ?? item.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                });
+            });
+            if (getResult.Success) allowedVerbs.Add("GET");
+
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
         }
 
@@ -1007,7 +1080,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="requestType">The request type to create</param>
         /// <returns></returns>
         [HttpOptions("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/resources/requests")]
-        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] ProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery]string? requestType)
+        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] ProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery] string? requestType)
         {
 
             switch (requestType?.ToLower())
@@ -1033,6 +1106,158 @@ namespace Fusion.Resources.Api.Controllers
 
             Response.Headers.Add("Allow", "POST");
             return NoContent();
+        }
+
+        [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}")]
+        public async Task<ActionResult> CheckDepartmentRequestAccess(string departmentPath, Guid requestId)
+        {
+            var allowedVerbs = new List<string>();
+            var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (item is null) return NotFound();
+
+            var getAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeRequestCreator(requestId);
+                    // For now everyone with a position in the project can view requests
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(item.Project.OrgProjectId));
+
+                    if (item.OrgPositionId.HasValue)
+                        or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+
+
+                    var requiredDepartment = item.AssignedDepartment
+                        ?? item.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                });
+            });
+            if (getAuth.Success) allowedVerbs.Add("GET");
+
+            var deleteAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (item.Type == InternalRequestType.Allocation)
+                    {
+                        or.BeRequestCreator(requestId);
+
+                        if (item.OrgPositionId.HasValue)
+                            or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+                    }
+                });
+
+            });
+            if (deleteAuth.Success) allowedVerbs.Add("DELETE");
+
+            var patchAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (item.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
+
+                    var requiredDepartment = item.AssignedDepartment
+                        ?? item.OrgPosition?.BasePosition?.Department;
+
+                    if (requiredDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    or.BeRequestCreator(requestId);
+                });
+            });
+            if (patchAuth.Success) allowedVerbs.Add("PATCH");
+
+            Response.Headers["Allow"] = String.Join(',', allowedVerbs);
+            return NoContent();
+        }
+
+        [HttpOptions("/projects/{projectIdentifier}/requests")]
+        [HttpOptions("/projects/{projectIdentifier}/resources/requests")]
+        [HttpOptions("/departments/{departmentPath}/resources/requests")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsOptions(
+            [FromRoute] ProjectIdentifier projectIdentifier, [FromRoute] string? departmentPath)
+        {
+            var allowedVerbs = new List<string>();
+
+            var postAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (departmentPath is not null)
+                        or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
+                });
+            });
+            if (postAuth.Success) allowedVerbs.Add("POST");
+
+
+            var getAuth = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal()
+                    .BeTrustedApplication();
+
+                r.AnyOf(or =>
+                {
+                    // For now everyone with a position in the project can view requests
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                });
+            });
+
+            if (getAuth.Success) allowedVerbs.Add("GET");
+
+            Response.Headers["Allow"] = String.Join(',', allowedVerbs);
+
+            return NoContent();
+        }
+
+        [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
+        public async Task<ActionResult> GetWorkflowApprovalOptions(string departmentPath, Guid requestId)
+        {
+            var allowedVerbs = new List<string>();
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (result is null) return NotFound();
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
+                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
+                });
+            });
+            if (authResult.Success) allowedVerbs.Add("POST");
+
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
+            return NoContent();
+        }
+
+        private bool HasChanged<T>(PatchProperty<T?> patchValue, T? originalValue)
+           where T : IEquatable<T>
+        {
+            return patchValue.HasValue
+                && !patchValue.Value!.Equals(originalValue);
         }
     }
 }
