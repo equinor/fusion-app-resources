@@ -248,6 +248,7 @@ namespace Fusion.Resources.Api.Controllers
             Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
         }
+
         [HttpOptions("/persons/{personId}/resources/notes/{noteId}")]
         public async Task<ActionResult> GetPersonNoteOptions(string personId, Guid noteId)
         {
@@ -256,8 +257,6 @@ namespace Fusion.Resources.Api.Controllers
             var (azureId, fullDepartment, error) = await EnsureUserAsync(personId);
             if (error is not null)
                 return error;
-
-            #region Authorization
 
             var writeResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -270,7 +269,6 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
             if (writeResult.Success) allowedVerbs.Add("GET", "PUT", "DELETE");
-
 
             Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
