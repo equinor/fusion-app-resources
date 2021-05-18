@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
+using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +29,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    // add requirements
+                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
                 });
             });
             if (authResult.Unauthorized)
@@ -60,7 +61,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    // add requirements
+                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
                 });
             });
             if (authResult.Unauthorized)
@@ -109,7 +110,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    // add requirements
+                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
                 });
             });
             if (authResult.Unauthorized)
@@ -132,6 +133,21 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpGet("departments/{departmentString}/resources/requests/tbn")]
         public async Task<ActionResult> GetTBNPositions(string departmentString)
         {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
+                });
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             var request = new GetTbnPositions(departmentString);
 
             var data = await DispatchAsync(request);
@@ -154,7 +170,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    // add requirements
+                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
                 });
             });
             if (authResult.Unauthorized)

@@ -548,7 +548,29 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             CheckHeaders(allowed, result);
         }
 
-        private static void CheckHeaders(string allowed, TestClientHttpResponse<dynamic> result)
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        public async Task CanGetDepartmentUnassignedRequests(string role, string department, bool shouldBeAllowed)
+        {
+            fixture.EnsureDepartment(TestDepartment);
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientGetAsync<dynamic>(
+                $"/departments/{TestDepartment}/resources/requests/unassigned?api-version=1.0-preview"
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+            
+        }
+
+         private static void CheckHeaders(string allowed, TestClientHttpResponse<dynamic> result)
         {
             var expectedVerbs = allowed
                             .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
