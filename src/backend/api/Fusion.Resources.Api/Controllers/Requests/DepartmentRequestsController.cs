@@ -12,6 +12,7 @@ using System.Xml;
 namespace Fusion.Resources.Api.Controllers.Requests
 {
     [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
     public class DepartmentRequestsController : ResourceControllerBase
