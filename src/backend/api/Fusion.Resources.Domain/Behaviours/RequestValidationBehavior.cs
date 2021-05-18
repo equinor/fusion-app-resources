@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation.Results;
 using Fusion.Threading;
 
 namespace Fusion.Resources.Domain.Behaviours
@@ -21,10 +22,14 @@ namespace Fusion.Resources.Domain.Behaviours
         {
             var context = new ValidationContext<TRequest>(request);
 
-            var validationTasks = validators.Select(v => v.ValidateAsync(context, cancellationToken));
-            var outcome = await Task.WhenAll(validationTasks);
-
-            var failures = outcome
+            var validationResponse = new List<ValidationResult>();
+            foreach (var validator in validators)
+            {
+                var response = await validator.ValidateAsync(context, cancellationToken);
+                validationResponse.Add(response);
+            }
+            
+            var failures = validationResponse
                 .SelectMany(result => result.Errors)
                 .Where(f => f != null)
                 .ToList();
