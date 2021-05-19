@@ -196,5 +196,15 @@ namespace Fusion.Resources.Api.Tests
 
             return resp.Value;
         }
+
+        public static async Task AddDelegatedDepartmentOwner(this HttpClient client, ApiPersonProfileV3 testUser, string department, DateTime dateFrom, DateTime dateTo)
+        {
+            await client.TestClientPostAsync($"/departments/{department}/delegated-resource-owner?api-version=1.0-preview", new
+            {
+                responsibleAzureUniqueId = testUser.AzureUniqueId,
+                dateFrom,
+                dateTo
+            });
+        }
     }
 }
