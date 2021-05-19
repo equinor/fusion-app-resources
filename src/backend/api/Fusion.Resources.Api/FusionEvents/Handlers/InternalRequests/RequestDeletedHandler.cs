@@ -33,8 +33,8 @@ namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
                 var payload = new ResourceAllocationRequestSubscriptionEvent
                 {
                     Type = EventType.RequestRemoved,
-                    ItemId = notification.RequestId,
-                    Request = new ResourceAllocationRequestEvent(notification.RequestId, notification.OrgProjectId, notification.OrgPositionId.Value, notification.PositionInstanceId)
+                    ItemId = notification.RequestId,                    
+                    Request = new ResourceAllocationRequestEvent(notification.RequestId, notification.OrgProjectId, notification.OrgPositionId.Value, notification.PositionInstanceId, notification.Type, notification.SubType)
                 };
                 var @event = new FusionEvent<ResourceAllocationRequestSubscriptionEvent>(new FusionEventType("resourceallocation.request"), payload);
                 await notificationClient.SendNotificationAsync(@event);
