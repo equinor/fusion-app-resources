@@ -5,10 +5,6 @@ using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Mocks.OrgService;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,14 +19,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// Will be generated new for each test
         /// </summary>
         private readonly ApiPersonProfileV3 testUser;
-
-
-        private Guid testResponsibilityMatrixId;
-
         private FusionTestProjectBuilder testProject;
-
-
-        private HttpClient Client => fixture.ApiFactory.CreateClient();
 
         public PersonControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
