@@ -51,8 +51,8 @@ namespace Microsoft.Extensions.DependencyInjection
             {                
                 o.EndpointResolver = (sp) =>
                 {
-                    var config = sp.GetRequiredService<IOptions<ServiceDiscoveryOptions>>();
-                    var fusionEnv = config.Value.Environment ?? "ci";
+                    var intgConfig = sp.GetRequiredService<IOptions<FusionIntegrationOptions>>();
+                    var fusionEnv = intgConfig.Value.ServiceDiscovery?.Environment ?? "ci";
                     return Task.FromResult($"https://pro-s-lineorg-{fusionEnv}.azurewebsites.net");
                 };
 
