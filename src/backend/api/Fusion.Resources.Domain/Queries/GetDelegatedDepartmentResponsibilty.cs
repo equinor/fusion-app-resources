@@ -14,6 +14,7 @@ namespace Fusion.Resources.Domain.Queries
     public class GetDelegatedDepartmentResponsibilty : IRequest<IEnumerable<QueryDepartmentResponsible>>
     {
         private readonly Guid? azureAdObjectId;
+        public DateTime AtDate { get; set; } = DateTime.Now;
 
         public GetDelegatedDepartmentResponsibilty(Guid? azureAdObjectId)
         {
@@ -24,6 +25,7 @@ namespace Fusion.Resources.Domain.Queries
         {
             return responsibles
                 .Where(r => r.ResponsibleAzureObjectId == azureAdObjectId)
+                .Where(r => r.DateFrom < AtDate && r.DateTo > AtDate)
                 .Select(r => new QueryDepartmentResponsible(r));
         }
 
