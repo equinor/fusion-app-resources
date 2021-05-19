@@ -171,7 +171,8 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("isDraft", i => i.IsDraft);
                         m.MapField("project.id", i => i.Project.OrgProjectId);
                         m.MapField("updated", i => i.Updated);
-                        m.MapField("state", i => i.State);
+                        m.MapField("state", i => i.State.State);
+                        m.MapField("state.isComplete", i => i.State.IsCompleted);
                         m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
                     });
                 }
