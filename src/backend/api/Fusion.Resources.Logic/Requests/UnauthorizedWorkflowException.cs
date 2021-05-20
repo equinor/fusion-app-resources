@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Fusion.Resources.Logic.Commands
+namespace Fusion.Resources.Logic.Requests
 {
     [Serializable]
     public class UnauthorizedWorkflowException : Exception

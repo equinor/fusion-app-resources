@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Logic.Requests;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +17,7 @@ namespace Fusion.Resources.Logic.Commands
 {
     public partial class ResourceAllocationRequest
     {
-        class CanApproveResourceOwnerStepHandler : INotificationHandler<CanApproveStep>
+        class CanApproveResourceOwnerStepHandler : CanApproveStepHandlerBase, INotificationHandler<CanApproveStep>
         {
             private static readonly Dictionary<string, WorkflowAccess> AccessTable = new Dictionary<string, WorkflowAccess>
             {
@@ -55,41 +56,9 @@ namespace Fusion.Resources.Logic.Commands
                 var initiator = httpContextAccessor?.HttpContext?.User;
                 if (initiator is null) throw new UnauthorizedWorkflowException();
 
-                await EvaluateAccess(request, notification, initiator);
-            }
-
-            private async Task EvaluateAccess(DbResourceAllocationRequest request, CanApproveStep notification, System.Security.Claims.ClaimsPrincipal initiator)
-            {
                 var row = AccessTable[notification.NextStepId!];
 
-                bool isAllowed = false;
-
-                if (!string.IsNullOrEmpty(request.AssignedDepartment))
-                {
-                    var path = new DepartmentPath(request.AssignedDepartment);
-
-                    if (row.IsAllResourceOwnersAllowed)
-                        isAllowed |= initiator.IsResourceOwner(path.GoToLevel(2), includeChildDepartments: true);
-                    if (row.IsParentResourceOwnerAllowed)
-                        isAllowed |= initiator.IsResourceOwner(path.Parent(), includeChildDepartments: false); ;
-                    if (row.IsSiblingResourceOwnerAllowed)
-                        isAllowed |= initiator.IsResourceOwner(path.Parent(), includeChildDepartments: true);
-
-                    if (row.IsResourceOwnerAllowed)
-                        isAllowed |= initiator.IsResourceOwner(request.AssignedDepartment, includeChildDepartments: true);
-                }
-
-                if (row.IsCreatorAllowed)
-                    isAllowed |= initiator.GetAzureUniqueIdOrThrow() == request.CreatedBy.AzureUniqueId;
-
-                if (row.IsOrgChartTaskOwnerAllowed)
-                    isAllowed |= initiator.IsTaskOwnerInProject(request.Project.OrgProjectId);
-
-                isAllowed |= initiator.IsApplicationUser();
-                isAllowed |= initiator.IsInRole("Fusion.Resources.FullControl");
-                isAllowed |= initiator.IsInRole("Fusion.Resources.Internal.FullControl");
-
-                if (!isAllowed) throw new UnauthorizedWorkflowException();
+                await EvaluateAccess(request, row, initiator);
             }
         }
     }
