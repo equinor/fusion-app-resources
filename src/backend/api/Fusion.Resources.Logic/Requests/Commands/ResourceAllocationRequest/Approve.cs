@@ -48,10 +48,9 @@ namespace Fusion.Resources.Logic.Commands
                     var currentStep = workflow[dbRequest.State.State];
                     await mediator.Publish(new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId));
 
-
+                    dbRequest.State.State = workflow.GetCurrent().Id;
                     currentStep = workflow.CompleteCurrentStep(Database.Entities.DbWFStepState.Approved, request.Editor.Person);
 
-                    dbRequest.State.State = currentStep!.Id;
                     workflow.SaveChanges();
 
                     await dbContext.SaveChangesAsync(cancellationToken);

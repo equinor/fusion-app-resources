@@ -40,7 +40,7 @@ namespace Fusion.Resources.Logic.Commands
         {
             private static readonly Dictionary<WorkflowAccessKey, WorkflowAccess> AccessTable = new Dictionary<WorkflowAccessKey, WorkflowAccess>
             {
-                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.CREATED)] = WorkflowAccess.Default with
+                [(AllocationNormalWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.PROPOSAL)] = WorkflowAccess.Default with
                 {
                     IsResourceOwnerAllowed = true,
                     IsAllResourceOwnersAllowed = true,
@@ -54,7 +54,7 @@ namespace Fusion.Resources.Logic.Commands
                 },
                 [(AllocationNormalWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)] = WorkflowAccess.Default,
 
-                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.CREATED)]= WorkflowAccess.Default with
+                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.APPROVAL)]= WorkflowAccess.Default with
                 {
                     IsResourceOwnerAllowed = true,
                     IsParentResourceOwnerAllowed = true,
@@ -95,7 +95,7 @@ namespace Fusion.Resources.Logic.Commands
 
             private async Task EvaluateAccess(DbResourceAllocationRequest request, CanApproveStep notification, System.Security.Claims.ClaimsPrincipal initiator)
             {
-                var row = AccessTable[(request.SubType!.ToLower(), notification.CurrentStepId!)];
+                var row = AccessTable[(request.SubType!.ToLower(), notification.NextStepId!)];
 
                 bool isAllowed = false;
 

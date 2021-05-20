@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.EntityFrameworkCore;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -14,11 +15,13 @@ namespace Fusion.Resources.Logic.Commands
         {
             public class JointVentureAllocationRequestStarted : INotificationHandler<AllocationRequestStarted>
             {
+                private readonly RequestRouter router;
                 private readonly ResourcesDbContext dbContext;
                 private readonly IMediator mediator;
 
                 public JointVentureAllocationRequestStarted(ResourcesDbContext dbContext, IMediator mediator)
                 {
+                    this.router = new RequestRouter(dbContext);
                     this.dbContext = dbContext;
                     this.mediator = mediator;
                 }
@@ -34,7 +37,7 @@ namespace Fusion.Resources.Logic.Commands
                     ValidateWorkflow(request);
 
 
-                    var wasAssigned = await AssignRequestToResourceOwnerAsync();
+                    var wasAssigned = await AssignRequestToResourceOwnerAsync(request);
 
                     if (!wasAssigned)
                     {
@@ -56,10 +59,11 @@ namespace Fusion.Resources.Logic.Commands
                             s.AddFailure("proposedPerson", "Must provide a person to be assigned the position"));
                 }
 
-                private ValueTask<bool> AssignRequestToResourceOwnerAsync()
+                private async ValueTask<bool> AssignRequestToResourceOwnerAsync(DbResourceAllocationRequest request)
                 {
-
-                    return new ValueTask<bool>(false);
+                    var department = await router.RouteAsync(request, CancellationToken.None);
+                    
+                    return !string.IsNullOrEmpty(request.AssignedDepartment ??= department);
                 }
             }
         }

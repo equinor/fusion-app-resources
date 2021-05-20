@@ -3,6 +3,7 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.IntegrationTests;
+using Fusion.Resources.Database;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -364,28 +365,44 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
-        //[Theory]
-        //[InlineData("resourceOwner", TestDepartment, true)]
-        //[InlineData("resourceOwner", SiblingDepartment, true)]
-        //[InlineData("resourceOwner", ParentDepartment, true)]
-        //[InlineData("resourceOwner", SameL2Department, false)]
-        //[InlineData("creator", "TPD RND WQE FQE", true)]
-        //public async Task CanAcceptJointVentureRequest(string role, string department, bool shouldBeAllowed)
-        //{
-        //    var request = await CreateAndStartJVRequest();
-        //    Users[role].FullDepartment = department;
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, false)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
+        public async Task CanAcceptJointVentureRequest(string role, string department, bool shouldBeAllowed)
+        {
+            using(var adminScope = fixture.AdminScope())
+            {
+                var adminClient = fixture.ApiFactory.CreateClient();
+                var matrixRequest = new UpdateResponsibilityMatrixRequest
+                {
+                    ProjectId = testProject.Project.ProjectId,
+                    LocationId = Guid.NewGuid(),
+                    BasePositionId = testProject.Positions.First().BasePosition.Id,
+                    Unit = TestDepartment,
+                    ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
+                };
 
-        //    using var userScope = fixture.UserScope(Users[role]);
+                var matrixResponse = await adminClient.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", matrixRequest);
+                matrixResponse.Should().BeSuccessfull();
+            }
 
-        //    var client = fixture.ApiFactory.CreateClient();
-        //    var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-        //       $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
-        //       null
-        //    );
+            var request = await CreateAndStartJVRequest();
+            Users[role].FullDepartment = department;
 
-        //    if (shouldBeAllowed) result.Should().BeSuccessfull();
-        //    else result.Should().BeUnauthorized();
-        //}
+            using var userScope = fixture.UserScope(Users[role]);
+
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+               $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+               null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
 
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]

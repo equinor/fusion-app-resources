@@ -282,7 +282,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { state = (string?)null });
             resp.Should().BeSuccessfull();
-            resp.Value.state.Should().Be("approval");
+            resp.Value.state.Should().Be("proposal");
         }
 
         [Fact]

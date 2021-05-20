@@ -69,6 +69,7 @@ namespace Fusion.Resources.Logic.Workflows
             switch (current.Id)
             {
                 case CREATED:
+                case APPROVAL:
                     return Approved(user);
 
                 case PROVISIONING:
