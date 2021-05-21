@@ -1,4 +1,5 @@
 ﻿using Fusion.Integration;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
@@ -6,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Authorization.Handlers
 {
-    internal class ContractorInProjectHandler : AuthorizationHandler<ContractorInProjectRequirement, Controllers.ProjectIdentifier>
+    internal class ContractorInProjectHandler : AuthorizationHandler<ContractorInProjectRequirement, ProjectIdentifier>
     {
 
         public ContractorInProjectHandler()
         {
         }
 
-        protected override  Task HandleRequirementAsync(AuthorizationHandlerContext context, ContractorInProjectRequirement requirement, Controllers.ProjectIdentifier resource)
+        protected override  Task HandleRequirementAsync(AuthorizationHandlerContext context, ContractorInProjectRequirement requirement, ProjectIdentifier resource)
         {
 
             var contractProjectIds = context.User.Claims.Where(c => c.Type == FusionClaimsTypes.FusionContract && c.Properties.ContainsKey(FusionClaimsProperties.ProjectId))

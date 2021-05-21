@@ -2,6 +2,7 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
 using System;
 using System.Net.Http;

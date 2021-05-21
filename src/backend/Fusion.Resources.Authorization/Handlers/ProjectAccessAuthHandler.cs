@@ -1,11 +1,12 @@
 ﻿using Fusion.Integration;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Authorization.Handlers
 {
-    internal class ProjectAccessAuthHandler : AuthorizationHandler<ProjectAccess, Controllers.ProjectIdentifier>
+    public class ProjectAccessAuthHandler : AuthorizationHandler<ProjectAccess, ProjectIdentifier>
     {
         private readonly IFusionProfileResolver profileResolver;
 
@@ -14,7 +15,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             this.profileResolver = profileResolver;
         }
 
-        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ProjectAccess requirement, Controllers.ProjectIdentifier resource)
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ProjectAccess requirement, ProjectIdentifier resource)
         {
             switch (requirement.Type)
             {
@@ -24,7 +25,7 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             }
         }
 
-        private async Task VerifyManageContractsAsync(AuthorizationHandlerContext context, ProjectAccess requirement, Controllers.ProjectIdentifier resource)
+        private async Task VerifyManageContractsAsync(AuthorizationHandlerContext context, ProjectAccess requirement, ProjectIdentifier resource)
         {           
             // User must be employee
 

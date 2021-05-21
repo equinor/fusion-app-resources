@@ -35,7 +35,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/resources/requests")]
         [HttpPost("/projects/{projectIdentifier}/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequest(
-            [FromRoute] ProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequest request)
+            [FromRoute] PathProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequest request)
         {
             #region Authorization
 
@@ -191,7 +191,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
-            [FromRoute] ProjectIdentifier? projectIdentifier,
+            [FromRoute] PathProjectIdentifier? projectIdentifier,
             string? departmentString,
             Guid requestId,
             [FromBody] PatchInternalRequestRequest request)
@@ -303,7 +303,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/requests")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsForProject(
-            [FromRoute] ProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
+            [FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -433,7 +433,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/start")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -609,7 +609,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -957,7 +957,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> CheckApprovalAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -988,7 +988,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpOptions("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpOptions("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid requestId)
+        public async Task<ActionResult> CheckProjectAllocationRequestAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
             var allowedVerbs = new List<string>();
             var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -1082,7 +1082,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="requestType">The request type to create</param>
         /// <returns></returns>
         [HttpOptions("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/resources/requests")]
-        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] ProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery] string? requestType)
+        public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] PathProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery] string? requestType)
         {
 
             switch (requestType?.ToLower())
@@ -1196,7 +1196,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/resources/requests")]
         [HttpOptions("/departments/{departmentPath}/resources/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetResourceAllocationRequestsOptions(
-            [FromRoute] ProjectIdentifier projectIdentifier, [FromRoute] string? departmentPath)
+            [FromRoute] PathProjectIdentifier projectIdentifier, [FromRoute] string? departmentPath)
         {
             var allowedVerbs = new List<string>();
 

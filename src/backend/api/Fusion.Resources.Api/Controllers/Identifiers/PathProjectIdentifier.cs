@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Text.Json.Serialization;
+using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fusion.Resources.Api.Controllers
 {
     [ModelBinder(BinderType = typeof(ProjectResolver))]
-    public class ProjectIdentifier
+    public class PathProjectIdentifier
     {
-        public ProjectIdentifier(string originalIdentifier, Guid projectId, string name)
+        public PathProjectIdentifier(string originalIdentifier, Guid projectId, string name)
         {
             OriginalIdentifier = originalIdentifier;
             ProjectId = projectId;
@@ -28,7 +29,12 @@ namespace Fusion.Resources.Api.Controllers
         [JsonIgnore]
         public Guid? LocalEntityId { get; set; }
 
+        public static implicit operator ProjectIdentifier (PathProjectIdentifier apiModel)
+        {
+            return new ProjectIdentifier(apiModel.ProjectId, apiModel.Name)
+            {
+                LocalEntityId = apiModel.LocalEntityId,
+            };
+        }
     }
-
-
 }
