@@ -318,6 +318,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                    or.OrgChartReadAccess(projectIdentifier.ProjectId);
                 });
             });
 
@@ -401,6 +402,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeRequestCreator(requestId);
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(result.Project.OrgProjectId));
+                    or.OrgChartReadAccess(result.Project.OrgProjectId);
 
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
@@ -1124,6 +1126,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.BeRequestCreator(requestId);
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(item.Project.OrgProjectId));
+                    or.OrgChartReadAccess(item.Project.OrgProjectId);
 
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);

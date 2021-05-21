@@ -32,6 +32,14 @@ namespace Fusion.Resources.Api.Controllers
         {
             return builder.AddRule(OrgPositionAccessRequirement.OrgPositionRead(orgProjectId, orgPositionId));
         }
+        public static IAuthorizationRequirementRule OrgChartReadAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId)
+        {
+            return builder.AddRule(OrgProjectAccessRequirement.OrgRead(orgProjectId));
+        }
+        public static IAuthorizationRequirementRule OrgChartWriteAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId)
+        {
+            return builder.AddRule(OrgProjectAccessRequirement.OrgWrite(orgProjectId));
+        }
 
         /// <summary>
         /// Indicates that the user is in any way or form a resource owner
