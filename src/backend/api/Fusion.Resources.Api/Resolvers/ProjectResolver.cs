@@ -15,8 +15,8 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ProjectResolver : IModelBinder
     {
-        private static ConcurrentDictionary<string, ApiProjectIdentifier> resolvedDomains = new ConcurrentDictionary<string, ApiProjectIdentifier>();
-        private static ConcurrentDictionary<Guid, ApiProjectIdentifier> resolvedUniqueIds = new ConcurrentDictionary<Guid, ApiProjectIdentifier>();
+        private static ConcurrentDictionary<string, PathProjectIdentifier> resolvedDomains = new ConcurrentDictionary<string, PathProjectIdentifier>();
+        private static ConcurrentDictionary<Guid, PathProjectIdentifier> resolvedUniqueIds = new ConcurrentDictionary<Guid, PathProjectIdentifier>();
 
         public static void ClearCache()
         {
@@ -109,7 +109,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
                 var dbProject = await GetDbProjectAsync(bindingContext, orgChartId);
-                var identifier = new ApiProjectIdentifier(domain, orgChartId, orgChart.Title)
+                var identifier = new PathProjectIdentifier(domain, orgChartId, orgChart.Title)
                 {
                     LocalEntityId = dbProject?.Id
                 };
@@ -155,7 +155,7 @@ namespace Fusion.Resources.Api.Controllers
             var orgChartContext = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(orgChartId), FusionContextType.OrgChart);
 
             var dbProject = await GetDbProjectAsync(bindingContext, uniqueId);
-            var identifier = new ApiProjectIdentifier($"{uniqueId}", orgChartId, orgChartContext?.Title ?? string.Empty)
+            var identifier = new PathProjectIdentifier($"{uniqueId}", orgChartId, orgChartContext?.Title ?? string.Empty)
             {
                 LocalEntityId = dbProject?.Id
             };
@@ -164,7 +164,7 @@ namespace Fusion.Resources.Api.Controllers
             bindingContext.Result = ModelBindingResult.Success(identifier);
         }
 
-        private async Task<ApiProjectIdentifier?> TryResolveLocallyAsync(ModelBindingContext bindingContext, Guid uniqueId)
+        private async Task<PathProjectIdentifier?> TryResolveLocallyAsync(ModelBindingContext bindingContext, Guid uniqueId)
         {
 
             var dbProject = await GetDbProjectAsync(bindingContext, uniqueId);
@@ -172,7 +172,7 @@ namespace Fusion.Resources.Api.Controllers
             if (dbProject == null)
                 return null;
 
-            var identifier = new ApiProjectIdentifier($"{uniqueId}", dbProject.OrgProjectId, dbProject.Name)
+            var identifier = new PathProjectIdentifier($"{uniqueId}", dbProject.OrgProjectId, dbProject.Name)
             {
                 LocalEntityId = dbProject.Id
             };

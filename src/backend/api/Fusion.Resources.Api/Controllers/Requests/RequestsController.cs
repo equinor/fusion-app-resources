@@ -28,7 +28,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="query"></param>
         /// <returns></returns>
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnelRequest>>> GetContractRequests([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> GetContractRequestById([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -98,7 +98,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> CreatePersonnelRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPersonnelRequestRequest request)
         {
 
             #region Authorization
@@ -149,7 +149,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> UpdatePersonnelRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] ContractPersonnelRequestRequest request)
         {
             #region Authorization
 
@@ -185,7 +185,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> ApproveContractorPersonnelRequest([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> ApproveContractorPersonnelRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
 
@@ -225,7 +225,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/reject")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractorPersonnelRequest([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RejectRequestRequest request)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> RejectContractorPersonnelRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RejectRequestRequest request)
         {
             if (request == null)
                 return await FusionApiError.NoBodyFoundAsync(Request);
@@ -267,7 +267,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractorRequestById([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> DeleteContractorRequestById([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -296,7 +296,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/provision")]
-        public async Task<ActionResult<ApiContractPersonnelRequest>> ProvisionContractorRequest([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult<ApiContractPersonnelRequest>> ProvisionContractorRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -323,7 +323,7 @@ namespace Fusion.Resources.Api.Controllers
         #region Comments
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments")]
-        public async Task<ActionResult> AddRequestComment([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
+        public async Task<ActionResult> AddRequestComment([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, [FromBody] RequestCommentRequest create)
         {
             var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
 
@@ -355,7 +355,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
         public async Task<ActionResult> UpdateRequestComment(
-            [FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
+            [FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId, [FromBody] RequestCommentRequest update)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -390,7 +390,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/comments/{commentId}")]
-        public async Task<ActionResult> DeleteRequestComment([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId)
+        public async Task<ActionResult> DeleteRequestComment([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, Guid commentId)
         {
             var comment = await DispatchAsync(new GetRequestComment(commentId));
 
@@ -426,7 +426,7 @@ namespace Fusion.Resources.Api.Controllers
         #region Options
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests")]
-        public async Task<ActionResult> CheckAccessCreateRequests([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult> CheckAccessCreateRequests([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -450,7 +450,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}")]
-        public async Task<ActionResult> CheckAccessUpdateRequest([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
+        public async Task<ActionResult> CheckAccessUpdateRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -473,7 +473,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/requests/{requestId}/actions/{actionName}")]
-        public async Task<ActionResult> CheckAccessRequestAction([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, string actionName)
+        public async Task<ActionResult> CheckAccessRequestAction([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid requestId, string actionName)
         {
             var request = await DispatchAsync(new GetContractPersonnelRequest(requestId));
 

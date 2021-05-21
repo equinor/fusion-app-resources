@@ -14,7 +14,7 @@ namespace Fusion.Resources.Api.Controllers.Mpp
     public class MppController : ResourceControllerBase
     {
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/mpp/positions/{positionId}")]
-        public async Task<ActionResult> DeleteContractPosition([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid positionId)
+        public async Task<ActionResult> DeleteContractPosition([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid positionId)
         {
             #region Authorization
 
@@ -51,7 +51,7 @@ namespace Fusion.Resources.Api.Controllers.Mpp
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/mpp/positions")]
-        public async Task<ActionResult> CheckDeleteAccess([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier)
+        public async Task<ActionResult> CheckDeleteAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {

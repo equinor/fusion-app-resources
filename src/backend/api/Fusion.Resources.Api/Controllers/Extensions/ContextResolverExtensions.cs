@@ -5,7 +5,7 @@ namespace Fusion.Integration
 {
     public static class ContextResolverExtensions
     {
-        public static async Task<FusionContext> ResolveProjectMasterAsync(this IFusionContextResolver contextResolver, Resources.Api.Controllers.ApiProjectIdentifier identifier)
+        public static async Task<FusionContext> ResolveProjectMasterAsync(this IFusionContextResolver contextResolver, Resources.Api.Controllers.PathProjectIdentifier identifier)
         {
             var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(identifier.ProjectId), FusionContextType.OrgChart);
 
@@ -22,7 +22,7 @@ namespace Fusion.Integration
 
         public class ProjectMasterNotFoundError : Exception
         {
-            public ProjectMasterNotFoundError(Resources.Api.Controllers.ApiProjectIdentifier projectIdentifier) :
+            public ProjectMasterNotFoundError(Resources.Api.Controllers.PathProjectIdentifier projectIdentifier) :
                 base($"Unable to find project master for '{projectIdentifier.Name} ({projectIdentifier.OriginalIdentifier})'")
             {
             }

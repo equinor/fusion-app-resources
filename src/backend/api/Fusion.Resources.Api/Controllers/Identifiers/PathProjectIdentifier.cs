@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Fusion.Resources.Api.Controllers
 {
     [ModelBinder(BinderType = typeof(ProjectResolver))]
-    public class ApiProjectIdentifier
+    public class PathProjectIdentifier
     {
-        public ApiProjectIdentifier(string originalIdentifier, Guid projectId, string name)
+        public PathProjectIdentifier(string originalIdentifier, Guid projectId, string name)
         {
             OriginalIdentifier = originalIdentifier;
             ProjectId = projectId;
@@ -29,7 +29,7 @@ namespace Fusion.Resources.Api.Controllers
         [JsonIgnore]
         public Guid? LocalEntityId { get; set; }
 
-        public static implicit operator ProjectIdentifier (ApiProjectIdentifier apiModel)
+        public static implicit operator ProjectIdentifier (PathProjectIdentifier apiModel)
         {
             return new ProjectIdentifier(apiModel.ProjectId, apiModel.Name)
             {
