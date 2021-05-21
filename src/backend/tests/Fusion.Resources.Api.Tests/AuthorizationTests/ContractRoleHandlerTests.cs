@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Tests
         private readonly Guid projectId;
         private readonly Guid contractId;
         private readonly string projectName;
-        private readonly Controllers.ProjectIdentifier project;
+        private readonly Controllers.ApiProjectIdentifier project;
 
         public ContractRoleHandlerTests()
         {
@@ -28,7 +28,7 @@ namespace Fusion.Resources.Api.Tests
             projectId = Guid.NewGuid();
             contractId = Guid.NewGuid();
             projectName = $"Test project {projectId}";
-            project = new Controllers.ProjectIdentifier($"{projectId}", projectId, projectName);
+            project = new Controllers.ApiProjectIdentifier($"{projectId}", projectId, projectName);
         }
 
 

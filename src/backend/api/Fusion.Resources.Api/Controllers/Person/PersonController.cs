@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Controllers
 {

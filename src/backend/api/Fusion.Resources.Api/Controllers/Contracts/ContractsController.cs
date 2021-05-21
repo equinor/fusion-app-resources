@@ -36,7 +36,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts")]
-        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectAllocatedContract([FromRoute]ProjectIdentifier projectIdentifier)
+        public async Task<ActionResult<ApiCollection<ApiContract>>> GetProjectAllocatedContract([FromRoute]ApiProjectIdentifier projectIdentifier)
         {
             var delegatedAccess = await DispatchAsync(Domain.GetContractDelegatedRoles.ForProject(projectIdentifier.ProjectId));
             var limitedContractAccess = delegatedAccess.Select(r => r.Contract.OrgContractId).ToList();
@@ -96,7 +96,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractId}")]
-        public async Task<ActionResult<ApiContract>> GetProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractId)
+        public async Task<ActionResult<ApiContract>> GetProjectContract([FromRoute]ApiProjectIdentifier projectIdentifier, Guid contractId)
         {
             // Not sure if there is any restrictions on listing contracts for a project.
             #region Authorization
@@ -131,7 +131,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/projects/{projectIdentifier}/available-contracts")]
         public async Task<ActionResult<ApiCollection<ApiUnallocatedContract>>> GetProjectAvailableContracts(
-            [FromRoute]ProjectIdentifier projectIdentifier,
+            [FromRoute]ApiProjectIdentifier projectIdentifier,
             [FromServices] IHttpClientFactory httpClientFactory,
             [FromServices] IFusionContextResolver contextResolver)
         {
@@ -186,7 +186,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts")]
-        public async Task<ActionResult<ApiContract>> AllocateProjectContract([FromRoute]ProjectIdentifier projectIdentifier, [FromBody] ContractRequest request)
+        public async Task<ActionResult<ApiContract>> AllocateProjectContract([FromRoute]ApiProjectIdentifier projectIdentifier, [FromBody] ContractRequest request)
         {
             #region Authorization
 
@@ -233,7 +233,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}")]
-        public async Task<ActionResult<ApiContract>> UpdateProjectContract([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractRequest request)
+        public async Task<ActionResult<ApiContract>> UpdateProjectContract([FromRoute]ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractRequest request)
         {
             #region Authorization
 
@@ -281,7 +281,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-company-representative")]
-        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalCompanyRep([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
+        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalCompanyRep([FromRoute]ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
             #region Authorization
 
@@ -343,7 +343,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/external-contract-responsible")]
-        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalContractResp([FromRoute]ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
+        public async Task<ActionResult<ApiClients.Org.ApiPositionV2>> EnsureContractExternalContractResp([FromRoute]ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] ContractPositionRequest request)
         {
             #region Authorization
 
@@ -406,7 +406,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpGet("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
-        public async Task<ActionResult<List<ApiDelegatedRole>>> GetContractDelegatedRoles([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier)
+        public async Task<ActionResult<List<ApiDelegatedRole>>> GetContractDelegatedRoles([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier)
         {
             // Not sure if there is any restrictions on listing contracts for a project.
             #region Authorization
@@ -436,7 +436,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
-        public async Task<ActionResult<ApiDelegatedRole>> CreateContractDelegatedRole([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateDelegatedRoleRequest request)
+        public async Task<ActionResult<ApiDelegatedRole>> CreateContractDelegatedRole([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] CreateDelegatedRoleRequest request)
         {
 
             #region Authorization
@@ -499,7 +499,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}")]
-        public async Task<ActionResult> DeleteContractDelegatedRole([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid roleId)
+        public async Task<ActionResult> DeleteContractDelegatedRole([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid roleId)
         {
             var role = await DispatchAsync(new GetContractDelegatedRole(roleId));
 
@@ -561,7 +561,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPatch("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles/{roleId}")]
-        public async Task<ActionResult<ApiDelegatedRole>> UpdateContractDelegatedRole([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid roleId, [FromBody] PatchDelegatedRoleRequest request)
+        public async Task<ActionResult<ApiDelegatedRole>> UpdateContractDelegatedRole([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, Guid roleId, [FromBody] PatchDelegatedRoleRequest request)
         {
             var role = await DispatchAsync(new GetContractDelegatedRole(roleId));
 
@@ -611,7 +611,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/delegated-roles")]
-        public async Task<ActionResult> CheckContractDelegationAccess([FromRoute] ProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery] string classification)
+        public async Task<ActionResult> CheckContractDelegationAccess([FromRoute] ApiProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromQuery] string classification)
         {
             if (!Enum.TryParse(classification, true, out ApiDelegatedRoleClassification roleClassification))
             {
