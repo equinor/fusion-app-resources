@@ -173,7 +173,7 @@ namespace Fusion.Resources.Api.Controllers
             var items = JsonConvert.DeserializeAnonymousType(body, new[] { new { Name = string.Empty, ContractNumber = string.Empty, CompanyName = string.Empty } });
             var allocatedContracts = await DispatchAsync(GetProjectContracts.ByOrgProjectId(projectIdentifier.ProjectId));
 
-            var list = items
+            var list = items!
                 .Where(item => !allocatedContracts.Any(ac => ac.ContractNumber == item.ContractNumber))
                 .Select(item => new ApiUnallocatedContract
                 {
