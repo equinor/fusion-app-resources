@@ -4,6 +4,7 @@ using Fusion.Resources.Domain;
 using Fusion.Resources.Logic.Requests;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -39,7 +40,10 @@ namespace Fusion.Resources.Logic.Commands
             private readonly ResourcesDbContext dbContext;
             private readonly IHttpContextAccessor httpContextAccessor;
 
-            public CanApproveResourceOwnerStepHandler(ResourcesDbContext dbContext, IHttpContextAccessor httpContextAccessor)
+            public CanApproveResourceOwnerStepHandler(
+                ResourcesDbContext dbContext,
+                IAuthorizationService authService,
+                IHttpContextAccessor httpContextAccessor) : base(authService)
             {
                 this.dbContext = dbContext;
                 this.httpContextAccessor = httpContextAccessor;
@@ -58,7 +62,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 var row = AccessTable[notification.NextStepId!];
 
-                await EvaluateAccess(request, row, initiator);
+                await CheckAccess(request, row, initiator);
             }
         }
     }

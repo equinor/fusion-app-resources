@@ -3,6 +3,7 @@ using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Logic.Requests;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace Fusion.Resources.Logic.Commands
                 },
                 [(AllocationNormalWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)] = WorkflowAccess.Default,
 
-                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.APPROVAL)]= WorkflowAccess.Default with
+                [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.APPROVAL)] = WorkflowAccess.Default with
                 {
                     IsResourceOwnerAllowed = true,
                     IsParentResourceOwnerAllowed = true,
@@ -50,7 +51,10 @@ namespace Fusion.Resources.Logic.Commands
             private readonly ResourcesDbContext dbContext;
             private readonly IHttpContextAccessor httpContextAccessor;
 
-            public CanApproveStepHandler(ResourcesDbContext dbContext, IHttpContextAccessor httpContextAccessor)
+            public CanApproveStepHandler(
+                ResourcesDbContext dbContext,
+                IAuthorizationService authService,
+                IHttpContextAccessor httpContextAccessor) : base(authService)
             {
                 this.dbContext = dbContext;
                 this.httpContextAccessor = httpContextAccessor;
@@ -69,7 +73,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 var row = AccessTable[(request.SubType!.ToLower(), notification.NextStepId!)];
 
-                await EvaluateAccess(request, row, initiator);
+                await CheckAccess(request, row, initiator);
             }
         }
     }

@@ -50,6 +50,11 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
 
+            testProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", true)
+                .AddToMockService();
+
             var creator = fixture.AddProfile(FusionAccountType.Employee);
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.IsResourceOwner = true;
@@ -58,10 +63,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             resourceOwnerCreator.IsResourceOwner = true;
             resourceOwnerCreator.FullDepartment = TestDepartment;
 
-            testProject = new FusionTestProjectBuilder()
-                .WithPositions(200)
-                .WithProperty("pimsWriteSyncEnabled", true)
-                .AddToMockService();
+            var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
+            //var taskOwnerBasePosition = testProject.AddBasePosition($"TO: {Guid.NewGuid()}");
+            var taskOwnerPosition = testProject.AddPosition()
+                .WithAssignedPerson(taskOwner);
 
             fixture.ContextResolver
                .AddContext(testProject.Project);
@@ -70,13 +75,17 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             testPosition = testProject.AddPosition()
                 .WithBasePosition(bp)
                 .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
-                .WithEnsuredFutureInstances();
+                .WithEnsuredFutureInstances()
+                .WithTaskOwner(taskOwnerPosition.Id);
+
+            OrgServiceMock.SetTaskOwner(testPosition.Id, taskOwnerPosition.Id);
 
             Users = new Dictionary<string, ApiPersonProfileV3>()
             {
                 ["creator"] = creator,
                 ["resourceOwner"] = resourceOwner,
-                ["resourceOwnerCreator"] = resourceOwnerCreator
+                ["resourceOwnerCreator"] = resourceOwnerCreator,
+                ["taskOwner"] = taskOwner
             };
 
             testUser = fixture.AddProfile(FusionAccountType.Employee);
@@ -301,6 +310,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", false)]
+        [InlineData("taskOwner", TestDepartment, false)]
+
         public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -335,6 +346,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
+        [InlineData("taskOwner", TestDepartment, true)]
         public async Task CanAcceptNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -371,6 +383,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, false)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
+        [InlineData("taskOwner", TestDepartment, false)]
         public async Task CanAcceptJointVentureRequest(string role, string department, bool shouldBeAllowed)
         {
             using(var adminScope = fixture.AdminScope())
@@ -410,6 +423,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("resourceOwnerCreator", TestDepartment, true)]
+        [InlineData("taskOwner", TestDepartment, false)]
         public async Task CanStartChangeRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateChangeRequest(TestDepartment);
@@ -465,6 +479,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, false)]
+        [InlineData("taskOwner", TestDepartment, false)]
         public async Task CanAddPersonAbsence(string role, string department, bool shouldBeAllowed)
 
         {
