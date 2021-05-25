@@ -55,7 +55,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     await dbContext.SaveChangesAsync(cancellationToken);
 
-                    var notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep.PreviousStepId, currentStep.Id);
+                    var notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep?.PreviousStepId, currentStep?.Id);
                     await mediator.Publish(notification, cancellationToken);
                 }
             }

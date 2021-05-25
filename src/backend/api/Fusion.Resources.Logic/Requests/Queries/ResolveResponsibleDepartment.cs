@@ -31,16 +31,7 @@ namespace Fusion.Resources.Logic.Queries
             {
                 var dbRequest = await resourcesDb.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId, cancellationToken);
 
-                try
-                {
-                    return await new RequestRouter(resourcesDb).RouteAsync(dbRequest, cancellationToken);
-
-                }
-                catch (Exception ex)
-                {
-
-                    throw;
-                }
+                return await new RequestRouter(resourcesDb).RouteAsync(dbRequest, cancellationToken);
             }
         }
     }
