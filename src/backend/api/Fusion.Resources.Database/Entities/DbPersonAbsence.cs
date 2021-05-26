@@ -18,6 +18,9 @@ namespace Fusion.Resources.Database.Entities
         public DbAbsenceType Type { get; set; }
         public double? AbsencePercentage { get; set; }
 
+        public bool IsPrivate { get; set; }
+        public DbTaskDetails? TaskDetails { get; set; } = null!;
+
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbPersonAbsence>(entity =>
@@ -25,10 +28,17 @@ namespace Fusion.Resources.Database.Entities
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAbsenceType>());
                 entity.HasOne(e => e.Person).WithMany().OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
-
+                entity.OwnsOne(e => e.TaskDetails);
             });
-
         }
+    }
+
+    public class DbTaskDetails
+    {
+        public Guid? BasePositionId { get; set; }
+        public string? TaskName { get; set; }
+        public string RoleName { get; set; } = null!;
+        public string? Location { get; set; }
     }
 
     public enum DbAbsenceType
