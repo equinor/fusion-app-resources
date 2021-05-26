@@ -12,6 +12,7 @@ using Fusion.Resources.Domain;
 using Fusion.Testing.Authentication.User;
 using Xunit;
 using Xunit.Abstractions;
+using Fusion.Testing.Mocks.OrgService;
 #nullable enable
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -38,6 +39,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.Employee);
+            testUser.FullDepartment = "TPD PRD FE MMC EAM";
+            testUser.Department = "FE MMC EAM";
         }
 
         [Fact]
@@ -98,6 +101,81 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
         }
 
+        [Fact]
+        public async Task ShouldGetRoleNameFromBasePositionWhenEmpty()
+        {
+            const string BasePositionName = "Test position name";
+            var testProject = new FusionTestProjectBuilder();
+            var basePosition = testProject
+                .AddBasePosition(BasePositionName);
+            OrgServiceMock.AddProject(testProject);
+
+            var request = new CreatePersonAbsenceRequest
+            {
+                AppliesFrom = new DateTime(2021, 04, 30),
+                AppliesTo = new DateTime(2022, 04, 30),
+                Comment = "A comment",
+                Type = ApiPersonAbsence.ApiAbsenceType.OtherTasks,
+                AbsencePercentage = null,
+                IsPrivate = false,
+                TaskDetails = new ApiTaskDetails
+                {
+                    BasePositionId = basePosition.Id,
+                    TaskName = "task name",
+                    RoleName = null,
+                    Location = "location"
+                }
+            };
+
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", request);
+            response.Should().BeSuccessfull();
+
+            response.Value.TaskDetails?.RoleName.Should().Be("Base position name");
+        }
+
+        [Fact]
+        public async Task PrivateNotesShouldBeHiddenForOtherResourceOwners()
+        {
+            var siblingResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            siblingResourceOwner.FullDepartment = "TPD PRD FE MMC ABD";
+            siblingResourceOwner.Department = "FE MMC ABD";
+            siblingResourceOwner.IsResourceOwner = true;
+
+            var request = new CreatePersonAbsenceRequest
+            {
+                AppliesFrom = new DateTime(2021, 04, 30),
+                AppliesTo = new DateTime(2022, 04, 30),
+                Comment = "A comment",
+                Type = ApiPersonAbsence.ApiAbsenceType.OtherTasks,
+                AbsencePercentage = null,
+                IsPrivate = true,
+
+                TaskDetails = new ApiTaskDetails
+                {
+                    TaskName = "Top secret task name",
+                    RoleName = "Top secret role name",
+                    Location = "Top secret location"
+                }
+            };
+
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", request);
+            response.Should().BeSuccessfull();
+
+            using var userScope = fixture.UserScope(siblingResourceOwner);
+            response = await client.TestClientGetAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{response.Value.Id}");
+            response.Should().BeSuccessfull();
+
+            var taskDetails = response.Value.TaskDetails;
+            taskDetails.Should().NotBeNull();
+
+            taskDetails!.IsHidden.Should().Be(true);
+            taskDetails!.TaskName.Should().NotBe(request.TaskDetails.TaskName);
+            taskDetails!.RoleName.Should().NotBe(request.TaskDetails.RoleName);
+            taskDetails!.Location.Should().NotBe(request.TaskDetails.Location);
+        }
+
 
         public async Task InitializeAsync()
         {
@@ -136,5 +214,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType? Type { get; set; }
         public double? AbsencePercentage { get; set; }
+
+        public TestTaskDetails? TaskDetails { get; set; }
+    }
+    public class TestTaskDetails
+    {
+        public bool IsHidden { get; set; }
+        public string? RoleName { get; set; }
+        public string? TaskName { get; set; }
+        public string? Location { get; set; }
     }
 }

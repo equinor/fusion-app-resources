@@ -32,9 +32,8 @@ namespace Fusion.Resources.Domain
                 var items = await db.PersonAbsences.GetById(request.PersonId)
                     .Include(x => x.Person)
                     .Include(x => x.CreatedBy)
-                    .ToListAsync();
-
-
+                    .Include(x => x.TaskDetails)
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 var returnItems = items.Select(i => new QueryPersonAbsence(i))
                     .ToList();

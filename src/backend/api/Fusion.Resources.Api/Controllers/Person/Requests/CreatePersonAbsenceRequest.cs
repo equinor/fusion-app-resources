@@ -16,6 +16,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public double? AbsencePercentage { get; set; }
 
+        public bool IsPrivate { get; set; }
+        public ApiTaskDetails? TaskDetails { get; set; }
 
         public void LoadCommand(CreatePersonAbsence command)
         {
@@ -27,6 +29,11 @@ namespace Fusion.Resources.Api.Controllers
             command.AppliesTo = AppliesTo;
             command.Type = Enum.Parse<QueryAbsenceType>($"{Type}", true);
             command.AbsencePercentage = AbsencePercentage;
+            command.IsPrivate = IsPrivate;
+            command.BasePositionId = TaskDetails?.BasePositionId;
+            command.TaskName = TaskDetails?.TaskName;
+            command.RoleName = TaskDetails?.RoleName;
+            command.Location = TaskDetails?.Location;
         }
 
 
