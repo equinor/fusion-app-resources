@@ -64,6 +64,12 @@ namespace Fusion.Testing.Mocks.OrgService
             return this;
         }
 
+        public FusionTestProjectBuilder WithDomainId(string domainId)
+        {
+            project.DomainId = domainId;
+            return this;
+        }
+
         /// <summary>
         /// Add a random contract without any positions.
         /// </summary>
