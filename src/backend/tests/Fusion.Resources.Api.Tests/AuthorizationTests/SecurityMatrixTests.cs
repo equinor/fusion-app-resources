@@ -468,7 +468,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         public async Task CanGetPersonAbsence(string role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
@@ -490,7 +490,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         public async Task CanGetAllAbsenceForPerson(string role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
