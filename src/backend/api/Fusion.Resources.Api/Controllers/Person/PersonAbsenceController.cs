@@ -36,12 +36,12 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        or.BeResourceOwner(profile.FullDepartment, includeParents: false, includeDescendants: false);
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                 });
                 r.LimitedAccessWhen(x =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
             if (authResult.Unauthorized)
@@ -77,12 +77,12 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        or.BeResourceOwner(profile.FullDepartment, includeParents: false, includeDescendants: false);
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                 });
                 r.LimitedAccessWhen(x =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
             if (authResult.Unauthorized)
@@ -120,12 +120,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        or.BeResourceOwner(profile.FullDepartment, includeParents: false, includeDescendants: false);
-                });
-                r.LimitedAccessWhen(x =>
-                {
-                    if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -144,7 +139,7 @@ namespace Fusion.Resources.Api.Controllers
                     var newAbsence = await DispatchAsync(createCommand);
                     await scope.CommitAsync();
 
-                    var item = new ApiPersonAbsence(newAbsence, hidePrivateNotes: authResult.LimitedAuth);
+                    var item = new ApiPersonAbsence(newAbsence, hidePrivateNotes: false);
                     return Created($"/persons/{personId}/absence/{item.Id}", item);
                 }
             }
@@ -173,12 +168,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        or.BeResourceOwner(profile.FullDepartment, includeParents: false, includeDescendants: false);
-                });
-                r.LimitedAccessWhen(x =>
-                {
-                    if (!String.IsNullOrEmpty(profile.FullDepartment))
-                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -196,7 +186,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 await scope.CommitAsync();
 
-                var item = new ApiPersonAbsence(updatedAbsence, hidePrivateNotes: authResult.LimitedAuth);
+                var item = new ApiPersonAbsence(updatedAbsence, hidePrivateNotes: false);
                 return item;
             }
         }

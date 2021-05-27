@@ -11,19 +11,19 @@ namespace Fusion.Resources.Api.Controllers
             Id = absence.Id;
             Created = absence.Created;
             CreatedBy = new ApiPerson(absence.CreatedBy);
-            Comment = absence.Comment;
             AppliesFrom = absence.AppliesFrom;
             AppliesTo = absence.AppliesTo;
             Type = Enum.Parse<ApiAbsenceType>($"{absence.Type}", true);
             AbsencePercentage = absence.AbsencePercentage;
 
             IsPrivate = absence.IsPrivate;
+            Comment = absence.Comment;
+            TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
 
-            if (absence.TaskDetails != null)
+            if (hidePrivateNotes && absence.IsPrivate)
             {
-                TaskDetails = (hidePrivateNotes && absence.IsPrivate)
-                    ? ApiTaskDetails.Hidden
-                    : new ApiTaskDetails(absence.TaskDetails);
+                Comment = "Not disclosed.";
+                TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;
             }
         }
 

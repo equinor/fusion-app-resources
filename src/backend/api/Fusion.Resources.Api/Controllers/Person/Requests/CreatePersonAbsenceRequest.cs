@@ -51,6 +51,10 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.AppliesTo).GreaterThan(x => x.AppliesFrom)
                     .WithMessage(x => "To date cannot be earlier than from date");
 
+                RuleFor(x => x.TaskDetails)
+                    .Empty()
+                    .When(x => x.Type != ApiPersonAbsence.ApiAbsenceType.OtherTasks)
+                    .WithMessage("Cannot set task details when type is not 'other tasks'.");
             }
         }
 

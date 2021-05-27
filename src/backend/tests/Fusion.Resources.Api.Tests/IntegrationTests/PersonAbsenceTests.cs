@@ -138,8 +138,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task PrivateNotesShouldBeHiddenForOtherResourceOwners()
         {
             var siblingResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            siblingResourceOwner.FullDepartment = "TPD PRD FE MMC ABD";
-            siblingResourceOwner.Department = "FE MMC ABD";
+            siblingResourceOwner.FullDepartment = "TPD PRD TST QWE ABC";
+            siblingResourceOwner.Department = "TST QWE ABC";
             siblingResourceOwner.IsResourceOwner = true;
 
             var request = new CreatePersonAbsenceRequest
@@ -171,9 +171,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             taskDetails.Should().NotBeNull();
 
             taskDetails!.IsHidden.Should().Be(true);
+
+            response.Value.Comment.Should().NotBe(request.Comment);
             taskDetails!.TaskName.Should().NotBe(request.TaskDetails.TaskName);
             taskDetails!.RoleName.Should().NotBe(request.TaskDetails.RoleName);
             taskDetails!.Location.Should().NotBe(request.TaskDetails.Location);
+        }
+
+        [Theory]
+        [InlineData(ApiPersonAbsence.ApiAbsenceType.Absence)]
+        [InlineData(ApiPersonAbsence.ApiAbsenceType.Vacation)]
+        public async Task SettingTaskDetailsOnOtherTypesShouldFail(ApiPersonAbsence.ApiAbsenceType type)
+        {
+            var request = new CreatePersonAbsenceRequest
+            {
+                AppliesFrom = new DateTime(2021, 04, 30),
+                AppliesTo = new DateTime(2022, 04, 30),
+                Comment = "A comment",
+                Type = type,
+                AbsencePercentage = null,
+                IsPrivate = true,
+
+                TaskDetails = new ApiTaskDetails
+                {
+                    TaskName = "Top secret task name",
+                    RoleName = "Top secret role name",
+                    Location = "Top secret location"
+                }
+            };
+
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", request);
+            response.Should().BeBadRequest();
         }
 
 
