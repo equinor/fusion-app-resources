@@ -233,9 +233,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using var i = creatorInterceptor = OrgRequestMocker
                  .InterceptOption($"/{testPosition.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
-            
+
             var client = fixture.ApiFactory.CreateClient();
-            
+
             var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
                 $"/departments/{TestDepartment}/resources/requests",
                 new ApiCreateInternalRequestModel()
@@ -512,7 +512,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", TestDepartment, "GET,POST")]
         [InlineData("resourceOwner", SiblingDepartment, "GET,POST")]
         [InlineData("resourceOwner", ParentDepartment, "GET,POST")]
-        [InlineData("resourceOwner", SameL2Department, "!GET,!POST")]
+        [InlineData("resourceOwner", SameL2Department, "GET,!POST")]
         public async Task CanGetAbsenceOptionsForPerson(string role, string department, string allowed)
         {
             using var userScope = fixture.UserScope(Users[role]);
@@ -524,14 +524,14 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 $"/persons/{testUser.AzureUniqueId}/absence"
             );
 
-            CheckHeaders(allowed, result);
+            CheckAllowHeader(allowed, result);
         }
 
         [Theory]
         [InlineData("resourceOwner", TestDepartment, "GET,PUT,DELETE")]
         [InlineData("resourceOwner", SiblingDepartment, "GET,PUT,DELETE")]
         [InlineData("resourceOwner", ParentDepartment, "GET,PUT,DELETE")]
-        [InlineData("resourceOwner", SameL2Department, "!GET,!PUT,!DELETE")]
+        [InlineData("resourceOwner", SameL2Department, "GET,!PUT,!DELETE")]
         public async Task CanGetAbsenceOptions(string role, string department, string allowed)
         {
             var absence = await CreateAbsence();
@@ -545,7 +545,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}"
             );
 
-            CheckHeaders(allowed, result);
+            CheckAllowHeader(allowed, result);
         }
 
         [Theory]
@@ -567,10 +567,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
-            
+
         }
 
-         private static void CheckHeaders(string allowed, TestClientHttpResponse<dynamic> result)
+        private static void CheckAllowHeader(string allowed, TestClientHttpResponse<dynamic> result)
         {
             var expectedVerbs = allowed
                             .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

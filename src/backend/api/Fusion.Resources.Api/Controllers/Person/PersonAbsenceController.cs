@@ -234,6 +234,19 @@ namespace Fusion.Resources.Api.Controllers
             var profile = await DispatchAsync(new GetPersonProfile(id));
             if (profile is null)
                 return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+            
+            var getAuthResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                });
+            });
+            if (getAuthResult.Success) allowedVerbs.Add("GET");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -263,6 +276,19 @@ namespace Fusion.Resources.Api.Controllers
             if (profile is null)
                 return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
 
+            var getAuthResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                });
+            });
+            if (getAuthResult.Success) allowedVerbs.Add("GET");
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl();
@@ -275,7 +301,7 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
 
-            if (authResult.Success) allowedVerbs.Add("GET", "PUT", "DELETE");
+            if (authResult.Success) allowedVerbs.Add("PUT", "DELETE");
 
             Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
