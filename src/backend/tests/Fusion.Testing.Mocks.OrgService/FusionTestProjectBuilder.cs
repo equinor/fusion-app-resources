@@ -153,7 +153,13 @@ namespace Fusion.Testing.Mocks.OrgService
             };
 
             setup?.Invoke(bp);
+            OrgServiceMock.semaphore.Wait();
 
+            try
+            {
+                OrgServiceMock.basePositions.Add(bp.JsonClone());
+            }
+            finally { OrgServiceMock.semaphore.Release(); }
 
             return bp;
         }

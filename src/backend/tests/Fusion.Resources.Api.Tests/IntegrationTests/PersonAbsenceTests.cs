@@ -104,7 +104,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ShouldGetRoleNameFromBasePositionWhenEmpty()
         {
-            const string BasePositionName = "Test position name";
+            const string BasePositionName = "Base position name";
             var testProject = new FusionTestProjectBuilder();
             var basePosition = testProject
                 .AddBasePosition(BasePositionName);
@@ -131,7 +131,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await client.TestClientPutAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", request);
             response.Should().BeSuccessfull();
 
-            response.Value.TaskDetails?.RoleName.Should().Be("Base position name");
+            response.Value.TaskDetails?.RoleName.Should().Be(BasePositionName);
         }
 
         [Fact]
