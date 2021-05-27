@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -939,25 +940,16 @@ namespace Fusion.Resources.Api.Controllers
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var authResult = await Request.RequireAuthorizationAsync(r =>
+            try
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    or.BeRequestCreator(requestId);
+                var canApprove = DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+            }
+            catch (UnauthorizedWorkflowException)
+            {
+                return NoContent();
+            }
 
-                    if (result.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
-                });
-
-            });
-
-
-            if (authResult.Success)
-                Response.Headers.Add("Allow", "GET,POST");
-            else
-                Response.Headers.Add("Allow", "GET");
-
+            Response.Headers["Allow"] = "POST";
             return NoContent();
         }
 
@@ -1211,23 +1203,20 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult> GetWorkflowApprovalOptions(string departmentPath, Guid requestId)
         {
-            var allowedVerbs = new List<string>();
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result is null) return NotFound();
 
-            var authResult = await Request.RequireAuthorizationAsync(r =>
+            try
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
-                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
-                });
-            });
-            if (authResult.Success) allowedVerbs.Add("POST");
-
-            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
+                var canApprove = DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+            }
+            catch(UnauthorizedWorkflowException)
+            {
+                return NoContent();
+            }
+            
+            Response.Headers["Allow"] = "POST";
             return NoContent();
         }
 
