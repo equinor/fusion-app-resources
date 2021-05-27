@@ -46,7 +46,7 @@ namespace Fusion.Resources.Domain
             AppliesTo = absence.AppliesTo;
             Type = Enum.Parse<QueryAbsenceType>($"{absence.Type}", true);
             AbsencePercentage = absence.AbsencePercentage;
-            TaskDetails = new QueryTaskDetails(absence.TaskDetails);
+            TaskDetails = absence.TaskDetails != null ? new QueryTaskDetails(absence.TaskDetails) : null;
         }
         public QueryPersonAbsenceBasic(QueryPersonAbsence absence)
         {
@@ -68,7 +68,7 @@ namespace Fusion.Resources.Domain
         public QueryAbsenceType Type { get; set; }
         public double? AbsencePercentage { get; set; }
         public bool IsPrivate { get; }
-        public QueryTaskDetails TaskDetails { get; set; }
+        public QueryTaskDetails? TaskDetails { get; set; }
     }
 
     public class QueryTaskDetails
