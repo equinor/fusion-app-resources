@@ -81,7 +81,7 @@ namespace Fusion.Resources.Domain.Commands
                     {
                         BasePositionId = request.BasePositionId,
                         TaskName = request.TaskName,
-                        RoleName = roleName,
+                        RoleName = roleName!,
                         Location = request.Location
                     };
                 }
