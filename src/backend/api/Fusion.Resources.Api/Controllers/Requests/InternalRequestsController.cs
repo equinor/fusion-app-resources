@@ -939,6 +939,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+            
+            if (String.IsNullOrEmpty(result.State)) return NoContent();
 
             try
             {
@@ -1206,6 +1208,7 @@ namespace Fusion.Resources.Api.Controllers
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result is null) return NotFound();
+            if (String.IsNullOrEmpty(result.State)) return NoContent();
 
             try
             {
