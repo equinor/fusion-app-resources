@@ -15,8 +15,8 @@ namespace Fusion.Resources.Authorization.Requirements
         public Guid OrgPositionId { get; }
         public Guid OrgPositionInstanceId { get; }
 
-        public override string Description => throw new NotImplementedException();
+        public override string Description => "Current user is task owner for the position";
 
-        public override string Code => throw new NotImplementedException();
+        public override string Code => "TaskOwnerForPosition";
     }
 }

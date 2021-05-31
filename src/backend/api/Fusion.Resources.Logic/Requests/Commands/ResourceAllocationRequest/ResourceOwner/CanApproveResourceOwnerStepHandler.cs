@@ -58,7 +58,7 @@ namespace Fusion.Resources.Logic.Commands
                     .FirstAsync(r => r.Id == notification.RequestId, cancellationToken: cancellationToken);
 
                 var initiator = httpContextAccessor?.HttpContext?.User;
-                if (initiator is null) throw new UnauthorizedWorkflowException();
+                if (initiator is null) throw new UnauthorizedWorkflowException("Cannot determine initiator user id.");
 
                 var row = AccessTable[notification.NextStepId!];
 

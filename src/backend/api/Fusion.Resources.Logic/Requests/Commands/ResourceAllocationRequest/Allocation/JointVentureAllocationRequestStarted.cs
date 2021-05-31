@@ -15,13 +15,11 @@ namespace Fusion.Resources.Logic.Commands
         {
             public class JointVentureAllocationRequestStarted : INotificationHandler<AllocationRequestStarted>
             {
-                private readonly RequestRouter router;
                 private readonly ResourcesDbContext dbContext;
                 private readonly IMediator mediator;
 
                 public JointVentureAllocationRequestStarted(ResourcesDbContext dbContext, IMediator mediator)
                 {
-                    this.router = new RequestRouter(dbContext);
                     this.dbContext = dbContext;
                     this.mediator = mediator;
                 }
@@ -59,11 +57,9 @@ namespace Fusion.Resources.Logic.Commands
                             s.AddFailure("proposedPerson", "Must provide a person to be assigned the position"));
                 }
 
-                private async ValueTask<bool> AssignRequestToResourceOwnerAsync(DbResourceAllocationRequest request)
+                private ValueTask<bool> AssignRequestToResourceOwnerAsync(DbResourceAllocationRequest request)
                 {
-                    var department = await router.RouteAsync(request, CancellationToken.None);
-                    
-                    return !string.IsNullOrEmpty(request.AssignedDepartment ??= department);
+                    return new ValueTask<bool>(false);
                 }
             }
         }
