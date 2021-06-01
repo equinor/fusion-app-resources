@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Logic.Requests;
@@ -22,7 +23,7 @@ namespace Fusion.Resources.Logic.Commands
         {
             private static readonly Dictionary<string, WorkflowAccess> AccessTable = new Dictionary<string, WorkflowAccess>
             {
-                [ResourceOwnerChangeWorkflowV1.CREATED] = WorkflowAccess.Default with 
+                [ResourceOwnerChangeWorkflowV1.CREATED] = WorkflowAccess.Default with
                 {
                     IsResourceOwnerAllowed = true,
                     IsParentResourceOwnerAllowed = true,
@@ -38,15 +39,12 @@ namespace Fusion.Resources.Logic.Commands
                 [WorkflowDefinition.PROVISIONING] = WorkflowAccess.Default,
             };
             private readonly ResourcesDbContext dbContext;
-            private readonly IHttpContextAccessor httpContextAccessor;
 
             public CanApproveResourceOwnerStepHandler(
                 ResourcesDbContext dbContext,
-                IAuthorizationService authService,
-                IHttpContextAccessor httpContextAccessor) : base(authService)
+                IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
             {
                 this.dbContext = dbContext;
-                this.httpContextAccessor = httpContextAccessor;
             }
 
             public async Task Handle(CanApproveStep notification, CancellationToken cancellationToken)
@@ -57,12 +55,9 @@ namespace Fusion.Resources.Logic.Commands
                     .Include(p => p.Project)
                     .FirstAsync(r => r.Id == notification.RequestId, cancellationToken: cancellationToken);
 
-                var initiator = httpContextAccessor?.HttpContext?.User;
-                if (initiator is null) throw new UnauthorizedWorkflowException("Cannot determine initiator user id.");
-
                 var row = AccessTable[notification.NextStepId!];
 
-                await CheckAccess(request, row, initiator);
+                await CheckAccess(request, row);
             }
         }
     }

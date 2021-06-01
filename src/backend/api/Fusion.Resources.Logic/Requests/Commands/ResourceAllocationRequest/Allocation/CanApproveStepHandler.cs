@@ -49,15 +49,12 @@ namespace Fusion.Resources.Logic.Commands
                     = WorkflowAccess.Default,
             };
             private readonly ResourcesDbContext dbContext;
-            private readonly IHttpContextAccessor httpContextAccessor;
 
             public CanApproveStepHandler(
                 ResourcesDbContext dbContext,
-                IAuthorizationService authService,
-                IHttpContextAccessor httpContextAccessor) : base(authService)
+                IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
             {
                 this.dbContext = dbContext;
-                this.httpContextAccessor = httpContextAccessor;
             }
 
             public async Task Handle(CanApproveStep notification, CancellationToken cancellationToken)
@@ -68,12 +65,9 @@ namespace Fusion.Resources.Logic.Commands
                     .Include(p => p.Project)
                     .FirstAsync(r => r.Id == notification.RequestId, cancellationToken: cancellationToken);
 
-                var initiator = httpContextAccessor?.HttpContext?.User;
-                if (initiator is null) throw new UnauthorizedWorkflowException("Cannot determine initiator user id.");
-
                 var row = AccessTable[(request.SubType!.ToLower(), notification.CurrentStepId!)];
 
-                await CheckAccess(request, row, initiator);
+                await CheckAccess(request, row);
             }
         }
     }
