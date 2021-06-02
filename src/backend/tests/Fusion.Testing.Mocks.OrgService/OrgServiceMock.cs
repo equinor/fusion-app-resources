@@ -33,7 +33,6 @@ namespace Fusion.Testing.Mocks.OrgService
         internal static Dictionary<Guid, List<ApiClients.Org.ApiProjectContractV2>> contracts = new Dictionary<Guid, List<ApiClients.Org.ApiProjectContractV2>>();
         internal static List<ApiClients.Org.ApiPositionV2> contractPositions = new List<ApiClients.Org.ApiPositionV2>();
         internal static List<ApiCompanyV2> companies = new List<ApiCompanyV2>();
-        internal static List<ApiBasePositionV2> basePositions = new List<ApiBasePositionV2>();
 
         internal static ConcurrentDictionary<Guid, Guid> taskOwnerMapping = new ConcurrentDictionary<Guid, Guid>();
 

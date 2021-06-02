@@ -157,7 +157,7 @@ namespace Fusion.Testing.Mocks.OrgService
 
             try
             {
-                OrgServiceMock.basePositions.Add(bp.JsonClone());
+                PositionBuilder.AllBasePositions.Add(bp.JsonClone());
             }
             finally { OrgServiceMock.semaphore.Release(); }
 

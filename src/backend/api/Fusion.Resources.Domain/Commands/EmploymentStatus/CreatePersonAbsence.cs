@@ -1,4 +1,5 @@
 ﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
@@ -33,13 +34,13 @@ namespace Fusion.Resources.Domain.Commands
         {
             private readonly ResourcesDbContext resourcesDb;
             private readonly IProfileService profileService;
-            private readonly IOrgApiClient orgApiClient;
+            private readonly IProjectOrgResolver orgResolver;
 
-            public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IOrgApiClientFactory orgApiClientFactory)
+            public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IProjectOrgResolver orgResolver)
             {
                 this.resourcesDb = resourcesDb;
                 this.profileService = profileService;
-                this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                this.orgResolver = orgResolver;
             }
 
             public async Task<QueryPersonAbsence> Handle(CreatePersonAbsence request, CancellationToken cancellationToken)
@@ -62,18 +63,18 @@ namespace Fusion.Resources.Domain.Commands
                     IsPrivate = request.IsPrivate
                 };
 
-                if(request.Type == QueryAbsenceType.OtherTasks)
+                if (request.Type == QueryAbsenceType.OtherTasks)
                 {
                     var roleName = request.RoleName;
                     if (request.BasePositionId.HasValue && String.IsNullOrEmpty(request.RoleName))
                     {
-                        var basePosition = await orgApiClient.GetAsync<ApiBasePositionV2>($"/positions/basepositions/{request.BasePositionId}");
-                        if(!basePosition.IsSuccessStatusCode)
+                        var basePosition = await orgResolver.ResolveBasePositionAsync(request.BasePositionId.Value);
+                        if (basePosition is null)
                         {
-                            throw new IntegrationError("Unable to retrieve baseposition", new OrgApiError(basePosition.Response, basePosition.Content));
+                            throw new IntegrationError("Unable to retrieve baseposition", new NullReferenceException("basePosition is null"));
                         }
 
-                        roleName = basePosition.Value.Name;
+                        roleName = basePosition.Name;
                     }
 
                     newItem.TaskDetails = new DbTaskDetails
@@ -90,7 +91,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 return new QueryPersonAbsence(newItem);
             }
-            
+
         }
     }
 }

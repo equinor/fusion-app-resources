@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database.Entities;
 using Fusion.ApiClients.Org;
+using Fusion.Integration.Org;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -35,13 +36,13 @@ namespace Fusion.Resources.Domain.Commands
         {
             private readonly ResourcesDbContext resourcesDb;
             private readonly IMediator mediator;
-            private readonly IOrgApiClient orgApiClient;
+            private readonly IProjectOrgResolver orgResolver;
 
-            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IOrgApiClientFactory orgApiClientFactory)
+            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProjectOrgResolver orgResolver)
             {
                 this.resourcesDb = resourcesDb;
                 this.mediator = mediator;
-                this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);
+                this.orgResolver = orgResolver;
             }
 
             public async Task<QueryPersonAbsence> Handle(UpdatePersonAbsence request, CancellationToken cancellationToken)
@@ -63,18 +64,18 @@ namespace Fusion.Resources.Domain.Commands
                 absence.AbsencePercentage = request.AbsencePercentage;
                 absence.IsPrivate = request.IsPrivate;
 
-                if(absence.Type == DbAbsenceType.OtherTasks)
+                if (absence.Type == DbAbsenceType.OtherTasks)
                 {
                     var roleName = request.RoleName;
                     if (request.BasePositionId.HasValue && String.IsNullOrEmpty(request.RoleName))
                     {
-                        var basePosition = await orgApiClient.GetAsync<ApiBasePositionV2>($"/positions/basepositions/{request.BasePositionId}");
-                        if (!basePosition.IsSuccessStatusCode)
+                        var basePosition = await orgResolver.ResolveBasePositionAsync(request.BasePositionId.Value);
+                        if (basePosition is null)
                         {
-                            throw new IntegrationError("Unable to retrieve baseposition", new OrgApiError(basePosition.Response, basePosition.Content));
+                            throw new IntegrationError("Unable to retrieve baseposition", new NullReferenceException("basePosition is null"));
                         }
 
-                        roleName = basePosition.Value.Name;
+                        roleName = basePosition.Name;
                     }
 
                     absence.TaskDetails = new DbTaskDetails
