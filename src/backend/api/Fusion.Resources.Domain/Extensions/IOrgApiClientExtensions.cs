@@ -244,8 +244,8 @@ namespace Fusion.Resources
 
     public class ApiReportsTo
     {
-        public Guid[] Path { get; set; }
-        public ApiPositionV2[] ReportPositions { get; set; }
+        public Guid[]? Path { get; set; }
+        public ApiPositionV2[]? ReportPositions { get; set; }
     }
 
     public class DraftPublishingError : Exception

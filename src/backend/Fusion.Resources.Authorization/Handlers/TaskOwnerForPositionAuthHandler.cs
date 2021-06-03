@@ -18,22 +18,21 @@ namespace Fusion.Resources.Authorization.Handlers
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, TaskOwnerForPositionRequirement requirement)
         {
             var reportingPath = await orgClient.GetReportingPath(requirement.OrgProjectId, requirement.OrgPositionId, requirement.OrgPositionInstanceId);
-            var userId = context.User.GetAzureUniqueIdOrThrow();
+            var userId = context.User.GetAzureUniqueId();
+
+            if (userId is null) return;
+
             var activeTaskManagers = reportingPath
                 .Where(x => x.IsTaskOwner)
                 .SelectMany(x => x.Instances)
-                .Where(x => x.AppliesFrom <= DateTime.UtcNow && DateTime.UtcNow <= x.AppliesTo)
+                .Where(x => x.AppliesFrom.Date <= DateTime.UtcNow.Date && DateTime.UtcNow.Date <= x.AppliesTo.Date)
+                .Where(x => x.AssignedPerson != null)
                 .Select(x => x.AssignedPerson);
 
-            foreach (var person in activeTaskManagers)
+            if (activeTaskManagers.Any(x => x.AzureUniqueId == userId))
             {
-                if(person.AzureUniqueId == userId)
-                {
-                    context.Succeed(requirement);
-                    return;
-                }
+                context.Succeed(requirement);
             }
-             
         }
     }
 }
