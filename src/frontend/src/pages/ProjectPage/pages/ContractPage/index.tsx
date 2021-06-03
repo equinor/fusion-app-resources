@@ -1,9 +1,7 @@
-
 import { RouteComponentProps, Route } from 'react-router-dom';
 import ContractContext from '../../../../contractContex';
 import {
     NavigationDrawer,
-    ErrorMessage,
     IconButton,
     CloseIcon,
     SkeletonBar,
@@ -23,6 +21,7 @@ import useCollectionReducer from '../../../../hooks/useCollectionReducer';
 import ProvisioningRequestsPage from './pages/ProvisioningRequestsPage';
 import ResourceErrorMessage from '../../../../components/ResourceErrorMessage';
 import { FC, useMemo, useCallback } from 'react';
+import ManagePersonnelMailsPage from './pages/ManagePersonnelMailsPage';
 
 type ContractPageMatch = {
     contractId: string;
@@ -105,7 +104,13 @@ const ContractPage: FC<ContractPageProps> = ({ match }) => {
                     <div className={styles.details}>
                         <ScopedSwitch>
                             <Route path="/" exact component={ContractDetailsPage} />
+                            <Route
+                                path="/manage-personnel-mails"
+                                exact
+                                component={ManagePersonnelMailsPage}
+                            />
                             <Route path="/manage-personnel" component={ManagePersonellPage} />
+
                             <Route path="/actual-mpp" component={ActualMppPage} />
                             <Route path="/active-requests" component={ActiveRequestsPage} />
                             <Route

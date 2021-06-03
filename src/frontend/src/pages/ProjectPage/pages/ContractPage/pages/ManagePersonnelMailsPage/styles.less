@@ -1,0 +1,26 @@
+.container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  
+    .managePersonnel{
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      width: 1px;
+      padding: calc(var(--grid-unit) * 3px);
+  
+      .toolbar {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: calc(var(--grid-unit) *2px);
+      }
+  
+      .table {
+        flex-grow: 1;
+      }
+  
+    }
+  }
+  

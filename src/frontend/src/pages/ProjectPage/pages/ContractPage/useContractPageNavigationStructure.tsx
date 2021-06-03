@@ -1,8 +1,7 @@
-
 import { NavigationStructure, Chip } from '@equinor/fusion-components';
 import { useHistory, combineUrls } from '@equinor/fusion';
 import { History } from 'history';
-import { useContractContext, IContractContext } from '../../../../contractContex';
+import { IContractContext } from '../../../../contractContex';
 import { ReactNode, useMemo, useState, useEffect } from 'react';
 
 type NavStructureType = 'grouping' | 'section' | 'child';
@@ -72,14 +71,29 @@ const getNavigationStructure = (
 ): NavigationStructure[] => {
     return [
         createNavItem(history, contractId, 'General', '', 'grouping', <GeneralIcon />),
-        createNavItem(
-            history,
-            contractId,
-            'Manage personnel',
-            'manage-personnel',
-            'grouping',
-            <ManagePersonnelIcon />
-        ),
+
+        {
+            id: 'manage-personnel',
+            title: 'Manage personnel',
+            type: 'grouping',
+            icon: <ManagePersonnelIcon />,
+            onClick: () =>
+                history.push(createContractPath(history, contractId, 'manage-personnel')),
+            isOpen: true,
+            isActive:
+                history.location.pathname ===
+                createContractPath(history, contractId, 'manage-personnel'),
+            navigationChildren: [
+                createNavItem(
+                    history,
+                    contractId,
+                    'Manage personnel mails',
+                    'manage-personnel-mails',
+                    'child'
+                ),
+            ],
+        },
+
         {
             id: 'manage-mpp',
             title: 'Manage MPP',
@@ -90,8 +104,22 @@ const getNavigationStructure = (
             navigationChildren: [
                 createNavItem(history, contractId, 'Actual MPP', 'actual-mpp', 'child'),
                 createNavItem(history, contractId, 'Active requests', 'active-requests', 'child'),
-                createNavItem(history, contractId, 'Provisioning requests', 'provisioning-requests', 'child', undefined, provisioningComponent),
-                createNavItem(history, contractId, 'Completed requests', 'completed-requests', 'child'),
+                createNavItem(
+                    history,
+                    contractId,
+                    'Provisioning requests',
+                    'provisioning-requests',
+                    'child',
+                    undefined,
+                    provisioningComponent
+                ),
+                createNavItem(
+                    history,
+                    contractId,
+                    'Completed requests',
+                    'completed-requests',
+                    'child'
+                ),
             ],
         },
     ];
@@ -102,10 +130,10 @@ const useNavigationStructure = (contractId: string, contractContext: IContractCo
 
     const provisioningRequests = contractContext.contractState.completedRequests.data;
     const provisioning = provisioningRequests.filter(
-        r => r.provisioningStatus?.state === 'NotProvisioned' && r.state === 'ApprovedByCompany'
+        (r) => r.provisioningStatus?.state === 'NotProvisioned' && r.state === 'ApprovedByCompany'
     ).length;
     const failedProvisioning = provisioningRequests.filter(
-        r => r.provisioningStatus?.state === 'Error' && r.state === 'ApprovedByCompany'
+        (r) => r.provisioningStatus?.state === 'Error' && r.state === 'ApprovedByCompany'
     ).length;
     const provisioningComponent = useMemo(() => {
         if (provisioning <= 0 && failedProvisioning <= 0) {
