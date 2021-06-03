@@ -262,7 +262,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success) allowedVerbs.Add("GET", "POST");
 
-            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs.Distinct());
             return NoContent();
         }
 
@@ -303,7 +303,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success) allowedVerbs.Add("PUT", "DELETE");
 
-            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs.Distinct());
             return NoContent();
         }
     }
