@@ -19,7 +19,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         [HttpGet("/positions/basepositions/{basepositionId}")]
         public ActionResult<ApiBasePositionV2> GetBaseposition(Guid basepositionId)
         {
-            var bp = OrgServiceMock.basePositions.FirstOrDefault(bp => bp.Id == basepositionId);
+            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => bp.Id == basepositionId);
             if (bp is null) return NotFound();
 
             return Ok(bp);
