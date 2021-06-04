@@ -140,6 +140,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Name.Should().Be("TPD LIN ORG TST");
         }
 
         [Fact]
@@ -167,9 +168,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Should().Contain(x => x.Name == "TPD LIN ORG TST");
         }
 
         [Fact]
