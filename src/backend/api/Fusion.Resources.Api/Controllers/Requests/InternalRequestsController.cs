@@ -284,6 +284,9 @@ namespace Fusion.Resources.Api.Controllers
 
                     // Can start with PRD, should maybe instead trim results when competence center starts.
                     or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
                 });
             });
 
@@ -361,6 +364,9 @@ namespace Fusion.Resources.Api.Controllers
                     // Start with allowing PRD resource owners access. 
                     // We must eventually allow all resource owners, but trim the list based which is relevant for the business unit.
                     or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
                 });
             });
 
