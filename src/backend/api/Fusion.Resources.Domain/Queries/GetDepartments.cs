@@ -127,7 +127,7 @@ namespace Fusion.Resources.Domain
 
                     foreach (var resourceOwner in resourceOwners)
                     {
-                        if (!searchedDepartments.Contains(resourceOwner.DepartmentId)) continue;
+                        if (request.departmentIds is not null && !searchedDepartments.Contains(resourceOwner.DepartmentId)) continue;
                         // Department found in line org but is not tracked in db
                         if (!departments.ContainsKey(resourceOwner.DepartmentId))
                         {
