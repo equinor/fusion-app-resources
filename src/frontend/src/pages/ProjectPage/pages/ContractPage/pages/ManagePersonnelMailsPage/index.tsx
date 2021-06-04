@@ -1,5 +1,5 @@
 import { useCurrentContext } from '@equinor/fusion';
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { useAppContext } from '../../../../../../appContext';
 import { useContractContext } from '../../../../../../contractContex';
 import Personnel from '../../../../../../models/Personnel';
@@ -7,6 +7,7 @@ import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 import * as styles from './styles.less';
 import PersonnelMailsTable from './PersonnelMailsTable';
+import ToolbarFilter from './ToolbarFilter';
 
 const ManagePersonnelMailsPage: FC = () => {
     const currentContext = useCurrentContext();
@@ -37,11 +38,21 @@ const ManagePersonnelMailsPage: FC = () => {
         fetchPersonnelAsync,
         'set'
     );
+
+    useEffect(() => {
+        setFilteredPersonnel(personnel);
+    }, [personnel]);
+
     return (
         <div className={styles.container}>
             <ResourceErrorMessage error={error}>
+                <ToolbarFilter
+                    personnel={personnel}
+                    setFilteredPersonnel={setFilteredPersonnel}
+                    filteredPersonnel={filteredPersonnel}
+                />
                 <div className={styles.managePersonnel}>
-                    <PersonnelMailsTable isFetching={isFetching} personnel={personnel} />
+                    <PersonnelMailsTable isFetching={isFetching} personnel={filteredPersonnel} />
                 </div>
             </ResourceErrorMessage>
         </div>

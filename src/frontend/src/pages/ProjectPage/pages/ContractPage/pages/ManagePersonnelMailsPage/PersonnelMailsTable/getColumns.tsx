@@ -34,8 +34,7 @@ const getColumns = (isFetching: boolean): FusionColumn<Personnel>[] => {
         {
             Header: 'Preferred mail',
             accessor: 'lastName',
-
-            Cell: ({ row }) => <PreferredMail />,
+            Cell: ({ row }) => <PreferredMail item={row.original} />,
         },
     ];
 };

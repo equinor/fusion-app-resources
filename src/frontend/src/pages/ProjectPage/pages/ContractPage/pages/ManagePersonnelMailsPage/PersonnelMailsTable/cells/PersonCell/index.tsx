@@ -9,7 +9,9 @@ type PersonCellProps = {
 const PersonCell: FC<PersonCellProps> = ({ item }) => {
     return (
         <div className={styles.container}>
-            <PersonPhoto size="small" personId={item.azureUniquePersonId} hideTooltip/>
+            {item.azureUniquePersonId ? (
+                <PersonPhoto size="small" personId={item.azureUniquePersonId} hideTooltip />
+            ) : null}
             <span className={styles.name}>{item.name}</span>
         </div>
     );

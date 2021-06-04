@@ -104,6 +104,7 @@ type Personnel = {
     updated?: Date | null;
     positions?: Position[] | null;
     requests?: Request[] | null;
+    preferredContactMail?: string | null;
 };
 
 export default Personnel;
