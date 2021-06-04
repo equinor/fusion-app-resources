@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentValidation;
+﻿using FluentValidation;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Integration;
 using Fusion.Integration.Org;
-using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Fusion.Resources.Logic;
+using Fusion.Resources.Logic.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -622,31 +623,18 @@ namespace Fusion.Resources.Api.Controllers
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    if (result.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
-                });
-
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion
-
-
             await using var scope = await BeginTransactionAsync();
 
-            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
-
-            await scope.CommitAsync();
-
+            try
+            {
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await scope.CommitAsync();
+            }
+            catch (UnauthorizedWorkflowException ex)
+            {
+                await scope.RollbackAsync();
+                return FusionApiError.Forbidden(ex.Message);
+            }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             return new ApiResourceAllocationRequest(result!);
@@ -663,30 +651,18 @@ namespace Fusion.Resources.Api.Controllers
             //if (result.AssignedDepartment != departmentPath)
             //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
 
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
-                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
-                });
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion
-
-
             await using var scope = await BeginTransactionAsync();
 
-            await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
-
-            await scope.CommitAsync();
-
+            try
+            {
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await scope.CommitAsync();
+            }
+            catch (UnauthorizedWorkflowException ex)
+            {
+                await scope.RollbackAsync();
+                return FusionApiError.Forbidden(ex.Message);
+            }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             return new ApiResourceAllocationRequest(result!);
@@ -969,26 +945,19 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+            
+            if (String.IsNullOrEmpty(result.State)) return NoContent();
 
-            var authResult = await Request.RequireAuthorizationAsync(r =>
+            try
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    or.BeRequestCreator(requestId);
+                var canApprove = DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+            }
+            catch (UnauthorizedWorkflowException)
+            {
+                return NoContent();
+            }
 
-                    if (result.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
-                });
-
-            });
-
-
-            if (authResult.Success)
-                Response.Headers.Add("Allow", "GET,POST");
-            else
-                Response.Headers.Add("Allow", "GET");
-
+            Response.Headers["Allow"] = "POST";
             return NoContent();
         }
 
@@ -1242,23 +1211,21 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult> GetWorkflowApprovalOptions(string departmentPath, Guid requestId)
         {
-            var allowedVerbs = new List<string>();
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result is null) return NotFound();
+            if (String.IsNullOrEmpty(result.State)) return NoContent();
 
-            var authResult = await Request.RequireAuthorizationAsync(r =>
+            try
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
-                {
-                    if (!String.IsNullOrEmpty(result.AssignedDepartment))
-                        or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).Parent(), false, true);
-                });
-            });
-            if (authResult.Success) allowedVerbs.Add("POST");
-
-            Response.Headers["Allow"] = string.Join(',', allowedVerbs);
+                var canApprove = DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+            }
+            catch(UnauthorizedWorkflowException)
+            {
+                return NoContent();
+            }
+            
+            Response.Headers["Allow"] = "POST";
             return NoContent();
         }
 

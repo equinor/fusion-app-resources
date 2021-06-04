@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Api.Authorization.Handlers;
+using Fusion.Resources.Authorization.Handlers;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -16,6 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAuthorizationHandler, OrgPositionAccessHandler>();
             services.AddScoped<IAuthorizationHandler, OrgProjectAccessHandler>();
             services.AddScoped<IAuthorizationHandler, RequestCreatorHandler>();
+            services.AddScoped<IAuthorizationHandler, TaskOwnerForPositionAuthHandler>();
 
             return services;
         }

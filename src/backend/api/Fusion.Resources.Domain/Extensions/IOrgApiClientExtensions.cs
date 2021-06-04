@@ -6,6 +6,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Commands;
+using System.Linq;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Fusion.Resources
 {
@@ -21,6 +24,7 @@ namespace Fusion.Resources
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             var response = await client.SendAsync(request);
+
             return await RequestResponse<TResponse>.FromResponseAsync(response);
         }
 
@@ -68,6 +72,16 @@ namespace Fusion.Resources
             var url = $"projects/{projectId}/positions/{positionId}/instances/{instanceId}/task-owner?api-version=2.0";
 
             return await GetAsync<ApiTaskOwnerV2?>(client, url);
+        }
+
+        public static async Task<List<ApiPositionV2>> GetReportingPath(this IOrgApiClient client, Guid projectId, Guid positionId, Guid instanceId)
+        {
+            var url = $"/projects/{projectId}/positions/{positionId}/instances/{instanceId}/reports-to";
+            var reportsTo = await GetAsync<ApiReportsTo>(client, url);
+
+            return reportsTo.Value.ReportPositions
+                .OrderBy(pos => Array.IndexOf(reportsTo.Value.Path, pos.Id))
+                .ToList();
         }
 
         /// <summary>
@@ -228,10 +242,16 @@ namespace Fusion.Resources
         public ApiPersonV2[]? Persons { get; set; }
     }
 
+    public class ApiReportsTo
+    {
+        public Guid[]? Path { get; set; }
+        public ApiPositionV2[]? ReportPositions { get; set; }
+    }
+
     public class DraftPublishingError : Exception
     {
         public ApiDraftV2 OrgChartDraft { get; set; }
-        public DraftPublishingError(ApiDraftV2 draft) 
+        public DraftPublishingError(ApiDraftV2 draft)
             : base($"Publishing of draft resulted in error: {draft.Error?.Message}")
         {
             OrgChartDraft = draft;

@@ -12,6 +12,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
     <PackageReference Include="Fusion.Integration.Abstractions" Version="5.2.1" />
     <PackageReference Include="Fusion.Integration.Authorization" Version="5.1.2" />
   </ItemGroup>
