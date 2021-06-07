@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
+using System.Diagnostics;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -50,7 +51,6 @@ namespace Fusion.Resources.Api.Controllers
                             return true;
 
                         var departments = await mediator.Send(new GetDepartments().ById(d.Value), cancellationToken);
-
                         return departments.Any();
                     })
                     .WithMessage("Invalid department specified")
@@ -67,14 +67,14 @@ namespace Fusion.Resources.Api.Controllers
                             var isInvalid = false;
                             foreach (var key in x.Value.Keys)
                             {
-                                
+
                                 if (!allowedProperties.Any(p => string.Equals(p.Name, key, StringComparison.OrdinalIgnoreCase)))
                                 {
                                     context.AddFailure($"Key '{key}' is not valid");
                                     isInvalid = true;
                                 }
                             }
-                            
+
                             if (isInvalid)
                             {
                                 context.AddFailure($"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.Name.ToLowerFirstChar()))}");

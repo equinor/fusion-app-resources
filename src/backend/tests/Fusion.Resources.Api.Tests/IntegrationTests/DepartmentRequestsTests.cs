@@ -101,6 +101,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var otherDepartment = InternalRequestData.PickRandomDepartment(testRequest.AssignedDepartment);
+            fixture.EnsureDepartment(otherDepartment);
 
             var otherDepartmentRequest = await Client.CreateDefaultRequestAsync(testProject);
             await Client.AssignDepartmentAsync(otherDepartmentRequest.Id, otherDepartment);

@@ -570,7 +570,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{normalRequest.Id}", new { assignedDepartment = "TPD LIN ORG TST" });
-            response.Should().BeBadRequest();
+            response.Should().BeSuccessfull();
         }
 
         [Fact]

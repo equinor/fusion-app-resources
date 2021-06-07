@@ -1,7 +1,9 @@
 ﻿using Fusion.Integration;
+using Fusion.Integration.Diagnostics;
 using Fusion.Resources.Application.LineOrg.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,15 +23,18 @@ namespace Fusion.Resources.Application.LineOrg
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IHostingEnvironment hostingEnvironment;
         private readonly IFusionProfileResolver profileResolver;
+        private readonly IFusionLogger<LineOrgResolver> logger;
 
         public LineOrgResolver(IHttpClientFactory httpClientFactory,
             IHostingEnvironment hostingEnvironment,
-                IFusionProfileResolver profileResolver)
+            IFusionProfileResolver profileResolver,
+            IFusionLogger<LineOrgResolver> logger)
         {
             this.cache = new DepartmentCache();
             this.httpClientFactory = httpClientFactory;
             this.hostingEnvironment = hostingEnvironment;
             this.profileResolver = profileResolver;
+            this.logger = logger;
         }
 
         public async Task<List<LineOrgDepartment>> GetResourceOwners(string? filter, CancellationToken cancellationToken)
@@ -120,7 +125,12 @@ namespace Fusion.Resources.Application.LineOrg
             do
             {
                 var response = await client.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    logger.Log(LogLevel.Critical, "Unable to read department info from line org.");
+                    return;
+                }
 
                 var page = JsonSerializer.Deserialize<PaginatedResponse<ProfileWithDepartment>>(
                     await response.Content.ReadAsStringAsync(),
