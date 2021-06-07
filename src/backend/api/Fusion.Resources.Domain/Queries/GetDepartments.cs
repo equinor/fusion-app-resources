@@ -143,11 +143,14 @@ namespace Fusion.Resources.Domain
                 else
                 {
                     result = departments.Values.ToList();
-                    if (!result.Any() && request.departmentIds?.Length == 1)
+                    if (!result.Any() && request.departmentIds is not null)
                     {
-                        var resourceOwners = await lineOrgResolver
-                            .GetResourceOwners(request.departmentIds.Single(), cancellationToken);
-                        result.AddRange(resourceOwners.Select(x => new QueryDepartment(x.DepartmentId, null)));
+                        foreach (var department in request.departmentIds)
+                        {
+                            var resourceOwners = await lineOrgResolver
+                                .GetResourceOwners(department, cancellationToken);
+                            result.AddRange(resourceOwners.Select(x => new QueryDepartment(x.DepartmentId, null)));
+                        }
                     }
                 }
 
