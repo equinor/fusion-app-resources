@@ -143,6 +143,15 @@ namespace Fusion.Resources.Domain
                 else
                 {
                     result = departments.Values.ToList();
+                    if (!result.Any() && request.departmentIds is not null)
+                    {
+                        foreach (var department in request.departmentIds)
+                        {
+                            var resourceOwners = await lineOrgResolver
+                                .GetResourceOwners(department, cancellationToken);
+                            result.AddRange(resourceOwners.Select(x => new QueryDepartment(x.DepartmentId, null)));
+                        }
+                    }
                 }
 
                 if (request.shouldExpandDelegatedResourceOwners)
@@ -164,8 +173,9 @@ namespace Fusion.Resources.Domain
                                 .ToList();
                         }
                     }
-
                 }
+
+                
 
                 return result;
             }
