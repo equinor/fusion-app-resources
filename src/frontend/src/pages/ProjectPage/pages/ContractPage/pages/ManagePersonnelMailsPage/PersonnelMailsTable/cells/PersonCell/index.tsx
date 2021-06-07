@@ -12,7 +12,12 @@ const PersonCell: FC<PersonCellProps> = ({ item }) => {
             {item.azureUniquePersonId ? (
                 <PersonPhoto size="small" personId={item.azureUniquePersonId} hideTooltip />
             ) : null}
-            <span className={styles.name}>{item.name}</span>
+            <div className={styles.personDetails}>
+                <span className={styles.name}>{item.name}</span>
+                <a href={`mailto: ${item.mail}`} className={styles.mail} tabIndex={-1}>
+                    {item.mail || 'No mail'}
+                </a>
+            </div>
         </div>
     );
 };

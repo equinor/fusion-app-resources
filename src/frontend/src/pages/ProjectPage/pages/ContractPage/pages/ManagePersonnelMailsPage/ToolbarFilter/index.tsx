@@ -8,7 +8,7 @@ type ToolbarFilterProps = {
     setFilteredPersonnel: (filteredPersonnel: Personnel[]) => void;
     filteredPersonnel: Personnel[];
 };
-type FilterKeys = 'equinorAccounts' | 'affiliateAccounts' | 'noMail';
+type FilterKeys = 'noMail' | 'showMissingAD';
 type PersonnelFilter = (item: Personnel) => boolean;
 type Filters = {
     filter: PersonnelFilter;
@@ -17,14 +17,12 @@ type Filters = {
 type SelectedFilters = Record<FilterKeys, Filters>;
 
 const filterDefinitions: SelectedFilters = {
-    affiliateAccounts: {
-        filter: (p) => !p.mail?.includes('equinor'),
-    },
-    equinorAccounts: {
-        filter: (p) => !!p.mail?.includes('equinor'),
-    },
     noMail: {
-        filter: (p) => !p.mail, // TODO: Add cusome mail
+        filter: (p) => !p.mail && !p.preferredContactMail,
+    },
+    showMissingAD: {
+        filter: (p) => p.azureAdStatus !== 'NoAccount',
+        isSelected: true,
     },
 };
 const ToolbarFilter: FC<ToolbarFilterProps> = ({
@@ -34,26 +32,20 @@ const ToolbarFilter: FC<ToolbarFilterProps> = ({
 }) => {
     const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>(filterDefinitions);
 
-    const personnelWithEquinorAccounts = useMemo(
-        () => filteredPersonnel.filter(filterDefinitions.equinorAccounts.filter).length,
-        [filteredPersonnel]
-    );
-
-    const personnelWithAffiliateAccounts = useMemo(
-        () => filteredPersonnel.filter(filterDefinitions.affiliateAccounts.filter).length,
-        [filteredPersonnel]
-    );
-
     const personnelWithNoMail = useMemo(
         () => filteredPersonnel.filter(filterDefinitions.noMail.filter).length,
         [filteredPersonnel]
+    );
+
+    const personnelWithNoAd = useMemo(
+        () => personnel.filter((p) => !filterDefinitions.showMissingAD.filter(p)).length,
+        [personnel]
     );
 
     const filterPersonnel = useCallback(() => {
         const activeFilters = Object.values(selectedFilters)
             .filter((f) => f.isSelected)
             .map((f) => f.filter);
-
         if (activeFilters?.length === 0) {
             setFilteredPersonnel(personnel);
             return;
@@ -74,47 +66,30 @@ const ToolbarFilter: FC<ToolbarFilterProps> = ({
         },
         [selectedFilters, setSelectedFilters]
     );
-    const onFilterEquinorAccounts = useCallback(
-        () => toggleSelected('equinorAccounts'),
-        [toggleSelected]
-    );
-    const onFilterAffiliateAccounts = useCallback(
-        () => toggleSelected('affiliateAccounts'),
-        [toggleSelected]
-    );
+
     const onFilterNoMail = useCallback(() => toggleSelected('noMail'), [toggleSelected]);
+    const onShowAD = useCallback(() => toggleSelected('showMissingAD'), [toggleSelected]);
 
     useEffect(() => {
         filterPersonnel();
-    }, [selectedFilters]);
+    }, [selectedFilters, personnel]);
 
     return (
         <div className={styles.toolbar}>
-            <div className={styles.toolbarItem}>
-                <Button
-                    outlined={!selectedFilters.equinorAccounts.isSelected}
-                    onClick={onFilterEquinorAccounts}
-                    disabled={personnelWithEquinorAccounts === 0}
-                >
-                    Equinor accounts ({personnelWithEquinorAccounts})
-                </Button>
-            </div>
-            <div className={styles.toolbarItem}>
-                <Button
-                    outlined={!selectedFilters.affiliateAccounts.isSelected}
-                    onClick={onFilterAffiliateAccounts}
-                    disabled={personnelWithAffiliateAccounts === 0}
-                >
-                    Affiliate accounts ({personnelWithAffiliateAccounts})
-                </Button>
-            </div>
             <div className={styles.toolbarItem}>
                 <Button
                     outlined={!selectedFilters.noMail.isSelected}
                     onClick={onFilterNoMail}
                     disabled={personnelWithNoMail === 0}
                 >
-                    Has no mail ({personnelWithNoMail})
+                    Personnel with no mail ({personnelWithNoMail})
+                </Button>
+            </div>
+            <div className={styles.toolbarItem}>
+                <Button outlined={selectedFilters.showMissingAD.isSelected} onClick={onShowAD}>
+                    {selectedFilters.showMissingAD.isSelected
+                        ? `Show personnel with missing AD (${personnelWithNoAd})`
+                        : `Hide personnel with missing AD (${personnelWithNoAd})`}
                 </Button>
             </div>
         </div>

@@ -1,8 +1,9 @@
 import { CloseCircleIcon, styling, useTooltipRef } from '@equinor/fusion-components';
 import { ChangeEvent, FC, useCallback, useState } from 'react';
-import { useContractContext } from '../../../../../../../../../contractContex';
 import Personnel from '../../../../../../../../../models/Personnel';
+import { useManagePersonnelMailContext } from '../../../ManagePersonnelMailContext';
 import * as styles from './styles.less';
+
 type PreferredMailProps = {
     item: Personnel;
 };
@@ -12,7 +13,7 @@ const emailValidationRegex = /\S+@\S+\.\S+/;
 const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
     const [input, setInput] = useState<string>(item.preferredContactMail || '');
     const [validationError, setHasValidationError] = useState<boolean>(false);
-    const { dispatchContractAction } = useContractContext();
+    const { updateContactMail } = useManagePersonnelMailContext();
 
     const invalidMailTooltip = useTooltipRef('Invalid mail');
 
@@ -27,21 +28,14 @@ const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
         const isValid =
             input.length === 0 || emailValidationRegex.test(String(input).toLowerCase());
         setHasValidationError(!isValid);
+        return isValid;
     }, [input]);
 
     const onBlur = useCallback(() => {
-        validateInput();
-        dispatchContractAction({
-            collection: 'personnel',
-            verb: 'merge',
-            payload: [
-                {
-                    ...item,
-                    preferredContactMail: input,
-                },
-            ],
-        });
-    }, [dispatchContractAction, input]);
+        const isValid = validateInput();
+        isValid && updateContactMail(item.personnelId, input);
+    }, [input, updateContactMail]);
+
     return (
         <div className={styles.container}>
             <input

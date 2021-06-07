@@ -1,20 +1,20 @@
 import { useCurrentContext } from '@equinor/fusion';
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback } from 'react';
 import { useAppContext } from '../../../../../../appContext';
 import { useContractContext } from '../../../../../../contractContex';
-import Personnel from '../../../../../../models/Personnel';
 import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 import * as styles from './styles.less';
 import PersonnelMailsTable from './PersonnelMailsTable';
 import ToolbarFilter from './ToolbarFilter';
+import ManagePersonnelMailContext from './ManagePersonnelMailContext';
+import usePersonnelContactMail from './usePersonnelContactMail';
 
 const ManagePersonnelMailsPage: FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
 
     const { contract, contractState, dispatchContractAction } = useContractContext();
-    const [filteredPersonnel, setFilteredPersonnel] = useState<Personnel[]>([]);
 
     const fetchPersonnelAsync = useCallback(async () => {
         const contractId = contract?.id;
@@ -38,24 +38,40 @@ const ManagePersonnelMailsPage: FC = () => {
         fetchPersonnelAsync,
         'set'
     );
-
-    useEffect(() => {
-        setFilteredPersonnel(personnel);
-    }, [personnel]);
+    const {
+        contactMailForm,
+        filteredPersonnel,
+        isContactMailFormDirty,
+        updateContactMail,
+        setFilteredPersonnel,
+    } = usePersonnelContactMail(personnel);
 
     return (
-        <div className={styles.container}>
-            <ResourceErrorMessage error={error}>
-                <ToolbarFilter
-                    personnel={personnel}
-                    setFilteredPersonnel={setFilteredPersonnel}
-                    filteredPersonnel={filteredPersonnel}
-                />
-                <div className={styles.managePersonnel}>
-                    <PersonnelMailsTable isFetching={isFetching} personnel={filteredPersonnel} />
-                </div>
-            </ResourceErrorMessage>
-        </div>
+        <ManagePersonnelMailContext
+            value={{
+                contactMailForm,
+                filteredPersonnel,
+                isContactMailFormDirty,
+                updateContactMail,
+                setFilteredPersonnel,
+            }}
+        >
+            <div className={styles.container}>
+                <ResourceErrorMessage error={error}>
+                    <ToolbarFilter
+                        personnel={personnel}
+                        setFilteredPersonnel={setFilteredPersonnel}
+                        filteredPersonnel={filteredPersonnel}
+                    />
+                    <div className={styles.managePersonnel}>
+                        <PersonnelMailsTable
+                            isFetching={isFetching}
+                            personnel={filteredPersonnel}
+                        />
+                    </div>
+                </ResourceErrorMessage>
+            </div>
+        </ManagePersonnelMailContext>
     );
 };
 export default ManagePersonnelMailsPage;
