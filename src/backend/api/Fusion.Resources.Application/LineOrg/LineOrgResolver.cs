@@ -128,7 +128,7 @@ namespace Fusion.Resources.Application.LineOrg
                 if (!response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    logger.Log(LogLevel.Critical, "Unable to read department info from line org.");
+                    logger.LogCritical("Unable to read department info from line org.\n\n" + content);
                     return;
                 }
 
