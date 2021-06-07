@@ -8,6 +8,8 @@ using System.Linq;
 using System.Collections.Generic;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
+
 namespace Fusion.Resources.Api.Controllers
 {
     public class PatchInternalRequestRequest : PatchRequest
@@ -23,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<PatchInternalRequestRequest>
         {
-            public Validator(ResourcesDbContext db)
+            public Validator(ResourcesDbContext db, IMediator mediator)
             {
                 RuleFor(x => x.ProposedPersonAzureUniqueId)
                     .MustAsync(async (req, p, context, cancel) =>
@@ -47,7 +49,9 @@ namespace Fusion.Resources.Api.Controllers
                         if (d.Value is null)
                             return true;
 
-                        return await db.Departments.AnyAsync(dpt => dpt.DepartmentId == d.Value, cancellationToken);
+                        var departments = await mediator.Send(new GetDepartments().ById(d.Value), cancellationToken);
+
+                        return departments.Any();
                     })
                     .WithMessage("Invalid department specified")
                     .When(x => x.AssignedDepartment.HasValue && x.AssignedDepartment.Value != null);

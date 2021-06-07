@@ -544,6 +544,36 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task UpdateRequest_ShouldNotBeBadRequest_WhenPatchingDepartmentInLineOrg()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+               {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD LIN ORG TST"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{normalRequest.Id}", new { assignedDepartment = "TPD LIN ORG TST" });
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task UpdateRequest_ShouldBadRequest_WhenPatchingInvalidProposedChanges()
         {
             using var adminScope = fixture.AdminScope();
