@@ -1,4 +1,4 @@
-import { useCurrentContext } from '@equinor/fusion';
+import { useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import deepEqual from 'deep-equal';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useAppContext } from '../../../../../../appContext';
@@ -11,11 +11,13 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
     const { contract } = useContractContext();
+    const sendNotification = useNotificationCenter();
 
     const [filteredPersonnel, setFilteredPersonnel] = useState<Personnel[]>([]);
     const [contactMailForm, setContactMailForm] = useState<ContactMailCollection>({});
     const [isSavingContactMails, setIsSavingContactMails] = useState<boolean>(false);
     const [saveError, setSaveError] = useState<ResourceError | null>(null);
+    const [showInputErrors, setShowInputErrors] = useState<boolean>(false);
 
     const defaultFormState = useMemo(
         () =>
@@ -34,22 +36,29 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
             ),
         [personnel]
     );
-    
+
     useEffect(() => {
         setContactMailForm(defaultFormState);
     }, [defaultFormState]);
 
     const isContactMailFormDirty = useMemo(() => {
-        return !deepEqual(contactMailForm, defaultFormState);
+        return !deepEqual(
+            Object.values(contactMailForm).map((c) => ({
+                preferredContactMail: c.preferredContactMail,
+                personnelId: c.personnelId,
+            })),
+            Object.values(defaultFormState)
+        );
     }, [contactMailForm, defaultFormState]);
 
     const updateContactMail = useCallback(
-        (personnelId: string, mail: string) => {
+        (personnelId: string, mail: string, hasInputError?: boolean) => {
             setContactMailForm((form) => ({
                 ...form,
                 [personnelId]: {
                     personnelId,
                     preferredContactMail: mail || null,
+                    hasInputError,
                 },
             }));
         },
@@ -62,20 +71,45 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
         if (!contractId || !projectId) {
             return;
         }
+        setShowInputErrors(true);
         setIsSavingContactMails(true);
         setSaveError(null);
+        const hasInputError = Object.values(contactMailForm).some((c) => !!c.hasInputError);
+        if (hasInputError) {
+            await sendNotification({
+                level: 'high',
+                title: 'Input errors',
+                body: 'There have been detected invalid emails in the input form, resolve the errors and try again',
+            });
+            setIsSavingContactMails(false);
+            return;
+        }
         try {
             const response = await apiClient.updatePersonnelPrefferedContactMailsAsync(
                 projectId,
                 contractId,
                 Object.values(contactMailForm)
+                    .filter((c) => !c.hasInputError)
+                    .map((c) => ({
+                        preferredContactMail: c.preferredContactMail,
+                        personnelId: c.personnelId,
+                    }))
             );
+            sendNotification({
+                level: 'low',
+                title: 'Preferred contact mails saved',
+            });
         } catch (e) {
             setSaveError(e);
+            sendNotification({
+                level: 'high',
+                title: 'Cannot save contact mails',
+                body: 'An error occurred while saving preferred contact mails',
+            });
         } finally {
             setIsSavingContactMails(false);
         }
-    }, [contract, currentContext, contactMailForm]);
+    }, [contract, currentContext, contactMailForm, sendNotification]);
 
     return {
         updateContactMail,
@@ -86,6 +120,7 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
         isSavingContactMails,
         saveContactMailsAsync,
         saveError,
+        showInputErrors,
     };
 };
 
