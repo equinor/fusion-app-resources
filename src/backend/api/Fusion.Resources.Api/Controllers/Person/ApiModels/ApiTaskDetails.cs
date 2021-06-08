@@ -13,6 +13,9 @@ namespace Fusion.Resources.Api.Controllers
             Location = "Not disclosed"
         };
 
+        /// <summary>
+        /// Use ApiTaskDetails(Domain.QueryTaskDetails taskDetails). Only for MVC Model binder
+        /// </summary>
         public ApiTaskDetails(){}
         public ApiTaskDetails(Domain.QueryTaskDetails taskDetails)
         {
