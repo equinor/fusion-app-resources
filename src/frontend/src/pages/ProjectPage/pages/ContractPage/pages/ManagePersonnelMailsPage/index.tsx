@@ -9,6 +9,7 @@ import PersonnelMailsTable from './PersonnelMailsTable';
 import ToolbarFilter from './ToolbarFilter';
 import ManagePersonnelMailContext from './ManagePersonnelMailContext';
 import usePersonnelContactMail from './usePersonnelContactMail';
+import SaveContactMails from './SaveContactMails';
 
 const ManagePersonnelMailsPage: FC = () => {
     const currentContext = useCurrentContext();
@@ -44,6 +45,8 @@ const ManagePersonnelMailsPage: FC = () => {
         isContactMailFormDirty,
         updateContactMail,
         setFilteredPersonnel,
+        isSavingContactMails,
+        saveContactMailsAsync,
     } = usePersonnelContactMail(personnel);
 
     return (
@@ -54,15 +57,21 @@ const ManagePersonnelMailsPage: FC = () => {
                 isContactMailFormDirty,
                 updateContactMail,
                 setFilteredPersonnel,
+                isSavingContactMails,
+                saveContactMailsAsync,
             }}
         >
             <div className={styles.container}>
                 <ResourceErrorMessage error={error}>
-                    <ToolbarFilter
-                        personnel={personnel}
-                        setFilteredPersonnel={setFilteredPersonnel}
-                        filteredPersonnel={filteredPersonnel}
-                    />
+                    <div className={styles.toolBar}>
+                        <ToolbarFilter
+                            personnel={personnel}
+                            setFilteredPersonnel={setFilteredPersonnel}
+                            filteredPersonnel={filteredPersonnel}
+                        />
+                        <SaveContactMails />
+                    </div>
+
                     <div className={styles.managePersonnel}>
                         <PersonnelMailsTable
                             isFetching={isFetching}

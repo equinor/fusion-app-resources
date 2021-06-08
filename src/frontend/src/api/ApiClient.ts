@@ -21,6 +21,7 @@ import PersonDelegation, {
 import { formatDateToYDMString } from './utils';
 import ExcelParseReponse from '../models/ExcelParseResponse';
 import ReadableStreamResponse from '../models/ReadableStreamResponse';
+import { ContactMail } from '../models/ContactMail';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -75,6 +76,20 @@ export default class ApiClient {
             ApiCollection<Personnel>,
             FusionApiHttpErrorResponse
         >(url);
+        return response.data.value;
+    }
+
+    async updatePersonnelPrefferedContactMailsAsync(
+        projectId: string,
+        contractId: string,
+        contactMails: Array<ContactMail>
+    ) {
+        const url = this.resourceCollection.personnelPreferredContactMail(projectId, contractId);
+        const response = await this.httpClient.postAsync<
+            Array<ContactMail>,
+            ApiCollection<Personnel>,
+            FusionApiHttpErrorResponse
+        >(url, contactMails);
         return response.data.value;
     }
 

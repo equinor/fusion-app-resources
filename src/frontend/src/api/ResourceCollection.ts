@@ -41,7 +41,9 @@ export default class ResourceCollection {
 
         return base;
     }
-
+    personnelPreferredContactMail(projectId: string, contractId: string, ) {
+        return combineUrls(this.personnel(projectId, contractId), "preferred-mails")
+    }
     personnelCollection(projectId: string, contractId: string): string {
         return combineUrls(
             this.contract(projectId, contractId),

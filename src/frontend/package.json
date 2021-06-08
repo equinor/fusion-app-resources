@@ -21,6 +21,7 @@
     "dependencies": {
         "@equinor/fusion": "^3.1.1",
         "@equinor/fusion-components": "^2.2.10",
+        "@equinor/fusion-react-styles": "^0.1.0",
         "@equinor/fusion-react-table": "0.1.0-alpha.4",
         "@types/classnames": "^2.2.11",
         "@types/deep-equal": "^1.0.1",

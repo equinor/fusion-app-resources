@@ -3,16 +3,19 @@ import deepEqual from 'deep-equal';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useAppContext } from '../../../../../../appContext';
 import { useContractContext } from '../../../../../../contractContex';
-import useReducerCollection from '../../../../../../hooks/useReducerCollection';
 import Personnel from '../../../../../../models/Personnel';
-import { ContactMail, ContactMailCollection } from './ManagePersonnelMailContext';
+import ResourceError from '../../../../../../reducers/ResourceError';
+import { ContactMailCollection } from './ManagePersonnelMailContext';
 
 const usePersonnelContactMail = (personnel: Personnel[]) => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
+    const { contract } = useContractContext();
 
     const [filteredPersonnel, setFilteredPersonnel] = useState<Personnel[]>([]);
     const [contactMailForm, setContactMailForm] = useState<ContactMailCollection>({});
+    const [isSavingContactMails, setIsSavingContactMails] = useState<boolean>(false);
+    const [saveError, setSaveError] = useState<ResourceError | null>(null);
 
     const defaultFormState = useMemo(
         () =>
@@ -31,6 +34,10 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
             ),
         [personnel]
     );
+    
+    useEffect(() => {
+        setContactMailForm(defaultFormState);
+    }, [defaultFormState]);
 
     const isContactMailFormDirty = useMemo(() => {
         return !deepEqual(contactMailForm, defaultFormState);
@@ -42,17 +49,33 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
                 ...form,
                 [personnelId]: {
                     personnelId,
-                    preferredContactMail: mail,
+                    preferredContactMail: mail || null,
                 },
             }));
         },
         [setContactMailForm]
     );
 
-    const saveContactMailsAsync = useCallback(() => {
-
-    },[])
-
+    const saveContactMailsAsync = useCallback(async () => {
+        const contractId = contract?.id;
+        const projectId = currentContext?.id;
+        if (!contractId || !projectId) {
+            return;
+        }
+        setIsSavingContactMails(true);
+        setSaveError(null);
+        try {
+            const response = await apiClient.updatePersonnelPrefferedContactMailsAsync(
+                projectId,
+                contractId,
+                Object.values(contactMailForm)
+            );
+        } catch (e) {
+            setSaveError(e);
+        } finally {
+            setIsSavingContactMails(false);
+        }
+    }, [contract, currentContext, contactMailForm]);
 
     return {
         updateContactMail,
@@ -60,6 +83,9 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
         filteredPersonnel,
         contactMailForm,
         setFilteredPersonnel,
+        isSavingContactMails,
+        saveContactMailsAsync,
+        saveError,
     };
 };
 
