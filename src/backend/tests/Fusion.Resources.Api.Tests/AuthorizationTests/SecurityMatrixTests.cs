@@ -367,8 +367,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             using var userScope = fixture.UserScope(Users[role]);
             {
-
-
                 var client = fixture.ApiFactory.CreateClient();
                 var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
                    $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",

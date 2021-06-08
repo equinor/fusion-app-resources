@@ -73,8 +73,8 @@ namespace Fusion.Testing.Mocks.OrgService
         /// <summary>
         /// Add a random contract without any positions.
         /// </summary>
-        public FusionTestProjectBuilder WithContract() => WithContract(builder => { } );
-        public FusionTestProjectBuilder WithContractAndPositions() => WithContract(builder => builder.WithPositions() );
+        public FusionTestProjectBuilder WithContract() => WithContract(builder => { });
+        public FusionTestProjectBuilder WithContractAndPositions() => WithContract(builder => builder.WithPositions());
 
         public FusionTestProjectBuilder WithContract(Action<FusionTestContractBuilder> contractSetup)
         {
@@ -159,10 +159,8 @@ namespace Fusion.Testing.Mocks.OrgService
             };
 
             setup?.Invoke(bp);
-           
-                PositionBuilder.AddBaseposition(bp.JsonClone());
-            
 
+            PositionBuilder.AddBaseposition(bp.JsonClone());
             return bp;
         }
 
