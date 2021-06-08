@@ -217,6 +217,43 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         {
             const string changedDepartment = "TPD UPD ASD";
             fixture.EnsureDepartment(changedDepartment);
+            Users[role].FullDepartment = department;
+
+            var request = await CreateAndStartRequest();
+            using(var adminScope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = TestDepartment }
+                );
+                result.Should().BeSuccessfull();
+            }
+
+            using (var userScope = fixture.UserScope(Users[role]))
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = changedDepartment }
+                );
+
+                if (shouldBeAllowed) result.Should().BeSuccessfull();
+                else result.Should().BeUnauthorized();
+            }
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", "PDP PRD FE ANE ANE5", true)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
+        public async Task CanAssignOnUnassignedRequestToDepartment(string role, string department, bool shouldBeAllowed)
+        {
+            const string changedDepartment = "TPD UPD ASD";
+            fixture.EnsureDepartment(changedDepartment);
 
             var request = await CreateAndStartRequest();
             Users[role].FullDepartment = department;
