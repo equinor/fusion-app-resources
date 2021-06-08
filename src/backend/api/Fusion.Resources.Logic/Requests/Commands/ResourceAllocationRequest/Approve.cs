@@ -34,7 +34,7 @@ namespace Fusion.Resources.Logic.Commands
 
                 protected override async Task Handle(Approve request, CancellationToken cancellationToken)
                 {
-                    var dbRequest = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId);
+                    var dbRequest = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId, cancellationToken);
                     if (dbRequest is null)
                         throw new InvalidOperationException("Could not locate request");
 
@@ -46,17 +46,16 @@ namespace Fusion.Resources.Logic.Commands
 
                     
                     var currentStep = workflow[dbRequest.State.State];
-                    await mediator.Publish(new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId));
-
+                    await mediator.Publish(new CanApproveStep(dbRequest.Id, dbRequest.Type, currentStep.Id, currentStep.NextStepId), cancellationToken);
 
                     currentStep = workflow.CompleteCurrentStep(Database.Entities.DbWFStepState.Approved, request.Editor.Person);
+                    dbRequest.State.State = workflow.GetCurrent().Id;
 
-                    dbRequest.State.State = currentStep!.Id;
                     workflow.SaveChanges();
 
                     await dbContext.SaveChangesAsync(cancellationToken);
 
-                    var notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep.PreviousStepId, currentStep.Id);
+                    var notification = new RequestStateChanged(dbRequest.Id, dbRequest.Type, currentStep?.PreviousStepId, currentStep?.Id);
                     await mediator.Publish(notification, cancellationToken);
                 }
             }

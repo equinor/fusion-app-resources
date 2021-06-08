@@ -189,6 +189,50 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             return new MockApiTaskOwnerV2(director);
         }
 
+        [MapToApiVersion("2.0")]
+        [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/reports-to")]
+        public ActionResult GetPositionReportsTo([FromRoute] ProjectIdentifier projectId, Guid positionId, Guid instanceId)
+        {
+            var director = OrgServiceMock.GetProject(projectId.ProjectId.Value)?.Director;
+
+            if (OrgServiceMock.taskOwnerMapping.TryGetValue(positionId, out Guid taskOwnerPositionId))
+            {
+                var position = OrgServiceMock.GetPosition(positionId);
+                if (position is null)
+                    return NotFound(new { error = new { message = "Could not locate position" } });
+
+                var instance = position.Instances.FirstOrDefault(i => i.Id == instanceId);
+                if (instance is null)
+                    return NotFound(new { error = new { message = "Could not locate instance" } });
+
+
+                var taskOwner = OrgServiceMock.GetPosition(taskOwnerPositionId);
+                taskOwner.IsTaskOwner = true;
+
+                var date = DateTime.Today;
+                if (date <= instance.AppliesFrom)
+                    date = instance.AppliesFrom.Date;
+                if (date >= instance.AppliesTo)
+                    date = instance.AppliesTo.Date;
+
+
+                if (taskOwner is not null)
+                {
+                    return Ok(new
+                    {
+                        Path = new[] { taskOwner.Id, director.Id },
+                        ReportPositions = new[] { director, taskOwner  }
+                    });
+                }
+            }
+
+            return Ok(new
+            {
+                Path = new[] { director.Id },
+                ReportPositions = new[] { director }
+            });
+        }
+
         public class MockApiTaskOwnerV2
         {
             public MockApiTaskOwnerV2(ApiPositionV2 taskOwner) : this(DateTime.Today, taskOwner)

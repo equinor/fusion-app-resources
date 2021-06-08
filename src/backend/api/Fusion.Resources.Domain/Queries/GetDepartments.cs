@@ -127,7 +127,7 @@ namespace Fusion.Resources.Domain
 
                     foreach (var resourceOwner in resourceOwners)
                     {
-                        if (!searchedDepartments.Contains(resourceOwner.DepartmentId)) continue;
+                        if (request.departmentIds is not null && !searchedDepartments.Contains(resourceOwner.DepartmentId)) continue;
                         // Department found in line org but is not tracked in db
                         if (!departments.ContainsKey(resourceOwner.DepartmentId))
                         {
@@ -143,6 +143,15 @@ namespace Fusion.Resources.Domain
                 else
                 {
                     result = departments.Values.ToList();
+                    if (!result.Any() && request.departmentIds is not null)
+                    {
+                        foreach (var department in request.departmentIds)
+                        {
+                            var resourceOwners = await lineOrgResolver
+                                .GetResourceOwners(department, cancellationToken);
+                            result.AddRange(resourceOwners.Select(x => new QueryDepartment(x.DepartmentId, null)));
+                        }
+                    }
                 }
 
                 if (request.shouldExpandDelegatedResourceOwners)
@@ -164,8 +173,9 @@ namespace Fusion.Resources.Domain
                                 .ToList();
                         }
                     }
-
                 }
+
+                
 
                 return result;
             }

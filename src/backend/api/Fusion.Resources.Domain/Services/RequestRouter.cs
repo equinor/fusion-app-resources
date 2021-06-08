@@ -36,20 +36,6 @@ namespace Fusion.Resources.Domain
             return bestMatch?.Row.Unit;
         }
 
-        //public async Task<string?> Route(ApiPositionV2 tbnPosition, ApiPositionInstanceV2 instance, CancellationToken cancellationToken)
-        //{
-        //    var props = new MatchingProperties(tbnPosition.ProjectId)
-        //    {
-        //        BasePositionDepartment = tbnPosition.BasePosition.Department,
-        //        Discipline = tbnPosition.BasePosition.Discipline,
-        //        LocationId = instance.Location?.Id,
-        //    };
-        //    var matches = Match(props);
-        //    var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
-
-        //    return bestMatch.Row?.Unit;
-        //}
-
         private IQueryable<ResponsibilityMatch> Match(MatchingProperties props)
         {
             return db.ResponsibilityMatrices

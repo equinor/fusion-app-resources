@@ -115,6 +115,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task NormalRequest_Create_ShouldBeSuccessfull_WhenProjectDomainIdNull()
+        {
+            // Mock project
+            var newTestProject = new FusionTestProjectBuilder()
+                .WithDomainId(null)
+                .AddToMockService();
+
+            // Prepare context resolver.
+            fixture.ContextResolver
+                .AddContext(newTestProject.Project);
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = newTestProject.AddPosition();
+            var response = await Client.TestClientPostAsync($"/projects/{newTestProject.Project.ProjectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id
+            }, new { });
+
+            response.Should().BeSuccessfull();
+        }
+
+        [Fact]
         public async Task NormalRequest_Create_ShouldBeSuccessfull_WhenExitingPosition()
         {
             using var adminScope = fixture.AdminScope();
