@@ -1,5 +1,4 @@
 ﻿using Fusion.ApiClients.Org;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,9 +31,9 @@ namespace Fusion.Testing.Mocks.OrgService
                 });
         }
 
-        
+
         private static List<ApiBasePositionV2> basePositionCache = null;
-        public static List<ApiBasePositionV2> AllBasePositions
+        public static IEnumerable<ApiBasePositionV2> AllBasePositions
         {
             get
             {
@@ -52,7 +51,7 @@ namespace Fusion.Testing.Mocks.OrgService
                     }).ToList();
                 }
 
-                return basePositionCache;
+                return basePositionCache.ToArray();
             }
         }
 
@@ -61,7 +60,7 @@ namespace Fusion.Testing.Mocks.OrgService
         private static List<ApiBasePositionV2> GetBasePositionCSVImport()
         {
             var resourceData = AssemblyUtils.GetResourceFromCurrentAssembly($@"Fusion.Testing.Mocks.OrgService.Data.BasePositions.csv");
-            var data = resourceData.Split(new [] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var data = resourceData.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
             List<ApiBasePositionV2> positions = data.Skip(1)
                 .Where(l => !string.IsNullOrEmpty(l))   // Trim any empty lines
@@ -110,8 +109,16 @@ namespace Fusion.Testing.Mocks.OrgService
                 }
             }
         }
+
+        public static void AddBaseposition(ApiBasePositionV2 basePosition)
+        {
+            OrgServiceMock.semaphore.Wait();
+
+            try
+            {
+                basePositionCache.Add(basePosition);
+            }
+            finally { OrgServiceMock.semaphore.Release(); }
+        }
     }
-
-    
-
 }
