@@ -15,6 +15,15 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
     [ApiVersion("2.0")]
     public class PositionsController : ControllerBase
     {
+        [ApiVersion("2.0")]
+        [HttpGet("/positions/basepositions/{basepositionId}")]
+        public ActionResult<ApiBasePositionV2> GetBaseposition(Guid basepositionId)
+        {
+            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => bp.Id == basepositionId);
+            if (bp is null) return NotFound();
+
+            return Ok(bp);
+        }
 
         [ApiVersion("2.0")]
         [HttpGet("/positions/{positionId}")]

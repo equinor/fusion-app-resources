@@ -1,16 +1,16 @@
 ﻿using Fusion.ApiClients.Org;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
     public static class PositionBuilder
     {
-
+        private static readonly SemaphoreSlim semaphoreBp = new SemaphoreSlim(1);
         public static ApiPositionV2 NewPosition()
         {
             return CreateTestPosition()
@@ -32,27 +32,33 @@ namespace Fusion.Testing.Mocks.OrgService
                 });
         }
 
-        
-        private static List<ApiBasePositionV2> basePositionCache = null;
-        public static List<ApiBasePositionV2> AllBasePositions
+
+        private static Lazy<List<ApiBasePositionV2>> basePositionCache = new Lazy<List<ApiBasePositionV2>>(() =>
+        {
+            var bps = GetBasePositionCSVImport();
+            return bps.Select(bp => new ApiBasePositionV2
+            {
+                Id = bp.Id,
+                Department = bp.Department,
+                Discipline = bp.Discipline,
+                Name = bp.Name,
+                Inactive = bp.Inactive,
+                ProjectType = bp.ProjectType
+            }).ToList();
+        }, isThreadSafe: true);
+        public static IEnumerable<ApiBasePositionV2> AllBasePositions
         {
             get
             {
-                if (basePositionCache == null)
+                semaphoreBp.Wait();
+                try
                 {
-                    var bps = GetBasePositionCSVImport();
-                    basePositionCache = bps.Select(bp => new ApiBasePositionV2
-                    {
-                        Id = bp.Id,
-                        Department = bp.Department,
-                        Discipline = bp.Discipline,
-                        Name = bp.Name,
-                        Inactive = bp.Inactive,
-                        ProjectType = bp.ProjectType
-                    }).ToList();
+                    return basePositionCache.Value.ToArray();
                 }
-
-                return basePositionCache;
+                finally
+                {
+                    semaphoreBp.Release();
+                }
             }
         }
 
@@ -61,7 +67,7 @@ namespace Fusion.Testing.Mocks.OrgService
         private static List<ApiBasePositionV2> GetBasePositionCSVImport()
         {
             var resourceData = AssemblyUtils.GetResourceFromCurrentAssembly($@"Fusion.Testing.Mocks.OrgService.Data.BasePositions.csv");
-            var data = resourceData.Split(new [] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var data = resourceData.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
             List<ApiBasePositionV2> positions = data.Skip(1)
                 .Where(l => !string.IsNullOrEmpty(l))   // Trim any empty lines
@@ -110,8 +116,16 @@ namespace Fusion.Testing.Mocks.OrgService
                 }
             }
         }
+
+        public static void AddBaseposition(ApiBasePositionV2 basePosition)
+        {
+            semaphoreBp.Wait();
+
+            try
+            {
+                basePositionCache.Value.Add(basePosition);
+            }
+            finally { semaphoreBp.Release(); }
+        }
     }
-
-    
-
 }
