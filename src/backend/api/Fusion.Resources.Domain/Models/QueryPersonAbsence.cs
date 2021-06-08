@@ -73,7 +73,7 @@ namespace Fusion.Resources.Domain
 
     public class QueryTaskDetails
     {
-        public QueryTaskDetails(DbTaskDetails taskDetails)
+        public QueryTaskDetails(DbOpTaskDetails taskDetails)
         {
             BasePositionId = taskDetails.BasePositionId;
             TaskName = taskDetails.TaskName;

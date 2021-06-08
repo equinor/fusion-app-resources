@@ -19,7 +19,7 @@ namespace Fusion.Resources.Database.Entities
         public double? AbsencePercentage { get; set; }
 
         public bool IsPrivate { get; set; }
-        public DbTaskDetails? TaskDetails { get; set; } = null!;
+        public DbOpTaskDetails? TaskDetails { get; set; } = null!;
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +33,7 @@ namespace Fusion.Resources.Database.Entities
         }
     }
 
-    public class DbTaskDetails
+    public class DbOpTaskDetails
     {
         public Guid? BasePositionId { get; set; }
         public string? TaskName { get; set; }

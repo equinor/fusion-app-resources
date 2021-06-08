@@ -78,7 +78,7 @@ namespace Fusion.Resources.Domain.Commands
                         roleName = basePosition.Name;
                     }
 
-                    absence.TaskDetails = new DbTaskDetails
+                    absence.TaskDetails = new DbOpTaskDetails
                     {
                         BasePositionId = request.BasePositionId,
                         TaskName = request.TaskName,

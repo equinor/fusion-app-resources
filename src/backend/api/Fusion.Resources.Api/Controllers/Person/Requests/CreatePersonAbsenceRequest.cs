@@ -58,7 +58,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 RuleFor(x => x.TaskDetails!.RoleName)
                     .NotEmpty()
-                    .When(x => x.Type == ApiPersonAbsence.ApiAbsenceType.OtherTasks && x.TaskDetails?.BasePositionId != null)
+                    .When(x => x.TaskDetails != null && x.Type == ApiPersonAbsence.ApiAbsenceType.OtherTasks && x.TaskDetails?.BasePositionId != null)
                     .WithMessage("Either role name or base position must be set.");
             }
         }

@@ -73,7 +73,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var request = new CreatePersonAbsenceRequest
             {
-                AppliesFrom = new DateTime(2021,04,30),
+                AppliesFrom = new DateTime(2021, 04, 30),
                 AppliesTo = new DateTime(2022, 04, 30),
                 Comment = "A comment",
                 Type = ApiPersonAbsence.ApiAbsenceType.Vacation,
@@ -102,7 +102,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldGetRoleNameFromBasePositionWhenEmpty()
+        public async Task CreateAbsence_ShouldUseBasePositionName_WhenRoleNameNull()
         {
             const string BasePositionName = "Base position name";
             var testProject = new FusionTestProjectBuilder();
@@ -135,7 +135,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task PrivateNotesShouldBeHiddenForOtherResourceOwners()
+        public async Task GetAbsence_ShouldBeHiddenForOtherResourceOwners_WhenPrivate()
         {
             var siblingResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             siblingResourceOwner.FullDepartment = "TPD PRD TST QWE ABC";
@@ -159,29 +159,35 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 }
             };
 
+            Guid absenceId;
             using var authScope = fixture.AdminScope();
-            var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", request);
-            response.Should().BeSuccessfull();
+            {
+                var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", request);
+                absenceId = response.Value.Id;
+                response.Should().BeSuccessfull();
+            }
 
             using var userScope = fixture.UserScope(siblingResourceOwner);
-            response = await client.TestClientGetAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{response.Value.Id}");
-            response.Should().BeSuccessfull();
+            {
+                var response = await client.TestClientGetAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/{absenceId}");
+                response.Should().BeSuccessfull();
 
-            var taskDetails = response.Value.TaskDetails;
-            taskDetails.Should().NotBeNull();
+                var taskDetails = response.Value.TaskDetails;
+                taskDetails.Should().NotBeNull();
 
-            taskDetails!.IsHidden.Should().Be(true);
+                taskDetails!.IsHidden.Should().Be(true);
 
-            response.Value.Comment.Should().NotBe(request.Comment);
-            taskDetails!.TaskName.Should().NotBe(request.TaskDetails.TaskName);
-            taskDetails!.RoleName.Should().NotBe(request.TaskDetails.RoleName);
-            taskDetails!.Location.Should().NotBe(request.TaskDetails.Location);
+                response.Value.Comment.Should().NotBe(request.Comment);
+                taskDetails!.TaskName.Should().NotBe(request.TaskDetails.TaskName);
+                taskDetails!.RoleName.Should().NotBe(request.TaskDetails.RoleName);
+                taskDetails!.Location.Should().NotBe(request.TaskDetails.Location);
+            }
         }
 
         [Theory]
         [InlineData(ApiPersonAbsence.ApiAbsenceType.Absence)]
         [InlineData(ApiPersonAbsence.ApiAbsenceType.Vacation)]
-        public async Task SettingTaskDetailsOnOtherTypesShouldFail(ApiPersonAbsence.ApiAbsenceType type)
+        public async Task CreateAbsence_ShouldFail_WhenSettingTaskDetailsOnType(ApiPersonAbsence.ApiAbsenceType type)
         {
             var request = new CreatePersonAbsenceRequest
             {

@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain
                     .Include(x => x.Person)
                     .Include(x => x.CreatedBy)
                     .Include(x => x.TaskDetails)
-                    .ToListAsync(cancellationToken: cancellationToken);
+                    .ToListAsync(cancellationToken);
 
                 var returnItems = items.Select(i => new QueryPersonAbsence(i))
                     .ToList();

@@ -77,7 +77,7 @@ namespace Fusion.Resources.Domain.Commands
                         roleName = basePosition.Name;
                     }
 
-                    newItem.TaskDetails = new DbTaskDetails
+                    newItem.TaskDetails = new DbOpTaskDetails
                     {
                         BasePositionId = request.BasePositionId,
                         TaskName = request.TaskName,
