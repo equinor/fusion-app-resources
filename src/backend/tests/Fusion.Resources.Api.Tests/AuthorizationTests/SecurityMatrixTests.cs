@@ -213,7 +213,44 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanReassignOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        public async Task CanReassignDepartmentOnRequest(string role, string department, bool shouldBeAllowed)
+        {
+            const string changedDepartment = "TPD UPD ASD";
+            fixture.EnsureDepartment(changedDepartment);
+            Users[role].FullDepartment = department;
+
+            var request = await CreateAndStartRequest();
+            using (var adminScope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = TestDepartment }
+                );
+                result.Should().BeSuccessfull();
+            }
+
+            using (var userScope = fixture.UserScope(Users[role]))
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = changedDepartment }
+                );
+
+                if (shouldBeAllowed) result.Should().BeSuccessfull();
+                else result.Should().BeUnauthorized();
+            }
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", "PDP PRD FE ANE ANE5", true)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
+        public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
             fixture.EnsureDepartment(changedDepartment);
