@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.EntityFrameworkCore;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -34,7 +35,7 @@ namespace Fusion.Resources.Logic.Commands
                     ValidateWorkflow(request);
 
 
-                    var wasAssigned = await AssignRequestToResourceOwnerAsync();
+                    var wasAssigned = await AssignRequestToResourceOwnerAsync(request);
 
                     if (!wasAssigned)
                     {
@@ -56,9 +57,8 @@ namespace Fusion.Resources.Logic.Commands
                             s.AddFailure("proposedPerson", "Must provide a person to be assigned the position"));
                 }
 
-                private ValueTask<bool> AssignRequestToResourceOwnerAsync()
+                private ValueTask<bool> AssignRequestToResourceOwnerAsync(DbResourceAllocationRequest request)
                 {
-
                     return new ValueTask<bool>(false);
                 }
             }
