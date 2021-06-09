@@ -338,6 +338,10 @@ namespace Fusion.Resources.Api.Controllers
             var result = await DispatchAsync(requestCommand);
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
+
+            // When querying by project, hide proposals if not provisioned.
+            apiModel.ForEach(x => x.HideProposedPersonWhenNotProvisioned());
+
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
 
@@ -392,7 +396,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, PathProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
 
@@ -434,7 +438,15 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            return new ApiResourceAllocationRequest(result);
+            var apiModel = new ApiResourceAllocationRequest(result);
+
+            if (projectIdentifier is not null)
+            {
+                // When querying by project, hide proposals if not provisioned.
+                apiModel.HideProposedPersonWhenNotProvisioned();
+            }
+
+            return apiModel;
         }
 
 
@@ -945,7 +957,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
-            
+
             if (String.IsNullOrEmpty(result.State)) return NoContent();
 
             try
@@ -1220,11 +1232,11 @@ namespace Fusion.Resources.Api.Controllers
             {
                 var canApprove = DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
             }
-            catch(UnauthorizedWorkflowException)
+            catch (UnauthorizedWorkflowException)
             {
                 return NoContent();
             }
-            
+
             Response.Headers["Allow"] = "POST";
             return NoContent();
         }

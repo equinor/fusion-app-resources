@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api.Controllers
 
             ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
 
-            if (query.TaskOwner != null) 
+            if (query.TaskOwner != null)
                 TaskOwner = new ApiTaskOwner(query.TaskOwner);
 
             Created = query.Created;
@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
 
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
-            
+
             if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
@@ -98,5 +98,14 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
+
+        public void HideProposedPersonWhenNotProvisioned()
+        {
+            if (ProvisioningStatus.State != ApiProvisioningStatus.ApiProvisionState.NotProvisioned)
+                return;
+
+            ProposedPerson = null;
+            ProposedPersonAzureUniqueId = null;
+        }
     }
 }
