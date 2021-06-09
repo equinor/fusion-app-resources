@@ -105,9 +105,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 type = "normal",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
-            }, new 
-            { 
-                number = 0 
+            }, new
+            {
+                number = 0
             });
 
             response.Should().BeSuccessfull();
@@ -392,6 +392,55 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #endregion
 
+        #region Query requests
+
+        [Fact]
+        public async Task NormalRequest_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await FastForward_ProposedRequest();
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
+            resp.Value.ProposedPerson.Should().BeNull();
+            resp.Value.ProposedPersonAzureUniqueId.Should().BeNull();
+            resp.Value.ProposedChanges.Should().BeNull();
+        }
+        [Fact]
+        public async Task NormalRequest_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await FastForward_ProposedRequest();
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
+            
+            resp.Value.ProposedPerson.Should().NotBeNull();
+            resp.Value.ProposedPersonAzureUniqueId.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task NormalRequests_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await FastForward_ProposedRequest();
+
+            var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests");
+            var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
+            resp.ProposedPerson.Should().BeNull();
+            resp.ProposedPersonAzureUniqueId.Should().BeNull();
+        }
+        [Fact]
+        public async Task NormalRequests_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await FastForward_ProposedRequest();
+
+            var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/resources/requests/internal");
+            var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
+            resp.ProposedPerson.Should().NotBeNull();
+            resp.ProposedPersonAzureUniqueId.Should().NotBeNull();
+        }
+
+        #endregion
 
         /// <summary>
         /// Perform steps required to end up with a proposed request

@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiProposedPerson? ProposedPerson { get; set; }
-        public ApiProposalParameters ProposalParameters { get; set; }
+        public ApiProposalParameters? ProposalParameters { get; set; }
 
         public ApiTaskOwner? TaskOwner { get; set; }
 
@@ -99,13 +99,28 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
 
-        public void HideProposedPersonWhenNotProvisioned()
+        public bool ShouldHideProposalsForProject
         {
-            if (ProvisioningStatus.State != ApiProvisioningStatus.ApiProvisionState.NotProvisioned)
-                return;
+            get
+            {
+                var isAllocation = string.Equals(Type, "allocation", StringComparison.InvariantCultureIgnoreCase);
+                var inProposalState =
+                    string.Equals(
+                        Workflow?.Steps?.Last(s =>
+                            s.State == ApiWorkflowStep.ApiWorkflowStepState.Approved && s.Completed.HasValue).Id,
+                            "proposal", StringComparison.InvariantCultureIgnoreCase);
+                ;
 
+                return isAllocation && inProposalState;
+            }
+        }
+        public ApiResourceAllocationRequest HideProposals()
+        {
+            ProposalParameters = null;
+            ProposedChanges = null;
             ProposedPerson = null;
             ProposedPersonAzureUniqueId = null;
+            return this;
         }
     }
 }

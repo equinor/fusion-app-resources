@@ -339,8 +339,9 @@ namespace Fusion.Resources.Api.Controllers
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
 
-            // When querying by project, hide proposals if not provisioned.
-            apiModel.ForEach(x => x.HideProposedPersonWhenNotProvisioned());
+            // When querying by project, hide proposed values if type is allocation and state is in proposal.
+            foreach (var request in apiModel.Where(x=>x.ShouldHideProposalsForProject))
+                request.HideProposals();
 
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
@@ -440,13 +441,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var apiModel = new ApiResourceAllocationRequest(result);
 
-            if (projectIdentifier is not null)
-            {
-                // When querying by project, hide proposals if not provisioned.
-                apiModel.HideProposedPersonWhenNotProvisioned();
-            }
-
-            return apiModel;
+            if (projectIdentifier is null) 
+                return apiModel;
+            
+            return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
         }
 
 
