@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
@@ -637,7 +638,7 @@ namespace Fusion.Resources.Api.Controllers
             catch (UnauthorizedWorkflowException ex)
             {
                 await scope.RollbackAsync();
-                return FusionApiError.Forbidden(ex.Message);
+                return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -665,7 +666,7 @@ namespace Fusion.Resources.Api.Controllers
             catch (UnauthorizedWorkflowException ex)
             {
                 await scope.RollbackAsync();
-                return FusionApiError.Forbidden(ex.Message);
+                return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));

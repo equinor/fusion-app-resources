@@ -10,7 +10,7 @@ namespace Fusion.Testing.Mocks.OrgService
 {
     public static class PositionBuilder
     {
-        private static readonly SemaphoreSlim semaphoreBp = new SemaphoreSlim(1);
+        public static readonly SemaphoreSlim semaphoreBp = new SemaphoreSlim(1);
         public static ApiPositionV2 NewPosition()
         {
             return CreateTestPosition()

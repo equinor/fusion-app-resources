@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Logic.Requests
@@ -106,7 +107,14 @@ namespace Fusion.Resources.Logic.Requests
                 .Distinct()
                 .ToArray();
 
-            return new UnauthorizedWorkflowException("None of the requirements for this operation succeeded.", result.Exception)
+            var err = new StringBuilder();
+            err.AppendLine("None of the requirements for this operation succeeded.");
+            foreach(var req in failedRequirements)
+            {
+                err.AppendFormat("\t- {0}\n", req.Description);
+            }
+
+            return new UnauthorizedWorkflowException(err.ToString(), result.Exception)
             {
                 Requirements = failedRequirements
             };

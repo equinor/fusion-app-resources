@@ -220,7 +220,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             Users[role].FullDepartment = department;
 
             var request = await CreateAndStartRequest();
-            using(var adminScope = fixture.AdminScope())
+            using (var adminScope = fixture.AdminScope())
             {
                 var client = fixture.ApiFactory.CreateClient();
                 var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
