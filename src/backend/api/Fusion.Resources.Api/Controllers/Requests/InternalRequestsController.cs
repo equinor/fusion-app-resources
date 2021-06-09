@@ -70,7 +70,8 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionId = request.OrgPositionId,
                 OrgProjectId = projectIdentifier.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
-                AssignedDepartment = request.AssignedDepartment
+                AssignedDepartment = request.AssignedDepartment,
+                ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId,
             };
 
             try

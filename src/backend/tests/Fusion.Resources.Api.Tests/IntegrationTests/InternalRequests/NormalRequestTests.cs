@@ -94,6 +94,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        
+
         [Fact]
         public async Task NormalRequest_Create_ShouldGetNewNumber()
         {
@@ -182,6 +184,44 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { state = (string?)null });
             resp.Should().BeSuccessfull();
             resp.Value.state.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task NormalRequest_Create_ShouldBeAbleToSetAssignedDepartmentDirectly()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var department = InternalRequestData.RandomDepartment;
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                assignedDepartment = department
+            });
+            response.Should().BeSuccessfull();
+            response.Value.AssignedDepartment.Should().Be(department);
+        }
+
+        [Fact]
+        public async Task NormalRequest_Create_ShouldBeAbleToProposePersonDirectly()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId
+            });
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPersonAzureUniqueId.Should().Be(proposedPerson.AzureUniqueId);
+            response.Value.ProposedPerson?.Person.Should().NotBeNull();
+            response.Value.ProposedPerson?.Person.Mail.Should().Be(proposedPerson.Mail);
         }
 
         #endregion
