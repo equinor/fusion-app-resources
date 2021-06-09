@@ -213,7 +213,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanReassignOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        public async Task CanReassignDepartmentOnRequest(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
             fixture.EnsureDepartment(changedDepartment);
@@ -250,7 +250,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("resourceOwner", "PDP PRD FE ANE ANE5", true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanAssignOnUnassignedRequestToDepartment(string role, string department, bool shouldBeAllowed)
+        public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
             fixture.EnsureDepartment(changedDepartment);
