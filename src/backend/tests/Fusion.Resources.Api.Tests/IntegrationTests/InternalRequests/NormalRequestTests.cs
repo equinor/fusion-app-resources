@@ -224,6 +224,28 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.ProposedPerson?.Person.Mail.Should().Be(proposedPerson.Mail);
         }
 
+        [Fact]
+        public async Task NormalRequest_Create_InconcistentDirectAssignment_ShouldGiveBadRequest()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var department = InternalRequestData.RandomDepartment;
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            proposedPerson.FullDepartment = InternalRequestData.PickRandomDepartment(department);
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                assignedDepartment = department,
+                proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId
+            });
+        
+            response.Should().BeBadRequest();
+        }
+
+
         #endregion
 
         #region Request flow tests
