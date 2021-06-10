@@ -225,10 +225,7 @@ namespace Fusion.Resources.Api.Controllers
                         }
                         else
                         {
-                            or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                            or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
-                            or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                            or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                            or.BeResourceOwner();
                         }
                     }
 
@@ -286,12 +283,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-
-                    // Can start with PRD, should maybe instead trim results when competence center starts.
-                    or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner();
                 });
             });
 
@@ -366,12 +358,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    // Start with allowing PRD resource owners access. 
-                    // We must eventually allow all resource owners, but trim the list based which is relevant for the business unit.
-                    or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner();
                 });
             });
 
@@ -984,16 +971,19 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-                    var requiredDepartment = item.AssignedDepartment
-                        ?? item.OrgPosition?.BasePosition?.Department;
+                    var requiredDepartment = item.AssignedDepartment;
 
-                    if (requiredDepartment is not null)
+                    if (item.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
-                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            new DepartmentPath(item.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
                     }
 
                     or.BeRequestCreator(requestId);
@@ -1162,10 +1152,7 @@ namespace Fusion.Resources.Api.Controllers
                     }
                     else
                     {
-                        or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                        or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
-                        or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                        or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                        or.BeResourceOwner();
                     }
                     or.BeRequestCreator(requestId);
                 });
