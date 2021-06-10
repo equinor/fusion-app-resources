@@ -100,6 +100,15 @@ export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
             </td>
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput
+                    key={`preferredContactMail${formState.personnelId}`}
+                    disabled={saveInProgress}
+                    item={formState}
+                    onChange={formFieldSetter}
+                    field={'preferredContactMail'}
+                />
+            </td>
+            <td className={styles.tableRowCell}>
+                <AddPersonnelFormTextInput
                     key={`dawinci${formState.personnelId}`}
                     disabled={saveInProgress}
                     item={formState}

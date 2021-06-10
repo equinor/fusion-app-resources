@@ -108,6 +108,11 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edi
                             </div>
                             <div className={styles.row}>
                                 {createTextField('E-Mail', person.mail || '')}
+                                {createEditField(
+                                    'Preferred contact mail',
+                                    person.preferredContactMail || '',
+                                    setField('preferredContactMail')
+                                )}
                             </div>
                             <div className={styles.row}>
                                 {createEditField(
@@ -137,6 +142,8 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edi
                             </div>
                             <div className={styles.row}>
                                 {createTextField('E-Mail', person.mail || '')}
+                                {createTextField('Preferred contact mail', person.preferredContactMail || '')}
+
                             </div>
                             <div className={styles.row}>
                                 {createTextField('Phone', person.phoneNumber || '')}

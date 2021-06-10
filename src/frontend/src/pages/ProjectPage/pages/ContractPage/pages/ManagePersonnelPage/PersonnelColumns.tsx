@@ -83,13 +83,6 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         sortable: true,
     },
     {
-        key: 'dawinciCode',
-        accessor: (p) => p.dawinciCode || '',
-        label: 'Dawinci',
-        priority: 6,
-        sortable: true,
-    },
-    {
         key: 'Phone',
         accessor: 'phoneNumber',
         label: 'Phone Number',

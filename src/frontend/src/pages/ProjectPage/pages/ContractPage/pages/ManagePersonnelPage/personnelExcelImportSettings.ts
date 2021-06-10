@@ -20,6 +20,8 @@ const personnelExcelImportSettings: ExcelImportSettings<Personnel> = {
                 return [{ name: item }];
             },
         },
+        { title: 'preferredContactMail', variations: ['preferredContactMail', 'preferred contact mail', 'contactMail', 'contact'] },
+
     ],
     autoGenerateColumns: [
         {

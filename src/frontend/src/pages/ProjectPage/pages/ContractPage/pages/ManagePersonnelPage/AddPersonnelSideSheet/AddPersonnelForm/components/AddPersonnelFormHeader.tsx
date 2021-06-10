@@ -49,6 +49,7 @@ export const AddPersonnelFormHead: FC<AddPersonnelFormHeadProps> = ({
                 <th className={styles.headerRowCell}>Last Name</th>
                 <th className={styles.headerRowCell}>E-Mail</th>
                 <th className={styles.headerRowCell}>Phone Number</th>
+                <th className={styles.headerRowCell}>Pref. contact mail (optional)</th>
                 <th className={styles.headerRowCell}>Dawinci (optional)</th>
                 <th className={styles.headerRowCell}>Disciplines (optional)</th>
             </tr>
