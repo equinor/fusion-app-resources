@@ -24,5 +24,18 @@ namespace Fusion.Resources.Logic.Requests
         }
 
         public IReportableAuthorizationRequirement[] Requirements { get; set; } = Array.Empty<IReportableAuthorizationRequirement>();
+
+        public object ToErrorObject()
+        {
+            return new
+            {
+                error = new
+                {
+                    code = "Forbidden",
+                    message = "You do not meet any of the requirements to access the underlying data.",
+                    accessRequirements = Requirements
+                }
+            };
+        }
     }
 }

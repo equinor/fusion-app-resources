@@ -32,7 +32,9 @@ namespace Fusion.Resources.Authorization.Handlers
             if (activeTaskManagers.Any(x => x.AzureUniqueId == userId))
             {
                 context.Succeed(requirement);
+                return;
             }
+            requirement.SetEvaluation("User is not a task owner for the position.");
         }
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
@@ -214,16 +215,20 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (!HasChanged(request.AdditionalNote, item.AdditionalNote))
                     {
-                        var requiredDepartment = item.AssignedDepartment
-                            ?? item.OrgPosition?.BasePosition?.Department;
-
-                        if (requiredDepartment is not null)
+                        if (item.AssignedDepartment is not null)
                         {
                             or.BeResourceOwner(
-                                new DepartmentPath(requiredDepartment).GoToLevel(2),
+                                new DepartmentPath(item.AssignedDepartment).GoToLevel(2),
                                 includeParents: false,
                                 includeDescendants: true
                             );
+                        }
+                        else
+                        {
+                            or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
+                            or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
+                            or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
+                            or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
                         }
                     }
 
@@ -284,7 +289,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     // Can start with PRD, should maybe instead trim results when competence center starts.
                     or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
                     or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
                     or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
                 });
@@ -369,7 +374,7 @@ namespace Fusion.Resources.Api.Controllers
                     // Start with allowing PRD resource owners access. 
                     // We must eventually allow all resource owners, but trim the list based which is relevant for the business unit.
                     or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
                     or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
                     or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
                 });
@@ -643,7 +648,7 @@ namespace Fusion.Resources.Api.Controllers
             catch (UnauthorizedWorkflowException ex)
             {
                 await scope.RollbackAsync();
-                return FusionApiError.Forbidden(ex.Message);
+                return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -671,7 +676,7 @@ namespace Fusion.Resources.Api.Controllers
             catch (UnauthorizedWorkflowException ex)
             {
                 await scope.RollbackAsync();
-                return FusionApiError.Forbidden(ex.Message);
+                return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -1157,16 +1162,20 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-                    var requiredDepartment = item.AssignedDepartment
-                        ?? item.OrgPosition?.BasePosition?.Department;
-
-                    if (requiredDepartment is not null)
+                    if (item.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
-                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            new DepartmentPath(item.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
+                        or.BeResourceOwner("PDP", includeParents: true, includeDescendants: true);
+                        or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
+                        or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
                     }
                     or.BeRequestCreator(requestId);
                 });
