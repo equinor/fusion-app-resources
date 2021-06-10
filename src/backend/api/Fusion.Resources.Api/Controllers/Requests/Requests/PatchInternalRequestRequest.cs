@@ -50,8 +50,8 @@ namespace Fusion.Resources.Api.Controllers
                         if (d.Value is null)
                             return true;
 
-                        var departments = await mediator.Send(new GetDepartments().ById(d.Value), cancellationToken);
-                        return departments.Any();
+                        var department = await mediator.Send(new GetDepartment(d.Value), cancellationToken);
+                        return department is not null;
                     })
                     .WithMessage("Invalid department specified")
                     .When(x => x.AssignedDepartment.HasValue && x.AssignedDepartment.Value != null);

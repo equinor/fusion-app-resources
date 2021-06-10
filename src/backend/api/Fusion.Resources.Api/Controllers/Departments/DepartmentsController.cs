@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Commands.Departments;
@@ -15,16 +16,17 @@ namespace Fusion.Resources.Api.Controllers.Departments
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
     {
+        private readonly ResourcesDbContext db;
+
+        public DepartmentsController(ResourcesDbContext db)
+        {
+            this.db = db;
+        }
+
         [HttpGet("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
         {
-            var request = new GetDepartments()
-                .ById(departmentString)
-                .ExpandResourceOwners();
-
-            var departments = await DispatchAsync(request);
-            var department = departments.FirstOrDefault();
-
+            var department = await DispatchAsync(new GetDepartment(departmentString));
             if (department is null) return NotFound();
 
             return Ok(new ApiDepartment(department));
@@ -35,7 +37,6 @@ namespace Fusion.Resources.Api.Controllers.Departments
         {
             var request = new GetDepartments()
                 .ExpandDelegatedResourceOwners()
-                .ExpandResourceOwners()
                 .WhereResourceOwnerMatches(query);
 
             var result = await DispatchAsync(request);
@@ -56,13 +57,13 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var existingDepartment = await DispatchAsync(new GetDepartments().ById(request.DepartmentId));
-            if (existingDepartment.Any()) return Conflict();
+            var existingDepartment = await db.Departments.FindAsync(request.DepartmentId);
+            if (existingDepartment is not null) return Conflict();
 
             if (request.SectorId is not null)
             {
-                var existingSector = await DispatchAsync(new GetDepartments().ById(request.SectorId));
-                if (!existingSector.Any()) return BadRequest($"Cannot add department with parent {request.SectorId}. The parent does not exist");
+                var existingSector = await db.Departments.FindAsync(request.SectorId);
+                if (existingSector is null) return BadRequest($"Cannot add department with parent {request.SectorId}. The parent does not exist");
             }
 
 
@@ -90,9 +91,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var departments = await DispatchAsync(new GetDepartments().ById(departmentString));
-            var existingDepartment = departments.FirstOrDefault();
-
+            var existingDepartment = await db.Departments.FindAsync(departmentString);
             if (existingDepartment is null) return NotFound();
 
             var command = new UpdateDepartment(departmentString, request.SectorId);
@@ -115,9 +114,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var departments = await DispatchAsync(new GetDepartments().ById(departmentString));
-            var existingDepartment = departments.FirstOrDefault();
-
+            var existingDepartment = await db.Departments.FindAsync(departmentString);
             if (existingDepartment is null) return NotFound();
 
             var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)

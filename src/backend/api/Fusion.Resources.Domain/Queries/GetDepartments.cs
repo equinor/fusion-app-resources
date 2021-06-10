@@ -1,6 +1,7 @@
 ﻿using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Application.LineOrg;
+using Fusion.Resources.Application.LineOrg.Models;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
@@ -17,10 +18,9 @@ namespace Fusion.Resources.Domain
     public class GetDepartments : IRequest<IEnumerable<QueryDepartment>>
     {
         private bool shouldExpandDelegatedResourceOwners = false;
-        private bool shouldExpandResourceOwners = false;
         private string? resourceOwnerSearch;
 
-        private string? departmentFilter;
+        private string? departmentIdStartsWith;
         private string? sector;
         private string[]? departmentIds = null;
 
@@ -31,9 +31,9 @@ namespace Fusion.Resources.Domain
                 departments = departments.Where(dpt => dpt.SectorId == sector);
             }
 
-            if (!string.IsNullOrEmpty(departmentFilter))
+            if (!string.IsNullOrEmpty(departmentIdStartsWith))
             {
-                departments = departments.Where(dpt => dpt.DepartmentId.StartsWith(departmentFilter));
+                departments = departments.Where(dpt => dpt.DepartmentId.StartsWith(departmentIdStartsWith));
             }
 
             if (departmentIds?.Any() == true)
@@ -46,15 +46,10 @@ namespace Fusion.Resources.Domain
 
         public GetDepartments StartsWith(string department)
         {
-            this.departmentFilter = department;
+            this.departmentIdStartsWith = department;
             return this;
         }
 
-        public GetDepartments ById(string departmentId)
-        {
-            departmentIds = new[] { departmentId };
-            return this;
-        }
         public GetDepartments ByIds(params string[] departmentIds)
         {
             this.departmentIds = departmentIds;
@@ -64,12 +59,6 @@ namespace Fusion.Resources.Domain
         public GetDepartments InSector(string sector)
         {
             this.sector = sector;
-            return this;
-        }
-
-        public GetDepartments ExpandResourceOwners()
-        {
-            shouldExpandResourceOwners = true;
             return this;
         }
 
@@ -85,99 +74,79 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
-        public class Handler : IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
+        public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
         {
-            private readonly ResourcesDbContext db;
-            private readonly ILineOrgResolver lineOrgResolver;
-            private readonly IFusionProfileResolver profileResolver;
-
             public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-            {
-                this.db = db;
-                this.lineOrgResolver = lineOrgResolver;
-                this.profileResolver = profileResolver;
-            }
-
+                : base(db, lineOrgResolver, profileResolver) { }
             public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
             {
-                var result = new List<QueryDepartment>();
-                var departments = await request.Execute(db.Departments)
-                    .ToDictionaryAsync(dpt => dpt.DepartmentId, cancellationToken);
+                List<QueryDepartment> result;
 
-                if (request.shouldExpandResourceOwners)
+                var trackedDepartments = await request.Execute(db.Departments).ToListAsync(cancellationToken);
+                var lineOrgDepartments = await lineOrgResolver.GetResourceOwners(request.resourceOwnerSearch, cancellationToken);
+
+                if (request.departmentIds is not null)
                 {
-                    var searchedDepartments = departments.Keys!.ToHashSet();
-                    if (request.departmentIds?.Any() == true)
-                    {
-                        foreach (var departmentId in request.departmentIds)
-                        {
-                            if (!searchedDepartments.Contains(departmentId))
-                                searchedDepartments.Add(departmentId);
-                        }
-                    }
-
-                    // Optimize search when searching for a specific department
-                    if (request.resourceOwnerSearch is null && request.departmentIds?.Length == 1)
-                    {
-                        request.resourceOwnerSearch = request.departmentIds.Single();
-                    }
-
-                    var resourceOwners = await lineOrgResolver
-                        .GetResourceOwners(request.resourceOwnerSearch, cancellationToken);
-
-                    foreach (var resourceOwner in resourceOwners)
-                    {
-                        if (request.departmentIds is not null && !searchedDepartments.Contains(resourceOwner.DepartmentId)) continue;
-                        // Department found in line org but is not tracked in db
-                        if (!departments.ContainsKey(resourceOwner.DepartmentId))
-                        {
-                            departments[resourceOwner.DepartmentId] = new QueryDepartment(resourceOwner.DepartmentId, null);
-                        }
-
-                        var department = departments[resourceOwner.DepartmentId];
-                        department.LineOrgResponsible = resourceOwner.Responsible;
-
-                        result.Add(department!);
-                    }
+                    var ids = new HashSet<string>(request.departmentIds);
+                    lineOrgDepartments = lineOrgDepartments
+                        .Where(x => ids.Contains(x.DepartmentId))
+                        .ToList();
                 }
-                else
+
+                if (!string.IsNullOrEmpty(request.sector))
                 {
-                    result = departments.Values.ToList();
-                    if (!result.Any() && request.departmentIds is not null)
-                    {
-                        foreach (var department in request.departmentIds)
-                        {
-                            var resourceOwners = await lineOrgResolver
-                                .GetResourceOwners(department, cancellationToken);
-                            result.AddRange(resourceOwners.Select(x => new QueryDepartment(x.DepartmentId, null)));
-                        }
-                    }
+                    lineOrgDepartments = lineOrgDepartments
+                        .Where(x => new DepartmentPath(x.DepartmentId).Parent() == request.sector)
+                        .ToList();
+                }
+
+                if (!string.IsNullOrEmpty(request.departmentIdStartsWith))
+                {
+                    lineOrgDepartments = lineOrgDepartments
+                        .Where(x => new DepartmentPath(x.DepartmentId).Parent() == request.sector)
+                        .ToList();
+                }
+
+                result = MergeResults(trackedDepartments, lineOrgDepartments);
+
+                // Cannot filter requests from db before merging with line org results as we need to
+                // 1. Maintain sector info if tracked in db, and 
+                // 2. Search info from line org if it exists there.
+                if(!string.IsNullOrEmpty(request.resourceOwnerSearch))
+                {
+                    result = result.Where(dpt =>
+                        dpt.DepartmentId.Contains(request.resourceOwnerSearch)
+                        || dpt.LineOrgResponsible?.Name.Contains(request.resourceOwnerSearch) == true
+                        || dpt.LineOrgResponsible?.Mail?.Contains(request.resourceOwnerSearch) == true
+                    ).ToList();
                 }
 
                 if (request.shouldExpandDelegatedResourceOwners)
                 {
                     foreach (var department in result)
                     {
-                        var delegatedResourceOwners = await db.DepartmentResponsibles
-                            .Where(r => r.DepartmentId == department.DepartmentId)
-                            .ToListAsync(cancellationToken);
-
-                        if (delegatedResourceOwners is not null)
-                        {
-                            var resolvedProfiles = await profileResolver
-                                .ResolvePersonsAsync(delegatedResourceOwners.Select(p => new PersonIdentifier(p.ResponsibleAzureObjectId)));
-
-                            department.DelegatedResourceOwners = resolvedProfiles
-                                .Where(res => res.Success)
-                                .Select(res => res.Profile!)
-                                .ToList();
-                        }
+                        await ExpandDelegatedResourceOwner(department, cancellationToken);
                     }
                 }
 
-                
-
                 return result;
+            }
+
+            private List<QueryDepartment> MergeResults(List<QueryDepartment> trackedDepartments, List<LineOrgDepartment> lineOrgDepartments)
+            {
+                var departmentMap = trackedDepartments.ToDictionary(dpt => dpt.DepartmentId);
+                foreach (var lineOrgDepartment in lineOrgDepartments)
+                {
+                    if(departmentMap.ContainsKey(lineOrgDepartment.DepartmentId))
+                    {
+                        departmentMap[lineOrgDepartment.DepartmentId].LineOrgResponsible = lineOrgDepartment.Responsible;
+                    }
+                    else
+                    {
+                        trackedDepartments.Add(new QueryDepartment(lineOrgDepartment));
+                    }
+                }
+                return trackedDepartments;
             }
         }
     }
