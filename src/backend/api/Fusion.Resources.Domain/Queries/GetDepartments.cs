@@ -112,7 +112,7 @@ namespace Fusion.Resources.Domain
                 // Cannot filter requests from db before merging with line org results as we need to
                 // 1. Maintain sector info if tracked in db, and 
                 // 2. Search info from line org if it exists there.
-                if(!string.IsNullOrEmpty(request.resourceOwnerSearch))
+                if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
                 {
                     result = result.Where(dpt =>
                         dpt.DepartmentId.Contains(request.resourceOwnerSearch)
@@ -123,21 +123,18 @@ namespace Fusion.Resources.Domain
 
                 if (request.shouldExpandDelegatedResourceOwners)
                 {
-                    foreach (var department in result)
-                    {
-                        await ExpandDelegatedResourceOwner(department, cancellationToken);
-                    }
+                    await ExpandDelegatedResourceOwner(result, cancellationToken);
                 }
 
                 return result;
             }
 
-            private List<QueryDepartment> MergeResults(List<QueryDepartment> trackedDepartments, List<LineOrgDepartment> lineOrgDepartments)
+            private static List<QueryDepartment> MergeResults(List<QueryDepartment> trackedDepartments, List<LineOrgDepartment> lineOrgDepartments)
             {
                 var departmentMap = trackedDepartments.ToDictionary(dpt => dpt.DepartmentId);
                 foreach (var lineOrgDepartment in lineOrgDepartments)
                 {
-                    if(departmentMap.ContainsKey(lineOrgDepartment.DepartmentId))
+                    if (departmentMap.ContainsKey(lineOrgDepartment.DepartmentId))
                     {
                         departmentMap[lineOrgDepartment.DepartmentId].LineOrgResponsible = lineOrgDepartment.Responsible;
                     }
