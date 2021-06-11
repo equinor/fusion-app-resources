@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IAuthorizationRequirementRule IsResourceOwner(this IAuthorizationRequirementRule builder)
+        public static IAuthorizationRequirementRule BeResourceOwner(this IAuthorizationRequirementRule builder)
         {
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(c => c.User.HasClaim(c => c.Type == FusionClaimsTypes.ResourceOwner))
