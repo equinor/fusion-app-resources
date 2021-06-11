@@ -22,6 +22,7 @@ namespace Fusion.Resources.Api.Controllers
     /// 
     /// </summary>
     [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
     public class PersonController : ResourceControllerBase
