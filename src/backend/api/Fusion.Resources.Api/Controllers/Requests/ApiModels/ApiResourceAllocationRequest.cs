@@ -103,8 +103,8 @@ namespace Fusion.Resources.Api.Controllers
         {
             get
             {
-                var isTypeAllocation = string.Equals(Type, "allocation", StringComparison.InvariantCultureIgnoreCase);
-                var inCreatedState = string.Equals(State, "created", StringComparison.InvariantCultureIgnoreCase);
+                var isTypeAllocation = string.Equals(Type, "allocation", StringComparison.OrdinalIgnoreCase);
+                var inCreatedState = string.Equals(State, "created", StringComparison.OrdinalIgnoreCase);
 
                 return isTypeAllocation && inCreatedState;
             }
