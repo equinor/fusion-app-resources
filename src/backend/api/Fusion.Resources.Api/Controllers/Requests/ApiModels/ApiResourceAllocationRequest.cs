@@ -104,10 +104,9 @@ namespace Fusion.Resources.Api.Controllers
             get
             {
                 var isTypeAllocation = string.Equals(Type, "allocation", StringComparison.InvariantCultureIgnoreCase);
-                var lastCompleteStep = Workflow?.Steps?.Where(s => s.IsCompleted).OrderBy(x => x.Completed).LastOrDefault();
-                var lastCompleteStepIsProposal = string.Equals(lastCompleteStep?.Id, "proposal", StringComparison.InvariantCultureIgnoreCase);
+                var inProposalState = string.Equals(State, "created", StringComparison.InvariantCultureIgnoreCase);
 
-                return isTypeAllocation && lastCompleteStepIsProposal;
+                return isTypeAllocation && inProposalState;
             }
         }
         public ApiResourceAllocationRequest HideProposals()

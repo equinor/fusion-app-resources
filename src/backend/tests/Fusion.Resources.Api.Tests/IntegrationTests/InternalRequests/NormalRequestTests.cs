@@ -317,14 +317,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await FastForward_ProposedRequest();
 
-            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { workflow = new TestApiWorkflow() });
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
             resp.Should().BeSuccessfull();
 
-            resp.Value.workflow.Should().NotBeNull();
-            resp.Value.workflow.State.Should().Be("Running");
+            resp.Value.Workflow.Should().NotBeNull();
+            resp.Value.Workflow.State.Should().Be("Running");
 
-            resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "proposal");
-            resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "proposal");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");
         }
 
         #endregion
@@ -398,7 +398,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequest_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await FastForward_ProposedRequest();
+            await StartRequest_WithProposal(testProject, normalRequest.Id);
 
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
             resp.Value.ProposedPerson.Should().BeNull();
@@ -409,7 +409,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequest_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await FastForward_ProposedRequest();
+            await StartRequest_WithProposal(testProject, normalRequest.Id);
 
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
             
@@ -421,7 +421,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequests_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await FastForward_ProposedRequest();
+            await StartRequest_WithProposal(testProject, normalRequest.Id);
 
             var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests");
             var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
@@ -432,7 +432,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequests_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await FastForward_ProposedRequest();
+            await StartRequest_WithProposal(testProject, normalRequest.Id);
 
             var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/resources/requests/internal");
             var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
@@ -441,6 +441,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         #endregion
+
+        private async Task StartRequest_WithProposal(FusionTestProjectBuilder project, Guid requestId)
+        {
+            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            await Client.StartProjectRequestAsync(project,requestId);
+            await Client.ProposePersonAsync(requestId, testPerson);
+        }
 
         /// <summary>
         /// Perform steps required to end up with a proposed request
