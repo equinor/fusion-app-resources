@@ -403,7 +403,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
             resp.Value.ProposedPerson.Should().BeNull();
             resp.Value.ProposedPersonAzureUniqueId.Should().BeNull();
-            resp.Value.ProposedChanges.Should().BeNull();
         }
         [Fact]
         public async Task NormalRequest_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
@@ -445,9 +444,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private async Task StartRequest_WithProposal()
         {
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
-            await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
+            await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
         }
 
         /// <summary>

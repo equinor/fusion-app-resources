@@ -104,9 +104,10 @@ namespace Fusion.Resources.Api.Controllers
             get
             {
                 var isTypeAllocation = string.Equals(Type, "allocation", StringComparison.OrdinalIgnoreCase);
+                var isNormalRequest = string.Equals(SubType, "normal", StringComparison.OrdinalIgnoreCase);
                 var inCreatedState = string.Equals(State, "created", StringComparison.OrdinalIgnoreCase);
 
-                return isTypeAllocation && inCreatedState;
+                return isTypeAllocation && isNormalRequest && inCreatedState;
             }
         }
         public ApiResourceAllocationRequest HideProposals()
