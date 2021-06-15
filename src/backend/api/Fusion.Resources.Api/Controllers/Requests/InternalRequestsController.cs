@@ -226,10 +226,7 @@ namespace Fusion.Resources.Api.Controllers
                         }
                         else
                         {
-                            or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                            or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
-                            or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                            or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                            or.BeResourceOwner();
                         }
                     }
 
@@ -287,12 +284,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeTrustedApplication();
-
-                    // Can start with PRD, should maybe instead trim results when competence center starts.
-                    or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner();
                 });
             });
 
@@ -367,12 +359,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    // Start with allowing PRD resource owners access. 
-                    // We must eventually allow all resource owners, but trim the list based which is relevant for the business unit.
-                    or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                    or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                    or.BeResourceOwner();
                 });
             });
 
@@ -420,17 +407,17 @@ namespace Fusion.Resources.Api.Controllers
                     if (result.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
 
-
-                    var requiredDepartment = result.AssignedDepartment
-                        ?? result.OrgPosition?.BasePosition?.Department;
-
-                    if (requiredDepartment is not null)
+                    if (result.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
-                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            new DepartmentPath(result.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
                     }
                 });
             });
@@ -985,16 +972,17 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-                    var requiredDepartment = item.AssignedDepartment
-                        ?? item.OrgPosition?.BasePosition?.Department;
-
-                    if (requiredDepartment is not null)
+                    if (item.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
-                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            new DepartmentPath(item.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
                     }
 
                     or.BeRequestCreator(requestId);
@@ -1032,16 +1020,17 @@ namespace Fusion.Resources.Api.Controllers
                         or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
 
-                    var requiredDepartment = item.AssignedDepartment
-                        ?? item.OrgPosition?.BasePosition?.Department;
-
-                    if (requiredDepartment is not null)
+                    if (item.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
-                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            new DepartmentPath(item.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
                     }
                 });
             });
@@ -1113,16 +1102,17 @@ namespace Fusion.Resources.Api.Controllers
                         or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
 
-                    var requiredDepartment = item.AssignedDepartment
-                        ?? item.OrgPosition?.BasePosition?.Department;
-
-                    if (requiredDepartment is not null)
+                    if (item.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
-                            new DepartmentPath(requiredDepartment).GoToLevel(2),
+                            new DepartmentPath(item.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
                     }
                 });
             });
@@ -1163,10 +1153,7 @@ namespace Fusion.Resources.Api.Controllers
                     }
                     else
                     {
-                        or.BeResourceOwner("TPD PRD", includeParents: true, includeDescendants: true);
-                        or.BeResourceOwner("PDP PRD", includeParents: true, includeDescendants: true);
-                        or.BeResourceOwner("CFO GBS", includeParents: true, includeDescendants: true);
-                        or.BeResourceOwner("TDI", includeParents: true, includeDescendants: true);
+                        or.BeResourceOwner();
                     }
                     or.BeRequestCreator(requestId);
                 });
@@ -1208,6 +1195,8 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                    if (departmentPath is not null)
+                        or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
                 });
             });
 
