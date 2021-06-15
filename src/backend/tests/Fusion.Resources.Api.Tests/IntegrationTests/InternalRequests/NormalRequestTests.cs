@@ -398,7 +398,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequest_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal(testProject, normalRequest.Id);
+            await StartRequest_WithProposal();
 
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
             resp.Value.ProposedPerson.Should().BeNull();
@@ -409,10 +409,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequest_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal(testProject, normalRequest.Id);
+            await StartRequest_WithProposal();
 
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
-            
+
             resp.Value.ProposedPerson.Should().NotBeNull();
             resp.Value.ProposedPersonAzureUniqueId.Should().NotBeNull();
         }
@@ -421,7 +421,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequests_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal(testProject, normalRequest.Id);
+            await StartRequest_WithProposal();
 
             var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests");
             var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
@@ -432,7 +432,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequests_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal(testProject, normalRequest.Id);
+            await StartRequest_WithProposal();
 
             var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/resources/requests/internal");
             var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
@@ -442,12 +442,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #endregion
 
-        private async Task StartRequest_WithProposal(FusionTestProjectBuilder project, Guid requestId)
+        private async Task StartRequest_WithProposal()
         {
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
-            await Client.StartProjectRequestAsync(project,requestId);
-            await Client.ProposePersonAsync(requestId, testPerson);
+            await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            await Client.ProposePersonAsync(normalRequest.Id, testPerson);
         }
 
         /// <summary>
