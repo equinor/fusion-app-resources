@@ -213,7 +213,44 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanReassignOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        public async Task CanReassignDepartmentOnRequest(string role, string department, bool shouldBeAllowed)
+        {
+            const string changedDepartment = "TPD UPD ASD";
+            fixture.EnsureDepartment(changedDepartment);
+            Users[role].FullDepartment = department;
+
+            var request = await CreateAndStartRequest();
+            using (var adminScope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = TestDepartment }
+                );
+                result.Should().BeSuccessfull();
+            }
+
+            using (var userScope = fixture.UserScope(Users[role]))
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = changedDepartment }
+                );
+
+                if (shouldBeAllowed) result.Should().BeSuccessfull();
+                else result.Should().BeUnauthorized();
+            }
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", "PDP PRD FE ANE ANE5", true)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
+        public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
             fixture.EnsureDepartment(changedDepartment);
@@ -596,7 +633,59 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
+        }
 
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, "GET,PATCH")]
+        [InlineData("resourceOwner", SiblingDepartment, "GET,PATCH")]
+        [InlineData("resourceOwner", ParentDepartment, "GET,PATCH")]
+        [InlineData("resourceOwner", SameL2Department, "GET,PATCH")]
+        public async Task CanGetOtionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
+        {
+            var request = await CreateChangeRequest(TestDepartment);
+
+            using (var adminscope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+                await client.AssignDepartmentAsync(request.Id, null);
+            }
+
+            fixture.EnsureDepartment(TestDepartment);
+            using (var userScope = fixture.UserScope(Users[role]))
+            {
+                Users[role].FullDepartment = department;
+                var client = fixture.ApiFactory.CreateClient();
+
+                var result = await client.TestClientOptionsAsync(
+                    $"/projects/{request.Project.Id}/requests/{request.Id}"
+                );
+                CheckAllowHeader(allowedVerbs, result);
+            }
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", "PDP PRS XXX YYY", true)]
+        [InlineData("resourceOwner", "CFO GBS XXX YYY", true)]
+        [InlineData("resourceOwner", "TDI XXX YYY", true)]
+        [InlineData("resourceOwner", "CFO SBG YYY", true)]
+        public async Task CanGetInternalRequests(string role, string department, bool shouldBeAllowed)
+        {
+            fixture.EnsureDepartment(TestDepartment);
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientGetAsync<dynamic>($"/resources/requests/internal");
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
         }
 
         private static void CheckAllowHeader(string allowed, TestClientHttpResponse<dynamic> result)
