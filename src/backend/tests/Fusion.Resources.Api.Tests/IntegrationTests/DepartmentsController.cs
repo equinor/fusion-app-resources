@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Fusion.Integration.Profile;
+using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using System;
@@ -30,13 +31,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.External);
+            fixture.DisableMemoryCache();
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
 
 
         [Fact]
-        public async Task ShouldCreateSectorSuccessfully()
+        public async Task CreateSector_ShouldBeSuccessfull()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -51,7 +53,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldCreateDepartmentSuccessfully()
+        public async Task AddDepartment_Should_BeSuccessfull()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -67,7 +69,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldCreateDepartmentSuccessfullyWhenExistsInLineOrg()
+        public async Task AddeDepartment_Should_BeSuccessfull_WhenExistsInLineOrg()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -102,7 +104,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldGiveBadRequestWhenSectorDoesNotExist()
+        public async Task AddDepartment_ShouldGiveBadRequest_WhenSectorDoesNotExist()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -116,7 +118,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldGiveNotFoundWhenUpdatingNonExistantDepartment()
+        public async Task UpdateDepartment_ShouldGiveNotFound_WhenDepartmentNotInDb()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -129,7 +131,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldGiveNotFoundWhenRetreivingNotInLineOrg()
+        public async Task GetDepartment_ShouldGiveNotFound_WhenNotInLineOrg()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -148,7 +150,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldGetDepartmentNotInDbWhenInLineOrg()
+        public async Task GetDepartment_Should_GetFromLineOrg_WhenNotInDb()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var lineorgData = new
@@ -179,7 +181,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task SearchShouldGetDepartmentNotInDbWhenInLineOrg()
+        public async Task SearchDepartment_Should_GetFromLineOrg_WhenNotInDb()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var lineorgData = new
@@ -210,7 +212,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task ShouldAllowAdminToAddDepartmentResponsible()
+        public async Task AddDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
         {
             var testDepartment = "TPD LIN ORG TST";
             fixture.EnsureDepartment(testDepartment);
@@ -226,6 +228,44 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        [Fact]
+        public async Task RelevantDepartments_ShouldGetDataFromLineOrg()
+        {
+            var department = "PDP TST ABC";
+            var siblings = new[] { "PDP TST DEF", "PDP TST GHI" };
+            var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
+            fixture.EnsureDepartment(department);
+
+            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
+            foreach (var child in children) fixture.EnsureDepartment(child);
+
+            fixture.LineOrg.WithResponse("/lineorg/departments/PDP TST", new { children = new[] { new { name = siblings[0], fullName = siblings[0] }, new { name = siblings[1], fullName = siblings[1] } } });
+            fixture.LineOrg.WithResponse("/lineorg/departments/PDP TST ABC", new { children = new[] { new { name = children[0], fullName = children[0] }, new { name = children[1], fullName = children[1] } } });
+
+            using var adminScope = fixture.AdminScope();
+            var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
+            resp.Should().BeSuccessfull();
+
+            resp.Value.Siblings.Should().BeEquivalentTo(siblings);
+            resp.Value.Children.Should().BeEquivalentTo(children);
+        }
+
+        [Fact]
+        public async Task RelevantDepartments_ShouldGiveNotFound_WhenNoData()
+        {
+            var department = "PDP TST ABC";
+            
+            using var adminScope = fixture.AdminScope();
+            var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
+            resp.Should().BeNotFound();
+        }
+
+        private class TestApiRelevantDepartments
+        {
+            public List<string> Children { get; set; }
+            public List<string> Siblings { get; set; }
         }
     }
 }

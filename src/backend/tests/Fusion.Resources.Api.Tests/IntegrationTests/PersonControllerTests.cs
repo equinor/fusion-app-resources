@@ -42,10 +42,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ShouldIgnoreNonCurrentDepartmentDelegations()
         {
+            var actualDept = "TPD PRD TST ABC";
             var currentDelegatedDept = "TPD PRD TST ASD QWE";
             var futureDelegatedDept = "TPD PRD TST FUT WFD";
             var previousDelegatedDept = "TPD PRD TST PRV WFD";
 
+            fixture.EnsureDepartment(actualDept);
             fixture.EnsureDepartment(currentDelegatedDept);
             fixture.EnsureDepartment(futureDelegatedDept);
             fixture.EnsureDepartment(previousDelegatedDept);
@@ -61,6 +63,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using (var userScope = fixture.UserScope(testUser))
             {
+                testUser.FullDepartment = actualDept;
                 var client = fixture.ApiFactory.CreateClient();
                 var resp = await client.TestClientGetAsync(
                     $"/persons/me/resources/profile?api-version=1.0-preview",

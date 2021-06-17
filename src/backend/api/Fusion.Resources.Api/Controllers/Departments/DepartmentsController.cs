@@ -16,15 +16,6 @@ namespace Fusion.Resources.Api.Controllers.Departments
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
     {
-        [HttpGet("/departments/{departmentString}")]
-        public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
-        {
-            var department = await DispatchAsync(new GetDepartment(departmentString));
-            if (department is null) return NotFound();
-
-            return Ok(new ApiDepartment(department));
-        }
-
         [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
@@ -75,6 +66,24 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 new { departmentString = newDepartment.DepartmentId },
                 new ApiDepartment(newDepartment)
             );
+        }
+
+        [HttpGet("/departments/{departmentString}")]
+        public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
+        {
+            var department = await DispatchAsync(new GetDepartment(departmentString));
+            if (department is null) return NotFound();
+
+            return Ok(new ApiDepartment(department));
+        }
+
+        [HttpGet("/departments/{departmentString}/related")]
+        public async Task<ActionResult<ApiRelevantDepartments>> GetRelevantDepartments(string departmentString)
+        {
+            var departments = await DispatchAsync(new GetRelevantDepartments(departmentString));
+            if (departments is null) return NotFound();
+
+            return Ok(new ApiRelevantDepartments(departments));
         }
 
         [HttpPut("/departments/{departmentString}")]
