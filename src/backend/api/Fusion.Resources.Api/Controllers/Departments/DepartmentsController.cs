@@ -16,13 +16,6 @@ namespace Fusion.Resources.Api.Controllers.Departments
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
     {
-        private readonly ResourcesDbContext db;
-
-        public DepartmentsController(ResourcesDbContext db)
-        {
-            this.db = db;
-        }
-
         [HttpGet("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
         {
@@ -57,13 +50,19 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var existingDepartment = await db.Departments.FindAsync(request.DepartmentId);
-            if (existingDepartment is not null) return Conflict();
+            var existingDepartment = await DispatchAsync(new GetDepartment(request.DepartmentId));
+            if (existingDepartment is not null && existingDepartment.IsTracked) return Conflict();
 
             if (request.SectorId is not null)
             {
-                var existingSector = await db.Departments.FindAsync(request.SectorId);
+                var existingSector = await DispatchAsync(new GetDepartment(request.SectorId));
                 if (existingSector is null) return BadRequest($"Cannot add department with parent {request.SectorId}. The parent does not exist");
+                
+                if (!existingSector.IsTracked)
+                {
+                    var addSector = new AddDepartment(existingSector.DepartmentId, null);
+                    var newSector = await DispatchAsync(addSector);
+                }
             }
 
 
@@ -91,8 +90,8 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var existingDepartment = await db.Departments.FindAsync(departmentString);
-            if (existingDepartment is null) return NotFound();
+            var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
+            if (existingDepartment is null || !existingDepartment.IsTracked) return NotFound();
 
             var command = new UpdateDepartment(departmentString, request.SectorId);
 
@@ -114,8 +113,8 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var existingDepartment = await db.Departments.FindAsync(departmentString);
-            if (existingDepartment is null) return NotFound();
+            var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
+            if (existingDepartment is null || !existingDepartment.IsTracked) return NotFound();
 
             var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
             {

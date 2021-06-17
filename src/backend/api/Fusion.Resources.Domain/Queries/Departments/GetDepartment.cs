@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain
 
                 QueryDepartment? result;
                 if (trackedDepartment is not null)
-                    result = new QueryDepartment(trackedDepartment);
+                    result = new QueryDepartment(trackedDepartment) { IsTracked = true };
                 else if (lineOrgDpt is not null)
                     result = new QueryDepartment(lineOrgDpt.DepartmentId, null);
                 else

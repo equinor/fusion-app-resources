@@ -30,5 +30,6 @@ namespace Fusion.Resources.Domain
 
         public FusionPersonProfile? LineOrgResponsible { get; set; }
         public List<FusionPersonProfile>? DelegatedResourceOwners { get; set; }
+        public bool IsTracked { get; set; } = false;
     }
 }
