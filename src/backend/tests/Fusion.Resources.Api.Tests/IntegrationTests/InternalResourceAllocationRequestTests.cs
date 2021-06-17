@@ -582,6 +582,48 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        [Fact]
+        public async Task UpdateRequest_ProposedPersonShouldBeNullable_WhenInDraft()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}", 
+                new {  proposedPersonAzureUniqueId = null as Guid? } 
+            );
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPersonAzureUniqueId.Should().BeNull();
+        }
+        [Fact]
+        public async Task UpdateRequest_ProposedPersonShouldBeNullable_WhenCreated()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { proposedPersonAzureUniqueId = null as Guid? }
+            );
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPersonAzureUniqueId.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ProposedPersonShouldNotBeNullable_WhenApproving()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            await Client.ProposePersonAsync(normalRequest.Id, testUser);
+            await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { proposedPersonAzureUniqueId = null as Guid? }
+            );
+            response.Should().BeBadRequest();
+        }
         #endregion
 
         #region Create request tests
