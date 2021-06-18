@@ -1,5 +1,7 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Api.Controllers.Departments;
+using Fusion.Resources.Domain;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -7,11 +9,14 @@ namespace Fusion.Resources.Api.Controllers
     {
         public ApiRelevantDepartments(QueryRelevantDepartments relevantDepartments)
         {
-            Children = relevantDepartments.Children;
-            Siblings = relevantDepartments.Siblings;
+            Children = relevantDepartments.Children is not null 
+                ? relevantDepartments.Children.Select(x => new ApiDepartment(x)).ToList()
+                : new List<ApiDepartment>();
+            Siblings = relevantDepartments.Siblings is not null
+                ? relevantDepartments.Siblings.Select(x => new ApiDepartment(x)).ToList()
+                : new List<ApiDepartment>();
         }
-        public List<string> Children { get; set; }
-        public List<string> Siblings { get; set; }
-
+        public List<ApiDepartment> Children { get; set; }
+        public List<ApiDepartment> Siblings { get; set; }
     }
 }

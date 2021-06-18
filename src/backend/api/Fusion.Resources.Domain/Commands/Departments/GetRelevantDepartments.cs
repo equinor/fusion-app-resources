@@ -24,12 +24,14 @@ namespace Fusion.Resources.Domain
         public class Handler : IRequestHandler<GetRelevantDepartments, QueryRelevantDepartments?>
         {
             private readonly ILogger<Handler> logger;
+            private readonly IMediator mediator;
             private readonly IMemoryCache memoryCache;
             private readonly HttpClient lineOrgClient;
 
-            public Handler(ILogger<Handler> logger, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+            public Handler(ILogger<Handler> logger, IMediator mediator, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
             {
                 this.logger = logger;
+                this.mediator = mediator;
                 this.memoryCache = memoryCache;
                 this.lineOrgClient = httpClientFactory.CreateClient("lineorg");
             }
@@ -86,7 +88,8 @@ namespace Fusion.Resources.Domain
                     {
                         children = new[] { new { name = string.Empty, fullName = string.Empty } }
                     });
-                    relevantDepartments.Children = department.children.Select(d => d.fullName).ToList();
+                    var children = await mediator.Send(new GetDepartments().ByIds(department.children.Select(d => d.fullName)));
+                    relevantDepartments.Children = children.ToList();
                 }
                 else if (respCurrent.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
@@ -101,7 +104,9 @@ namespace Fusion.Resources.Domain
                     {
                         children = new[] { new { name = string.Empty, fullName = string.Empty } }
                     });
-                    relevantDepartments.Siblings = department.children.Select(d => d.fullName).ToList();
+                    var siblings = await mediator.Send(new GetDepartments().ByIds(department.children.Select(d => d.fullName)));
+
+                    relevantDepartments.Siblings = siblings.ToList();
                 }
 
                 return relevantDepartments;

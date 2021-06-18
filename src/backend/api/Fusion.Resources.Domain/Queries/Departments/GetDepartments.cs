@@ -56,6 +56,13 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
+        public GetDepartments ByIds(IEnumerable<string> departmentIds)
+        {
+            this.departmentIds = departmentIds.ToArray();
+            return this;
+        }
+
+
         public GetDepartments InSector(string sector)
         {
             this.sector = sector;

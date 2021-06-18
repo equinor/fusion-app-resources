@@ -79,8 +79,8 @@ namespace Fusion.Resources.Domain.Queries
                 var resourceOwnerProfile = new QueryResourceOwnerProfile(user.FullDepartment, isDepartmentManager, departmentsWithResponsibility, relevantSectors)
                 {
                     Sector = sector,
-                    ChildDepartments = lineOrgDepartmentProfile?.Children.ToList(),
-                    SiblingDepartments = lineOrgDepartmentProfile?.Siblings.ToList()
+                    ChildDepartments = lineOrgDepartmentProfile?.Children.Select(x => x.DepartmentId).ToList(),
+                    SiblingDepartments = lineOrgDepartmentProfile?.Siblings.Select(x => x.DepartmentId).ToList()
                 };
 
                 return resourceOwnerProfile;

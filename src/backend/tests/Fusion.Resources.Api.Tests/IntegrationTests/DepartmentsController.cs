@@ -248,8 +248,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
             resp.Should().BeSuccessfull();
 
-            resp.Value.Siblings.Should().BeEquivalentTo(siblings);
-            resp.Value.Children.Should().BeEquivalentTo(children);
+            resp.Value.Siblings.Select(x => x.Name).Should().BeEquivalentTo(siblings);
+            resp.Value.Children.Select(x => x.Name).Should().BeEquivalentTo(children);
         }
 
         [Fact]
@@ -264,8 +264,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         private class TestApiRelevantDepartments
         {
-            public List<string> Children { get; set; }
-            public List<string> Siblings { get; set; }
+            public List<TestDepartment> Children { get; set; }
+            public List<TestDepartment> Siblings { get; set; }
         }
     }
 }

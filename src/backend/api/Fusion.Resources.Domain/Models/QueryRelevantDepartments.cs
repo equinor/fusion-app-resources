@@ -4,7 +4,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryRelevantDepartments
     {
-        public List<string> Children { get; set; } = new List<string>();
-        public List<string> Siblings { get; set; } = new List<string>();
+        public List<QueryDepartment> Children { get; set; } = new List<QueryDepartment>();
+        public List<QueryDepartment> Siblings { get; set; } = new List<QueryDepartment>();
     }
 }
