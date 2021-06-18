@@ -41,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
 
                         return false;
                     })
-                    .When(x => x.ProposedPersonAzureUniqueId.HasValue);
+                    .When(x => x.ProposedPersonAzureUniqueId.HasValue && x.ProposedPersonAzureUniqueId.Value.HasValue);
 
 
                 RuleFor(x => x.AssignedDepartment)

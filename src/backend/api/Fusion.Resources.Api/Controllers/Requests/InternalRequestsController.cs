@@ -10,6 +10,7 @@ using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Fusion.Resources.Logic;
 using Fusion.Resources.Logic.Requests;
+using Fusion.Resources.Logic.Workflows;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -70,7 +71,8 @@ namespace Fusion.Resources.Api.Controllers
                 OrgPositionId = request.OrgPositionId,
                 OrgProjectId = projectIdentifier.ProjectId,
                 OrgPositionInstanceId = request.OrgPositionInstanceId,
-                AssignedDepartment = request.AssignedDepartment
+                AssignedDepartment = request.AssignedDepartment,
+                ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId,
             };
 
             try
@@ -244,7 +246,13 @@ namespace Fusion.Resources.Api.Controllers
                 if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
                 if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
-                if (request.ProposedPersonAzureUniqueId.HasValue) updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
+
+                if (request.ProposedPersonAzureUniqueId.HasValue)
+                {
+                    if (!request.ProposedPersonAzureUniqueId.Value.HasValue && !CanUnsetProposedPerson(item))
+                        return BadRequest("Cannot remove proposed person when request is not draft.");
+                    updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
+                }
                 if (request.ProposalParameters.HasValue)
                 {
                     var @params = request.ProposalParameters.Value;
@@ -266,6 +274,13 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.InvalidOperation(ve);
             }
+        }
+
+        private static bool CanUnsetProposedPerson(QueryResourceAllocationRequest item)
+        {
+            return item.IsDraft
+                || item.State == AllocationNormalWorkflowV1.CREATED
+                || item.State == AllocationNormalWorkflowV1.PROPOSAL;
         }
 
         [HttpGet("/resources/requests/internal")]
