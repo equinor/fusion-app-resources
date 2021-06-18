@@ -64,11 +64,17 @@ namespace Fusion.Testing.Mocks.OrgService
             return this;
         }
 
+        public FusionTestProjectBuilder WithDomainId(string domainId)
+        {
+            project.DomainId = domainId;
+            return this;
+        }
+
         /// <summary>
         /// Add a random contract without any positions.
         /// </summary>
-        public FusionTestProjectBuilder WithContract() => WithContract(builder => { } );
-        public FusionTestProjectBuilder WithContractAndPositions() => WithContract(builder => builder.WithPositions() );
+        public FusionTestProjectBuilder WithContract() => WithContract(builder => { });
+        public FusionTestProjectBuilder WithContractAndPositions() => WithContract(builder => builder.WithPositions());
 
         public FusionTestProjectBuilder WithContract(Action<FusionTestContractBuilder> contractSetup)
         {
@@ -81,6 +87,14 @@ namespace Fusion.Testing.Mocks.OrgService
             return this;
         }
 
+        public FusionTestProjectBuilder WithProperty(string key, object value)
+        {
+            if (project.Properties is null)
+                project.Properties = new ApiPropertiesCollectionV2();
+
+            project.Properties[key] = value;
+            return this;
+        }
 
         public FusionTestProjectBuilder WithPositions(int count) => WithPositions(count, count);
         public FusionTestProjectBuilder WithPositions(int min = 3, int max = 10)
@@ -146,7 +160,7 @@ namespace Fusion.Testing.Mocks.OrgService
 
             setup?.Invoke(bp);
 
-
+            PositionBuilder.AddBaseposition(bp.JsonClone());
             return bp;
         }
 
@@ -183,7 +197,10 @@ namespace Fusion.Testing.Mocks.OrgService
             };
 
             var clone = position.JsonClone();
-            OrgServiceMock.positions.Add(clone);
+            OrgServiceMock.semaphore.Wait();
+            try { OrgServiceMock.positions.Add(clone); }
+            finally { OrgServiceMock.semaphore.Release(); }
+
             return clone;
         }
     }

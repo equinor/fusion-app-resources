@@ -32,13 +32,21 @@ namespace Fusion.Resources.Api.Controllers
         {
             return builder.AddRule(OrgPositionAccessRequirement.OrgPositionRead(orgProjectId, orgPositionId));
         }
+        public static IAuthorizationRequirementRule OrgChartReadAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId)
+        {
+            return builder.AddRule(OrgProjectAccessRequirement.OrgRead(orgProjectId));
+        }
+        public static IAuthorizationRequirementRule OrgChartWriteAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId)
+        {
+            return builder.AddRule(OrgProjectAccessRequirement.OrgWrite(orgProjectId));
+        }
 
         /// <summary>
         /// Indicates that the user is in any way or form a resource owner
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IAuthorizationRequirementRule IsResourceOwner(this IAuthorizationRequirementRule builder)
+        public static IAuthorizationRequirementRule BeResourceOwner(this IAuthorizationRequirementRule builder)
         {
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(c => c.User.HasClaim(c => c.Type == FusionClaimsTypes.ResourceOwner))
@@ -120,6 +128,12 @@ namespace Fusion.Resources.Api.Controllers
         {
             builder.AddRule(comment, new RequestCommentAuthor());
 
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule BeRequestCreator(this IAuthorizationRequirementRule builder, Guid requestId)
+        {
+            builder.AddRule(new RequestCreatorRequirement(requestId));
             return builder;
         }
 

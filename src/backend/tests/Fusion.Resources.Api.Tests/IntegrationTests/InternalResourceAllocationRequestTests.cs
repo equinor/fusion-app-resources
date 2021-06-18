@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
@@ -76,6 +76,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
+            
+            //fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
+            //    .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
             //commentResponse.Should().BeSuccessfull();
             //testCommentId = commentResponse.Value.Id;
@@ -95,8 +98,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
-            response.Should().BeSuccessfull();
+            response.Should().BeSuccessfull();            
         }
+
+        [Fact]
+        public async Task Delete_InternalRequest_ShouldSendSubscriptionEvent()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
+
+            fixture.GetNotificationMessages<Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent>("resources-sub")
+                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestRemoved);
+        }
+
         [Fact]
         public async Task Delete_InternalRequest_NonExistingRequest_ShouldBeNotFound()
         {
@@ -529,6 +544,36 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task UpdateRequest_ShouldNotBeBadRequest_WhenPatchingDepartmentInLineOrg()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+               {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD LIN ORG TST"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{normalRequest.Id}", new { assignedDepartment = "TPD LIN ORG TST" });
+            response.Should().BeSuccessfull();
+        }
+
+        [Fact]
         public async Task UpdateRequest_ShouldBadRequest_WhenPatchingInvalidProposedChanges()
         {
             using var adminScope = fixture.AdminScope();
@@ -537,6 +582,48 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        [Fact]
+        public async Task UpdateRequest_ProposedPersonShouldBeNullable_WhenInDraft()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}", 
+                new {  proposedPersonAzureUniqueId = null as Guid? } 
+            );
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPersonAzureUniqueId.Should().BeNull();
+        }
+        [Fact]
+        public async Task UpdateRequest_ProposedPersonShouldBeNullable_WhenCreated()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { proposedPersonAzureUniqueId = null as Guid? }
+            );
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPersonAzureUniqueId.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task UpdateRequest_ProposedPersonShouldNotBeNullable_WhenApproving()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            await Client.ProposePersonAsync(normalRequest.Id, testUser);
+            await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { proposedPersonAzureUniqueId = null as Guid? }
+            );
+            response.Should().BeBadRequest();
+        }
         #endregion
 
         #region Create request tests
@@ -549,6 +636,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response.Should().BeBadRequest();
         }
+
+        [Fact]
+        public void CreateRequest_ShouldSendSubscriptionEvent()
+        {
+            fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
+                .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
+        }
+
 
         [Fact]
         public async Task CreateRequest_ShouldBeBadRequest_WhenNormalAndNoInstance()

@@ -65,11 +65,39 @@ namespace Fusion.Resources.Api.Controllers
             var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
             return mediator.Send(command);
         }
+        protected Task DispatchAsync(INotification notification)
+        {
+            var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
+            return mediator.Publish(notification);
+        }
 
         protected Task<ApiPositionV2?> ResolvePositionAsync(Guid positionId)
         {
             var orgResolver = HttpContext.RequestServices.GetRequiredService<IProjectOrgResolver>();
             return orgResolver.ResolvePositionAsync(positionId);
+        }
+
+        protected Task<ApiProjectV2?> ResolveProjectAsync(Guid projectId)
+        {
+            var orgResolver = HttpContext.RequestServices.GetRequiredService<IProjectOrgResolver>();
+            return orgResolver.ResolveProjectAsync(projectId);
+        }
+
+        protected async Task<(bool isDisabled, ActionResult? response)> IsChangeRequestsDisabledAsync(Guid orgProjectId)
+        {
+            var project = await ResolveProjectAsync(orgProjectId);
+
+            if (project is null)
+                throw new InvalidOperationException("Could not locate project");
+
+            if (project.Properties.GetProperty<bool>("resourceOwnerRequestsEnabled", false))
+                return (false, null);
+
+            var writeEnabled = project.Properties.GetProperty<bool>("pimsWriteSyncEnabled", false);
+            if (writeEnabled)
+                return (false, null);
+
+            return (true, ApiErrors.InvalidOperation("ChangeRequestsDisabled", "The project does not currently support change requests from resource owners..."));
         }
 
         public class CommandDispatcher

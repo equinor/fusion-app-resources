@@ -1,15 +1,12 @@
 ﻿using FluentValidation;
+using Fusion.Integration;
+using Fusion.Integration.Org;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
-using Fusion.Integration.Org;
-using Microsoft.Extensions.Logging;
-using FluentValidation.Validators;
-using System.Collections.Generic;
-using FluentValidation.Results;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -42,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<CreateResourceAllocationRequest>
         {
-            public Validator()
+            public Validator(IFusionProfileResolver profileResolver)
             {
                 RuleFor(x => x.Type).NotNull().NotEmpty();
                 RuleFor(x => x.Type).IsEnumName(typeof(ApiAllocationRequestType), false)
@@ -85,6 +82,53 @@ namespace Fusion.Resources.Api.Controllers
                         {
                             logger.LogError(ex, "Could not resolve position from org chart");
                             context.AddFailure($"Could not resolve position from org chart: {ex.Message}");
+                        }
+                    });
+
+                RuleFor(x => x.ProposedPersonAzureUniqueId)
+                    .CustomAsync(async (id, context, ct) =>
+                    {
+                        if (!id.HasValue) return;
+
+                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
+
+                        try
+                        {
+                            var profile = await profileResolver.ResolvePersonBasicProfileAsync(id.Value);
+                            if (profile is null) context.AddFailure($"Could not find person with id '{id.Value}'");
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, $"Could not resolve person with id '{id.Value}'.");
+                            context.AddFailure($"Could not resolve person with id '{id.Value}': {ex.Message}");
+                        }
+
+                    });
+                RuleFor(x => x)
+                    .CustomAsync(async (req, context, ct) =>
+                    {
+                        if (!req.ProposedPersonAzureUniqueId.HasValue || string.IsNullOrEmpty(req.AssignedDepartment)) return;
+
+                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
+                        var id = req.ProposedPersonAzureUniqueId.Value;
+                        try
+                        {
+                            var profile = await profileResolver.ResolvePersonBasicProfileAsync(id);
+                            if (profile is null)
+                            {
+                                context.AddFailure($"Could not find person with id '{id}'");
+                                return;
+                            }
+
+                            if(!string.IsNullOrEmpty(profile.FullDepartment) && !profile.FullDepartment.Equals(req.AssignedDepartment, StringComparison.OrdinalIgnoreCase))
+                            {
+                                context.AddFailure($"Cannot assign request to '{req.AssignedDepartment.ToUpper()}'. The proposed person must belong to the assigned department.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, $"Could not resolve person with id '{id}'.");
+                            context.AddFailure($"Could not resolve person with id '{id}': {ex.Message}");
                         }
                     });
             }

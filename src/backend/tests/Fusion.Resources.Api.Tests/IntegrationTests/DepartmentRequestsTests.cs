@@ -66,32 +66,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.EnsureDepartment(TimelineDepartment);
         }
 
-        [Fact]
-        public async Task GetUnassigned_ShouldNotBeIncluded_WhenCompleted()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
-            var testRequest = await Client.CreateDefaultRequestAsync(testProject);
-            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
-
-            //TODO: Should request be auto-assigned?
-            testRequest = await Client.AssignAnDepartmentAsync(testRequest.Id);
-
-            await Client.ProposePersonAsync(testRequest.Id, testPerson);
-            await Client.ResourceOwnerApproveAsync(InternalRequestData.RandomDepartment, testRequest.Id);
-            await Client.TaskOwnerApproveAsync(testProject, testRequest.Id);
-            await Client.ProvisionRequestAsync(testRequest.Id);
-
-            var list = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned", new
-            {
-                value = new[] { new { id = Guid.Empty } }
-            });
-
-            list.Value.value.Should().NotContain(r => r.id == testRequest.Id);
-        }
-
         #region GetDeparmentRequests
 
         [Fact]

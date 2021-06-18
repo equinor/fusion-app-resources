@@ -93,14 +93,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Theory]
+        [InlineData("projectReadAccess", true)]
         [InlineData("projectMember", true)]
         [InlineData("normalEmployee", false)]
         public async Task GetRequestInProject_When(string testCase, bool shouldHaveAccess)
         {
+            OrgRequestInterceptor? i = null;
+
             var projectMemberUser = fixture.AddProfile(FusionAccountType.Employee);
 
             if (testCase == "projectMember")
                 projectMemberUser.WithPosition(testProject.AddPosition().WithEnsuredFutureInstances().WithAssignedPerson(projectMemberUser));
+            if (testCase == "projectReadAccess")
+                 i = OrgRequestMocker.InterceptOption($"/{projectId}").RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "GET"));
+
 
             using var projectMemberScope = fixture.UserScope(projectMemberUser);
 
@@ -110,6 +116,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 resp.Should().BeSuccessfull();
             else
                 resp.Should().BeUnauthorized();
+
+            if (i != null)
+                i.Dispose();
         }
 
         [Fact]

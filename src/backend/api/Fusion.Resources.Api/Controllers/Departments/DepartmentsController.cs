@@ -23,8 +23,11 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 .ExpandResourceOwners();
 
             var departments = await DispatchAsync(request);
+            var department = departments.FirstOrDefault();
 
-            return Ok(new ApiDepartment(departments.Single()));
+            if (department is null) return NotFound();
+
+            return Ok(new ApiDepartment(department));
         }
 
         [HttpGet("/departments")]
@@ -97,6 +100,36 @@ namespace Fusion.Resources.Api.Controllers.Departments
             var newDepartment = await DispatchAsync(command);
 
             return Ok(new ApiDepartment(newDepartment));
+        }
+
+        [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
+        public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
+        {
+            #region Authorization
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            var departments = await DispatchAsync(new GetDepartments().ById(departmentString));
+            var existingDepartment = departments.FirstOrDefault();
+
+            if (existingDepartment is null) return NotFound();
+
+            var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
+            {
+                DateFrom = request.DateFrom,
+                DateTo = request.DateTo
+            };
+
+            await DispatchAsync(command);
+
+
+            return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
         }
     }
 }

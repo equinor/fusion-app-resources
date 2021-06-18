@@ -75,7 +75,10 @@ namespace Fusion.Testing.Mocks.OrgService.Resolvers
 
             try
             {
-                var pos = OrgServiceMock.positions.Union(OrgServiceMock.contractPositions).FirstOrDefault(p => p.Id == positionId);
+                var positions = OrgServiceMock.positions.ToList();
+                var contractPositions = OrgServiceMock.contractPositions.ToList();
+
+                var pos = positions.Union(contractPositions).FirstOrDefault(p => p.Id == positionId);
                 return Task.FromResult(pos);
             }
             finally
@@ -90,7 +93,10 @@ namespace Fusion.Testing.Mocks.OrgService.Resolvers
 
             try
             {
-                var allPositions = OrgServiceMock.positions.Union(OrgServiceMock.contractPositions).Where(p => positionIds.Contains(p.Id));
+                var positions = OrgServiceMock.positions.ToList();
+                var contractPositions = OrgServiceMock.contractPositions.ToList();
+
+                var allPositions = positions.Union(contractPositions).Where(p => positionIds.Contains(p.Id));
                 return Task.FromResult(allPositions.ToList().AsEnumerable());
             }
             finally

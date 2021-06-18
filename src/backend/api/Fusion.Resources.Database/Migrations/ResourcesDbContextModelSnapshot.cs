@@ -15,9 +15,9 @@ namespace Fusion.Resources.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.2");
+                .HasAnnotation("ProductVersion", "5.0.5")
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContract", b =>
                 {
@@ -755,6 +755,9 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("PersonId")
                         .HasColumnType("uniqueidentifier");
 
@@ -801,7 +804,7 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.HasIndex("AzureUniqueId")
                         .IsClustered(false)
-                        .IncludeProperties(new[] { "Id", "Title", "Content", "IsShared", "Updated", "UpdatedById" });
+                        .HasAnnotation("SqlServer:Include", new[] { "Id", "Title", "Content", "IsShared", "Updated", "UpdatedById" });
 
                     b.HasIndex("UpdatedById");
 
@@ -838,7 +841,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("DomainId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -935,7 +937,9 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<long>("RequestNumber")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("RequestOwner")
                         .IsRequired()
@@ -1361,9 +1365,37 @@ namespace Fusion.Resources.Database.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbTaskDetails", "TaskDetails", b1 =>
+                        {
+                            b1.Property<Guid>("DbPersonAbsenceId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid?>("BasePositionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Location")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("RoleName")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("TaskName")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("DbPersonAbsenceId");
+
+                            b1.ToTable("PersonAbsences");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbPersonAbsenceId");
+                        });
+
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Person");
+
+                    b.Navigation("TaskDetails");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonNote", b =>

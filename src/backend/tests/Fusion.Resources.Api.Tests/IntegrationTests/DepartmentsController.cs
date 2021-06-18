@@ -92,5 +92,105 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
+
+        [Fact]
+        public async Task ShouldGiveNotFoundWhenRetreivingNotInLineOrg()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var lineorgData = new
+            {
+                Count = 0,
+                TotalCount = 0,
+                Value = Array.Empty<object>()
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task ShouldGetDepartmentNotInDbWhenInLineOrg()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD LIN ORG TST"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Name.Should().Be("TPD LIN ORG TST");
+        }
+
+        [Fact]
+        public async Task SearchShouldGetDepartmentNotInDbWhenInLineOrg()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD LIN ORG TST"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Should().Contain(x => x.Name == "TPD LIN ORG TST");
+        }
+
+        [Fact]
+        public async Task ShouldAllowAdminToAddDepartmentResponsible()
+        {
+            var testDepartment = "TPD LIN ORG TST";
+            fixture.EnsureDepartment(testDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner?api-version=1.0-preview", new
+            {
+                DateFrom = "2021-02-02",
+                DateTo = "2022-02-05",
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
     }
 }

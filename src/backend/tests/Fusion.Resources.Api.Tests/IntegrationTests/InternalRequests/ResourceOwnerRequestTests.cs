@@ -67,6 +67,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Mock project
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", true)
                 .AddToMockService();
 
             // Prepare context resolver.
@@ -82,7 +83,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create a default request we can work with
 
             // Create adjustment request on a position instance currently active
-            adjustmentRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_ADJUST));
+            adjustmentRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(
+                testDepartment, testProject, 
+                r => r.AsTypeResourceOwner(SUBTYPE_ADJUST), 
+                p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+            );
         }
 
         public Task DisposeAsync()
@@ -130,6 +135,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var position = testProject.AddPosition();
+            position.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee));
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", new
             {
                 type = "resourceOwnerChange",
@@ -219,7 +225,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(subType));
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject,
+                r => r.AsTypeResourceOwner(subType),
+                p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+            );
+
 
             await Client.ProposeChangesAsync(request.Id, new { workload = 50 });
             await Client.ProposePersonAsync(request.Id, testUser);
@@ -278,19 +288,156 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
             response.Should().BeSuccessfull();
         }
+        
         [Fact]
-        public async Task RemoveResourceRequest_Start_ShouldBeBadRequest_WhenNoCurrentlyAssignedPersons()
+        public async Task CreatRequestForUnassignedPositionInstance_ShouldGiveBadRequest()
         {
             using var adminScope = fixture.AdminScope();
 
-            var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_REMOVE), p => p.WithNoAssignedPerson());
+            var position = testProject.AddPosition()
+                .WithInstances(1)
+                .WithEnsuredFutureInstances()
+                .WithNoAssignedPerson();
 
-            await Client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
+            var requestModel = new ApiCreateInternalRequestModel()
+                .AsTypeResourceOwner()
+                .WithPosition(position)
+                .AsTypeResourceOwner(SUBTYPE_REMOVE);
 
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
+            var newRequestResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", requestModel);
+            newRequestResponse.Should().BeBadRequest();
+        }
+        
+        // Is this still relevant? i.e could a position instance become unassigned between change 
+        // request is created and when it is started?
+        //[Fact]
+        //public async Task RemoveResourceRequest_Start_ShouldBeBadRequest_WhenNoCurrentlyAssignedPersons()
+        //{
+        //    using var adminScope = fixture.AdminScope();
+
+        //    var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, 
+        //        r => r.AsTypeResourceOwner(SUBTYPE_REMOVE), p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+        //    );
+
+        //    await Client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
+
+        //    var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
+        //    response.Should().BeBadRequest();
+
+        //    response.Should().ContainErrorOnProperty("OrgPositionInstance.AssignedToUniqueId");
+        //}
+
+        [Fact]
+        public async Task CreateChangeRequest_Should_ReturnBadRequest_WhenPimsWriteSyncNotEnabled()
+        {
+            // Mock project
+            var disabledTestProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", false)
+                .AddToMockService();
+
+            // Prepare context resolver.
+            fixture.ContextResolver
+                .AddContext(disabledTestProject.Project);
+
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = disabledTestProject.AddPosition()
+                .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                .WithEnsuredFutureInstances();
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", new
+            {
+                type = "resourceOwnerChange",
+                subType = "adjustment",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id
+            });
+
             response.Should().BeBadRequest();
 
-            response.Should().ContainErrorOnProperty("OrgPositionInstance.AssignedToUniqueId");
+            var error = JsonConvert.DeserializeAnonymousType(response.Content, new { error = new { code = string.Empty, message = string.Empty } });
+            error!.error.code.Should().Be("ChangeRequestsDisabled");
+        }
+
+
+        [Fact]
+        public async Task CheckChangeRequest_Should_BeDisabled_When_PimsWriteSyncNotEnabled()
+        {
+
+            // Mock project
+            var disabledTestProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", false)
+                .AddToMockService();
+
+            // Prepare context resolver.
+            fixture.ContextResolver
+                .AddContext(disabledTestProject.Project);
+
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = disabledTestProject.AddPosition()
+                .WithInstances(s => s.AddInstance(DateTime.Today.Subtract(TimeSpan.FromDays(10)), TimeSpan.FromDays(30)))
+                .WithAssignedPerson(testUser);
+            var instance = position.Instances.First();
+
+
+            var response = await Client.TestClientOptionsAsync($"/projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}/resources/requests?requestType=resourceOwnerChange");
+            response.Should().BeSuccessfull();
+            response.Should().NotHaveAllowHeaders(HttpMethod.Post);
+
+            var error = JsonConvert.DeserializeAnonymousType(response.Content, new { error = new { code = string.Empty, message = string.Empty } });
+            error!.error.code.Should().Be("ChangeRequestsDisabled");
+        }
+
+        [Fact]
+        public async Task CheckChangeRequest_Should_HaveAllowedPost_When_PimsWriteSyncEnabled()
+        {
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition()
+                .WithInstances(s => s.AddInstance(DateTime.Today.Subtract(TimeSpan.FromDays(10)), TimeSpan.FromDays(30)))
+                .WithAssignedPerson(testUser);
+            var instance = position.Instances.First();
+
+
+            var response = await Client.TestClientOptionsAsync($"/projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}/resources/requests?requestType=resourceOwnerChange");
+            
+            response.Should().BeSuccessfull();
+            response.Should().HaveAllowHeaders(HttpMethod.Post);
+        }
+
+        [Fact]
+        public async Task CheckChangeRequest_Should_BeEnabled_When_ChangeRequestEnabledFlagPresent()
+        {
+
+            // Mock project
+            var disabledTestProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", false)
+                .WithProperty("resourceOwnerRequestsEnabled", true)
+                .AddToMockService();
+
+            // Prepare context resolver.
+            fixture.ContextResolver
+                .AddContext(disabledTestProject.Project);
+
+
+            using var adminScope = fixture.AdminScope();
+
+            var position = disabledTestProject.AddPosition()
+                .WithInstances(s => s.AddInstance(DateTime.Today.Subtract(TimeSpan.FromDays(10)), TimeSpan.FromDays(30)))
+                .WithAssignedPerson(testUser);
+            var instance = position.Instances.First();
+
+
+            var response = await Client.TestClientOptionsAsync($"/projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}/resources/requests?requestType=resourceOwnerChange");
+            response.Should().BeSuccessfull();
+            response.Should().HaveAllowHeaders(HttpMethod.Post);
         }
     }
 

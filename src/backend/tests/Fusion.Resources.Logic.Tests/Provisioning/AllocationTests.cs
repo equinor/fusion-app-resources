@@ -4,10 +4,12 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Logic.Commands;
+using Fusion.Resources.Logic.Workflows;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using System;
@@ -30,7 +32,7 @@ namespace Fusion.Resources.Logic.Tests
         private readonly Guid testProjectId;
         private readonly Guid draftId;
 
-        public AllocationTests() 
+        public AllocationTests()
         {
             var options = new DbContextOptionsBuilder<ResourcesDbContext>()
                 .UseInMemoryDatabase($"{Guid.NewGuid()}")
@@ -244,6 +246,90 @@ namespace Fusion.Resources.Logic.Tests
             patchRequests.Should().NotContain(i => i.Item1.OriginalString.Contains($"{futureTbnInstance.Id}"), "Should execute patch request on future instance");
         }
 
+        [Fact]
+        public async Task ShouldSendNotificationWhenProvisioning()
+        {
+            ApiPositionInstanceV2 testInstance = null!;
+
+            var testPerson = GenerateTestPerson();
+            var testPosition = GeneratePosition(p =>
+            {
+                p.WithInstances(s =>
+                {
+                    // Future instance
+                    testInstance = s.AddInstance(DateTime.UtcNow.AddDays(100), TimeSpan.FromDays(200))
+                        .SetExternalId("123");
+                });
+            });
+
+            var editor = new DbPerson
+            {
+                AccountType = "Employee",
+                AzureUniqueId = testPerson.AzureUniqueId!.Value,
+                Name = testPerson.Name
+            };
+            var request = GenerateRequest(testInstance, r => r.WithProposedPerson(testPerson));
+            var workflow = new AllocationNormalWorkflowV1().CreateDatabaseEntity(request.Id, DbRequestType.InternalRequest);
+            var wf = WorkflowDefinition.ResolveWorkflow(workflow);
+            wf.Step("created").Start();
+            wf.SaveChanges();
+
+            var mediatorMock = new Mock<IMediator>(MockBehavior.Loose);
+            mediatorMock
+                .Setup(x => x.Send(It.IsAny<IRequest<DbWorkflow>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(workflow);
+
+            var handler = new ResourceAllocationRequest.Provision.Handler(
+                logger: new Mock<ILogger<ResourceAllocationRequest.Provision.Handler>>().Object,
+                dbContext,
+                mediator: mediatorMock.Object
+            ) as IRequestHandler<ResourceAllocationRequest.Provision>;
+
+            var provisioningReq = new ResourceAllocationRequest.Provision(request.Id);
+            provisioningReq.SetEditor(editor.AzureUniqueId, editor);
+
+
+            await handler.Handle(provisioningReq, CancellationToken.None);
+
+            mediatorMock.Verify(x => x.Publish(It.Is<Events.RequestProvisioned>(x => x.RequestId == request.Id), It.IsAny<CancellationToken>()));
+        }
+
+        [Fact]
+        public async Task ShouldDeleteRequestComments()
+        {
+            #region setup
+            ApiPositionInstanceV2 testInstance = null!;
+
+            var testPerson = GenerateTestPerson();
+            var testPosition = GeneratePosition(p =>
+            {
+                p.WithInstances(s =>
+                {
+                    // Future instance
+                    testInstance = s.AddInstance(DateTime.UtcNow.AddDays(100), TimeSpan.FromDays(200))
+                        .SetExternalId("123");
+                });
+            });
+
+            var request = GenerateRequest(testInstance, r => r.WithProposedPerson(testPerson));
+            dbContext.RequestComments.Add(new DbRequestComment
+            {
+                Comment = "<Insert resource owner gossip here>",
+                RequestId = request.Id,
+                Origin = DbRequestComment.DbOrigin.Company,
+            });
+            await dbContext.SaveChangesAsync();
+            #endregion
+
+            var handler = new DeleteNotesHandler(dbContext);
+            await handler.Handle(new Events.RequestProvisioned(request.Id), CancellationToken.None);
+
+            var rqComments = await dbContext.RequestComments
+                .Where(c => c.RequestId == request.Id)
+                .ToListAsync();
+
+            rqComments.Should().BeEmpty();
+        }
 
         #region Helpers
 

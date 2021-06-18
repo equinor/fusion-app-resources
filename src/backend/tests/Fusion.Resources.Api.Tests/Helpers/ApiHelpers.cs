@@ -50,7 +50,7 @@ namespace Fusion.Resources.Api.Tests
         }
 
 
-        public static async Task<TestApiInternalRequestModel> CreateDefaultRequestAsync(this HttpClient client, FusionTestProjectBuilder project, 
+        public static async Task<TestApiInternalRequestModel> CreateDefaultRequestAsync(this HttpClient client, FusionTestProjectBuilder project,
             Action<ApiCreateInternalRequestModel> setup = null, Action<ApiPositionV2> positionSetup = null)
         {
             var position = project.AddPosition();
@@ -90,7 +90,9 @@ namespace Fusion.Resources.Api.Tests
         public static async Task<TestApiInternalRequestModel> CreateDefaultResourceOwnerRequestAsync(this HttpClient client, string department, FusionTestProjectBuilder project,
             Action<ApiCreateInternalRequestModel> setup = null, Action<ApiPositionV2> positionSetup = null)
         {
-            var position = project.AddPosition().WithInstances(1).WithEnsuredFutureInstances();
+            var position = project.AddPosition()
+                .WithInstances(1)
+                .WithEnsuredFutureInstances();
 
             positionSetup?.Invoke(position);
 
@@ -193,6 +195,16 @@ namespace Fusion.Resources.Api.Tests
             resp.Should().BeSuccessfull();
 
             return resp.Value;
+        }
+
+        public static async Task AddDelegatedDepartmentOwner(this HttpClient client, ApiPersonProfileV3 testUser, string department, DateTime dateFrom, DateTime dateTo)
+        {
+            await client.TestClientPostAsync($"/departments/{department}/delegated-resource-owner?api-version=1.0-preview", new
+            {
+                responsibleAzureUniqueId = testUser.AzureUniqueId,
+                dateFrom,
+                dateTo
+            });
         }
     }
 }

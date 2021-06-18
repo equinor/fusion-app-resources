@@ -21,10 +21,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 //.AddApiVersion(2)
 
                 .AddApiPreview()
-                .ForceStringConverter<ProjectIdentifier>()
+                .ForceStringConverter<PathProjectIdentifier>()
                 .ConfigureSwaggerGen(s =>
                 {
-                    s.MapType<ProjectIdentifier>(() => new OpenApiSchema { Type = "string", Description = "Org project id or context id" });
+                    s.MapType<PathProjectIdentifier>(() => new OpenApiSchema { Type = "string", Description = "Org project id or context id" });
 
                     s.DocumentFilter<OptionalRouteParamFilter>();
                 }));

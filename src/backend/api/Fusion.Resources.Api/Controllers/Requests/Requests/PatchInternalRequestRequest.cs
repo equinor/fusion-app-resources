@@ -8,6 +8,9 @@ using System.Linq;
 using System.Collections.Generic;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
+using System.Diagnostics;
+
 namespace Fusion.Resources.Api.Controllers
 {
     public class PatchInternalRequestRequest : PatchRequest
@@ -18,13 +21,12 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<ApiPropertiesCollection?> ProposedChanges { get; set; } = new();
 
         public PatchProperty<ProposalParametersRequest> ProposalParameters { get; set; } = new();
-
         #region Validator
 
 
         public class Validator : AbstractValidator<PatchInternalRequestRequest>
         {
-            public Validator(ResourcesDbContext db)
+            public Validator(ResourcesDbContext db, IMediator mediator)
             {
                 RuleFor(x => x.ProposedPersonAzureUniqueId)
                     .MustAsync(async (req, p, context, cancel) =>
@@ -39,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
 
                         return false;
                     })
-                    .When(x => x.ProposedPersonAzureUniqueId.HasValue);
+                    .When(x => x.ProposedPersonAzureUniqueId.HasValue && x.ProposedPersonAzureUniqueId.Value.HasValue);
 
 
                 RuleFor(x => x.AssignedDepartment)
@@ -48,7 +50,8 @@ namespace Fusion.Resources.Api.Controllers
                         if (d.Value is null)
                             return true;
 
-                        return await db.Departments.AnyAsync(dpt => dpt.DepartmentId == d.Value, cancellationToken);
+                        var departments = await mediator.Send(new GetDepartments().ById(d.Value), cancellationToken);
+                        return departments.Any();
                     })
                     .WithMessage("Invalid department specified")
                     .When(x => x.AssignedDepartment.HasValue && x.AssignedDepartment.Value != null);
@@ -64,14 +67,14 @@ namespace Fusion.Resources.Api.Controllers
                             var isInvalid = false;
                             foreach (var key in x.Value.Keys)
                             {
-                                
+
                                 if (!allowedProperties.Any(p => string.Equals(p.Name, key, StringComparison.OrdinalIgnoreCase)))
                                 {
                                     context.AddFailure($"Key '{key}' is not valid");
                                     isInvalid = true;
                                 }
                             }
-                            
+
                             if (isInvalid)
                             {
                                 context.AddFailure($"Allowed keys are {string.Join(", ", allowedProperties.Select(p => p.Name.ToLowerFirstChar()))}");

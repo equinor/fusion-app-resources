@@ -15,6 +15,9 @@ namespace Fusion.Resources.Domain
             AppliesTo = absence.AppliesTo;
             Type = Enum.Parse<QueryAbsenceType>($"{absence.Type}", true);
             AbsencePercentage = absence.AbsencePercentage;
+
+            IsPrivate = absence.IsPrivate;
+            TaskDetails = (absence.TaskDetails != null) ? new QueryTaskDetails(absence.TaskDetails) : null;
         }
 
         public Guid Id { get; set; }
@@ -25,6 +28,9 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
         public double? AbsencePercentage { get; set; }
+
+        public bool IsPrivate { get; set; }
+        public QueryTaskDetails? TaskDetails { get; set; }
     }
 
     /// <summary>
@@ -40,6 +46,7 @@ namespace Fusion.Resources.Domain
             AppliesTo = absence.AppliesTo;
             Type = Enum.Parse<QueryAbsenceType>($"{absence.Type}", true);
             AbsencePercentage = absence.AbsencePercentage;
+            TaskDetails = absence.TaskDetails != null ? new QueryTaskDetails(absence.TaskDetails) : null;
         }
         public QueryPersonAbsenceBasic(QueryPersonAbsence absence)
         {
@@ -49,6 +56,9 @@ namespace Fusion.Resources.Domain
             AppliesTo = absence.AppliesTo;
             Type = Enum.Parse<QueryAbsenceType>($"{absence.Type}", true);
             AbsencePercentage = absence.AbsencePercentage;
+
+            IsPrivate = absence.IsPrivate;
+            TaskDetails = absence.TaskDetails;
         }
 
         public Guid Id { get; set; }
@@ -57,8 +67,32 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? AppliesTo { get; set; }
         public QueryAbsenceType Type { get; set; }
         public double? AbsencePercentage { get; set; }
+        public bool IsPrivate { get; }
+        public QueryTaskDetails? TaskDetails { get; set; }
     }
 
+    public class QueryTaskDetails
+    {
+        public QueryTaskDetails(DbOpTaskDetails taskDetails)
+        {
+            BasePositionId = taskDetails.BasePositionId;
+            TaskName = taskDetails.TaskName;
+            RoleName = taskDetails.RoleName;
+            Location = taskDetails.Location;
+        }
+        public QueryTaskDetails(QueryTaskDetails taskDetails)
+        {
+            BasePositionId = taskDetails.BasePositionId;
+            TaskName = taskDetails.TaskName;
+            RoleName = taskDetails.RoleName;
+            Location = taskDetails.Location;
+        }
+
+        public Guid? BasePositionId { get; }
+        public string? TaskName { get; }
+        public string RoleName { get; }
+        public string? Location { get; }
+    }
 
     public enum QueryAbsenceType
     {

@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +20,12 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiCollection<ApiPersonAbsence>>> GetPersonAbsence(
             [FromRoute] string personId)
         {
+            var id = new PersonId(personId);
+
+            var profile = await DispatchAsync(new GetPersonProfile(id));
+            if (profile is null)
+                return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -24,18 +33,25 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AlwaysAccessWhen().FullControlInternal();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                });
             });
-
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
             #endregion
 
-            var id = new PersonId(personId);
             var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
 
-            var returnItems = personAbsence.Select(p => new ApiPersonAbsence(p));
+            var returnItems = personAbsence.Select(p => new ApiPersonAbsence(p, authResult.LimitedAuth));
 
             var collection = new ApiCollection<ApiPersonAbsence>(returnItems);
             return collection;
@@ -45,6 +61,12 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiPersonAbsence>> GetPersonAbsence([FromRoute] string personId,
             Guid absenceId)
         {
+            var id = new PersonId(personId);
+
+            var profile = await DispatchAsync(new GetPersonProfile(id));
+            if (profile is null)
+                return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -52,22 +74,28 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AlwaysAccessWhen().FullControlInternal();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        x.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                });
             });
-
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-
-            var id = new PersonId(personId);
 
             var personAbsence = await DispatchAsync(new GetPersonAbsenceItem(id, absenceId));
 
             if (personAbsence == null)
                 return FusionApiError.NotFound(absenceId, "Could not locate absence registration");
 
-            var returnItem = new ApiPersonAbsence(personAbsence);
+            var returnItem = new ApiPersonAbsence(personAbsence, authResult.LimitedAuth);
             return returnItem;
         }
 
@@ -75,6 +103,13 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiPersonAbsence>> CreatePersonAbsence([FromRoute] string personId,
             [FromBody] CreatePersonAbsenceRequest request)
         {
+            var id = new PersonId(personId);
+
+            var profile = await DispatchAsync(new GetPersonProfile(id));
+            if (profile is null)
+                return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -82,7 +117,11 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AlwaysAccessWhen().FullControlInternal();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -90,7 +129,6 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var id = new PersonId(personId);
             var createCommand = new CreatePersonAbsence(id);
             request.LoadCommand(createCommand);
 
@@ -101,7 +139,7 @@ namespace Fusion.Resources.Api.Controllers
                     var newAbsence = await DispatchAsync(createCommand);
                     await scope.CommitAsync();
 
-                    var item = new ApiPersonAbsence(newAbsence);
+                    var item = new ApiPersonAbsence(newAbsence, hidePrivateNotes: false);
                     return Created($"/persons/{personId}/absence/{item.Id}", item);
                 }
             }
@@ -115,6 +153,11 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiPersonAbsence>> UpdatePersonAbsence([FromRoute] string personId,
             Guid absenceId, [FromBody] UpdatePersonAbsenceRequest request)
         {
+            var id = new PersonId(personId);
+            var profile = await DispatchAsync(new GetPersonProfile(id));
+            if (profile is null)
+                return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -122,7 +165,11 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AlwaysAccessWhen().FullControlInternal();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -130,7 +177,6 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var id = new PersonId(personId);
             var updateCommand = new UpdatePersonAbsence(id, absenceId);
             request.LoadCommand(updateCommand);
 
@@ -140,7 +186,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 await scope.CommitAsync();
 
-                var item = new ApiPersonAbsence(updatedAbsence);
+                var item = new ApiPersonAbsence(updatedAbsence, hidePrivateNotes: false);
                 return item;
             }
         }
@@ -149,6 +195,11 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/persons/{personId}/absence/{absenceId}")]
         public async Task<ActionResult> DeletePersonAbsence([FromRoute] string personId, Guid absenceId)
         {
+            var id = new PersonId(personId);
+            var profile = await DispatchAsync(new GetPersonProfile(id));
+            if (profile is null)
+                return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -156,7 +207,11 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl();
                 r.AlwaysAccessWhen().FullControlInternal();
 
-                r.AnyOf(or => { });
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -164,10 +219,91 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var id = new PersonId(personId);
 
             await DispatchAsync(new DeletePersonAbsence(id, absenceId));
 
+            return NoContent();
+        }
+
+        [HttpOptions("/persons/{personId}/absence")]
+        public async Task<ActionResult> GetOptionsForPerson(string personId)
+        {
+            var allowedVerbs = new List<string>();
+
+            var id = new PersonId(personId);
+            var profile = await DispatchAsync(new GetPersonProfile(id));
+            if (profile is null)
+                return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+            
+            var getAuthResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                });
+            });
+            if (getAuthResult.Success) allowedVerbs.Add("GET");
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                });
+            });
+
+            if (authResult.Success) allowedVerbs.Add("GET", "POST");
+
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs.Distinct());
+            return NoContent();
+        }
+
+        [HttpOptions("/persons/{personId}/absence/{absenceId}")]
+        public async Task<ActionResult> GetOptions(string personId, Guid absenceId)
+        {
+            var allowedVerbs = new List<string>();
+
+            var id = new PersonId(personId);
+            var profile = await DispatchAsync(new GetPersonProfile(id));
+            if (profile is null)
+                return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
+
+            var getAuthResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                });
+            });
+            if (getAuthResult.Success) allowedVerbs.Add("GET");
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    if (!String.IsNullOrEmpty(profile.FullDepartment))
+                        or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                });
+            });
+
+            if (authResult.Success) allowedVerbs.Add("PUT", "DELETE");
+
+            Response.Headers["Allow"] = string.Join(',', allowedVerbs.Distinct());
             return NoContent();
         }
     }
