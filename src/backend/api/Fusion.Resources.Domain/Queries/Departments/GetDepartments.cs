@@ -115,9 +115,9 @@ namespace Fusion.Resources.Domain
                 if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
                 {
                     result = result.Where(dpt =>
-                        dpt.DepartmentId.Contains(request.resourceOwnerSearch)
-                        || dpt.LineOrgResponsible?.Name.Contains(request.resourceOwnerSearch) == true
-                        || dpt.LineOrgResponsible?.Mail?.Contains(request.resourceOwnerSearch) == true
+                        dpt.DepartmentId.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase)
+                        || dpt.LineOrgResponsible?.Name.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
+                        || dpt.LineOrgResponsible?.Mail?.Contains(request.resourceOwnerSearch, StringComparison.OrdinalIgnoreCase) == true
                     ).ToList();
                 }
 
