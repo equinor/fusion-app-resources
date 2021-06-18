@@ -383,7 +383,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Should().BeSuccessfull();
 
             resp.Value.Workflow.Should().NotBeNull();
-            resp.Value.Workflow.State.Should().Be("Running");
+            resp.Value.Workflow!.State.Should().Be("Running");
 
             resp.Value.Workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "proposal");
             resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");

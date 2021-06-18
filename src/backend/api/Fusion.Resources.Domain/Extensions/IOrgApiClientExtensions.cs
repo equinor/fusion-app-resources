@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Fusion.Resources.Domain.Commands;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Fusion.Resources
 {
@@ -79,9 +78,11 @@ namespace Fusion.Resources
             var url = $"/projects/{projectId}/positions/{positionId}/instances/{instanceId}/reports-to";
             var reportsTo = await GetAsync<ApiReportsTo>(client, url);
 
-            return reportsTo.Value.ReportPositions
-                .OrderBy(pos => Array.IndexOf(reportsTo.Value.Path, pos.Id))
-                .ToList();
+            return reportsTo.Value.ReportPositions != null && reportsTo.Value.Path != null
+                ? reportsTo.Value.ReportPositions
+                    .OrderBy(pos => Array.IndexOf((Array) reportsTo.Value.Path, pos.Id))
+                    .ToList()
+                : new List<ApiPositionV2>();
         }
 
         /// <summary>
