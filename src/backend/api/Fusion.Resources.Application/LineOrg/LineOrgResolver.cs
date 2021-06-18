@@ -80,6 +80,23 @@ namespace Fusion.Resources.Application.LineOrg
             return result;
         }
 
+        public async Task<LineOrgDepartment?> GetDepartment(string departmentId)
+        {
+            var department = cache.Search(departmentId).FirstOrDefault(dpt => dpt.DepartmentId == departmentId);
+            if (department is null)
+            {
+                await UpdateCacheItems(departmentId);
+                department = cache.Search(departmentId).FirstOrDefault(dpt => dpt.DepartmentId == departmentId);
+            }
+            if (department is null) return null;
+
+            var lineOrgResponsible = await profileResolver.ResolvePersonBasicProfileAsync(department.LineOrgResponsibleId);
+            return new LineOrgDepartment(departmentId)
+            {
+                Responsible = lineOrgResponsible
+            };
+        }
+
         private async Task RehydrateCache()
         {
             await semaphoreSlim.WaitAsync();
@@ -165,6 +182,6 @@ namespace Fusion.Resources.Application.LineOrg
                     cache.Add(cacheItem);
                 }
             } while (!string.IsNullOrEmpty(uri));
-        }
+        }       
     }
 }

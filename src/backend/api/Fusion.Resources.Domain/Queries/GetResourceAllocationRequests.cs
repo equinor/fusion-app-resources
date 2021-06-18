@@ -220,7 +220,7 @@ namespace Fusion.Resources.Domain.Queries
                 var departments = await mediator.Send(new GetDepartments()
                     .ByIds(relevantDepartmentIds.ToArray())
                     .ExpandDelegatedResourceOwners()
-                    .ExpandResourceOwners());
+                );
 
                 var departmentMap = departments.ToDictionary(dpt => dpt.DepartmentId);
 
