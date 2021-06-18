@@ -67,6 +67,41 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ShouldCreateDepartmentSuccessfullyWhenExistsInLineOrg()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            fixture.EnsureDepartment("TPD PRD LVL3");
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD PRD LVL3 XXX"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
+            {
+                DepartmentId = "TPD PRD LVL3 XXX",
+                SectorId = "TPD PRD LVL3",
+            });
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        [Fact]
         public async Task ShouldGiveBadRequestWhenSectorDoesNotExist()
         {
             using var adminScope = fixture.AdminScope();
