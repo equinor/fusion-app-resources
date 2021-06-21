@@ -4,12 +4,13 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    
+
     public class UpdateInternalRequest : TrackableRequest<QueryResourceAllocationRequest>
     {
         public UpdateInternalRequest(Guid requestId)
@@ -52,8 +53,16 @@ namespace Fusion.Resources.Domain.Commands
 
 
                 bool modified = false;
+                var changeNotifications = new List<INotification>();
 
-                modified |= request.AssignedDepartment.IfSet(dep => dbRequest.AssignedDepartment = dep);
+                modified |= request.AssignedDepartment.IfSet(dep =>
+                {
+                    dbRequest.AssignedDepartment = dep;
+                    if (!string.IsNullOrEmpty(dep))
+                    {
+                        changeNotifications.Add(new Notifications.InternalRequests.InternalRequestAssignedDepartment(dbRequest.Id, request.Editor.Person.Id, dep));
+                    }
+                });
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= request.ProposedChanges.IfSet(changes => dbRequest.ProposedChanges = changes.SerializeToStringOrDefault());
                 modified |= await request.ProposedPersonAzureUniqueId.IfSetAsync(async personId =>
@@ -81,12 +90,17 @@ namespace Fusion.Resources.Domain.Commands
                     dbRequest.LastActivity = dbRequest.Updated.Value;
 
                     await db.SaveChangesAsync();
+
+                    foreach (var changeNotification in changeNotifications)
+                    {
+                        await mediator.Publish(changeNotification);
+                    }
                 }
 
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                 return requestItem!;
-            }            
+            }
         }
     }
 }

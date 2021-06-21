@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.EntityFrameworkCore;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
@@ -19,7 +19,8 @@ using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAlloca
 namespace Fusion.Resources.Api.Notifications
 {
     public class InternalRequestsNotificationHandler :
-        INotificationHandler<ResourceAllocationRequest.RequestInitialized>
+        INotificationHandler<ResourceAllocationRequest.RequestInitialized>,
+        INotificationHandler<InternalRequestAssignedDepartment>
     {
         private readonly IMediator mediator;
         private readonly IFusionNotificationClient notificationClient;
@@ -38,7 +39,7 @@ namespace Fusion.Resources.Api.Notifications
         public async Task Handle(ResourceAllocationRequest.RequestInitialized notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
-            var recipients = await GenerateRecipientsAsync(notification.InitiatedByDbPersonId, request);
+            var recipients = await GenerateRecipientsForInitializedRequestAsync(notification.InitiatedByDbPersonId, request);
 
             foreach (var recipient in recipients)
             {
@@ -55,7 +56,7 @@ namespace Fusion.Resources.Api.Notifications
                                 .AddFact("Project", request.Position.Project.Name)
                                 .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                             )
-                            .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                            .TryAddOpenPortalUrlAction("Open request", request.OrgAdminPortalUrl)
                             ;
                     });
                 }
@@ -71,13 +72,43 @@ namespace Fusion.Resources.Api.Notifications
                                 .AddFact("Project", request.Position.Project.Name)
                                 .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                             )
-                            .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                            .TryAddOpenPortalUrlAction("Open request", request.OrgAdminPortalUrl)
                             ;
                     });
                 }
             }
         }
 
+        public async Task Handle(InternalRequestAssignedDepartment notification, CancellationToken cancellationToken)
+        {
+            var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
+            var recipients = await GenerateRecipientsForUpdatedRequestAsync(notification.InitiatedByDbPersonId, notification.AssignedDepartment, request);
+
+            foreach (var recipient in recipients)
+            {
+                NotificationArguments arguments = new($"A personnel request has been assigned to you")
+                { Priority = EmailPriority.Low };
+
+                await notificationClient.CreateNotificationForUserAsync(recipient, arguments, builder =>
+                {
+                    builder
+                        .TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
+                        //.TryAddProfileCard("TASK OWNER")
+                        //.TryAddProfileCard("POSITION REPORTS TO")
+                        //.TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
+                        .AddDescription("Please review and handle request")
+                        .AddFacts(facts => facts
+                            .AddFact("Project", request.Position.Project.Name)
+                            .AddFact("Position", request.Position.Name)
+                            .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}")
+                            .AddFact("Workload", $"{request.Instance.Workload}")
+                        )
+                        .TryAddOpenPortalUrlAction("Open request", request.PersonnelAllocationPortalUrl)
+                        .TryAddOpenPortalUrlAction("Open position in org chart", request.OrgAdminPortalUrl)
+                        ;
+                });
+            }
+        }
         private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId, Type notificationType)
         {
             var internalRequest = await GetInternalRequestAsync(requestId);
@@ -107,7 +138,7 @@ namespace Fusion.Resources.Api.Notifications
 
             return request;
         }
-        private async Task<IEnumerable<Guid>> GenerateRecipientsAsync(Guid notificationInitiatedByPersonId, NotificationRequestData data)
+        private async Task<IEnumerable<Guid>> GenerateRecipientsForInitializedRequestAsync(Guid notificationInitiatedByPersonId, NotificationRequestData data)
         {
             var recipients = new List<Guid>();
             var notificationInitiatedBy = await dbContext.Persons.FirstOrDefaultAsync(p => p.Id == notificationInitiatedByPersonId);
@@ -134,6 +165,28 @@ namespace Fusion.Resources.Api.Notifications
 
             return recipients.Distinct();// A person may be a creator and/or resource owner and/or task owner.
         }
+        private async Task<IEnumerable<Guid>> GenerateRecipientsForUpdatedRequestAsync(Guid notificationInitiatedByPersonId, string assignedDepartment, NotificationRequestData data)
+        {
+            var recipients = new List<Guid>();
+            var notificationInitiatedBy = await dbContext.Persons.FirstOrDefaultAsync(p => p.Id == notificationInitiatedByPersonId);
+
+            if (data.NotifyResourceOwner && !string.IsNullOrEmpty(assignedDepartment))
+            {
+                var ro = await mediator.Send(new GetDepartment(assignedDepartment).ExpandDelegatedResourceOwners());
+                var relevantProfiles = new List<Guid?>();
+                if (ro?.LineOrgResponsible?.AzureUniqueId != null)
+                    relevantProfiles.Add(ro.LineOrgResponsible.AzureUniqueId);
+
+                if (ro?.DelegatedResourceOwners != null)
+                    relevantProfiles.AddRange(ro.DelegatedResourceOwners.Select(x => x.AzureUniqueId));
+
+                recipients.AddRange(from azureUniqueId in relevantProfiles.Where(x => x.HasValue).Distinct()
+                                    where azureUniqueId.Value != notificationInitiatedBy?.AzureUniqueId
+                                    select azureUniqueId.Value);
+            }
+
+            return recipients.Distinct();// A person may be a have multiple roles.
+        }
 
         private class NotificationRequestData
         {
@@ -147,13 +200,15 @@ namespace Fusion.Resources.Api.Notifications
 
                 if (!string.IsNullOrEmpty(OrgContextId))
                 {
-                    PortalUrl = notificationType.Name switch
+                    OrgAdminPortalUrl = notificationType.Name switch
                     {
                         nameof(ResourceAllocationRequest.RequestInitialized) =>
                             $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
                         _ => $"/apps/org-admin/{OrgContextId}"
                     };
                 }
+
+                PersonnelAllocationPortalUrl = $"/apps/personnel-allocation/my-requests/resource/request/{allocationRequest.RequestId}";
             }
 
             private string? OrgContextId { get; set; }
@@ -166,7 +221,8 @@ namespace Fusion.Resources.Api.Notifications
             public QueryResourceAllocationRequest AllocationRequest { get; }
             public ApiPositionV2 Position { get; }
             public ApiPositionInstanceV2 Instance { get; }
-            public string PortalUrl { get; } = "/apps/org-admin/";
+            public string OrgAdminPortalUrl { get; } = "/apps/org-admin/";
+            public string PersonnelAllocationPortalUrl { get; } = "/apps/personnel-allocation";
 
 
             public NotificationRequestData WithContextId(string? contextId)
@@ -243,6 +299,12 @@ namespace Fusion.Resources.Api.Notifications
                             NotifyCreator = true;
                         }
                         else if (IsChangeRequest)
+                        {
+                            NotifyTaskOwner = true;
+                        }
+                        break;
+                    case nameof(InternalRequestAssignedDepartment):
+                        if (IsAllocationRequest)
                         {
                             NotifyTaskOwner = true;
                         }
