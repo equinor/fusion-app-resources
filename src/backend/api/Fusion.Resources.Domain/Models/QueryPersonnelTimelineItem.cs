@@ -17,6 +17,7 @@ namespace Fusion.Resources.Domain
             {
                 RoleName = absence.TaskDetails.RoleName;
                 Location = absence.TaskDetails.Location;
+                TaskName = absence.TaskDetails.TaskName;
             }
         }
 
@@ -43,5 +44,6 @@ namespace Fusion.Resources.Domain
         public DateTime AppliesTo { get; set; }
         public string? RoleName { get; }
         public string? Location { get; }
+        public string? TaskName { get; }
     }
 }
