@@ -12,6 +12,12 @@ namespace Fusion.Resources.Domain
             Description = $"{absence.Type}";
             AppliesFrom = absence.AppliesFrom.Date;
             AppliesTo = absence.AppliesTo.GetValueOrDefault(DateTime.MaxValue).Date;
+
+            if(absence.TaskDetails is not null)
+            {
+                RoleName = absence.TaskDetails.RoleName;
+                Location = absence.TaskDetails.Location;
+            }
         }
 
         public QueryPersonnelTimelineItem(string type, QueryPersonnelPosition position)
@@ -35,5 +41,7 @@ namespace Fusion.Resources.Domain
         public QueryBasePosition? BasePosition { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
+        public string? RoleName { get; }
+        public string? Location { get; }
     }
 }
