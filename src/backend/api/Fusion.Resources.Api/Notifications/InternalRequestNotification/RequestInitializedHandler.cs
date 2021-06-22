@@ -11,15 +11,13 @@ using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Resources.Database;
-using Fusion.Resources.Logic.Workflows;
 using Microsoft.EntityFrameworkCore;
-using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Notifications
 {
     public partial class InternalRequestNotification
     {
-        public class RequestInitializedHandler : INotificationHandler<ResourceAllocationRequest.RequestInitialized>
+        public class RequestInitializedHandler : INotificationHandler<Logic.Commands.ResourceAllocationRequest.RequestInitialized>
         {
             private readonly IMediator mediator;
             private readonly IFusionNotificationClient notificationClient;
@@ -37,16 +35,14 @@ namespace Fusion.Resources.Api.Notifications
                 this.dbContext = dbContext;
             }
 
-            public async Task Handle(ResourceAllocationRequest.RequestInitialized notification,
-                CancellationToken cancellationToken)
+            public async Task Handle(Logic.Commands.ResourceAllocationRequest.RequestInitialized notification, CancellationToken cancellationToken)
             {
                 var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
                 var recipients = await GenerateRecipientsAsync(notification.InitiatedByDbPersonId, request);
 
                 foreach (var recipient in recipients)
                 {
-                    NotificationArguments arguments = new($"Request for position {request.Position.Name} changed")
-                    { Priority = EmailPriority.Low };
+                    var arguments = new NotificationArguments($"Request for position {request.Position.Name} changed") { Priority = EmailPriority.Low };
 
                     if (request.Instance.AssignedPerson is null)
                     {
@@ -105,7 +101,8 @@ namespace Fusion.Resources.Api.Notifications
                 var orgContextId = $"{context?.Id}";
 
                 return new NotificationRequestData(notificationType, internalRequest, orgPosition, orgPositionInstance)
-                    .WithContextId(orgContextId);
+                    .WithContextId(orgContextId)
+                    .WithPortalActionUrls();
             }
 
 
@@ -154,24 +151,14 @@ namespace Fusion.Resources.Api.Notifications
 
             private class NotificationRequestData
             {
-                public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest,
-                    ApiPositionV2 position, ApiPositionInstanceV2 instance)
+                public NotificationRequestData(Type notificationType, QueryResourceAllocationRequest allocationRequest, ApiPositionV2 position, ApiPositionInstanceV2 instance)
                 {
                     AllocationRequest = allocationRequest;
                     Position = position;
                     Instance = instance;
+                    NotificationType = notificationType;
 
-                    DecideWhoShouldBeNotified(notificationType, allocationRequest);
-
-                    if (!string.IsNullOrEmpty(OrgContextId))
-                    {
-                        PortalUrl = notificationType.Name switch
-                        {
-                            nameof(ResourceAllocationRequest.RequestInitialized) =>
-                                $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
-                            _ => $"/apps/org-admin/{OrgContextId}"
-                        };
-                    }
+                    DecideWhoShouldBeNotified(allocationRequest);
                 }
 
                 private string? OrgContextId { get; set; }
@@ -184,8 +171,8 @@ namespace Fusion.Resources.Api.Notifications
                 public QueryResourceAllocationRequest AllocationRequest { get; }
                 public ApiPositionV2 Position { get; }
                 public ApiPositionInstanceV2 Instance { get; }
-                public string PortalUrl { get; } = "/apps/org-admin/";
-
+                public Type NotificationType { get; }
+                public string PortalUrl { get; private set; }
 
                 public NotificationRequestData WithContextId(string? contextId)
                 {
@@ -193,70 +180,29 @@ namespace Fusion.Resources.Api.Notifications
                     return this;
                 }
 
-                private void DecideWhoShouldBeNotified(Type notificationType,
-                    QueryResourceAllocationRequest allocationRequest)
+                public NotificationRequestData WithPortalActionUrls()
+                {
+                    if (!string.IsNullOrEmpty(OrgContextId))
+                    {
+                        PortalUrl = NotificationType.Name switch
+                        {
+                            nameof(Logic.Commands.ResourceAllocationRequest.RequestInitialized) =>
+                                $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}",
+                            _ => $"/apps/org-admin/{OrgContextId}"
+                        };
+                    }
+                    return this;
+                }
+
+                private void DecideWhoShouldBeNotified(QueryResourceAllocationRequest allocationRequest)
                 {
 
                     IsAllocationRequest = allocationRequest.Type == InternalRequestType.Allocation;
                     IsChangeRequest = allocationRequest.Type == InternalRequestType.ResourceOwnerChange;
 
-                    var isDirect = allocationRequest.SubType == AllocationDirectWorkflowV1.SUBTYPE;
-                    var isJointVenture = allocationRequest.SubType == AllocationJointVentureWorkflowV1.SUBTYPE;
-                    var isNormal = allocationRequest.SubType == AllocationNormalWorkflowV1.SUBTYPE;
-
-
-
-                    switch (notificationType.Name)
+                    switch (NotificationType.Name)
                     {
-                        //What and who
-                        /* case nameof(WorkflowChanged):
-                             if (IsAllocationRequest)
-                             {
-                                 if (isNormal)
-                                 {
-                                     NotifyTaskOwner = true;
-                                     NotifyCreator = true;
-                                     NotifyResourceOwner = true;
-                                 }
-                                 else if (isDirect)
-                                 {
-                                     NotifyTaskOwner = true;
-                                     NotifyCreator = true;
-                                 }
-                                 else if (isJointVenture)
-                                 {
-                                     NotifyTaskOwner = true;
-                                     NotifyCreator = true;
-                                 }
-                             }
-                             else if (IsChangeRequest)
-                             {
-                                 NotifyTaskOwner = true;
-                                 NotifyResourceOwner = true;
-                             }
-                             break;
-                         case nameof(ProposedPersonChanged):
-                             if (IsAllocationRequest)
-                             {
-                                 NotifyTaskOwner = true;
-                                 NotifyCreator = true;
-                             }
-                             else if (IsChangeRequest)
-                             {
-                                 NotifyTaskOwner = true;
-                             }
-                             break;
-                         case nameof(AssignedPersonAccepted):
-                             if (IsAllocationRequest)
-                             {
-                                 NotifyResourceOwner = true;
-                             }
-                             else if (IsChangeRequest)
-                             {
-                                 NotifyResourceOwner = true;
-                             }
-                             break;*/
-                        case nameof(ResourceAllocationRequest.RequestInitialized):
+                        case nameof(Logic.Commands.ResourceAllocationRequest.RequestInitialized):
                             if (IsAllocationRequest)
                             {
                                 NotifyTaskOwner = true;
