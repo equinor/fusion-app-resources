@@ -5,10 +5,10 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
 {
     public class InternalRequestAssignedDepartment : INotification
     {
-        public InternalRequestAssignedDepartment(Guid requestId, Guid personDbId, string assignedDepartment)
+        public InternalRequestAssignedDepartment(Guid requestId, Guid initiatedByDbPersonId, string assignedDepartment)
         {
             RequestId = requestId;
-            InitiatedByDbPersonId = personDbId;
+            InitiatedByDbPersonId = initiatedByDbPersonId;
             AssignedDepartment = assignedDepartment;
         }
 
