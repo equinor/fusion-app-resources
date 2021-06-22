@@ -15,7 +15,6 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
         {
             RequestId = requestId;
             ModifiedProperties = modifiedProperties;
-
         }
 
         public Guid RequestId { get; }
@@ -32,11 +31,11 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
         }
         public async Task Handle(InternalRequestUpdated notification, CancellationToken cancellationToken)
         {
-            var assignedDepartmentModified = notification.ModifiedProperties.FirstOrDefault(x => x.Metadata.Name == nameof(DbResourceAllocationRequest.AssignedDepartment));
+            var assignedDepartmentModified = notification.ModifiedProperties.Any(x => x.Metadata.Name == nameof(DbResourceAllocationRequest.AssignedDepartment));
 
-            if (assignedDepartmentModified != null)
+            if (assignedDepartmentModified)
             {
-                await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(notification.RequestId, $"{assignedDepartmentModified.CurrentValue}"));
+                await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(notification.RequestId));
             }
         }
     }

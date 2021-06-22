@@ -5,21 +5,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Fusion.Integration.Notification;
-using Fusion.Resources.Database;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands
 {
     public class NotifyResourceOwner : TrackableRequest
     {
-        public NotifyResourceOwner(Guid requestId, AdaptiveCard card)
+        public NotifyResourceOwner(string assignedDepartment, AdaptiveCard card)
         {
-            this.RequestId = requestId;
+            this.AssignedDepartment = assignedDepartment;
             this.Card = card;
         }
 
-        public Guid RequestId { get; }
+        public string AssignedDepartment{ get; }
         public AdaptiveCard Card { get; }
 
     }
@@ -28,25 +26,19 @@ namespace Fusion.Resources.Domain.Commands
     {
         private readonly IFusionNotificationClient notificationClient;
         private readonly IMediator mediator;
-        private readonly ResourcesDbContext dbContext;
 
-        public Handler(IFusionNotificationClient notificationClient, IMediator mediator, ResourcesDbContext dbContext)
+        public Handler(IFusionNotificationClient notificationClient, IMediator mediator)
         {
             this.notificationClient = notificationClient;
             this.mediator = mediator;
-            this.dbContext = dbContext;
         }
         protected override async Task Handle(NotifyResourceOwner request, CancellationToken cancellationToken)
         {
-            var person = await dbContext.Persons.FirstOrDefaultAsync(p => p.Id == request.Editor.Person.Id);
-            var req = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(x => x.Id == request.RequestId);
-
-            var recipients = await GenerateRecipientsAsync(person.AzureUniqueId, req.AssignedDepartment);
-
-            var args = new NotificationArguments("Personnel allocation - notification");
+            var recipients = await GenerateRecipientsAsync(request.Editor.Person.AzureUniqueId, request.AssignedDepartment);
+            
             foreach (var recipient in recipients)
             {
-                await notificationClient.CreateNotificationForUserAsync(recipient, args, request.Card);
+                await notificationClient.CreateNotificationForUserAsync(recipient, "A personnel request has been assigned to you", request.Card);
             }
         }
 
@@ -54,20 +46,20 @@ namespace Fusion.Resources.Domain.Commands
         {
             var recipients = new List<Guid>();
 
-            if (!string.IsNullOrEmpty(assignedDepartment))
-            {
-                var ro = await mediator.Send(new GetDepartment(assignedDepartment).ExpandDelegatedResourceOwners());
-                var relevantProfiles = new List<Guid?>();
-                if (ro?.LineOrgResponsible?.AzureUniqueId != null)
-                    relevantProfiles.Add(ro.LineOrgResponsible.AzureUniqueId);
+            if (string.IsNullOrEmpty(assignedDepartment))
+                return recipients;
 
-                if (ro?.DelegatedResourceOwners != null)
-                    relevantProfiles.AddRange(ro.DelegatedResourceOwners.Select(x => x.AzureUniqueId));
+            var ro = await mediator.Send(new GetDepartment(assignedDepartment).ExpandDelegatedResourceOwners());
+            var relevantProfiles = new List<Guid?>();
+            if (ro?.LineOrgResponsible?.AzureUniqueId != null)
+                relevantProfiles.Add(ro.LineOrgResponsible.AzureUniqueId);
 
-                recipients.AddRange(from azureUniqueId in relevantProfiles.Where(x => x.HasValue).Distinct()
-                                    where azureUniqueId.Value != notificationInitiatedByAzureUniqueId
-                                    select azureUniqueId.Value);
-            }
+            if (ro?.DelegatedResourceOwners != null)
+                relevantProfiles.AddRange(ro.DelegatedResourceOwners.Select(x => x.AzureUniqueId));
+
+            recipients.AddRange(from azureUniqueId in relevantProfiles.Where(x => x.HasValue).Distinct()
+                where azureUniqueId.Value != notificationInitiatedByAzureUniqueId
+                select azureUniqueId.Value);
 
             return recipients.Distinct();// A person may be a have multiple roles.
         }
