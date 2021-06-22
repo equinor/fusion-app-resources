@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -516,8 +517,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
             response.Should().BeSuccessfull();
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
+            //NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
+        }
+        private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
+        {
+            foreach (var notification in sentMessages)
+            {
+                TestLogger.TryLog($"PersonIdentifier:{notification.PersonIdentifier}, Title:{notification.Title}");
+            }
 
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
         }
 
         [Theory]
