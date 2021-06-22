@@ -517,18 +517,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
             response.Should().BeSuccessfull();
-            DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            //NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
+            NotificationClientMock.SentMessages.Count.Should().BeGreaterThan(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
         }
-        private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
-        {
-            foreach (var notification in sentMessages)
-            {
-                TestLogger.TryLog($"PersonIdentifier:{notification.PersonIdentifier}, Title:{notification.Title}");
-            }
-
-        }
-
+       
         [Theory]
         [InlineData("additionalNote", "Some test note")]
         [InlineData("assignedDepartment", TestDepartmentId)]
