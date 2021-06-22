@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.EntityFrameworkCore;
 using ResourceAllocationRequest = Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
