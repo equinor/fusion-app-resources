@@ -105,6 +105,7 @@ namespace Fusion.Resources.Domain
                 var ids = azureIds.ToArray();
 
                 var items = await db.PersonAbsences.Where(a => ids.Contains(a.Person.AzureUniqueId))
+                    .Include(a => a.TaskDetails)
                     .Select(a => new { absence = a, azureId = a.Person.AzureUniqueId })
                     .ToListAsync();
 
