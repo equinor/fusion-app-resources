@@ -47,30 +47,41 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
                 if (string.IsNullOrEmpty(request.AllocationRequest.AssignedDepartment))
                     return;
 
-                notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                    .AddTextBlock("Request created by")
-                    .TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
-                    
-                    .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
-                    .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
-                    
-                    .AddDescription("Please review and handle request")
-                    
-                    .AddFacts(facts => facts
-                        .AddFact("Project", request.Position.Project.Name)
-                        .AddFact("Position", request.Position.Name)
-                        .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}")
-                        .AddFact("Workload", $"{request.Instance.Workload}")
-                    )
-                    .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
-                    .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgAdminPortalUrl}")
-                    ;
+                try
+                {
+                    notificationBuilder.AddTitle("A personnel request has been assigned to you")
+                        .AddTextBlock("Request created by")
+                        .TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
 
-                var card = await notificationBuilder.BuildCardAsync();
-                
-                await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
-                //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
+                        .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
+                        .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
 
+                        .AddDescription("Please review and handle request")
+
+                        .AddFacts(facts => facts
+                            .AddFact("Project", request.Position.Project.Name)
+                            .AddFact("Position", request.Position.Name)
+                            .AddFact("Period",
+                                $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}")
+                            .AddFact("Workload", $"{request.Instance.Workload}")
+                        )
+                        .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
+                        .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgAdminPortalUrl}")
+                        ;
+
+                    var card = await notificationBuilder.BuildCardAsync();
+
+                    await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
+                    //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
+                }
+                catch (Exception ex)
+                {
+
+                }
+                finally
+                {
+
+                }
             }
 
             private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId)
