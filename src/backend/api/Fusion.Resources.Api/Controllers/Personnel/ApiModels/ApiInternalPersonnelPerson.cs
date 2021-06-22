@@ -85,6 +85,10 @@ namespace Fusion.Resources.Api.Controllers
                 Type = item.Type;
                 Description = item.Description;
 
+                RoleName = item.RoleName;
+                TaskName = item.TaskName;
+                Location = item.Location;
+
                 if (item.Project != null) Project = new ApiProjectReference(item.Project);
                 if (item.BasePosition != null) BasePosition = new ApiBasePosition(item.BasePosition);
             }
@@ -98,6 +102,13 @@ namespace Fusion.Resources.Api.Controllers
             public ApiProjectReference? Project { get; set; }
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public ApiBasePosition? BasePosition { get; set; }
+
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? RoleName { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? TaskName { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? Location { get; set; }
         }
 
         public class PersonnelPosition
