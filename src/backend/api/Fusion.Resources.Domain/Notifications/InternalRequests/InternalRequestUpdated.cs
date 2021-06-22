@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
 
             if (assignedDepartmentModified != null)
             {
-                await mediator.Publish(new InternalRequestAssignedDepartment(notification.RequestId, $"{assignedDepartmentModified.CurrentValue}"));
+                await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(notification.RequestId, $"{assignedDepartmentModified.CurrentValue}"));
             }
         }
     }
