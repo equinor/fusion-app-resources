@@ -34,7 +34,7 @@ namespace Fusion.Resources.Api.Notifications
 
             public async Task Handle(InternalRequestNotifications.AssignedDepartment notification, CancellationToken cancellationToken)
             {
-                var request = await GetResolvedOrgData(notification.RequestId);
+                var request = await GetResolvedOrgDataAsync(notification.RequestId);
 
                 if (string.IsNullOrEmpty(request.AllocationRequest.AssignedDepartment))
                     return;
@@ -51,8 +51,7 @@ namespace Fusion.Resources.Api.Notifications
                     .AddFacts(facts => facts
                         .AddFact("Project", request.Position.Project.Name)
                         .AddFact("Position", request.Position.Name)
-                        .AddFact("Period",
-                            $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}")
+                        .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
                         .AddFact("Workload", $"{request.Instance.Workload}")
                     )
                     .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
@@ -65,7 +64,7 @@ namespace Fusion.Resources.Api.Notifications
                 //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
             }
 
-            private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId)
+            private async Task<NotificationRequestData> GetResolvedOrgDataAsync(Guid requestId)
             {
                 var internalRequest = await GetInternalRequestAsync(requestId);
                 if (internalRequest is null)

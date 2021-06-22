@@ -37,7 +37,7 @@ namespace Fusion.Resources.Api.Notifications
 
             public async Task Handle(Logic.Commands.ResourceAllocationRequest.RequestInitialized notification, CancellationToken cancellationToken)
             {
-                var request = await GetResolvedOrgData(notification.RequestId, notification.GetType());
+                var request = await GetResolvedOrgDataAsync(notification.RequestId, notification.GetType());
                 var recipients = await GenerateRecipientsAsync(notification.InitiatedByDbPersonId, request);
 
                 foreach (var recipient in recipients)
@@ -55,7 +55,7 @@ namespace Fusion.Resources.Api.Notifications
                                     .AddFact("Project", request.Position.Project.Name)
                                     .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                                 )
-                                .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                                .TryAddOpenPortalUrlAction("Open request", $"{request.PortalUrl}")
                                 ;
                         });
                     }
@@ -71,14 +71,14 @@ namespace Fusion.Resources.Api.Notifications
                                     .AddFact("Project", request.Position.Project.Name)
                                     .AddFact("Request created by", request.AllocationRequest.CreatedBy.Name)
                                 )
-                                .TryAddOpenPortalUrlAction("Open request", request.PortalUrl)
+                                .TryAddOpenPortalUrlAction("Open request", $"{request.PortalUrl}")
                                 ;
                         });
                     }
                 }
             }
 
-            private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId, Type notificationType)
+            private async Task<NotificationRequestData> GetResolvedOrgDataAsync(Guid requestId, Type notificationType)
             {
                 var internalRequest = await GetInternalRequestAsync(requestId);
                 if (internalRequest is null)
@@ -128,8 +128,7 @@ namespace Fusion.Resources.Api.Notifications
 
                 if (data.NotifyResourceOwner && data.Instance.AssignedPerson?.AzureUniqueId != null)
                 {
-                    var ro = await mediator.Send(
-                        new GetResourceOwner(data.Instance.AssignedPerson.AzureUniqueId.Value));
+                    var ro = await mediator.Send(new GetResourceOwner(data.Instance.AssignedPerson.AzureUniqueId.Value));
                     if (ro?.IsResourceOwner == true && ro.AzureUniqueId.HasValue &&
                         ro.AzureUniqueId != notificationInitiatedBy?.AzureUniqueId)
                         recipients.Add(ro.AzureUniqueId.Value);
@@ -172,7 +171,7 @@ namespace Fusion.Resources.Api.Notifications
                 public ApiPositionV2 Position { get; }
                 public ApiPositionInstanceV2 Instance { get; }
                 public Type NotificationType { get; }
-                public string PortalUrl { get; private set; }
+                public string? PortalUrl { get; private set; }
 
                 public NotificationRequestData WithContextId(string? contextId)
                 {
