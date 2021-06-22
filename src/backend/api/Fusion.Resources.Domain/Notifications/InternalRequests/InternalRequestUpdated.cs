@@ -11,17 +11,15 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
 {
     public class InternalRequestUpdated : INotification
     {
-        public InternalRequestUpdated(Guid requestId, Guid initiatedByDbPersonId, IEnumerable<PropertyEntry> requestProperties)
+        public InternalRequestUpdated(Guid requestId, IEnumerable<PropertyEntry> modifiedProperties)
         {
             RequestId = requestId;
-            InitiatedByDbPersonId = initiatedByDbPersonId;
-            ModifiedProperties = requestProperties.Where(x => x.IsModified);
+            ModifiedProperties = modifiedProperties;
 
         }
 
         public Guid RequestId { get; }
         public IEnumerable<PropertyEntry> ModifiedProperties { get; }
-        public Guid InitiatedByDbPersonId { get; }
     }
 
     public class InternalRequestUpdatedHandler : INotificationHandler<InternalRequestUpdated>
@@ -34,11 +32,11 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
         }
         public async Task Handle(InternalRequestUpdated notification, CancellationToken cancellationToken)
         {
-            var assignedDepartmentModified = notification.ModifiedProperties.FirstOrDefault(x => x.EntityEntry.Metadata.Name == nameof(DbResourceAllocationRequest.AssignedDepartment));
+            var assignedDepartmentModified = notification.ModifiedProperties.FirstOrDefault(x => x.Metadata.Name == nameof(DbResourceAllocationRequest.AssignedDepartment));
 
             if (assignedDepartmentModified != null)
             {
-                await mediator.Publish(new InternalRequestAssignedDepartment(notification.RequestId, notification.InitiatedByDbPersonId, $"{assignedDepartmentModified.CurrentValue}"));
+                await mediator.Publish(new InternalRequestAssignedDepartment(notification.RequestId, $"{assignedDepartmentModified.CurrentValue}"));
             }
         }
     }

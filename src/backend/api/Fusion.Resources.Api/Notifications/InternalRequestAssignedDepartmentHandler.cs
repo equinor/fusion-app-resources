@@ -55,7 +55,7 @@ namespace Fusion.Resources.Api.Notifications
                 ;
 
             var card = await notificationBuilder.BuildCardAsync();
-            await mediator.Send(new NotifyTaskOwner(notification.RequestId, card));
+            await mediator.Send(new NotifyResourceOwner(notification.RequestId, card));
         }
         private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId)
         {

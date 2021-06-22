@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class NotifyTaskOwner : TrackableRequest
+    public class NotifyResourceOwner : TrackableRequest
     {
-        public NotifyTaskOwner(Guid requestId, AdaptiveCard card)
+        public NotifyResourceOwner(Guid requestId, AdaptiveCard card)
         {
             this.RequestId = requestId;
             this.Card = card;
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain.Commands
 
     }
 
-    public class Handler : AsyncRequestHandler<NotifyTaskOwner>
+    public class Handler : AsyncRequestHandler<NotifyResourceOwner>
     {
         private readonly IFusionNotificationClient notificationClient;
         private readonly IMediator mediator;
@@ -36,12 +36,12 @@ namespace Fusion.Resources.Domain.Commands
             this.mediator = mediator;
             this.dbContext = dbContext;
         }
-        protected override async Task Handle(NotifyTaskOwner request, CancellationToken cancellationToken)
+        protected override async Task Handle(NotifyResourceOwner request, CancellationToken cancellationToken)
         {
             var person = await dbContext.Persons.FirstOrDefaultAsync(p => p.Id == request.Editor.Person.Id);
             var req = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(x => x.Id == request.RequestId);
 
-            var recipients = await GenerateTaskOwnerRecipientsForRequestAsync(person.AzureUniqueId, req.AssignedDepartment);
+            var recipients = await GenerateRecipientsAsync(person.AzureUniqueId, req.AssignedDepartment);
 
             var args = new NotificationArguments("Personnel allocation - notification");
             foreach (var recipient in recipients)
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain.Commands
             }
         }
 
-        private async Task<IEnumerable<Guid>> GenerateTaskOwnerRecipientsForRequestAsync(Guid notificationInitiatedByAzureUniqueId, string? assignedDepartment)
+        private async Task<IEnumerable<Guid>> GenerateRecipientsAsync(Guid notificationInitiatedByAzureUniqueId, string? assignedDepartment)
         {
             var recipients = new List<Guid>();
 

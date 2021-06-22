@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
@@ -80,11 +81,11 @@ namespace Fusion.Resources.Domain.Commands
                     dbRequest.UpdatedBy = request.Editor.Person;
                     dbRequest.LastActivity = dbRequest.Updated.Value;
 
-                    var modifiedProperties = db.Entry(dbRequest).Properties;
+                    var modifiedProperties = db.Entry(dbRequest).Properties.Where(x => x.IsModified).ToList();
 
                     await db.SaveChangesAsync();
 
-                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, request.Editor.Person.Id, modifiedProperties));
+                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties));
                 }
 
 
