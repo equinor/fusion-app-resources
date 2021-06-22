@@ -44,14 +44,18 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
             {
                 var request = await GetResolvedOrgData(notification.RequestId);
 
+                if (string.IsNullOrEmpty(request.AllocationRequest.AssignedDepartment))
+                    return;
+
                 notificationBuilder.AddTitle("A personnel request has been assigned to you")
                     .AddTextBlock("Request created by")
                     .TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
-                    //.TryAddProfileCard("TASK OWNER")
-                    //.TryAddProfileCard("POSITION REPORTS TO")
+                    
                     .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
                     .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
+                    
                     .AddDescription("Please review and handle request")
+                    
                     .AddFacts(facts => facts
                         .AddFact("Project", request.Position.Project.Name)
                         .AddFact("Position", request.Position.Name)
@@ -63,12 +67,10 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
                     ;
 
                 var card = await notificationBuilder.BuildCardAsync();
-                if (!string.IsNullOrEmpty(request.AllocationRequest.AssignedDepartment))
-                {
-                    await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
-                    //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
-                }
                 
+                await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
+                //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
+
             }
 
             private async Task<NotificationRequestData> GetResolvedOrgData(Guid requestId)
@@ -92,16 +94,13 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
 
                 return new NotificationRequestData(internalRequest, orgPosition, orgPositionInstance)
                     .WithContextId(orgContextId)
-                    .WithPortalActions();
+                    .WithPortalActionUrls();
             }
-
-
 
             private async Task<QueryResourceAllocationRequest?> GetInternalRequestAsync(Guid requestId)
             {
                 var query = new GetResourceAllocationRequestItem(requestId).ExpandTaskOwner();
                 var request = await mediator.Send(query);
-
                 return request;
             }
 
@@ -121,15 +120,14 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
                 public ApiPositionInstanceV2 Instance { get; }
                 public string? OrgAdminPortalUrl { get; private set; }
                 public string? PersonnelAllocationPortalUrl { get; private set; }
-
-
+                
                 public NotificationRequestData WithContextId(string? contextId)
                 {
                     OrgContextId = contextId;
                     return this;
                 }
 
-                public NotificationRequestData WithPortalActions()
+                public NotificationRequestData WithPortalActionUrls()
                 {
                     if (!string.IsNullOrEmpty(OrgContextId))
                     {
