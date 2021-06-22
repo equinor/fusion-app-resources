@@ -142,6 +142,7 @@ namespace Fusion.Resources.Api.Controllers
                 AppliesTo = absence.AppliesTo?.UtcDateTime;
                 Type = $"{absence.Type}";
                 AbsencePercentage = absence.AbsencePercentage;
+                TaskDetails = absence.TaskDetails;
             }
 
             public Guid Id { get; set; }
@@ -149,6 +150,7 @@ namespace Fusion.Resources.Api.Controllers
             public DateTime? AppliesTo { get; set; }
             public double? AbsencePercentage { get; set; }
             public string Type { get; set; } = null!;
+            public QueryTaskDetails? TaskDetails { get; }
         }
     }
 

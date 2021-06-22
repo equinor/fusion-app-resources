@@ -455,6 +455,26 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             segments[4].AppliesTo.Should().Be(new DateTime(2020, 03, 09));
         }
 
+        //[Fact]
+        //public async Task GetTimeline_ShouldIncludeTaskDetails()
+        //{
+        //    string department = TimelineDepartment;
+
+        //    using var adminScope = fixture.AdminScope();
+
+        //    await Client.AddAbsence(testUser, x => {
+        //        x.AppliesFrom = new DateTime(2020, 04, 01);
+        //        x.AppliesTo = new DateTime(2020, 04, 15);
+        //    });
+
+        //    var timelineStart = new DateTime(2020, 03, 01);
+        //    var timelineEnd = new DateTime(2020, 03, 31);
+
+        //    var response = await Client.TestClientGetAsync<TestApiDepartmentRequests>($"/departments/{department}/resources/personnel/?$expands=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}");
+
+        //    var segments = response.Value.Timeline.OrderBy(s => s.AppliesFrom).ToList();
+        //}
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();

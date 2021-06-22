@@ -1,5 +1,7 @@
-﻿using Fusion.ApiClients.Org;
+﻿using Bogus;
+using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.Tests.IntegrationTests;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
@@ -205,6 +207,26 @@ namespace Fusion.Resources.Api.Tests
                 dateFrom,
                 dateTo
             });
+        }
+
+        public static async Task<TestClientHttpResponse<TestAbsence>> AddAbsence(this HttpClient client, ApiPersonProfileV3 user, Action<TestAbsence> setup = null)
+        {
+            var payload = new Faker<TestAbsence>()
+                .RuleFor(x => x.AppliesFrom, f => f.Date.Future())
+                .RuleFor(x => x.AppliesTo, (f, x) => f.Date.Future(refDate: x.AppliesFrom?.DateTime))
+                .RuleFor(x => x.Comment, f => f.Lorem.Sentence())
+                .RuleFor(x => x.AbsencePercentage, f => f.Random.Number(0, 100)).Generate();
+
+            payload.TaskDetails = new Faker<TestTaskDetails>()
+                .RuleFor(x => x.TaskName, f => f.Company.CatchPhrase())
+                .RuleFor(x => x.RoleName, f => f.Company.CatchPhrase())
+                .Generate();
+
+            setup?.Invoke(payload);
+            return await client.TestClientPostAsync<TestAbsence>(
+                $"/persons/{user.AzureUniqueId}/absence",
+                payload
+            );
         }
     }
 }
