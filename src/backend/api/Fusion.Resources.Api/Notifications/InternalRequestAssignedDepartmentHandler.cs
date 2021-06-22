@@ -37,7 +37,7 @@ namespace Fusion.Resources.Api.Notifications
         public async Task Handle(InternalRequestAssignedDepartment notification, CancellationToken cancellationToken)
         {
             var request = await GetResolvedOrgData(notification.RequestId);
-            
+
 
             notificationBuilder.TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
                 //.TryAddProfileCard("TASK OWNER")
@@ -74,7 +74,7 @@ namespace Fusion.Resources.Api.Notifications
             var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(internalRequest.Project.OrgProjectId), FusionContextType.OrgChart);
             var orgContextId = $"{context?.Id}";
 
-            return new NotificationRequestData(internalRequest, orgPosition, orgPositionInstance).WithContextId(orgContextId);
+            return new NotificationRequestData(internalRequest, orgPosition, orgPositionInstance).WithContextId(orgContextId).WithPortalActions();
         }
 
 
@@ -93,13 +93,6 @@ namespace Fusion.Resources.Api.Notifications
                 AllocationRequest = allocationRequest;
                 Position = position;
                 Instance = instance;
-
-                if (!string.IsNullOrEmpty(OrgContextId))
-                {
-                    OrgAdminPortalUrl = $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}";
-                }
-
-                PersonnelAllocationPortalUrl = $"/apps/personnel-allocation/my-requests/resource/request/{allocationRequest.RequestId}";
             }
 
             private string? OrgContextId { get; set; }
@@ -109,13 +102,23 @@ namespace Fusion.Resources.Api.Notifications
             public QueryResourceAllocationRequest AllocationRequest { get; }
             public ApiPositionV2 Position { get; }
             public ApiPositionInstanceV2 Instance { get; }
-            public string? OrgAdminPortalUrl { get; }
-            public string? PersonnelAllocationPortalUrl { get; }
+            public string? OrgAdminPortalUrl { get; private set; }
+            public string? PersonnelAllocationPortalUrl { get; private set; }
 
 
             public NotificationRequestData WithContextId(string? contextId)
             {
                 OrgContextId = contextId;
+                return this;
+            }
+            public NotificationRequestData WithPortalActions()
+            {
+                if (!string.IsNullOrEmpty(OrgContextId))
+                {
+                    OrgAdminPortalUrl = $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}";
+                }
+
+                PersonnelAllocationPortalUrl = $"/apps/personnel-allocation/my-requests/resource/request/{AllocationRequest.RequestId}";
                 return this;
             }
         }

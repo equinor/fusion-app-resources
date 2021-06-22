@@ -7,6 +7,7 @@ using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -484,6 +485,40 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #endregion
 
         #region Update request
+
+        [Fact]
+        public async Task UpdateRequest_ShouldNotify_WhenPatchingAssignedDepartment()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = TestDepartmentId
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var payload = new JObject {{"assignedDepartment", JToken.FromObject(TestDepartmentId)}};
+
+            var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
+            response.Should().BeSuccessfull();
+
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
+        }
 
         [Theory]
         [InlineData("additionalNote", "Some test note")]
