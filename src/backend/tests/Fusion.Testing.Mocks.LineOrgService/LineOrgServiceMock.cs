@@ -3,6 +3,7 @@ using Fusion.Testing.Mocks.LineOrgService.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using Fusion.Integration.Profile.ApiClient;
@@ -59,6 +60,13 @@ namespace Fusion.Testing.Mocks.LineOrgService
             return this;
         }
 
+        public FusionTestUserBuilder WithManager(ApiPersonProfileV3 manager)
+        {
+            user.Manager = new ApiLineOrgManager { AzureUniqueId = manager.AzureUniqueId!.Value, Department = manager.Department, Mail = manager.Mail, FullDepartment = manager.FullDepartment, Name = manager.Name };
+            user.ManagerId = manager.AzureUniqueId;
+            return this;
+        }
+
         public FusionTestUserBuilder MergeWithProfile(ApiPersonProfileV3 testProfile)
         {
             user.AzureUniqueId = testProfile.AzureUniqueId!.Value;
@@ -72,7 +80,10 @@ namespace Fusion.Testing.Mocks.LineOrgService
         }
         public ApiLineOrgUser SaveProfile()
         {
-            LineOrgServiceMock.Users.Add(user);
+            var exists = LineOrgServiceMock.Users.Any(x => x.AzureUniqueId == user.AzureUniqueId);
+            if (!exists)
+                LineOrgServiceMock.Users.Add(user);
+            
             LineOrgServiceMock.AddDepartment(user.Department);
             return user;
         }

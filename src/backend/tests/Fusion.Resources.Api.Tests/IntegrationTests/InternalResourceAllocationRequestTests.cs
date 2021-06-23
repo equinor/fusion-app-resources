@@ -9,6 +9,7 @@ using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Newtonsoft.Json.Linq;
@@ -57,6 +58,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Mock profile
             testUser = PeopleServiceMock.AddTestProfile()
                 .SaveProfile();
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).SaveProfile();
 
             // Mock project
             testProject = new FusionTestProjectBuilder()
@@ -214,24 +217,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment(expectedDepartment);
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-
-            fixture.ApiFactory.lineOrgMock.WithResponse("/lineorg/persons", new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = expectedDepartment
-                    }
-                }
-            });
-
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(expectedDepartment).SaveProfile();
+           
             var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
             var request = await Client.CreateRequestAsync(projectId, r => r.AsTypeNormal().WithPosition(requestPosition));
             await Client.StartProjectRequestAsync(testProject, request.Id);
@@ -581,25 +568,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-               {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD LIN ORG TST"
-                    }
-                }
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
-
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment("TPD LIN ORG TST").SaveProfile();
+          
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientPatchAsync<object>($"/resources/requests/internal/{normalRequest.Id}", new { assignedDepartment = "TPD LIN ORG TST" });

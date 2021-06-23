@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
+using Fusion.Integration.Diagnostics;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
@@ -11,6 +12,7 @@ using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Domain.Queries;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Api.Notifications
 {
@@ -23,13 +25,15 @@ namespace Fusion.Resources.Api.Notifications
             private readonly INotificationBuilder notificationBuilder;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IFusionContextResolver contextResolver;
+            private readonly ILogger<InternalRequestNotification> logger;
 
-            public AssignedDepartmentHandler(IMediator mediator, INotificationBuilderFactory notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver)
+            public AssignedDepartmentHandler(IMediator mediator, INotificationBuilderFactory notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver, ILogger<InternalRequestNotification> logger)
             {
                 this.mediator = mediator;
                 this.notificationBuilder = notificationClient.CreateDesigner();
                 this.orgResolver = orgResolver;
                 this.contextResolver = contextResolver;
+                this.logger = logger;
             }
 
             public async Task Handle(InternalRequestNotifications.AssignedDepartment notification, CancellationToken cancellationToken)
@@ -39,28 +43,36 @@ namespace Fusion.Resources.Api.Notifications
                 if (string.IsNullOrEmpty(request.AllocationRequest.AssignedDepartment))
                     return;
 
-                notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                    .AddTextBlock("Request created by")
-                    .TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
+                try
+                {
+                    notificationBuilder.AddTitle("A personnel request has been assigned to you")
+                        .AddTextBlock("Request created by")
+                        .TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
 
-                    .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
-                    .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
+                        .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
+                        .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
 
-                    .AddDescription("Please review and handle request")
+                        .AddDescription("Please review and handle request")
 
-                    .AddFacts(facts => facts
-                        .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
-                        .AddFact("Position", request.Position!.Name)
-                        .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
-                        .AddFact("Workload", $"{request.Instance?.Workload}")
-                    )
-                    .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
-                    .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}")
-                    ;
+                        .AddFacts(facts => facts
+                            .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
+                            .AddFact("Position", request.Position!.Name)
+                            .AddFact("Period",
+                                $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
+                            .AddFact("Workload", $"{request.Instance?.Workload}")
+                        )
+                        .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
+                        .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}")
+                        ;
 
-                var card = await notificationBuilder.BuildCardAsync();
+                    var card = await notificationBuilder.BuildCardAsync();
 
-                await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
+                    await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex.Message);
+                }
                 //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
             }
 

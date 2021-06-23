@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,25 +38,8 @@ namespace Fusion.Resources.Api.Tests
         public async Task ShouldGetDataFromLineOrg()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD PRD FE MMS STR2"
-                    }
-                }
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
             fixture.EnsureDepartment("TPD PRD FE MMS STR2", "TPD PRD FE MMS");
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment("TPD PRD FE MMS STR2").SaveProfile();
 
             using var authScope = fixture.AdminScope();
 
@@ -70,25 +54,9 @@ namespace Fusion.Resources.Api.Tests
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var fakeDefactoResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD PRD FE MMS STR2"
-                    }
-                }
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
             fixture.EnsureDepartment("TPD PRD FE MMS STR2", "TPD PRD FE MMS", fakeDefactoResourceOwner);
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).WithFullDepartment("TPD PRD FE MMS STR2").SaveProfile();
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeDefactoResourceOwner).AsResourceOwner().WithFullDepartment("TPD PRD FE MMS STR2").SaveProfile();
 
             using var authScope = fixture.AdminScope();
             
@@ -96,7 +64,7 @@ namespace Fusion.Resources.Api.Tests
             var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?api-version=1.0-preview&$search={search}");
             result.Value.Single().LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
 
-            var delegatedResponsible = result.Value.Single().DelegatedResponsibles.Single();
+            var delegatedResponsible = result.Value.SingleOrDefault()?.DelegatedResponsibles.SingleOrDefault();
             delegatedResponsible.Should().NotBeNull();
             delegatedResponsible.AzureUniquePersonId.Should().Be(fakeDefactoResourceOwner.AzureUniqueId.Value);
         }

@@ -57,8 +57,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
         }
 
         public ContextResolverMock ContextResolver => ApiFactory.contextResolverMock;
-        public MockHttpClientBuilder LineOrg => ApiFactory.lineOrgMock;
-
         public void Dispose()
         {
             using var scope = ApiFactory.Services.CreateScope();
