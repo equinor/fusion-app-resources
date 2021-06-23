@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
-using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -487,7 +484,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #region Update request
 
-        [Fact]
+     /*   [Fact]
         public async Task UpdateRequest_ShouldNotify_WhenPatchingAssignedDepartment()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
@@ -519,7 +516,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
             NotificationClientMock.SentMessages.Count.Should().BeGreaterThan(0);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
-        }
+        }*/
        
         [Theory]
         [InlineData("additionalNote", "Some test note")]

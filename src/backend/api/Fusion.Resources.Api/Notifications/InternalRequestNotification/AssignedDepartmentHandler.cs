@@ -49,10 +49,10 @@ namespace Fusion.Resources.Api.Notifications
                     .AddDescription("Please review and handle request")
 
                     .AddFacts(facts => facts
-                        .AddFact("Project", request.Position.Project.Name)
-                        .AddFact("Position", request.Position.Name)
+                        .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
+                        .AddFact("Position", request.Position!.Name)
                         .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
-                        .AddFact("Workload", $"{request.Instance.Workload}")
+                        .AddFact("Workload", $"{request.Instance?.Workload}")
                     )
                     .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
                     .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}")
