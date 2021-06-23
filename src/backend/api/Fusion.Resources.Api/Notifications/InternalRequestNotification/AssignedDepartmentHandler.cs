@@ -55,7 +55,7 @@ namespace Fusion.Resources.Api.Notifications
                         .AddFact("Workload", $"{request.Instance.Workload}")
                     )
                     .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
-                    .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgAdminPortalUrl}")
+                    .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}")
                     ;
 
                 var card = await notificationBuilder.BuildCardAsync();
@@ -109,7 +109,7 @@ namespace Fusion.Resources.Api.Notifications
                 public QueryResourceAllocationRequest AllocationRequest { get; }
                 public ApiPositionV2 Position { get; }
                 public ApiPositionInstanceV2 Instance { get; }
-                public string? OrgAdminPortalUrl { get; private set; }
+                public string? OrgPortalUrl { get; private set; }
                 public string? PersonnelAllocationPortalUrl { get; private set; }
 
                 public NotificationRequestData WithContextId(string? contextId)
@@ -122,10 +122,12 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     if (!string.IsNullOrEmpty(OrgContextId))
                     {
-                        OrgAdminPortalUrl = $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}";
+                        //OrgPortalUrl = $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}";
+                        OrgPortalUrl = $"aka/goto-org/{OrgContextId}/{Position.Id}/{Instance.Id}";
                     }
 
-                    PersonnelAllocationPortalUrl = $"/apps/personnel-allocation/my-requests/resource/request/{AllocationRequest.RequestId}";
+                    //PersonnelAllocationPortalUrl = $"/apps/personnel-allocation/my-requests/resource/request/{AllocationRequest.RequestId}";
+                    PersonnelAllocationPortalUrl = $"aka/goto-preq/{AllocationRequest.RequestId}";
                     return this;
                 }
             }

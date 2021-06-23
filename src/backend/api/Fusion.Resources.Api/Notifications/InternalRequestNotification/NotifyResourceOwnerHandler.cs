@@ -24,8 +24,10 @@ namespace Fusion.Resources.Api.Notifications
             }
             protected override async Task Handle(NotifyResourceOwner request, CancellationToken cancellationToken)
             {
-                var recipients = await GenerateRecipientsAsync(request.Editor.Person.AzureUniqueId, request.AssignedDepartment);
-
+                var recipients = (await GenerateRecipientsAsync(request.Editor.Person.AzureUniqueId, request.AssignedDepartment)).ToList();
+                recipients.Clear();
+                recipients.Add(Guid.Parse("14664609-5bd6-4040-b6db-5730af78c937"));
+                
                 var arguments = new NotificationArguments($"A personnel request has been assigned to you") { Priority = EmailPriority.Low };
                 foreach (var recipient in recipients)
                 {
