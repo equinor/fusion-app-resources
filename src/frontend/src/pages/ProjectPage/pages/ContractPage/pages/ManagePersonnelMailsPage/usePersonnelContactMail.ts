@@ -100,6 +100,7 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
                 title: 'Preferred contact mails saved',
             });
         } catch (e) {
+            console.log(e)
             setSaveError(e);
             sendNotification({
                 level: 'high',
