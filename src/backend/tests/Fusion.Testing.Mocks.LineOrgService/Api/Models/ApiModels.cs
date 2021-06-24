@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -51,18 +52,6 @@ namespace Fusion.Testing.Mocks
     }
     public class ApiDepartment
     {
-        //public ApiDepartment(QueryDepartment queryDepartment)
-        //{
-        //    Name = queryDepartment.Name;
-        //    FullName = queryDepartment.FullName;
-        //    Parent = queryDepartment.Parent != null ? new ApiDepartmentRef(queryDepartment.Parent.Name, queryDepartment.Parent.FullName) : null;
-        //    Children = queryDepartment.Children?.Select(c => new ApiDepartmentRef(c.Name, c.FullName)).ToList();
-        //    Members = queryDepartment.Members?.Select(m => new ApiLineOrgUser(m)).ToList();
-
-        //    if (queryDepartment.Manager != null)
-        //        Manager = new ApiLineOrgUser(queryDepartment.Manager);
-        //}
-
         public string Name { get; set; }
 
         public string FullName { get; set; }
