@@ -56,13 +56,13 @@ namespace Fusion.Testing.Mocks
 
         public string? FullName { get; set; }
 
-        public ApiDepartmentRef Parent { get; set; }
+        public ApiDepartmentRef? Parent { get; set; }
 
-        public List<ApiDepartmentRef> Children { get; set; }
+        public List<ApiDepartmentRef>? Children { get; set; }
 
-        public ApiLineOrgUser Manager { get; set; }
+        public ApiLineOrgUser? Manager { get; set; }
 
-        public List<ApiLineOrgUser> Members { get; set; }
+        public List<ApiLineOrgUser>? Members { get; set; }
 
         public class ApiDepartmentRef
         {
