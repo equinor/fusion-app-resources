@@ -88,7 +88,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.AppliesFrom.Should().Be(request.AppliesFrom);
             response.Value.AppliesTo.Should().Be(request.AppliesTo);
             response.Value.Comment.Should().Be(request.Comment);
-            response.Value.Type.Should().Be(request.Type);
+            response.Value.Type.Should().Be(request.Type.ToString());
             response.Value.AbsencePercentage.Should().BeNull();
 
         }
@@ -247,8 +247,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public string? Comment { get; set; }
         public DateTimeOffset? AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
-        public QueryAbsenceType? Type { get; set; }
+        public string? Type { get; set; }
         public double? AbsencePercentage { get; set; }
+        public bool IsPrivate { get; set; } = false;
 
         public TestTaskDetails? TaskDetails { get; set; }
     }

@@ -9,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiInternalPersonnelPerson
     {
-        public ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p)
+        public ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p, bool hideTaskDetails)
         {
             AzureUniquePersonId = p.AzureUniqueId;
             Mail = p.Mail!;
@@ -22,10 +22,10 @@ namespace Fusion.Resources.Api.Controllers
             FullDepartment = p.FullDepartment!;
             IsResourceOwner = p.IsResourceOwner;
 
-            if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti)).ToList();
+            if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti, hideTaskDetails)).ToList();
 
             PositionInstances = p.PositionInstances.Select(pos => new PersonnelPosition(pos)).ToList();
-            EmploymentStatuses = p.Absence.Select(a => new PersonnelAbsence(a)).ToList();
+            EmploymentStatuses = p.Absence.Select(a => new ApiPersonAbsence(a, hideTaskDetails)).ToList();
 
             Disciplines = p.PositionInstances
                 .OrderByDescending(p => p.AppliesTo)
@@ -53,7 +53,7 @@ namespace Fusion.Resources.Api.Controllers
         public List<string> Disciplines { get; set; } = new List<string>();
 
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
-        public List<PersonnelAbsence> EmploymentStatuses { get; set; } = new List<PersonnelAbsence>();
+        public List<ApiPersonAbsence> EmploymentStatuses { get; set; } = new List<ApiPersonAbsence>();
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<TimelineRange>? Timeline { get; set; }
@@ -61,13 +61,13 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineRange
         {
-            public TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti)
+            public TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti, bool hidePrivateNotes)
             {
                 AppliesFrom = ti.AppliesFrom;
                 AppliesTo = ti.AppliesTo;
                 Workload = ti.Workload;
 
-                Items = ti.Items.Select(i => new TimelineItem(i)).ToList();
+                Items = ti.Items.Select(i => new TimelineItem(i, hidePrivateNotes)).ToList();
             }
 
             public DateTime AppliesFrom { get; set; }
@@ -78,16 +78,16 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineItem
         {
-            public TimelineItem(QueryPersonnelTimelineItem item)
+            public TimelineItem(QueryPersonnelTimelineItem item, bool hidePrivateNotes)
             {
                 Id = item.Id;
                 Workload = item.Workload;
                 Type = item.Type;
                 Description = item.Description;
 
-                RoleName = item.RoleName;
-                TaskName = item.TaskName;
-                Location = item.Location;
+                RoleName = hidePrivateNotes ? "Not disclosed" : item.RoleName;
+                TaskName = hidePrivateNotes ? "Not disclosed" : item.TaskName;
+                Location = hidePrivateNotes ? "Not disclosed" : item.Location;
 
                 if (item.Project != null) Project = new ApiProjectReference(item.Project);
                 if (item.BasePosition != null) BasePosition = new ApiBasePosition(item.BasePosition);
@@ -143,25 +143,6 @@ namespace Fusion.Resources.Api.Controllers
             public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
             public double Workload { get; set; }
             public ApiProjectReference Project { get; set; } = null!;
-        }
-        public class PersonnelAbsence
-        {
-            public PersonnelAbsence(QueryPersonAbsenceBasic absence)
-            {
-                Id = absence.Id;
-                AppliesFrom = absence.AppliesFrom.UtcDateTime;
-                AppliesTo = absence.AppliesTo?.UtcDateTime;
-                Type = $"{absence.Type}";
-                AbsencePercentage = absence.AbsencePercentage;
-                TaskDetails = absence.TaskDetails is null ? null : new ApiTaskDetails(absence.TaskDetails);
-            }
-
-            public Guid Id { get; set; }
-            public DateTime AppliesFrom { get; set; }
-            public DateTime? AppliesTo { get; set; }
-            public double? AbsencePercentage { get; set; }
-            public string Type { get; set; } = null!;
-            public ApiTaskDetails? TaskDetails { get; }
         }
     }
 

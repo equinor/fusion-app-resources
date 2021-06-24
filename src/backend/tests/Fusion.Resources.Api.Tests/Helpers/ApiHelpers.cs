@@ -215,7 +215,9 @@ namespace Fusion.Resources.Api.Tests
                 .RuleFor(x => x.AppliesFrom, f => f.Date.Future())
                 .RuleFor(x => x.AppliesTo, (f, x) => f.Date.Future(refDate: x.AppliesFrom?.DateTime))
                 .RuleFor(x => x.Comment, f => f.Lorem.Sentence())
-                .RuleFor(x => x.AbsencePercentage, f => f.Random.Number(0, 100)).Generate();
+                .RuleFor(x => x.AbsencePercentage, f => f.Random.Number(0, 100))
+                .RuleFor(x => x.Type, f => "OtherTasks")
+                .Generate();
 
             payload.TaskDetails = new Faker<TestTaskDetails>()
                 .RuleFor(x => x.TaskName, f => f.Company.CatchPhrase())

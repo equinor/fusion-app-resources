@@ -26,10 +26,31 @@ namespace Fusion.Resources.Api.Controllers
                 TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;
             }
         }
+        public ApiPersonAbsence(QueryPersonAbsenceBasic absence, bool hidePrivateNotes)
+        {
+            Id = absence.Id;
+            AppliesFrom = absence.AppliesFrom;
+            AppliesTo = absence.AppliesTo;
+            Type = Enum.Parse<ApiAbsenceType>($"{absence.Type}", true);
+            AbsencePercentage = absence.AbsencePercentage;
+
+            IsPrivate = absence.IsPrivate;
+            Comment = absence.Comment;
+            TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
+
+            if (hidePrivateNotes && absence.IsPrivate)
+            {
+                Comment = "Not disclosed.";
+                TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;
+            }
+        }
 
         public Guid Id { get; set; }
-        public DateTimeOffset Created { get; set; }
-        public ApiPerson CreatedBy { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DateTimeOffset? Created { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ApiPerson? CreatedBy { get; set; }
 
         public bool IsPrivate { get; set; }
 

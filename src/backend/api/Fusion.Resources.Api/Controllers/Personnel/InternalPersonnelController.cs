@@ -49,10 +49,12 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControl();
 
                     or.FullControlInternal();
-
-                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
-
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).Parent(), includeParents: false, includeDescendants: true);
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    x.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -96,7 +98,7 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(command);
 
 
-            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
+            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p, authResult.LimitedAuth)).ToList();
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
@@ -117,8 +119,11 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControl();
 
                     or.FullControlInternal();
-
-                    or.BeResourceOwner(new DepartmentPath(sectorPath).GoToLevel(2), includeParents: false, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(sectorPath).Parent(), includeParents: false, includeDescendants: true);
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    x.BeResourceOwner(new DepartmentPath(sectorPath).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -160,7 +165,7 @@ namespace Fusion.Resources.Api.Controllers
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
 
 
-            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
+            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p, authResult.LimitedAuth)).ToList();
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
@@ -178,7 +183,11 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
-                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).Parent(), includeParents: false, includeDescendants: true);
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    x.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -196,7 +205,7 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.NotFound($"Person does not belong to department ({personnelItem.FullDepartment})");
 
 
-            return Ok(new ApiInternalPersonnelPerson(personnelItem));
+            return Ok(new ApiInternalPersonnelPerson(personnelItem, authResult.LimitedAuth));
         }
 
         [HttpPost("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}/allocations/{instanceId}/allocation-state/reset")]
