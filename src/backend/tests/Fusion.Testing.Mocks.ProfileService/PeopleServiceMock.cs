@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
-using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace Fusion.Testing.Mocks.ProfileService
 {
@@ -28,7 +27,7 @@ namespace Fusion.Testing.Mocks.ProfileService
             return client;
         }
 
-        public static FusionTestUserBuilder AddTestProfile() => new FusionTestUserBuilder();
+        public static FusionTestUserBuilder AddTestProfile() => new();
         public static void AddCompany(Guid id, string name) => companies.Add(new ApiCompanyInfo { Id = id, Name = name });
     }
 
@@ -43,6 +42,13 @@ namespace Fusion.Testing.Mocks.ProfileService
         public FusionTestUserBuilder(FusionAccountType type, AccountClassification? classification = null)
         {
             profile = FusionTestProfiles.CreateTestUser(type, classification);
+        }
+
+        public FusionTestUserBuilder WithAccountType(FusionAccountType type)
+        {
+            profile.AccountType = type;
+            profile.AccountClassification = type == FusionAccountType.Employee ? AccountClassification.Internal : AccountClassification.External;
+            return this;
         }
 
         public FusionTestUserBuilder WithFullDepartment(string fullDepartment)
@@ -87,7 +93,7 @@ namespace Fusion.Testing.Mocks.ProfileService
             });
             return this;
         }
-    
+
         public ApiPersonProfileV3 SaveProfile()
         {
             PeopleServiceMock.profiles.Add(profile);

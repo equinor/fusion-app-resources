@@ -3,7 +3,6 @@ using Fusion.Testing.Mocks.LineOrgService.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using Fusion.Integration.Profile.ApiClient;
@@ -39,7 +38,7 @@ namespace Fusion.Testing.Mocks.LineOrgService
     public class FusionTestUserBuilder
     {
         private readonly ApiLineOrgUser user;
-        public FusionTestUserBuilder()
+        internal FusionTestUserBuilder()
         {
             user = FusionLineOrgTestData.CreateTestUser();
         }

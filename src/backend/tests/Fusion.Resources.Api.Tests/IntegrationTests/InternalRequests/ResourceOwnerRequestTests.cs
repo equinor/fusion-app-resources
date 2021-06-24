@@ -1,22 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
-using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Integration.Models.Queue;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
-using Moq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 #nullable enable 
@@ -82,7 +77,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testDepartment = InternalRequestData.PickRandomDepartment();
             // Create a default request we can work with
 
-            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
             // Create adjustment request on a position instance currently active
             adjustmentRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(
                 testDepartment, testProject, 
@@ -136,7 +131,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var position = testProject.AddPosition();
-            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
             position.WithAssignedPerson(assignedPerson);
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", new
             {
@@ -227,7 +222,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
             var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject,
                 r => r.AsTypeResourceOwner(subType),
                 p => p.WithAssignedPerson(assignedPerson)
@@ -249,8 +244,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             
-            var oldUser = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
-            var newUser = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
+            var oldUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
+            var newUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
 
             var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_CHANGE), p => p.WithAssignedPerson(oldUser));
 
@@ -267,8 +262,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var oldUser = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
-            var newUser = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
+            var oldUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
+            var newUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
 
             var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_CHANGE), p => p.WithAssignedPerson(oldUser));
 
@@ -283,7 +278,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task RemoveResourceRequest_Start_ShouldBeSuccessfull_WhenChangeDateSet()
         {
             using var adminScope = fixture.AdminScope();
-            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
 
             var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_REMOVE), p => p.WithAssignedPerson(assignedPerson));
 
@@ -346,7 +341,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             using var adminScope = fixture.AdminScope();
-            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
 
             var position = disabledTestProject.AddPosition()
                 .WithAssignedPerson(assignedPerson)

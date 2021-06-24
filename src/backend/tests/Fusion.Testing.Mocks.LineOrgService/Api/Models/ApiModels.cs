@@ -12,10 +12,10 @@ namespace Fusion.Testing.Mocks
     public class ApiLineOrgManager
     {
         public Guid AzureUniqueId { get; set; }
-        public string Mail { get; set; }
-        public string Department { get; set; }
-        public string FullDepartment { get; set; }
-        public string Name { get; set; }
+        public string? Mail { get; set; }
+        public string? Department { get; set; }
+        public string? FullDepartment { get; set; }
+        public string? Name { get; set; }
     }
      public class ApiLineOrgUser
     {
@@ -26,17 +26,17 @@ namespace Fusion.Testing.Mocks
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ApiLineOrgManager? Manager { get; set; }
 
-        public string Department { get; set; }
-        public string FullDepartment { get; set; }
-        public string Name { get; set; }
-        public string GivenName { get; set; }
-        public string Surname { get; set; }
-        public string JobTitle { get; set; }
-        public string Mail { get; set; }
-        public string Country { get; set; }
-        public string Phone { get; set; }
-        public string OfficeLocation { get; set; }
-        public string UserType { get; set; }
+        public string? Department { get; set; }
+        public string? FullDepartment { get; set; }
+        public string? Name { get; set; }
+        public string? GivenName { get; set; }
+        public string? Surname { get; set; }
+        public string? JobTitle { get; set; }
+        public string? Mail { get; set; }
+        public string? Country { get; set; }
+        public string? Phone { get; set; }
+        public string? OfficeLocation { get; set; }
+        public string? UserType { get; set; }
         public bool IsResourceOwner { get; set; }
         public bool HasChildPositions { get; set; }
         public bool HasOfficeLicense { get; set; }
@@ -52,9 +52,9 @@ namespace Fusion.Testing.Mocks
     }
     public class ApiDepartment
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public string FullName { get; set; }
+        public string? FullName { get; set; }
 
         public ApiDepartmentRef Parent { get; set; }
 
@@ -66,9 +66,9 @@ namespace Fusion.Testing.Mocks
 
         public class ApiDepartmentRef
         {
-            public string Name { get; set; }
+            public string? Name { get; set; }
 
-            public string FullName { get; set; }
+            public string? FullName { get; set; }
         }
     }
       public class ApiPagedCollection<T>

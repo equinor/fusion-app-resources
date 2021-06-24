@@ -3,19 +3,16 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.IntegrationTests;
-using Fusion.Resources.Database;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -283,8 +280,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
             var taskOwnerPosition = testProject.AddPosition()
                 .WithAssignedPerson(taskOwner);
-
-            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(TestDepartment).WithDepartment(department).SaveProfile();
+            
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(TestDepartment).WithDepartment(department).SaveProfile();
 
             testPosition = testProject.AddPosition()
                 .WithBasePosition(bp)
@@ -752,7 +749,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                  .InterceptOption($"/{testPosition.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
 
-            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(department).WithDepartment(department).SaveProfile();
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(department).WithDepartment(department).SaveProfile();
 
             var req = await creatorClient.CreateDefaultResourceOwnerRequestAsync(
                 department, testProject,
