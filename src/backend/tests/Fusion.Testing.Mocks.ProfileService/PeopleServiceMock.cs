@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
+using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace Fusion.Testing.Mocks.ProfileService
 {
@@ -44,6 +45,16 @@ namespace Fusion.Testing.Mocks.ProfileService
             profile = FusionTestProfiles.CreateTestUser(type, classification);
         }
 
+        public FusionTestUserBuilder WithFullDepartment(string fullDepartment)
+        {
+            profile.FullDepartment = fullDepartment;
+            return this;
+        }
+        public FusionTestUserBuilder WithDepartment(string department)
+        {
+            profile.Department = department;
+            return this;
+        }
         public FusionTestUserBuilder WithRoles(string name)
         {
             if (profile.Roles == null) profile.Roles = new List<ApiPersonRoleV3>();

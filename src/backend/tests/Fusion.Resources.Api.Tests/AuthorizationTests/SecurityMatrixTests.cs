@@ -279,6 +279,19 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             Users[role].FullDepartment = department;
             using var userScope = fixture.UserScope(Users[role]);
 
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = TestDepartment);
+            var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var taskOwnerPosition = testProject.AddPosition()
+                .WithAssignedPerson(taskOwner);
+
+            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(TestDepartment).WithDepartment(department).SaveProfile();
+
+            testPosition = testProject.AddPosition()
+                .WithBasePosition(bp)
+                .WithAssignedPerson(assignedPerson)
+                .WithEnsuredFutureInstances()
+                .WithTaskOwner(taskOwnerPosition.Id);
+
             using var i = creatorInterceptor = OrgRequestMocker
                  .InterceptOption($"/{testPosition.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
@@ -430,7 +443,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using (var adminscope = fixture.AdminScope())
             {
                 var testUser = fixture.AddProfile(FusionAccountType.Employee);
-
+                
                 await client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
                 await client.ProposePersonAsync(request.Id, testUser);
             }
@@ -640,7 +653,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, "GET,PATCH")]
         [InlineData("resourceOwner", ParentDepartment, "GET,PATCH")]
         [InlineData("resourceOwner", SameL2Department, "GET,PATCH")]
-        public async Task CanGetOtionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
+        public async Task CanGetOptionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
         {
             var request = await CreateChangeRequest(TestDepartment);
 
@@ -739,10 +752,12 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                  .InterceptOption($"/{testPosition.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
 
+            var assignedPerson = new FusionTestUserBuilder(FusionAccountType.Employee).WithFullDepartment(department).WithDepartment(department).SaveProfile();
+
             var req = await creatorClient.CreateDefaultResourceOwnerRequestAsync(
                 department, testProject,
                 r => r.AsTypeResourceOwner("changeResource"),
-                p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                p => p.WithAssignedPerson(assignedPerson)
             );
 
             await creatorClient.SetChangeParamsAsync(req.Id, DateTime.Today.AddDays(1));

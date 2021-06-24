@@ -159,7 +159,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}&api-version=1.0-preview");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == fakeResourceOwner.Department);
+            resp.Value.Should().Contain(x => x.Name == fakeResourceOwner.FullDepartment);
         }
 
         [Fact]
