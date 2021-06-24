@@ -1,4 +1,5 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
+﻿using FluentValidation;
+using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
@@ -338,6 +339,55 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/preferred-contact")]
+        public async Task<ActionResult<ApiContractPersonnel>> UpdatePersonnelPreferredContactMails([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] UpdateContractPreferredMailRequest request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            using (var scope = await BeginTransactionAsync())
+            {
+                var mails = request.Personnel.Select(p => (p.PersonnelId, p.PreferredContactMail));
+
+                await DispatchAsync(new UpdateContractPersonnelContactMail(contractIdentifier, mails));
+                await scope.CommitAsync();
+
+                return Ok();
+            }
+        }
+
+
     }
 
+    public class UpdateContractPreferredMailRequest
+    {
+        public List<PersonnelPreferredContact> Personnel { get; set; } = new List<PersonnelPreferredContact>();
+
+        public class PersonnelPreferredContact
+        {
+            public Guid PersonnelId { get; set; }
+            public string? PreferredContactMail { get; set; } 
+        }
+
+        public class Validator : AbstractValidator<UpdateContractPreferredMailRequest>
+        {
+
+        }
+    }
 }

@@ -43,7 +43,7 @@ namespace Fusion.Resources.Domain.Services
         {
             var profile = await ResolveProfileAsync(personId);
 
-            if (profile == null) //early check for null to avoid hitting DB unneccesary
+            if (profile == null) //early check for null to avoid hitting DB unnecessary
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
             var resolvedPerson = await ResolveExternalPersonnelAsync(personId);
@@ -56,6 +56,7 @@ namespace Fusion.Resources.Domain.Services
             resolvedPerson.JobTitle = profile.JobTitle;
             resolvedPerson.Name = profile.Name;
             resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
+            resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
 
             await resourcesDb.SaveChangesAsync();
 
@@ -96,6 +97,7 @@ namespace Fusion.Resources.Domain.Services
                     newEntry.JobTitle = profile.JobTitle;
                     newEntry.Name = profile.Name;
                     newEntry.Phone = profile.MobilePhone ?? string.Empty;
+                    newEntry.PreferredContractMail = profile.PreferredContactMail;
                 }
 
                 await resourcesDb.ExternalPersonnel.AddAsync(newEntry);
