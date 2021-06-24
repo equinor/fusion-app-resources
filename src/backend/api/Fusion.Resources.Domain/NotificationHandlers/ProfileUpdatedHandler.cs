@@ -33,19 +33,19 @@ namespace Fusion.Resources.Domain.Notifications
                 }
 
                 var hasChanged = profile.JobTitle != notification.Profile.JobTitle
-                    || profile.Mail != (notification.Profile.PreferredContactMail ?? notification.Profile.Mail)
+                    || profile.Mail != (notification.Profile.Mail ?? notification.Profile.PreferredContactMail)
                     || profile.Name != notification.Profile.Name
                     || profile.Phone != notification.Profile.MobilePhone
                     || profile.AccountType != $"{notification.Profile.AccountType}";
 
-                profile.JobTitle = notification.Profile.JobTitle;
-                profile.Mail = notification.Profile.PreferredContactMail ?? notification.Profile.Mail;
-                profile.Name = notification.Profile.Name;
-                profile.Phone = notification.Profile.MobilePhone;
-                profile.AccountType = $"{notification.Profile.AccountType}";
-
                 if (hasChanged)
                 {
+                    profile.JobTitle = notification.Profile.JobTitle;
+                    profile.Mail = notification.Profile.Mail ?? notification.Profile.PreferredContactMail;
+                    profile.Name = notification.Profile.Name;
+                    profile.Phone = notification.Profile.MobilePhone;
+                    profile.AccountType = $"{notification.Profile.AccountType}";
+
                     await dbContext.SaveChangesAsync();
                     logger.LogInformation("Updated profile for {UPN} ({UniqueId})", notification.Profile.UPN, notification.Profile.AzureUniqueId);
                 }
