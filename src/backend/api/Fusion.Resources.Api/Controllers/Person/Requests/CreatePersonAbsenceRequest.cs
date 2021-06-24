@@ -16,6 +16,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public double? AbsencePercentage { get; set; }
 
+        public bool IsPrivate { get; set; }
+        public ApiTaskDetails? TaskDetails { get; set; }
 
         public void LoadCommand(CreatePersonAbsence command)
         {
@@ -27,6 +29,11 @@ namespace Fusion.Resources.Api.Controllers
             command.AppliesTo = AppliesTo;
             command.Type = Enum.Parse<QueryAbsenceType>($"{Type}", true);
             command.AbsencePercentage = AbsencePercentage;
+            command.IsPrivate = IsPrivate;
+            command.BasePositionId = TaskDetails?.BasePositionId;
+            command.TaskName = TaskDetails?.TaskName;
+            command.RoleName = TaskDetails?.RoleName;
+            command.Location = TaskDetails?.Location;
         }
 
 
@@ -44,6 +51,15 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.AppliesTo).GreaterThan(x => x.AppliesFrom)
                     .WithMessage(x => "To date cannot be earlier than from date");
 
+                RuleFor(x => x.TaskDetails)
+                    .Empty()
+                    .When(x => x.Type != ApiPersonAbsence.ApiAbsenceType.OtherTasks)
+                    .WithMessage("Cannot set task details when type is not 'other tasks'.");
+
+                RuleFor(x => x.TaskDetails!.RoleName)
+                    .NotEmpty()
+                    .When(x => x.TaskDetails != null && x.Type == ApiPersonAbsence.ApiAbsenceType.OtherTasks && x.TaskDetails?.BasePositionId != null)
+                    .WithMessage("Either role name or base position must be set.");
             }
         }
 

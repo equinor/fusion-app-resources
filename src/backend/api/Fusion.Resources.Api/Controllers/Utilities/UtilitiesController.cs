@@ -49,20 +49,18 @@ namespace Fusion.Resources.Api.Controllers.Utilities
                 throw new InvalidOperationException("Missing configuration for fusion utility function");
 
 
-            using (var streamContent = new StreamContent(request.File!.OpenReadStream()))
-            {
-                streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                streamContent.Headers.ContentLength = request.File.Length;
+            using var streamContent = new StreamContent(request.File!.OpenReadStream());
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            streamContent.Headers.ContentLength = request.File.Length;
 
-                var response = await client.PostAsync("/api/excel-json-converter", streamContent);
+            var response = await client.PostAsync("/api/excel-json-converter", streamContent);
 
-                var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
 
-                if (response.IsSuccessStatusCode)
-                    return JsonConvert.DeserializeObject<ExcelConversion>(content);
+            if (response.IsSuccessStatusCode)
+                return JsonConvert.DeserializeObject<ExcelConversion>(content)!;
 
-                throw new InvalidOperationException($"Parser function returned non-successfull response ({response.StatusCode}).");
-            }
+            throw new InvalidOperationException($"Parser function returned non-successfull response ({response.StatusCode}).");
         }
 
         [HttpGet("/utilities/templates/import-personnel")]

@@ -47,6 +47,9 @@ namespace Fusion.Resources.Logic
 
             var tempObject = JsonConvert.DeserializeObject<JObject>(JsonConvert.SerializeObject(new { prop = propertyValue }));
 
+            if (tempObject is null)
+                return;
+
             if (property == null)
             {
                 var camelCasedPropertyName = CamelCaseProperty(prop.Name);

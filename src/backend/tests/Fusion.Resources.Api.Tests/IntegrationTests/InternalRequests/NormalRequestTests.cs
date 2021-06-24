@@ -94,6 +94,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        
+
         [Fact]
         public async Task NormalRequest_Create_ShouldGetNewNumber()
         {
@@ -105,9 +107,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 type = "normal",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
-            }, new 
-            { 
-                number = 0 
+            }, new
+            {
+                number = 0
             });
 
             response.Should().BeSuccessfull();
@@ -183,6 +185,66 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Should().BeSuccessfull();
             resp.Value.state.Should().BeNull();
         }
+
+        [Fact]
+        public async Task NormalRequest_Create_ShouldBeAbleToSetAssignedDepartmentDirectly()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var department = InternalRequestData.RandomDepartment;
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                assignedDepartment = department
+            });
+            response.Should().BeSuccessfull();
+            response.Value.AssignedDepartment.Should().Be(department);
+        }
+
+        [Fact]
+        public async Task NormalRequest_Create_ShouldBeAbleToProposePersonDirectly()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId
+            });
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPersonAzureUniqueId.Should().Be(proposedPerson.AzureUniqueId);
+            response.Value.ProposedPerson?.Person.Should().NotBeNull();
+            response.Value.ProposedPerson?.Person.Mail.Should().Be(proposedPerson.Mail);
+        }
+
+        [Fact]
+        public async Task NormalRequest_Create_InconcistentDirectAssignment_ShouldGiveBadRequest()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var department = InternalRequestData.RandomDepartment;
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            proposedPerson.FullDepartment = InternalRequestData.PickRandomDepartment(department);
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                assignedDepartment = department,
+                proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId
+            });
+        
+            response.Should().BeBadRequest();
+        }
+
 
         #endregion
 
@@ -317,14 +379,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await FastForward_ProposedRequest();
 
-            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{normalRequest.Id}", new { workflow = new TestApiWorkflow() });
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
             resp.Should().BeSuccessfull();
 
-            resp.Value.workflow.Should().NotBeNull();
-            resp.Value.workflow.State.Should().Be("Running");
+            resp.Value.Workflow.Should().NotBeNull();
+            resp.Value.Workflow!.State.Should().Be("Running");
 
-            resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "proposal");
-            resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "proposal");
+            resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "approval");
         }
 
         #endregion
@@ -392,6 +454,61 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #endregion
 
+        #region Query requests
+
+        [Fact]
+        public async Task NormalRequest_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await StartRequest_WithProposal();
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}");
+            resp.Value.ProposedPerson.Should().BeNull();
+            resp.Value.ProposedPersonAzureUniqueId.Should().BeNull();
+        }
+        [Fact]
+        public async Task NormalRequest_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await StartRequest_WithProposal();
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
+
+            resp.Value.ProposedPerson.Should().NotBeNull();
+            resp.Value.ProposedPersonAzureUniqueId.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task NormalRequests_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldHideProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await StartRequest_WithProposal();
+
+            var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests");
+            var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
+            resp.ProposedPerson.Should().BeNull();
+            resp.ProposedPersonAzureUniqueId.Should().BeNull();
+        }
+        [Fact]
+        public async Task NormalRequests_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
+        {
+            using var adminScope = fixture.AdminScope();
+            await StartRequest_WithProposal();
+
+            var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/resources/requests/internal");
+            var resp = respList.Value.Value.Single(x => x.Id == normalRequest.Id);
+            resp.ProposedPerson.Should().NotBeNull();
+            resp.ProposedPersonAzureUniqueId.Should().NotBeNull();
+        }
+
+        #endregion
+
+        private async Task StartRequest_WithProposal()
+        {
+            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+            await Client.ProposePersonAsync(normalRequest.Id, testPerson);
+            await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+        }
 
         /// <summary>
         /// Perform steps required to end up with a proposed request

@@ -3,6 +3,7 @@ using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.IntegrationTests;
+using Fusion.Resources.Database;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -44,8 +45,15 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             this.fixture = fixture;
             fixture.DisableMemoryCache();
 
+            fixture.EnsureDepartment(TestDepartment);
+
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
+
+            testProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", true)
+                .AddToMockService();
 
             var creator = fixture.AddProfile(FusionAccountType.Employee);
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
@@ -55,10 +63,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             resourceOwnerCreator.IsResourceOwner = true;
             resourceOwnerCreator.FullDepartment = TestDepartment;
 
-            testProject = new FusionTestProjectBuilder()
-                .WithPositions(200)
-                .WithProperty("pimsWriteSyncEnabled", true)
-                .AddToMockService();
+            var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
+            //var taskOwnerBasePosition = testProject.AddBasePosition($"TO: {Guid.NewGuid()}");
+            var taskOwnerPosition = testProject.AddPosition()
+                .WithAssignedPerson(taskOwner);
 
             fixture.ContextResolver
                .AddContext(testProject.Project);
@@ -67,13 +75,17 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             testPosition = testProject.AddPosition()
                 .WithBasePosition(bp)
                 .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
-                .WithEnsuredFutureInstances();
+                .WithEnsuredFutureInstances()
+                .WithTaskOwner(taskOwnerPosition.Id);
+
+            OrgServiceMock.SetTaskOwner(testPosition.Id, taskOwnerPosition.Id);
 
             Users = new Dictionary<string, ApiPersonProfileV3>()
             {
                 ["creator"] = creator,
                 ["resourceOwner"] = resourceOwner,
-                ["resourceOwnerCreator"] = resourceOwnerCreator
+                ["resourceOwnerCreator"] = resourceOwnerCreator,
+                ["taskOwner"] = taskOwner
             };
 
             testUser = fixture.AddProfile(FusionAccountType.Employee);
@@ -201,7 +213,44 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanReassignOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
+        public async Task CanReassignDepartmentOnRequest(string role, string department, bool shouldBeAllowed)
+        {
+            const string changedDepartment = "TPD UPD ASD";
+            fixture.EnsureDepartment(changedDepartment);
+            Users[role].FullDepartment = department;
+
+            var request = await CreateAndStartRequest();
+            using (var adminScope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = TestDepartment }
+                );
+                result.Should().BeSuccessfull();
+            }
+
+            using (var userScope = fixture.UserScope(Users[role]))
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    new { assignedDepartment = changedDepartment }
+                );
+
+                if (shouldBeAllowed) result.Should().BeSuccessfull();
+                else result.Should().BeUnauthorized();
+            }
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", "PDP PRD FE ANE ANE5", true)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
+        public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
             fixture.EnsureDepartment(changedDepartment);
@@ -233,9 +282,9 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using var i = creatorInterceptor = OrgRequestMocker
                  .InterceptOption($"/{testPosition.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
-            
+
             var client = fixture.ApiFactory.CreateClient();
-            
+
             var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
                 $"/departments/{TestDepartment}/resources/requests",
                 new ApiCreateInternalRequestModel()
@@ -273,8 +322,8 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
-        public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
+        //[InlineData("creator", "TPD RND WQE FQE", false)]
+        public async Task CanProposePersonNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
             Users[role].FullDepartment = department;
@@ -293,11 +342,48 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         }
 
         [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("creator", "TPD RND WQE FQE", false)]
+        [InlineData("taskOwner", TestDepartment, false)]
+
+        public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
+        {
+            var request = await CreateAndStartRequest();
+            Users[role].FullDepartment = department;
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                var proposedPerson = PeopleServiceMock.AddTestProfile()
+                    .SaveProfile();
+
+                var adminClient = fixture.ApiFactory.CreateClient();
+
+                await adminClient.AssignDepartmentAsync(request.Id, TestDepartment);
+                await adminClient.ProposePersonAsync(request.Id, proposedPerson);
+            }
+
+            using var userScope = fixture.UserScope(Users[role]);
+
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+                $"/departments/{TestDepartment}/resources/requests/{request.Id}/approve",
+                null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        [Theory]
         [InlineData("resourceOwner", TestDepartment, false)]
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
-        //TODO: [InlineData("creator", "TPD RND WQE FQE", true)]
+        [InlineData("creator", "TPD RND WQE FQE", true)]
+        [InlineData("taskOwner", TestDepartment, true)]
         public async Task CanAcceptNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -310,18 +396,23 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
                 var adminClient = fixture.ApiFactory.CreateClient();
                 await adminClient.ProposePersonAsync(request.Id, proposedPerson);
+                await adminClient.TestClientPostAsync<TestApiInternalRequestModel>(
+                    $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+                    null
+                );
             }
 
             using var userScope = fixture.UserScope(Users[role]);
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+                   $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+                   null
+                );
 
-            var client = fixture.ApiFactory.CreateClient();
-            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
-                null
-            );
-
-            if (shouldBeAllowed) result.Should().BeSuccessfull();
-            else result.Should().BeUnauthorized();
+                if (shouldBeAllowed) result.Should().BeSuccessfull();
+                else result.Should().BeUnauthorized();
+            }
         }
 
         [Theory]
@@ -330,6 +421,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("resourceOwnerCreator", TestDepartment, true)]
+        [InlineData("taskOwner", TestDepartment, false)]
         public async Task CanStartChangeRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateChangeRequest(TestDepartment);
@@ -354,39 +446,13 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
-        //[Theory]
-        //[InlineData("resourceOwnerCreator", TestDepartment, false)]
-        //public async Task CanAcceptChangeRequest(string role, string department, bool shouldBeAllowed)
-        //{
-        //    var chgRequest = await CreateChangeRequest(department);
-        //    using (var adminScope = fixture.AdminScope())
-        //    {
-        //        var adminClient = fixture.ApiFactory.CreateClient();
-        //        await adminClient.TestClientPostAsync<TestApiInternalRequestModel>(
-        //            $"/departments/{TestDepartment}/resources/requests/{chgRequest.Id}/start",
-        //            null
-        //        );
-        //    }
-        //    using var userScope = fixture.UserScope(Users[role]);
-
-        //    Users[role].FullDepartment = department;
-        //    var client = fixture.ApiFactory.CreateClient();
-        //    var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-        //        $"/departments/{chgRequest.AssignedDepartment}/requests/{chgRequest.Id}/approve",
-        //        null
-        //    );
-
-        //    if (shouldBeAllowed) result.Should().BeSuccessfull();
-        //    else result.Should().BeUnauthorized();
-        //}
-
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, false)]
-
         public async Task CanAddPersonAbsence(string role, string department, bool shouldBeAllowed)
+
         {
             var testUser = fixture.AddProfile(FusionAccountType.Employee);
             testUser.FullDepartment = TestDepartment;
@@ -468,7 +534,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         public async Task CanGetPersonAbsence(string role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
@@ -490,7 +556,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
-        [InlineData("resourceOwner", SameL2Department, false)]
+        [InlineData("resourceOwner", SameL2Department, true)]
         public async Task CanGetAllAbsenceForPerson(string role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
@@ -512,7 +578,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", TestDepartment, "GET,POST")]
         [InlineData("resourceOwner", SiblingDepartment, "GET,POST")]
         [InlineData("resourceOwner", ParentDepartment, "GET,POST")]
-        [InlineData("resourceOwner", SameL2Department, "!GET,!POST")]
+        [InlineData("resourceOwner", SameL2Department, "GET,!POST")]
         public async Task CanGetAbsenceOptionsForPerson(string role, string department, string allowed)
         {
             using var userScope = fixture.UserScope(Users[role]);
@@ -524,14 +590,14 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 $"/persons/{testUser.AzureUniqueId}/absence"
             );
 
-            CheckHeaders(allowed, result);
+            CheckAllowHeader(allowed, result);
         }
 
         [Theory]
         [InlineData("resourceOwner", TestDepartment, "GET,PUT,DELETE")]
         [InlineData("resourceOwner", SiblingDepartment, "GET,PUT,DELETE")]
         [InlineData("resourceOwner", ParentDepartment, "GET,PUT,DELETE")]
-        [InlineData("resourceOwner", SameL2Department, "!GET,!PUT,!DELETE")]
+        [InlineData("resourceOwner", SameL2Department, "GET,!PUT,!DELETE")]
         public async Task CanGetAbsenceOptions(string role, string department, string allowed)
         {
             var absence = await CreateAbsence();
@@ -545,7 +611,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}"
             );
 
-            CheckHeaders(allowed, result);
+            CheckAllowHeader(allowed, result);
         }
 
         [Theory]
@@ -567,10 +633,62 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
-            
         }
 
-         private static void CheckHeaders(string allowed, TestClientHttpResponse<dynamic> result)
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, "GET,PATCH")]
+        [InlineData("resourceOwner", SiblingDepartment, "GET,PATCH")]
+        [InlineData("resourceOwner", ParentDepartment, "GET,PATCH")]
+        [InlineData("resourceOwner", SameL2Department, "GET,PATCH")]
+        public async Task CanGetOtionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
+        {
+            var request = await CreateChangeRequest(TestDepartment);
+
+            using (var adminscope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                var testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+                await client.AssignDepartmentAsync(request.Id, null);
+            }
+
+            fixture.EnsureDepartment(TestDepartment);
+            using (var userScope = fixture.UserScope(Users[role]))
+            {
+                Users[role].FullDepartment = department;
+                var client = fixture.ApiFactory.CreateClient();
+
+                var result = await client.TestClientOptionsAsync(
+                    $"/projects/{request.Project.Id}/requests/{request.Id}"
+                );
+                CheckAllowHeader(allowedVerbs, result);
+            }
+        }
+
+        [Theory]
+        [InlineData("resourceOwner", TestDepartment, true)]
+        [InlineData("resourceOwner", SiblingDepartment, true)]
+        [InlineData("resourceOwner", ParentDepartment, true)]
+        [InlineData("resourceOwner", SameL2Department, true)]
+        [InlineData("resourceOwner", "PDP PRS XXX YYY", true)]
+        [InlineData("resourceOwner", "CFO GBS XXX YYY", true)]
+        [InlineData("resourceOwner", "TDI XXX YYY", true)]
+        [InlineData("resourceOwner", "CFO SBG YYY", true)]
+        public async Task CanGetInternalRequests(string role, string department, bool shouldBeAllowed)
+        {
+            fixture.EnsureDepartment(TestDepartment);
+            using var userScope = fixture.UserScope(Users[role]);
+
+            Users[role].FullDepartment = department;
+            var client = fixture.ApiFactory.CreateClient();
+
+            var result = await client.TestClientGetAsync<dynamic>($"/resources/requests/internal");
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+        }
+
+        private static void CheckAllowHeader(string allowed, TestClientHttpResponse<dynamic> result)
         {
             var expectedVerbs = allowed
                             .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

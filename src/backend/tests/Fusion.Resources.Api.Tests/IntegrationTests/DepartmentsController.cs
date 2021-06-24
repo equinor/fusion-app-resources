@@ -67,6 +67,41 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ShouldCreateDepartmentSuccessfullyWhenExistsInLineOrg()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            fixture.EnsureDepartment("TPD PRD LVL3");
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD PRD LVL3 XXX"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
+            {
+                DepartmentId = "TPD PRD LVL3 XXX",
+                SectorId = "TPD PRD LVL3",
+            });
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        [Fact]
         public async Task ShouldGiveBadRequestWhenSectorDoesNotExist()
         {
             using var adminScope = fixture.AdminScope();
@@ -140,6 +175,70 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Name.Should().Be("TPD LIN ORG TST");
+        }
+
+        [Fact]
+        public async Task SearchShouldGetDepartmentNotInDbWhenInLineOrg()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD LIN ORG TST"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Should().Contain(x => x.Name == "TPD LIN ORG TST");
+        }
+
+
+        [Fact]
+        public async Task SearchShouldBeCaseInsensitive()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var lineorgData = new
+            {
+                Count = 1,
+                TotalCount = 1,
+                Value = new[]
+                {
+                    new
+                    {
+                        fakeResourceOwner.AzureUniqueId,
+                        fakeResourceOwner.Name,
+                        fakeResourceOwner.Mail,
+                        IsResourceOwner = true,
+                        FullDepartment = "TPD LIN ORG TST"
+                    }
+                }
+            };
+
+            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}&api-version=1.0-preview");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Should().Contain(x => x.Name == "TPD LIN ORG TST");
         }
 
         [Fact]
