@@ -45,7 +45,7 @@ namespace Fusion.Resources.Api.Notifications
                 try
                 {
                     notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                    .AddTextBlock("Task owner")
+                    .AddTextBlockIf("Task owner", request.AllocationRequest.TaskOwner?.Persons?.Any() ?? false)
                     .TryAddProfileCard(request.AllocationRequest.TaskOwner?.Persons?.FirstOrDefault()?.AzureUniqueId)
 
                     .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
