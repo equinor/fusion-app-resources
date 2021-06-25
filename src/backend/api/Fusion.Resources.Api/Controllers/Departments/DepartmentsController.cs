@@ -5,6 +5,7 @@ using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Commands.Departments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +17,12 @@ namespace Fusion.Resources.Api.Controllers.Departments
     [ApiController]
     public class DepartmentsController : ResourceControllerBase
     {
+        private readonly IOrgApiClient orgApiClient;
+
+        public DepartmentsController(IOrgApiClientFactory orgApiClientFactory)
+        {
+            this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);;
+        }
         [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
@@ -48,7 +55,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
             {
                 var existingSector = await DispatchAsync(new GetDepartment(request.SectorId));
                 if (existingSector is null) return BadRequest($"Cannot add department with parent {request.SectorId}. The parent does not exist");
-                
+
                 if (!existingSector.IsTracked)
                 {
                     var addSector = new AddDepartment(existingSector.DepartmentId, null);
@@ -85,6 +92,8 @@ namespace Fusion.Resources.Api.Controllers.Departments
 
             return Ok(new ApiRelevantDepartments(departments));
         }
+
+
 
         [HttpPut("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> UpdateDepartment(string departmentString, UpdateDepartmentRequest request)
@@ -135,6 +144,31 @@ namespace Fusion.Resources.Api.Controllers.Departments
 
 
             return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
+        }
+
+        [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
+        public async Task<ActionResult<List<ApiDepartment>>> GetPositionDepartments(
+            Guid projectId, Guid positionId, Guid instanceId)
+        {
+            var result = new List<ApiDepartment>();
+            var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
+            if (position is null) return NotFound();
+
+            var command = new GetRelevantDepartments(position.BasePosition.Department);
+            var relevantDepartments = await DispatchAsync(command);
+
+            // TODO: lookup based on responsibility matrix
+
+            if (relevantDepartments is not null)
+            {
+                result.AddRange(
+                    relevantDepartments.Siblings
+                        .Union(relevantDepartments.Children)
+                        .Select(x => new ApiDepartment(x))
+                );
+            }
+
+            return Ok(result);
         }
     }
 }

@@ -3,6 +3,7 @@ using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
+using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -292,6 +293,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
             resp.Should().BeNotFound();
+        }
+
+
+        [Fact]
+        public async Task PositionRelevantDepartments_ShouldGetDataFromLineOrg()
+        {
+            var department = "PDP TST ABC";
+            var siblings = new[] { "PDP TST DEF", "PDP TST GHI" };
+            var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
+            
+            fixture.EnsureDepartment(department);
+
+            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
+            foreach (var child in children) fixture.EnsureDepartment(child);
+
+            var project = new FusionTestProjectBuilder();
+            var pos = project.AddPosition().WithEnsuredFutureInstances();
+            pos.BasePosition = project
+                .AddBasePosition("Senior Child Process Terminator", x => x.Department = department);
+
+
+
+            fixture.LineOrg.WithResponse("/lineorg/departments/PDP TST", new { children = new[] { new { name = siblings[0], fullName = siblings[0] }, new { name = siblings[1], fullName = siblings[1] } } });
+            fixture.LineOrg.WithResponse("/lineorg/departments/PDP TST ABC", new { children = new[] { new { name = children[0], fullName = children[0] }, new { name = children[1], fullName = children[1] } } });
+
+            using var adminScope = fixture.AdminScope();
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>(
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview"
+            );
+            resp.Should().BeSuccessfull();
+
+            resp.Value.Select(x => x.Name).Should().Contain(siblings.Union(children));
         }
 
         private class TestApiRelevantDepartments
