@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,11 +43,13 @@ namespace Fusion.Resources.Api.Notifications
                 if (string.IsNullOrEmpty(request.AllocationRequest.AssignedDepartment))
                     return;
 
+                var tr = ExtractTaskOwnerFromRequest(request.AllocationRequest);
+
                 try
                 {
                     notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                    .AddTextBlockIf("Task owner", request.AllocationRequest.TaskOwner?.Persons?.Any() ?? false)
-                    .TryAddProfileCard(request.AllocationRequest.TaskOwner?.Persons?.FirstOrDefault()?.AzureUniqueId)
+                    .AddTextBlockIf("Task owner", tr.HasTaskOwner)
+                    .TryAddProfileCard(tr.MainTaskOwner)
 
                     .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
                     .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
@@ -59,6 +62,7 @@ namespace Fusion.Resources.Api.Notifications
                         .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
                         .AddFact("Workload", $"{request.Instance?.Workload}")
                         )
+                    .AddTextBlockIf($"Additional task owners: {tr.AdditionalTaskOwnerString}", tr.HasMultipleTaskOwners)
                     .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
                     .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
                     .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}");
@@ -72,6 +76,25 @@ namespace Fusion.Resources.Api.Notifications
                     logger.LogError(ex.Message);
                 }
                 //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
+            }
+
+            private static TaskOwnerResult ExtractTaskOwnerFromRequest(QueryResourceAllocationRequest allocationRequest)
+            {
+                var hasTaskOwner = allocationRequest.TaskOwner?.Persons?.Any() ?? false;
+                var multipleTaskOwners = allocationRequest.TaskOwner?.Persons?.Length > 1;
+                var mainTaskOwner = allocationRequest.TaskOwner?.Persons?.FirstOrDefault()?.AzureUniqueId;
+                var additionalTaskOwners = new List<string>();
+                additionalTaskOwners.AddRange(allocationRequest.TaskOwner?.Persons?.Skip(1).Select(x => x.Name) ?? Array.Empty<string>());
+
+                var res = new TaskOwnerResult
+                {
+                    HasTaskOwner = hasTaskOwner,
+                    HasMultipleTaskOwners = multipleTaskOwners,
+                    MainTaskOwner = mainTaskOwner,
+                    AdditionalTaskOwners = additionalTaskOwners
+
+                };
+                return res;
             }
 
             private async Task<NotificationRequestData> GetResolvedOrgDataAsync(Guid requestId)
@@ -142,5 +165,14 @@ namespace Fusion.Resources.Api.Notifications
                 }
             }
         }
+    }
+
+    internal class TaskOwnerResult
+    {
+        public bool HasTaskOwner { get; set; }
+        public bool HasMultipleTaskOwners { get; set; }
+        public Guid? MainTaskOwner { get; set; }
+        public List<string> AdditionalTaskOwners { get; set; } = new();
+        public string AdditionalTaskOwnerString => string.Join(",", AdditionalTaskOwners.OrderBy(x => x));
     }
 }
