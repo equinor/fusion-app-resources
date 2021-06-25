@@ -12,7 +12,7 @@ namespace Fusion.Resources.Domain.Commands
     /// </summary>
     public class SetPeoplePreferredContractMail : IRequest
     {
-        public SetPeoplePreferredContractMail(Guid azureUniqueId, string preferredContactMail)
+        public SetPeoplePreferredContractMail(Guid azureUniqueId, string? preferredContactMail)
         {
             AzureUniqueId = azureUniqueId;
             PreferredContactMail = preferredContactMail;

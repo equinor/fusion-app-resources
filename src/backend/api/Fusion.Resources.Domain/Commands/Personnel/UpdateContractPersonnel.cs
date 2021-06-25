@@ -31,7 +31,7 @@ namespace Fusion.Resources.Domain.Commands
         public List<string> Disciplines { get; set; } = new List<string>();
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
-        public string PreferredContactMail { get; set; }
+        public string? PreferredContactMail { get; set; }
 
         public class Handler : IRequestHandler<UpdateContractPersonnel, QueryContractPersonnel>
         {

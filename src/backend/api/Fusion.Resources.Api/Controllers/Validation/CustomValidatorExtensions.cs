@@ -178,6 +178,54 @@ namespace Fusion.Resources.Api.Controllers
 
         public static string JsPropertyName(this CustomContext context) => context.PropertyName.ToLowerFirstChar();
 
+
+        /// <summary>
+        /// The preferred contact mail should try to weed out main private mail domains.
+        /// </summary>
+        public static IRuleBuilderOptions<T, string?> NotHaveInvalidMailDomain<T>(this IRuleBuilder<T, string?> ruleBuilder)
+        {
+            
+            return ruleBuilder.SetValidator(new EmailDomainValidator())
+                .WithMessage("Mail domain should not be private. Most major private mail domains are rejected (gmail, hotmail, icloud etc.)");
+        }
     }
+
+    public class EmailDomainValidator : PropertyValidator, IPropertyValidator
+    {
+        private static string[] InvalidDomains = new[]
+        {
+            "gmail.com",
+            "hotmail.com",
+            "aol.com",
+            "ymail.com",
+            "yahoo.no",
+            "yahoo.com",
+            "outlook.com",
+            "zohomail.eu",
+            "mail.com",
+            "protonmail.com",
+            "icloud.com",
+            "gmx.com",
+            "gmx.us",
+            "yandex.com"
+        };
+
+        protected override bool IsValid(PropertyValidatorContext context)
+        {
+            var value = context.PropertyValue as string;
+
+            if (!string.IsNullOrEmpty(value) && value.Contains("@")) 
+            {
+                var domain = value.Split("@").Last();
+                if (InvalidDomains.Contains(domain, StringComparer.OrdinalIgnoreCase))
+                    return false;
+            }
+
+            return true;
+        }
+        
+    }
+
+    
 
 }

@@ -372,7 +372,29 @@ namespace Fusion.Resources.Api.Controllers
             }
         }
 
+        [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/preferred-contact")]
+        public ActionResult CheckContractorMailValid([FromQuery] string mail)
+        {
+            // Only validating mail, no authorization required except for a valid user.
 
+            var validator = new ContractorMailValidator();
+            var result = validator.Validate(mail);
+
+            if (result.IsValid)
+                return Ok();
+
+            return ApiErrors.InvalidOperation(new ValidationException(result.Errors));
+        }
+
+
+        private class ContractorMailValidator : AbstractValidator<string>
+        {
+            public ContractorMailValidator()
+            {
+                RuleFor(x => x).NotHaveInvalidMailDomain()
+                    .OverridePropertyName("mail");
+            }
+        }
     }
 
     public class UpdateContractPreferredMailRequest
@@ -387,7 +409,15 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<UpdateContractPreferredMailRequest>
         {
-
+            public Validator()
+            {
+                RuleForEach(p => p.Personnel).ChildRules(c =>
+                {
+                    c.RuleFor(x => x.PreferredContactMail).NotHaveInvalidMailDomain();
+                    c.RuleFor(x => x.PreferredContactMail).IsValidEmail()
+                        .When(x => x.PreferredContactMail != null);
+                }).When(x => x.Personnel != null);
+            }
         }
     }
 }

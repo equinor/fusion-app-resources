@@ -16,6 +16,8 @@ namespace Fusion.Resources.Api.Controllers
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
 
+        public string? PreferredContactMail { get; set; }
+
         public List<PersonnelDisciplineEntity>? Disciplines { get; set; }
 
         public void LoadCommand(UpdateContractPersonnel command)
@@ -27,6 +29,7 @@ namespace Fusion.Resources.Api.Controllers
             command.LinkedInProfile = LinkedInProfile;
             command.Phone = PhoneNumber;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
+            command.PreferredContactMail = PreferredContactMail;
         }
 
         #region Validation
@@ -69,6 +72,11 @@ namespace Fusion.Resources.Api.Controllers
                     .When(x => x.Disciplines != null);
                 RuleForEach(x => x.Disciplines).Must(d => d.Name?.Length < 150).WithMessage("Discipline name cannot exceed 150 characters.").WithName("disciplines.name")
                     .When(x => x.Disciplines != null);
+
+                RuleFor(x => x.PreferredContactMail)
+                    .IsValidEmail()
+                    .NotHaveInvalidMailDomain()
+                    .When(m => m != null);
             }
 
         }
