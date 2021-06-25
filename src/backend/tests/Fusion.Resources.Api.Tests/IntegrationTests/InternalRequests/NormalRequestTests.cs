@@ -7,10 +7,12 @@ using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Resources.Integration.Models.Queue;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Moq;
@@ -202,6 +204,26 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
             response.Should().BeSuccessfull();
             response.Value.AssignedDepartment.Should().Be(department);
+        }
+        [Fact]
+        public async Task NormalRequest_Create_ShouldNotifyResourceOwner_WhenAssignedDepartmentDirectly()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject.AddPosition();
+            var department = InternalRequestData.RandomDepartment;
+            var resourceOwner = LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(department).SaveProfile();
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                assignedDepartment = department
+            });
+            response.Should().BeSuccessfull();
+            
+            NotificationClientMock.SentMessages.Count.Should().BeGreaterThan(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{resourceOwner.AzureUniqueId}").Should().Be(1);
         }
 
         [Fact]
