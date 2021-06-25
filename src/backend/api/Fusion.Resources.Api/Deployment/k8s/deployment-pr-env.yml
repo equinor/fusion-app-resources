@@ -67,14 +67,7 @@ spec:
         - name: ConnectionStrings__ResourcesDbContext
           value: "{{dbConnectionString}}"
         - name: BuildNr
-          value: "{{buildNr}}"
-        resources:
-          requests:
-            memory: "250Mi"
-            cpu: "50m"
-          limits:
-            memory: "500Mi"
-            cpu: "200m"
+          value: "{{buildNr}}"        
         args:
         - /server
 
