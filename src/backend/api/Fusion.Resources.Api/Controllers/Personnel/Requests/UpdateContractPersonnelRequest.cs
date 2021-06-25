@@ -75,8 +75,9 @@ namespace Fusion.Resources.Api.Controllers
 
                 RuleFor(x => x.PreferredContactMail)
                     .IsValidEmail()
+                        .When(m => m.PreferredContactMail != null)
                     .NotHaveInvalidMailDomain()
-                    .When(m => m != null);
+                        .When(m => m.PreferredContactMail != null);
             }
 
         }
