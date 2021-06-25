@@ -33,6 +33,15 @@ namespace Fusion.Testing.Mocks.LineOrgService
             if (Departments.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase)) == null)
                 Departments.Add(new ApiDepartment { Name = name });
         }
+        public static void UpdateDepartmentManager(string name, ApiLineOrgUser manager)
+        {
+            var dep = Departments.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+
+            if (dep == null)
+                return;
+
+            dep.Manager = manager;
+        }
     }
 
     public class FusionTestUserBuilder
@@ -82,8 +91,10 @@ namespace Fusion.Testing.Mocks.LineOrgService
             var exists = LineOrgServiceMock.Users.Any(x => x.AzureUniqueId == user.AzureUniqueId);
             if (!exists)
                 LineOrgServiceMock.Users.Add(user);
-            
+
             LineOrgServiceMock.AddDepartment(user.Department);
+            if (user.IsResourceOwner)
+                LineOrgServiceMock.UpdateDepartmentManager(user.Department, user);
             return user;
         }
     }

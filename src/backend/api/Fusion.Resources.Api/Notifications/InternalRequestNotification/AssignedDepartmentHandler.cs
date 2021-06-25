@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
 using Fusion.Integration;
-using Fusion.Integration.Diagnostics;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
@@ -46,8 +46,7 @@ namespace Fusion.Resources.Api.Notifications
                 try
                 {
                     notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                        .AddTextBlock("Request created by")
-                        .TryAddProfileCard(request.AllocationRequest.CreatedBy.AzureUniqueId)
+                        .TryAddTaskOwnerCards(request.AllocationRequest.TaskOwner?.Persons)
 
                         .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
                         .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
@@ -61,13 +60,14 @@ namespace Fusion.Resources.Api.Notifications
                                 $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
                             .AddFact("Workload", $"{request.Instance?.Workload}")
                         )
+                        .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
                         .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
                         .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}")
                         ;
 
                     var card = await notificationBuilder.BuildCardAsync();
-
                     await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
+
                 }
                 catch (Exception ex)
                 {
@@ -143,6 +143,25 @@ namespace Fusion.Resources.Api.Notifications
                     return this;
                 }
             }
+        }
+    }
+
+    internal static class NotificationHelper
+    {
+        public static INotificationBuilder TryAddTaskOwnerCards(this INotificationBuilder builder, IList<ApiPersonV2>? persons)
+        {
+            if (persons == null || !persons.Any())
+                return builder;
+
+            var taskOwnerHeader = persons.Count > 1 ? "Task owners" : "Task owner";
+            builder.AddTextBlock(taskOwnerHeader);
+
+            foreach (var person in persons)
+            {
+                builder.TryAddProfileCard(person.AzureUniqueId);
+            }
+
+            return builder;
         }
     }
 }
