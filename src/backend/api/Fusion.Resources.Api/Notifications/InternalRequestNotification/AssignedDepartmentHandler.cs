@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,24 +45,23 @@ namespace Fusion.Resources.Api.Notifications
                 try
                 {
                     notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                        .TryAddTaskOwnerCards(request.AllocationRequest.TaskOwner?.Persons)
+                    .AddTextBlock("Task owner")
+                    .TryAddProfileCard(request.AllocationRequest.TaskOwner?.Persons?.FirstOrDefault()?.AzureUniqueId)
 
-                        .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
-                        .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
+                    .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
+                    .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
 
-                        .AddDescription("Please review and handle request")
+                    .AddDescription("Please review and handle request")
 
-                        .AddFacts(facts => facts
-                            .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
-                            .AddFact("Position", request.Position!.Name)
-                            .AddFact("Period",
-                                $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
-                            .AddFact("Workload", $"{request.Instance?.Workload}")
+                    .AddFacts(facts => facts
+                        .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
+                        .AddFact("Position", request.Position!.Name)
+                        .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
+                        .AddFact("Workload", $"{request.Instance?.Workload}")
                         )
-                        .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
-                        .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
-                        .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}")
-                        ;
+                    .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
+                    .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
+                    .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}");
 
                     var card = await notificationBuilder.BuildCardAsync();
                     await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
@@ -143,25 +141,6 @@ namespace Fusion.Resources.Api.Notifications
                     return this;
                 }
             }
-        }
-    }
-
-    internal static class NotificationHelper
-    {
-        public static INotificationBuilder TryAddTaskOwnerCards(this INotificationBuilder builder, IList<ApiPersonV2>? persons)
-        {
-            if (persons == null || !persons.Any())
-                return builder;
-
-            var taskOwnerHeader = persons.Count > 1 ? "Task owners" : "Task owner";
-            builder.AddTextBlock(taskOwnerHeader);
-
-            foreach (var person in persons)
-            {
-                builder.TryAddProfileCard(person.AzureUniqueId);
-            }
-
-            return builder;
         }
     }
 }
