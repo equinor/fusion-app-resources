@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 var recipients = await GenerateRecipientsAsync(request.Editor.Person.AzureUniqueId, request.AssignedDepartment);
                 
-                var arguments = new NotificationArguments($"A personnel request has been assigned to you") { Priority = EmailPriority.Low };
+                var arguments = new NotificationArguments($"A personnel request has been assigned to you");
                 foreach (var recipient in recipients)
                 {
                     await notificationClient.CreateNotificationForUserAsync(recipient, arguments, request.Card);
