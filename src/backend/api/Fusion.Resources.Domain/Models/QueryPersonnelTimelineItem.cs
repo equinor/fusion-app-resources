@@ -12,7 +12,8 @@ namespace Fusion.Resources.Domain
             Description = $"{absence.Type}";
             AppliesFrom = absence.AppliesFrom.Date;
             AppliesTo = absence.AppliesTo.GetValueOrDefault(DateTime.MaxValue).Date;
-
+            
+            IsNotePrivate = absence.IsPrivate;
             if(absence.TaskDetails is not null)
             {
                 RoleName = absence.TaskDetails.RoleName;
@@ -42,6 +43,8 @@ namespace Fusion.Resources.Domain
         public QueryBasePosition? BasePosition { get; set; }
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
+
+        public bool? IsNotePrivate { get; set; }
         public string? RoleName { get; }
         public string? Location { get; }
         public string? TaskName { get; }

@@ -85,9 +85,9 @@ namespace Fusion.Resources.Api.Controllers
                 Type = item.Type;
                 Description = item.Description;
 
-                RoleName = hidePrivateNotes ? "Not disclosed" : item.RoleName;
-                TaskName = hidePrivateNotes ? "Not disclosed" : item.TaskName;
-                Location = hidePrivateNotes ? "Not disclosed" : item.Location;
+                RoleName = hidePrivateNotes && item.IsNotePrivate == true ? "Not disclosed" : item.RoleName;
+                TaskName = hidePrivateNotes && item.IsNotePrivate == true ? "Not disclosed" : item.TaskName;
+                Location = hidePrivateNotes && item.IsNotePrivate == true ? "Not disclosed" : item.Location;
 
                 if (item.Project != null) Project = new ApiProjectReference(item.Project);
                 if (item.BasePosition != null) BasePosition = new ApiBasePosition(item.BasePosition);
