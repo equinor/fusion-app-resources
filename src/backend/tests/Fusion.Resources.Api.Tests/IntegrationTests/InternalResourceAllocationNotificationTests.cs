@@ -11,6 +11,7 @@ using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
@@ -57,18 +58,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment(TestDepartmentId);
 
-            var fromLineOrg = new
-            {
-                requestAssignedPerson.AzureUniqueId,
-                requestAssignedPerson.Name,
-                requestAssignedPerson.Mail,
-                ManagerId = resourceOwnerPerson.AzureUniqueId,
-                IsResourceOwner = false,
-                FullDepartment = "TPD PRD FE MMS STR2"
-            };
-
-            fixture.LineOrg.WithResponse($"/lineorg/persons/{requestAssignedPerson.AzureUniqueId}", fromLineOrg);
-
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(requestAssignedPerson).WithManager(resourceOwnerPerson).WithFullDepartment("TPD PRD FE MMS STR2").SaveProfile();
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
