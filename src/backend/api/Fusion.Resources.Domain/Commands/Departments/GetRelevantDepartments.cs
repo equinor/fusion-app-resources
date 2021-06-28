@@ -34,9 +34,10 @@ namespace Fusion.Resources.Domain
                 this.mediator = mediator;
                 this.memoryCache = memoryCache;
                 this.lineOrgClient = httpClientFactory.CreateClient("lineorg");
+
             }
 
-            public async Task<QueryRelevantDepartments?> Handle(GetRelevantDepartments request, CancellationToken cancellationToken) 
+            public async Task<QueryRelevantDepartments?> Handle(GetRelevantDepartments request, CancellationToken cancellationToken)
                 => await TryGetRelevantDepartmentsAsync(request.Department);
 
 
@@ -73,8 +74,6 @@ namespace Fusion.Resources.Domain
                 var currentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").TakeLast(3));
                 var parentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1).TakeLast(3));
 
-
-
                 var respCurrentDepartment = lineOrgClient.GetAsync($"lineorg/departments/{currentDepartment}?$expand=children");
                 var respParentDepartment = lineOrgClient.GetAsync($"lineorg/departments/{parentDepartment}?$expand=children");
 
@@ -83,13 +82,7 @@ namespace Fusion.Resources.Domain
                 var respCurrent = await respCurrentDepartment;
                 if (respCurrent.IsSuccessStatusCode)
                 {
-                    var content = await respCurrent.Content.ReadAsStringAsync();
-                    var department = JsonConvert.DeserializeAnonymousType(content, new
-                    {
-                        children = new[] { new { name = string.Empty, fullName = string.Empty } }
-                    });
-                    var children = await mediator.Send(new GetDepartments().ByIds(department.children.Select(d => d.fullName)));
-                    relevantDepartments.Children = children.ToList();
+                    relevantDepartments.Children = await ReadDepartments(respCurrent);
                 }
                 else if (respCurrent.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
@@ -99,17 +92,27 @@ namespace Fusion.Resources.Domain
                 var respParent = await respParentDepartment;
                 if (respParent.IsSuccessStatusCode)
                 {
-                    var content = await respParent.Content.ReadAsStringAsync();
-                    var department = JsonConvert.DeserializeAnonymousType(content, new
-                    {
-                        children = new[] { new { name = string.Empty, fullName = string.Empty } }
-                    });
-                    var siblings = await mediator.Send(new GetDepartments().ByIds(department.children.Select(d => d.fullName)));
-
-                    relevantDepartments.Siblings = siblings.ToList();
+                    relevantDepartments.Siblings = await ReadDepartments(respParent);
                 }
 
                 return relevantDepartments;
+            }
+
+            private async Task<List<QueryDepartment>> ReadDepartments(HttpResponseMessage respCurrent)
+            {
+                var result = new List<QueryDepartment>();
+                var content = await respCurrent.Content.ReadAsStringAsync();
+                var department = JsonConvert.DeserializeAnonymousType(content,
+                    new { children = new[] { new { name = string.Empty, fullName = string.Empty } } }
+                );
+
+                var children = department.children.Select(c => c.fullName);
+                if (children.Any())
+                {
+                    result.AddRange(await mediator.Send(new GetDepartments().ByIds(children)));
+                }
+
+                return result;
             }
         }
     }
