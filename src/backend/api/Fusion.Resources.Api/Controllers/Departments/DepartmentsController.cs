@@ -154,6 +154,9 @@ namespace Fusion.Resources.Api.Controllers.Departments
             var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
             if (position is null) return NotFound();
 
+            var department = await DispatchAsync(new GetDepartment(position.BasePosition.Department));
+            if(department is not null) result.Add(new ApiDepartment(department));
+
             var command = new GetRelevantDepartments(position.BasePosition.Department);
             var relevantDepartments = await DispatchAsync(command);
 
@@ -168,7 +171,11 @@ namespace Fusion.Resources.Api.Controllers.Departments
                 );
             }
 
-            return Ok(result);
+            return Ok(new
+            {
+                department = (department is null) ? null : new ApiDepartment(department),
+                relevant = result
+            });
         }
     }
 }

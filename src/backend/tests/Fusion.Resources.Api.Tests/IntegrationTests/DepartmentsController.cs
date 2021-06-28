@@ -242,12 +242,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
             using var adminScope = fixture.AdminScope();
-            var resp = await Client.TestClientGetAsync<List<TestDepartment>>(
-                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview"
+            var resp = await Client.TestClientGetAsync(
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
             );
             resp.Should().BeSuccessfull();
 
-            resp.Value.Select(x => x.Name).Should().Contain(siblings.Union(children));
+            resp.Value.relevant.Select(x => x.Name).Should().Contain(siblings);
+            resp.Value.relevant.Select(x => x.Name).Should().Contain(children);
+            resp.Value.relevant.Select(x => x.Name).Should().Contain(department);
         }
 
         private class TestApiRelevantDepartments
