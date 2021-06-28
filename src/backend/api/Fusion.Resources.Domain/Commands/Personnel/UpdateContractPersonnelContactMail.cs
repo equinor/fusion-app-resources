@@ -26,33 +26,39 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : AsyncRequestHandler<UpdateContractPersonnelContactMail>
         {
             private readonly ResourcesDbContext resourcesDb;
-            private readonly IHttpClientFactory httpClientFactory;
+            private readonly IPeopleIntegration peopleIntegration;
 
-            public Handler(ResourcesDbContext resourcesDb, IHttpClientFactory httpClientFactory)
+            public Handler(ResourcesDbContext resourcesDb, IPeopleIntegration peopleIntegration)
             {
                 this.resourcesDb = resourcesDb;
-                this.httpClientFactory = httpClientFactory;
+                this.peopleIntegration = peopleIntegration;
             }
 
             protected override async Task Handle(UpdateContractPersonnelContactMail request, CancellationToken cancellationToken)
             {
                 var ids = request.Mails.Select(m => m.personnelId).ToList();
 
-                var persons = await resourcesDb.ContractPersonnel.Where(p => p.Contract.OrgContractId == request.OrgContractId && ids.Contains(p.Person.Id))
-                    .Select(p => new { p.Person.Id, p.Person.AzureUniqueId })
+                var persons = await resourcesDb.ContractPersonnel
+                    .Where(p => p.Contract.OrgContractId == request.OrgContractId && ids.Contains(p.Person.Id))
+                    .Select(p => p.Person)
                     .ToListAsync();
 
-
-                var pplClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationPeople());
                 foreach (var person in persons.Where(p => p.AzureUniqueId.HasValue))
                 {
-                    var mail = request.Mails.FirstOrDefault(m => m.personnelId == person.Id);
-                    var resp = await pplClient.PatchAsJsonAsync($"/persons/{person.AzureUniqueId}/extended-profile?api-version=3.0", new
+                    try
                     {
-                        preferredContactMail = mail.preferredMail
-                    });
+                        var mail = request.Mails.FirstOrDefault(m => m.personnelId == person.Id);
+                        await peopleIntegration.UpdatePreferredContactMailAsync(person.AzureUniqueId!.Value, mail.preferredMail);
 
+                        person.PreferredContractMail = mail.preferredMail;
+                    }
+                    catch (Exception ex)
+                    {
+                        // TODO: Add proper handling
+                    }
                 }
+
+                await resourcesDb.SaveChangesAsync();
             }
         }
 

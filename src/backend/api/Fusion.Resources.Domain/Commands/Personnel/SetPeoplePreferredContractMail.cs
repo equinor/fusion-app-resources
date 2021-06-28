@@ -23,19 +23,16 @@ namespace Fusion.Resources.Domain.Commands
 
         public class Handler : AsyncRequestHandler<SetPeoplePreferredContractMail>
         {
-            private readonly HttpClient client;
+            private readonly IPeopleIntegration peopleIntegration;
 
-            public Handler(IHttpClientFactory httpClientFactory)
+            public Handler(IPeopleIntegration peopleIntegration)
             {
-                this.client = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationPeople());
+                this.peopleIntegration = peopleIntegration;
             }
+
             protected override async Task Handle(SetPeoplePreferredContractMail request, CancellationToken cancellationToken)
             {
-                
-                var resp = await client.PatchAsJsonAsync($"/persons/{request.AzureUniqueId}/extended-profile?api-version=3.0", new
-                {
-                    preferredContactMail = request.PreferredContactMail
-                });
+                await peopleIntegration.UpdatePreferredContactMailAsync(request.AzureUniqueId, request.PreferredContactMail);
             }
         }
     }
