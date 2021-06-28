@@ -341,7 +341,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/preferred-contact")]
-        public async Task<ActionResult<ApiContractPersonnel>> UpdatePersonnelPreferredContactMails([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] UpdateContractPreferredMailRequest request)
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> UpdatePersonnelPreferredContactMails([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] UpdateContractPreferredMailRequest request)
         {
             #region Authorization
 
@@ -367,9 +367,12 @@ namespace Fusion.Resources.Api.Controllers
 
                 await DispatchAsync(new UpdateContractPersonnelContactMail(contractIdentifier, mails));
                 await scope.CommitAsync();
-
-                return Ok();
             }
+
+            var contractPersonnel = await DispatchAsync(new GetContractPersonnel(contractIdentifier));
+            var returnItems = contractPersonnel.Select(p => new ApiContractPersonnel(p));
+            var collection = new ApiCollection<ApiContractPersonnel>(returnItems);
+            return collection;
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/preferred-contact")]
