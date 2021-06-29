@@ -27,7 +27,7 @@ namespace Fusion.Resources.Api.Notifications
                 var allocationRequest = await GetInternalRequestAsync(request.RequestId);
 
                 var arguments = new NotificationArguments($"A personnel request has been updated and requires your approval");
-                if (allocationRequest?.TaskOwner?.Persons == null)
+                if (allocationRequest?.TaskOwner?.Persons is null)
                     return;
 
                 foreach (var recipient in allocationRequest.TaskOwner.Persons.Where(x => x.AzureUniqueId != request.Editor.Person.AzureUniqueId && x.AzureUniqueId.HasValue))
