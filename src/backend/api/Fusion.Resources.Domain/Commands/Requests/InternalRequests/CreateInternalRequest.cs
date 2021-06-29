@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -76,11 +75,11 @@ namespace Fusion.Resources.Domain.Commands
             public async Task<QueryResourceAllocationRequest> Handle(CreateInternalRequest request, CancellationToken cancellationToken)
             {
                 var dbItem = await CreateDbRequestAsync(request);
+                var propertiesSet = dbContext.Entry(dbItem).Properties.Where(x => x.CurrentValue is not null).ToList();
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-
-                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id));
+                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id, propertiesSet));
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(dbItem.Id), cancellationToken);
                 return requestItem!;
@@ -138,7 +137,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 };
 
-                if(proposedPerson is not null)
+                if (proposedPerson is not null)
                 {
                     item.ProposedPerson.AzureUniqueId = proposedPerson.AzureUniqueId;
                     item.ProposedPerson.Mail = proposedPerson.Mail;
@@ -181,7 +180,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (orgProject == null)
                     throw new InvalidOperationException("Project does not exist in org chart service");
 
-                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ?? 
+                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ??
                     new DbProject
                     {
                         Name = orgProject.Name,
