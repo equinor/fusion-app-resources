@@ -75,7 +75,6 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     logger.LogError(ex.Message);
                 }
-                //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
             }
 
             private static TaskOwnerResult ExtractTaskOwnerFromRequest(QueryResourceAllocationRequest allocationRequest)
@@ -155,11 +154,9 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     if (!string.IsNullOrEmpty(OrgContextId))
                     {
-                        //OrgPortalUrl = $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}";
                         OrgPortalUrl = $"aka/goto-org/{OrgContextId}/{Position.Id}/{Instance.Id}";
                     }
 
-                    //PersonnelAllocationPortalUrl = $"/apps/personnel-allocation/my-requests/resource/request/{AllocationRequest.RequestId}";
                     PersonnelAllocationPortalUrl = $"aka/goto-preq/{AllocationRequest.RequestId}";
                     return this;
                 }

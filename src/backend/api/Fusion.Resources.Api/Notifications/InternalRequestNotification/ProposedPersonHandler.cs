@@ -68,7 +68,6 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     logger.LogError(ex.Message);
                 }
-                //var jsonRep = card.ToJson(); // Json can be viewed using https://adaptivecards.io/designer/
             }
 
             private async Task<NotificationRequestData> GetResolvedOrgDataAsync(Guid requestId)
@@ -128,7 +127,6 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     if (!string.IsNullOrEmpty(OrgContextId))
                     {
-                        //OrgPortalUrl = $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}";
                         OrgPortalUrl = $"aka/goto-org-admin/{OrgContextId}/{Position.Id}/{Instance.Id}";
                     }
 
