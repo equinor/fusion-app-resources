@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Notifications
                         .AddFact("Workload", $"{request.Instance?.Workload}")
                         )
                     .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
-                    .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}");
+                    .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgPortalUrl}");
 
                     var card = await notificationBuilder.BuildCardAsync();
                     await mediator.Send(new NotifyTaskOwner(request.AllocationRequest.RequestId, card));
@@ -117,7 +117,6 @@ namespace Fusion.Resources.Api.Notifications
                 public ApiPositionV2 Position { get; }
                 public ApiPositionInstanceV2 Instance { get; }
                 public string? OrgPortalUrl { get; private set; }
-                public string? PersonnelAllocationPortalUrl { get; private set; }
 
                 public NotificationRequestData WithContextId(string? contextId)
                 {
@@ -130,11 +129,9 @@ namespace Fusion.Resources.Api.Notifications
                     if (!string.IsNullOrEmpty(OrgContextId))
                     {
                         //OrgPortalUrl = $"/apps/org-admin/{OrgContextId}/timeline?instanceId={Instance.Id}&positionId={Position.Id}";
-                        OrgPortalUrl = $"aka/goto-org/{OrgContextId}/{Position.Id}/{Instance.Id}";
+                        OrgPortalUrl = $"aka/goto-org-admin/{OrgContextId}/{Position.Id}/{Instance.Id}";
                     }
 
-                    //PersonnelAllocationPortalUrl = $"/apps/personnel-allocation/my-requests/resource/request/{AllocationRequest.RequestId}";
-                    PersonnelAllocationPortalUrl = $"aka/goto-preq/{AllocationRequest.RequestId}";
                     return this;
                 }
             }
