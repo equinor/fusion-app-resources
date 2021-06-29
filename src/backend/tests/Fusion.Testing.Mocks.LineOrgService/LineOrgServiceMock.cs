@@ -28,10 +28,14 @@ namespace Fusion.Testing.Mocks.LineOrgService
         }
 
         public static FusionTestUserBuilder AddTestUser() => new FusionTestUserBuilder();
-        public static void AddDepartment(string name)
+        public static void AddDepartment(string name, string[] children = null)
         {
+            var childRefs = children?
+                .Select(x => new ApiDepartment.ApiDepartmentRef() { Name = x, FullName = x })
+                .ToList();
+
             if (Departments.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase)) == null)
-                Departments.Add(new ApiDepartment { Name = name });
+                Departments.Add(new ApiDepartment { Name = name, Children = childRefs });
         }
         public static void UpdateDepartmentManager(string name, ApiLineOrgUser manager)
         {
