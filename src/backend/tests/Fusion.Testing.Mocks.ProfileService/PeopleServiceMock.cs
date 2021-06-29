@@ -27,7 +27,7 @@ namespace Fusion.Testing.Mocks.ProfileService
             return client;
         }
 
-        public static FusionTestUserBuilder AddTestProfile() => new FusionTestUserBuilder();
+        public static FusionTestUserBuilder AddTestProfile() => new();
         public static void AddCompany(Guid id, string name) => companies.Add(new ApiCompanyInfo { Id = id, Name = name });
     }
 
@@ -44,6 +44,23 @@ namespace Fusion.Testing.Mocks.ProfileService
             profile = FusionTestProfiles.CreateTestUser(type, classification);
         }
 
+        public FusionTestUserBuilder WithAccountType(FusionAccountType type)
+        {
+            profile.AccountType = type;
+            profile.AccountClassification = type == FusionAccountType.Employee ? AccountClassification.Internal : AccountClassification.External;
+            return this;
+        }
+
+        public FusionTestUserBuilder WithFullDepartment(string fullDepartment)
+        {
+            profile.FullDepartment = fullDepartment;
+            return this;
+        }
+        public FusionTestUserBuilder WithDepartment(string department)
+        {
+            profile.Department = department;
+            return this;
+        }
         public FusionTestUserBuilder WithRoles(string name)
         {
             if (profile.Roles == null) profile.Roles = new List<ApiPersonRoleV3>();
@@ -76,7 +93,7 @@ namespace Fusion.Testing.Mocks.ProfileService
             });
             return this;
         }
-    
+
         public ApiPersonProfileV3 SaveProfile()
         {
             PeopleServiceMock.profiles.Add(profile);

@@ -2,14 +2,11 @@
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
 using System.Threading.Tasks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -73,24 +70,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment("TPD PRD LVL3");
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD PRD LVL3 XXX"
-                    }
-                }
-            };
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment("TPD PRD LVL3 XXX").SaveProfile();
 
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
 
             var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
             {
@@ -133,15 +114,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var lineorgData = new
-            {
-                Count = 0,
-                TotalCount = 0,
-                Value = Array.Empty<object>()
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
-
             var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -151,25 +123,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task ShouldGetDepartmentNotInDbWhenInLineOrg()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD LIN ORG TST"
-                    }
-                }
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
-
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment("TPD LIN ORG TST").SaveProfile();
+           
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/TPD LIN ORG TST?api-version=1.0-preview");
@@ -182,25 +137,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task SearchShouldGetDepartmentNotInDbWhenInLineOrg()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD LIN ORG TST"
-                    }
-                }
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
-
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment("TPD LIN ORG TST").SaveProfile();
+           
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
@@ -214,31 +152,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task SearchShouldBeCaseInsensitive()
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD LIN ORG TST"
-                    }
-                }
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
-
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().SaveProfile();
+           
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}&api-version=1.0-preview");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == "TPD LIN ORG TST");
+            resp.Value.Should().Contain(x => x.Name == fakeResourceOwner.FullDepartment);
         }
 
         [Fact]
