@@ -1,9 +1,7 @@
-﻿using System;
-using Fusion.Resources.Database.Entities;
+﻿using Fusion.Resources.Database.Entities;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Logic.Workflows;
 
 namespace Fusion.Resources.Logic.Commands
@@ -26,12 +24,8 @@ namespace Fusion.Resources.Logic.Commands
                     if (notification.Type != DbInternalRequestType.ResourceOwnerChange)
                         return;
 
-                    if (string.Equals(notification.ToState, AllocationNormalWorkflowV1.APPROVAL, StringComparison.OrdinalIgnoreCase))
-                        await mediator.Publish(new InternalRequestNotifications.ProposedPerson(notification.RequestId));
-
                     if (notification.ToState == WorkflowDefinition.PROVISIONING)
                     {
-
                         await mediator.Send(new QueueProvisioning(notification.RequestId));
                     }
                 }
