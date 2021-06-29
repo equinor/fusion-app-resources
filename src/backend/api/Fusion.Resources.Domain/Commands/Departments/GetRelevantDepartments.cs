@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Fusion.Resources.Application.LineOrg;
+using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -25,16 +26,13 @@ namespace Fusion.Resources.Domain
         {
             private readonly ILogger<Handler> logger;
             private readonly IMediator mediator;
-            private readonly IMemoryCache memoryCache;
-            private readonly HttpClient lineOrgClient;
+            private readonly ILineOrgResolver lineOrgResolver;
 
-            public Handler(ILogger<Handler> logger, IMediator mediator, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+            public Handler(ILogger<Handler> logger, IMediator mediator, ILineOrgResolver lineOrgResolver)
             {
                 this.logger = logger;
                 this.mediator = mediator;
-                this.memoryCache = memoryCache;
-                this.lineOrgClient = httpClientFactory.CreateClient("lineorg");
-
+                this.lineOrgResolver = lineOrgResolver;
             }
 
             public async Task<QueryRelevantDepartments?> Handle(GetRelevantDepartments request, CancellationToken cancellationToken)
@@ -46,17 +44,10 @@ namespace Fusion.Resources.Domain
                 if (fullDepartment is null)
                     return null;
 
-                string cacheKey = $"relevant-departments-{fullDepartment}";
-
-                if (memoryCache.TryGetValue(cacheKey, out QueryRelevantDepartments? relevantDepartments))
-                    return relevantDepartments;
-
                 try
                 {
-                    relevantDepartments = await ResolveRelevantDepartmentsAsync(fullDepartment);
+                    return await ResolveRelevantDepartmentsAsync(fullDepartment);
 
-                    memoryCache.Set(cacheKey, relevantDepartments, TimeSpan.FromHours(30));
-                    return relevantDepartments;
                 }
                 catch (Exception ex)
                 {
@@ -64,36 +55,18 @@ namespace Fusion.Resources.Domain
                     logger.LogCritical(ex, "Could not resolve relevant departments for {Department}", fullDepartment);
                     return null;
                 }
-
             }
 
             private async Task<QueryRelevantDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
             {
                 var relevantDepartments = new QueryRelevantDepartments();
 
-                var currentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").TakeLast(3));
-                var parentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1).TakeLast(3));
+                var children = await lineOrgResolver.GetChildren(fullDepartmentPath);
+                if (children is null) return null;
 
-                var respCurrentDepartment = lineOrgClient.GetAsync($"lineorg/departments/{currentDepartment}?$expand=children");
-                var respParentDepartment = lineOrgClient.GetAsync($"lineorg/departments/{parentDepartment}?$expand=children");
-
-                await Task.WhenAll(respCurrentDepartment, respParentDepartment);
-
-                var respCurrent = await respCurrentDepartment;
-                if (respCurrent.IsSuccessStatusCode)
-                {
-                    relevantDepartments.Children = await ReadDepartments(respCurrent);
-                }
-                else if (respCurrent.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-
-                var respParent = await respParentDepartment;
-                if (respParent.IsSuccessStatusCode)
-                {
-                    relevantDepartments.Siblings = await ReadDepartments(respParent);
-                }
+                var siblings = await lineOrgResolver.GetChildren(string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1)));
+                relevantDepartments.Children = children.Select(x => new QueryDepartment(x)).ToList();
+                relevantDepartments.Siblings = siblings?.Select(x => new QueryDepartment(x))?.ToList() ?? new List<QueryDepartment>();
 
                 return relevantDepartments;
             }

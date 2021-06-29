@@ -188,27 +188,45 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
         }
 
-        //[Fact]
-        //public async Task RelevantDepartments_ShouldGetDataFromLineOrg()
-        //{
-        //    var department = "PDP TST ABC";
-        //    var siblings = new[] { "PDP TST DEF", "PDP TST GHI" };
-        //    var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
-        //    fixture.EnsureDepartment(department);
+        [Fact]
+        public async Task RelevantDepartments_ShouldGetDataFromLineOrg()
+        {
+            var department = "PDP TST ABC";
+            var siblings = new[] { "PDP TST DEF", "PDP TST GHI" };
+            var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
+            fixture.EnsureDepartment(department);
 
-        //    foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
-        //    foreach (var child in children) fixture.EnsureDepartment(child);
+            foreach (var sibling in siblings)
+            {
+                fixture.EnsureDepartment(sibling);
+                LineOrgServiceMock.AddDepartment(sibling);
+                LineOrgServiceMock.AddTestUser()
+                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
+                    .WithFullDepartment(sibling)
+                    .AsResourceOwner()
+                    .SaveProfile();
+            }
+            foreach (var child in children)
+            {
+                fixture.EnsureDepartment(child);
+                LineOrgServiceMock.AddDepartment(child);
+                LineOrgServiceMock.AddTestUser()
+                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
+                    .WithFullDepartment(child)
+                    .AsResourceOwner()
+                    .SaveProfile();
+            }
 
-        //    LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-        //    LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
+                LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
-        //    using var adminScope = fixture.AdminScope();
-        //    var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
-        //    resp.Should().BeSuccessfull();
+            using var adminScope = fixture.AdminScope();
+            var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
+            resp.Should().BeSuccessfull();
 
-        //    resp.Value.Siblings.Select(x => x.Name).Should().BeEquivalentTo(siblings);
-        //    resp.Value.Children.Select(x => x.Name).Should().BeEquivalentTo(children);
-        //}
+            resp.Value.Siblings.Select(x => x.Name).Should().BeEquivalentTo(siblings);
+            resp.Value.Children.Select(x => x.Name).Should().BeEquivalentTo(children);
+        }
 
         [Fact]
         public async Task RelevantDepartments_ShouldGiveNotFound_WhenNoData()
@@ -230,8 +248,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment(department);
 
-            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
-            foreach (var child in children) fixture.EnsureDepartment(child);
+            foreach (var sibling in siblings) {
+                fixture.EnsureDepartment(sibling);
+                LineOrgServiceMock.AddDepartment(sibling);
+                LineOrgServiceMock.AddTestUser()
+                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
+                    .WithFullDepartment(sibling)
+                    .AsResourceOwner()
+                    .SaveProfile();
+            }
+            foreach (var child in children) {
+                fixture.EnsureDepartment(child);
+                LineOrgServiceMock.AddDepartment(child);
+                LineOrgServiceMock.AddTestUser()
+                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
+                    .WithFullDepartment(child)
+                    .AsResourceOwner()
+                    .SaveProfile();
+            }
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
