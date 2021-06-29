@@ -166,7 +166,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task NormalRequest_WhenResourceOwnerIsProposingPerson_ShouldNotifyTaskOwner()
+        public async Task NormalRequest_WhenResourceOwnerIsProposingPerson_ShouldNotifyTaskOwnerAndCreator()
         {
             // Arrange
             using var adminScope = fixture.AdminScope();
@@ -175,22 +175,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var patchPerson = await Client.TestClientPatchAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}", proposedPerson);
             patchPerson.Should().BeSuccessfull();
 
-            
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}/start", null);
             response.Should().BeSuccessfull();
             NotificationClientMock.SentMessages.Clear();
 
+            var resourceOwner = PeopleServiceMock.AddTestProfile().WithRoles("Fusion.Resources.FullControl").SaveProfile();
+            using var resourceOwnerScope = fixture.UserScope(resourceOwner);
+
             // Act
             var response2 = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}/approve", null);
             response2.Should().BeSuccessfull();
-
-
+            
             // Assert
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
         #endregion

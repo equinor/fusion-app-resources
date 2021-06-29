@@ -61,6 +61,7 @@ namespace Fusion.Resources.Api.Notifications
 
                     var card = await notificationBuilder.BuildCardAsync();
                     await mediator.Send(new NotifyTaskOwner(request.AllocationRequest.RequestId, card));
+                    await mediator.Send(new NotifyRequestCreator(request.AllocationRequest.RequestId, card));
 
                 }
                 catch (Exception ex)
