@@ -6,7 +6,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPersonAbsence
     {
-        public ApiPersonAbsence(QueryPersonAbsence absence, bool hidePrivateNotes)
+        private ApiPersonAbsence(QueryPersonAbsence absence, bool hidePrivateNotes)
         {
             Id = absence.Id;
             Created = absence.Created;
@@ -26,10 +26,37 @@ namespace Fusion.Resources.Api.Controllers
                 TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;
             }
         }
+        private ApiPersonAbsence(QueryPersonAbsenceBasic absence, bool hidePrivateNotes)
+        {
+            Id = absence.Id;
+            AppliesFrom = absence.AppliesFrom;
+            AppliesTo = absence.AppliesTo;
+            Type = Enum.Parse<ApiAbsenceType>($"{absence.Type}", true);
+            AbsencePercentage = absence.AbsencePercentage;
+
+            IsPrivate = absence.IsPrivate;
+            Comment = absence.Comment;
+            TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
+
+            if (hidePrivateNotes && absence.IsPrivate)
+            {
+                Comment = "Not disclosed.";
+                TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;
+            }
+        }
+
+        public static ApiPersonAbsence CreateWithoutConfidentialTaskInfo(QueryPersonAbsence absence) => new ApiPersonAbsence(absence, hidePrivateNotes: true);
+        public static ApiPersonAbsence CreateWithoutConfidentialTaskInfo(QueryPersonAbsenceBasic absence) => new ApiPersonAbsence(absence, hidePrivateNotes: true);
+
+        public static ApiPersonAbsence CreateWithConfidentialTaskInfo(QueryPersonAbsence absence) => new ApiPersonAbsence(absence, hidePrivateNotes: false);
+        public static ApiPersonAbsence CreateWithConfidentialTaskInfo(QueryPersonAbsenceBasic absence) => new ApiPersonAbsence(absence, hidePrivateNotes: false);
 
         public Guid Id { get; set; }
-        public DateTimeOffset Created { get; set; }
-        public ApiPerson CreatedBy { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DateTimeOffset? Created { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ApiPerson? CreatedBy { get; set; }
 
         public bool IsPrivate { get; set; }
 

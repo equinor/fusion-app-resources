@@ -473,7 +473,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #endregion
 
+        #region Completed state
+        [Fact]
+        public async Task ProposingChangesShouldGiveBadRequestWhenCompleted()
+        {
+            using var adminScope = fixture.AdminScope();
 
+            await FastForward_ApprovalRequest();
+            await Client.ProvisionRequestAsync(normalRequest.Id);
+
+            var resp = await Client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}", new
+            {
+                proposedChanges = new { workload = 50 }
+            });
+            resp.Should().BeBadRequest();
+        }
+        #endregion
         #endregion
 
         #region Query requests

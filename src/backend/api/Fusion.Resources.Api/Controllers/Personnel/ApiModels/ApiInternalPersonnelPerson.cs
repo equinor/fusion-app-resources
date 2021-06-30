@@ -9,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiInternalPersonnelPerson
     {
-        public ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p)
+        private ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p)
         {
             AzureUniquePersonId = p.AzureUniqueId;
             Mail = p.Mail!;
@@ -22,11 +22,7 @@ namespace Fusion.Resources.Api.Controllers
             FullDepartment = p.FullDepartment!;
             IsResourceOwner = p.IsResourceOwner;
 
-            if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti)).ToList();
-
             PositionInstances = p.PositionInstances.Select(pos => new PersonnelPosition(pos)).ToList();
-            EmploymentStatuses = p.Absence.Select(a => new PersonnelAbsence(a)).ToList();
-
             Disciplines = p.PositionInstances
                 .OrderByDescending(p => p.AppliesTo)
                 .Select(p => p.BasePosition.Discipline)
@@ -34,6 +30,20 @@ namespace Fusion.Resources.Api.Controllers
                 .Distinct()
                 .ToList();
         }
+
+        public static ApiInternalPersonnelPerson CreateWithoutConfidentialTaskInfo(QueryInternalPersonnelPerson person) 
+            => new ApiInternalPersonnelPerson(person)
+            {
+                EmploymentStatuses = person.Absence.Select(a => ApiPersonAbsence.CreateWithoutConfidentialTaskInfo(a)).ToList(),
+                Timeline = person?.Timeline?.Select(ti => TimelineRange.CreateWithoutConfidentialTaskInfo(ti))?.ToList()
+            };
+        public static ApiInternalPersonnelPerson CreateWithConfidentialTaskInfo(QueryInternalPersonnelPerson person)
+            => new ApiInternalPersonnelPerson(person)
+            {
+                EmploymentStatuses = person.Absence.Select(a => ApiPersonAbsence.CreateWithConfidentialTaskInfo(a)).ToList(),
+                Timeline = person?.Timeline?.Select(ti => TimelineRange.CreateWithConfidentialTaskInfo(ti))?.ToList()
+            };
+
 
         public Guid? AzureUniquePersonId { get; set; }
         public string Mail { get; set; } = null!;
@@ -53,7 +63,7 @@ namespace Fusion.Resources.Api.Controllers
         public List<string> Disciplines { get; set; } = new List<string>();
 
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
-        public List<PersonnelAbsence> EmploymentStatuses { get; set; } = new List<PersonnelAbsence>();
+        public List<ApiPersonAbsence> EmploymentStatuses { get; set; } = new List<ApiPersonAbsence>();
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<TimelineRange>? Timeline { get; set; }
@@ -61,14 +71,25 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineRange
         {
-            public TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti)
+            private TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti)
             {
                 AppliesFrom = ti.AppliesFrom;
                 AppliesTo = ti.AppliesTo;
                 Workload = ti.Workload;
 
-                Items = ti.Items.Select(i => new TimelineItem(i)).ToList();
             }
+
+            public static TimelineRange CreateWithoutConfidentialTaskInfo(QueryTimelineRange<QueryPersonnelTimelineItem> item)
+                => new TimelineRange(item)
+                {
+                    Items = item.Items.Select(i => TimelineItem.CreateWithoutConfidentialTaskInfo(i)).ToList()
+                };
+            public static TimelineRange CreateWithConfidentialTaskInfo(QueryTimelineRange<QueryPersonnelTimelineItem> item)
+                => new TimelineRange(item)
+                {
+                    Items = item.Items.Select(i => TimelineItem.CreateWithConfidentialTaskInfo(i)).ToList()
+                };
+
 
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
@@ -78,16 +99,23 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineItem
         {
-            public TimelineItem(QueryPersonnelTimelineItem item)
+            private TimelineItem(QueryPersonnelTimelineItem item, bool hidePrivateNotes)
             {
                 Id = item.Id;
                 Workload = item.Workload;
                 Type = item.Type;
                 Description = item.Description;
 
+                RoleName = hidePrivateNotes && item.IsNotePrivate == true ? "Not disclosed" : item.RoleName;
+                TaskName = hidePrivateNotes && item.IsNotePrivate == true ? "Not disclosed" : item.TaskName;
+                Location = hidePrivateNotes && item.IsNotePrivate == true ? "Not disclosed" : item.Location;
+
                 if (item.Project != null) Project = new ApiProjectReference(item.Project);
                 if (item.BasePosition != null) BasePosition = new ApiBasePosition(item.BasePosition);
             }
+
+            public static TimelineItem CreateWithoutConfidentialTaskInfo(QueryPersonnelTimelineItem item) => new TimelineItem(item, hidePrivateNotes: true);
+            public static TimelineItem CreateWithConfidentialTaskInfo(QueryPersonnelTimelineItem item) => new TimelineItem(item, hidePrivateNotes: false);
 
             public Guid Id { get; set; }
             public string Type { get; set; } = null!;
@@ -98,6 +126,13 @@ namespace Fusion.Resources.Api.Controllers
             public ApiProjectReference? Project { get; set; }
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public ApiBasePosition? BasePosition { get; set; }
+
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? RoleName { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? TaskName { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? Location { get; set; }
         }
 
         public class PersonnelPosition
@@ -132,23 +167,6 @@ namespace Fusion.Resources.Api.Controllers
             public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
             public double Workload { get; set; }
             public ApiProjectReference Project { get; set; } = null!;
-        }
-        public class PersonnelAbsence
-        {
-            public PersonnelAbsence(QueryPersonAbsenceBasic absence)
-            {
-                Id = absence.Id;
-                AppliesFrom = absence.AppliesFrom.UtcDateTime;
-                AppliesTo = absence.AppliesTo?.UtcDateTime;
-                Type = $"{absence.Type}";
-                AbsencePercentage = absence.AbsencePercentage;
-            }
-
-            public Guid Id { get; set; }
-            public DateTime AppliesFrom { get; set; }
-            public DateTime? AppliesTo { get; set; }
-            public double? AbsencePercentage { get; set; }
-            public string Type { get; set; } = null!;
         }
     }
 
