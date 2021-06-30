@@ -25,7 +25,10 @@ namespace Fusion.Resources.Api.Authorization.Handlers
             if(request.CreatedBy.AzureUniqueId == userId)
             {
                 context.Succeed(requirement);
+                return;
             }
+
+            requirement.SetEvaluation("User is not the request creator");
         }
     }
 }

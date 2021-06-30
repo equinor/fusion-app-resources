@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +25,7 @@ namespace Fusion.Resources.Domain.Commands
 
         public Guid OrgProjectId { get; set; }
         public string? AssignedDepartment { get; set; }
+        public Guid? ProposedPersonAzureUniqueId { get; set; }
 
         public InternalRequestOwner Owner { get; set; }
         public InternalRequestType Type { get; set; }
@@ -61,23 +61,25 @@ namespace Fusion.Resources.Domain.Commands
         {
             private readonly ResourcesDbContext dbContext;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly IProfileService profileService;
             private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator)
+            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator, IProfileService profileService)
             {
                 this.dbContext = dbContext;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
+                this.profileService = profileService;
             }
 
             public async Task<QueryResourceAllocationRequest> Handle(CreateInternalRequest request, CancellationToken cancellationToken)
             {
                 var dbItem = await CreateDbRequestAsync(request);
+                var propertiesSet = dbContext.Entry(dbItem).Properties.Where(x => x.CurrentValue is not null).ToList();
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-
-                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id));
+                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id, propertiesSet));
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(dbItem.Id), cancellationToken);
                 return requestItem!;
@@ -89,6 +91,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 var resolvedProject = await EnsureProjectAsync(request);
                 var position = await ResolveOrgPositionAsync(request);
+                var proposedPerson = await ResolveProposedPersonAsync(request);
 
                 var instance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
                 if (instance is null)
@@ -134,10 +137,28 @@ namespace Fusion.Resources.Domain.Commands
 
                 };
 
+                if (proposedPerson is not null)
+                {
+                    item.ProposedPerson.AzureUniqueId = proposedPerson.AzureUniqueId;
+                    item.ProposedPerson.Mail = proposedPerson.Mail;
+                    item.ProposedPerson.HasBeenProposed = true;
+                    item.ProposedPerson.ProposedAt = DateTimeOffset.Now;
+                }
+
                 dbContext.ResourceAllocationRequests.Add(item);
 
 
                 return item;
+            }
+
+            private async Task<DbPerson?> ResolveProposedPersonAsync(CreateInternalRequest request)
+            {
+                if (request.ProposedPersonAzureUniqueId.HasValue)
+                {
+                    var personId = (PersonId)request.ProposedPersonAzureUniqueId;
+                    return await profileService.EnsurePersonAsync(personId);
+                }
+                return null;
             }
 
             private async Task<ApiPositionV2> ResolveOrgPositionAsync(CreateInternalRequest request)
@@ -159,7 +180,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (orgProject == null)
                     throw new InvalidOperationException("Project does not exist in org chart service");
 
-                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ?? 
+                var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.OrgProjectId == request.OrgProjectId) ??
                     new DbProject
                     {
                         Name = orgProject.Name,

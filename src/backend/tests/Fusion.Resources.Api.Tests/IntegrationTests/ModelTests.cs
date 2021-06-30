@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Xunit;
 #nullable enable

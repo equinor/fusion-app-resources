@@ -11,10 +11,14 @@ namespace Fusion.Resources.Domain.Queries
     {
         public GetPersonProfile(Guid personAzureUniqueId)
         {
-            AzureUniqueId = personAzureUniqueId;
+            PersonId = new PersonId(personAzureUniqueId);
+        }
+        public GetPersonProfile(PersonId personId)
+        {
+            PersonId = personId;
         }
 
-        public Guid AzureUniqueId { get; set; }
+        public PersonId PersonId { get; }
 
         public class Handler : IRequestHandler<GetPersonProfile, FusionPersonProfile?>
         {
@@ -26,7 +30,7 @@ namespace Fusion.Resources.Domain.Queries
             }
             public async Task<FusionPersonProfile?> Handle(GetPersonProfile request, CancellationToken cancellationToken)
             {
-                var fusionProfile = await profileResolver.ResolvePersonBasicProfileAsync(request.AzureUniqueId);
+                var fusionProfile = await profileResolver.ResolvePersonBasicProfileAsync(request.PersonId);
                 return fusionProfile;
             }
         }

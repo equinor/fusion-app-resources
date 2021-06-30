@@ -53,7 +53,11 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
         public Task<FusionRoleAssignment> UpdateRoleByIdentifierAsync(string externalIdentifier, Action<RoleUpdateBuilder> updateRole)
         {
-            throw new NotImplementedException();
+            var builder = new RoleUpdateBuilder();
+            updateRole(builder);
+
+            return Task.FromResult(default(FusionRoleAssignment));
+
         }
     }
 }

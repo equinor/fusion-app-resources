@@ -66,32 +66,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.EnsureDepartment(TimelineDepartment);
         }
 
-        [Fact]
-        public async Task GetUnassigned_ShouldNotBeIncluded_WhenCompleted()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
-            var testRequest = await Client.CreateDefaultRequestAsync(testProject);
-            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
-
-            //TODO: Should request be auto-assigned?
-            testRequest = await Client.AssignAnDepartmentAsync(testRequest.Id);
-
-            await Client.ProposePersonAsync(testRequest.Id, testPerson);
-            await Client.ResourceOwnerApproveAsync(InternalRequestData.RandomDepartment, testRequest.Id);
-            await Client.TaskOwnerApproveAsync(testProject, testRequest.Id);
-            await Client.ProvisionRequestAsync(testRequest.Id);
-
-            var list = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned", new
-            {
-                value = new[] { new { id = Guid.Empty } }
-            });
-
-            list.Value.value.Should().NotContain(r => r.id == testRequest.Id);
-        }
-
         #region GetDeparmentRequests
 
         [Fact]
@@ -148,7 +122,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
                 $"/departments/{testRequest.AssignedDepartment}/resources/requests?api-version=1.0-preview");
-            
+
             response.Value.Value.Should().OnlyContain(req => !String.IsNullOrEmpty(req.ProposedPerson.Person.Name));
         }
 
@@ -187,7 +161,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //{
         //    using var adminScope = fixture.AdminScope();
 
-            
+
 
 
         //    var position = testProject.AddPosition();
@@ -481,12 +455,99 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             segments[4].AppliesTo.Should().Be(new DateTime(2020, 03, 09));
         }
 
+        [Fact]
+        public async Task GetTimeline_ShouldIncludeTaskDetails()
+        {
+            var user = fixture.AddProfile(FusionAccountType.Employee);
+            user.Department = TimelineDepartment;
+
+            using var adminScope = fixture.AdminScope();
+
+            var absenceResp = await Client.AddAbsence(user, x =>
+            {
+                x.AppliesFrom = new DateTime(2020, 03, 01);
+                x.AppliesTo = new DateTime(2020, 04, 15);
+            });
+            var absence = absenceResp.Value;
+
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            var person = response.Value.Value
+                .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            person.employmentStatuses.Should().Contain(x => x.id == absence.Id);
+
+            var timeline = person.timeline.Single();
+            timeline.items.Should().Contain(x => x.id == absence.Id.ToString());
+        }
+
+        [Fact]
+        public async Task GetTimeline_ShouldNotIncludeTaskDetailsForOtherResourceOwner()
+        {
+            var user = fixture.AddProfile(FusionAccountType.Employee);
+            user.FullDepartment = TimelineDepartment;
+            user.Department = TimelineDepartment;
+
+            TestAbsence absence;
+            using (var adminScope = fixture.AdminScope())
+            {
+                var absenceResp = await Client.AddAbsence(user, x =>
+                {
+                    x.AppliesFrom = new DateTime(2020, 03, 01);
+                    x.AppliesTo = new DateTime(2020, 04, 15);
+                    x.IsPrivate = true;
+                });
+                absence = absenceResp.Value;
+            }
+
+            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            resourceOwner.IsResourceOwner = true;
+            resourceOwner.FullDepartment = "TPD TST QWE";
+            resourceOwner.Department = "TPD TST QWE";
+
+            using (var userScope = fixture.UserScope(resourceOwner))
+            {
+                var timelineStart = new DateTime(2020, 03, 01);
+                var timelineEnd = new DateTime(2020, 03, 31);
+
+                var response = await Client.TestClientGetAsync<TestResponse>(
+                    $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+                );
+
+                var person = response.Value.Value
+                    .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+                var actualAbsence = person.employmentStatuses.FirstOrDefault(x => x.id == absence.Id);
+
+                actualAbsence.taskDetails.isHidden.Should().Be(true);
+                actualAbsence.taskDetails.roleName.Should().NotBe(absence.TaskDetails.RoleName);
+                actualAbsence.taskDetails.taskName.Should().NotBe(absence.TaskDetails.TaskName);
+
+                var timeline = person.timeline.Single();
+                var absenceTimelineItem = timeline.items.FirstOrDefault(x => x.id == absence.Id.ToString());
+
+                absenceTimelineItem.roleName.Should().NotBe(absence.TaskDetails.RoleName);
+                absenceTimelineItem.taskName.Should().NotBe(absence.TaskDetails.TaskName);
+            }
+        }
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();
 
             return Task.CompletedTask;
         }
+
+        class TestResponse
+        {
+            public List<TestApiPersonnelPerson> Value { get; set; }
+        }
+
+
 
         public class TestApiDepartmentRequests
         {
@@ -495,7 +556,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             public class SimpleRequestTestModel
             {
-       
+
                 public string Id { get; set; }
                 public DateTime AppliesFrom { get; set; }
                 public DateTime AppliesTo { get; set; }
@@ -509,12 +570,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 public DateTime AppliesFrom { get; set; }
                 public DateTime AppliesTo { get; set; }
                 public List<RequestTimelineItemTestModel> Items { get; set; } = new List<RequestTimelineItemTestModel>();
-                public double? Workload { get; set; } 
+                public double? Workload { get; set; }
             }
 
             public class RequestTimelineItemTestModel
             {
-                public string Id { get; set; } 
+                public string Id { get; set; }
                 public string PositionName { get; set; }
                 public string ProjectName { get; set; }
                 public double? Workload { get; set; }

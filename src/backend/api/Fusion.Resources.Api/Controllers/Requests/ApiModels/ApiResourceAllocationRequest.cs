@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api.Controllers
 
             ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
 
-            if (query.TaskOwner != null) 
+            if (query.TaskOwner != null)
                 TaskOwner = new ApiTaskOwner(query.TaskOwner);
 
             Created = query.Created;
@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
 
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
-            
+
             if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPropertiesCollection? ProposedChanges { get; set; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiProposedPerson? ProposedPerson { get; set; }
-        public ApiProposalParameters ProposalParameters { get; set; }
+        public ApiProposalParameters? ProposalParameters { get; set; }
 
         public ApiTaskOwner? TaskOwner { get; set; }
 
@@ -98,5 +98,25 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
+
+        public bool ShouldHideProposalsForProject
+        {
+            get
+            {
+                var isTypeAllocation = string.Equals(Type, "allocation", StringComparison.OrdinalIgnoreCase);
+                var isNormalRequest = string.Equals(SubType, "normal", StringComparison.OrdinalIgnoreCase);
+                var inCreatedState = string.Equals(State, "created", StringComparison.OrdinalIgnoreCase);
+
+                return isTypeAllocation && isNormalRequest && inCreatedState;
+            }
+        }
+        public ApiResourceAllocationRequest HideProposals()
+        {
+            ProposalParameters = null;
+            ProposedChanges = null;
+            ProposedPerson = null;
+            ProposedPersonAzureUniqueId = null;
+            return this;
+        }
     }
 }

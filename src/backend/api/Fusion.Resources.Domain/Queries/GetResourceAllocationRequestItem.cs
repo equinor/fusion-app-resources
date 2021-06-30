@@ -129,14 +129,10 @@ namespace Fusion.Resources.Domain.Queries
 
                 try
                 {
-                    var departments = await mediator.Send(new GetDepartments()
-                   .ByIds(requestItem.AssignedDepartment)
-                   .ExpandDelegatedResourceOwners()
-                   .ExpandResourceOwners());
-
-                    var departmentMap = departments.ToDictionary(dpt => dpt.DepartmentId);
-
-                    requestItem.AssignedDepartmentDetails = departmentMap[requestItem.AssignedDepartment];
+                    requestItem.AssignedDepartmentDetails = await mediator.Send(
+                        new GetDepartment(requestItem.AssignedDepartment)
+                           .ExpandDelegatedResourceOwners()
+                    );
                 }
                 catch (Exception ex)
                 {

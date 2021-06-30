@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
+    <PackageReference Include="Fusion.Integration.Abstractions" Version="5.2.1" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="5.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\api\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
+    <ProjectReference Include="..\api\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
+  </ItemGroup>
+</Project>

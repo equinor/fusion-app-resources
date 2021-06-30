@@ -1,12 +1,13 @@
 ﻿using Fusion.Events;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Fusion.Resources.Integration.Models.FusionEvents;
-using Fusion.Resources.Logic.Commands;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
 {
@@ -36,7 +37,7 @@ namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
                 {
                     Type = EventType.RequestCreated,
                     ItemId = notification.RequestId,
-                    Request = new ResourceAllocationRequestEvent(notification.RequestId, req.Project.OrgProjectId, req.OrgPositionId.Value, req.OrgPositionInstanceId.Value)
+                    Request = new ResourceAllocationRequestEvent(notification.RequestId, req.Project.OrgProjectId, req.OrgPositionId.Value, req.OrgPositionInstanceId.Value, $"{req.Type}", req.SubType)
                 };
                 var @event = new FusionEvent<ResourceAllocationRequestSubscriptionEvent>(new FusionEventType("resourceallocation.request"), payload);
                 await notificationClient.SendNotificationAsync(@event);
@@ -45,6 +46,12 @@ namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
             {
                 // Fails if topic doesn't exist
                 logger.LogError(ex.Message);
+            }
+
+            var assignedDepartmentModified = notification.ModifiedProperties.Any(x => x.Metadata.Name == nameof(DbResourceAllocationRequest.AssignedDepartment));
+            if (assignedDepartmentModified)
+            {
+                await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(notification.RequestId));
             }
         }
     }

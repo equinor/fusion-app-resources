@@ -49,11 +49,12 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControl();
 
                     or.FullControlInternal();
-
-                    // TODO add
-                    // - Resource owner in line org chain (all departments upwrards)
-                    // - Is resource owner in general (?)
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).Parent(), includeParents: false, includeDescendants: true);
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    x.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -97,7 +98,11 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(command);
 
 
-            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
+            var returnModel = department.Select(p => authResult.LimitedAuth 
+                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(p) 
+                : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(p)
+            ).ToList();
+
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
@@ -118,11 +123,11 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControl();
 
                     or.FullControlInternal();
-
-                    // TODO add
-                    // - Resource owner in line org chain (all departments upwrards)
-                    // - Is resource owner in general (?)
-                    // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
+                    or.BeResourceOwner(new DepartmentPath(sectorPath).Parent(), includeParents: false, includeDescendants: true);
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    x.BeResourceOwner(new DepartmentPath(sectorPath).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -163,8 +168,11 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(new GetSectorPersonnel(sectorPath, query)
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
 
+            var returnModel = department.Select(p => authResult.LimitedAuth 
+                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(p)
+                : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(p)
+            ).ToList();
 
-            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p)).ToList();
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
@@ -182,6 +190,11 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).Parent(), includeParents: false, includeDescendants: true);
+                });
+                r.LimitedAccessWhen(x =>
+                {
+                    x.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 
@@ -198,8 +211,11 @@ namespace Fusion.Resources.Api.Controllers
             if (personnelItem.FullDepartment != fullDepartmentString)
                 return ApiErrors.NotFound($"Person does not belong to department ({personnelItem.FullDepartment})");
 
+            var result = authResult.LimitedAuth
+                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(personnelItem)
+                : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(personnelItem);
 
-            return Ok(new ApiInternalPersonnelPerson(personnelItem));
+            return Ok(result);
         }
 
         [HttpPost("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}/allocations/{instanceId}/allocation-state/reset")]
@@ -216,6 +232,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
+                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
                 });
             });
 

@@ -15,7 +15,7 @@ namespace Fusion.Resources.Domain
 
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string DomainId { get; set; }
+        public string? DomainId { get; set; }
         public Guid OrgProjectId { get; set; }
 
     }
@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain
             Type = type;
         }
         public string Name { get; set; }
-        public string DomainId { get; set; }
+        public string? DomainId { get; set; }
         public Guid OrgProjectId { get; set; }
         public string Type { get; set; }
     }
