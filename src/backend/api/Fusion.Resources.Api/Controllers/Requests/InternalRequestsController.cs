@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
+using Fusion.Resources.Domain.Notifications.InternalRequests;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -654,6 +654,10 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            
+            if (string.Equals(result!.State, AllocationNormalWorkflowV1.APPROVAL, StringComparison.OrdinalIgnoreCase))
+                await DispatchAsync(new InternalRequestNotifications.ProposedPerson(result.RequestId));
+
             return new ApiResourceAllocationRequest(result!);
         }
 
@@ -967,7 +971,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                var canApprove = DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+                var canApprove = DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
             }
             catch (UnauthorizedWorkflowException)
             {
@@ -1241,7 +1245,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                var canApprove = DispatchAsync(new CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+                var canApprove = DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
             }
             catch (UnauthorizedWorkflowException)
             {
