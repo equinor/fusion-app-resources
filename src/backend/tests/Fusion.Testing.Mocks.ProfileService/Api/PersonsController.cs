@@ -80,6 +80,29 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
             return Ok(results);
         }
 
+        [HttpPost("/search/persons/query")]
+        public ActionResult Search()
+        {
+            var props = typeof(ApiPersonProfileV3).GetProperties();
+            return Ok(new
+            {
+                Results = PeopleServiceMock.profiles
+                .Select(x => {
+                    var doc = new Dictionary<string, object>();
+                    
+                    foreach(var prop in props) doc.Add(prop.Name, prop.GetValue(x));
+
+                    doc["ManagerAzureId"] = Guid.NewGuid();
+                    doc["IsExpired"] = false;
+                    doc["Positions"] = new List<ApiPersonPositionV3>();
+
+                    return new
+                    {
+                        Document = doc
+                    };
+                })
+            });
+        }
         public class ProfilesRequest
         {
             public List<string> PersonIdentifiers { get; set; }
