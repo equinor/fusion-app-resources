@@ -47,9 +47,8 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     notificationBuilder
                             .AddTitle("A request workflow has been initialized")
-                            .AddTextBlockIf($"Awaiting feedback from resource owner for position {request.Position?.Name}.", request.Instance?.AssignedPerson is null)
-
-                            .AddTextBlockIf($"Person was proposed for position {request.Position?.Name}.", request.Instance?.AssignedPerson is not null)
+                            .AddTextBlockIf($"Awaiting feedback from resource owner.", request.Instance?.AssignedPerson is null)
+                            .AddTextBlockIf($"Person was proposed.", request.Instance?.AssignedPerson is not null)
                             .TryAddProfileCard(request.Instance?.AssignedPerson?.AzureUniqueId)
 
                             .AddFacts(facts => facts
