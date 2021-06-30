@@ -45,40 +45,22 @@ namespace Fusion.Resources.Api.Notifications
 
                 try
                 {
-                    if (request.Instance.AssignedPerson is null)
-                    {
-                        notificationBuilder
-                                .AddTitle("A request workflow has been initialized")
-                                .AddDescription("Please review and handle request")
+                    notificationBuilder
+                            .AddTitle("A request workflow has been initialized")
+                            .AddTextBlockIf($"Awaiting feedback from resource owner for position {request.Position?.Name}.", request.Instance?.AssignedPerson is null)
 
-                                .AddFacts(facts => facts
-                                    .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
-                                    .AddFact("Position", request.Position!.Name)
-                                    .AddFact("Period", $"{request.Instance?.AppliesFrom:dd.MM.yyyy} - {request.Instance?.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
-                                    .AddFact("Workload", $"{request.Instance?.Workload}")
-                                )
-                                .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
-                                .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgAdminUrl}");
+                            .AddTextBlockIf($"Person was proposed for position {request.Position?.Name}.", request.Instance?.AssignedPerson is not null)
+                            .TryAddProfileCard(request.Instance?.AssignedPerson?.AzureUniqueId)
 
-                    }
-                    else // Person assigned, try to add profile card
-                    {
-                        notificationBuilder
-                                .AddTitle("A request workflow has been initialized")
-                                .TryAddProfileCard(request.Instance.AssignedPerson.AzureUniqueId)
-                                .AddDescription($"{request.Instance.AssignedPerson.Name} ({request.Instance.AssignedPerson.Mail}) was proposed for position {request.Position.Name}.")
-
-                                .AddFacts(facts => facts
-                                    .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
-                                    .AddFact("Position", request.Position!.Name)
-                                    .AddFact("Period", $"{request.Instance?.AppliesFrom:dd.MM.yyyy} - {request.Instance?.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
-                                    .AddFact("Workload", $"{request.Instance?.Workload}")
-                                )
-                                .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
-                                .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgAdminUrl}")
-                                ;
-
-                    }
+                            .AddFacts(facts => facts
+                                .AddFactIf("Project", request.Position?.Project?.Name ?? "", request.Position?.Project is not null)
+                                .AddFact("Position", request.Position!.Name)
+                                .AddFact("Period", $"{request.Instance?.AppliesFrom:dd.MM.yyyy} - {request.Instance?.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
+                                .AddFact("Workload", $"{request.Instance?.Workload}")
+                            )
+                            .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
+                            .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgAdminUrl}")
+                            ;
                     var card = await notificationBuilder.BuildCardAsync();
                     await mediator.Send(new NotifyTaskOwner(request.AllocationRequest.RequestId, card));
                 }
