@@ -35,7 +35,6 @@ namespace Fusion.Resources.Domain
             var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
 
             var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, 500, includeSubDepartments);
-
             return searchResponse;
         }
 
