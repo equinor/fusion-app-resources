@@ -2,10 +2,10 @@ import { createContext, useContext } from 'react';
 import { ContactMail } from '../../../../../../models/ContactMail';
 import Personnel from '../../../../../../models/Personnel';
 
-export type ContactMailCollection = Record<string, ContactMail & { hasInputError?: boolean }>;
+export type ContactMailCollection = Array<ContactMail & { inputError?: string | null }>;
 
 export interface IManagePersonnelMailContext {
-    updateContactMail: (personnelId: string, mail: string, updateContactMail?: boolean) => void;
+    updateContactMail: (personnelId: string, mail: string, inputError?: string | null ) => void;
     isContactMailFormDirty: boolean;
     filteredPersonnel: Personnel[];
     contactMailForm: ContactMailCollection;

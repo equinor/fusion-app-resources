@@ -48,7 +48,7 @@ const ManagePersonnelMailsPage: FC = () => {
         isSavingContactMails,
         saveContactMailsAsync,
         showInputErrors
-    } = usePersonnelContactMail(personnel);
+    } = usePersonnelContactMail();
 
     return (
         <ManagePersonnelMailContext

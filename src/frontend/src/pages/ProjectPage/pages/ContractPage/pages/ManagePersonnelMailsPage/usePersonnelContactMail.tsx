@@ -6,63 +6,78 @@ import { useContractContext } from '../../../../../../contractContex';
 import Personnel from '../../../../../../models/Personnel';
 import ResourceError from '../../../../../../reducers/ResourceError';
 import { ContactMailCollection } from './ManagePersonnelMailContext';
+import SavePersonnelError from './SavePersonnelError';
 
-const usePersonnelContactMail = (personnel: Personnel[]) => {
+type PersonnelError = {
+    description: string;
+    index: number;
+};
+
+const pareErrors = (error: any): PersonnelError[] | null => {
+    const errors = error?.response?.errors;
+    if (!errors) {
+        return null;
+    }
+    return Object.keys(errors).reduce<PersonnelError[]>((prev, curr: string) => {
+        const description = errors[curr];
+        const openBracetSplittedCurr = curr.split('[');
+        if (openBracetSplittedCurr.length < 2) {
+            return prev;
+        }
+        const index = parseInt(openBracetSplittedCurr[1].split(']')[0]);
+
+        if (isNaN(index)) {
+            return prev;
+        }
+        return [...prev, { description, index }];
+    }, []);
+};
+
+const usePersonnelContactMail = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
-    const { contract } = useContractContext();
+    const { contract, dispatchContractAction } = useContractContext();
     const sendNotification = useNotificationCenter();
 
     const [filteredPersonnel, setFilteredPersonnel] = useState<Personnel[]>([]);
-    const [contactMailForm, setContactMailForm] = useState<ContactMailCollection>({});
+    const [contactMailForm, setContactMailForm] = useState<ContactMailCollection>([]);
     const [isSavingContactMails, setIsSavingContactMails] = useState<boolean>(false);
     const [saveError, setSaveError] = useState<ResourceError | null>(null);
     const [showInputErrors, setShowInputErrors] = useState<boolean>(false);
 
     const defaultFormState = useMemo(
-        () =>
-            personnel.reduce<ContactMailCollection>(
-                (prev, curr) =>
-                    !curr.azureUniquePersonId
-                        ? prev
-                        : {
-                              ...prev,
-                              [curr.personnelId]: {
-                                  personnelId: curr.personnelId,
-                                  preferredContactMail: curr.preferredContactMail || null,
-                              },
-                          },
-                {}
-            ),
-        [personnel]
+        (): ContactMailCollection =>
+            filteredPersonnel.map((personnel) => ({
+                personnelId: personnel.personnelId,
+                preferredContactMail: personnel.preferredContactMail || null,
+            })),
+        [filteredPersonnel]
     );
-
     useEffect(() => {
         setContactMailForm(defaultFormState);
     }, [defaultFormState]);
 
     const isContactMailFormDirty = useMemo(() => {
         return !deepEqual(
-            Object.values(contactMailForm).map((c) => ({
+            contactMailForm.map((c) => ({
                 preferredContactMail: c.preferredContactMail,
                 personnelId: c.personnelId,
             })),
-            Object.values(defaultFormState)
+            defaultFormState
         );
     }, [contactMailForm, defaultFormState]);
 
+
     const updateContactMail = useCallback(
-        (personnelId: string, mail: string, hasInputError?: boolean) => {
-            setContactMailForm((form) => ({
-                ...form,
-                [personnelId]: {
-                    personnelId,
-                    preferredContactMail: mail || null,
-                    hasInputError,
-                },
-            }));
+        (personnelId: string, mail: string, inputError?: string | null) => {
+            const updateContactMail = contactMailForm.map((formItem) =>
+                formItem.personnelId !== personnelId
+                    ? formItem
+                    : { ...formItem, inputError: inputError, preferredContactMail: mail || null }
+            );
+            setContactMailForm(updateContactMail);
         },
-        [setContactMailForm]
+        [setContactMailForm, contactMailForm]
     );
 
     const saveContactMailsAsync = useCallback(async () => {
@@ -73,39 +88,45 @@ const usePersonnelContactMail = (personnel: Personnel[]) => {
         }
         setShowInputErrors(true);
         setIsSavingContactMails(true);
+
         setSaveError(null);
-        const hasInputError = Object.values(contactMailForm).some((c) => !!c.hasInputError);
-        if (hasInputError) {
-            await sendNotification({
-                level: 'high',
-                title: 'Input errors',
-                body: 'There have been detected invalid emails in the input form, resolve the errors and try again',
-            });
-            setIsSavingContactMails(false);
-            return;
-        }
+
         try {
             const response = await apiClient.updatePersonnelPrefferedContactMailsAsync(
                 projectId,
                 contractId,
-                Object.values(contactMailForm)
-                    .filter((c) => !c.hasInputError)
-                    .map((c) => ({
-                        preferredContactMail: c.preferredContactMail,
-                        personnelId: c.personnelId,
-                    }))
+                contactMailForm.map((c) => ({
+                    preferredContactMail: c.preferredContactMail,
+                    personnelId: c.personnelId,
+                }))
             );
+            dispatchContractAction({ collection: 'personnel', verb: 'set', payload: response });
             sendNotification({
                 level: 'low',
                 title: 'Preferred contact mails saved',
             });
         } catch (e) {
-            console.log(e)
+            const errors = pareErrors(e);
+            if (!errors) {
+                return;
+            }
+            const updateMailForm = contactMailForm.map((formItem, index) => {
+                const personnelError = errors.find((e) => e.index === index);
+                if (!personnelError) {
+                    return formItem;
+                }
+                return {
+                    ...formItem,
+                    inputError: personnelError.description,
+                };
+            });
+            setContactMailForm(updateMailForm);
+
             setSaveError(e);
             sendNotification({
                 level: 'high',
                 title: 'Cannot save contact mails',
-                body: 'An error occurred while saving preferred contact mails',
+                body: (<SavePersonnelError contactMailForm={updateMailForm} />) as any as string,
             });
         } finally {
             setIsSavingContactMails(false);

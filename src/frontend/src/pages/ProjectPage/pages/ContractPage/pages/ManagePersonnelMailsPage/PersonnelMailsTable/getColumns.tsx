@@ -4,7 +4,7 @@ import Personnel from '../../../../../../../models/Personnel';
 import AzureAdStatusIndicator from '../../../components/AzureAdStatusIndicator';
 import PersonCell from './cells/PersonCell';
 import PreferredMail from './cells/PreferredMail';
-import HasEquinorMailCell from './cells/HasEquinorMailCell';
+import HasEquinorMailCell from '../../../components/HasEquinorMailCell';
 
 const getColumns = (isFetching: boolean): FusionColumn<Personnel>[] => {
     return [
@@ -18,7 +18,7 @@ const getColumns = (isFetching: boolean): FusionColumn<Personnel>[] => {
             width: styling.numericalGrid(2),
         },
         {
-            Header: 'Has Equinor mail',
+            Header: 'Equinor mail',
             accessor: 'mail',
             Cell: ({ row }) => <HasEquinorMailCell item={row.original} />,
             maxWidth: styling.numericalGrid(2),

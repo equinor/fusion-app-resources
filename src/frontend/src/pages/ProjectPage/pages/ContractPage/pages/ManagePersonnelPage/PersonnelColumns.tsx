@@ -4,6 +4,7 @@ import styles from './styles.less';
 import PersonnelInfoSideSheet from './PersonnelInfoSideSheet';
 import { FC, useState } from 'react';
 import AzureAdStatusIndicator from '../../components/AzureAdStatusIndicator';
+import HasEquinorMailCell from '../../components/HasEquinorMailCell';
 
 export type DataItemProps = {
     item: Personnel;
@@ -39,6 +40,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         sortable: true,
         width: '20px',
     },
+     
     {
         key: 'Mail',
         accessor: 'mail',
@@ -110,6 +112,15 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         label: 'Nr Positions',
         priority: 9,
         component: (p) => <span>{(p.item.positions?.length || 0).toString()}</span>,
+        sortable: true,
+        width: '20px',
+    },
+    {
+        key: 'equinorMail',
+        accessor: 'mail',
+        label: 'Equinor mail',
+        priority: 10,
+        component: HasEquinorMailCell,
         sortable: true,
         width: '20px',
     },

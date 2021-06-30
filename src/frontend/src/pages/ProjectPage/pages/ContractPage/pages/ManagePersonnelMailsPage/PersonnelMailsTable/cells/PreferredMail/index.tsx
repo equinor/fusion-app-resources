@@ -1,4 +1,5 @@
 import { CloseCircleIcon, styling, useTooltipRef } from '@equinor/fusion-components';
+import { clsx } from '@equinor/fusion-react-styles';
 import { ChangeEvent, FC, useCallback, useMemo } from 'react';
 import Personnel from '../../../../../../../../../models/Personnel';
 import { useManagePersonnelMailContext } from '../../../ManagePersonnelMailContext';
@@ -8,39 +9,41 @@ type PreferredMailProps = {
     item: Personnel;
 };
 
-const emailValidationRegex = /\S+@\S+\.\S+/;
-
 const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
-    const { updateContactMail, contactMailForm, showInputErrors } = useManagePersonnelMailContext();
+    const { updateContactMail, contactMailForm, showInputErrors, isSavingContactMails } =
+        useManagePersonnelMailContext();
 
-    const invalidMailTooltip = useTooltipRef('Invalid mail');
-    const input = useMemo(
-        () => contactMailForm[item.personnelId]?.preferredContactMail || '',
-        [showInputErrors, contactMailForm]
+    const contatFormItem = useMemo(
+        () => contactMailForm.find((formItem) => formItem.personnelId === item.personnelId),
+        [item, contactMailForm]
     );
 
-    const validateInput = useCallback(
-        (inputValue: string) =>
-            inputValue.length === 0 || emailValidationRegex.test(String(inputValue).toLowerCase()),
-        []
-    );
+    const inputError = useMemo(() => contatFormItem?.inputError, [contatFormItem]);
+
+    const invalidMailTooltip = useTooltipRef(inputError, 'left');
+    const input = useMemo(() => contatFormItem?.preferredContactMail || '', [contatFormItem]);
 
     const onPreferredMailChange = useCallback(
         (input: ChangeEvent<HTMLInputElement>) => {
+            if (isSavingContactMails) {
+                return;
+            }
             const inputValue = input.target.value;
-            const isValid = validateInput(inputValue);
-            updateContactMail(item.personnelId, inputValue, !isValid);
+            updateContactMail(item.personnelId, inputValue);
         },
-        [validateInput]
+        [updateContactMail, isSavingContactMails]
     );
     const validationError = useMemo(
-        () => contactMailForm[item.personnelId]?.hasInputError && showInputErrors,
-        [showInputErrors, contactMailForm]
+        () => contatFormItem?.inputError && showInputErrors,
+        [showInputErrors, contatFormItem]
     );
+    const inputClasses = clsx(styles.mailInput, {
+        [styles.disabled]: isSavingContactMails,
+    });
 
     return (
         <div className={styles.container}>
-            <input className={styles.mailInput} value={input} onChange={onPreferredMailChange} />
+            <input className={inputClasses} value={input} onChange={onPreferredMailChange} />
             <div className={styles.errorContainer}>
                 {validationError && (
                     <div className={styles.error} ref={invalidMailTooltip}>

@@ -80,14 +80,18 @@ const getNavigationStructure = (
             onClick: () =>
                 history.push(createContractPath(history, contractId, 'manage-personnel')),
             isOpen: true,
-            isActive:
-                history.location.pathname ===
-                createContractPath(history, contractId, 'manage-personnel'),
             navigationChildren: [
                 createNavItem(
                     history,
                     contractId,
-                    'Manage personnel mails',
+                    'Contract personnel',
+                    'manage-personnel',
+                    'child'
+                ),
+                createNavItem(
+                    history,
+                    contractId,
+                    'Preffered contact mail',
                     'manage-personnel-mails',
                     'child'
                 ),

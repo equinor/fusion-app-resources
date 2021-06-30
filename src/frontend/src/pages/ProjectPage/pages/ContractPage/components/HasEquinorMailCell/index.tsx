@@ -1,6 +1,6 @@
 import { CheckCircleIcon, CloseCircleIcon, styling } from '@equinor/fusion-components';
 import { FC } from 'react';
-import Personnel from '../../../../../../../../../models/Personnel';
+import Personnel from '../../../../../../models/Personnel';
 import styles from './styles.less';
 
 type HasEquinorMailCellProps = {
