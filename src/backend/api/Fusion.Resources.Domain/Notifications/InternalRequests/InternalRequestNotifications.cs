@@ -15,6 +15,16 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
             public Guid RequestId { get; }
         }
 
+        public class ProposedPerson : INotification
+        {
+            public ProposedPerson(Guid requestId)
+            {
+                RequestId = requestId;
+            }
+
+            public Guid RequestId { get; }
+        }
+
       
     }
 }

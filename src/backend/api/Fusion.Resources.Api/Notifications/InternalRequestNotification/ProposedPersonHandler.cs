@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace Fusion.Resources.Api.Notifications
 
     public partial class InternalRequestNotification
     {
-        public class AssignedDepartmentHandler : INotificationHandler<InternalRequestNotifications.AssignedDepartment>
+        public class ProposedPersonHandler : INotificationHandler<InternalRequestNotifications.ProposedPerson>
         {
             private readonly IMediator mediator;
             private readonly INotificationBuilder notificationBuilder;
@@ -27,7 +26,7 @@ namespace Fusion.Resources.Api.Notifications
             private readonly IFusionContextResolver contextResolver;
             private readonly ILogger<InternalRequestNotification> logger;
 
-            public AssignedDepartmentHandler(IMediator mediator, INotificationBuilderFactory notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver, ILogger<InternalRequestNotification> logger)
+            public ProposedPersonHandler(IMediator mediator, INotificationBuilderFactory notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver, ILogger<InternalRequestNotification> logger)
             {
                 this.mediator = mediator;
                 this.notificationBuilder = notificationClient.CreateDesigner();
@@ -36,21 +35,16 @@ namespace Fusion.Resources.Api.Notifications
                 this.logger = logger;
             }
 
-            public async Task Handle(InternalRequestNotifications.AssignedDepartment notification, CancellationToken cancellationToken)
+            public async Task Handle(InternalRequestNotifications.ProposedPerson notification, CancellationToken cancellationToken)
             {
                 var request = await GetResolvedOrgDataAsync(notification.RequestId);
 
-                if (string.IsNullOrEmpty(request.AllocationRequest.AssignedDepartment))
+                if (request.AllocationRequest.ProposedPerson is null || request.AllocationRequest.TaskOwner?.Persons?.Any() == false)
                     return;
-
-                var tr = ExtractTaskOwnerFromRequest(request.AllocationRequest);
 
                 try
                 {
                     notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                    .AddTextBlockIf("Task owner", tr.HasTaskOwner)
-                    .TryAddProfileCard(tr.MainTaskOwner)
-
                     .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
                     .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
 
@@ -62,38 +56,18 @@ namespace Fusion.Resources.Api.Notifications
                         .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
                         .AddFact("Workload", $"{request.Instance?.Workload}")
                         )
-                    .AddTextBlockIf($"Additional task owners: {tr.AdditionalTaskOwnerString}", tr.HasMultipleTaskOwners)
                     .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
-                    .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
-                    .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}");
+                    .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgPortalUrl}");
 
                     var card = await notificationBuilder.BuildCardAsync();
-                    await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card));
+                    await mediator.Send(new NotifyTaskOwner(request.AllocationRequest.RequestId, card));
+                    await mediator.Send(new NotifyRequestCreator(request.AllocationRequest.RequestId, card));
 
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(ex.Message);
                 }
-            }
-
-            private static TaskOwnerResult ExtractTaskOwnerFromRequest(QueryResourceAllocationRequest allocationRequest)
-            {
-                var hasTaskOwner = allocationRequest.TaskOwner?.Persons?.Any() ?? false;
-                var multipleTaskOwners = allocationRequest.TaskOwner?.Persons?.Length > 1;
-                var mainTaskOwner = allocationRequest.TaskOwner?.Persons?.FirstOrDefault()?.AzureUniqueId;
-                var additionalTaskOwners = new List<string>();
-                additionalTaskOwners.AddRange(allocationRequest.TaskOwner?.Persons?.Skip(1).Select(x => x.Name) ?? Array.Empty<string>());
-
-                var res = new TaskOwnerResult
-                {
-                    HasTaskOwner = hasTaskOwner,
-                    HasMultipleTaskOwners = multipleTaskOwners,
-                    MainTaskOwner = mainTaskOwner,
-                    AdditionalTaskOwners = additionalTaskOwners
-
-                };
-                return res;
             }
 
             private async Task<NotificationRequestData> GetResolvedOrgDataAsync(Guid requestId)
@@ -142,7 +116,6 @@ namespace Fusion.Resources.Api.Notifications
                 public ApiPositionV2 Position { get; }
                 public ApiPositionInstanceV2 Instance { get; }
                 public string? OrgPortalUrl { get; private set; }
-                public string? PersonnelAllocationPortalUrl { get; private set; }
 
                 public NotificationRequestData WithContextId(string? contextId)
                 {
@@ -154,22 +127,12 @@ namespace Fusion.Resources.Api.Notifications
                 {
                     if (!string.IsNullOrEmpty(OrgContextId))
                     {
-                        OrgPortalUrl = $"aka/goto-org/{OrgContextId}/{Position.Id}/{Instance.Id}";
+                        OrgPortalUrl = $"aka/goto-org-admin/{OrgContextId}/{Position.Id}/{Instance.Id}";
                     }
 
-                    PersonnelAllocationPortalUrl = $"aka/goto-preq/{AllocationRequest.RequestId}";
                     return this;
                 }
             }
         }
-    }
-
-    internal class TaskOwnerResult
-    {
-        public bool HasTaskOwner { get; set; }
-        public bool HasMultipleTaskOwners { get; set; }
-        public Guid? MainTaskOwner { get; set; }
-        public List<string> AdditionalTaskOwners { get; set; } = new();
-        public string AdditionalTaskOwnerString => string.Join(",", AdditionalTaskOwners.OrderBy(x => x));
     }
 }
