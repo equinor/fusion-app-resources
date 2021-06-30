@@ -51,7 +51,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
 
-            var returnItems = personAbsence.Select(p => new ApiPersonAbsence(p, authResult.LimitedAuth));
+            var returnItems = personAbsence.Select(p => authResult.LimitedAuth 
+                ? ApiPersonAbsence.CreateWithoutConfidentialTaskInfo(p)
+                : ApiPersonAbsence.CreateWithConfidentialTaskInfo(p)
+            );
 
             var collection = new ApiCollection<ApiPersonAbsence>(returnItems);
             return collection;
@@ -95,8 +98,9 @@ namespace Fusion.Resources.Api.Controllers
             if (personAbsence == null)
                 return FusionApiError.NotFound(absenceId, "Could not locate absence registration");
 
-            var returnItem = new ApiPersonAbsence(personAbsence, authResult.LimitedAuth);
-            return returnItem;
+            return authResult.LimitedAuth
+                ? ApiPersonAbsence.CreateWithoutConfidentialTaskInfo(personAbsence)
+                : ApiPersonAbsence.CreateWithConfidentialTaskInfo(personAbsence);
         }
 
         [HttpPost("/persons/{personId}/absence")]
@@ -139,7 +143,7 @@ namespace Fusion.Resources.Api.Controllers
                     var newAbsence = await DispatchAsync(createCommand);
                     await scope.CommitAsync();
 
-                    var item = new ApiPersonAbsence(newAbsence, hidePrivateNotes: false);
+                    var item = ApiPersonAbsence.CreateWithConfidentialTaskInfo(newAbsence);
                     return Created($"/persons/{personId}/absence/{item.Id}", item);
                 }
             }
@@ -186,7 +190,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 await scope.CommitAsync();
 
-                var item = new ApiPersonAbsence(updatedAbsence, hidePrivateNotes: false);
+                var item = ApiPersonAbsence.CreateWithConfidentialTaskInfo(updatedAbsence);
                 return item;
             }
         }

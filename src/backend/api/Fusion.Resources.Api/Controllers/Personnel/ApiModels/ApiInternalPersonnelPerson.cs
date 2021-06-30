@@ -9,7 +9,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiInternalPersonnelPerson
     {
-        public ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p, bool hideTaskDetails)
+        private ApiInternalPersonnelPerson(QueryInternalPersonnelPerson p)
         {
             AzureUniquePersonId = p.AzureUniqueId;
             Mail = p.Mail!;
@@ -22,11 +22,7 @@ namespace Fusion.Resources.Api.Controllers
             FullDepartment = p.FullDepartment!;
             IsResourceOwner = p.IsResourceOwner;
 
-            if (p.Timeline != null) Timeline = p.Timeline.Select(ti => new TimelineRange(ti, hideTaskDetails)).ToList();
-
             PositionInstances = p.PositionInstances.Select(pos => new PersonnelPosition(pos)).ToList();
-            EmploymentStatuses = p.Absence.Select(a => new ApiPersonAbsence(a, hideTaskDetails)).ToList();
-
             Disciplines = p.PositionInstances
                 .OrderByDescending(p => p.AppliesTo)
                 .Select(p => p.BasePosition.Discipline)
@@ -34,6 +30,20 @@ namespace Fusion.Resources.Api.Controllers
                 .Distinct()
                 .ToList();
         }
+
+        public static ApiInternalPersonnelPerson CreateWithoutConfidentialTaskInfo(QueryInternalPersonnelPerson person) 
+            => new ApiInternalPersonnelPerson(person)
+            {
+                EmploymentStatuses = person.Absence.Select(a => ApiPersonAbsence.CreateWithoutConfidentialTaskInfo(a)).ToList(),
+                Timeline = person?.Timeline?.Select(ti => TimelineRange.CreateWithoutConfidentialTaskInfo(ti))?.ToList()
+            };
+        public static ApiInternalPersonnelPerson CreateWithConfidentialTaskInfo(QueryInternalPersonnelPerson person)
+            => new ApiInternalPersonnelPerson(person)
+            {
+                EmploymentStatuses = person.Absence.Select(a => ApiPersonAbsence.CreateWithConfidentialTaskInfo(a)).ToList(),
+                Timeline = person?.Timeline?.Select(ti => TimelineRange.CreateWithConfidentialTaskInfo(ti))?.ToList()
+            };
+
 
         public Guid? AzureUniquePersonId { get; set; }
         public string Mail { get; set; } = null!;
@@ -61,14 +71,25 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineRange
         {
-            public TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti, bool hidePrivateNotes)
+            private TimelineRange(QueryTimelineRange<QueryPersonnelTimelineItem> ti)
             {
                 AppliesFrom = ti.AppliesFrom;
                 AppliesTo = ti.AppliesTo;
                 Workload = ti.Workload;
 
-                Items = ti.Items.Select(i => new TimelineItem(i, hidePrivateNotes)).ToList();
             }
+
+            public static TimelineRange CreateWithoutConfidentialTaskInfo(QueryTimelineRange<QueryPersonnelTimelineItem> item)
+                => new TimelineRange(item)
+                {
+                    Items = item.Items.Select(i => TimelineItem.CreateWithoutConfidentialTaskInfo(i)).ToList()
+                };
+            public static TimelineRange CreateWithConfidentialTaskInfo(QueryTimelineRange<QueryPersonnelTimelineItem> item)
+                => new TimelineRange(item)
+                {
+                    Items = item.Items.Select(i => TimelineItem.CreateWithConfidentialTaskInfo(i)).ToList()
+                };
+
 
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
@@ -78,7 +99,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class TimelineItem
         {
-            public TimelineItem(QueryPersonnelTimelineItem item, bool hidePrivateNotes)
+            private TimelineItem(QueryPersonnelTimelineItem item, bool hidePrivateNotes)
             {
                 Id = item.Id;
                 Workload = item.Workload;
@@ -92,6 +113,9 @@ namespace Fusion.Resources.Api.Controllers
                 if (item.Project != null) Project = new ApiProjectReference(item.Project);
                 if (item.BasePosition != null) BasePosition = new ApiBasePosition(item.BasePosition);
             }
+
+            public static TimelineItem CreateWithoutConfidentialTaskInfo(QueryPersonnelTimelineItem item) => new TimelineItem(item, hidePrivateNotes: true);
+            public static TimelineItem CreateWithConfidentialTaskInfo(QueryPersonnelTimelineItem item) => new TimelineItem(item, hidePrivateNotes: false);
 
             public Guid Id { get; set; }
             public string Type { get; set; } = null!;

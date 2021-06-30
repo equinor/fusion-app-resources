@@ -98,7 +98,11 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(command);
 
 
-            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p, authResult.LimitedAuth)).ToList();
+            var returnModel = department.Select(p => authResult.LimitedAuth 
+                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(p) 
+                : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(p)
+            ).ToList();
+
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
@@ -164,8 +168,11 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(new GetSectorPersonnel(sectorPath, query)
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
 
+            var returnModel = department.Select(p => authResult.LimitedAuth 
+                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(p)
+                : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(p)
+            ).ToList();
 
-            var returnModel = department.Select(p => new ApiInternalPersonnelPerson(p, authResult.LimitedAuth)).ToList();
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
@@ -204,8 +211,11 @@ namespace Fusion.Resources.Api.Controllers
             if (personnelItem.FullDepartment != fullDepartmentString)
                 return ApiErrors.NotFound($"Person does not belong to department ({personnelItem.FullDepartment})");
 
+            var result = authResult.LimitedAuth
+                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(personnelItem)
+                : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(personnelItem);
 
-            return Ok(new ApiInternalPersonnelPerson(personnelItem, authResult.LimitedAuth));
+            return Ok(result);
         }
 
         [HttpPost("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}/allocations/{instanceId}/allocation-state/reset")]
