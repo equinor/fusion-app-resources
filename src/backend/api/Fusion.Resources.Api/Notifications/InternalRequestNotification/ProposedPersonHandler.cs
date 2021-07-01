@@ -26,10 +26,10 @@ namespace Fusion.Resources.Api.Notifications
             private readonly IFusionContextResolver contextResolver;
             private readonly ILogger<InternalRequestNotification> logger;
 
-            public ProposedPersonHandler(IMediator mediator, INotificationBuilderFactory notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver, ILogger<InternalRequestNotification> logger)
+            public ProposedPersonHandler(IMediator mediator, INotificationBuilderFactory notificationBuilderFactory, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver, ILogger<InternalRequestNotification> logger)
             {
                 this.mediator = mediator;
-                this.notificationBuilder = notificationClient.CreateDesigner();
+                this.notificationBuilder = notificationBuilderFactory.CreateDesigner();
                 this.orgResolver = orgResolver;
                 this.contextResolver = contextResolver;
                 this.logger = logger;
