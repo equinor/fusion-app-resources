@@ -2,6 +2,7 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -98,8 +99,8 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(command);
 
 
-            var returnModel = department.Select(p => authResult.LimitedAuth 
-                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(p) 
+            var returnModel = department.Select(p => authResult.LimitedAuth
+                ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(p)
                 : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(p)
             ).ToList();
 
@@ -168,7 +169,7 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(new GetSectorPersonnel(sectorPath, query)
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd));
 
-            var returnModel = department.Select(p => authResult.LimitedAuth 
+            var returnModel = department.Select(p => authResult.LimitedAuth
                 ? ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(p)
                 : ApiInternalPersonnelPerson.CreateWithConfidentialTaskInfo(p)
             ).ToList();
@@ -254,6 +255,34 @@ namespace Fusion.Resources.Api.Controllers
             await DispatchAsync(new Domain.Commands.ResetAllocationState(allocation.Project.OrgProjectId, allocation.PositionId, instanceId));
 
             return NoContent();
+        }
+
+        [HttpGet("/projects/{projectId}/resources/persons")]
+        public async Task<ActionResult> Search([FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery(Name ="$search")] string search, [FromQuery] Guid? basePositionId)
+        {
+            #region Authorization
+
+            //var authResult = await Request.RequireAuthorizationAsync(r =>
+            //{
+            //    r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            //    r.AnyOf(or =>
+            //    {
+            //        or.OrgChartPositionWriteAccess(projectIdentifier.ProjectId, request.OrgPositionId);
+            //    });
+            //});
+
+
+            //if (authResult.Unauthorized)
+            //    return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var result = await DispatchAsync(new SearchPersonnel(search)
+            {
+                BasePositionId = basePositionId
+            });
+
+            return Ok(result.Select(x => ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(x)));
         }
     }
 
