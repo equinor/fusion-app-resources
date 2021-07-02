@@ -5,20 +5,20 @@ namespace Fusion.Resources.Domain
 {
     public class QueryRequestTask
     {
-        public QueryRequestTask(DbRequestTask newTask)
+        public QueryRequestTask(DbRequestTask dbTask)
         {
-            Id = newTask.Id;
-            Title = newTask.Title;
-            Body = newTask.Body;
-            Category = newTask.Category;
-            Type = newTask.Type;
-            SubType = newTask.SubType;
-            Source = newTask.Source.MapToDomain();
-            Responsible = newTask.Responsible.MapToDomain();
+            Id = dbTask.Id;
+            Title = dbTask.Title;
+            Body = dbTask.Body;
+            Category = dbTask.Category;
+            Type = dbTask.Type;
+            SubType = dbTask.SubType;
+            Source = dbTask.Source.MapToDomain();
+            Responsible = dbTask.Responsible.MapToDomain();
             
-            IsResolved = newTask.IsResolved;
-            ResolvedAt = newTask.ResolvedAt;
-            ResolvedBy = (newTask.ResolvedBy is not null) ? new QueryPerson(newTask.ResolvedBy) : null;
+            IsResolved = dbTask.IsResolved;
+            ResolvedAt = dbTask.ResolvedAt;
+            ResolvedBy = (dbTask.ResolvedBy is not null) ? new QueryPerson(dbTask.ResolvedBy) : null;
         }
 
         public Guid Id { get; }
