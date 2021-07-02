@@ -48,5 +48,46 @@ namespace Fusion.Resources
                 _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(ProposalChangeScope)}")
             };
         }
+
+        public static TaskSource MapToDomain(this DbTaskSource value)
+        {
+            return value switch
+            {
+                DbTaskSource.ResourceOwner => TaskSource.ResourceOwner,
+                DbTaskSource.TaskOwner => TaskSource.TaskOwner,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(TaskSource)}.")
+            };
+        }
+
+        public static DbTaskSource MapToDatabase(this TaskSource value)
+        {
+            return value switch
+            {
+                TaskSource.ResourceOwner => DbTaskSource.ResourceOwner,
+                TaskSource.TaskOwner => DbTaskSource.TaskOwner,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbTaskSource)}.")
+            };
+        }
+
+        public static TaskResponsible MapToDomain(this DbTaskResponsible value)
+        {
+            return value switch
+            {
+                DbTaskResponsible.ResourceOwner => TaskResponsible.ResourceOwner,
+                DbTaskResponsible.TaskOwner => TaskResponsible.TaskOwner,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(TaskSource)}.")
+            };
+        }
+
+        public static DbTaskResponsible MapToDatabase(this TaskResponsible value)
+        {
+            return value switch
+            {
+                TaskResponsible.ResourceOwner => DbTaskResponsible.ResourceOwner,
+                TaskResponsible.TaskOwner => DbTaskResponsible.TaskOwner,
+                TaskResponsible.Both => DbTaskResponsible.Both,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbTaskSource)}.")
+            };
+        }
     }
 }

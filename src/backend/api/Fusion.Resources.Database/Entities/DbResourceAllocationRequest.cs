@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
@@ -68,6 +69,7 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset LastActivity { get; set; }
 
         public DbOpProvisionStatus ProvisioningStatus { get; set; } = new DbOpProvisionStatus();
+        public List<DbRequestTask> Tasks { get;  set; }
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
