@@ -257,7 +257,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-        [HttpGet("/projects/{projectId}/resources/persons")]
+        [HttpGet("/projects/{projectIdentifier}/resources/persons")]
         public async Task<ActionResult> Search([FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery(Name ="$search")] string search, [FromQuery] Guid? basePositionId)
         {
             #region Authorization
