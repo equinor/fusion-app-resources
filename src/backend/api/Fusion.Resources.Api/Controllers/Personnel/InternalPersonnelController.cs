@@ -258,7 +258,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/resources/persons")]
-        public async Task<ActionResult> Search([FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery(Name ="$search")] string search, [FromQuery] Guid? basePositionId)
+        public async Task<ActionResult> Search([FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery(Name ="$search")] string search, [FromQuery] string? departmentFilter)
         {
             #region Authorization
 
@@ -279,7 +279,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var result = await DispatchAsync(new SearchPersonnel(search)
             {
-                BasePositionId = basePositionId
+                DepartmentFilter = departmentFilter
             });
 
             return Ok(result.Select(x => ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(x)));

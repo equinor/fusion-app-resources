@@ -1,9 +1,7 @@
 ﻿using Fusion.Integration.Http;
 using Fusion.Integration.Org;
 using MediatR;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +17,7 @@ namespace Fusion.Resources.Domain.Commands
             this.search = search;
         }
 
-        public Guid? BasePositionId { get; set; }
+        public string? DepartmentFilter { get; set; }
 
         public class Handler : IRequestHandler<SearchPersonnel, IEnumerable<QueryInternalPersonnelPerson>>
         {
@@ -35,12 +33,9 @@ namespace Fusion.Resources.Domain.Commands
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(SearchPersonnel request, CancellationToken cancellationToken)
             {
                 string? filter = null;
-                if (request.BasePositionId.HasValue)
+                if (request.DepartmentFilter is not null)
                 {
-                    var basePositions = await orgResolver.GetBasePositionsAsync();
-                    var bp = basePositions.FirstOrDefault(x => x.Id == request.BasePositionId);
-                    if (!string.IsNullOrEmpty(bp?.Department))
-                        filter = $"search.ismatch('{bp.Department}','fullDepartment','simple','all')";
+                    filter = $"search.ismatch('{request.DepartmentFilter}','fullDepartment','simple','all')";
                 }
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
