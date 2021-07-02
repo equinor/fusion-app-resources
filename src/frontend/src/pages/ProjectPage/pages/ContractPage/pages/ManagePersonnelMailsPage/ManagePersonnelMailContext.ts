@@ -12,7 +12,7 @@ export interface IManagePersonnelMailContext {
     setFilteredPersonnel: (personnel: Personnel[]) => void;
     isSavingContactMails: boolean;
     saveContactMailsAsync: () => Promise<void>;
-    showInputErrors: boolean
+    checkMailForErrors: (personnelId: string, mail: string) => Promise<void>
 }
 
 const ManagePersonnelMailContext = createContext<IManagePersonnelMailContext>(

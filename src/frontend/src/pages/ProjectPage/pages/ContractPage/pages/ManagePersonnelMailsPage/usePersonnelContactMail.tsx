@@ -33,6 +33,8 @@ const pareErrors = (error: any): PersonnelError[] | null => {
     }, []);
 };
 
+const emailValidationRegex = /\S+@\S+\.\S+/;
+
 const usePersonnelContactMail = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
@@ -43,7 +45,6 @@ const usePersonnelContactMail = () => {
     const [contactMailForm, setContactMailForm] = useState<ContactMailCollection>([]);
     const [isSavingContactMails, setIsSavingContactMails] = useState<boolean>(false);
     const [saveError, setSaveError] = useState<ResourceError | null>(null);
-    const [showInputErrors, setShowInputErrors] = useState<boolean>(false);
 
     const defaultFormState = useMemo(
         (): ContactMailCollection =>
@@ -67,7 +68,6 @@ const usePersonnelContactMail = () => {
         );
     }, [contactMailForm, defaultFormState]);
 
-
     const updateContactMail = useCallback(
         (personnelId: string, mail: string, inputError?: string | null) => {
             const updateContactMail = contactMailForm.map((formItem) =>
@@ -80,13 +80,37 @@ const usePersonnelContactMail = () => {
         [setContactMailForm, contactMailForm]
     );
 
+    const checkMailForErrors = useCallback(
+        async (personnelId: string, mail: string) => {
+            const contractId = contract?.id;
+            const projectId = currentContext?.id;
+            const hasInvalidMailSyntax = !emailValidationRegex.test(String(mail).toLowerCase());
+            if (hasInvalidMailSyntax) {
+                updateContactMail(personnelId, mail, 'The e-mail provided has a invalid syntax');
+            }
+            if (!contractId || !projectId) {
+                return;
+            }
+            try {
+                await apiClient.checkPersonnelPrefferedContactMailsAsync(
+                    projectId,
+                    contractId,
+                    mail
+                );
+            } catch (error) {
+                const parsedError = error?.response?.errors?.mail[0];
+                updateContactMail(personnelId, mail, parsedError);
+            }
+        },
+        [contract, currentContext, updateContactMail]
+    );
+
     const saveContactMailsAsync = useCallback(async () => {
         const contractId = contract?.id;
         const projectId = currentContext?.id;
         if (!contractId || !projectId) {
             return;
         }
-        setShowInputErrors(true);
         setIsSavingContactMails(true);
 
         setSaveError(null);
@@ -142,7 +166,7 @@ const usePersonnelContactMail = () => {
         isSavingContactMails,
         saveContactMailsAsync,
         saveError,
-        showInputErrors,
+        checkMailForErrors,
     };
 };
 

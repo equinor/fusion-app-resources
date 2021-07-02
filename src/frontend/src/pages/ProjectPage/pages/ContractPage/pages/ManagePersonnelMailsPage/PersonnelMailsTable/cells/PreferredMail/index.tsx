@@ -10,7 +10,7 @@ type PreferredMailProps = {
 };
 
 const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
-    const { updateContactMail, contactMailForm, showInputErrors, isSavingContactMails } =
+    const { updateContactMail, contactMailForm, isSavingContactMails, checkMailForErrors } =
         useManagePersonnelMailContext();
 
     const contatFormItem = useMemo(
@@ -19,8 +19,8 @@ const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
     );
 
     const inputError = useMemo(() => contatFormItem?.inputError, [contatFormItem]);
-
     const invalidMailTooltip = useTooltipRef(inputError, 'left');
+
     const input = useMemo(() => contatFormItem?.preferredContactMail || '', [contatFormItem]);
 
     const onPreferredMailChange = useCallback(
@@ -33,19 +33,27 @@ const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
         },
         [updateContactMail, isSavingContactMails]
     );
-    const validationError = useMemo(
-        () => contatFormItem?.inputError && showInputErrors,
-        [showInputErrors, contatFormItem]
-    );
+    const onBlur = useCallback(() => {
+        if (!input) {
+            return;
+        }
+        checkMailForErrors(item.personnelId, input);
+    }, [checkMailForErrors, input, item.personnelId]);
+
     const inputClasses = clsx(styles.mailInput, {
         [styles.disabled]: isSavingContactMails,
     });
 
     return (
         <div className={styles.container}>
-            <input className={inputClasses} value={input} onChange={onPreferredMailChange} />
+            <input
+                className={inputClasses}
+                value={input}
+                onChange={onPreferredMailChange}
+                onBlur={onBlur}
+            />
             <div className={styles.errorContainer}>
-                {validationError && (
+                {inputError && (
                     <div className={styles.error} ref={invalidMailTooltip}>
                         <CloseCircleIcon color={styling.colors.red} />
                     </div>

@@ -96,6 +96,21 @@ export default class ApiClient {
         return response.data.value;
     }
 
+    async checkPersonnelPrefferedContactMailsAsync(
+        projectId: string,
+        contractId: string,
+        mail: string
+    ) {
+        const url = this.resourceCollection.personnelPreferredContactMail(
+            projectId,
+            contractId,
+            mail
+        );
+
+        const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(url);
+        return response;
+    }
+
     async createPersonnelAsync(projectId: string, contractId: string, personnel: Personnel) {
         const url = this.resourceCollection.personnel(projectId, contractId);
         const reponse = await this.httpClient.postAsync<

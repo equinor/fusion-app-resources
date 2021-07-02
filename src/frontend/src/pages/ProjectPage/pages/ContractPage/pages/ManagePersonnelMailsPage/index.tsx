@@ -47,7 +47,7 @@ const ManagePersonnelMailsPage: FC = () => {
         setFilteredPersonnel,
         isSavingContactMails,
         saveContactMailsAsync,
-        showInputErrors
+        checkMailForErrors,
     } = usePersonnelContactMail();
 
     return (
@@ -60,7 +60,7 @@ const ManagePersonnelMailsPage: FC = () => {
                 setFilteredPersonnel,
                 isSavingContactMails,
                 saveContactMailsAsync,
-                showInputErrors
+                checkMailForErrors,
             }}
         >
             <div className={styles.container}>
