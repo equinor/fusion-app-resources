@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 var allocationRequest = await GetInternalRequestAsync(request.RequestId);
 
-                var arguments = new NotificationArguments($"A personnel request has been updated (you are notified as creator)") { AppKey = "personnel-allocation" };
+                var arguments = new NotificationArguments($"A personnel request you created has been updated") { AppKey = "personnel-allocation" };
 
                 if(allocationRequest?.CreatedBy.AzureUniqueId != request.Editor.Person.AzureUniqueId)
                 {

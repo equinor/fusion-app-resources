@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 var allocationRequest = await GetInternalRequestAsync(request.RequestId);
 
-                var arguments = new NotificationArguments($"A personnel request has been updated (you are notified as task owner)") { AppKey = "personnel-allocation" };
+                var arguments = new NotificationArguments($"A personnel request for which you are the task owner has been updated") { AppKey = "personnel-allocation" };
                 if (allocationRequest?.TaskOwner?.Persons is null)
                     return;
 
