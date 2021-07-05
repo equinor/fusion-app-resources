@@ -31,6 +31,8 @@ namespace Fusion.Resources.Api.Controllers
             IsResolved = task.IsResolved;
             ResolvedAt = task.ResolvedAt;
             ResolvedBy = (task.ResolvedBy is not null) ? new ApiPerson(task.ResolvedBy) : null;
+
+            Properties = new ApiPropertiesCollection(task.Properties);
         }
 
         public Guid Id { get; }
@@ -44,6 +46,8 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsResolved { get; }
         public DateTimeOffset? ResolvedAt { get; }
         public ApiPerson? ResolvedBy { get; }
+
+        public ApiPropertiesCollection Properties { get;  }
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

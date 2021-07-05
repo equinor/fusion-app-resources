@@ -57,6 +57,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetRequestTask(requestId, taskId);
             var task = await DispatchAsync(command);
 
+            if (task is null) return FusionApiError.NotFound(taskId, $"A task with id '{taskId}' was not found on request with id '{requestId}'.");
+
             return Ok(new ApiRequestTask(task));
         }
 
@@ -71,10 +73,17 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (patch.Type.HasValue) command.Type = patch.Type.Value;
             if (patch.SubType.HasValue) command.SubType = patch.SubType.Value;
             if (patch.IsResolved.HasValue) command.IsResolved = patch.IsResolved.Value;
+            if (patch.Properties.HasValue) command.Properties = patch.Properties.Value;
 
-            var updated = await DispatchAsync(command);
-
-            return Ok(new ApiRequestTask(updated));
+            try
+            {
+                var updated = await DispatchAsync(command);
+                return Ok(new ApiRequestTask(updated));
+            }
+            catch (TaskNotFoundError err)
+            {
+                return FusionApiError.NotFound(taskId, err.Message);
+            }
         }
 
         [HttpDelete("requests/{requestId}/tasks/{taskId}")]
@@ -84,7 +93,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var wasDeleted = await DispatchAsync(command);
 
             if (wasDeleted) return NoContent();
-            else return NotFound();
+            else return FusionApiError.NotFound(taskId, $"A task with id '{taskId}' was not found on request with id '{requestId}'.");
         }
     }
 }

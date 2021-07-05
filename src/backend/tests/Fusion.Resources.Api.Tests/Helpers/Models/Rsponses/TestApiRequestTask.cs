@@ -1,5 +1,6 @@
 ﻿using Fusion.Testing.Mocks;
 using System;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Api.Tests
 {
@@ -16,5 +17,7 @@ namespace Fusion.Resources.Api.Tests
         public bool isResolved { get; set; }
         public DateTimeOffset? resolvedAt { get; set; }
         public TestApiPerson resolvedBy { get; set; }
+
+        public Dictionary<string, object> properties { get; set; }
     }
 }

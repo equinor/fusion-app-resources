@@ -8,8 +8,6 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -91,7 +89,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task PatchRequestTask_SHouldBeOk()
+        public async Task PatchRequestTask_ShouldBeOk()
         {
             var adminClient = fixture.ApiFactory.CreateClient()
                 .WithTestUser(fixture.AdminUser)
@@ -132,10 +130,107 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.isResolved.Should().BeTrue();
             result.Value.resolvedAt.Should().BeCloseTo(DateTimeOffset.Now, precision: 500);
             result.Value.resolvedBy.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId.Value);
-
         }
 
-        public async Task<TestApiRequestTask> CreateRequestTask()
+        [Fact]
+        public async Task UnresolveRequestTask_ShouldClearResolvedMetadata()
+        {
+            var userClient = fixture.ApiFactory.CreateClient()
+                .WithTestUser(testUser)
+                .AddTestAuthToken();
+
+            var task = await CreateRequestTask();
+
+            var payload = new { isResolved = true };
+            _ = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+
+
+            payload = new { isResolved = false };
+            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+
+            result.Should().BeSuccessfull();
+            result.Value.isResolved.Should().BeFalse();
+            result.Value.resolvedAt.Should().BeNull();
+            result.Value.resolvedBy.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task PatchingCustomProps_ShouldBeOk()
+        {
+            var task = await CreateRequestTask(new Dictionary<string, object>
+            {
+                ["customProp1"] = 123,
+                ["customProp2"] = new DateTime(2021, 05, 05)
+            });
+
+            var userClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(testUser)
+               .AddTestAuthToken();
+
+            var payload = new
+            {
+                properties = new Dictionary<string, object>
+                {
+                    ["customProp2"] = new DateTime(2021, 03, 03)
+                }
+            };
+            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+
+            result.Should().BeSuccessfull();
+            result.Value.properties["customProp1"].Should().Be(123);
+            result.Value.properties["customProp2"].Should().Be(new DateTime(2021, 03, 03));
+        }
+
+        [Fact]
+        public async Task UpdatingTaskOnDifferentRequest_ShouldBeNotFound()
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var task = await CreateRequestTask();
+            var otherRequest = await adminClient.CreateDefaultRequestAsync(testProject);
+
+            var userClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(testUser)
+               .AddTestAuthToken();
+
+            var payload = new { title = "Updated Test title" };
+            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/tasks/{task.id}", payload);
+            result.Should().BeNotFound();
+        }
+
+        [Fact]
+        public async Task DeleteTask_ShouldBeSuccessfull()
+        {
+            var task = await CreateRequestTask();
+            var userClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(testUser)
+               .AddTestAuthToken();
+
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}");
+            result.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task DeletingTaskOnDifferentRequest_ShouldBeNotFound()
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var task = await CreateRequestTask();
+            var otherRequest = await adminClient.CreateDefaultRequestAsync(testProject);
+
+            var userClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(testUser)
+               .AddTestAuthToken();
+
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/tasks/{task.id}");
+            result.Should().BeNotFound();
+        }
+
+        public async Task<TestApiRequestTask> CreateRequestTask(Dictionary<string, object> props = null)
         {
             var payload = new
             {
@@ -145,7 +240,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 type = "test",
                 subType = "Test Test",
                 source = "ResourceOwner",
-                responsible = "TaskOwner"
+                responsible = "TaskOwner",
+                Properties = props
             };
 
             var adminClient = fixture.ApiFactory.CreateClient()
