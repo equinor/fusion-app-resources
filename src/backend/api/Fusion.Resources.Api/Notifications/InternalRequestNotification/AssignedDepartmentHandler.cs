@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.ApiClients.Org;
-using Fusion.Integration;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
@@ -24,15 +23,13 @@ namespace Fusion.Resources.Api.Notifications
             private readonly IMediator mediator;
             private readonly INotificationBuilder notificationBuilder;
             private readonly IProjectOrgResolver orgResolver;
-            private readonly IFusionContextResolver contextResolver;
             private readonly ILogger<InternalRequestNotification> logger;
 
-            public AssignedDepartmentHandler(IMediator mediator, INotificationBuilderFactory notificationClient, IProjectOrgResolver orgResolver, IFusionContextResolver contextResolver, ILogger<InternalRequestNotification> logger)
+            public AssignedDepartmentHandler(IMediator mediator, INotificationBuilderFactory notificationBuilderFactory, IProjectOrgResolver orgResolver, ILogger<InternalRequestNotification> logger)
             {
                 this.mediator = mediator;
-                this.notificationBuilder = notificationClient.CreateDesigner();
+                this.notificationBuilder = notificationBuilderFactory.CreateDesigner();
                 this.orgResolver = orgResolver;
-                this.contextResolver = contextResolver;
                 this.logger = logger;
             }
 
@@ -47,11 +44,11 @@ namespace Fusion.Resources.Api.Notifications
 
                 try
                 {
-                    notificationBuilder.AddTitle("A personnel request has been assigned to you")
-                    .AddTextBlockIf("Task owner", tr.HasTaskOwner)
+                    notificationBuilder.AddTitle("A personnel request has been assigned to your department")
+                    .AddTextBlockIf("Task owner for request:", tr.HasTaskOwner)
                     .TryAddProfileCard(tr.MainTaskOwner)
 
-                    .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
+                    .AddTextBlockIf("Proposed resource:", request.Instance.AssignedPerson != null)
                     .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
 
                     .AddDescription("Please review and handle request")
@@ -111,12 +108,9 @@ namespace Fusion.Resources.Api.Notifications
                 if (orgPositionInstance == null)
                     throw new InvalidOperationException(
                         $"Cannot resolve position instance for request {internalRequest.RequestId}");
-
-                var context = await contextResolver.ResolveContextAsync(ContextIdentifier.FromExternalId(internalRequest.Project.OrgProjectId), FusionContextType.OrgChart);
-                var orgContextId = $"{context?.Id}";
-
+                
                 return new NotificationRequestData(internalRequest, orgPosition, orgPositionInstance)
-                    .WithContextId(orgContextId)
+                    .WithProjectId($"{internalRequest.Project.OrgProjectId}")
                     .WithPortalActionUrls();
             }
 
@@ -137,24 +131,24 @@ namespace Fusion.Resources.Api.Notifications
                     Instance = instance;
                 }
 
-                private string? OrgContextId { get; set; }
+                private string? ProjectIdentifier { get; set; }
                 public QueryResourceAllocationRequest AllocationRequest { get; }
                 public ApiPositionV2 Position { get; }
                 public ApiPositionInstanceV2 Instance { get; }
                 public string? OrgPortalUrl { get; private set; }
                 public string? PersonnelAllocationPortalUrl { get; private set; }
 
-                public NotificationRequestData WithContextId(string? contextId)
+                public NotificationRequestData WithProjectId(string? projectIdentifier)
                 {
-                    OrgContextId = contextId;
+                    ProjectIdentifier = projectIdentifier;
                     return this;
                 }
 
                 public NotificationRequestData WithPortalActionUrls()
                 {
-                    if (!string.IsNullOrEmpty(OrgContextId))
+                    if (!string.IsNullOrEmpty(ProjectIdentifier))
                     {
-                        OrgPortalUrl = $"aka/goto-org/{OrgContextId}/{Position.Id}/{Instance.Id}";
+                        OrgPortalUrl = $"aka/goto-org/{ProjectIdentifier}/{Position.Id}/{Instance.Id}";
                     }
 
                     PersonnelAllocationPortalUrl = $"aka/goto-preq/{AllocationRequest.RequestId}";
