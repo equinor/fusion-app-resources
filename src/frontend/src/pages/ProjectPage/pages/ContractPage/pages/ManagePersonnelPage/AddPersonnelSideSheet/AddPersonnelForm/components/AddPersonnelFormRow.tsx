@@ -1,4 +1,3 @@
-
 import styles from '../../styles.less';
 import Personnel from '../../../../../../../../../models/Personnel';
 import SelectionCell from '../../../components/SelectionCell';
@@ -98,15 +97,7 @@ export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
                     field={'phoneNumber'}
                 />
             </td>
-            <td className={styles.tableRowCell}>
-                <AddPersonnelFormTextInput
-                    key={`preferredContactMail${formState.personnelId}`}
-                    disabled={saveInProgress}
-                    item={formState}
-                    onChange={formFieldSetter}
-                    field={'preferredContactMail'}
-                />
-            </td>
+
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput
                     key={`dawinci${formState.personnelId}`}

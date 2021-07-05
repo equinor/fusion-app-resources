@@ -1,4 +1,3 @@
-
 import styles from '../../styles.less';
 import SelectionCell from '../../../components/SelectionCell';
 import { useTooltipRef } from '@equinor/fusion-components';
@@ -14,9 +13,7 @@ export const AddPersonnelFormHead: FC<AddPersonnelFormHeadProps> = ({
     formState,
     setSelectionState,
 }) => {
-    const isAllSelected = useMemo(() => !formState.find((p) => !Boolean(p?.selected)), [
-        formState,
-    ]);
+    const isAllSelected = useMemo(() => !formState.find((p) => !Boolean(p?.selected)), [formState]);
 
     const isSomeSelected = useMemo(
         () => formState.find((p) => p.selected === true) && !isAllSelected,
@@ -49,7 +46,6 @@ export const AddPersonnelFormHead: FC<AddPersonnelFormHeadProps> = ({
                 <th className={styles.headerRowCell}>Last Name</th>
                 <th className={styles.headerRowCell}>E-Mail</th>
                 <th className={styles.headerRowCell}>Phone Number</th>
-                <th className={styles.headerRowCell}>Pref. contact mail (optional)</th>
                 <th className={styles.headerRowCell}>Dawinci (optional)</th>
                 <th className={styles.headerRowCell}>Disciplines (optional)</th>
             </tr>
