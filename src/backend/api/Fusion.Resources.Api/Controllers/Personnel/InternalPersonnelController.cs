@@ -262,18 +262,19 @@ namespace Fusion.Resources.Api.Controllers
         {
             #region Authorization
 
-            //var authResult = await Request.RequireAuthorizationAsync(r =>
-            //{
-            //    r.AlwaysAccessWhen().FullControl().FullControlInternal();
-            //    r.AnyOf(or =>
-            //    {
-            //        or.OrgChartPositionWriteAccess(projectIdentifier.ProjectId, request.OrgPositionId);
-            //    });
-            //});
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.OrgChartReadAccess(projectIdentifier.ProjectId);
+                    or.BeResourceOwner();
+                });
+            });
 
 
-            //if (authResult.Unauthorized)
-            //    return authResult.CreateForbiddenResponse();
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
 
             #endregion
 
