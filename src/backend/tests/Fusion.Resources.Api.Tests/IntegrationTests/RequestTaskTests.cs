@@ -28,9 +28,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
-
-            // Generate random test user
-            testUser = fixture.AddProfile(FusionAccountType.External);
         }
 
 
@@ -52,6 +49,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
+
+            // Generate random test user
+            testUser = fixture.AddProfile(FusionAccountType.Employee);
+            testUser.IsResourceOwner = true;
+            testUser.FullDepartment = normalRequest.AssignedDepartment ?? "PDP TST DPT";
         }
 
 
