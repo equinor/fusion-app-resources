@@ -96,7 +96,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequest_StartWorkFlow_ShouldNotify()
         {
             using var adminScope = fixture.AdminScope();
-            var directRequest = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeDirect().WithPosition(requestPosition));
+            var directRequest = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeDirect().WithPosition(requestPosition).WithProposedPerson(testUser).WithAssignedDepartment(testUser.FullDepartment!));
 
             NotificationClientMock.SentMessages.Clear();
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{directRequest.Id}/start", null);
