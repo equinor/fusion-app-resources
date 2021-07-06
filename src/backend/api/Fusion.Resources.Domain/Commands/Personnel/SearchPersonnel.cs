@@ -28,12 +28,10 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : IRequestHandler<SearchPersonnel, IEnumerable<QueryInternalPersonnelPerson>>
         {
             private readonly IHttpClientFactory httpClientFactory;
-            private readonly IProjectOrgResolver orgResolver;
 
-            public Handler(IHttpClientFactory httpClientFactory, IProjectOrgResolver orgResolver)
+            public Handler(IHttpClientFactory httpClientFactory)
             {
                 this.httpClientFactory = httpClientFactory;
-                this.orgResolver = orgResolver;
             }
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(SearchPersonnel request, CancellationToken cancellationToken)
