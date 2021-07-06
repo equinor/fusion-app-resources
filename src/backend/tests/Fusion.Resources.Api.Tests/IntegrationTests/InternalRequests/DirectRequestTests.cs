@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
-using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Resources.Integration.Models.Queue;
@@ -85,19 +84,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         #region Create request tests
-
-        [Fact]
-        public async Task CreateRequest_ShouldBeBadRequest_WhenNormalAndNoPosition()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new { }, new { Id = Guid.Empty });
-
-            response.Should().BeBadRequest();
-        }
-
-
-
         [Fact]
         public async Task DirectRequest_Create_ShouldGetNewNumber()
         {
@@ -107,6 +93,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
             {
                 type = "normal",
+                subType ="direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
             }, new
@@ -136,6 +123,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync($"/projects/{newTestProject.Project.ProjectId}/requests", new
             {
                 type = "normal",
+                subType ="direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
             }, new { });
@@ -152,6 +140,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
+                subType ="direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
             });
@@ -198,6 +187,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
+                subType ="direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id,
                 assignedDepartment = department
@@ -216,6 +206,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
+                subType ="direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id,
                 assignedDepartment = department
@@ -236,6 +227,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
+                subType ="direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id,
                 proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId
@@ -259,33 +251,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}/start", null);
             response.Should().BeSuccessfull();
         }
-
-        [Fact]
-        public async Task DirectRequest_Should_Be_Routed_To_Correct_Department()
-        {
-            var department = "ABC DEF";
-            using var adminScope = fixture.AdminScope();
-
-            var matrixRequest = new UpdateResponsibilityMatrixRequest
-            {
-                ProjectId = testProject.Project.ProjectId,
-                LocationId = Guid.NewGuid(),
-                Discipline = directRequest.Discipline,
-                BasePositionId = testProject.Positions.First().BasePosition.Id,
-                Sector = "ABC",
-                Unit = department,
-                ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
-            };
-
-            var matrixResponse = await Client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", matrixRequest);
-            matrixResponse.Should().BeSuccessfull();
-
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}/start", null);
-            response.Should().BeSuccessfull();
-
-            response.Value.AssignedDepartment.Should().Be(department);
-        }
-
+        
         [Theory]
         [InlineData("isDraft", false)]
         [InlineData("state", "created")]
@@ -319,31 +285,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #endregion
 
         #region Proposal state
-
-        [Fact]
-        public async Task DirectRequest_Propose_ShouldBeSuccessful_WhenSettingProposedPerson()
-        {
-            using var adminScope = fixture.AdminScope();
-            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
-            var request = await Client.StartProjectRequestAsync(testProject, directRequest.Id);
-
-            var resp = await Client.TestClientPatchAsync($"/resources/requests/internal/{directRequest.Id}", new
-            {
-                proposedPersonAzureUniqueId = testPerson.AzureUniqueId
-            }, new
-            {
-                proposedPersonAzureUniqueId = testPerson.AzureUniqueId,
-                proposedPerson = new { person = new { mail = string.Empty, azureUniquePersonId = Guid.Empty } }
-            });
-
-            resp.Should().BeSuccessfull();
-            resp.Value.proposedPersonAzureUniqueId.Should().Be(testPerson.AzureUniqueId);
-            resp.Value.proposedPerson.Should().NotBeNull();
-            resp.Value.proposedPerson.person.mail.Should().Be(testPerson.Mail);
-            resp.Value.proposedPerson.person.azureUniquePersonId.Should().Be(testPerson.AzureUniqueId!.Value);
-        }
-
 
         [Fact]
         public async Task DirectRequest_Propose_ShouldBeSuccessful_WhenApproving()
@@ -471,7 +412,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequest_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal();
+            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}");
             resp.Value.ProposedPerson.Should().NotBeNull();
@@ -481,7 +422,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequest_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal();
+            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{directRequest.Id}");
 
@@ -493,7 +434,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequests_UsingProjectEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal();
+            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests");
             var resp = respList.Value.Value.Single(x => x.Id == directRequest.Id);
@@ -504,7 +445,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequests_UsingInternalEndpoint_WhenAllocationAndProposalState_ShouldDisplayProposals()
         {
             using var adminScope = fixture.AdminScope();
-            await StartRequest_WithProposal();
+            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             var respList = await Client.TestClientGetAsync<Testing.Mocks.ApiCollection<TestApiInternalRequestModel>>($"/resources/requests/internal");
             var resp = respList.Value.Value.Single(x => x.Id == directRequest.Id);
@@ -514,21 +455,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #endregion
 
-        private async Task StartRequest_WithProposal()
-        {
-            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-            await Client.ProposePersonAsync(directRequest.Id, testPerson);
-            await Client.StartProjectRequestAsync(testProject, directRequest.Id);
-        }
-
         /// <summary>
         /// Perform steps required to end up with a proposed request
         /// </summary>
         /// <returns></returns>
         private async Task FastForward_ProposedRequest()
         {
-            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
             await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{directRequest.AssignedDepartment}/requests/{directRequest.Id}/approve", null);
