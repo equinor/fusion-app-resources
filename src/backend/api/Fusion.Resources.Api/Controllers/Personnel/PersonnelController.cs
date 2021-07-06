@@ -394,7 +394,9 @@ namespace Fusion.Resources.Api.Controllers
         {
             public ContractorMailValidator()
             {
-                RuleFor(x => x).NotHaveInvalidMailDomain()
+                RuleFor(x => x)
+                    .IsValidEmail()
+                    .NotHaveInvalidMailDomain()
                     .OverridePropertyName("mail");
             }
         }
