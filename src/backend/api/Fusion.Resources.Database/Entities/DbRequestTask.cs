@@ -33,6 +33,22 @@ namespace Fusion.Resources.Database.Entities
                 .WithMany()
                 .HasForeignKey(t => t.ResolvedById);
 
+            modelBuilder.Entity<DbRequestTask>()
+                .Property(t => t.Title)
+                .HasMaxLength(100);
+            
+            modelBuilder.Entity<DbRequestTask>()
+                .Property(t => t.Body)
+                .HasMaxLength(2000);
+
+            modelBuilder.Entity<DbRequestTask>()
+                .Property(t => t.Type)
+                .HasMaxLength(60);
+
+            modelBuilder.Entity<DbRequestTask>()
+                .Property(t => t.SubType)
+                .HasMaxLength(60);
+
             modelBuilder.Entity<DbResourceAllocationRequest>()
                 .HasMany(rq => rq.Tasks)
                 .WithOne(t => t.Request)
