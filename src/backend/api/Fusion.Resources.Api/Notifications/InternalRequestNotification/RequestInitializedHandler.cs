@@ -52,6 +52,7 @@ namespace Fusion.Resources.Api.Notifications
                             .TryAddProfileCard(request.Instance?.AssignedPerson?.AzureUniqueId)
 
                             .AddFacts(facts => facts
+                                .AddFactIf("Request number", $"{request.AllocationRequest?.RequestNumber}", request.AllocationRequest?.RequestNumber is not null)
                                 .AddFactIf("Project", request.Position?.Project?.Name ?? "", request.Position?.Project is not null)
                                 .AddFactIf("Position id", request.Position?.ExternalId ?? "", request.Position?.ExternalId is not null)
                                 .AddFact("Position", request.Position!.Name)
