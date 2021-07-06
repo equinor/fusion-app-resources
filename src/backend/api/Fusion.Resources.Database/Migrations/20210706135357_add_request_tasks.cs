@@ -3,26 +3,56 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fusion.Resources.Database.Migrations
 {
-    public partial class addrequesttasks : Migration
+    public partial class add_request_tasks : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<bool>(
+                name: "IsPrivate",
+                table: "PersonAbsences",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<Guid>(
+                name: "TaskDetails_BasePositionId",
+                table: "PersonAbsences",
+                type: "uniqueidentifier",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "TaskDetails_Location",
+                table: "PersonAbsences",
+                type: "nvarchar(max)",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "TaskDetails_RoleName",
+                table: "PersonAbsences",
+                type: "nvarchar(max)",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "TaskDetails_TaskName",
+                table: "PersonAbsences",
+                type: "nvarchar(max)",
+                nullable: true);
+
             migrationBuilder.CreateTable(
                 name: "RequestTasks",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SubType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Source = table.Column<int>(type: "int", nullable: false),
-                    Responsible = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Body = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    SubType = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
+                    Source = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Responsible = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsResolved = table.Column<bool>(type: "bit", nullable: false),
                     ResolvedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     ResolvedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PropertiesJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PropertiesJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>

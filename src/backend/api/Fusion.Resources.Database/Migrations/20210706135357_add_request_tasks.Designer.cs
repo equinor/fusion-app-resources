@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20210706132949_update_request_tasks_schema")]
-    partial class update_request_tasks_schema
+    [Migration("20210706135357_add_request_tasks")]
+    partial class add_request_tasks
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

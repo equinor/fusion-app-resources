@@ -23,9 +23,10 @@ namespace Fusion.Resources.Api.Controllers.Requests
         {
             public Validator()
             {
-                RuleFor(r => r.Title).NotEmpty();
-                RuleFor(r => r.Body).NotEmpty();
-                RuleFor(r => r.Type).NotEmpty();
+                RuleFor(r => r.Title).NotEmpty().MaximumLength(100);
+                RuleFor(r => r.Body).NotEmpty().MaximumLength(2000);
+                RuleFor(r => r.Type).NotEmpty().MaximumLength(60);
+                RuleFor(r => r.SubType).MaximumLength(60);
             }
         }
     }
