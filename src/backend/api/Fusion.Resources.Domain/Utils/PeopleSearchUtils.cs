@@ -34,21 +34,27 @@ namespace Fusion.Resources.Domain
         {
             var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
 
-            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, 500, includeSubDepartments);
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, 500, filterString, null, includeSubDepartments);
             return searchResponse;
         }
 
         public static async Task<QueryInternalPersonnelPerson?> GetPersonFromSearchIndexAsync(HttpClient peopleClient, Guid uniqueId)
         {
-            var searchResponse = await GetFromSearchIndexAsync(peopleClient, $"azureUniqueId eq '{uniqueId}'", 1);
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, 1, filter: $"azureUniqueId eq '{uniqueId}'");
             return searchResponse.FirstOrDefault();
         }
 
-        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string filter, int top, bool includeSubDepartments = false)
+        public static  async Task<List<QueryInternalPersonnelPerson>> GetPersonsFromSearchIndexAsync(HttpClient peopleClient, string search, string? filter)
+        {
+            return await GetFromSearchIndexAsync(peopleClient, 500, filter, search);
+        }
+
+        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, int top, string? filter, string? search = null, bool includeSubDepartments = false)
         {
             var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
             {
                 filter = filter,
+                search = search,
                 top = top
             });
 
