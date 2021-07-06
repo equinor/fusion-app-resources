@@ -17,7 +17,13 @@ namespace Fusion.Resources.Domain.Commands
             this.search = search;
         }
 
-        public string? DepartmentFilter { get; set; }
+        public string? DepartmentFilter { get; private set; }
+
+        public SearchPersonnel WithDepartmentFilter(string? departmentFilter)
+        {
+            DepartmentFilter = departmentFilter;
+            return this;
+        }
 
         public class Handler : IRequestHandler<SearchPersonnel, IEnumerable<QueryInternalPersonnelPerson>>
         {

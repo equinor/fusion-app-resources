@@ -258,7 +258,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/resources/persons")]
-        public async Task<ActionResult> Search([FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery(Name ="$search")] string search, [FromQuery] string? departmentFilter)
+        public async Task<ActionResult> Search([FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query, [FromQuery] string? departmentFilter)
         {
             #region Authorization
 
@@ -278,10 +278,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var result = await DispatchAsync(new SearchPersonnel(search)
-            {
-                DepartmentFilter = departmentFilter
-            });
+            var result = await DispatchAsync(new SearchPersonnel(query.Search)
+                .WithDepartmentFilter(departmentFilter));
 
             return Ok(result.Select(x => ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(x)));
         }
