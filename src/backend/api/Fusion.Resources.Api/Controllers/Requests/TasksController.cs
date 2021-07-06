@@ -54,21 +54,21 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new AddRequestTask(requestId, request.Title, request.Body, request.Category, request.Type)
+            var command = new AddRequestTask(requestId, request.Title, request.Body, request.Type)
             {
                 SubType = request.SubType,
                 Source = request.Source switch
                 {
-                    ApiTaskSource.ResourceOwner => TaskSource.ResourceOwner,
-                    ApiTaskSource.TaskOwner => TaskSource.TaskOwner,
-                    _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(TaskSource)}.")
+                    ApiTaskSource.ResourceOwner => QueryTaskSource.ResourceOwner,
+                    ApiTaskSource.TaskOwner => QueryTaskSource.TaskOwner,
+                    _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(QueryTaskSource)}.")
                 },
                 Responsible = request.Responsible switch
                 {
-                    ApiTaskResponsible.ResourceOwner => TaskResponsible.ResourceOwner,
-                    ApiTaskResponsible.TaskOwner => TaskResponsible.TaskOwner,
-                    ApiTaskResponsible.Both => TaskResponsible.Both,
-                    _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(TaskSource)}.")
+                    ApiTaskResponsible.ResourceOwner => QueryTaskResponsible.ResourceOwner,
+                    ApiTaskResponsible.TaskOwner => QueryTaskResponsible.TaskOwner,
+                    ApiTaskResponsible.Both => QueryTaskResponsible.Both,
+                    _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(QueryTaskSource)}.")
                 },
                 Properties = request.Properties
             };
@@ -203,7 +203,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             if (patch.Title.HasValue) command.Title = patch.Title.Value;
             if (patch.Body.HasValue) command.Body = patch.Body.Value;
-            if (patch.Category.HasValue) command.Category = patch.Category.Value;
             if (patch.Type.HasValue) command.Type = patch.Type.Value;
             if (patch.SubType.HasValue) command.SubType = patch.SubType.Value;
             if (patch.IsResolved.HasValue) command.IsResolved = patch.IsResolved.Value;

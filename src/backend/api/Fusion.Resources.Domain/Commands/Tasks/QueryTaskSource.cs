@@ -1,11 +1,11 @@
 ﻿namespace Fusion.Resources.Domain
 {
-    public enum TaskSource
+    public enum QueryTaskSource
     {
         ResourceOwner,
         TaskOwner
     }
-    public enum TaskResponsible
+    public enum QueryTaskResponsible
     {
         ResourceOwner,
         TaskOwner,

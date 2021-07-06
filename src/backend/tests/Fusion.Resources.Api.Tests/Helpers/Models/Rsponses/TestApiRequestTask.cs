@@ -9,7 +9,6 @@ namespace Fusion.Resources.Api.Tests
         public Guid id { get; set; }
         public string title { get; set; }
         public string body { get; set; }
-        public string category { get; set; }
         public string type { get; set; }
         public string subType { get; set; }
         public string source { get; set; }

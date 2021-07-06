@@ -49,43 +49,43 @@ namespace Fusion.Resources
             };
         }
 
-        public static TaskSource MapToDomain(this DbTaskSource value)
+        public static QueryTaskSource MapToDomain(this DbTaskSource value)
         {
             return value switch
             {
-                DbTaskSource.ResourceOwner => TaskSource.ResourceOwner,
-                DbTaskSource.TaskOwner => TaskSource.TaskOwner,
-                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(TaskSource)}.")
+                DbTaskSource.ResourceOwner => QueryTaskSource.ResourceOwner,
+                DbTaskSource.TaskOwner => QueryTaskSource.TaskOwner,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(QueryTaskSource)}.")
             };
         }
 
-        public static DbTaskSource MapToDatabase(this TaskSource value)
+        public static DbTaskSource MapToDatabase(this QueryTaskSource value)
         {
             return value switch
             {
-                TaskSource.ResourceOwner => DbTaskSource.ResourceOwner,
-                TaskSource.TaskOwner => DbTaskSource.TaskOwner,
+                QueryTaskSource.ResourceOwner => DbTaskSource.ResourceOwner,
+                QueryTaskSource.TaskOwner => DbTaskSource.TaskOwner,
                 _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbTaskSource)}.")
             };
         }
 
-        public static TaskResponsible MapToDomain(this DbTaskResponsible value)
+        public static QueryTaskResponsible MapToDomain(this DbTaskResponsible value)
         {
             return value switch
             {
-                DbTaskResponsible.ResourceOwner => TaskResponsible.ResourceOwner,
-                DbTaskResponsible.TaskOwner => TaskResponsible.TaskOwner,
-                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(TaskSource)}.")
+                DbTaskResponsible.ResourceOwner => QueryTaskResponsible.ResourceOwner,
+                DbTaskResponsible.TaskOwner => QueryTaskResponsible.TaskOwner,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(QueryTaskSource)}.")
             };
         }
 
-        public static DbTaskResponsible MapToDatabase(this TaskResponsible value)
+        public static DbTaskResponsible MapToDatabase(this QueryTaskResponsible value)
         {
             return value switch
             {
-                TaskResponsible.ResourceOwner => DbTaskResponsible.ResourceOwner,
-                TaskResponsible.TaskOwner => DbTaskResponsible.TaskOwner,
-                TaskResponsible.Both => DbTaskResponsible.Both,
+                QueryTaskResponsible.ResourceOwner => DbTaskResponsible.ResourceOwner,
+                QueryTaskResponsible.TaskOwner => DbTaskResponsible.TaskOwner,
+                QueryTaskResponsible.Both => DbTaskResponsible.Both,
                 _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbTaskSource)}.")
             };
         }

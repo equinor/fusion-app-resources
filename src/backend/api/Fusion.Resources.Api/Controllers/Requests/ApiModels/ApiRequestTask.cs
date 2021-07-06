@@ -11,20 +11,19 @@ namespace Fusion.Resources.Api.Controllers
             Id = task.Id;
             Title = task.Title;
             Body = task.Body;
-            Category = task.Category;
             Type = task.Type;
             SubType = task.SubType;
             Source = task.Source switch
             {
-                TaskSource.ResourceOwner => ApiTaskSource.ResourceOwner,
-                TaskSource.TaskOwner => ApiTaskSource.TaskOwner,
+                QueryTaskSource.ResourceOwner => ApiTaskSource.ResourceOwner,
+                QueryTaskSource.TaskOwner => ApiTaskSource.TaskOwner,
                 _ => throw new NotSupportedException($"Cannot map {task.Source} to {nameof(ApiTaskSource)}")
             };
             Responsible = task.Responsible switch
             {
-                TaskResponsible.ResourceOwner => ApiTaskResponsible.ResourceOwner,
-                TaskResponsible.TaskOwner => ApiTaskResponsible.TaskOwner,
-                TaskResponsible.Both => ApiTaskResponsible.Both,
+                QueryTaskResponsible.ResourceOwner => ApiTaskResponsible.ResourceOwner,
+                QueryTaskResponsible.TaskOwner => ApiTaskResponsible.TaskOwner,
+                QueryTaskResponsible.Both => ApiTaskResponsible.Both,
                 _ => throw new NotSupportedException($"Cannot map {task.Source} to {nameof(ApiTaskSource)}")
             };
 
@@ -38,7 +37,6 @@ namespace Fusion.Resources.Api.Controllers
         public Guid Id { get; }
         public string Title { get; }
         public string Body { get; }
-        public string Category { get; }
         public string Type { get; }
         public string? SubType { get; }
         public ApiTaskSource Source { get; }

@@ -8,7 +8,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
     {
         public string Title { get; set; } = null!;
         public string Body { get; set; } = null!;
-        public string Category { get; set; } = null!;
         public string Type { get; set; } = null!;
         public string? SubType { get; set; }
 
@@ -26,7 +25,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
             {
                 RuleFor(r => r.Title).NotEmpty();
                 RuleFor(r => r.Body).NotEmpty();
-                RuleFor(r => r.Category).NotEmpty();
                 RuleFor(r => r.Type).NotEmpty();
             }
         }

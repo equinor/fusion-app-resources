@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands.Tasks
 {
-    public class GetRequestTask : IRequest<QueryRequestTask>
+    public class GetRequestTask : IRequest<QueryRequestTask?>
     {
         private Guid requestId;
         private Guid taskId;
@@ -18,7 +18,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             this.taskId = taskId;
         }
 
-        public class Handler : IRequestHandler<GetRequestTask, QueryRequestTask>
+        public class Handler : IRequestHandler<GetRequestTask, QueryRequestTask?>
         {
             private readonly ResourcesDbContext db;
 
@@ -26,13 +26,13 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             {
                 this.db = db;
             }
-            public async Task<QueryRequestTask> Handle(GetRequestTask request, CancellationToken cancellationToken)
+            public async Task<QueryRequestTask?> Handle(GetRequestTask request, CancellationToken cancellationToken)
             {
                 var task = await db.RequestTasks
                     .Include(t => t.ResolvedBy)
                     .SingleOrDefaultAsync(t => t.RequestId == request.requestId && t.Id == request.taskId, cancellationToken);
 
-                return new QueryRequestTask(task);
+                return task is not null ? new QueryRequestTask(task) : null;
             }
         }
     }

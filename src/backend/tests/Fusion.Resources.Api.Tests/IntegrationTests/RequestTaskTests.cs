@@ -80,7 +80,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             result.Value.id.Should().NotBeEmpty();
             result.Value.title.Should().Be(payload.title);
-            result.Value.category.Should().Be(payload.category);
             result.Value.type.Should().Be(payload.type);
             result.Value.subType.Should().Be(payload.subType);
             result.Value.source.Should().Be(payload.source);
@@ -111,7 +110,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             result.Should().BeSuccessfull();
             result.Value.title.Should().Be(payload.title);
-            result.Value.category.Should().Be(payload.category);
             result.Value.type.Should().Be(payload.type);
             result.Value.subType.Should().Be(payload.subType);
         }
@@ -238,7 +236,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 title = "Test title",
                 body = "Test body",
-                category = "Test category",
                 type = "test",
                 subType = "Test Test",
                 source = "ResourceOwner",

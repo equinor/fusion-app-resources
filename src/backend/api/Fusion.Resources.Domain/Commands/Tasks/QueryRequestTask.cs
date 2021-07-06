@@ -13,7 +13,6 @@ namespace Fusion.Resources.Domain
             Id = dbTask.Id;
             Title = dbTask.Title;
             Body = dbTask.Body;
-            Category = dbTask.Category;
             Type = dbTask.Type;
             SubType = dbTask.SubType;
             Source = dbTask.Source.MapToDomain();
@@ -28,11 +27,10 @@ namespace Fusion.Resources.Domain
         public Guid Id { get; }
         public string Title { get; }
         public string Body { get; }
-        public string Category { get; }
         public string Type { get; }
         public string? SubType { get; }
-        public TaskSource Source { get; }
-        public TaskResponsible Responsible { get; }
+        public QueryTaskSource Source { get; }
+        public QueryTaskResponsible Responsible { get; }
         public bool IsResolved { get; }
         public DateTimeOffset? ResolvedAt { get; }
         public QueryPerson? ResolvedBy { get; }

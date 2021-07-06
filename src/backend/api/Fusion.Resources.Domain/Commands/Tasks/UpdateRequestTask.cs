@@ -22,7 +22,6 @@ namespace Fusion.Resources.Domain.Commands.Tasks
 
         public MonitorableProperty<string> Title { get; set; } = new();
         public MonitorableProperty<string> Body { get; set; } = new();
-        public MonitorableProperty<string> Category { get; set; } = new();
         public MonitorableProperty<string> Type { get; set; } = new();
         public MonitorableProperty<string?> SubType { get; set; } = new();
         public MonitorableProperty<bool> IsResolved { get; set; } = new();
@@ -48,7 +47,6 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 request.Title.IfSet(title => task.Title = title);
                 request.Body.IfSet(body => task.Body = body);
 
-                request.Category.IfSet(category => task.Category = category);
                 request.Type.IfSet(type => task.Type = type);
                 request.SubType.IfSet(subType => task.SubType = subType);
 

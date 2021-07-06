@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 
 namespace Fusion.Resources.Database.Entities
@@ -8,7 +9,6 @@ namespace Fusion.Resources.Database.Entities
         public Guid Id { get; set; }
         public string Title { get; set; } = null!;
         public string Body { get; set; } = null!;
-        public string Category { get; set; } = null!;
         public string Type { get; set; } = null!;
         public string? SubType { get; set; }
         public DbTaskSource Source { get; set; }
@@ -17,7 +17,7 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset? ResolvedAt { get; set; }
         public Guid? ResolvedById { get; set; }
         public DbPerson? ResolvedBy { get; set; }
-        public string PropertiesJson { get; set; } = null!;
+        public string? PropertiesJson { get; set; }
 
         public Guid RequestId { get; set; }
         public DbResourceAllocationRequest Request { get; set; } = null!;
@@ -37,6 +37,14 @@ namespace Fusion.Resources.Database.Entities
                 .HasMany(rq => rq.Tasks)
                 .WithOne(t => t.Request)
                 .HasForeignKey(t => t.RequestId);
+
+            modelBuilder.Entity<DbRequestTask>()
+                .Property(x => x.Responsible)
+                .HasConversion(new EnumToStringConverter<DbTaskResponsible>());
+
+            modelBuilder.Entity<DbRequestTask>()
+                .Property(x => x.Source)
+                .HasConversion(new EnumToStringConverter<DbTaskSource>());
         }
     }
 
