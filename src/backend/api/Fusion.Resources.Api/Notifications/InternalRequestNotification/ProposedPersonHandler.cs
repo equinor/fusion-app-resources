@@ -51,7 +51,8 @@ namespace Fusion.Resources.Api.Notifications
                     .AddDescription("Please review and handle request")
 
                     .AddFacts(facts => facts
-                        .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
+                        .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project is not null)
+                        .AddFactIf("Position id", request.Position?.ExternalId ?? "", request.Position?.ExternalId is not null)
                         .AddFact("Position", request.Position!.Name)
                         .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
                         .AddFact("Workload", $"{request.Instance?.Workload}")
