@@ -89,7 +89,6 @@ namespace Fusion.Resources.Api
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
             });
-
             // Add custom claims provider, to sort delegated responsibilities
             services.AddScoped<ILocalClaimsTransformation, DelegatedResourceOwnerClaimsTransformer>();
 
