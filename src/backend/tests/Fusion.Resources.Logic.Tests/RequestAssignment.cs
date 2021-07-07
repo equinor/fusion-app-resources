@@ -212,7 +212,15 @@ namespace Fusion.Resources.Logic.Tests
                 .Setup(x => x.Send<QueryDepartment>(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null));
 
-            var handler = CreateHandler(orgServiceMock.Object, mediatorMock.Object);
+            var handler = CreateHandler(
+                orgServiceMock => orgServiceMock
+                    .Setup(x => x.ResolvePositionAsync(It.IsAny<Guid>()))
+                    .ReturnsAsync(position),
+
+                mediatorMock => mediatorMock
+                    .Setup(x => x.Send(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null))
+            );
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
@@ -222,8 +230,18 @@ namespace Fusion.Resources.Logic.Tests
             resolvedDepartment.Should().Be(position.BasePosition.Department);
         }
 
-        private Queries.ResolveResponsibleDepartment.Handler CreateHandler(IProjectOrgResolver orgServiceMock = null, IMediator mediator = null)
-            => new Queries.ResolveResponsibleDepartment.Handler(db, orgServiceMock, mediator);
+        private Queries.ResolveResponsibleDepartment.Handler CreateHandler(
+            Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null, 
+            Action<Mock<IMediator>> setupMediatorMock = null)
+        {
+            var orgServiceMock = new Mock<IProjectOrgResolver>(MockBehavior.Loose);
+            setupOrgServiceMock?.Invoke(orgServiceMock);
+
+            var mediatorMock = new Mock<IMediator>(MockBehavior.Loose);
+            setupMediatorMock?.Invoke(mediatorMock);
+
+            return new Queries.ResolveResponsibleDepartment.Handler(db, orgServiceMock.Object, mediatorMock.Object);
+        }
 
 
         public async Task DisposeAsync()
