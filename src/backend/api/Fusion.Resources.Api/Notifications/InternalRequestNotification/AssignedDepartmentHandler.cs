@@ -54,8 +54,10 @@ namespace Fusion.Resources.Api.Notifications
                     .AddDescription("Please review and handle request")
 
                     .AddFacts(facts => facts
-                        .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project != null)
-                        .AddFact("Position", request.Position!.Name)
+                        .AddFactIf("Request number", $"{request.AllocationRequest?.RequestNumber}", request.AllocationRequest?.RequestNumber is not null)
+                        .AddFactIf("Project", request.Position?.Project?.Name ?? "", request.Position?.Project is not null)
+                        .AddFactIf("Position id", request.Position?.ExternalId ?? "", request.Position?.ExternalId is not null)
+                        .AddFactIf("Position", request.Position?.Name ?? "", request.Position?.Name is not null)
                         .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
                         .AddFact("Workload", $"{request.Instance?.Workload}")
                         )
@@ -108,7 +110,7 @@ namespace Fusion.Resources.Api.Notifications
                 if (orgPositionInstance == null)
                     throw new InvalidOperationException(
                         $"Cannot resolve position instance for request {internalRequest.RequestId}");
-                
+
                 return new NotificationRequestData(internalRequest, orgPosition, orgPositionInstance)
                     .WithProjectId($"{internalRequest.Project.OrgProjectId}")
                     .WithPortalActionUrls();
