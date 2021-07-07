@@ -57,7 +57,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             fixture.EnsureDepartment(TestDepartmentId);
-
             LineOrgServiceMock.AddTestUser().MergeWithProfile(requestAssignedPerson).WithManager(resourceOwnerPerson).WithFullDepartment("TPD PRD FE MMS STR2").SaveProfile();
         }
 
@@ -79,6 +78,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Prepare context resolver.
             fixture.ContextResolver
                 .AddContext(testProject.Project);
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(testUser.FullDepartment).SaveProfile();
 
             return Task.CompletedTask;
         }

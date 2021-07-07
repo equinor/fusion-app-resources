@@ -10,6 +10,7 @@ using Fusion.Resources.Integration.Models.Queue;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Moq;
@@ -70,6 +71,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
 
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(testUser.FullDepartment).SaveProfile();
             // Create a default request we can work with
             directRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeDirect().WithProposedPerson(testUser).WithAssignedDepartment(testUser.FullDepartment!));
         }
@@ -313,8 +315,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequest_Approval_ShouldBeSuccessful_WhenApproving()
         {
             using var adminScope = fixture.AdminScope();
-            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
-
+            
             await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             await FastForward_ProposedRequest();
