@@ -150,10 +150,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
         [Fact]
         public async Task ShouldExpandPositionInstances()
         {
-            var department = "TPD PRD MY TEST DEP1";
+            var basePositionDepartment = "TPD PRD MY TEST DPT";
+            var department = "TPD PRD MY TEST DPT1";
             fixture.EnsureDepartment(department);
 
-            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = department);
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = basePositionDepartment);
             var testPosition = testProject.AddPosition().WithBasePosition(bp).WithInstances(3);
 
             using var adminScope = fixture.AdminScope();
@@ -168,10 +169,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
         [Fact]
         public async Task SupportsOnlyCount()
         {
-            var department = "TPD PRD MY TEST DEP2";
+            var basePositionDepartment = "TPD PRD MY TEST DEP";
+            var department = "TPD PRD MY TEST DEP1";
             fixture.EnsureDepartment(department);
 
-            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = department);
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = basePositionDepartment);
 
             using var adminScope = fixture.AdminScope();
 
