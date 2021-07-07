@@ -70,6 +70,7 @@ namespace Fusion.Resources.Database.Entities
 
         public DbOpProvisionStatus ProvisioningStatus { get; set; } = new DbOpProvisionStatus();
         public List<DbRequestTask>? Tasks { get;  set; }
+        public List<DbConversationMessage> Conversation { get; set; } = new();
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
