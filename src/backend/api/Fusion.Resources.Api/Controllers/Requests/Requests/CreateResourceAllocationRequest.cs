@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using Fusion.Integration;
 using Fusion.Integration.Org;
+using Fusion.Resources.Domain;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -39,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<CreateResourceAllocationRequest>
         {
-            public Validator(IFusionProfileResolver profileResolver)
+            public Validator(IMediator mediator, IFusionProfileResolver profileResolver)
             {
                 RuleFor(x => x.Type).NotNull().NotEmpty();
                 RuleFor(x => x.Type).IsEnumName(typeof(ApiAllocationRequestType), false)
@@ -104,33 +106,17 @@ namespace Fusion.Resources.Api.Controllers
                         }
 
                     });
-                RuleFor(x => x)
-                    .CustomAsync(async (req, context, ct) =>
-                    {
-                        if (!req.ProposedPersonAzureUniqueId.HasValue || string.IsNullOrEmpty(req.AssignedDepartment)) return;
+                RuleFor(x => x.AssignedDepartment)
+                   .MustAsync(async (d, cancellationToken) =>
+                   {
+                       if (d is null)
+                           return true;
 
-                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
-                        var id = req.ProposedPersonAzureUniqueId.Value;
-                        try
-                        {
-                            var profile = await profileResolver.ResolvePersonBasicProfileAsync(id);
-                            if (profile is null)
-                            {
-                                context.AddFailure($"Could not find person with id '{id}'");
-                                return;
-                            }
-
-                            if(!string.IsNullOrEmpty(profile.FullDepartment) && !profile.FullDepartment.Equals(req.AssignedDepartment, StringComparison.OrdinalIgnoreCase))
-                            {
-                                context.AddFailure($"Cannot assign request to '{req.AssignedDepartment.ToUpper()}'. The proposed person must belong to the assigned department.");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(ex, $"Could not resolve person with id '{id}'.");
-                            context.AddFailure($"Could not resolve person with id '{id}': {ex.Message}");
-                        }
-                    });
+                       var department = await mediator.Send(new GetDepartment(d), cancellationToken);
+                       return department is not null;
+                   })
+                   .WithMessage("Invalid department specified")
+                   .When(x => !string.IsNullOrEmpty(x.AssignedDepartment));
             }
         }
 
