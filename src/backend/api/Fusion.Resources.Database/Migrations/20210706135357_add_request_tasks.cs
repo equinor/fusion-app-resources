@@ -7,37 +7,6 @@ namespace Fusion.Resources.Database.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsPrivate",
-                table: "PersonAbsences",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "TaskDetails_BasePositionId",
-                table: "PersonAbsences",
-                type: "uniqueidentifier",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "TaskDetails_Location",
-                table: "PersonAbsences",
-                type: "nvarchar(max)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "TaskDetails_RoleName",
-                table: "PersonAbsences",
-                type: "nvarchar(max)",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "TaskDetails_TaskName",
-                table: "PersonAbsences",
-                type: "nvarchar(max)",
-                nullable: true);
-
             migrationBuilder.CreateTable(
                 name: "RequestTasks",
                 columns: table => new

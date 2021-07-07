@@ -7,7 +7,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryRequestTask
     {
-        private readonly string propertiesJson;
+        private readonly string? propertiesJson;
         public QueryRequestTask(DbRequestTask dbTask)
         {
             Id = dbTask.Id;
