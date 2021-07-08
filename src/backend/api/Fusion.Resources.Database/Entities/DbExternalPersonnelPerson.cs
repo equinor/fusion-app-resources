@@ -24,7 +24,7 @@ namespace Fusion.Resources.Database.Entities
 
         [MaxLength(100)]
         public string Mail { get; set; } = null!;
-        [MaxLength(20)]
+        [MaxLength(30)]
         public string Phone { get; set; } = null!;
         [MaxLength(100)]
         public string? JobTitle { get; set; }

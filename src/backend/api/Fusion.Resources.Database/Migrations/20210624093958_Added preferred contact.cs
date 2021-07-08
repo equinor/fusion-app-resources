@@ -9,8 +9,8 @@ namespace Fusion.Resources.Database.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Phone",
                 table: "ExternalPersonnel",
-                type: "nvarchar(20)",
-                maxLength: 20,
+                type: "nvarchar(30)",
+                maxLength: 30,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)");
@@ -101,8 +101,8 @@ namespace Fusion.Resources.Database.Migrations
                 type: "nvarchar(max)",
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
-                oldMaxLength: 20);
+                oldType: "nvarchar(30)",
+                oldMaxLength: 30);
 
             migrationBuilder.AlterColumn<string>(
                 name: "Name",

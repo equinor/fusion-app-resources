@@ -693,8 +693,8 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("PreferredContractMail")
                         .HasMaxLength(100)

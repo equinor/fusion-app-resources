@@ -39,15 +39,15 @@ namespace Fusion.Resources.Api.Controllers
         {
             public Validator()
             {
-                RuleFor(x => x.Mail).IsValidEmail().WithMessage("Mail must be valid").WithName("mail");
+                RuleFor(x => x.Mail).IsValidEmail().MaximumLength(100).WithMessage("Mail must be valid").WithName("mail");
                 
                 RuleFor(x => x.FirstName).NotEmpty().WithName("firstName");
                 RuleFor(x => x.FirstName).NotContainScriptTag();
-                RuleFor(x => x.FirstName).MaximumLength(100).WithName("firstName");
+                RuleFor(x => x.FirstName).MaximumLength(50).WithName("firstName");
 
 
                 RuleFor(x => x.LastName).NotContainScriptTag();
-                RuleFor(x => x.LastName).MaximumLength(100).WithName("lastName");
+                RuleFor(x => x.LastName).MaximumLength(50).WithName("lastName");
                 
                 
                 RuleFor(x => x.JobTitle).MaximumLength(100).WithName("jobTitle").When(x => x.JobTitle != null);
@@ -61,7 +61,7 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.DawinciCode).MaximumLength(50).WithName("dawinciCode").When(x => x.DawinciCode != null);
                 RuleFor(x => x.DawinciCode).NotContainScriptTag();
 
-                RuleFor(x => x.LinkedInProfile).MaximumLength(300).WithName("linkedInProfile").When(x => x.LinkedInProfile != null);
+                RuleFor(x => x.LinkedInProfile).MaximumLength(100).WithName("linkedInProfile").When(x => x.LinkedInProfile != null);
                 RuleFor(x => x.LinkedInProfile)
                     .Must(x => x!.StartsWith("https://www.linkedin.com") || x!.StartsWith("http://www.linkedin.com"))
                     .WithName("linkedInProfile")
