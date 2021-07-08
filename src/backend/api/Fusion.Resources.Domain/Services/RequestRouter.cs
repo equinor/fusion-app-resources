@@ -11,11 +11,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    /// <summary>
-    /// This needs to be refactored into an injectable service, that cache the whole responsibility matrix. 
-    /// The number of items here should not be that great...
-    /// </summary>
-    public class RequestRouter
+    public class RequestRouter : IRequestRouter
     {
         private const int min_score = 7;
         private readonly ResourcesDbContext db;
@@ -47,7 +43,7 @@ namespace Fusion.Resources.Domain
 
             var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
             var departmentPath = position?.BasePosition?.Department;
-            if(!string.IsNullOrEmpty(departmentPath))
+            if (!string.IsNullOrEmpty(departmentPath))
             {
                 // Check if department path is an actual department
                 // TODO: Maybe round robin when partial match?
