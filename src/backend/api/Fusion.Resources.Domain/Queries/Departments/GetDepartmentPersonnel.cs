@@ -62,11 +62,13 @@ namespace Fusion.Resources.Domain
         {
             private readonly ResourcesDbContext db;
             private readonly IHttpClientFactory httpClientFactory;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db, IHttpClientFactory httpClientFactory)
+            public Handler(ResourcesDbContext db, IHttpClientFactory httpClientFactory, IMediator mediator)
             {
                 this.db = db;
                 this.httpClientFactory = httpClientFactory;
+                this.mediator = mediator;
             }
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
@@ -94,9 +96,19 @@ namespace Fusion.Resources.Domain
 
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments)
             {
-                var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
+                var department = await mediator.Send(new GetDepartment(fullDepartmentString));
+                if (department is null) return new List<QueryInternalPersonnelPerson>();
 
-                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments, fullDepartmentString);
+                var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
+                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
+
+                if(!includeSubDepartments)
+                {
+                    departmentPersonnel = departmentPersonnel
+                        .Where(x => x.ManagerAzureId == department?.LineOrgResponsible?.AzureUniqueId)
+                        .ToList();
+                }
+
                 return departmentPersonnel;
             }
 
