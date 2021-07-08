@@ -253,10 +253,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
         {
-            const string changedDepartment = "TPD UPD ASD1";
+            const string changedDepartment = "TDI UPD QWE RTY1";
             fixture.EnsureDepartment(changedDepartment);
 
-            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = "TPD UPD ASD");
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = "TDI UPD QWE RTY");
             var position = testProject.AddPosition()
                 .WithBasePosition(bp)
                 .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
@@ -423,17 +423,26 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 );
             }
 
-            using var userScope = fixture.UserScope(Users[role]);
-            {
-                var client = fixture.ApiFactory.CreateClient();
-                var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                   $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
-                   null
-                );
+            OrgRequestInterceptor taskOwnerInterceptor = null;
 
-                if (shouldBeAllowed) result.Should().BeSuccessfull();
-                else result.Should().BeUnauthorized();
+            using var userScope = fixture.UserScope(Users[role]);
+            if(role == "taskOwner")
+            {
+                taskOwnerInterceptor = OrgRequestMocker
+                    .InterceptOption($"/{testPosition.Id}")
+                    .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
             }
+
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+               $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+               null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+
+            taskOwnerInterceptor?.Dispose();
         }
 
         [Theory]
