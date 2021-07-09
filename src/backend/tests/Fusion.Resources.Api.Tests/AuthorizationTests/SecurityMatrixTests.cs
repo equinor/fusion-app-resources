@@ -1,21 +1,19 @@
-﻿using Fusion.Integration.Profile;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.IntegrationTests;
-using Fusion.Resources.Database;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -33,13 +31,16 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
         private FusionTestProjectBuilder testProject;
-        private ApiClients.Org.ApiPositionV2 testPosition;
+        
+        private ApiPersonProfileV3 testUser;
+        
+        private ApiPositionV2 testPosition;
+        private ApiPositionV2 taskOwnerPosition;
+
         private OrgRequestInterceptor creatorInterceptor;
 
         public Dictionary<string, ApiPersonProfileV3> Users { get; private set; }
-
-        private ApiPersonProfileV3 testUser;
-
+        
         public SecurityMatrixTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
             this.fixture = fixture;
@@ -65,7 +66,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
             //var taskOwnerBasePosition = testProject.AddBasePosition($"TO: {Guid.NewGuid()}");
-            var taskOwnerPosition = testProject.AddPosition()
+            taskOwnerPosition = testProject.AddPosition()
                 .WithAssignedPerson(taskOwner);
 
             fixture.ContextResolver
@@ -252,10 +253,17 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
         {
-            const string changedDepartment = "TPD UPD ASD";
+            const string changedDepartment = "TDI UPD QWE RTY1";
             fixture.EnsureDepartment(changedDepartment);
 
-            var request = await CreateAndStartRequest();
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = "TDI UPD QWE RTY");
+            var position = testProject.AddPosition()
+                .WithBasePosition(bp)
+                .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                .WithEnsuredFutureInstances()
+                .WithTaskOwner(taskOwnerPosition.Id);
+
+            var request = await CreateAndStartRequest(position);
             Users[role].FullDepartment = department;
             using var userScope = fixture.UserScope(Users[role]);
 
@@ -278,6 +286,19 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         {
             Users[role].FullDepartment = department;
             using var userScope = fixture.UserScope(Users[role]);
+
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = TestDepartment);
+            var taskOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var taskOwnerPosition = testProject.AddPosition()
+                .WithAssignedPerson(taskOwner);
+            
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(TestDepartment).WithDepartment(department).SaveProfile();
+
+            testPosition = testProject.AddPosition()
+                .WithBasePosition(bp)
+                .WithAssignedPerson(assignedPerson)
+                .WithEnsuredFutureInstances()
+                .WithTaskOwner(taskOwnerPosition.Id);
 
             using var i = creatorInterceptor = OrgRequestMocker
                  .InterceptOption($"/{testPosition.Id}")
@@ -402,17 +423,26 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 );
             }
 
-            using var userScope = fixture.UserScope(Users[role]);
-            {
-                var client = fixture.ApiFactory.CreateClient();
-                var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                   $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
-                   null
-                );
+            OrgRequestInterceptor taskOwnerInterceptor = null;
 
-                if (shouldBeAllowed) result.Should().BeSuccessfull();
-                else result.Should().BeUnauthorized();
+            using var userScope = fixture.UserScope(Users[role]);
+            if(role == "taskOwner")
+            {
+                taskOwnerInterceptor = OrgRequestMocker
+                    .InterceptOption($"/{testPosition.Id}")
+                    .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
             }
+
+            var client = fixture.ApiFactory.CreateClient();
+            var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
+               $"/projects/{testProject.Project.ProjectId}/resources/requests/{request.Id}/approve",
+               null
+            );
+
+            if (shouldBeAllowed) result.Should().BeSuccessfull();
+            else result.Should().BeUnauthorized();
+
+            taskOwnerInterceptor?.Dispose();
         }
 
         [Theory]
@@ -430,7 +460,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using (var adminscope = fixture.AdminScope())
             {
                 var testUser = fixture.AddProfile(FusionAccountType.Employee);
-
+                
                 await client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
                 await client.ProposePersonAsync(request.Id, testUser);
             }
@@ -640,7 +670,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, "GET,PATCH")]
         [InlineData("resourceOwner", ParentDepartment, "GET,PATCH")]
         [InlineData("resourceOwner", SameL2Department, "GET,PATCH")]
-        public async Task CanGetOtionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
+        public async Task CanGetOptionsDepartmentUnassignedRequests(string role, string department, string allowedVerbs)
         {
             var request = await CreateChangeRequest(TestDepartment);
 
@@ -739,10 +769,12 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                  .InterceptOption($"/{testPosition.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
 
+            var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(department).WithDepartment(department).SaveProfile();
+
             var req = await creatorClient.CreateDefaultResourceOwnerRequestAsync(
                 department, testProject,
                 r => r.AsTypeResourceOwner("changeResource"),
-                p => p.WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                p => p.WithAssignedPerson(assignedPerson)
             );
 
             await creatorClient.SetChangeParamsAsync(req.Id, DateTime.Today.AddDays(1));
@@ -751,17 +783,19 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             return req;
         }
 
-        private async Task<TestApiInternalRequestModel> CreateAndStartRequest()
+        private Task<TestApiInternalRequestModel> CreateAndStartRequest()
+            => CreateAndStartRequest(testPosition);
+        private async Task<TestApiInternalRequestModel> CreateAndStartRequest(ApiPositionV2 position)
         {
             var creatorClient = fixture.ApiFactory.CreateClient()
                             .WithTestUser(Users["creator"])
                             .AddTestAuthToken();
 
             using var i = creatorInterceptor = OrgRequestMocker
-                 .InterceptOption($"/{testPosition.Id}")
+                 .InterceptOption($"/{position.Id}")
                  .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
 
-            return await creatorClient.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
+            return await creatorClient.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
         }
 
         private async Task<TestApiInternalRequestModel> CreateRequest()

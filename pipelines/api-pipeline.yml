@@ -218,12 +218,16 @@ stages:
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-    
-              - task: KubernetesManifest@0
-                displayName: Deploy to Kubernetes cluster
-                inputs:
-                  action: deploy
-                  manifests: $(deploymentManifest)
+
+              ##
+              ## Disable this until production cluster is at correct version to handle proper ingres version.
+              ##
+                  
+              # - task: KubernetesManifest@0
+              #   displayName: Deploy to Kubernetes cluster
+              #   inputs:
+              #     action: deploy
+              #     manifests: $(deploymentManifest)
 
               - template: templates/deploy-container-app.yml
                 parameters:

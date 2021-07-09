@@ -1,19 +1,19 @@
 ﻿using MediatR;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Fusion.Resources.Domain.Notifications.InternalRequests
 {
     public class InternalRequestCreated : INotification
     {
-        public InternalRequestCreated(Guid requestId)
+        public InternalRequestCreated(Guid requestId, IEnumerable<PropertyEntry> modifiedProperties)
         {
             RequestId = requestId;
+            ModifiedProperties = modifiedProperties;
         }
 
         public Guid RequestId { get; set; }
+        public IEnumerable<PropertyEntry> ModifiedProperties { get; }
     }
 }

@@ -2,7 +2,6 @@
 using Fusion.Integration.Diagnostics;
 using Fusion.Resources.Application.LineOrg.Models;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -97,6 +96,40 @@ namespace Fusion.Resources.Application.LineOrg
             };
         }
 
+        public async Task<List<LineOrgDepartment>?> GetChildren(string departmentId)
+        {
+            var client = httpClientFactory.CreateClient("lineorg");
+            var currentDepartment = string.Join(" ", departmentId.Split(" ").TakeLast(3));
+
+            var response = await client.GetAsync($"lineorg/departments/{currentDepartment}?$expand=children");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await ReadDepartments(response);
+            }
+
+            return null;
+        }
+
+        private async Task<List<LineOrgDepartment>> ReadDepartments(HttpResponseMessage respCurrent)
+        {
+            var content = await respCurrent.Content.ReadAsStringAsync();
+            var department = JsonSerializer.Deserialize<DepartmentChildInfo>(content,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+            if (department is null || department.Children is null) return new List<LineOrgDepartment>();
+
+            var result = new List<LineOrgDepartment>();
+
+            foreach (var item in department.Children)
+            {
+                var resolved = await GetDepartment(item.FullName);
+                if (resolved is not null) result.Add(resolved);
+            }
+
+            return result;
+        }
+
         private async Task RehydrateCache()
         {
             await semaphoreSlim.WaitAsync();
@@ -182,6 +215,15 @@ namespace Fusion.Resources.Application.LineOrg
                     cache.Add(cacheItem);
                 }
             } while (!string.IsNullOrEmpty(uri));
-        }       
+        }
+        private class DepartmentChildInfo
+        {
+            public List<DepartmentRef>? Children { get; set; }
+        }
+        private class DepartmentRef
+        {
+            public string Name { get; set; } = null!;
+            public string FullName { get; set; } = null!;
+        }
     }
 }

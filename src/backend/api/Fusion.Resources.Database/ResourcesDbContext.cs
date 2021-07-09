@@ -44,6 +44,8 @@ namespace Fusion.Resources.Database
         public DbSet<DbDepartment> Departments { get; set; }
         public DbSet<DbDepartmentResponsible> DepartmentResponsibles { get; set; }
 
+        public DbSet<DbRequestTask> RequestTasks { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbContractPersonnel.OnModelCreating(modelBuilder);
@@ -60,6 +62,7 @@ namespace Fusion.Resources.Database
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
             DbDepartment.OnModelCreating(modelBuilder);
             DbDepartmentResponsible.OnModelCreating(modelBuilder);
+            DbRequestTask.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
-using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Newtonsoft.Json.Linq;
@@ -47,7 +48,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.External);
-         
+
             fixture.EnsureDepartment(TestDepartmentId);
         }
 
@@ -58,6 +59,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Mock profile
             testUser = PeopleServiceMock.AddTestProfile()
                 .SaveProfile();
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).SaveProfile();
 
             // Mock project
             testProject = new FusionTestProjectBuilder()
@@ -76,7 +79,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
-            
+
             //fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
             //    .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
@@ -98,7 +101,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
-            response.Should().BeSuccessfull();            
+            response.Should().BeSuccessfull();
         }
 
         [Fact]
@@ -124,8 +127,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var commentResponse = await Client.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Id}/comments", new { 
-                Content = "Normal test request comment" 
+            var commentResponse = await Client.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Id}/comments", new
+            {
+                Content = "Normal test request comment"
             }, new { Id = Guid.Empty });
             commentResponse.Should().BeSuccessfull();
             var commentId = commentResponse.Value.Id;
@@ -172,7 +176,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var topResponseTest = await Client.TestClientGetAsync($"/projects/{projectId}/requests", new
             {
-                value = new [] { new { id = Guid.Empty }}
+                value = new[] { new { id = Guid.Empty } }
             });
             topResponseTest.Should().BeSuccessfull();
             topResponseTest.Value.value.Should().Contain(r => r.id == request.Id);
@@ -215,23 +219,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment(expectedDepartment);
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-
-            fixture.ApiFactory.lineOrgMock.WithResponse("/lineorg/persons", new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-                {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = expectedDepartment
-                    }
-                }
-            });
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(expectedDepartment).SaveProfile();
 
             var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
             var request = await Client.CreateRequestAsync(projectId, r => r.AsTypeNormal().WithPosition(requestPosition));
@@ -243,7 +231,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 assignedDepartmentDetails = new
                 {
                     name = "",
-                    lineOrgResponsible = new { azureUniqueId = Guid.Empty, name = ""}
+                    lineOrgResponsible = new { azureUniqueId = Guid.Empty, name = "" }
                 }
             });
 
@@ -366,7 +354,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    using var adminScope = fixture.AdminScope();
 
         //    var newRequestId = await Client.CreateDefaultRequestAsync(testProject, r => r.WithAssignedDepartment(null));
-            
+
         //    var response = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned", new { value = new[] { new { id = Guid.Empty, assignedDepartment = string.Empty } } });
         //    response.Should().BeSuccessfull();
 
@@ -402,7 +390,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    response.Value.value.Should().NotContain(r => r.id == newRequestId);
         //}
 
-        
+
         #endregion
 
         #region put tests
@@ -485,6 +473,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #region Update request
 
+        [Fact]
+        public async Task UpdateRequest_ShouldNotifyResourceOwner_WhenPatchingAssignedDepartment()
+        {
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var usr = LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(TestDepartmentId).SaveProfile();
+
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var payload = new JObject { { "assignedDepartment", JToken.FromObject(TestDepartmentId) } };
+
+            var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
+            response.Should().BeSuccessfull();
+            NotificationClientMock.SentMessages.Count.Should().BeGreaterThan(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == $"{fakeResourceOwner.AzureUniqueId}").Should().Be(1);
+        }
+
         [Theory]
         [InlineData("additionalNote", "Some test note")]
         [InlineData("assignedDepartment", TestDepartmentId)]
@@ -520,8 +524,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 name = "Test location"
             };
 
-            var response = await Client.TestClientPatchAsync($"/resources/requests/internal/{normalRequest.Id}", new 
-            { 
+            var response = await Client.TestClientPatchAsync($"/resources/requests/internal/{normalRequest.Id}", new
+            {
                 proposedChanges = new { location }
             }, new
             {
@@ -548,24 +552,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            var lineorgData = new
-            {
-                Count = 1,
-                TotalCount = 1,
-                Value = new[]
-               {
-                    new
-                    {
-                        fakeResourceOwner.AzureUniqueId,
-                        fakeResourceOwner.Name,
-                        fakeResourceOwner.Mail,
-                        IsResourceOwner = true,
-                        FullDepartment = "TPD LIN ORG TST"
-                    }
-                }
-            };
-
-            fixture.LineOrg.WithResponse("/lineorg/persons", lineorgData);
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment("TPD LIN ORG TST").SaveProfile();
 
             using var adminScope = fixture.AdminScope();
 
@@ -588,8 +575,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                $"/resources/requests/internal/{normalRequest.Id}", 
-                new {  proposedPersonAzureUniqueId = null as Guid? } 
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { proposedPersonAzureUniqueId = null as Guid? }
             );
             response.Should().BeSuccessfull();
             response.Value.ProposedPersonAzureUniqueId.Should().BeNull();
@@ -631,7 +618,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task CreateRequest_ShouldBeBadRequest_WhenNormalAndNoPosition()
         {
             using var adminScope = fixture.AdminScope();
-            
+
             var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new { }, new { Id = Guid.Empty });
 
             response.Should().BeBadRequest();
@@ -640,7 +627,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public void CreateRequest_ShouldSendSubscriptionEvent()
         {
-            fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
+            fixture.GetNotificationMessages<Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent>("resources-sub")
                 .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
         }
 
@@ -651,7 +638,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             var position = testProject.AddPosition();
 
-            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new { 
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
+            {
                 orgPositionId = position.Id
             }, new { Id = Guid.Empty });
 

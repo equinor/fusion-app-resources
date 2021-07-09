@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration.Org;
+using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -21,17 +22,19 @@ namespace Fusion.Resources.Logic.Queries
         public class Handler : IRequestHandler<ResolveResponsibleDepartment, string?>
         {
             private readonly ResourcesDbContext resourcesDb;
+            private readonly IRequestRouter requestRouter;
 
-            public Handler(ResourcesDbContext resourcesDb)
+            public Handler(ResourcesDbContext resourcesDb, IRequestRouter requestRouter)
             {
                 this.resourcesDb = resourcesDb;
+                this.requestRouter = requestRouter;
             }
 
             public async Task<string?> Handle(ResolveResponsibleDepartment request, CancellationToken cancellationToken)
             {
                 var dbRequest = await resourcesDb.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId, cancellationToken);
 
-                return await new RequestRouter(resourcesDb).RouteAsync(dbRequest, cancellationToken);
+                return await requestRouter.RouteAsync(dbRequest, cancellationToken);
             }
         }
     }

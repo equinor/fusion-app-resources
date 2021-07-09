@@ -33,15 +33,13 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ILogger<Handler> logger;
             private readonly IFusionProfileResolver profileResolver;
             private readonly IMediator mediator;
-            private readonly IMemoryCache memoryCache;
             private readonly HttpClient lineOrgClient;
 
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IMediator mediator, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IMediator mediator, IHttpClientFactory httpClientFactory)
             {
                 this.logger = logger;
                 this.profileResolver = profileResolver;
                 this.mediator = mediator;
-                this.memoryCache = memoryCache;
                 this.lineOrgClient = httpClientFactory.CreateClient("lineorg");
 
             }
@@ -53,6 +51,8 @@ namespace Fusion.Resources.Domain.Queries
 
                 if (user is null)
                     throw new InvalidOperationException($"Could not resolve profile '{request.ProfileId.OriginalIdentifier}'");
+                if (user.FullDepartment is null) 
+                    throw new Exception();
 
                 var sector = await ResolveSector(user.FullDepartment);
 
@@ -71,14 +71,16 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 // Resolve info from line org, will be cached.. If integration fails null is returned.
-                var lineOrgDepartmentProfile = await TryGetRelevantDepartmentsAsync(user.FullDepartment);
+                
+
+                var lineOrgDepartmentProfile = await mediator.Send(new GetRelevantDepartments(user.FullDepartment), cancellationToken);
 
 
                 var resourceOwnerProfile = new QueryResourceOwnerProfile(user.FullDepartment, isDepartmentManager, departmentsWithResponsibility, relevantSectors)
                 {
                     Sector = sector,
-                    ChildDepartments = lineOrgDepartmentProfile?.Children.ToList(),
-                    SiblingDepartments = lineOrgDepartmentProfile?.Siblings.ToList()
+                    ChildDepartments = lineOrgDepartmentProfile?.Children.Select(x => x.DepartmentId).ToList(),
+                    SiblingDepartments = lineOrgDepartmentProfile?.Siblings.Select(x => x.DepartmentId).ToList()
                 };
 
                 return resourceOwnerProfile;
@@ -159,78 +161,6 @@ namespace Fusion.Resources.Domain.Queries
                 var departments = await mediator.Send(new GetDepartments().StartsWith(department));
                 return departments
                     .Select(dpt => dpt.SectorId!).Distinct();
-            }
-        
-
-            private async Task<RelevantDepartments?> TryGetRelevantDepartmentsAsync(string? fullDepartment)
-            {
-                if (fullDepartment is null)
-                    return null;
-
-                string cacheKey = $"relevant-departments-{fullDepartment}";
-
-                if (memoryCache.TryGetValue(cacheKey, out RelevantDepartments relevantDepartments))
-                    return relevantDepartments;
-
-                try
-                {
-                    relevantDepartments = await ResolveRelevantDepartmentsAsync(fullDepartment);
-
-                    memoryCache.Set(cacheKey, relevantDepartments, TimeSpan.FromHours(30));
-                    return relevantDepartments;
-                }
-                catch (Exception ex)
-                {
-                    // Log
-                    logger.LogCritical(ex, "Could not resolve relevant departments for {Department}", fullDepartment);
-                    return null;
-                }
-
-            }
-
-            private async Task<RelevantDepartments> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
-            {
-                var relevantDepartments = new RelevantDepartments();
-
-                var currentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").TakeLast(3));
-                var parentDepartment = string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1).TakeLast(3));
-
-
-
-                var respCurrentDepartment = lineOrgClient.GetAsync($"lineorg/departments/{currentDepartment}?$expand=children");
-                var respParentDepartment = lineOrgClient.GetAsync($"lineorg/departments/{parentDepartment}?$expand=children");
-
-                await Task.WhenAll(respCurrentDepartment, respParentDepartment);
-
-                var respCurrent = await respCurrentDepartment;
-                if (respCurrent.IsSuccessStatusCode)
-                {
-                    var content = await respCurrent.Content.ReadAsStringAsync();
-                    var department = JsonConvert.DeserializeAnonymousType(content, new
-                    {
-                        children = new[] { new { name = string.Empty, fullName = string.Empty } }
-                    });
-                    relevantDepartments.Children = department.children.Select(d => d.fullName).ToList();
-                }
-
-                var respParent = await respParentDepartment;
-                if (respParent.IsSuccessStatusCode)
-                {
-                    var content = await respParent.Content.ReadAsStringAsync();
-                    var department = JsonConvert.DeserializeAnonymousType(content, new
-                    {
-                        children = new[] { new { name = string.Empty, fullName = string.Empty } }
-                    });
-                    relevantDepartments.Siblings = department.children.Select(d => d.fullName).ToList();
-                }
-
-                return relevantDepartments;
-            }
-
-            private class RelevantDepartments
-            {
-                public List<string> Children { get; set; } = new List<string>();
-                public List<string> Siblings { get; set; } = new List<string>();
             }
         }
     }

@@ -11,6 +11,7 @@ using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
@@ -57,18 +58,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment(TestDepartmentId);
 
-            var fromLineOrg = new
-            {
-                requestAssignedPerson.AzureUniqueId,
-                requestAssignedPerson.Name,
-                requestAssignedPerson.Mail,
-                ManagerId = resourceOwnerPerson.AzureUniqueId,
-                IsResourceOwner = false,
-                FullDepartment = "TPD PRD FE MMS STR2"
-            };
-
-            fixture.LineOrg.WithResponse($"/lineorg/persons/{requestAssignedPerson.AzureUniqueId}", fromLineOrg);
-
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(requestAssignedPerson).WithManager(resourceOwnerPerson).WithFullDepartment("TPD PRD FE MMS STR2").SaveProfile();
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
@@ -172,6 +162,36 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+        }
+
+        [Fact]
+        public async Task NormalRequest_WhenResourceOwnerIsProposingPerson_ShouldNotifyTaskOwnerAndCreator()
+        {
+            // Arrange
+            using var adminScope = fixture.AdminScope();
+            var normalRequest = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeNormal().WithPosition(requestPosition));
+            var proposedPerson = new { ProposedPersonAzureUniqueId = testUser.AzureUniqueId };
+            var patchPerson = await Client.TestClientPatchAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}", proposedPerson);
+            patchPerson.Should().BeSuccessfull();
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}/start", null);
+            response.Should().BeSuccessfull();
+            NotificationClientMock.SentMessages.Clear();
+
+            var resourceOwner = PeopleServiceMock.AddTestProfile().WithRoles("Fusion.Resources.FullControl").SaveProfile();
+            using var resourceOwnerScope = fixture.UserScope(resourceOwner);
+
+            // Act
+            var response2 = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}/approve", null);
+            response2.Should().BeSuccessfull();
+            
+            // Assert
+            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
+            var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
+
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
         #endregion

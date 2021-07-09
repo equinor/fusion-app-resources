@@ -44,6 +44,7 @@
     <ProjectReference Include="..\Fusion.Testing.Authentication\Fusion.Testing.Authentication.csproj" />
     <ProjectReference Include="..\Fusion.Testing.Core\Fusion.Testing.Core.csproj" />
     <ProjectReference Include="..\Fusion.Testing.Mocks.ContextService\Fusion.Testing.Mocks.ContextService.csproj" />
+    <ProjectReference Include="..\Fusion.Testing.Mocks.LineOrgService\Fusion.Testing.Mocks.LineOrgService.csproj" />
     <ProjectReference Include="..\Fusion.Testing.Mocks.OrgService\Fusion.Testing.Mocks.OrgService.csproj" />
     <ProjectReference Include="..\Fusion.Testing.Mocks.ProfileService\Fusion.Testing.Mocks.ProfileService.csproj" />
   </ItemGroup>

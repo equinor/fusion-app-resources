@@ -27,6 +27,7 @@ namespace Fusion.Testing.Mocks.ProfileService
             return new Bogus.Faker<ApiPersonProfileV3>()
                 .RuleFor(u => u.AzureUniqueId, f => Guid.NewGuid())
                 .RuleFor(u => u.Department, f => f.Commerce.Department())
+                .RuleFor(u => u.FullDepartment, f => f.Commerce.Department())
                 .RuleFor(u => u.JobTitle, f => f.Name.JobTitle())
                 .RuleFor(u => u.MobilePhone, f => f.Phone.PhoneNumber())
                 .RuleFor(u => u.Mail, f => f.Person.Email)
