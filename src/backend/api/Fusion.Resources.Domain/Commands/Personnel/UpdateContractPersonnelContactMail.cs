@@ -2,6 +2,7 @@
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,11 +26,13 @@ namespace Fusion.Resources.Domain.Commands
 
         public class Handler : AsyncRequestHandler<UpdateContractPersonnelContactMail>
         {
+            private readonly ILogger<Handler> logger;
             private readonly ResourcesDbContext resourcesDb;
             private readonly IPeopleIntegration peopleIntegration;
 
-            public Handler(ResourcesDbContext resourcesDb, IPeopleIntegration peopleIntegration)
+            public Handler(ILogger<Handler> logger, ResourcesDbContext resourcesDb, IPeopleIntegration peopleIntegration)
             {
+                this.logger = logger;
                 this.resourcesDb = resourcesDb;
                 this.peopleIntegration = peopleIntegration;
             }
@@ -54,7 +57,9 @@ namespace Fusion.Resources.Domain.Commands
                     }
                     catch (Exception ex)
                     {
-                        // TODO: Add proper handling
+                        // Instead of failing the whole batch and complexions with partial updates etc, we should just log the issues. 
+                        // It will be visible for the user in the way of the mail not being updated.
+                        logger.LogError(ex, $"Could not update preferred mail in people service: {ex.Message}");
                     }
                 }
 
