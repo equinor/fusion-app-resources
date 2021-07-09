@@ -16,6 +16,8 @@ namespace Fusion.Resources.Api.Controllers
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
 
+        public string? PreferredContactMail { get; set; }
+
         public List<PersonnelDisciplineEntity>? Disciplines { get; set; }
 
         public void LoadCommand(UpdateContractPersonnel command)
@@ -27,6 +29,7 @@ namespace Fusion.Resources.Api.Controllers
             command.LinkedInProfile = LinkedInProfile;
             command.Phone = PhoneNumber;
             command.Disciplines = Disciplines?.Select(d => d.Name).ToList() ?? new List<string>();
+            command.PreferredContactMail = PreferredContactMail;
         }
 
         #region Validation
@@ -37,25 +40,25 @@ namespace Fusion.Resources.Api.Controllers
             {
                 RuleFor(x => x.FirstName).NotEmpty().WithName("firstName");
                 RuleFor(x => x.FirstName).NotContainScriptTag();
-                RuleFor(x => x.FirstName).MaximumLength(100).WithName("firstName");
+                RuleFor(x => x.FirstName).MaximumLength(50).WithName("firstName");
 
 
                 RuleFor(x => x.LastName).NotContainScriptTag();
-                RuleFor(x => x.LastName).MaximumLength(100).WithName("lastName");
+                RuleFor(x => x.LastName).MaximumLength(50).WithName("lastName");
 
 
                 RuleFor(x => x.JobTitle).MaximumLength(100).WithName("jobTitle").When(x => x.JobTitle != null);
                 RuleFor(x => x.JobTitle).NotContainScriptTag();
 
 
-                RuleFor(x => x.PhoneNumber).MaximumLength(50).WithName("phoneNumber").When(x => x.PhoneNumber != null);
+                RuleFor(x => x.PhoneNumber).MaximumLength(30).WithName("phoneNumber").When(x => x.PhoneNumber != null);
                 RuleFor(x => x.PhoneNumber).NotContainScriptTag();
 
 
                 RuleFor(x => x.DawinciCode).MaximumLength(50).WithName("dawinciCode").When(x => x.DawinciCode != null);
                 RuleFor(x => x.DawinciCode).NotContainScriptTag();
 
-                RuleFor(x => x.LinkedInProfile).MaximumLength(300).WithName("linkedInProfile").When(x => x.LinkedInProfile!= null);
+                RuleFor(x => x.LinkedInProfile).MaximumLength(100).WithName("linkedInProfile").When(x => x.LinkedInProfile!= null);
                 RuleFor(x => x.LinkedInProfile)
                     .Must(x => x!.StartsWith("https://www.linkedin.com") || x!.StartsWith("http://www.linkedin.com"))
                     .WithName("linkedInProfile")
@@ -69,6 +72,12 @@ namespace Fusion.Resources.Api.Controllers
                     .When(x => x.Disciplines != null);
                 RuleForEach(x => x.Disciplines).Must(d => d.Name?.Length < 150).WithMessage("Discipline name cannot exceed 150 characters.").WithName("disciplines.name")
                     .When(x => x.Disciplines != null);
+
+                RuleFor(x => x.PreferredContactMail)
+                    .IsValidEmail()
+                        .When(m => m.PreferredContactMail != null)
+                    .NotHaveInvalidMailDomain()
+                        .When(m => m.PreferredContactMail != null);
             }
 
         }

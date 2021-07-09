@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Fusion.Resources.Domain.Notifications
 {
-    public class ProfileUpdated : INotification
+    public partial class ProfileUpdated : INotification
     {
         public ProfileUpdated(FusionPersonProfile profile)
         {

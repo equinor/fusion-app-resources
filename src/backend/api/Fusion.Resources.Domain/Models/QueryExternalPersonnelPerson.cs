@@ -21,6 +21,7 @@ namespace Fusion.Resources.Domain
             AzureAdStatus = item.AccountStatus;
             DawinciCode = item.DawinciCode;
             LinkedInProfile = item.LinkedInProfile;
+            PreferredContactMail = item.PreferredContractMail;
 
             if (item.Disciplines == null)
                 throw new ArgumentNullException(nameof(item.Disciplines), "Disciplines must be included or initialized on the entity when constructing query model");
@@ -37,6 +38,7 @@ namespace Fusion.Resources.Domain
         public string Mail { get; set; }
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
+        public string? PreferredContactMail { get; set; }
 
         public DbAzureAccountStatus AzureAdStatus { get; set; }
 

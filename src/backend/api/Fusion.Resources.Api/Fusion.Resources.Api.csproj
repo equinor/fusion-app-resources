@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bogus" Version="33.0.2" />
-    <PackageReference Include="Fusion.Integration" Version="5.2.3" />
+    <PackageReference Include="Fusion.Integration" Version="5.3.1" />
     <PackageReference Include="Fusion.Events.Server" Version="2.0.0" />
     <!-- No longer need this reference, but keeping for future ref. -->
     <!--<PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />-->

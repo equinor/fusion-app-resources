@@ -25,6 +25,7 @@ namespace Fusion.Resources.Domain
             AzureAdStatus = item.Person.AccountStatus;
             DawinciCode = item.Person.DawinciCode;
             LinkedInProfile = item.Person.LinkedInProfile;
+            PreferredContactMail = item.Person.PreferredContractMail;
 
             Created = item.Created;
             Updated = item.Updated;
@@ -52,6 +53,7 @@ namespace Fusion.Resources.Domain
         public string Mail { get; set; }
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
+        public string? PreferredContactMail { get; set; }
 
         public DbAzureAccountStatus AzureAdStatus { get; set; }
 

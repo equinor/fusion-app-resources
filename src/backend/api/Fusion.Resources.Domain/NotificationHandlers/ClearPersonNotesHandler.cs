@@ -12,9 +12,9 @@ namespace Fusion.Resources.Domain.Notifications.Handlers
     public class ClearPersonNotesHandler : INotificationHandler<ProfileRemovedFromCompany>
     {
         private ResourcesDbContext dbContext;
-        private IFusionLogger<ProfileUpdatedHandler> logger;
+        private IFusionLogger<ClearPersonNotesHandler> logger;
 
-        public ClearPersonNotesHandler(ResourcesDbContext dbContext, IFusionLogger<ProfileUpdatedHandler> logger)
+        public ClearPersonNotesHandler(ResourcesDbContext dbContext, IFusionLogger<ClearPersonNotesHandler> logger)
         {
             this.dbContext = dbContext;
             this.logger = logger;
