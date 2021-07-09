@@ -1,6 +1,9 @@
-import { FilterSection, FilterTypes, WarningIcon } from '@equinor/fusion-components';
+import { FilterSection, FilterTypes } from '@equinor/fusion-components';
 import Personnel, { azureAdStatus } from '../../../../../../models/Personnel';
-import { AzureAdStatusTextFormat, AzureAdStatusColor } from './components/AzureAdStatus';
+import {
+    AzureAdStatusColor,
+    AzureAdStatusTextFormat,
+} from '../../components/AzureAdStatusIndicator';
 
 const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] => {
     const uniqueAdStatus = personnel

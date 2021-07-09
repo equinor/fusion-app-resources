@@ -1,8 +1,7 @@
-
 import { useTooltipRef, styling } from '@equinor/fusion-components';
-import { azureAdStatus } from '../../../../../../../models/Personnel';
-import AdStatusIcon from '../../../../../../../components/AdStatusIcon';
 import { FC } from 'react';
+import AdStatusIcon from '../../../../../../components/AdStatusIcon';
+import { azureAdStatus } from '../../../../../../models/Personnel';
 
 type AdStatus = {
     [index: string]: {
@@ -27,7 +26,11 @@ const AdStatus: AdStatus = {
     },
 };
 
-const AzureAdStatusIcon: FC<azureAdStatus> = (status: azureAdStatus) => {
+type AzureAdStatusIndicatorProps = {
+    status: azureAdStatus;
+};
+
+const AzureAdStatusIndicator: FC<AzureAdStatusIndicatorProps> = ({ status }) => {
     const { text, color } = AdStatus[status];
     return <div ref={useTooltipRef(text)}>{<AdStatusIcon color={color} />}</div>;
 };
@@ -40,4 +43,4 @@ export const AzureAdStatusColor = (status: azureAdStatus) => {
     return AdStatus[status].color;
 };
 
-export default AzureAdStatusIcon;
+export default AzureAdStatusIndicator;

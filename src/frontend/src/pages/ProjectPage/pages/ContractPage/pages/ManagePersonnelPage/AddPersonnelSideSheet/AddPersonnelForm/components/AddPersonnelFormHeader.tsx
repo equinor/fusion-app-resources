@@ -1,4 +1,3 @@
-
 import styles from '../../styles.less';
 import SelectionCell from '../../../components/SelectionCell';
 import { useTooltipRef } from '@equinor/fusion-components';
@@ -14,9 +13,7 @@ export const AddPersonnelFormHead: FC<AddPersonnelFormHeadProps> = ({
     formState,
     setSelectionState,
 }) => {
-    const isAllSelected = useMemo(() => !formState.find((p) => !Boolean(p?.selected)), [
-        formState,
-    ]);
+    const isAllSelected = useMemo(() => !formState.find((p) => !Boolean(p?.selected)), [formState]);
 
     const isSomeSelected = useMemo(
         () => formState.find((p) => p.selected === true) && !isAllSelected,
