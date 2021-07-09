@@ -62,20 +62,25 @@ namespace Fusion.Resources.Domain.Commands
             private readonly ResourcesDbContext dbContext;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IProfileService profileService;
+            private readonly IRequestRouter router;
             private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator, IProfileService profileService)
+            public Handler(ResourcesDbContext dbContext, IProjectOrgResolver orgResolver, IMediator mediator, IProfileService profileService, IRequestRouter router)
             {
                 this.dbContext = dbContext;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
                 this.profileService = profileService;
+                this.router = router;
             }
 
             public async Task<QueryResourceAllocationRequest> Handle(CreateInternalRequest request, CancellationToken cancellationToken)
             {
                 var dbItem = await CreateDbRequestAsync(request);
                 var propertiesSet = dbContext.Entry(dbItem).Properties.Where(x => x.CurrentValue is not null).ToList();
+
+                if (string.IsNullOrEmpty(dbItem.AssignedDepartment))
+                    dbItem.AssignedDepartment = await router.RouteAsync(dbItem, cancellationToken);
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
