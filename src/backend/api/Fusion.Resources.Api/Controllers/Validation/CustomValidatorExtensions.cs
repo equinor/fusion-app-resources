@@ -178,6 +178,18 @@ namespace Fusion.Resources.Api.Controllers
 
         public static string JsPropertyName(this CustomContext context) => context.PropertyName.ToLowerFirstChar();
 
+
+        /// <summary>
+        /// The preferred contact mail should try to weed out main private mail domains.
+        /// </summary>
+        public static IRuleBuilderOptions<T, string?> NotHaveInvalidMailDomain<T>(this IRuleBuilder<T, string?> ruleBuilder)
+        {
+            
+            return ruleBuilder.SetValidator(new EmailDomainValidator())
+                .WithMessage("Mail domain should not be private. Most major private mail domains are rejected (gmail, hotmail, icloud etc.)");
+        }
     }
+
+    
 
 }

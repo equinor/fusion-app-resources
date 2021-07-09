@@ -99,7 +99,7 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
 
-        public bool ShouldHideProposalsForProject
+        internal bool ShouldHideProposalsForProject
         {
             get
             {

@@ -21,6 +21,7 @@ namespace Fusion.Resources.Api.Controllers
             Mail = personnel.Mail;
             DawinciCode = personnel.DawinciCode;
             LinkedInProfile = personnel.LinkedInProfile;
+            PreferredContactMail = personnel.PreferredContactMail;
             AzureAdStatus = Enum.Parse<ApiAccountStatus>($"{personnel.AzureAdStatus}", true);
             Disciplines = personnel.Disciplines.Select(d => new ApiPersonnelDiscipline(d)).ToList();
             Created = personnel.Created;
@@ -44,6 +45,8 @@ namespace Fusion.Resources.Api.Controllers
 
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
+
+        public string? PreferredContactMail { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAccountStatus AzureAdStatus { get; set; }
