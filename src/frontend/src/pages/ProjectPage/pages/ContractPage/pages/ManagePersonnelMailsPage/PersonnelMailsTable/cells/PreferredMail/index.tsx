@@ -13,15 +13,15 @@ const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
     const { updateContactMail, contactMailForm, isSavingContactMails, checkMailForErrors } =
         useManagePersonnelMailContext();
 
-    const contatFormItem = useMemo(
+    const contactFormItem = useMemo(
         () => contactMailForm.find((formItem) => formItem.personnelId === item.personnelId),
         [item, contactMailForm]
     );
 
-    const inputError = useMemo(() => contatFormItem?.inputError, [contatFormItem]);
+    const inputError = useMemo(() => contactFormItem?.inputError, [contactFormItem]);
     const invalidMailTooltip = useTooltipRef(inputError, 'left');
 
-    const input = useMemo(() => contatFormItem?.preferredContactMail || '', [contatFormItem]);
+    const input = useMemo(() => contactFormItem?.preferredContactMail || '', [contactFormItem]);
 
     const onPreferredMailChange = useCallback(
         (input: ChangeEvent<HTMLInputElement>) => {
