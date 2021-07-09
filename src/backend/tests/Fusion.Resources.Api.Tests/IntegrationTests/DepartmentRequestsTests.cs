@@ -5,6 +5,7 @@ using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using System;
@@ -461,6 +462,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var user = fixture.AddProfile(FusionAccountType.Employee);
             user.Department = TimelineDepartment;
 
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(user)
+                .WithFullDepartment(TimelineDepartment)
+                .AsResourceOwner()
+                .SaveProfile();
+
             using var adminScope = fixture.AdminScope();
 
             var absenceResp = await Client.AddAbsence(user, x =>
@@ -492,6 +499,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var user = fixture.AddProfile(FusionAccountType.Employee);
             user.FullDepartment = TimelineDepartment;
             user.Department = TimelineDepartment;
+            
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(user)
+                .WithFullDepartment(TimelineDepartment)
+                .AsResourceOwner()
+                .SaveProfile();
 
             TestAbsence absence;
             using (var adminScope = fixture.AdminScope())
@@ -509,6 +522,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resourceOwner.IsResourceOwner = true;
             resourceOwner.FullDepartment = "TPD TST QWE";
             resourceOwner.Department = "TPD TST QWE";
+
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(resourceOwner)
+                .AsResourceOwner()
+                .WithDepartment("TPD TST QWE")
+                .SaveProfile();
 
             using (var userScope = fixture.UserScope(resourceOwner))
             {

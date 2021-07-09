@@ -9,6 +9,7 @@ namespace Fusion.Resources.Domain
 {
     public static class PeopleSearchUtils
     {
+        const int default_page_size = 500;
         /// <summary>
         /// Get department personnel from search index.
         /// </summary>
@@ -18,8 +19,8 @@ namespace Fusion.Resources.Domain
         /// include such personnel in the result.</param>
         /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <returns></returns>
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, bool includeSubDepartments, params string[] departments)
-            => await GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments, departments.AsEnumerable());
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, params string[] departments)
+            => await GetDepartmentFromSearchIndexAsync(peopleClient, departments.AsEnumerable());
 
         /// <summary>
         /// Get department personnel from search index.
@@ -30,143 +31,137 @@ namespace Fusion.Resources.Domain
         /// include such personnel in the result.</param>
         /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <returns></returns>
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, bool includeSubDepartments, IEnumerable<string> departments)
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, IEnumerable<string> departments)
         {
             var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
 
-            var searchResponse = await GetFromSearchIndexAsync(peopleClient, 500, filterString, null, includeSubDepartments);
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, null);
             return searchResponse;
         }
 
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDirectReportsTo(HttpClient peopleClient, Guid azureUniqueId)
+            => await GetFromSearchIndexAsync(peopleClient, $"managerAzureId eq '{azureUniqueId}'");
+
         public static async Task<QueryInternalPersonnelPerson?> GetPersonFromSearchIndexAsync(HttpClient peopleClient, Guid uniqueId)
         {
-            var searchResponse = await GetFromSearchIndexAsync(peopleClient, 1, filter: $"azureUniqueId eq '{uniqueId}'");
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filter: $"azureUniqueId eq '{uniqueId}'");
             return searchResponse.FirstOrDefault();
         }
 
-        public static  async Task<List<QueryInternalPersonnelPerson>> GetPersonsFromSearchIndexAsync(HttpClient peopleClient, string search, string? filter)
+        public static async Task<List<QueryInternalPersonnelPerson>> GetPersonsFromSearchIndexAsync(HttpClient peopleClient, string search, string? filter)
         {
-            return await GetFromSearchIndexAsync(peopleClient, 500, filter, search);
+            return await GetFromSearchIndexAsync(peopleClient, filter, search);
         }
 
-        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, int top, string? filter, string? search = null, bool includeSubDepartments = false)
+        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null)
         {
-            var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
+            var result = new List<QueryInternalPersonnelPerson>();
+
+            var top = default_page_size;
+            var skip = 0;
+            var totalCount = 0;
+
+            do
             {
-                filter = filter,
-                search = search,
-                top = top
-            });
+                var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new { filter, search, top, skip, includeTotalResultCount = true });
 
-            var data = await response.Content.ReadAsStringAsync();
+                var data = await response.Content.ReadAsStringAsync();
 
-            response.EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode();
 
-            var items = JsonConvert.DeserializeAnonymousType(data, new
-            {
-                results = new[]
+                var items = JsonConvert.DeserializeAnonymousType(data, new
                 {
-                    new {
-                        document = new
+                    results = new[]
+                    {
+                        new { document = new SearchPersonDTO() }
+                    },
+                    count = (int?)0
+                });
+
+                skip += items.results.Length;
+                totalCount = items.count ?? 0;
+
+                result.AddRange(
+                    items.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
+                    {
+                        PhoneNumber = i.document.mobilePhone,
+                        JobTitle = i.document.jobTitle,
+                        OfficeLocation = i.document.officeLocation,
+                        Department = i.document.department,
+                        IsResourceOwner = i.document.isResourceOwner,
+                        FullDepartment = i.document.fullDepartment,
+                        ManagerAzureId = i.document.managerAzureId,
+                        PositionInstances = i.document.positions.Select(p => new QueryPersonnelPosition
                         {
-                            azureUniqueId = Guid.Empty,
-                            mail = string.Empty,
-                            name = string.Empty,
-                            jobTitle = string.Empty,
-                            department = string.Empty,
-                            fullDepartment = string.Empty,
-                            mobilePhone = string.Empty,
-                            officeLocation = string.Empty,
-                            upn = string.Empty,
-                            accountType = string.Empty,
-                            isExpired = false,
-                            isResourceOwner = false,
-                            managerAzureId = (Guid?)null,
+                            PositionId = p.id,
+                            InstanceId = p.instanceId,
+                            AppliesFrom = p.appliesFrom!.Value,
+                            AppliesTo = p.appliesTo!.Value,
+                            Name = p.name,
+                            Location = p.locationName,
+                            BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
+                            Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
+                            Workload = p.workload,
+                            AllocationState = p.allocationState,
+                            AllocationUpdated = p.allocationUpdated
+                        }).OrderBy(p => p.AppliesFrom).ToList()
+                    })
+                );
+            } while (skip < totalCount);
 
-                            positions = new [] {
-                                new {
-                                    id = Guid.Empty,
-                                    instanceId = Guid.Empty,
-                                    name = string.Empty,
-                                    appliesFrom = (DateTime?) null,
-                                    appliesTo = (DateTime?) null,
-                                    isActive = false,
-                                    obs = string.Empty,
-                                    locationName = string.Empty,
-                                    workload = 0.0,
-                                    allocationState = string.Empty,
-                                    allocationUpdated = (DateTime?)null,
-                                    project = new
-                                    {
-                                        name = string.Empty,
-                                        id = Guid.Empty,
-                                        domainId = string.Empty,
-                                        type = string.Empty
-                                    },
-
-                                    basePosition = new
-                                    {
-                                        id = Guid.Empty,
-                                        name = string.Empty,
-                                        discipline = string.Empty,
-                                        type = string.Empty
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-            });
-
-            var excludedManagers = new HashSet<Guid>();
-
-            if (!includeSubDepartments)
-            {
-                var uniqueManagers = items.results
-                    .Select(x => x.document.managerAzureId)
-                    .Distinct()
-                    .ToList();
-
-                var subDepartmentManagers = items.results
-                    .Where(x => uniqueManagers.Contains(x.document.azureUniqueId))
-                    .ToList();
-
-                foreach (var manager in subDepartmentManagers)
-                {
-                    excludedManagers.Add(manager.document.azureUniqueId);
-                }
-            }
-
-            var departmentPersonnel = items.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
-            {
-                PhoneNumber = i.document.mobilePhone,
-                JobTitle = i.document.jobTitle,
-                OfficeLocation = i.document.officeLocation,
-                Department = i.document.department,
-                IsResourceOwner = i.document.isResourceOwner,
-                FullDepartment = i.document.fullDepartment,
-                ManagerAzureId = i.document.managerAzureId,
-                PositionInstances = i.document.positions.Select(p => new QueryPersonnelPosition
-                {
-                    PositionId = p.id,
-                    InstanceId = p.instanceId,
-                    AppliesFrom = p.appliesFrom!.Value,
-                    AppliesTo = p.appliesTo!.Value,
-                    Name = p.name,
-                    Location = p.locationName,
-                    BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
-                    Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
-                    Workload = p.workload,
-                    AllocationState = p.allocationState,
-                    AllocationUpdated = p.allocationUpdated
-                }).OrderBy(p => p.AppliesFrom).ToList()
-            });
-
-            return departmentPersonnel
-                .Where(x => x.ManagerAzureId.HasValue && !excludedManagers.Contains(x.ManagerAzureId.Value))
-                .ToList();
+            return result;
         }
 
+        
+
+        private class SearchProjectDTO
+        {
+            public string name { get; set; } = null!;
+            public Guid id { get; set; }
+            public string domainId { get; set; } = null!;
+            public string type { get; set; } = null!;
+        }
+        private class SearchBasePositionDTO
+        {
+            public Guid id { get; set; }
+            public string name { get; set; } = null!;
+            public string discipline { get; set; } = null!;
+            public string type { get; set; } = null!;
+        }
+
+        private class SearchPositionDTO
+        {
+            public Guid id { get; set; }
+            public Guid instanceId { get; set; }
+            public string name { get; set; } = null!;
+            public DateTime? appliesFrom { get; set; }
+            public DateTime? appliesTo { get; set; }
+            public bool isActive { get; set; }
+            public string? obs { get; set; }
+            public string? locationName { get; set; }
+            public double workload { get; set; }
+            public string allocationState { get; set; } = null!;
+            public DateTime? allocationUpdated { get; set; }
+            public SearchProjectDTO project { get; set; } = new();
+            public SearchBasePositionDTO basePosition { get; set; } = new();
+        }
+        private class SearchPersonDTO
+        {
+            public Guid azureUniqueId { get; set; }
+            public string mail { get; set; } = null!;
+            public string name { get; set; } = null!;
+            public string jobTitle { get; set; } = null!;
+            public string department { get; set; } = null!;
+            public string fullDepartment { get; set; } = null!;
+            public string mobilePhone { get; set; } = null!;
+            public string officeLocation { get; set; } = null!;
+            public string upn { get; set; } = null!;
+            public string accountType { get; set; } = null!;
+            public bool isExpired { get; set; }
+            public bool isResourceOwner { get; set; }
+            public Guid? managerAzureId { get; set; }
+            public List<SearchPositionDTO> positions { get; set; } = new();
+
+        }
     }
 }
