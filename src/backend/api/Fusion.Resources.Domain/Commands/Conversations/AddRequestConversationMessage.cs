@@ -46,7 +46,8 @@ namespace Fusion.Resources.Domain
                     Category = request.category,
                     RequestId = request.requestId,
                     SenderId = request.Editor.Person.Id,
-                    Recpient = request.recipient.MapToDatabase()
+                    Recpient = request.recipient.MapToDatabase(),
+                    PropertiesJson = request.Properties?.SerializeToStringOrDefault()
                 };
                 db.RequestConversations.Add(message);
                 await db.SaveChangesAsync(cancellationToken);

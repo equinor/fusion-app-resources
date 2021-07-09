@@ -50,5 +50,28 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             return Ok(new ApiRequestConversationMessage(conversation));
         }
+
+        [HttpPut("/requests/internal/{requestId}/conversation/{messageId}")]
+        public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, [FromBody] UpdateRequestConversationMessageRequest request)
+        {
+            var recipientType = request.Recipient switch
+            {
+                ApiMessageRecipient.ResourceOwner => QueryMessageRecipient.ResourceOwner,
+                ApiMessageRecipient.TaskOwner => QueryMessageRecipient.TaskOwner,
+                ApiMessageRecipient.Both => QueryMessageRecipient.Both,
+                _ => throw new NotSupportedException($"Recipient type '{request.Recipient}' is not supported.")
+            };
+
+            var command = new UpdateRequestConversationMessage(requestId, messageId, request.Title, request.Body, request.Category, recipientType)
+            {
+                Properties = request.Properties
+            };
+
+            var conversation = await DispatchAsync(command);
+
+            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+
+            return Ok(new ApiRequestConversationMessage(conversation));
+        }
     }
 }
