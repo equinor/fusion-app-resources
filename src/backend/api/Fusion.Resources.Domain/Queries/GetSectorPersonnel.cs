@@ -59,11 +59,13 @@ namespace Fusion.Resources.Domain
         {
             private readonly ResourcesDbContext db;
             private readonly IHttpClientFactory httpClientFactory;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db, IHttpClientFactory httpClientFactory)
+            public Handler(ResourcesDbContext db, IHttpClientFactory httpClientFactory, IMediator mediator)
             {
                 this.db = db;
                 this.httpClientFactory = httpClientFactory;
+                this.mediator = mediator;
             }
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetSectorPersonnel request, CancellationToken cancellationToken)
@@ -90,15 +92,19 @@ namespace Fusion.Resources.Domain
 
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString)
             {
-                var departments = await db.Departments
-                    .Where(dpt => dpt.SectorId == fullDepartmentString)
-                    .Select(dpt => dpt.DepartmentId)
-                    .ToListAsync();
+                var departments = await mediator.Send(new GetDepartments().InSector(fullDepartmentString));
+                var managerIds = new HashSet<Guid>(
+                    departments
+                        .Where(x => x.LineOrgResponsible?.AzureUniqueId != null)
+                        .Select(x => x.LineOrgResponsible!.AzureUniqueId!.Value)
+                );
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
-                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments: false, departments);
+                var sectorPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, departments.Select(x => x.DepartmentId));
 
-                return sectorPersonnel;
+                return sectorPersonnel
+                    .Where(x => x.ManagerAzureId != null && managerIds.Contains(x.ManagerAzureId.Value))
+                    .ToList();
             }
 
             private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)
