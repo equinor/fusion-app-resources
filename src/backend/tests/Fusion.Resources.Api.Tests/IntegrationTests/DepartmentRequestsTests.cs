@@ -462,6 +462,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var user = fixture.AddProfile(FusionAccountType.Employee);
             user.Department = TimelineDepartment;
 
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(user)
+                .WithFullDepartment(TimelineDepartment)
+                .AsResourceOwner()
+                .SaveProfile();
+
             using var adminScope = fixture.AdminScope();
 
             var absenceResp = await Client.AddAbsence(user, x =>
@@ -493,6 +499,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var user = fixture.AddProfile(FusionAccountType.Employee);
             user.FullDepartment = TimelineDepartment;
             user.Department = TimelineDepartment;
+            
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(user)
+                .WithFullDepartment(TimelineDepartment)
+                .AsResourceOwner()
+                .SaveProfile();
 
             TestAbsence absence;
             using (var adminScope = fixture.AdminScope())
