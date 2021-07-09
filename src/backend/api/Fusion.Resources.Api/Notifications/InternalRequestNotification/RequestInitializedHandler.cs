@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Notifications
                                 .AddFactIf("Position id", request.Position?.ExternalId ?? "", request.Position?.ExternalId is not null)
                                 .AddFactIf("Position", request.Position?.Name ?? "", request.Position?.Name is not null)
                                 .AddFact("Period", $"{request.Instance?.GetFormattedPeriodString()}")
-                                .AddFact("Workload", $"{request.Instance?.Workload}")
+                                .AddFact("Workload", $"{request.Instance?.GetFormattedWorkloadString()}")
                             )
                             .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
                             .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgAdminUrl}")

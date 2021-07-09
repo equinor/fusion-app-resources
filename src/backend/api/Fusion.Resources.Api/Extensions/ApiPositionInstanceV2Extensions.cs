@@ -10,6 +10,14 @@ namespace Fusion.Resources.Api
             var months = GetMonths(instance);
             return $"🗓{instance.AppliesFrom:dd/MM/yy} to 🗓{instance.AppliesTo:dd/MM/yy} ({months} mths)";
         }
+        public static string GetFormattedWorkloadString(this ApiPositionInstanceV2 instance)
+        {
+            if (!instance.Workload.HasValue)
+                return string.Empty;
+
+
+            return $"{instance.Workload.Value:F0}% ({(instance.Workload.Value / 100):F2} FTE)";
+        }
 
         private static int GetMonths(ApiPositionInstanceV2 instance)
         {
