@@ -103,17 +103,13 @@ namespace Fusion.Resources.Domain
 
                 List<QueryInternalPersonnelPerson> personnel;
 
-                if (includeSubDepartments)
+                if (includeSubDepartments || department.LineOrgResponsible?.AzureUniqueId is null)
                 {
                     personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
                 }
-                else if (department.LineOrgResponsible?.AzureUniqueId is not null)
-                {
-                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value);
-                }
                 else
                 {
-                    personnel = new List<QueryInternalPersonnelPerson>();
+                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value);
                 }
 
                 return personnel;
