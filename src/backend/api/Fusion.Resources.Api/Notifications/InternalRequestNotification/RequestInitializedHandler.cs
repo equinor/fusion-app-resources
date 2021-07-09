@@ -56,7 +56,7 @@ namespace Fusion.Resources.Api.Notifications
                                 .AddFactIf("Project", request.Position?.Project?.Name ?? "", request.Position?.Project is not null)
                                 .AddFactIf("Position id", request.Position?.ExternalId ?? "", request.Position?.ExternalId is not null)
                                 .AddFactIf("Position", request.Position?.Name ?? "", request.Position?.Name is not null)
-                                .AddFact("Period", $"{notificationBuilder.Utils.FormatDateString(request.Instance?.AppliesFrom)} - {notificationBuilder.Utils.FormatDateString(request.Instance?.AppliesTo)}")
+                                .AddFact("Period", $"{request.Instance.GetFormattedPeriodString()}")
                                 .AddFact("Workload", $"{request.Instance?.Workload}")
                             )
                             .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
