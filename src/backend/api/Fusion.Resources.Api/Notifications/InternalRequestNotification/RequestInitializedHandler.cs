@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api.Notifications
                 try
                 {
                     notificationBuilder
-                            .AddTitle("A personnel request has been created")
+                            .AddTitle($"A {request.AllocationRequest.SubType} personnel request has been created")
                             .AddTextBlockIf($"Awaiting feedback from resource owner.", request.Instance?.AssignedPerson is null)
                             .AddTextBlockIf($"Person was proposed.", request.Instance?.AssignedPerson is not null)
                             .TryAddProfileCard(request.Instance?.AssignedPerson?.AzureUniqueId)
@@ -56,7 +56,7 @@ namespace Fusion.Resources.Api.Notifications
                                 .AddFactIf("Project", request.Position?.Project?.Name ?? "", request.Position?.Project is not null)
                                 .AddFactIf("Position id", request.Position?.ExternalId ?? "", request.Position?.ExternalId is not null)
                                 .AddFactIf("Position", request.Position?.Name ?? "", request.Position?.Name is not null)
-                                .AddFact("Period", $"{request.Instance?.AppliesFrom:dd.MM.yyyy} - {request.Instance?.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
+                                .AddFact("Period", $"{notificationBuilder.Utils.FormatDateString(request.Instance?.AppliesFrom)} - {notificationBuilder.Utils.FormatDateString(request.Instance?.AppliesTo)}")
                                 .AddFact("Workload", $"{request.Instance?.Workload}")
                             )
                             .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
