@@ -181,13 +181,17 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<string>("Recpient")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SenderId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Sent")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1423,7 +1427,7 @@ namespace Fusion.Resources.Database.Migrations
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbConversationMessage", b =>
                 {
-                    b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", "Request")
+                    b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", null)
                         .WithMany("Conversation")
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1434,8 +1438,6 @@ namespace Fusion.Resources.Database.Migrations
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Request");
 
                     b.Navigation("Sender");
                 });

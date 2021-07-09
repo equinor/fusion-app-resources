@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fusion.Resources.Database.Migrations
 {
-    public partial class add_request_conversations : Migration
+    public partial class add_request_conversation : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -16,9 +16,10 @@ namespace Fusion.Resources.Database.Migrations
                     Body = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     Category = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
                     SenderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Recpient = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Recpient = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
                     RequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PropertiesJson = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    PropertiesJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Sent = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {

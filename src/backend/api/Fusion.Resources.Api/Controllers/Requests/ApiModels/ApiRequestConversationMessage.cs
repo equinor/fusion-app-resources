@@ -22,8 +22,12 @@ namespace Fusion.Resources.Api.Controllers
 
             SenderId = message.SenderId;
             Sender = new ApiPerson(message.Sender);
+            Sent = message.Sent;
 
             RequestId = message.RequestId;
+            Properties = message.Properties is not null
+                ? new ApiPropertiesCollection(message.Properties)
+                : null;
         }
 
         public Guid Id { get; }
@@ -35,8 +39,10 @@ namespace Fusion.Resources.Api.Controllers
 
         public Guid SenderId { get; }
         public ApiPerson Sender { get; }
-
+        public DateTimeOffset Sent { get; }
         public Guid RequestId { get; }
+
+        public ApiPropertiesCollection? Properties { get;  }
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

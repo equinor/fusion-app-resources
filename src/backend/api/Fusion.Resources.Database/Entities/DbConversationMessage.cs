@@ -19,6 +19,7 @@ namespace Fusion.Resources.Database.Entities
         public Guid RequestId { get; set; }
 
         public string? PropertiesJson { get; set; }
+        public DateTimeOffset Sent { get; set; }
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,7 +45,8 @@ namespace Fusion.Resources.Database.Entities
 
             modelBuilder.Entity<DbConversationMessage>()
                 .Property(x => x.Recpient)
-                .HasConversion(new EnumToStringConverter<DbMessageRecipient>());
+                .HasConversion(new EnumToStringConverter<DbMessageRecipient>())
+                .HasMaxLength(60);
         }
     }
 

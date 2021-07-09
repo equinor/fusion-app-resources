@@ -46,6 +46,7 @@ namespace Fusion.Resources.Domain
                     Category = request.category,
                     RequestId = request.requestId,
                     SenderId = request.Editor.Person.Id,
+                    Sent = DateTimeOffset.UtcNow,
                     Recpient = request.recipient.MapToDatabase(),
                     PropertiesJson = request.Properties?.SerializeToStringOrDefault()
                 };

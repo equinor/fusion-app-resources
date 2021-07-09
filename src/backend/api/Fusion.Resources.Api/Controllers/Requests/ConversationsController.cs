@@ -1,5 +1,6 @@
 ﻿using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Conversations;
+using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -17,6 +18,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpPost("/requests/internal/{requestId}/conversation")]
         public async Task<ActionResult> AddConversationMessage([FromRoute] Guid requestId, [FromBody] AddRequestConversationMessageRequest request)
         {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+
             var recipientType = request.Recipient switch
             {
                 ApiMessageRecipient.ResourceOwner => QueryMessageRecipient.ResourceOwner,
@@ -37,6 +41,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpGet("/requests/internal/{requestId}/conversation")]
         public async Task<ActionResult> GetRequestConversation(Guid requestId)
         {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+
             var conversation = await DispatchAsync(new GetRequestConversation(requestId));
             return Ok(conversation.Select(x => new ApiRequestConversationMessage(x)));
         }
@@ -44,6 +51,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpGet("/requests/internal/{requestId}/conversation/{messageId}")]
         public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid messageId)
         {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+
             var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
 
             if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
@@ -54,6 +64,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpPut("/requests/internal/{requestId}/conversation/{messageId}")]
         public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, [FromBody] UpdateRequestConversationMessageRequest request)
         {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+
             var recipientType = request.Recipient switch
             {
                 ApiMessageRecipient.ResourceOwner => QueryMessageRecipient.ResourceOwner,

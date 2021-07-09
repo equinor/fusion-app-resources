@@ -1,4 +1,6 @@
 ﻿using FluentValidation;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -8,7 +10,9 @@ namespace Fusion.Resources.Api.Controllers
         public string Body { get; set; } = null!;
         public string Category { get; set; } = null!;
         public ApiMessageRecipient Recipient { get; set; }
-        public ApiPropertiesCollection? Properties { get; set; }
+        
+        [JsonConverter(typeof(Json.DictionaryStringObjectJsonConverter))]
+        public Dictionary<string, object>? Properties { get; set; }
 
         public class Validator : AbstractValidator<AddRequestConversationMessageRequest>
         {
