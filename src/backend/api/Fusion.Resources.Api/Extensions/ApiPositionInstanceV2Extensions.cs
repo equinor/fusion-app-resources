@@ -8,7 +8,7 @@ namespace Fusion.Resources.Api
         public static string GetFormattedPeriodString(this ApiPositionInstanceV2 instance)
         {
             var months = GetMonths(instance);
-            return $"🗓{instance.AppliesFrom:dd/MM/yy} to 🗓{instance.AppliesTo:dd/MM/yy} ({months} mths) [{instance.Workload}%]";
+            return $"🗓{instance.AppliesFrom:dd/MM/yy} to 🗓{instance.AppliesTo:dd/MM/yy} ({months} mths)";
         }
 
         private static int GetMonths(ApiPositionInstanceV2 instance)
