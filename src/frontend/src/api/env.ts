@@ -9,7 +9,7 @@ export const getResourceApiBaseUrl = (env: FusionEnvironment) => {
             return 'https://fap-resources-api-fprd.azurewebsites.net';
     }
 
-    return 'https://resources-api-pr-346.fusion-dev.net';
+    return 'https://resources-api-pr.CI.fusion-dev.net';
 };
 
 export const getFunctionsBaseUrl = (env: FusionEnvironment) => {
