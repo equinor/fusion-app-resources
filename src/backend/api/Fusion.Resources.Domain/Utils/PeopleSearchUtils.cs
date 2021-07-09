@@ -39,6 +39,9 @@ namespace Fusion.Resources.Domain
             return searchResponse;
         }
 
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDirectReportsTo(HttpClient peopleClient, Guid azureUniqueId)
+            => await GetFromSearchIndexAsync(peopleClient, $"managerAzureId eq '{azureUniqueId}'");
+
         public static async Task<QueryInternalPersonnelPerson?> GetPersonFromSearchIndexAsync(HttpClient peopleClient, Guid uniqueId)
         {
             var searchResponse = await GetFromSearchIndexAsync(peopleClient, filter: $"azureUniqueId eq '{uniqueId}'");
@@ -108,6 +111,9 @@ namespace Fusion.Resources.Domain
 
             return result;
         }
+
+        
+
         private class SearchProjectDTO
         {
             public string name { get; set; } = null!;

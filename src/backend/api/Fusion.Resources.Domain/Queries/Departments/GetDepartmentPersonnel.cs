@@ -100,16 +100,23 @@ namespace Fusion.Resources.Domain
                 if (department is null) return new List<QueryInternalPersonnelPerson>();
 
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
-                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
 
-                if(!includeSubDepartments)
+                List<QueryInternalPersonnelPerson> personnel;
+
+                if (includeSubDepartments)
                 {
-                    departmentPersonnel = departmentPersonnel
-                        .Where(x => x.ManagerAzureId == department?.LineOrgResponsible?.AzureUniqueId)
-                        .ToList();
+                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
+                }
+                else if (department.LineOrgResponsible?.AzureUniqueId is not null)
+                {
+                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value);
+                }
+                else
+                {
+                    personnel = new List<QueryInternalPersonnelPerson>();
                 }
 
-                return departmentPersonnel;
+                return personnel;
             }
 
             private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)
