@@ -14,8 +14,8 @@ const SavePersonnelError: FC<SavePersonnelErrorProps> = ({ contactMailForm }) =>
     const styles = useSavePersonnelError();
     return (
         <div className={styles.container}>
-            {inputErrors.map((inputError) => (
-                <div className={styles.inputError}>
+            {inputErrors.map((inputError, key) => (
+                <div className={styles.inputError} key={`save-personnel-error-item-${key}`}>
                     <div className={styles.preferredContactMail}>
                         {inputError.preferredContactMail}
                     </div>

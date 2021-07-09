@@ -44,7 +44,7 @@ const ToolbarFilter: FC<ToolbarFilterProps> = ({
 
     const filterPersonnel = useCallback(() => {
         const activeFilters = Object.values(selectedFilters)
-            .filter((f) => f.isSelected)
+            .filter((f) => !!f.isSelected)
             .map((f) => f.filter);
         if (activeFilters?.length === 0) {
             setFilteredPersonnel(personnel);
