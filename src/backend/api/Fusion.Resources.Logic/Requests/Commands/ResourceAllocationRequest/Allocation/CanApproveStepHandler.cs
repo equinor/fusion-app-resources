@@ -30,6 +30,20 @@ namespace Fusion.Resources.Logic.Commands
                     IsOrgChartWriteAllowed = true,
                     IsCreatorAllowed = true
                 },
+                [(AllocationDirectWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)] = WorkflowAccess.Default,
+
+                [(AllocationDirectWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.CREATED)] = WorkflowAccess.Default with
+                {
+                    IsResourceOwnerAllowed = true,
+                    IsAllResourceOwnersAllowed = true,
+                },
+                [(AllocationDirectWorkflowV1.SUBTYPE, AllocationNormalWorkflowV1.APPROVAL)] = WorkflowAccess.Default with
+                {
+                    IsDirectTaskOwnerAllowed = true,
+                    IsOrgAdminAllowed = true,
+                    IsOrgChartWriteAllowed = true,
+                    IsCreatorAllowed = true
+                },
                 [(AllocationNormalWorkflowV1.SUBTYPE, WorkflowDefinition.PROVISIONING)] = WorkflowAccess.Default,
 
                 [(AllocationJointVentureWorkflowV1.SUBTYPE, AllocationJointVentureWorkflowV1.CREATED)] = WorkflowAccess.Default with
