@@ -691,6 +691,20 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result!);
         }
 
+        [HttpDelete("/resources/requests/internal/{requestId}/workflow")]
+        [HttpDelete("/departments/{departmentString}/resources/requests/{requestId}/workflow")]
+        public async Task<ActionResult> ResetWorkflow(Guid requestId, string? departmentString)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            var deleted = await DispatchAsync(new ResetWorkflow(requestId));
+            if (deleted) return NoContent();
+            else return StatusCode((int)HttpStatusCode.Gone);
+        }
+
 
         #region Comments
 
