@@ -5,6 +5,7 @@ using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Logic.Workflows;
 using Microsoft.EntityFrameworkCore;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -16,11 +17,13 @@ namespace Fusion.Resources.Logic.Commands
             {
                 private readonly ResourcesDbContext dbContext;
                 private readonly IMediator mediator;
+                private readonly IRequestRouter router;
 
-                public DirectAllocationRequestStarted(ResourcesDbContext dbContext, IMediator mediator)
+                public DirectAllocationRequestStarted(ResourcesDbContext dbContext, IMediator mediator, IRequestRouter router)
                 {
                     this.dbContext = dbContext;
                     this.mediator = mediator;
+                    this.router = router;
                 }
 
                 public async Task Handle(AllocationRequestStarted notification, CancellationToken cancellationToken)
@@ -28,7 +31,13 @@ namespace Fusion.Resources.Logic.Commands
                     if (notification.Workflow is not AllocationDirectWorkflowV1)
                         return;
 
-                    var request = await dbContext.ResourceAllocationRequests.FirstAsync(r => r.Id == notification.RequestId);
+                    var request = await dbContext.ResourceAllocationRequests
+                        .FirstAsync(r => r.Id == notification.RequestId, cancellationToken);
+
+                    if(string.IsNullOrEmpty(request.AssignedDepartment))
+                    {
+                        request.AssignedDepartment = await router.RouteAsync(request, cancellationToken);
+                    }
                     
                     ValidateWorkflow(request);
                 }
