@@ -700,6 +700,25 @@ namespace Fusion.Resources.Api.Controllers
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (!string.IsNullOrEmpty(requestItem.AssignedDepartment))
+                        or.BeResourceOwner(new DepartmentPath(requestItem.AssignedDepartment).Parent(), includeParents: false, includeDescendants: true);
+                    else
+                        or.BeResourceOwner();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
             var deleted = await DispatchAsync(new ResetWorkflow(requestId));
             if (deleted) return NoContent();
             else return StatusCode((int)HttpStatusCode.Gone);
