@@ -721,7 +721,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var deleted = await DispatchAsync(new ResetWorkflow(requestId));
             if (deleted) return NoContent();
-            else return StatusCode((int)HttpStatusCode.Gone);
+            else return NotFound();
         }
 
 
