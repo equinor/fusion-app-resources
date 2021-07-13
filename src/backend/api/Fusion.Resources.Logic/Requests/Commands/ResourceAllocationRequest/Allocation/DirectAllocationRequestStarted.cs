@@ -33,11 +33,6 @@ namespace Fusion.Resources.Logic.Commands
 
                     var request = await dbContext.ResourceAllocationRequests
                         .FirstAsync(r => r.Id == notification.RequestId, cancellationToken);
-
-                    if(string.IsNullOrEmpty(request.AssignedDepartment))
-                    {
-                        request.AssignedDepartment = await router.RouteAsync(request, cancellationToken);
-                    }
                     
                     ValidateWorkflow(request);
                 }
