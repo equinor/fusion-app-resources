@@ -32,6 +32,8 @@ namespace Fusion.Resources.Domain.Commands
 
                 requestItem.State = new DbOpState();
                 requestItem.IsDraft = true;
+                requestItem.AssignedDepartment = null;
+                requestItem.ProposedPerson = new DbOpProposedPerson();
 
                 db.Workflows.RemoveRange(
                     db.Workflows.Where(wf => wf.RequestId == request.requestId)
