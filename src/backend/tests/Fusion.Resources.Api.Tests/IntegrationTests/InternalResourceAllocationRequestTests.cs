@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -65,6 +66,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Mock project
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", true)
                 .AddToMockService();
 
             // Prepare context resolver.
@@ -692,6 +694,71 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }, new { Id = Guid.Empty });
 
             response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task GetPositionRequests_ShouldFindCompletedRequests()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject
+                .AddPosition()
+                .WithNoAssignedPerson()
+                .WithEnsuredFutureInstances();
+            var instance = position.Instances.First();
+
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var rq = await Client.CreateRequestAsync(projectId, rq =>
+                rq.AsTypeDirect()
+                    .WithPosition(position, instance.Id)
+                    .WithProposedPerson(proposedPerson)
+                    .WithAssignedDepartment(TestDepartmentId)
+            );
+            await Client.StartProjectRequestAsync(testProject, rq.Id);
+
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{rq.AssignedDepartment}/requests/{rq.Id}/approve", null);
+            resp.Should().BeSuccessfull();
+            resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{rq.Id}/approve", null);
+            resp.Should().BeSuccessfull();
+
+            var path = $"/projects/{projectId}/positions/{position.Id}/instances/{instance.Id}/requests";
+
+            var response = await Client.TestClientGetAsync<TestApiInternalRequestModel[]>(path);
+            response.Value.Should().Contain(x => x.Id == rq.Id);
+        }
+
+        [Fact]
+        public async Task GetPositionRequests_ShouldContainChangeRequests()
+        {
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            proposedPerson.FullDepartment = TestDepartmentId;
+
+            using var adminScope = fixture.AdminScope();
+            var position = testProject
+                .AddPosition()
+                .WithAssignedPerson(proposedPerson)
+                .WithEnsuredFutureInstances();
+            var instance = position.Instances.First();
+
+            var command = new ApiCreateInternalRequestModel()
+                .AsTypeResourceOwner("adjustment")
+                .WithAssignedDepartment(TestDepartmentId)
+                .WithPosition(position, instance.Id);
+
+            command.ProposedChanges = new Dictionary<string, object>
+            {
+                ["workload"] = 50
+            };
+
+            var newRequestResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{TestDepartmentId}/resources/requests", command);
+
+            var rq = newRequestResponse.Value;
+
+            await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{TestDepartmentId}/resources/requests/{rq.Id}/start", null);
+            var path = $"/projects/{projectId}/positions/{position.Id}/instances/{instance.Id}/requests";
+
+            var response = await Client.TestClientGetAsync<TestApiInternalRequestModel[]>(path);
+            response.Value.Should().Contain(x => x.Id == rq.Id);
         }
 
         #endregion

@@ -354,7 +354,7 @@ namespace Fusion.Resources.Api.Controllers
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
 
             // When querying by project, hide proposed values if type is allocation and state is in proposal.
-            foreach (var request in apiModel.Where(x=>x.ShouldHideProposalsForProject))
+            foreach (var request in apiModel.Where(x => x.ShouldHideProposalsForProject))
                 request.HideProposals();
 
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
@@ -450,9 +450,9 @@ namespace Fusion.Resources.Api.Controllers
 
             var apiModel = new ApiResourceAllocationRequest(result);
 
-            if (projectIdentifier is null) 
+            if (projectIdentifier is null)
                 return apiModel;
-            
+
             return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
         }
 
@@ -656,7 +656,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-            
+
             if (string.Equals(result!.State, AllocationNormalWorkflowV1.APPROVAL, StringComparison.OrdinalIgnoreCase))
                 await DispatchAsync(new InternalRequestNotifications.ProposedPerson(result.RequestId));
 
@@ -723,6 +723,41 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        [HttpGet("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/requests")]
+        public async Task<ActionResult> GetCompletedRequestsForPosition(
+            [FromRoute] PathProjectIdentifier projectIdentifier,
+            [FromRoute] Guid positionId, [FromRoute] Guid instanceId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    // For now everyone with a position in the project can view requests
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                    or.OrgChartReadAccess(projectIdentifier.ProjectId);
+                    or.OrgChartPositionReadAccess(projectIdentifier.ProjectId, positionId);
+                    or.BeResourceOwner();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var result = await DispatchAsync(
+                new GetResourceAllocationRequests()
+                    .ForAll()
+                    .WithExcludeCompleted(false)
+                    .WithProjectId(projectIdentifier.ProjectId)
+                    .WithPosition(positionId, instanceId)
+            );
+
+            return Ok(result.Select(x => new ApiResourceAllocationRequest(x)));
+        }
 
         #region Comments
 
