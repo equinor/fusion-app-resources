@@ -48,6 +48,8 @@ namespace Fusion.Resources.Database.Entities
                 entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.UpdatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
 
+                entity.Property(e => e.Description).HasMaxLength(2000);
+
 
                 entity.OwnsOne(e => e.ProvisioningStatus, op =>
                 {
@@ -56,6 +58,9 @@ namespace Fusion.Resources.Database.Entities
                 entity.OwnsOne(e => e.Position, op =>
                 {
                     op.OwnsOne(p => p.TaskOwner);
+
+                    op.Property(p => p.Name).HasMaxLength(250);
+                    op.Property(p => p.Obs).HasMaxLength(40);
                 });
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());

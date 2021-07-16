@@ -37,7 +37,16 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbWorkflowStep>(entity =>
             {
                 modelBuilder.Entity<DbWorkflowStep>(model => model.HasKey(step => new { step.Id, step.WorkflowId }));
+                
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbWFStepState>());
+                
+                entity.Property(e => e.Id).HasMaxLength(50);
+                entity.Property(e => e.PreviousStep).HasMaxLength(50);
+                entity.Property(e => e.NextStep).HasMaxLength(50);
+
+                entity.Property(e => e.Name).HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.Reason).HasMaxLength(500);
             });
         }
     }

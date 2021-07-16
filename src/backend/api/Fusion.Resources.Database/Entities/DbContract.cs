@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Fusion.Resources.Database.Entities
 {
@@ -15,6 +16,16 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset Allocated { get; set; }
         public DbPerson AllocatedBy { get; set; } = null!;
         public Guid AllocatedById { get; set; }
-    }
 
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<DbContract>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.ContractNumber).HasMaxLength(40);
+                entity.Property(e => e.Name).HasMaxLength(250);
+            });
+        }
+    }
 }

@@ -48,6 +48,10 @@ namespace Fusion.Resources.Database.Entities
                 entity.HasMany(e => e.WorkflowSteps).WithOne(s => s.Workflow).OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbWorkflowState>());
+
+                entity.Property(e => e.LogicAppName).HasMaxLength(500);
+                entity.Property(e => e.LogicAppVersion).HasMaxLength(32);
+                entity.Property(e => e.WorkflowClassType).HasMaxLength(100);
             });
 
         }

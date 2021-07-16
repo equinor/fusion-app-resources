@@ -30,6 +30,9 @@ namespace Fusion.Resources.Database.Entities
                 entity.HasOne(e => e.Project).WithMany().OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.Responsible).WithMany().OnDelete(DeleteBehavior.Restrict);
 
+                entity.Property(e => e.Discipline).HasMaxLength(50);
+                entity.Property(e => e.Sector).HasMaxLength(100);
+                entity.Property(e => e.Unit).HasMaxLength(100);
             });
 
         }

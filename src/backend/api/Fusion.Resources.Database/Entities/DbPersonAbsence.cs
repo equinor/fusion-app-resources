@@ -26,9 +26,16 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbPersonAbsence>(entity =>
             {
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAbsenceType>());
+                entity.Property(e => e.Comment).HasMaxLength(2000);
+
                 entity.HasOne(e => e.Person).WithMany().OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);
-                entity.OwnsOne(e => e.TaskDetails);
+                entity.OwnsOne(e => e.TaskDetails, op =>
+                {
+                    op.Property(x => x!.TaskName).HasMaxLength(100);
+                    op.Property(x => x!.RoleName).HasMaxLength(100);
+                    op.Property(x => x!.Location).HasMaxLength(50);
+                });
             });
         }
     }

@@ -49,6 +49,7 @@ namespace Fusion.Resources.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            DbContract.OnModelCreating(modelBuilder);
             DbContractPersonnel.OnModelCreating(modelBuilder);
             DbExternalPersonnelPerson.OnModelCreating(modelBuilder);
             DbContractorRequest.OnModelCreating(modelBuilder);

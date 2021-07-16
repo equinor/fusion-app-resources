@@ -10,8 +10,13 @@ namespace Fusion.Resources.Database.Entities
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DbDepartment>()
-                .HasKey(dpt => dpt.DepartmentId);
+            modelBuilder.Entity<DbDepartment>(entity =>
+            {
+                entity.HasKey(dpt => dpt.DepartmentId);
+
+                entity.Property(x => x.DepartmentId).HasMaxLength(100);
+                entity.Property(x => x.SectorId).HasMaxLength(100);
+            });
 
             modelBuilder.Entity<DbDepartment>().HasData(CreateSeedData());
         }
