@@ -719,9 +719,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var deleted = await DispatchAsync(new ResetWorkflow(requestId));
-            if (deleted) return NoContent();
-            else return NotFound();
+            await DispatchAsync(new ResetWorkflow(requestId));
+            return NoContent();
         }
 
 
