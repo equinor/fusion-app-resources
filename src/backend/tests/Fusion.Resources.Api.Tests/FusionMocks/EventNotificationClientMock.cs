@@ -2,6 +2,7 @@
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,6 +30,12 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             setup(builder);
 
             return DispatchNotification(builder.Type, builder.Category, builder.Payload, builder.AppContext, builder.EventId);
+        }
+
+        public async Task SendNotificationAsync(IEnumerable<FusionEvent> events)
+        {
+            foreach (var builder in events)
+                await DispatchNotification(builder.Type, builder.Category, builder.Payload, builder.AppContext, builder.EventId);
         }
 
         private Task DispatchNotification<T>(FusionEventType type, FusionEventCategory category, T payload, string appContext, string eventId)
