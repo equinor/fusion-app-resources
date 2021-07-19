@@ -254,6 +254,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task DirectRequest_Start_ShouldAssignProposedPersonsDepartment_WhenStarting()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            proposedPerson.FullDepartment = "TST DPT 123";
+
+            var request = await Client.CreateDefaultRequestAsync(testProject, 
+                r => r.AsTypeDirect().WithProposedPerson(proposedPerson).WithAssignedDepartment(null)
+            );
+
+            var result = await Client.StartProjectRequestAsync(testProject, request.Id);
+            result.AssignedDepartment.Should().Be(proposedPerson.FullDepartment);
+        }
+
+        [Fact]
         public async Task DirectRequest_Start_ShouldAddWorkflowInfo_WhenStartingRequest()
         {
             using var adminScope = fixture.AdminScope();

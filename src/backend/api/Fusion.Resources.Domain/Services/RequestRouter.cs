@@ -17,17 +17,29 @@ namespace Fusion.Resources.Domain
         private readonly ResourcesDbContext db;
         private readonly IProjectOrgResolver orgResolver;
         private readonly IMediator mediator;
+        private readonly IProfileService profileService;
 
-        public RequestRouter(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator)
+        public RequestRouter(ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IProfileService profileService)
         {
             this.db = db;
             this.orgResolver = orgResolver;
             this.mediator = mediator;
+            this.profileService = profileService;
         }
 
         public async Task<string?> RouteAsync(DbResourceAllocationRequest request, CancellationToken cancellationToken)
         {
-            var departmentId = await RouteFromResponsibilityMatrix(request, cancellationToken);
+            string? departmentId = null;
+
+            if (request.ProposedPerson is not null)
+            {
+                departmentId = await RouteFromProposedPerson(request.ProposedPerson, cancellationToken);
+            }
+
+            if (string.IsNullOrEmpty(departmentId))
+            {
+                departmentId = await RouteFromResponsibilityMatrix(request, cancellationToken);
+            }
 
             if (string.IsNullOrEmpty(departmentId))
             {
@@ -35,6 +47,16 @@ namespace Fusion.Resources.Domain
             }
 
             return departmentId;
+        }
+
+        private async Task<string?> RouteFromProposedPerson(DbResourceAllocationRequest.DbOpProposedPerson proposedPerson, CancellationToken cancellationToken)
+        {
+            if (!proposedPerson.AzureUniqueId.HasValue) return null;
+
+            var personId = new PersonId(proposedPerson.AzureUniqueId.Value);
+            var profile = await profileService.ResolveProfileAsync(personId);
+
+            return profile?.FullDepartment;
         }
 
         private async Task<string?> RouteFromBasePosition(DbResourceAllocationRequest request)
