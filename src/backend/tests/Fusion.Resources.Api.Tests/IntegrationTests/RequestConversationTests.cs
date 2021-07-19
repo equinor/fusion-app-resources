@@ -82,7 +82,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Recipient.Should().Be(payload.recipient);
 
             result.Sender.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId.GetValueOrDefault());
-            result.Sent.Should().BeCloseTo(DateTimeOffset.UtcNow, 1000);
+            result.Sent.Should().BeCloseTo(DateTimeOffset.UtcNow, 5000);
 
             result.Properties["customProp1"].Should().Be(payload.properties.customProp1);
             result.Properties["customProp2"].Should().Be(payload.properties.customProp2);

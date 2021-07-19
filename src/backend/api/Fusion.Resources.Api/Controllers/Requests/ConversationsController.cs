@@ -7,7 +7,6 @@ using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/conversation")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation")]
         [HttpPost("/departments/{departmentString}/resources/requests/{requestId}/conversation")]
-        public async Task<ActionResult> AddConversationMessage([FromRoute] Guid requestId, Guid? projectIdentifier, string? departmentString [FromBody] AddRequestConversationMessageRequest request)
+        public async Task<ActionResult> AddConversationMessage([FromRoute] Guid requestId, Guid? projectIdentifier, string? departmentString, [FromBody] AddRequestConversationMessageRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -120,7 +119,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}/conversation/{messageId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation/{messageId}")]
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/conversation/{messageId}")]
-        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid , Guid? projectIdentifier, string? departmentString)
+        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid messageId, Guid? projectIdentifier, string? departmentString)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
