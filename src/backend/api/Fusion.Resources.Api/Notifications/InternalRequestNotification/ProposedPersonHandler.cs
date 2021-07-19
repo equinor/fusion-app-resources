@@ -44,7 +44,7 @@ namespace Fusion.Resources.Api.Notifications
 
                 try
                 {
-                    notificationBuilder.AddTitle("A personnel request has been assigned to you")
+                    notificationBuilder.AddTitle($"A {request.AllocationRequest.SubType} personnel request has been assigned to you")
                     .AddTextBlockIf("Proposed resource", request.Instance.AssignedPerson != null)
                     .TryAddProfileCard(request.Instance.AssignedPerson?.AzureUniqueId)
 
@@ -55,8 +55,8 @@ namespace Fusion.Resources.Api.Notifications
                         .AddFactIf("Project", request.Position.Project.Name, request.Position?.Project is not null)
                         .AddFactIf("Position id", request.Position?.ExternalId ?? "", request.Position?.ExternalId is not null)
                         .AddFactIf("Position", request.Position?.Name ?? "", request.Position?.Name is not null)
-                        .AddFact("Period", $"{request.Instance.AppliesFrom:dd.MM.yyyy} - {request.Instance.AppliesTo:dd.MM.yyyy}") // Until we have resolved date formatting issue related to timezone.
-                        .AddFact("Workload", $"{request.Instance?.Workload}")
+                        .AddFact("Period", $"{request.Instance.GetFormattedPeriodString()}")
+                        .AddFact("Workload", $"{request.Instance?.GetFormattedWorkloadString()}")
                         )
                     .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
                     .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgPortalUrl}");

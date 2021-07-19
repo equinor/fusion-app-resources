@@ -348,6 +348,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         }
 
+        [Fact]
+        public async Task DeleteWorkflowShouldResetState()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var originalRequest = await Client.CreateDefaultRequestAsync(testProject);
+
+            await Client.StartProjectRequestAsync(testProject, originalRequest.Id);
+            var result = await Client.TestClientDeleteAsync($"/resources/requests/internal/{originalRequest.Id}/workflow");
+            result.Should().BeSuccessfull();
+
+            var updated = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{originalRequest.Id}");
+            
+            updated.Value.State.Should().Be(originalRequest.State);
+            updated.Value.IsDraft.Should().BeTrue();
+            updated.Value.Workflow.Should().BeNull();
+        }
+
         //[Fact]
         //public async Task UnassignedRequests_ShouldReturnRequestsWithoutDepartment()
         //{
