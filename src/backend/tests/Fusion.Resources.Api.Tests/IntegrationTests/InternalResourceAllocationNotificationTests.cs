@@ -97,7 +97,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequest_StartWorkFlow_ShouldNotify()
         {
             using var adminScope = fixture.AdminScope();
-            var directRequest = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeDirect().WithPosition(requestPosition).WithProposedPerson(testUser).WithAssignedDepartment(testUser.FullDepartment!));
+            var directRequest = await Client.CreateRequestAsync(ProjectId, r => r
+                .AsTypeDirect()
+                .WithPosition(requestPosition)
+                .WithProposedPerson(testUser)
+                .WithAssignedDepartment(testUser.FullDepartment!));
 
             NotificationClientMock.SentMessages.Clear();
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{directRequest.Id}/start", null);
@@ -186,7 +190,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Act
             var response2 = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}/approve", null);
             response2.Should().BeSuccessfull();
-            
+
             // Assert
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();

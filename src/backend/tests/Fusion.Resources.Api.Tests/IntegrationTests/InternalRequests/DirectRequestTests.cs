@@ -73,7 +73,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(testUser.FullDepartment).SaveProfile();
             // Create a default request we can work with
-            directRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeDirect().WithProposedPerson(testUser).WithAssignedDepartment(testUser.FullDepartment!));
+            directRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithProposedPerson(testUser)
+                .WithAssignedDepartment(testUser.FullDepartment!));
         }
 
         public Task DisposeAsync()

@@ -691,6 +691,38 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceAllocationRequest(result!);
         }
 
+        [HttpDelete("/resources/requests/internal/{requestId}/workflow")]
+        [HttpDelete("/departments/{departmentString}/resources/requests/{requestId}/workflow")]
+        public async Task<ActionResult> ResetWorkflow(Guid requestId, string? departmentString)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (!string.IsNullOrEmpty(requestItem.AssignedDepartment))
+                        or.BeResourceOwner(new DepartmentPath(requestItem.AssignedDepartment).Parent(), includeParents: false, includeDescendants: true);
+                    else
+                        or.BeResourceOwner();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            await DispatchAsync(new ResetWorkflow(requestId));
+            return NoContent();
+        }
+
 
         #region Comments
 
