@@ -14,7 +14,7 @@ namespace Fusion.Testing.Mocks.ProfileService
         readonly WebApplicationFactory<Startup> factory;
 
         internal static ConcurrentBag<ApiPersonProfileV3> profiles = new ConcurrentBag<ApiPersonProfileV3>();
-        internal static List<ApiCompanyInfo> companies = new List<ApiCompanyInfo>();
+        internal static ConcurrentBag<ApiCompanyInfo> companies = new ConcurrentBag<ApiCompanyInfo>();
 
         public PeopleServiceMock()
         {

@@ -144,9 +144,7 @@ namespace Fusion.Testing.Mocks.OrgService
 
             var clone = position.JsonClone();
 
-            OrgServiceMock.semaphore.Wait();
-            try { OrgServiceMock.contractPositions.Add(clone); }
-            finally { OrgServiceMock.semaphore.Release(); }
+            OrgServiceMock.contractPositions.TryAdd(clone.Id, clone);
             return clone;
         }
 
@@ -178,9 +176,7 @@ namespace Fusion.Testing.Mocks.OrgService
             };
 
             var clone = position.JsonClone();
-            OrgServiceMock.semaphore.Wait();
-            try { OrgServiceMock.positions.Add(clone); }
-            finally { OrgServiceMock.semaphore.Release(); }
+            OrgServiceMock.positions.Add(clone);
 
             return clone;
         }
@@ -197,9 +193,7 @@ namespace Fusion.Testing.Mocks.OrgService
             };
 
             var clone = position.JsonClone();
-            OrgServiceMock.semaphore.Wait();
-            try { OrgServiceMock.positions.Add(clone); }
-            finally { OrgServiceMock.semaphore.Release(); }
+            OrgServiceMock.positions.Add(clone);
 
             return clone;
         }
