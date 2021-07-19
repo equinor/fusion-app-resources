@@ -70,23 +70,6 @@ namespace Fusion.Resources.Domain
 
                 return relevantDepartments;
             }
-
-            private async Task<List<QueryDepartment>> ReadDepartments(HttpResponseMessage respCurrent)
-            {
-                var result = new List<QueryDepartment>();
-                var content = await respCurrent.Content.ReadAsStringAsync();
-                var department = JsonConvert.DeserializeAnonymousType(content,
-                    new { children = new[] { new { name = string.Empty, fullName = string.Empty } } }
-                );
-
-                var children = department.children.Select(c => c.fullName);
-                if (children.Any())
-                {
-                    result.AddRange(await mediator.Send(new GetDepartments().ByIds(children)));
-                }
-
-                return result;
-            }
         }
     }
 }

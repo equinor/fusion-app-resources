@@ -73,7 +73,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(testUser.FullDepartment).SaveProfile();
             // Create a default request we can work with
-            directRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeDirect().WithProposedPerson(testUser).WithAssignedDepartment(testUser.FullDepartment!));
+            directRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithProposedPerson(testUser)
+                .WithAssignedDepartment(testUser.FullDepartment!));
         }
 
         public Task DisposeAsync()
@@ -248,6 +251,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var typedValue = propertyValue?.ToObject(value.GetType());
 
             typedValue.Should().Be(value);
+        }
+
+        [Fact]
+        public async Task DirectRequest_Start_ShouldAssignProposedPersonsDepartment_WhenStarting()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            proposedPerson.FullDepartment = "TST DPT 123";
+
+            var request = await Client.CreateDefaultRequestAsync(testProject, 
+                r => r.AsTypeDirect().WithProposedPerson(proposedPerson).WithAssignedDepartment(null)
+            );
+
+            var result = await Client.StartProjectRequestAsync(testProject, request.Id);
+            result.AssignedDepartment.Should().Be(proposedPerson.FullDepartment);
         }
 
         [Fact]

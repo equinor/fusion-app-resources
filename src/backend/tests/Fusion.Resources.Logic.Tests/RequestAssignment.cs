@@ -240,7 +240,9 @@ namespace Fusion.Resources.Logic.Tests
             var mediatorMock = new Mock<IMediator>(MockBehavior.Loose);
             setupMediatorMock?.Invoke(mediatorMock);
 
-            var router = new RequestRouter(db, orgServiceMock.Object, mediatorMock.Object);
+            var profileServiceMock = new Mock<IProfileService>(MockBehavior.Loose);
+
+            var router = new RequestRouter(db, orgServiceMock.Object, mediatorMock.Object, profileServiceMock.Object);
             return new Queries.ResolveResponsibleDepartment.Handler(db, router);
         }
 
