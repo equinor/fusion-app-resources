@@ -48,5 +48,5 @@ namespace Fusion.Resources.Domain
         }
     }
 
-    public enum QueryMessageRecipient { ResourceOwner, TaskOwner, Both }
+    public enum QueryMessageRecipient { ResourceOwner, TaskOwner, All }
 }

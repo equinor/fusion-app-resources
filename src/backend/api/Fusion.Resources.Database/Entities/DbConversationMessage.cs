@@ -50,5 +50,5 @@ namespace Fusion.Resources.Database.Entities
         }
     }
 
-    public enum DbMessageRecipient { ResourceOwner, TaskOwner, Both }
+    public enum DbMessageRecipient { ResourceOwner, TaskOwner, All }
 }

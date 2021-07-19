@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Controllers
             Recipient = message.Recipient switch {
                 QueryMessageRecipient.ResourceOwner => ApiMessageRecipient.ResourceOwner,
                 QueryMessageRecipient.TaskOwner => ApiMessageRecipient.TaskOwner,
-                QueryMessageRecipient.Both => ApiMessageRecipient.Both,
+                QueryMessageRecipient.All => ApiMessageRecipient.All,
                 _ => throw new NotSupportedException($"Recipient type '{message.Recipient}' is not supported")
             };
 
@@ -46,5 +46,5 @@ namespace Fusion.Resources.Api.Controllers
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ApiMessageRecipient { ResourceOwner, TaskOwner, Both }
+    public enum ApiMessageRecipient { ResourceOwner, TaskOwner, All }
 }

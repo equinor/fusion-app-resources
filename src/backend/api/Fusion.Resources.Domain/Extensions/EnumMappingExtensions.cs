@@ -97,7 +97,7 @@ namespace Fusion.Resources
             {
                 DbMessageRecipient.ResourceOwner => QueryMessageRecipient.ResourceOwner,
                 DbMessageRecipient.TaskOwner => QueryMessageRecipient.TaskOwner,
-                DbMessageRecipient.Both => QueryMessageRecipient.Both,
+                DbMessageRecipient.All => QueryMessageRecipient.All,
                 _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(QueryTaskSource)}.")
             };
         }
@@ -108,7 +108,7 @@ namespace Fusion.Resources
             {
                 QueryMessageRecipient.ResourceOwner => DbMessageRecipient.ResourceOwner,
                 QueryMessageRecipient.TaskOwner => DbMessageRecipient.TaskOwner,
-                QueryMessageRecipient.Both => DbMessageRecipient.Both,
+                QueryMessageRecipient.All => DbMessageRecipient.All,
                 _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbTaskSource)}.")
             };
         }
