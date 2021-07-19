@@ -12,7 +12,6 @@ namespace Fusion.Resources.Api
             {
                 ApiMessageRecipient.ResourceOwner => QueryMessageRecipient.ResourceOwner,
                 ApiMessageRecipient.TaskOwner => QueryMessageRecipient.TaskOwner,
-                ApiMessageRecipient.All => QueryMessageRecipient.All,
                 _ => throw new NotSupportedException($"Recipient type '{value}' is not supported.")
             };
         }
