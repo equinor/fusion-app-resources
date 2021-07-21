@@ -362,7 +362,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
 
             var updated = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{originalRequest.Id}");
-            
+
             updated.Value.State.Should().Be(originalRequest.State);
             updated.Value.IsDraft.Should().BeTrue();
             updated.Value.Workflow.Should().BeNull();
@@ -720,6 +720,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Should().BeSuccessfull();
             resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{rq.Id}/approve", null);
             resp.Should().BeSuccessfull();
+            await Client.ProvisionRequestAsync(rq.Id);
 
             var path = $"/projects/{projectId}/positions/{position.Id}/instances/{instance.Id}/requests";
 

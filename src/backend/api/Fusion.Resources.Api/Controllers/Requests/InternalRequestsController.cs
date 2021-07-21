@@ -729,7 +729,8 @@ namespace Fusion.Resources.Api.Controllers
             [FromRoute] Guid positionId, [FromRoute] Guid instanceId)
         {
             var position = await DispatchAsync(new GetPosition(positionId));
-            var department = position?.Instances.FirstOrDefault(x => x.Id == instanceId)?.AssignedPerson.Department;
+            var instance = position?.Instances.FirstOrDefault(x => x.Id == instanceId);
+            var department = instance?.AssignedPerson?.Department;
             
             #region Authorization
 
