@@ -421,7 +421,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeRequestCreator(requestId);
-                    // For now everyone with a position in the project can view requests
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(result.Project.OrgProjectId));
                     or.OrgChartReadAccess(result.Project.OrgProjectId);
 

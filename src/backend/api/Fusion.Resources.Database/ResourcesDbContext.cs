@@ -45,6 +45,7 @@ namespace Fusion.Resources.Database
         public DbSet<DbDepartmentResponsible> DepartmentResponsibles { get; set; }
 
         public DbSet<DbRequestTask> RequestTasks { get; set; }
+        public DbSet<DbConversationMessage> RequestConversations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +64,7 @@ namespace Fusion.Resources.Database
             DbDepartment.OnModelCreating(modelBuilder);
             DbDepartmentResponsible.OnModelCreating(modelBuilder);
             DbRequestTask.OnModelCreating(modelBuilder);
+            DbConversationMessage.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
