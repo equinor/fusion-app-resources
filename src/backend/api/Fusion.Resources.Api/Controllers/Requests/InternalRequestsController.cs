@@ -724,10 +724,13 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/requests")]
-        public async Task<ActionResult> GetCompletedRequestsForPosition(
+        public async Task<ActionResult> GetRequestsForPosition(
             [FromRoute] PathProjectIdentifier projectIdentifier,
             [FromRoute] Guid positionId, [FromRoute] Guid instanceId)
         {
+            var position = await DispatchAsync(new GetPosition(positionId));
+            var department = position?.GetActiveInstance()?.AssignedPerson?.Department;
+            
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -739,7 +742,8 @@ namespace Fusion.Resources.Api.Controllers
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
                     or.OrgChartReadAccess(projectIdentifier.ProjectId);
                     or.OrgChartPositionReadAccess(projectIdentifier.ProjectId, positionId);
-                    or.BeResourceOwner();
+                    if(!string.IsNullOrEmpty(department))
+                        or.BeResourceOwner(new DepartmentPath(department).GoToLevel(2), includeDescendants: true );
                 });
             });
 
