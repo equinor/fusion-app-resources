@@ -729,6 +729,39 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetPositionRequests_ShouldBeODataFilterable()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject
+                .AddPosition()
+                .WithNoAssignedPerson()
+                .WithEnsuredFutureInstances();
+            var instance = position.Instances.First();
+
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var rq = await Client.CreateRequestAsync(projectId, rq =>
+                rq.AsTypeDirect()
+                    .WithPosition(position, instance.Id)
+                    .WithProposedPerson(proposedPerson)
+                    .WithAssignedDepartment(TestDepartmentId)
+            );
+            await Client.StartProjectRequestAsync(testProject, rq.Id);
+
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{rq.AssignedDepartment}/requests/{rq.Id}/approve", null);
+            resp.Should().BeSuccessfull();
+            resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{rq.Id}/approve", null);
+            resp.Should().BeSuccessfull();
+            await Client.ProvisionRequestAsync(rq.Id);
+
+            var path = $"/projects/{projectId}/positions/{position.Id}/instances/{instance.Id}/requests"
+                + "?$filter=state eq 'proposed'";
+
+            var response = await Client.TestClientGetAsync<TestApiInternalRequestModel[]>(path);
+            response.Value.Should().NotContain(x => x.Id == rq.Id);
+        }
+
+        [Fact]
         public async Task GetPositionRequests_ShouldContainChangeRequests()
         {
             var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);

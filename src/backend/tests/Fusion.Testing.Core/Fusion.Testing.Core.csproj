@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fusion.Testing.Authentication\Fusion.Testing.Authentication.csproj" />
+    <ProjectReference Include="..\Fusion.Testing.Mocks.ContextService\Fusion.Testing.Mocks.ContextService.csproj" />
   </ItemGroup>
 
 </Project>

@@ -726,7 +726,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/requests")]
         public async Task<ActionResult> GetRequestsForPosition(
             [FromRoute] PathProjectIdentifier projectIdentifier,
-            [FromRoute] Guid positionId, [FromRoute] Guid instanceId)
+            [FromRoute] Guid positionId, 
+            [FromRoute] Guid instanceId, 
+            [FromQuery] ODataQueryParams query)
         {
             var position = await DispatchAsync(new GetPosition(positionId));
             var instance = position?.Instances.FirstOrDefault(x => x.Id == instanceId);
@@ -754,7 +756,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var result = await DispatchAsync(
-                new GetResourceAllocationRequests()
+                new GetResourceAllocationRequests(query)
                     .ForAll()
                     .WithExcludeCompleted(false)
                     .WithProjectId(projectIdentifier.ProjectId)
