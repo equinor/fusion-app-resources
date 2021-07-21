@@ -67,7 +67,7 @@ namespace Fusion.Testing.Mocks
             ProposedPersonAzureUniqueId = person.AzureUniqueId;
             return this;
         }
-        public ApiCreateInternalRequestModel WithAssignedDepartment(string department)
+        public ApiCreateInternalRequestModel WithAssignedDepartment(string? department)
         {
             AssignedDepartment = department;
             return this;
