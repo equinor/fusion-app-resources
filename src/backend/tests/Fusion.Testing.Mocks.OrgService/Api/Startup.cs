@@ -59,41 +59,32 @@ namespace Fusion.Testing.Mocks.OrgService.Api
 
         public async Task Invoke(HttpContext context)
         {
-            await OrgServiceMock.semaphore.WaitAsync();
+            //First, get the incoming request
+            context.Request.EnableBuffering();
 
-            try
+            using (var membuffer = new MemoryStream())
             {
-                //First, get the incoming request
-                context.Request.EnableBuffering();
+                await context.Request.Body.CopyToAsync(membuffer);
 
-                using (var membuffer = new MemoryStream())
+                using (var reader = new StreamReader(membuffer))
                 {
-                    await context.Request.Body.CopyToAsync(membuffer);
+                    membuffer.Seek(0, SeekOrigin.Begin);
+                    var content = await reader.ReadToEndAsync();
 
-                    using (var reader = new StreamReader(membuffer))
+                    OrgServiceMock.Invocations.Add(new ApiInvocation()
                     {
-                        membuffer.Seek(0, SeekOrigin.Begin);
-                        var content = await reader.ReadToEndAsync();
-
-                        OrgServiceMock.Invocations.Add(new ApiInvocation()
-                        {
-                            Method = new HttpMethod(context.Request.Method),
-                            Body = content,
-                            Path = context.Request.Path,
-                            Query = context.Request.QueryString,
-                            Headers = context.Request.Headers.ToDictionary(k => k.Key, k => k.Value.ToString())
-                        });
-                    }
+                        Method = new HttpMethod(context.Request.Method),
+                        Body = content,
+                        Path = context.Request.Path,
+                        Query = context.Request.QueryString,
+                        Headers = context.Request.Headers.ToDictionary(k => k.Key, k => k.Value.ToString())
+                    });
                 }
-
-                context.Request.Body.Seek(0, SeekOrigin.Begin);
-
-                await _next(context);
             }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+
+            context.Request.Body.Seek(0, SeekOrigin.Begin);
+
+            await _next(context);
         }
     }
 

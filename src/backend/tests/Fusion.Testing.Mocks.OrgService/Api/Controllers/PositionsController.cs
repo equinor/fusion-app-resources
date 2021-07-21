@@ -29,8 +29,10 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         [HttpGet("/positions/{positionId}")]
         public ActionResult<ApiPositionV2> LookupPosition(Guid positionId)
         {
-            var position = OrgServiceMock.positions.Union(OrgServiceMock.contractPositions)
-                .FirstOrDefault(p => p.Id == positionId);
+            OrgServiceMock.contractPositions.TryGetValue(positionId, out ApiPositionV2 position);
+
+            if (position is null)
+                position = OrgServiceMock.positions.FirstOrDefault(x => x.Id == positionId);
 
             if (position is null)
                 return FusionApiError.NotFound(positionId, "Could not locate position");
@@ -69,7 +71,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         [HttpGet("/projects/{projectId}/contracts/{contractId}/positions/{positionId}")]
         public ActionResult<ApiPositionV2> GetPosition([FromRoute] ProjectIdentifier projectIdentifier, Guid contractId, Guid positionId)
         {
-            var position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Id == positionId);
+            OrgServiceMock.contractPositions.TryGetValue(positionId, out ApiPositionV2 position);
 
             if (position != null)
                 return position;
@@ -81,12 +83,9 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         [HttpDelete("/projects/{projectId}/contracts/{contractId}/positions/{positionId}")]
         public ActionResult<ApiPositionV2> DeleteContractPosition([FromRoute] ProjectIdentifier projectIdentifier, Guid contractId, Guid positionId)
         {
-            var position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Id == positionId);
+            OrgServiceMock.contractPositions.Remove(positionId, out ApiPositionV2 position);
 
-            if (position == null)
-                return NotFound();
-
-            OrgServiceMock.contractPositions.Remove(position);
+            if (position == null) return NotFound();
 
             return NoContent();
         }

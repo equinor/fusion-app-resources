@@ -142,7 +142,13 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             return contract;
         }
 
-        private static ApiPositionV2 FindContractPosition(Guid? positionId) => OrgServiceMock.contractPositions.FirstOrDefault(p => p.Id == positionId);
+        private static ApiPositionV2 FindContractPosition(Guid? positionId)
+        {
+            if (positionId is null) return null;
+
+            OrgServiceMock.contractPositions.TryGetValue(positionId.Value, out ApiPositionV2 pos);
+            return pos;
+        }
 
         public class NewContractRequest
         {

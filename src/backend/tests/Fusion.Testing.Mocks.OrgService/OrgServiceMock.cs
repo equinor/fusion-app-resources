@@ -28,15 +28,13 @@ namespace Fusion.Testing.Mocks.OrgService
 
         public static ConcurrentBag<ApiInvocation> Invocations = new ConcurrentBag<ApiInvocation>();
 
-        internal static List<ApiClients.Org.ApiProjectV2> projects = new List<ApiClients.Org.ApiProjectV2>();
-        internal static List<ApiClients.Org.ApiPositionV2> positions = new List<ApiClients.Org.ApiPositionV2>();
-        internal static Dictionary<Guid, List<ApiClients.Org.ApiProjectContractV2>> contracts = new Dictionary<Guid, List<ApiClients.Org.ApiProjectContractV2>>();
-        internal static List<ApiClients.Org.ApiPositionV2> contractPositions = new List<ApiClients.Org.ApiPositionV2>();
-        internal static List<ApiCompanyV2> companies = new List<ApiCompanyV2>();
+        internal static ConcurrentBag<ApiProjectV2> projects = new();
+        internal static ConcurrentBag<ApiPositionV2> positions = new();
+        internal static ConcurrentDictionary<Guid, List<ApiProjectContractV2>> contracts = new();
+        internal static ConcurrentDictionary<Guid, ApiPositionV2> contractPositions = new();
+        internal static ConcurrentBag<ApiCompanyV2> companies = new();
 
         internal static ConcurrentDictionary<Guid, Guid> taskOwnerMapping = new ConcurrentDictionary<Guid, Guid>();
-
-        internal static SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
         public OrgServiceMock()
         {
@@ -52,43 +50,27 @@ namespace Fusion.Testing.Mocks.OrgService
 
         public static void AddProject(FusionTestProjectBuilder builder)
         {
-            semaphore.Wait();
+            projects.Add(builder.Project);
+            foreach (var position in builder.Positions) positions.Add(position);
 
-            try
+            foreach ((var contract, var positions) in builder.ContractsWithPositions)
             {
-                projects.Add(builder.Project);
-                positions.AddRange(builder.Positions);
+                if (!contracts.ContainsKey(builder.Project.ProjectId))
+                    contracts[builder.Project.ProjectId] = new List<ApiProjectContractV2>();
 
-                foreach ((var contract, var positions) in builder.ContractsWithPositions)
+                contracts[builder.Project.ProjectId].Add(contract);
+
+                foreach (var position in positions) contractPositions.TryAdd(position.Id, position);
+
+                if (contract.Company != null && !companies.Any(c => c.Id == contract.Company.Id))
                 {
-                    if (!contracts.ContainsKey(builder.Project.ProjectId))
-                        contracts[builder.Project.ProjectId] = new List<ApiProjectContractV2>();
-
-                    contracts[builder.Project.ProjectId].Add(contract);
-                    contractPositions.AddRange(positions);
-
-                    if (contract.Company != null && !companies.Any(c => c.Id == contract.Company.Id))
-                    {
-                        companies.Add(contract.Company);
-                    }
+                    companies.Add(contract.Company);
                 }
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
         public static void AddCompany(Guid id, string name)
         {
-            semaphore.Wait();
-            try
-            {
-                companies.Add(new ApiCompanyV2 { Id = id, Name = name });
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+            companies.Add(new ApiCompanyV2 { Id = id, Name = name });
         }
 
         public static void SetTaskOwner(Guid position, Guid taskOwnerPosition)

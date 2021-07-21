@@ -12,118 +12,55 @@ namespace Fusion.Testing.Mocks.OrgService.Resolvers
     {
         public Task<IEnumerable<ApiBasePositionV2>> GetBasePositionsAsync()
         {
-            OrgServiceMock.semaphore.Wait();
-
-            try
-            {
-                return Task.FromResult(PositionBuilder.AllBasePositions.AsEnumerable());
-            }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+            return Task.FromResult(PositionBuilder.AllBasePositions.AsEnumerable());
         }
 
         public Task<ApiBasePositionV2> ResolveBasePositionAsync(Guid basePositionId)
         {
-            OrgServiceMock.semaphore.Wait();
-
-            try
-            {
-                var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => bp.Id == basePositionId);
-                return Task.FromResult(bp);
-            }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => bp.Id == basePositionId);
+            return Task.FromResult(bp);
         }
 
         public Task<ApiBasePositionV2> ResolveBasePositionAsync(string name, OrgProjectType projectType)
         {
-            OrgServiceMock.semaphore.Wait();
-
-            try
-            {
-                var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => string.Equals(name, bp.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(projectType.Name, bp.ProjectType));
-                return Task.FromResult(bp);
-            }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => string.Equals(name, bp.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(projectType.Name, bp.ProjectType));
+            return Task.FromResult(bp);
         }
 
         public Task<ApiProjectContractV2> ResolveContractAsync(Guid projectId, Guid contractId)
         {
-            OrgServiceMock.semaphore.Wait();
-
-            try
-            {
-                var contract = OrgServiceMock.contracts.ContainsKey(projectId) ? OrgServiceMock.contracts[projectId].FirstOrDefault(c => c.Id == contractId) : null;
-                return Task.FromResult(contract);
-            }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+            var contract = OrgServiceMock.contracts.ContainsKey(projectId) ? OrgServiceMock.contracts[projectId].FirstOrDefault(c => c.Id == contractId) : null;
+            return Task.FromResult(contract);
         }
 
         public Task<ApiPositionV2> ResolvePositionAsync(Guid positionId)
         {
-            OrgServiceMock.semaphore.Wait();
+            OrgServiceMock.contractPositions.TryGetValue(positionId, out ApiPositionV2 position);
+            if (position is null)
+                position = OrgServiceMock.positions.FirstOrDefault(x => x.Id == positionId);
 
-            try
-            {
-                var positions = OrgServiceMock.positions.ToList();
-                var contractPositions = OrgServiceMock.contractPositions.ToList();
-
-                var pos = positions.Union(contractPositions).FirstOrDefault(p => p.Id == positionId);
-                return Task.FromResult(pos);
-            }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+            return Task.FromResult(position);
         }
 
         public Task<IEnumerable<ApiPositionV2>> ResolvePositionsAsync(IEnumerable<Guid> positionIds)
         {
-            OrgServiceMock.semaphore.Wait();
+            var positions = OrgServiceMock.positions.ToList();
+            var contractPositions = OrgServiceMock.contractPositions.Values.ToList();
 
-            try
-            {
-                var positions = OrgServiceMock.positions.ToList();
-                var contractPositions = OrgServiceMock.contractPositions.ToList();
-
-                var allPositions = positions.Union(contractPositions).Where(p => positionIds.Contains(p.Id));
-                return Task.FromResult(allPositions.ToList().AsEnumerable());
-            }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+            var allPositions = positions.Union(contractPositions).Where(p => positionIds.Contains(p.Id));
+            return Task.FromResult(allPositions.ToList().AsEnumerable());
         }
 
         public Task<ApiProjectV2> ResolveProjectAsync(OrgProjectId projectIdentifier)
         {
-            OrgServiceMock.semaphore.Wait();
-
-            try
+            var resolvedProject = projectIdentifier.Type switch
             {
-                var resolvedProject = projectIdentifier.Type switch
-                {
-                    OrgProjectId.IdentifierType.DomainId => OrgServiceMock.projects.FirstOrDefault(p => string.Equals(p.DomainId, projectIdentifier.DomainId, StringComparison.OrdinalIgnoreCase)),
-                    OrgProjectId.IdentifierType.Id => OrgServiceMock.projects.FirstOrDefault(p => p.ProjectId == projectIdentifier.ProjectId),
-                    _ => throw new NotImplementedException($"Resolving by type {projectIdentifier.Type} is not implemented in mock")
-                };
+                OrgProjectId.IdentifierType.DomainId => OrgServiceMock.projects.FirstOrDefault(p => string.Equals(p.DomainId, projectIdentifier.DomainId, StringComparison.OrdinalIgnoreCase)),
+                OrgProjectId.IdentifierType.Id => OrgServiceMock.projects.FirstOrDefault(p => p.ProjectId == projectIdentifier.ProjectId),
+                _ => throw new NotImplementedException($"Resolving by type {projectIdentifier.Type} is not implemented in mock")
+            };
 
-                return Task.FromResult(resolvedProject);
-            }
-            finally
-            {
-                OrgServiceMock.semaphore.Release();
-            }
+            return Task.FromResult(resolvedProject);
         }
     }
 }
