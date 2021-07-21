@@ -93,6 +93,14 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests WithPosition(Guid positionId, Guid? instanceId)
+        {
+            PositionId = positionId;
+            InstanceId = instanceId;
+
+            return this;
+        }
+
         public Guid? ProjectId { get; private set; }
         public string? DepartmentString { get; private set; }
         public bool Unassigned { get; private set; }
@@ -104,6 +112,8 @@ namespace Fusion.Resources.Domain.Queries
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
         public bool? ShouldIncludeAllRequests { get; private set; }
+        public Guid? PositionId { get; private set; }
+        public Guid? InstanceId { get; private set; }
 
         [Flags]
         private enum ExpandFields
@@ -187,6 +197,10 @@ namespace Fusion.Resources.Domain.Queries
                 if (request.Unassigned)
                     query = query.Where(c => c.AssignedDepartment == null);
 
+                if (request.PositionId.HasValue)
+                    query = query.Where(r => r.OrgPositionId == request.PositionId.Value);
+                if(request.InstanceId.HasValue)
+                    query = query.Where(r => r.OrgPositionInstance.Id == request.InstanceId);
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(DefaultPageSize);
