@@ -6,6 +6,8 @@ namespace Fusion.Resources.Database.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+           
+
             migrationBuilder.AlterColumn<string>(
                 name: "WorkflowClassType",
                 table: "Workflows",
@@ -114,6 +116,7 @@ namespace Fusion.Resources.Database.Migrations
                 oldType: "nvarchar(max)",
                 oldNullable: true);
 
+            migrationBuilder.DropPrimaryKey("PK_Departments", "Departments");
             migrationBuilder.AlterColumn<string>(
                 name: "DepartmentId",
                 table: "Departments",
@@ -122,7 +125,13 @@ namespace Fusion.Resources.Database.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(450)");
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Departments",
+                table: "Departments",
+                column: "DepartmentId"
+            );
 
+            migrationBuilder.DropPrimaryKey("PK_DbWorkflowStep", "DbWorkflowStep");
             migrationBuilder.AlterColumn<string>(
                 name: "Reason",
                 table: "DbWorkflowStep",
@@ -180,6 +189,11 @@ namespace Fusion.Resources.Database.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(450)");
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_DbWorkflowStep",
+                table: "DbWorkflowStep",
+                column: "Id"
+            );
 
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
@@ -340,6 +354,7 @@ namespace Fusion.Resources.Database.Migrations
                 oldMaxLength: 100,
                 oldNullable: true);
 
+            migrationBuilder.DropPrimaryKey("PK_Departments", "Departments");
             migrationBuilder.AlterColumn<string>(
                 name: "DepartmentId",
                 table: "Departments",
@@ -348,6 +363,13 @@ namespace Fusion.Resources.Database.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(100)",
                 oldMaxLength: 100);
+            migrationBuilder.AddPrimaryKey(
+               name: "PK_Departments",
+               table: "Departments",
+               column: "DepartmentId"
+           );
+
+            migrationBuilder.DropPrimaryKey("PK_DbWorkflowStep", "DbWorkflowStep");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Reason",
@@ -406,6 +428,12 @@ namespace Fusion.Resources.Database.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(50)",
                 oldMaxLength: 50);
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_DbWorkflowStep", 
+                table: "DbWorkflowStep",
+                column: "Id"
+            );
+
 
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
