@@ -192,7 +192,7 @@ namespace Fusion.Resources.Database.Migrations
             migrationBuilder.AddPrimaryKey(
                 name: "PK_DbWorkflowStep",
                 table: "DbWorkflowStep",
-                column: "Id"
+                columns: new[] { "Id", "WorkflowId" }
             );
 
             migrationBuilder.AlterColumn<string>(
@@ -431,7 +431,7 @@ namespace Fusion.Resources.Database.Migrations
             migrationBuilder.AddPrimaryKey(
                 name: "PK_DbWorkflowStep", 
                 table: "DbWorkflowStep",
-                column: "Id"
+                columns: new[] { "Id", "WorkflowId" }
             );
 
 
