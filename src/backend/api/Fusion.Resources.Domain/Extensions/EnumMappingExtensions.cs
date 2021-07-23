@@ -75,6 +75,7 @@ namespace Fusion.Resources
             {
                 DbTaskResponsible.ResourceOwner => QueryTaskResponsible.ResourceOwner,
                 DbTaskResponsible.TaskOwner => QueryTaskResponsible.TaskOwner,
+                DbTaskResponsible.Both => QueryTaskResponsible.Both,
                 _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(QueryTaskSource)}.")
             };
         }
@@ -86,6 +87,26 @@ namespace Fusion.Resources
                 QueryTaskResponsible.ResourceOwner => DbTaskResponsible.ResourceOwner,
                 QueryTaskResponsible.TaskOwner => DbTaskResponsible.TaskOwner,
                 QueryTaskResponsible.Both => DbTaskResponsible.Both,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbTaskSource)}.")
+            };
+        }
+
+        public static QueryMessageRecipient MapToDomain(this DbMessageRecipient value)
+        {
+            return value switch
+            {
+                DbMessageRecipient.ResourceOwner => QueryMessageRecipient.ResourceOwner,
+                DbMessageRecipient.TaskOwner => QueryMessageRecipient.TaskOwner,
+                _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(QueryTaskSource)}.")
+            };
+        }
+
+        public static DbMessageRecipient MapToDatabase(this QueryMessageRecipient value)
+        {
+            return value switch
+            {
+                QueryMessageRecipient.ResourceOwner => DbMessageRecipient.ResourceOwner,
+                QueryMessageRecipient.TaskOwner => DbMessageRecipient.TaskOwner,
                 _ => throw new NotSupportedException($"Cannot map '{value}' to {nameof(DbTaskSource)}.")
             };
         }
