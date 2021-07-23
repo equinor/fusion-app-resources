@@ -26,7 +26,7 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbPersonAbsence>(entity =>
             {
                 entity.Property(e => e.Type).HasConversion(new EnumToStringConverter<DbAbsenceType>());
-                entity.Property(e => e.Comment).HasMaxLength(2000);
+                entity.Property(e => e.Comment).HasMaxLength(5000);
 
                 entity.HasOne(e => e.Person).WithMany().OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.CreatedBy).WithMany().OnDelete(DeleteBehavior.Restrict);

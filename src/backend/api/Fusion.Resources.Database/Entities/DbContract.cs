@@ -23,7 +23,7 @@ namespace Fusion.Resources.Database.Entities
             {
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.ContractNumber).HasMaxLength(40);
+                entity.Property(e => e.ContractNumber).HasMaxLength(15);
                 entity.Property(e => e.Name).HasMaxLength(250);
             });
         }

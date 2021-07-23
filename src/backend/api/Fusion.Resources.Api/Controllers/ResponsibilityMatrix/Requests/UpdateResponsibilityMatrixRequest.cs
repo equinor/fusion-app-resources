@@ -45,14 +45,12 @@ namespace Fusion.Resources.Api.Controllers
             public Validator()
             {
                 RuleFor(x => x.Discipline).NotContainScriptTag();
-                RuleFor(x => x.Discipline).MaximumLength(5000);
+                RuleFor(x => x.Discipline).MaximumLength(50);
                 RuleFor(x => x.Sector).NotContainScriptTag();
                 RuleFor(x => x.Sector).MaximumLength(100);
                 RuleFor(x => x.Unit).NotContainScriptTag();
                 RuleFor(x => x.Unit).MaximumLength(100);
-
             }
-
         }
 
         #endregion

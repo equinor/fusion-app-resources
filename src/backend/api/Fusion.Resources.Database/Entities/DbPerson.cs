@@ -25,6 +25,11 @@ namespace Fusion.Resources.Database.Entities
             {
                 entity.HasIndex(e => e.AzureUniqueId).IsUnique();
                 entity.HasIndex(e => e.Mail).IsClustered(false);
+
+                entity.Property(e => e.Name).HasMaxLength(100);
+                entity.Property(e => e.Mail).HasMaxLength(100);
+                entity.Property(e => e.Phone).HasMaxLength(30);
+                entity.Property(e => e.JobTitle).HasMaxLength(100);
             });
         }
     }

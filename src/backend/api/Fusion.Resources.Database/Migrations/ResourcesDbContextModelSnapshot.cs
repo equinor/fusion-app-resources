@@ -33,8 +33,8 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<string>("ContractNumber")
                         .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -772,17 +772,21 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("JobTitle")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Mail")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Phone")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("Id");
 
@@ -811,8 +815,8 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Comment")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");

@@ -30,6 +30,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 RuleFor(x => x.Id).NotEmptyIfProvided().WithName("id");
                 RuleFor(x => x.ContractNumber).MaximumLength(15).WithMessage("Contractnumber should not exceed 10 characters according to SAP rules.");
+                RuleFor(x => x.Name).MaximumLength(250);
                 RuleFor(x => x.Description).NotContainScriptTag();
                 RuleFor(x => x.Description).MaximumLength(5000);
 
