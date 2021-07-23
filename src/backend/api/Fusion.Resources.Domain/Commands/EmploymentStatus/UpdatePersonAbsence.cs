@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain.Commands
                 var absence = await resourcesDb.PersonAbsences
                     .GetById(request.PersonId, request.Id)
                     .Include(cp => cp.Person)
-                    .FirstOrDefaultAsync(x => x.Id == request.Id);
+                    .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
                 if (absence is null)
                     throw new ArgumentException($"Cannot locate status using identifier '{request.Id}'");
@@ -87,9 +87,9 @@ namespace Fusion.Resources.Domain.Commands
                     };
                 }
 
-                await resourcesDb.SaveChangesAsync();
+                await resourcesDb.SaveChangesAsync(cancellationToken);
 
-                var returnItem = await mediator.Send(new GetPersonAbsenceItem(request.PersonId, request.Id));
+                var returnItem = await mediator.Send(new GetPersonAbsenceItem(request.PersonId, request.Id), cancellationToken);
                 return returnItem!;
             }
         }

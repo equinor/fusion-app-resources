@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,12 +32,12 @@ namespace Fusion.Resources.Domain.Commands
 
             protected override async Task Handle(DeletePersonNote request, CancellationToken cancellationToken)
             {
-                var note = await dbContext.PersonNotes.FirstOrDefaultAsync(n => n.Id == request.NoteId && n.AzureUniqueId == request.PersonAzureUniqueId);
-                if (note is null)
-                    throw new ArgumentException("Could not locate note to delete");
+                dbContext.RemoveRange(
+                    dbContext.PersonNotes.Where(n => n.Id == request.NoteId && n.AzureUniqueId == request.PersonAzureUniqueId)
+                );
 
-                dbContext.Remove(note);
-                await dbContext.SaveChangesAsync();
+                if (await dbContext.SaveChangesAsync(cancellationToken) <= 0)
+                    throw new ArgumentException("Could not locate note to delete");
             }
         }
     }

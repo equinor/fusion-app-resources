@@ -25,19 +25,16 @@ namespace Fusion.Resources.Domain
         public class Handler : IRequestHandler<GetRelevantDepartments, QueryRelevantDepartments?>
         {
             private readonly ILogger<Handler> logger;
-            private readonly IMediator mediator;
             private readonly ILineOrgResolver lineOrgResolver;
 
-            public Handler(ILogger<Handler> logger, IMediator mediator, ILineOrgResolver lineOrgResolver)
+            public Handler(ILogger<Handler> logger, ILineOrgResolver lineOrgResolver)
             {
                 this.logger = logger;
-                this.mediator = mediator;
                 this.lineOrgResolver = lineOrgResolver;
             }
 
             public async Task<QueryRelevantDepartments?> Handle(GetRelevantDepartments request, CancellationToken cancellationToken)
                 => await TryGetRelevantDepartmentsAsync(request.Department);
-
 
             private async Task<QueryRelevantDepartments?> TryGetRelevantDepartmentsAsync(string? fullDepartment)
             {
@@ -47,7 +44,6 @@ namespace Fusion.Resources.Domain
                 try
                 {
                     return await ResolveRelevantDepartmentsAsync(fullDepartment);
-
                 }
                 catch (Exception ex)
                 {

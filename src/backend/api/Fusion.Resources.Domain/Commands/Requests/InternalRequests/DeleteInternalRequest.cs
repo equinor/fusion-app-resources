@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +14,8 @@ namespace Fusion.Resources.Domain.Commands
         {
             RequestId = requestId;
         }
-
-
+        
         private Guid RequestId { get; }
-
 
         public class Handler : AsyncRequestHandler<DeleteInternalRequest>
         {
@@ -33,16 +32,16 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var req = await dbContext.ResourceAllocationRequests
                     .Include(r => r.Project)
-                    .FirstOrDefaultAsync(c => c.Id == request.RequestId);
-
-                var workflow = await dbContext.Workflows.FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId);
+                    .FirstOrDefaultAsync(c => c.Id == request.RequestId, cancellationToken);
 
                 if (req != null)
                     dbContext.ResourceAllocationRequests.Remove(req);
-                if (workflow != null)
-                    dbContext.Workflows.Remove(workflow);
+                
+                dbContext.Workflows.RemoveRange(
+                    dbContext.Workflows.Where(wf => wf.RequestId == request.RequestId)
+                );
 
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(cancellationToken);
 
                 if (req is not null)
                     await mediator.Publish(new Notifications.InternalRequests.InternalRequestDeleted(
@@ -51,9 +50,8 @@ namespace Fusion.Resources.Domain.Commands
                         req.OrgPositionId, 
                         req.OrgPositionInstance.Id, 
                         $"{req.Type}", 
-                        req.SubType)
+                        req.SubType), cancellationToken
                     );
-
             }
         }
     }

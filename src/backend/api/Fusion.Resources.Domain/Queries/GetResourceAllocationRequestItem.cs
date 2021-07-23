@@ -87,7 +87,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)
                     .Include(r => r.ProposedPerson)
-                    .FirstOrDefaultAsync(c => c.Id == request.RequestId);
+                    .FirstOrDefaultAsync(c => c.Id == request.RequestId, cancellationToken);
 
 
                 if (row is null)
@@ -105,7 +105,7 @@ namespace Fusion.Resources.Domain.Queries
                     requestItem.WithResolvedOriginalPosition(position, requestItem.OrgPositionInstanceId);
                 }
                 if (requestItem.ProposedPerson?.AzureUniqueId != null)
-                    requestItem.ProposedPerson.Person = await mediator.Send(new GetPersonProfile(requestItem.ProposedPerson.AzureUniqueId));
+                    requestItem.ProposedPerson.Person = await mediator.Send(new GetPersonProfile(requestItem.ProposedPerson.AzureUniqueId), cancellationToken);
 
                 if (request.Expands.HasFlag(ExpandProperties.TaskOwner))
                 {

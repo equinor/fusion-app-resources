@@ -1,10 +1,9 @@
-﻿using System;
-using Fusion.AspNetCore.OData;
-using Fusion.Resources.Database;
+﻿using Fusion.Resources.Database;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain
 {
@@ -31,9 +30,9 @@ namespace Fusion.Resources.Domain
             {
                 var item = await db.ResponsibilityMatrices
                     .Include(x => x.CreatedBy)
-                    .Include(x=>x.Responsible)
-                    .Include(x=>x.Project)
-                    .FirstOrDefaultAsync(x=>x.Id==request.Id);
+                    .Include(x => x.Responsible)
+                    .Include(x => x.Project)
+                    .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
                 return item != null ? new QueryResponsibilityMatrix(item) : null;
             }

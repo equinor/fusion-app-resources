@@ -1,5 +1,4 @@
 ﻿using Fusion.Integration.Http;
-using Fusion.Integration.Org;
 using MediatR;
 using System.Collections.Generic;
 using System.Net.Http;

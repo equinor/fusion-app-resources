@@ -119,7 +119,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
             var countEnabled = Request.Query.ContainsKey("$count");
 
-            var requestCommand = new GetDepartmentUnassignedRequests(departmentString).WithOnlyCount(countEnabled);
+            var requestCommand = new GetDepartmentUnassignedRequests(departmentString);
 
             var result = await DispatchAsync(requestCommand);
 

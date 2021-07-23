@@ -40,7 +40,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(wf => wf.WorkflowSteps).ThenInclude(s => s.CompletedBy)
                     .Include(wf => wf.TerminatedBy)
                     .Where(wf => ids.Contains(wf.RequestId))
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 return workflows.Select(wf => new QueryWorkflow(wf));
             }

@@ -238,9 +238,11 @@ namespace Fusion.Resources.Domain.Queries
                     return;
 
                 // Expand org position.
-                var resolvedOrgChartPositions =
-                    (await orgResolver.ResolvePositionsAsync(requestItems.Where(r => r.OrgPositionId.HasValue)
-                        .Select(r => r.OrgPositionId!.Value))).ToList();
+                var resolvedOrgChartPositions = await orgResolver.ResolvePositionsAsync(
+                    requestItems
+                        .Where(r => r.OrgPositionId.HasValue)
+                        .Select(r => r.OrgPositionId!.Value)
+                );
 
                 // If none resolved, return.
                 if (!resolvedOrgChartPositions.Any())

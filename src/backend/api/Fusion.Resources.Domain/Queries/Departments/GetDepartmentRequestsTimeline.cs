@@ -78,7 +78,7 @@ namespace Fusion.Resources.Domain
 
                 var items = await query
                     .OrderBy(x => x.Id) 
-                    .ToListAsync(); 
+                    .ToListAsync(cancellationToken); 
                     
 
                 var departmentRequests = new List<QueryResourceAllocationRequest>(items.Select(x => new QueryResourceAllocationRequest(x)));

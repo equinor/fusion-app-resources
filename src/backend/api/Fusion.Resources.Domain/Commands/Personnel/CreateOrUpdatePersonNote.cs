@@ -76,11 +76,10 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryPersonNote> Handle(CreateOrUpdatePersonNote request, CancellationToken cancellationToken)
             {
-                
                 DbPersonNote note;
                 if (request.NoteId != null)
                 {
-                    note = await dbContext.PersonNotes.FirstOrDefaultAsync(p => p.Id == request.NoteId && p.AzureUniqueId == request.AzureUniqueId);
+                    note = await dbContext.PersonNotes.FirstOrDefaultAsync(p => p.Id == request.NoteId && p.AzureUniqueId == request.AzureUniqueId, cancellationToken);
                     if (note is null)
                         throw new ArgumentException("Note id does not exist");
                 }

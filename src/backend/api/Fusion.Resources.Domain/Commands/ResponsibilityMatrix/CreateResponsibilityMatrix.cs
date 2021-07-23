@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Fusion.Integration.Org;
 using Microsoft.EntityFrameworkCore;
 
-#nullable enable 
-
 namespace Fusion.Resources.Domain.Commands
 {
 
@@ -68,8 +66,8 @@ namespace Fusion.Resources.Domain.Commands
                     Responsible = responsible
                 };
 
-                await resourcesDb.ResponsibilityMatrices.AddAsync(newItem);
-                await resourcesDb.SaveChangesAsync();
+                resourcesDb.ResponsibilityMatrices.Add(newItem);
+                await resourcesDb.SaveChangesAsync(cancellationToken);
 
                 return new QueryResponsibilityMatrix(newItem);
             }

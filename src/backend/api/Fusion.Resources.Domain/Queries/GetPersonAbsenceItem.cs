@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain
                 var item = await db.PersonAbsences.GetById(request.PersonId, request.Id)
                     .Include(x => x.Person)
                     .Include(x => x.CreatedBy)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 return item != null ? new QueryPersonAbsence(item) : null;
             }

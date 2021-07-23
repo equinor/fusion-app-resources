@@ -66,7 +66,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (request.Type == QueryAbsenceType.OtherTasks)
                 {
                     var roleName = request.RoleName;
-                    if (request.BasePositionId.HasValue && String.IsNullOrEmpty(request.RoleName))
+                    if (request.BasePositionId.HasValue && string.IsNullOrEmpty(request.RoleName))
                     {
                         var basePosition = await orgResolver.ResolveBasePositionAsync(request.BasePositionId.Value);
                         if (basePosition is null)

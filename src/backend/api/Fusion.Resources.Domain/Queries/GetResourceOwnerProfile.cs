@@ -30,18 +30,13 @@ namespace Fusion.Resources.Domain.Queries
 
         public class Handler : IRequestHandler<GetResourceOwnerProfile, QueryResourceOwnerProfile>
         {
-            private readonly ILogger<Handler> logger;
             private readonly IFusionProfileResolver profileResolver;
             private readonly IMediator mediator;
-            private readonly HttpClient lineOrgClient;
 
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IMediator mediator, IHttpClientFactory httpClientFactory)
+            public Handler(IFusionProfileResolver profileResolver, IMediator mediator)
             {
-                this.logger = logger;
                 this.profileResolver = profileResolver;
                 this.mediator = mediator;
-                this.lineOrgClient = httpClientFactory.CreateClient("lineorg");
-
             }
 
             public async Task<QueryResourceOwnerProfile> Handle(GetResourceOwnerProfile request, CancellationToken cancellationToken)
@@ -88,7 +83,6 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, IEnumerable<string> departmentsWithResponsibility)
             {
-
                 // Get sectors the user have responsibility in, to find all relevant departments
                 var relevantSectors = new List<string>();
                 foreach (var department in departmentsWithResponsibility)
@@ -121,12 +115,10 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task<List<string>> ResolveDepartmentsWithResponsibilityAsync(FusionPersonProfile user)
             {
-                var isDepartmentManager = user.IsResourceOwner;
-
                 var departmentsWithResponsibility = new List<string>();
 
                 // Add the current department if the user is resource owner in the department.
-                if (isDepartmentManager && user.FullDepartment != null)
+                if (user.IsResourceOwner && user.FullDepartment != null)
                     departmentsWithResponsibility.Add(user.FullDepartment);
 
                 // Add all departments the user has been delegated responsibility for.

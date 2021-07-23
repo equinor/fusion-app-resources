@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain.Queries
                 var comment = await db.RequestComments
                     .Include(c => c.CreatedBy)
                     .Include(c => c.UpdatedBy)
-                    .FirstOrDefaultAsync(c => c.Id == request.CommentId);
+                    .FirstOrDefaultAsync(c => c.Id == request.CommentId, cancellationToken);
 
                 if (comment == null)
                     return null;

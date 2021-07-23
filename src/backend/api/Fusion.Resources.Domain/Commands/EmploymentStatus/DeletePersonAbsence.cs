@@ -32,12 +32,12 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var dbEntity = await resourcesDb.PersonAbsences
                     .GetById(request.PersonId, request.Id)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 if (dbEntity != null)
                 {
                     resourcesDb.PersonAbsences.Remove(dbEntity);
-                    await resourcesDb.SaveChangesAsync();
+                    await resourcesDb.SaveChangesAsync(cancellationToken);
                 }
 
 

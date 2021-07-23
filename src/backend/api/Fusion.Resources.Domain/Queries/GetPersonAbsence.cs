@@ -35,10 +35,7 @@ namespace Fusion.Resources.Domain
                     .Include(x => x.TaskDetails)
                     .ToListAsync(cancellationToken);
 
-                var returnItems = items.Select(i => new QueryPersonAbsence(i))
-                    .ToList();
-
-                return returnItems;
+                return items.Select(i => new QueryPersonAbsence(i)).ToList();
             }
         }
     }

@@ -30,8 +30,8 @@ namespace Fusion.Resources.Domain.Queries
             }
             public async Task<FusionPersonProfile?> Handle(GetResourceOwner request, CancellationToken cancellationToken)
             {
-                var resp = await client.GetAsync($"lineorg/persons/{request.AzureUniqueId}");
-                var content = await resp.Content.ReadAsStringAsync();
+                var resp = await client.GetAsync($"lineorg/persons/{request.AzureUniqueId}", cancellationToken);
+                var content = await resp.Content.ReadAsStringAsync(cancellationToken);
 
                 if (resp.IsSuccessStatusCode)
                 {
@@ -41,7 +41,6 @@ namespace Fusion.Resources.Domain.Queries
                         var fusionProfile = await profileResolver.ResolvePersonBasicProfileAsync(profile.ManagerId.Value);
                         return fusionProfile;
                     }
-
                 }
 
                 return null;

@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                     .Where(t => t.Id == request.taskId && t.RequestId == request.requestId);
                 db.RemoveRange(query);
 
-                return await db.SaveChangesAsync(cancellationToken) >= 1;
+                return await db.SaveChangesAsync(cancellationToken) > 0;
             }
         }
     }

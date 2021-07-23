@@ -32,7 +32,7 @@ namespace Fusion.Resources.Domain.Queries
                 var comments = await db.RequestComments
                     .Include(rc => rc.CreatedBy)
                     .Include(rc => rc.UpdatedBy)
-                    .Where(rc => rc.RequestId == request.RequestId).ToListAsync();
+                    .Where(rc => rc.RequestId == request.RequestId).ToListAsync(cancellationToken);
 
                 var results = comments.Select(c => new QueryRequestComment(c));
 

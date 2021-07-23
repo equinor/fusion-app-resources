@@ -46,10 +46,10 @@ namespace Fusion.Resources.Domain.Commands
                     RequestId = command.RequestId
                 };
 
-                await db.RequestComments.AddAsync(comment);
-                await db.SaveChangesAsync();
+                db.RequestComments.Add(comment);
+                await db.SaveChangesAsync(cancellationToken);
 
-                await mediator.Publish(new Notifications.CommentAdded(comment.Id));
+                await mediator.Publish(new Notifications.CommentAdded(comment.Id), cancellationToken);
 
                 return new QueryRequestComment(comment);
             }

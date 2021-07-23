@@ -1,7 +1,7 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +16,6 @@ namespace Fusion.Resources.Domain.Commands
 
         private Guid Id { get; set; }
 
-
         public class Handler : AsyncRequestHandler<DeleteResponsibilityMatrix>
         {
             private readonly ResourcesDbContext resourcesDb;
@@ -28,16 +27,10 @@ namespace Fusion.Resources.Domain.Commands
 
             protected override async Task Handle(DeleteResponsibilityMatrix request, CancellationToken cancellationToken)
             {
-                var dbEntity = await resourcesDb.ResponsibilityMatrices
-                    .FirstOrDefaultAsync(x=>x.Id==request.Id);
-
-                if (dbEntity != null)
-                {
-                    resourcesDb.ResponsibilityMatrices.Remove(dbEntity);
-                    await resourcesDb.SaveChangesAsync();
-                }
-
-
+                resourcesDb.ResponsibilityMatrices.RemoveRange(
+                    resourcesDb.ResponsibilityMatrices.Where(x => x.Id == request.Id)
+                );
+                await resourcesDb.SaveChangesAsync(cancellationToken);
             }
         }
     }

@@ -25,14 +25,9 @@ namespace Fusion.Resources.Domain
                     .Include(x => x.CreatedBy)
                     .Include(x => x.Project)
                     .Include(x => x.Responsible)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
-
-
-                var returnItems = items.Select(i => new QueryResponsibilityMatrix(i))
-                    .ToList();
-
-                return returnItems;
+                return items.Select(i => new QueryResponsibilityMatrix(i)).ToList();
             }
         }
     }

@@ -83,13 +83,13 @@ namespace Fusion.Resources.Domain.Commands
 
                     var modifiedProperties = db.Entry(dbRequest).Properties.Where(x => x.IsModified).ToList();
 
-                    await db.SaveChangesAsync();
+                    await db.SaveChangesAsync(cancellationToken);
 
-                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties));
+                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties), cancellationToken);
                 }
 
 
-                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
+                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId), cancellationToken);
                 return requestItem!;
             }
         }

@@ -38,7 +38,7 @@ namespace Fusion.Resources.Domain.Commands
                 comment.Updated = DateTimeOffset.UtcNow;
                 comment.UpdatedById = request.Editor.Person.Id;
 
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync(cancellationToken);
             }
         }
     }

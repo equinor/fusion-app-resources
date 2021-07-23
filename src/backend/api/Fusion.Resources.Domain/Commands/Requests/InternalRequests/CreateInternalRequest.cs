@@ -45,7 +45,7 @@ namespace Fusion.Resources.Domain.Commands
                 RuleFor(x => x.OrgPositionInstanceId)
                     .MustAsync(async (id, cancel) =>
                     {
-                        return !await db.ResourceAllocationRequests.AnyAsync(r => r.OrgPositionInstance.Id == id && !r.State.IsCompleted);
+                        return !await db.ResourceAllocationRequests.AnyAsync(r => r.OrgPositionInstance.Id == id && !r.State.IsCompleted, cancel);
                     })
                     .WithMessage("Cannot create multiple requests on same instance.");
 
@@ -54,8 +54,6 @@ namespace Fusion.Resources.Domain.Commands
                 RuleFor(x => x.OrgPositionInstanceId).NotEmpty();
             }
         }
-
-
 
         public class Handler : IRequestHandler<CreateInternalRequest, QueryResourceAllocationRequest>
         {

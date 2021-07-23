@@ -1,7 +1,7 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,13 +27,14 @@ namespace Fusion.Resources.Domain.Commands
 
             protected override async Task Handle(DeleteComment command, CancellationToken cancellationToken)
             {
-                var comment = await db.RequestComments.FirstOrDefaultAsync(c => c.Id == command.CommentId);
-
-                if (comment == null)
+                db.RequestComments.RemoveRange(
+                    db.RequestComments.Where(c => c.Id == command.CommentId)
+                );
+                
+                if(await db.SaveChangesAsync(cancellationToken) <= 0)
+                {
                     throw new InvalidOperationException($"Comment with id '{command.CommentId}' was not found");
-
-                db.RequestComments.Remove(comment);
-                await db.SaveChangesAsync();
+                }
             }
         }
     }

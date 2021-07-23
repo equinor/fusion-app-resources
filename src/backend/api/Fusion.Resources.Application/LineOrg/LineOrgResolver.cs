@@ -1,7 +1,6 @@
 ﻿using Fusion.Integration;
 using Fusion.Integration.Diagnostics;
 using Fusion.Resources.Application.LineOrg.Models;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -20,18 +19,15 @@ namespace Fusion.Resources.Application.LineOrg
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         private DepartmentCache cache;
         private readonly IHttpClientFactory httpClientFactory;
-        private readonly IHostingEnvironment hostingEnvironment;
         private readonly IFusionProfileResolver profileResolver;
         private readonly IFusionLogger<LineOrgResolver> logger;
 
         public LineOrgResolver(IHttpClientFactory httpClientFactory,
-            IHostingEnvironment hostingEnvironment,
             IFusionProfileResolver profileResolver,
             IFusionLogger<LineOrgResolver> logger)
         {
             this.cache = new DepartmentCache();
             this.httpClientFactory = httpClientFactory;
-            this.hostingEnvironment = hostingEnvironment;
             this.profileResolver = profileResolver;
             this.logger = logger;
         }

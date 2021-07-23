@@ -1,6 +1,4 @@
 ﻿using MediatR;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,20 +7,12 @@ namespace Fusion.Resources.Domain.Queries
 {
     public class GetDepartmentUnassignedRequests : IRequest<QueryRangedList<QueryResourceAllocationRequest>>
     {
-        private bool onlyCount = false;
-
         public GetDepartmentUnassignedRequests(string departmentString)
         {
             DepartmentString = departmentString;
         }
 
         public string DepartmentString { get; }
-
-        public GetDepartmentUnassignedRequests WithOnlyCount(bool onlyCount = true)
-        {
-            this.onlyCount = onlyCount;
-            return this;
-        }
 
         public class Handler : IRequestHandler<GetDepartmentUnassignedRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
@@ -44,9 +34,8 @@ namespace Fusion.Resources.Domain.Queries
 
                 var sourceDepartmentLevel = request.DepartmentString.Split(" ").Length;
 
-
                 // This should be some sort of configuration in the future
-                Func<QueryResourceAllocationRequest, bool> departmentCheck = (r) =>
+                bool departmentCheck(QueryResourceAllocationRequest r) =>
                     DepartmentUtils.IsRelevantBasePositionDepartment(sourceDepartmentLevel, request.DepartmentString, r.OrgPosition!.BasePosition.Department);
 
                 var relevantRequests = unassignedRequests
@@ -55,9 +44,6 @@ namespace Fusion.Resources.Domain.Queries
 
                 return new QueryRangedList<QueryResourceAllocationRequest>(relevantRequests, relevantRequests.Count, 0);
             }
-
-
         }
-
     }
 }
