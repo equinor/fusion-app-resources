@@ -235,15 +235,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 }
             );
         }
-        private async Task<TestApiRequestMessage> AddMessage<T>(T payload)
+        private Task<TestApiRequestMessage> AddMessage<T>(T payload)
         {
-            using var scope = fixture.UserScope(testUser);
             var client = fixture.ApiFactory.CreateClient();
-
-            var result = await client.TestClientPostAsync<TestApiRequestMessage>($"/requests/internal/{normalRequest.Id}/conversation", payload);
-            result.Should().BeSuccessfull();
-            
-            return result.Value;
+            return client.AddRequestMessage(normalRequest.Id, payload);
         }
 
         public Task DisposeAsync() => Task.CompletedTask;
