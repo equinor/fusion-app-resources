@@ -105,7 +105,7 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
         public List<ApiRequestTask>? Tasks { get; }
-        public List<ApiRequestConversationMessage> Conversation { get; }
+        public List<ApiRequestConversationMessage>? Conversation { get; }
 
         internal bool ShouldHideProposalsForProject
         {

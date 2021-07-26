@@ -61,6 +61,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task AddMessage_Should_SetSenderMeta()
         {
+            using var scope = fixture.UserScope(testUser);
+            var client = fixture.ApiFactory.CreateClient();
+
             var payload = new
             {
                 title = "Hello, world!",
@@ -74,7 +77,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 }
             };
 
-            var result = await AddMessage(payload);
+            var result = await client.AddRequestMessage(normalRequest.Id, payload);
 
             result.Id.Should().NotBeEmpty();
             result.Title.Should().Be(payload.title);
@@ -91,6 +94,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task AddMessage_ShouldGiveNotFound_WhenRequestDoesNotExist()
         {
+            using var scope = fixture.UserScope(testUser);
+            var client = fixture.ApiFactory.CreateClient();
+
             var payload = new
             {
                 title = "Hello, world!",
@@ -104,9 +110,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 }
             };
 
-            using var scope = fixture.UserScope(testUser);
-            var client = fixture.ApiFactory.CreateClient();
-
             var result = await client.TestClientPostAsync<TestApiRequestMessage>($"/requests/internal/{Guid.NewGuid()}/conversation", payload);
             result.Should().BeNotFound();
         }
@@ -114,10 +117,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task UpdateMessage_Should_NotChangeSenderMeta()
         {
-            var message = await AddMessage();
-
-            using var scope = fixture.AdminScope();
+            using var scope = fixture.UserScope(testUser);
             var client = fixture.ApiFactory.CreateClient();
+            var message = await client.AddRequestMessage(normalRequest.Id, new Dictionary<string, object>
+            {
+                ["customProp1"] = 123,
+                ["customProp2"] = new DateTime(2021, 07, 07)
+            });
 
             var payload = new
             {
@@ -195,11 +201,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetConversation_ShouldReturnAllMessages()
         {
-            var first = await AddMessage();
-            var second = await AddMessage();
-
             using var scope = fixture.AdminScope();
             var client = fixture.ApiFactory.CreateClient();
+
+            var first = await client.AddRequestMessage(normalRequest.Id);
+            var second = await client.AddRequestMessage(normalRequest.Id);
 
             var result = await client.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{normalRequest.Id}/conversation");
             result.Should().BeSuccessfull();
@@ -216,29 +222,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var result = await client.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{Guid.NewGuid()}/conversation");
             result.Should().BeNotFound();
-        }
-
-        private Task<TestApiRequestMessage> AddMessage()
-        {
-            return AddMessage(
-                new
-                {
-                    title = "Hello, world!",
-                    body = "Goodbye, world!",
-                    category = "world",
-                    recipient = "TaskOwner",
-                    properties = new
-                    {
-                        customProp1 = 123,
-                        customProp2 = new DateTime(2021, 07, 08)
-                    }
-                }
-            );
-        }
-        private Task<TestApiRequestMessage> AddMessage<T>(T payload)
-        {
-            var client = fixture.ApiFactory.CreateClient();
-            return client.AddRequestMessage(normalRequest.Id, payload);
         }
 
         public Task DisposeAsync() => Task.CompletedTask;
