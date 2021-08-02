@@ -64,8 +64,7 @@ namespace Fusion.Resources.Api
             // Configure fusion integration
             services.AddFusionIntegration(options =>
             {
-                try { options.AddProfileSync<FusionEvents.ProfileSyncHandler>(); } 
-                catch { /* Shitfix untill fixed in integration lib. Throws when added multitple times, which is done in the integration tests. (static bool flag) */ }
+                options.AddProfileSync<FusionEvents.ProfileSyncHandler>();
 
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
@@ -79,20 +78,18 @@ namespace Fusion.Resources.Api
                     opts.ClientSecret = Configuration["AzureAd:ClientSecret"];
                 });
 
+                options.ServiceInfo.Environment = Configuration["ENVNAME"];
                 options.ApplicationMode = true;
             });
-            services.AddFusionEventHandler("FAP Resources", Configuration["ENVNAME"], (builder) => { });
-            services.AddFusionEventHandler(s =>
-            {
+            services.AddFusionEventHandler(s => {
                 s.AddPersistentHandler<OrgProjectHandler>(OrgConstants.HttpClients.Application, "/subscriptions/org-projects", e =>
                 {
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
             });
-
             // Add custom claims provider, to sort delegated responsibilities
             services.AddScoped<ILocalClaimsTransformation, DelegatedResourceOwnerClaimsTransformer>();
-
+            services.AddScoped<IRequestRouter, RequestRouter>();
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
 

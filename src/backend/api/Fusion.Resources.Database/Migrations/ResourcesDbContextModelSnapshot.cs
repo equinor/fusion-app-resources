@@ -160,6 +160,53 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("ContractorRequests");
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbConversationMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("PropertiesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Recpient")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Sent")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("RequestConversations");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDelegatedRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -658,33 +705,45 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("DawinciCode")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("JobTitle")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("LinkedInProfile")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Mail")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("PreferredContractMail")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -754,6 +813,9 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("PersonId")
                         .HasColumnType("uniqueidentifier");
@@ -891,6 +953,63 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("RequestComments");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PropertiesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("ResolvedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Responsible")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubType")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("ResolvedById");
+
+                    b.ToTable("RequestTasks");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>
@@ -1306,6 +1425,23 @@ namespace Fusion.Resources.Database.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbConversationMessage", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", null)
+                        .WithMany("Conversation")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbDelegatedRole", b =>
                 {
                     b.HasOne("Fusion.Resources.Database.Entities.DbContract", "Contract")
@@ -1362,9 +1498,37 @@ namespace Fusion.Resources.Database.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.OwnsOne("Fusion.Resources.Database.Entities.DbOpTaskDetails", "TaskDetails", b1 =>
+                        {
+                            b1.Property<Guid>("DbPersonAbsenceId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid?>("BasePositionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Location")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("RoleName")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("TaskName")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("DbPersonAbsenceId");
+
+                            b1.ToTable("PersonAbsences");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DbPersonAbsenceId");
+                        });
+
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Person");
+
+                    b.Navigation("TaskDetails");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbPersonNote", b =>
@@ -1401,6 +1565,23 @@ namespace Fusion.Resources.Database.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestTask", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", "Request")
+                        .WithMany("Tasks")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "ResolvedBy")
+                        .WithMany()
+                        .HasForeignKey("ResolvedById");
+
+                    b.Navigation("Request");
+
+                    b.Navigation("ResolvedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>
@@ -1660,6 +1841,13 @@ namespace Fusion.Resources.Database.Migrations
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbProject", b =>
                 {
                     b.Navigation("Contracts");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>
+                {
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbWorkflow", b =>

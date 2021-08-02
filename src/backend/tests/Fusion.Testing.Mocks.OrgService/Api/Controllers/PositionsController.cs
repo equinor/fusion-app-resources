@@ -15,6 +15,15 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
     [ApiVersion("2.0")]
     public class PositionsController : ControllerBase
     {
+        [ApiVersion("2.0")]
+        [HttpGet("/positions/basepositions/{basepositionId}")]
+        public ActionResult<ApiBasePositionV2> GetBaseposition(Guid basepositionId)
+        {
+            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(bp => bp.Id == basepositionId);
+            if (bp is null) return NotFound();
+
+            return Ok(bp);
+        }
 
         [ApiVersion("2.0")]
         [HttpGet("/positions/{positionId}")]
@@ -178,6 +187,50 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
             var director = OrgServiceMock.GetProject(projectId.ProjectId.Value)?.Director;
             return new MockApiTaskOwnerV2(director);
+        }
+
+        [MapToApiVersion("2.0")]
+        [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/reports-to")]
+        public ActionResult GetPositionReportsTo([FromRoute] ProjectIdentifier projectId, Guid positionId, Guid instanceId)
+        {
+            var director = OrgServiceMock.GetProject(projectId.ProjectId.Value)?.Director;
+
+            if (OrgServiceMock.taskOwnerMapping.TryGetValue(positionId, out Guid taskOwnerPositionId))
+            {
+                var position = OrgServiceMock.GetPosition(positionId);
+                if (position is null)
+                    return NotFound(new { error = new { message = "Could not locate position" } });
+
+                var instance = position.Instances.FirstOrDefault(i => i.Id == instanceId);
+                if (instance is null)
+                    return NotFound(new { error = new { message = "Could not locate instance" } });
+
+
+                var taskOwner = OrgServiceMock.GetPosition(taskOwnerPositionId);
+                taskOwner.IsTaskOwner = true;
+
+                var date = DateTime.Today;
+                if (date <= instance.AppliesFrom)
+                    date = instance.AppliesFrom.Date;
+                if (date >= instance.AppliesTo)
+                    date = instance.AppliesTo.Date;
+
+
+                if (taskOwner is not null)
+                {
+                    return Ok(new
+                    {
+                        Path = new[] { taskOwner.Id, director.Id },
+                        ReportPositions = new[] { director, taskOwner  }
+                    });
+                }
+            }
+
+            return Ok(new
+            {
+                Path = new[] { director.Id },
+                ReportPositions = new[] { director }
+            });
         }
 
         public class MockApiTaskOwnerV2

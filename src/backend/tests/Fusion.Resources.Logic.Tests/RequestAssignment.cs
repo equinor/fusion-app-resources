@@ -1,12 +1,18 @@
 ﻿using FluentAssertions;
+using Fusion.ApiClients.Org;
+using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Logic.Commands;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -18,7 +24,6 @@ namespace Fusion.Resources.Logic.Tests
         private DbPerson proposed;
         private DbPerson initiator;
         private DbResourceAllocationRequest request;
-        private Queries.ResolveResponsibleDepartment.Handler handler;
 
         public async Task InitializeAsync()
         {
@@ -26,7 +31,7 @@ namespace Fusion.Resources.Logic.Tests
                new DbContextOptionsBuilder<ResourcesDbContext>()
                .UseInMemoryDatabase($"unit-test-db-{Guid.NewGuid()}")
                .Options
-           );
+            );
 
             proposed = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Robert C. Martin" };
             initiator = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Wobert D. Martin" };
@@ -40,6 +45,7 @@ namespace Fusion.Resources.Logic.Tests
                     Id = Guid.NewGuid(),
                     DomainId = "Project"
                 },
+                OrgPositionId = Guid.NewGuid(),
                 OrgPositionInstance = new DbResourceAllocationRequest.DbOpPositionInstance
                 {
                     LocationId = Guid.NewGuid(),
@@ -55,15 +61,13 @@ namespace Fusion.Resources.Logic.Tests
 
             db.Add(request);
             await db.SaveChangesAsync();
-
-            handler = new Queries.ResolveResponsibleDepartment.Handler(db);
         }
-
-
 
         [Fact]
         public async Task Should_Match_On_Project_Discipline_And_Location()
         {
+            var handler = CreateHandler();
+
             var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
 
             var matrix = new DbResponsibilityMatrix
@@ -90,6 +94,8 @@ namespace Fusion.Resources.Logic.Tests
         [Fact]
         public async Task Should_Match_On_Project_And_Discipline()
         {
+            var handler = CreateHandler();
+
             var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
 
             var matrix = new DbResponsibilityMatrix
@@ -107,7 +113,7 @@ namespace Fusion.Resources.Logic.Tests
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
-                 System.Threading.CancellationToken.None
+                 CancellationToken.None
              );
 
             resolvedDepartment.Should().Be(matrix.Unit);
@@ -116,6 +122,8 @@ namespace Fusion.Resources.Logic.Tests
         [Fact]
         public async Task Should_Prefer_Exact_Match_When_Assigning()
         {
+            var handler = CreateHandler();
+
             var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
 
             var exact = new DbResponsibilityMatrix
@@ -143,7 +151,7 @@ namespace Fusion.Resources.Logic.Tests
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
-                System.Threading.CancellationToken.None
+                CancellationToken.None
             );
 
             resolvedDepartment.Should().Be(exact.Unit);
@@ -152,6 +160,8 @@ namespace Fusion.Resources.Logic.Tests
         [Fact]
         public async Task Should_Prefer_Discipline_Over_Location_When_Assigning()
         {
+            var handler = CreateHandler();
+
             var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
 
             var exact = new DbResponsibilityMatrix
@@ -179,16 +189,67 @@ namespace Fusion.Resources.Logic.Tests
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
-                System.Threading.CancellationToken.None
+                CancellationToken.None
             );
-            
+
             resolvedDepartment.Should().Be(exact.Unit);
         }
-
-        
-
-        public async  Task DisposeAsync()
+        [Fact]
+        public async Task Should_Fallback_To_BasePosition()
         {
+            var position = new ApiPositionV2
+            {
+                BasePosition = new ApiPositionBasePositionV2 { Department = "PDP PRD FE ANE" }
+            };
+
+            var orgServiceMock = new Mock<IProjectOrgResolver>();
+            orgServiceMock
+                .Setup(x => x.ResolvePositionAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(position);
+
+            var mediatorMock = new Mock<IMediator>();
+            mediatorMock
+                .Setup(x => x.Send<QueryDepartment>(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null));
+
+            var handler = CreateHandler(
+                orgServiceMock => orgServiceMock
+                    .Setup(x => x.ResolvePositionAsync(It.IsAny<Guid>()))
+                    .ReturnsAsync(position),
+
+                mediatorMock => mediatorMock
+                    .Setup(x => x.Send(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null))
+            );
+
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
+                CancellationToken.None
+            );
+
+            resolvedDepartment.Should().Be(position.BasePosition.Department);
+        }
+
+        private Queries.ResolveResponsibleDepartment.Handler CreateHandler(
+            Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null, 
+            Action<Mock<IMediator>> setupMediatorMock = null)
+        {
+            var orgServiceMock = new Mock<IProjectOrgResolver>(MockBehavior.Loose);
+            setupOrgServiceMock?.Invoke(orgServiceMock);
+
+            var mediatorMock = new Mock<IMediator>(MockBehavior.Loose);
+            setupMediatorMock?.Invoke(mediatorMock);
+
+            var profileServiceMock = new Mock<IProfileService>(MockBehavior.Loose);
+
+            var router = new RequestRouter(db, orgServiceMock.Object, mediatorMock.Object, profileServiceMock.Object);
+            return new Queries.ResolveResponsibleDepartment.Handler(db, router);
+        }
+
+
+        public async Task DisposeAsync()
+        {
+            await this.db.Database.EnsureDeletedAsync();
             await this.db.DisposeAsync();
         }
     }

@@ -4,12 +4,14 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Domain.Notifications.InternalRequests;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    
+
     public class UpdateInternalRequest : TrackableRequest<QueryResourceAllocationRequest>
     {
         public UpdateInternalRequest(Guid requestId)
@@ -50,7 +52,6 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var dbRequest = await db.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId);
 
-
                 bool modified = false;
 
                 modified |= request.AssignedDepartment.IfSet(dep => dbRequest.AssignedDepartment = dep);
@@ -80,13 +81,17 @@ namespace Fusion.Resources.Domain.Commands
                     dbRequest.UpdatedBy = request.Editor.Person;
                     dbRequest.LastActivity = dbRequest.Updated.Value;
 
+                    var modifiedProperties = db.Entry(dbRequest).Properties.Where(x => x.IsModified).ToList();
+
                     await db.SaveChangesAsync();
+
+                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties));
                 }
 
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                 return requestItem!;
-            }            
+            }
         }
     }
 }

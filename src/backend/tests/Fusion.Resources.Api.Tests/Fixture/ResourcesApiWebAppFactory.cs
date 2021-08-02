@@ -21,11 +21,10 @@ using Fusion.Integration.Roles;
 using Fusion.Testing;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Services;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Fusion.Events;
 using Fusion.Resources.Application.LineOrg;
+using Fusion.Testing.Mocks.LineOrgService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -33,11 +32,11 @@ namespace Fusion.Resources.Api.Tests.Fixture
 {
     public class ResourcesApiWebAppFactory : WebApplicationFactory<Startup>
     {
+        public readonly LineOrgServiceMock lineOrgServiceMock;
         public readonly PeopleServiceMock peopleServiceMock;
         public readonly OrgServiceMock orgServiceMock;
         public readonly ContextResolverMock contextResolverMock;
         internal readonly RolesClientMock roleClientMock;
-        public readonly MockHttpClientBuilder lineOrgMock;
 
         public readonly Mock<IQueueSender> queueMock;
 
@@ -54,11 +53,11 @@ namespace Fusion.Resources.Api.Tests.Fixture
             // Must set the config mode so the sql token generator does not try to refresh the access token, which kills the test run.
             Environment.SetEnvironmentVariable("Database__ConnectionMode", "Default");
 
+            lineOrgServiceMock = new LineOrgServiceMock();
             peopleServiceMock = new PeopleServiceMock();
             orgServiceMock = new OrgServiceMock();
             contextResolverMock = new ContextResolverMock();
             roleClientMock = new RolesClientMock();
-            lineOrgMock = new MockHttpClientBuilder();
             queueMock = new Mock<IQueueSender>();
             queueMock.Setup(c => c.SendMessageAsync(It.IsAny<QueuePath>(), It.IsAny<object>())).Returns(Task.CompletedTask);
 
@@ -121,11 +120,13 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
                 services.AddTransient<IQueueSender>(sp => queueMock.Object);
                 services.AddSingleton<IEventNotificationClient>(sp => new EventNotificationClientMock(new TestMessageBus(), "resources-sub"));
+                services.AddSingleton<IPeopleIntegration, PeopleIntegrationMock>();
                 services.AddSingleton(sp =>
                 {
                     var clientFactoryMock = new Mock<IHttpClientFactory>();
                     var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
 
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient("lineorg")).Returns(lineOrgServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
@@ -138,7 +139,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
                         client.DefaultRequestHeaders.Add("x-fusion-test-delegated", $"{currentUser}");
                         return client;
                     });
-                    clientFactoryMock.Setup(cfm => cfm.CreateClient("lineorg")).Returns(lineOrgMock.Build());
 
                     return clientFactoryMock.Object;
                 });

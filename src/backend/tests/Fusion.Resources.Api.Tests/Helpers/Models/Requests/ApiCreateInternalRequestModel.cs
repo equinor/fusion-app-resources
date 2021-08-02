@@ -3,6 +3,7 @@ using Fusion.ApiClients.Org;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion.Integration.Profile.ApiClient;
 
 #nullable enable
 
@@ -24,7 +25,8 @@ namespace Fusion.Testing.Mocks
 
         public string? AdditionalNote { get; set; }
         public Dictionary<string, object>? ProposedChanges { get; set; }
-
+        
+        public string? AssignedDepartment { get; set; }
 
         public Guid? ProposedPersonAzureUniqueId { get; set; }
 
@@ -57,6 +59,17 @@ namespace Fusion.Testing.Mocks
         {
             Type = "allocation";
             SubType = "direct";
+            return this;
+        }
+
+        public ApiCreateInternalRequestModel WithProposedPerson(ApiPersonProfileV3 person)
+        {
+            ProposedPersonAzureUniqueId = person.AzureUniqueId;
+            return this;
+        }
+        public ApiCreateInternalRequestModel WithAssignedDepartment(string? department)
+        {
+            AssignedDepartment = department;
             return this;
         }
 

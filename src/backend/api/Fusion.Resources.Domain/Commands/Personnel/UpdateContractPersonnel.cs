@@ -1,5 +1,4 @@
-﻿using Fusion.Integration;
-using Fusion.Resources.Database;
+﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +31,7 @@ namespace Fusion.Resources.Domain.Commands
         public List<string> Disciplines { get; set; } = new List<string>();
         public string? DawinciCode { get; set; }
         public string? LinkedInProfile { get; set; }
+        public string? PreferredContactMail { get; set; }
 
         public class Handler : IRequestHandler<UpdateContractPersonnel, QueryContractPersonnel>
         {
@@ -54,12 +54,16 @@ namespace Fusion.Resources.Domain.Commands
                 if (contractPersonnel is null)
                     throw new ArgumentException($"Cannot locate person using personnel identifier '{request.PersonnelId.OriginalIdentifier}'");
 
+                var shouldUpdateContactMail = request.PreferredContactMail != contractPersonnel.Person.PreferredContractMail;
 
                 UpdatePerson(contractPersonnel.Person, request);
 
                 contractPersonnel.Updated = DateTimeOffset.UtcNow;
                 contractPersonnel.UpdatedBy = request.Editor.Person;
-                
+
+                // Update contact mail in people service
+                if (shouldUpdateContactMail && contractPersonnel.Person.AzureUniqueId.HasValue)
+                    await mediator.Send(new SetPeoplePreferredContractMail(contractPersonnel.Person.AzureUniqueId.Value, request.PreferredContactMail));
 
                 await resourcesDb.SaveChangesAsync();
 
@@ -77,6 +81,7 @@ namespace Fusion.Resources.Domain.Commands
                 dbPersonnel.LinkedInProfile = request.LinkedInProfile;
                 dbPersonnel.Phone = request.Phone;
                 dbPersonnel.Disciplines = request.Disciplines?.Select(d => new DbPersonnelDiscipline { Name = d }).ToList() ?? new List<DbPersonnelDiscipline>();
+                dbPersonnel.PreferredContractMail = request.PreferredContactMail;
             }
         }
     }

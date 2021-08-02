@@ -28,7 +28,7 @@ namespace Fusion.Resources.Logic.Commands
 
                     RuleFor(x => x).Must(x => !IsExpiredSplit(x))
                         .WithMessage("Cannot run request on an expired instance");
-                        
+
                 }
 
                 private AbstractValidator<DbResourceAllocationRequest> DbResourceAllocationRequest(DbResourceAllocationRequest req)
@@ -52,7 +52,7 @@ namespace Fusion.Resources.Logic.Commands
                         return new MissingValidator("Could not determine validator to use for subtype");
                     }
                 }
-                
+
                 #region Sub type validators
 
                 private class MissingValidator : AbstractValidator<DbResourceAllocationRequest>
@@ -74,7 +74,7 @@ namespace Fusion.Resources.Logic.Commands
                         {
                             var changes = JsonConvert.DeserializeAnonymousType(r.ProposedChanges ?? "{}", new { workload = (double?)null, location = new { } });
 
-                            var missingAdjustmentChanges = changes.workload is null && changes.location is null;
+                            var missingAdjustmentChanges = changes != null && changes.workload is null && changes is { location: null };
 
                             // When split is currently active, a change date is required.
                             if (IsCurrentSplit(r) && HasChangeDate(r) == false)
@@ -129,10 +129,10 @@ namespace Fusion.Resources.Logic.Commands
                 private static bool HasChangeDate(DbResourceAllocationRequest request)
                     => request.ProposalParameters.ChangeTo is not null || request.ProposalParameters.ChangeFrom is not null;
 
-                private static bool IsCurrentSplit(DbResourceAllocationRequest request) 
+                private static bool IsCurrentSplit(DbResourceAllocationRequest request)
                     => request.OrgPositionInstance.AppliesFrom.Date <= Today && request.OrgPositionInstance.AppliesTo >= Today;
 
-                private static bool IsExpiredSplit(DbResourceAllocationRequest request) 
+                private static bool IsExpiredSplit(DbResourceAllocationRequest request)
                     => request.OrgPositionInstance.AppliesTo <= Today;
             }
         }

@@ -62,11 +62,13 @@ namespace Fusion.Resources.Domain
         {
             private readonly ResourcesDbContext db;
             private readonly IHttpClientFactory httpClientFactory;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db, IHttpClientFactory httpClientFactory)
+            public Handler(ResourcesDbContext db, IHttpClientFactory httpClientFactory, IMediator mediator)
             {
                 this.db = db;
                 this.httpClientFactory = httpClientFactory;
+                this.mediator = mediator;
             }
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
@@ -94,10 +96,23 @@ namespace Fusion.Resources.Domain
 
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments)
             {
+                var department = await mediator.Send(new GetDepartment(fullDepartmentString));
+                if (department is null) return new List<QueryInternalPersonnelPerson>();
+
                 var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
 
-                var departmentPersonnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, includeSubDepartments, fullDepartmentString);
-                return departmentPersonnel;
+                List<QueryInternalPersonnelPerson> personnel;
+
+                if (includeSubDepartments || department.LineOrgResponsible?.AzureUniqueId is null)
+                {
+                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, fullDepartmentString);
+                }
+                else
+                {
+                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value);
+                }
+
+                return personnel;
             }
 
             private async Task<Dictionary<Guid, List<QueryPersonAbsenceBasic>>> GetPersonsAbsenceAsync(IEnumerable<Guid> azureIds)
@@ -105,6 +120,7 @@ namespace Fusion.Resources.Domain
                 var ids = azureIds.ToArray();
 
                 var items = await db.PersonAbsences.Where(a => ids.Contains(a.Person.AzureUniqueId))
+                    .Include(a => a.TaskDetails)
                     .Select(a => new { absence = a, azureId = a.Person.AzureUniqueId })
                     .ToListAsync();
 

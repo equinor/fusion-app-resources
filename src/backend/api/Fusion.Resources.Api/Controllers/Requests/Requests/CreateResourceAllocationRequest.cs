@@ -1,15 +1,14 @@
 ﻿using FluentValidation;
+using Fusion.Integration;
+using Fusion.Integration.Org;
+using Fusion.Resources.Domain;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
-using Fusion.Integration.Org;
-using Microsoft.Extensions.Logging;
-using FluentValidation.Validators;
-using System.Collections.Generic;
-using FluentValidation.Results;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -42,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<CreateResourceAllocationRequest>
         {
-            public Validator()
+            public Validator(IMediator mediator, IFusionProfileResolver profileResolver)
             {
                 RuleFor(x => x.Type).NotNull().NotEmpty();
                 RuleFor(x => x.Type).IsEnumName(typeof(ApiAllocationRequestType), false)
@@ -87,6 +86,37 @@ namespace Fusion.Resources.Api.Controllers
                             context.AddFailure($"Could not resolve position from org chart: {ex.Message}");
                         }
                     });
+
+                RuleFor(x => x.ProposedPersonAzureUniqueId)
+                    .CustomAsync(async (id, context, ct) =>
+                    {
+                        if (!id.HasValue) return;
+
+                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
+
+                        try
+                        {
+                            var profile = await profileResolver.ResolvePersonBasicProfileAsync(id.Value);
+                            if (profile is null) context.AddFailure($"Could not find person with id '{id.Value}'");
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, $"Could not resolve person with id '{id.Value}'.");
+                            context.AddFailure($"Could not resolve person with id '{id.Value}': {ex.Message}");
+                        }
+
+                    });
+                RuleFor(x => x.AssignedDepartment)
+                   .MustAsync(async (d, cancellationToken) =>
+                   {
+                       if (d is null)
+                           return true;
+
+                       var department = await mediator.Send(new GetDepartment(d), cancellationToken);
+                       return department is not null;
+                   })
+                   .WithMessage("Invalid department specified")
+                   .When(x => !string.IsNullOrEmpty(x.AssignedDepartment));
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
+﻿using FluentValidation;
+using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Api.Authorization;
@@ -338,6 +339,66 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-    }
 
+        [HttpPut("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/preferred-contact")]
+        public async Task<ActionResult<ApiCollection<ApiContractPersonnel>>> UpdatePersonnelPreferredContactMails([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, [FromBody] UpdateContractPreferredMailRequest request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                    or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            using (var scope = await BeginTransactionAsync())
+            {
+                var mails = request.Personnel.Select(p => (p.PersonnelId, p.PreferredContactMail));
+
+                await DispatchAsync(new UpdateContractPersonnelContactMail(contractIdentifier, mails));
+                await scope.CommitAsync();
+            }
+
+            var contractPersonnel = await DispatchAsync(new GetContractPersonnel(contractIdentifier));
+            var returnItems = contractPersonnel.Select(p => new ApiContractPersonnel(p));
+            var collection = new ApiCollection<ApiContractPersonnel>(returnItems);
+            return collection;
+        }
+
+        [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/preferred-contact")]
+        public ActionResult CheckContractorMailValid([FromQuery] string mail)
+        {
+            // Only validating mail, no authorization required except for a valid user.
+
+            var validator = new ContractorMailValidator();
+            var result = validator.Validate(mail);
+
+            if (result.IsValid)
+                return Ok();
+
+            return ApiErrors.InvalidOperation(new ValidationException(result.Errors));
+        }
+
+
+        private class ContractorMailValidator : AbstractValidator<string>
+        {
+            public ContractorMailValidator()
+            {
+                RuleFor(x => x)
+                    .IsValidEmail()
+                    .NotHaveInvalidMailDomain()
+                    .OverridePropertyName("mail");
+            }
+        }
+    }
 }
