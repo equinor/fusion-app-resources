@@ -1,4 +1,3 @@
-
 import Personnel, { PersonnelDiscipline } from '../../../../../../models/Personnel';
 import styles from './styles.less';
 import {
@@ -9,9 +8,9 @@ import {
 } from '@equinor/fusion-components';
 import classNames from 'classnames';
 import useBasePositions from '../../../../../../hooks/useBasePositions';
-import AzureAdStatusIcon from '../../pages/ManagePersonnelPage/components/AzureAdStatus';
 import { PersonDetails } from '@equinor/fusion';
 import { ReactNode, FC, useMemo, useCallback } from 'react';
+import AzureAdStatusIndicator from '../AzureAdStatusIndicator';
 
 type EditablePositionDetailsProps = {
     person: Personnel;
@@ -32,11 +31,7 @@ const getPersonDetails = (person: Personnel): PersonDetails => ({
     company: { id: '', name: '' },
 });
 
-const createTextField = (
-    label: string,
-    text: string | ReactNode,
-    textStyle?: string | null
-) => {
+const createTextField = (label: string, text: string | ReactNode, textStyle?: string | null) => {
     return (
         <div className={styles.field}>
             <label>{label}</label>
@@ -60,11 +55,7 @@ const createEditField = (
     );
 };
 
-const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({
-    person,
-    edit,
-    setField,
-}) => {
+const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edit, setField }) => {
     const { basePositions } = useBasePositions();
 
     const dropDownOptions = useMemo(() => {
@@ -117,6 +108,11 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({
                             </div>
                             <div className={styles.row}>
                                 {createTextField('E-Mail', person.mail || '')}
+                                {createEditField(
+                                    'Preferred contact mail',
+                                    person.preferredContactMail || '',
+                                    setField('preferredContactMail')
+                                )}
                             </div>
                             <div className={styles.row}>
                                 {createEditField(
@@ -131,7 +127,9 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({
                                 )}
                                 {createTextField(
                                     'AD Status',
-                                    AzureAdStatusIcon(person.azureAdStatus || 'NoAccount'),
+                                    <AzureAdStatusIndicator
+                                        status={person.azureAdStatus || 'NoAccount'}
+                                    />,
                                     'AdStatus'
                                 )}
                             </div>
@@ -144,13 +142,17 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({
                             </div>
                             <div className={styles.row}>
                                 {createTextField('E-Mail', person.mail || '')}
+                                {createTextField('Preferred contact mail', person.preferredContactMail || '')}
+
                             </div>
                             <div className={styles.row}>
                                 {createTextField('Phone', person.phoneNumber || '')}
                                 {createTextField('Dawinci', person.dawinciCode || '')}
                                 {createTextField(
                                     'AD Status',
-                                    AzureAdStatusIcon(person.azureAdStatus || 'NoAccount'),
+                                    <AzureAdStatusIndicator
+                                        status={person.azureAdStatus || 'NoAccount'}
+                                    />,
                                     'AdStatus'
                                 )}
                             </div>
