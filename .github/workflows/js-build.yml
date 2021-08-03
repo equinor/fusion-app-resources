@@ -20,32 +20,25 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
         with:
-          paths: '["src/backend/**"]'
+          paths: '["src/frontend/**"]'
 
   build:
     needs: pre_job
     if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     defaults:
       run:
         shell: bash
-        working-directory: src/backend
+        working-directory: src/frontend
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+    - name: Use Node.js 14
+      uses: actions/setup-node@v2
       with:
-        dotnet-version: 5.0.x
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --logger GitHubActions
+        node-version: 14.x
+    - run: npm ci
+    - run: npm run build
+    
