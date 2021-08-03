@@ -13,7 +13,7 @@ const AdStatusIcon = (props: IconProps) => {
         </svg>
     );
 
-    return iconFactory(props);
+    return iconFactory(props); 
 };
 
 export default AdStatusIcon;

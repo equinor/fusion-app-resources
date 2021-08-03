@@ -79,7 +79,7 @@ export default class ApiClient {
         return response.data.value;
     }
 
-    async updatePersonnelPrefferedContactMailsAsync(
+    async updatePersonnelPreferredContactMailsAsync(
         projectId: string,
         contractId: string,
         contactMails: Array<ContactMail>
@@ -96,7 +96,7 @@ export default class ApiClient {
         return response.data.value;
     }
 
-    async checkPersonnelPrefferedContactMailsAsync(
+    async checkPersonnelPreferredContactMailsAsync(
         projectId: string,
         contractId: string,
         mail: string

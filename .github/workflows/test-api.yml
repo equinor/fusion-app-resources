@@ -5,11 +5,26 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-    paths: 
-    - src/backend/**
+    
+    # Removing path options, as github does not support having required checks and path filters.
+
+    # paths: 
+    # - src/backend/**
 
 jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          paths: '["src/backend/**"]'
+
   build:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
 
     runs-on: windows-latest
 
