@@ -91,7 +91,7 @@ const getNavigationStructure = (
                 createNavItem(
                     history,
                     contractId,
-                    'Preffered contact mail',
+                    'Preferred contact mail',
                     'manage-personnel-mails',
                     'child'
                 ),

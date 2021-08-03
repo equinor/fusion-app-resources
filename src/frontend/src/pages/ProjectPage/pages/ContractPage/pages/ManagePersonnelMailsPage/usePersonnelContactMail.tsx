@@ -92,7 +92,7 @@ const usePersonnelContactMail = () => {
                 return;
             }
             try {
-                await apiClient.checkPersonnelPrefferedContactMailsAsync(
+                await apiClient.checkPersonnelPreferredContactMailsAsync(
                     projectId,
                     contractId,
                     mail
@@ -116,7 +116,7 @@ const usePersonnelContactMail = () => {
         setSaveError(null);
 
         try {
-            const response = await apiClient.updatePersonnelPrefferedContactMailsAsync(
+            const response = await apiClient.updatePersonnelPreferredContactMailsAsync(
                 projectId,
                 contractId,
                 contactMailForm.map((c) => ({
