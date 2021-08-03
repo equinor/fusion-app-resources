@@ -20,7 +20,7 @@ jobs:
         uses: fkirc/skip-duplicate-actions@master
         with:
           # All of these options are optional, so you can remove them if you are happy with the defaults
-          paths_ignore: '["src/frontend/**"]'
+          do_not_skip: '["src/backend/**"]'
 
   build:
     needs: pre_job
