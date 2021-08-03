@@ -12,7 +12,7 @@ on:
     # - src/backend/**
 
 jobs:
-  pre_job:
+  pre_js_job:
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
@@ -22,9 +22,9 @@ jobs:
         with:
           paths: '["src/frontend/**"]'
 
-  build:
-    needs: pre_job
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+  build_js_app:
+    needs: pre_js_job
+    if: ${{ needs.pre_js_job.outputs.should_skip != 'true' }}
 
     runs-on: ubuntu-latest
 
