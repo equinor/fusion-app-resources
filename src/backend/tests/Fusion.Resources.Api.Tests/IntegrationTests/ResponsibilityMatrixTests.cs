@@ -74,7 +74,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 BasePositionId = testProject.Positions.First().BasePosition.Id,
                 Sector = "ABC DEF",
                 Unit = "ABC DEF GHI",
-                ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
             };
 
             using var authScope = fixture.AdminScope();
@@ -99,8 +98,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Discipline = null,
                 BasePositionId = null,
                 Sector = null,
-                Unit = null,
-                ResponsibleId = null
+                Unit = "PDP PRD EAS",
             };
 
             using var authScope = fixture.AdminScope();
@@ -111,7 +109,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Project.Should().BeNull();
             response.Value.Discipline.Should().BeNull();
             response.Value.Sector.Should().BeNull();
-            response.Value.Unit.Should().BeNull();
+            response.Value.Unit.Should().NotBeNull();
             response.Value.Responsible.Should().BeNull();
             response.Value.Updated.Should().NotBeNull();
         }
@@ -147,7 +145,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 BasePositionId = testProject.Positions.First().BasePosition.Id,
                 Sector = "ABC",
                 Unit = "ABC DEF",
-                ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
             };
 
             var response = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", request);
