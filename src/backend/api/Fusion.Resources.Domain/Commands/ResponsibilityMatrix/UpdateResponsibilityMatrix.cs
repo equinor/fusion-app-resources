@@ -23,7 +23,6 @@ namespace Fusion.Resources.Domain.Commands
         public MonitorableProperty<Guid?> BasePositionId { get; set; } = new MonitorableProperty<Guid?>();
         public MonitorableProperty<string?> Sector { get; set; } = new MonitorableProperty<string?>();
         public MonitorableProperty<string?> Unit { get; set; } = new MonitorableProperty<string?>();
-        public MonitorableProperty<Guid?> ResponsibleId { get; set; } = new MonitorableProperty<Guid?>();
 
         public class Handler : IRequestHandler<UpdateResponsibilityMatrix, QueryResponsibilityMatrix>
         {
@@ -65,24 +64,6 @@ namespace Fusion.Resources.Domain.Commands
                     else
                     {
                         status.Project = null;
-                    }
-
-                    isModified = true;
-                }
-
-                if (request.ResponsibleId.HasBeenSet)
-                {
-                    if (request.ResponsibleId.Value != null)
-                    {
-                        var responsible = await profileService.EnsurePersonAsync(request.ResponsibleId.Value.Value);
-                        if (responsible == null)
-                            throw new ArgumentException(
-                                "Cannot create personnel without either a valid azure unique id or mail address");
-                        status.Responsible = responsible;
-                    }
-                    else
-                    {
-                        status.Responsible = null;
                     }
 
                     isModified = true;
