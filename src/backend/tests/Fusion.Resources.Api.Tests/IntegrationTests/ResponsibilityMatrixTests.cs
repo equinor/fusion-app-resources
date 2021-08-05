@@ -12,6 +12,8 @@ using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks.OrgService;
 using Xunit;
 using Xunit.Abstractions;
+using Fusion.Testing.Mocks.LineOrgService;
+using Fusion.Testing.Mocks.ProfileService;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -110,8 +112,40 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.Discipline.Should().BeNull();
             response.Value.Sector.Should().BeNull();
             response.Value.Unit.Should().NotBeNull();
-            response.Value.Responsible.Should().BeNull();
             response.Value.Updated.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task PutMatrix_ShouldSetResponsible_WhenSettingDepartment()
+        {
+            const string department = "PDP PRD FE ANE ANE5";
+
+            var resourceOwner = PeopleServiceMock
+                .AddTestProfile()
+                .WithAccountType(FusionAccountType.Employee)
+                .WithFullDepartment(department)
+                .SaveProfile();
+
+            LineOrgServiceMock.AddDepartment(department);
+            LineOrgServiceMock
+                .AddTestUser()
+                .MergeWithProfile(resourceOwner)
+                .AsResourceOwner()
+                .SaveProfile();
+
+            var request = new UpdateResponsibilityMatrixRequest
+            {
+                ProjectId = testProject.Project.ProjectId,
+                LocationId = Guid.NewGuid(),
+                Discipline = "WallaWallaUpdated",
+                BasePositionId = testProject.Positions.First().BasePosition.Id,
+                Sector = "PRD FE ANE",
+                Unit = department,
+            };
+
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPutAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix/{testResponsibilityMatrixId}", request);
+            response.Value.Responsible.azureUniquePersonId.Should().Be(resourceOwner.AzureUniqueId);
         }
 
         [Fact]
@@ -180,6 +214,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public object BasePosition { get; set; }
         public string Sector { get; set; }
         public string Unit { get; set; }
-        public object Responsible { get; set; } = null!;
+        public TestApiPersonnelPerson Responsible { get; set; } = null!;
     }
 }
