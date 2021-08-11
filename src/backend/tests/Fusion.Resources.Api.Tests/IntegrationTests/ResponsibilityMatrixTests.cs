@@ -30,8 +30,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private Guid testResponsibilityMatrixId;
 
         private FusionTestProjectBuilder testProject;
-
-
         private HttpClient client => fixture.ApiFactory.CreateClient();
 
         public ResponsibilityMatrixTests(ResourceApiFixture fixture, ITestOutputHelper output)
@@ -149,6 +147,48 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetMatrix_ShouldHaveResponsibleSet()
+        {
+            const string department = "ABC DEF";
+            var resourceOwner = PeopleServiceMock
+                .AddTestProfile()
+                .WithAccountType(FusionAccountType.Employee)
+                .WithFullDepartment(department)
+                .SaveProfile();
+
+            LineOrgServiceMock.AddDepartment(department);
+            LineOrgServiceMock
+                .AddTestUser()
+                .MergeWithProfile(resourceOwner)
+                .AsResourceOwner()
+                .SaveProfile();
+
+            var client = fixture.ApiFactory.CreateClient()
+                .WithTestUser(fixture.AdminUser)
+                .AddTestAuthToken();
+
+            var request = new UpdateResponsibilityMatrixRequest
+            {
+                ProjectId = testProject.Project.ProjectId,
+                LocationId = Guid.NewGuid(),
+                Discipline = "WallaWalla",
+                BasePositionId = testProject.Positions.First().BasePosition.Id,
+                Sector = "ABC",
+                Unit = department,
+            };
+
+            using var authScope = fixture.AdminScope();
+
+            var response = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", request);
+            response.Response.EnsureSuccessStatusCode();
+            
+            var matrixId = response.Value.Id;
+
+            response = await client.TestClientGetAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix/{matrixId}");
+            response.Value.Responsible.azureUniquePersonId.Should().Be(resourceOwner.AzureUniqueId);
+        }
+
+        [Fact]
         public async Task DeleteMatrix_ShouldBeOk_WhenAdmin()
         {
             using var authScope = fixture.AdminScope();
@@ -159,13 +199,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public async Task InitializeAsync()
         {
+
             testProject = new FusionTestProjectBuilder()
                 .WithPositions()
                 .AddToMockService();
 
             fixture.ContextResolver
                 .AddContext(testProject.Project);
-
 
             var client = fixture.ApiFactory.CreateClient()
                 .WithTestUser(fixture.AdminUser)
