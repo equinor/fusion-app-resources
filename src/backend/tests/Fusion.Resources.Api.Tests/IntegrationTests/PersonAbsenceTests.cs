@@ -211,6 +211,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        [Fact]
+        public async Task AddTaskWithBasePosition_ShouldBeAllowed()
+        {
+            var task = new CreatePersonAbsenceRequest {
+                AbsencePercentage = 50,
+                AppliesFrom = new DateTime(2021,08,12),
+                AppliesTo = new DateTime(2021,09,03),
+                Comment = "",
+                IsPrivate = false,
+                TaskDetails = new ApiTaskDetails {
+                    BasePositionId = new Guid("b97703e6-cdc8-4a3f-a889-21a1d375422f"),
+                    Location = "",
+                    TaskName = "Test"
+                },
+                Type = ApiPersonAbsence.ApiAbsenceType.OtherTasks
+            };
+
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", task);
+            response.Should().BeSuccessfull();
+        }
 
         public async Task InitializeAsync()
         {
