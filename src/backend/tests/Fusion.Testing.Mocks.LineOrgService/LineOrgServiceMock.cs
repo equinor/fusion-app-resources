@@ -14,7 +14,7 @@ namespace Fusion.Testing.Mocks.LineOrgService
         readonly WebApplicationFactory<Startup> factory;
 
         internal static ConcurrentBag<ApiLineOrgUser> Users = new ConcurrentBag<ApiLineOrgUser>();
-        internal static List<ApiDepartment> Departments = new List<ApiDepartment>();
+        internal static ConcurrentBag<ApiDepartment> Departments = new ConcurrentBag<ApiDepartment>();
 
         public LineOrgServiceMock()
         {
