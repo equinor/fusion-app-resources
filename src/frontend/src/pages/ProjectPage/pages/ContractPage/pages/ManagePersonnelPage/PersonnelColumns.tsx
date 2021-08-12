@@ -1,10 +1,10 @@
-
 import { DataTableColumn } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
-import AzureAdStatusIcon from './components/AzureAdStatus';
 import styles from './styles.less';
 import PersonnelInfoSideSheet from './PersonnelInfoSideSheet';
 import { FC, useState } from 'react';
+import AzureAdStatusIndicator from '../../components/AzureAdStatusIndicator';
+import HasEquinorMailCell from '../../components/HasEquinorMailCell';
 
 export type DataItemProps = {
     item: Personnel;
@@ -34,10 +34,13 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         accessor: 'azureAdStatus',
         label: 'AD',
         priority: 2,
-        component: p => AzureAdStatusIcon(p.item?.azureAdStatus || 'NoAccount'),
+        component: ({ item }) => (
+            <AzureAdStatusIndicator status={item?.azureAdStatus || 'NoAccount'} />
+        ),
         sortable: true,
         width: '20px',
     },
+     
     {
         key: 'Mail',
         accessor: 'mail',
@@ -52,7 +55,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
     },
     {
         key: 'FirstName',
-        accessor: p => p.firstName || '',
+        accessor: (p) => p.firstName || '',
         label: 'First Name',
         component: ({ item }) => (
             <ColumnPersonnelInfoSideSheetLink person={item}>
@@ -64,7 +67,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
     },
     {
         key: 'LastName',
-        accessor: p => p.lastName || '',
+        accessor: (p) => p.lastName || '',
         label: 'Last Name',
         component: ({ item }) => (
             <ColumnPersonnelInfoSideSheetLink person={item}>
@@ -76,16 +79,9 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
     },
     {
         key: 'Disciplines',
-        accessor: p => p.disciplines.map(d => d.name)?.join('/') || '',
+        accessor: (p) => p.disciplines.map((d) => d.name)?.join('/') || '',
         label: 'Discipline',
         priority: 5,
-        sortable: true,
-    },
-    {
-        key: 'dawinciCode',
-        accessor: p => p.dawinciCode || '',
-        label: 'Dawinci',
-        priority: 6,
         sortable: true,
     },
     {
@@ -97,10 +93,10 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
     },
     {
         key: 'Workload',
-        accessor: r => '-',
+        accessor: (r) => '-',
         label: 'Workload',
         priority: 8,
-        component: p => (
+        component: (p) => (
             <span>{`${(
                 p.item.positions?.reduce((val, pos) => {
                     return (val += pos.workload);
@@ -115,7 +111,16 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         accessor: 'personnelId',
         label: 'Nr Positions',
         priority: 9,
-        component: p => <span>{(p.item.positions?.length || 0).toString()}</span>,
+        component: (p) => <span>{(p.item.positions?.length || 0).toString()}</span>,
+        sortable: true,
+        width: '20px',
+    },
+    {
+        key: 'equinorMail',
+        accessor: 'mail',
+        label: 'Equinor mail',
+        priority: 10,
+        component: HasEquinorMailCell,
         sortable: true,
         width: '20px',
     },

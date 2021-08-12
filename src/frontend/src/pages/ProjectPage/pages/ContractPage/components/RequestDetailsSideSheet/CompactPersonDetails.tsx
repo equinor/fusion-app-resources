@@ -1,19 +1,15 @@
-
 import { PersonCard, Chip } from '@equinor/fusion-components';
 import Personnel from '../../../../../../models/Personnel';
 import styles from './styles.less';
-import AzureAdStatusIcon from '../../pages/ManagePersonnelPage/components/AzureAdStatus';
 import classNames from 'classnames';
 import { FC } from 'react';
+import AzureAdStatusIndicator from '../AzureAdStatusIndicator';
 
 type CompactPersonDetailsProps = {
     personnel: Personnel;
     originalPersonnel?: Personnel;
 };
-const CompactPersonDetails: FC<CompactPersonDetailsProps> = ({
-    personnel,
-    originalPersonnel,
-}) => {
+const CompactPersonDetails: FC<CompactPersonDetailsProps> = ({ personnel, originalPersonnel }) => {
     return (
         <>
             <div className={styles.compactPersonDetails}>
@@ -21,13 +17,13 @@ const CompactPersonDetails: FC<CompactPersonDetailsProps> = ({
                 <div className={styles.textField}>
                     <span className={styles.title}>{'AD status'}</span>
                     <span className={styles.content}>
-                        {AzureAdStatusIcon(personnel.azureAdStatus || 'NoAccount')}
+                        <AzureAdStatusIndicator status={personnel.azureAdStatus || 'NoAccount'} />
                     </span>
                 </div>
                 <div className={styles.textField}>
                     <span className={styles.title}>{'Disciplines'}</span>
                     <div className={styles.content}>
-                        {personnel.disciplines.map(discipline => (
+                        {personnel.disciplines.map((discipline) => (
                             <Chip title={discipline.name} />
                         ))}
                     </div>
@@ -39,13 +35,15 @@ const CompactPersonDetails: FC<CompactPersonDetailsProps> = ({
                     <div className={styles.textField}>
                         <span className={styles.title}>{'AD status'}</span>
                         <span className={styles.content}>
-                            {AzureAdStatusIcon(originalPersonnel.azureAdStatus || 'NoAccount')}
+                            <AzureAdStatusIndicator
+                                status={originalPersonnel.azureAdStatus || 'NoAccount'}
+                            />
                         </span>
                     </div>
                     <div className={styles.textField}>
                         <span className={styles.title}>{'Disciplines'}</span>
                         <div className={styles.content}>
-                            {originalPersonnel.disciplines.map(discipline => (
+                            {originalPersonnel.disciplines.map((discipline) => (
                                 <Chip title={discipline.name} />
                             ))}
                         </div>
