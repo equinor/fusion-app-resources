@@ -1,14 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
     public class DbConversationMessage
     {
         public Guid Id { get; set; }
+        [MaxLength(100)]
         public string Title { get; set; } = null!;
+        [MaxLength(2000)]
         public string Body { get; set; } = null!;
+        [MaxLength(60)]
         public string Category { get; set; } = null!;
 
         public Guid SenderId { get; set; }
@@ -37,11 +41,11 @@ namespace Fusion.Resources.Database.Entities
                 .HasForeignKey(x => x.RequestId);
 
             modelBuilder.Entity<DbConversationMessage>()
-                .Property(x => x.Title).HasMaxLength(100);
+                .Property(x => x.Title);
             modelBuilder.Entity<DbConversationMessage>()
-               .Property(x => x.Body).HasMaxLength(2000);
+               .Property(x => x.Body);
             modelBuilder.Entity<DbConversationMessage>()
-               .Property(x => x.Category).HasMaxLength(60);
+               .Property(x => x.Category);
 
             modelBuilder.Entity<DbConversationMessage>()
                 .Property(x => x.Recpient)

@@ -1,15 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
     public class DbRequestTask
     {
         public Guid Id { get; set; }
+        [MaxLength(100)]
         public string Title { get; set; } = null!;
+        [MaxLength(2000)]
         public string Body { get; set; } = null!;
+        [MaxLength(60)]
         public string Type { get; set; } = null!;
+        [MaxLength(60)]
         public string? SubType { get; set; }
         public DbTaskSource Source { get; set; }
         public DbTaskResponsible Responsible { get; set; }
@@ -34,20 +39,16 @@ namespace Fusion.Resources.Database.Entities
                 .HasForeignKey(t => t.ResolvedById);
 
             modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.Title)
-                .HasMaxLength(100);
+                .Property(t => t.Title);
             
             modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.Body)
-                .HasMaxLength(2000);
+                .Property(t => t.Body);
 
             modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.Type)
-                .HasMaxLength(60);
+                .Property(t => t.Type);
 
             modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.SubType)
-                .HasMaxLength(60);
+                .Property(t => t.SubType);
 
             modelBuilder.Entity<DbResourceAllocationRequest>()
                 .HasMany(rq => rq.Tasks)

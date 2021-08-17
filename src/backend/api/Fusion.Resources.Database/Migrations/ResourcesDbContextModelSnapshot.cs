@@ -33,8 +33,8 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<string>("ContractNumber")
                         .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -766,7 +766,8 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.Property<string>("AccountType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<Guid>("AzureUniqueId")
                         .HasColumnType("uniqueidentifier");
@@ -1397,8 +1398,8 @@ namespace Fusion.Resources.Database.Migrations
                                 .HasColumnType("nvarchar(250)");
 
                             b1.Property<string>("Obs")
-                                .HasMaxLength(40)
-                                .HasColumnType("nvarchar(40)");
+                                .HasMaxLength(400)
+                                .HasColumnType("nvarchar(400)");
 
                             b1.Property<double>("Workload")
                                 .HasColumnType("float");

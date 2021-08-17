@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
@@ -9,13 +10,17 @@ namespace Fusion.Resources.Database.Entities
         /// <summary>
         /// Unique identifier for the step inside the workflow
         /// </summary>
+        [MaxLength(50)]
         public string Id { get; set; } = null!;
 
         /// <summary>
         /// Display name for the step. Should be short.
         /// </summary>
+        [MaxLength(100)]
         public string Name { get; set; } = null!;
+        [MaxLength(500)]
         public string? Description { get; set; } = null!;
+        [MaxLength(500)]
         public string? Reason { get; set; }
 
         public Guid? CompletedById { get; set; }
@@ -29,7 +34,9 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset? Started { get; set; }
         public DateTimeOffset? Completed { get; set; }
         public DateTimeOffset? DueDate { get; set; }
+        [MaxLength(50)]
         public string? PreviousStep { get; set; }
+        [MaxLength(50)]
         public string? NextStep { get; set; }
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,13 +47,13 @@ namespace Fusion.Resources.Database.Entities
                 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbWFStepState>());
                 
-                entity.Property(e => e.Id).HasMaxLength(50);
-                entity.Property(e => e.PreviousStep).HasMaxLength(50);
-                entity.Property(e => e.NextStep).HasMaxLength(50);
+                entity.Property(e => e.Id);
+                entity.Property(e => e.PreviousStep);
+                entity.Property(e => e.NextStep);
 
-                entity.Property(e => e.Name).HasMaxLength(100);
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.Reason).HasMaxLength(500);
+                entity.Property(e => e.Name);
+                entity.Property(e => e.Description);
+                entity.Property(e => e.Reason);
             });
         }
     }

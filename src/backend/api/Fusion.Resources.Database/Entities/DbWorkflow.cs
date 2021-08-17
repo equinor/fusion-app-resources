@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
@@ -14,13 +15,15 @@ namespace Fusion.Resources.Database.Entities
         /// Not really logic apps running here, but could keep the same type of properties as the query app.
         /// This should keep a name representing the logic running the workflow.
         /// </summary>
+        [MaxLength(500)]
         public string LogicAppName { get; set; } = string.Empty;
 
         /// <summary>
         /// The logic, wherever it is implemented, should version it's logic, to give the possibility to convert/upgrade/run on old logic, as it changes.
         /// </summary>
+        [MaxLength(32)]
         public string LogicAppVersion { get; set; } = string.Empty;
-
+        [MaxLength(100)]
         public string? WorkflowClassType { get; set; }
 
         public DbWorkflowState State { get; set; }
@@ -49,9 +52,9 @@ namespace Fusion.Resources.Database.Entities
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbWorkflowState>());
 
-                entity.Property(e => e.LogicAppName).HasMaxLength(500);
-                entity.Property(e => e.LogicAppVersion).HasMaxLength(32);
-                entity.Property(e => e.WorkflowClassType).HasMaxLength(100);
+                entity.Property(e => e.LogicAppName);
+                entity.Property(e => e.LogicAppVersion);
+                entity.Property(e => e.WorkflowClassType);
             });
 
         }

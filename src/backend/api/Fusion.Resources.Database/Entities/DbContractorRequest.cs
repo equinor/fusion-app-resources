@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
     public class DbContractorRequest
     {
         public Guid Id { get; set; }
+        [MaxLength(2000)]
         public string? Description { get; set; }
 
 
@@ -59,8 +61,8 @@ namespace Fusion.Resources.Database.Entities
                 {
                     op.OwnsOne(p => p.TaskOwner);
 
-                    op.Property(p => p.Name).HasMaxLength(250);
-                    op.Property(p => p.Obs).HasMaxLength(40);
+                    op.Property(p => p.Name);
+                    op.Property(p => p.Obs);
                 });
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
@@ -72,10 +74,12 @@ namespace Fusion.Resources.Database.Entities
 
         public class RequestPosition
         {
+            [MaxLength(250)]
             public string Name { get; set; } = null!;
             public Guid BasePositionId { get; set; }
             public DateTime AppliesFrom { get; set; }
             public DateTime AppliesTo { get; set; }
+            [MaxLength(400)]
             public string? Obs { get; set; }
             public double Workload { get; set; }
 

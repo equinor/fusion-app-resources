@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
     public class DbDepartment
     {
+        [MaxLength(100)]
         public string? SectorId { get; set; }
+        [MaxLength(100)]
         public string DepartmentId { get; set; } = null!;
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
@@ -14,8 +17,8 @@ namespace Fusion.Resources.Database.Entities
             {
                 entity.HasKey(dpt => dpt.DepartmentId);
 
-                entity.Property(x => x.DepartmentId).HasMaxLength(100);
-                entity.Property(x => x.SectorId).HasMaxLength(100);
+                entity.Property(x => x.DepartmentId);
+                entity.Property(x => x.SectorId);
             });
 
             modelBuilder.Entity<DbDepartment>().HasData(CreateSeedData());
