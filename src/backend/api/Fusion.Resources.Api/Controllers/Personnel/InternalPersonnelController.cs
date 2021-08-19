@@ -93,8 +93,9 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
+                .IncludeSubdepartments(includeSubdepartments)
+                .WithPastAllocationsHidden()
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
-            command.IncludeSubdepartments(includeSubdepartments);
 
             var department = await DispatchAsync(command);
 
