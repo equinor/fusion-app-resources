@@ -94,7 +94,6 @@ namespace Fusion.Resources.Api.Controllers
 
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
                 .IncludeSubdepartments(includeSubdepartments)
-                .WithPastAllocationsHidden()
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
 
             var department = await DispatchAsync(command);
