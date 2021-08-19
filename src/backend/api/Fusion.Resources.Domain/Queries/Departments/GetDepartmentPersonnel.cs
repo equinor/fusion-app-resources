@@ -23,9 +23,10 @@ namespace Fusion.Resources.Domain
             QueryParams = queryParams;
         }
 
-        private bool includeSubdepartments  = false;
+        private bool includeSubdepartments = false;
         public bool ExpandTimeline { get; set; }
         public string Department { get; set; }
+        public bool HidePastAllocations { get; set; } = false;
         public ODataQueryParams? QueryParams { get; }
 
         public DateTime? TimelineStart { get; set; }
@@ -38,6 +39,12 @@ namespace Fusion.Resources.Domain
             TimelineStart = start;
             TimelineEnd = end;
 
+            return this;
+        }
+
+        public GetDepartmentPersonnel WithPastAllocationsHidden(bool hidePastAllocations = true)
+        {
+            HidePastAllocations = hidePastAllocations;
             return this;
         }
 
@@ -79,10 +86,18 @@ namespace Fusion.Resources.Domain
 
                 departmentPersonnel.ForEach(p =>
                 {
+                    
                     p.Absence = departmentAbsence[p.AzureUniqueId];
 
                     if (request.ExpandTimeline)
                     {
+                        if (request.HidePastAllocations)
+                        {
+                            p.PositionInstances = p.PositionInstances
+                                .Where(instance => !(instance.AppliesTo < request.TimelineStart || instance.AppliesFrom > request.TimelineEnd))
+                                .ToList();
+                        }
+                            
                         // Timeline date input has been verified when shouldExpandTimline is true.
                         p.Timeline = TimelineUtils.GeneratePersonnelTimeline(p.PositionInstances, p.Absence, request.TimelineStart!.Value, request.TimelineEnd!.Value).OrderBy(p => p.AppliesFrom)
                             //.Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap

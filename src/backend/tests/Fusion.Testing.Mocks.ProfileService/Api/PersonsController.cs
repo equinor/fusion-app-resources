@@ -94,7 +94,6 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
 
                     doc["ManagerAzureId"] = PeopleServiceMock.profiles.FirstOrDefault(m => m.IsResourceOwner && m.FullDepartment == profile.FullDepartment)?.AzureUniqueId;
                     doc["IsExpired"] = false;
-                    doc["Positions"] = new List<ApiPersonPositionV3>();
 
                     return new
                     {
