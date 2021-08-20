@@ -114,6 +114,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task PutMatrix_ShouldBeBadRequest_WhenUnitIsNull()
+        {
+            var request = new UpdateResponsibilityMatrixRequest
+            {
+                ProjectId = null,
+                LocationId = null,
+                Discipline = null,
+                BasePositionId = null,
+                Sector = null,
+                Unit = "",
+            };
+
+            using var authScope = fixture.AdminScope();
+            var response = await client.TestClientPutAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix/{testResponsibilityMatrixId}", request);
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task PutMatrix_ShouldSetResponsible_WhenSettingDepartment()
         {
             const string department = "PDP PRD FE ANE ANE5";
