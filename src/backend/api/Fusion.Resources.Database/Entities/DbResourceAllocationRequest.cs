@@ -89,7 +89,13 @@ namespace Fusion.Resources.Database.Entities
                 {
                     op.Property(ps => ps.State).HasConversion(new EnumToStringConverter<DbProvisionState>());
                 });
-                entity.OwnsOne(e => e.OrgPositionInstance);
+                entity.OwnsOne(e => e.OrgPositionInstance, op=>
+                {
+                    op.Property(ps => ps.AppliesFrom)
+                        .HasConversion(x => x, dt => DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+                    op.Property(ps => ps.AppliesTo)
+                        .HasConversion(x => x, dt => DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+                });
                 entity.OwnsOne(e => e.ProposedPerson);
                 entity.OwnsOne(e => e.State);
                 entity.OwnsOne(e => e.ProposalParameters, op => 

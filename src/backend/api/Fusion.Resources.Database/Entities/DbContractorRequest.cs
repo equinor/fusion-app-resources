@@ -56,6 +56,11 @@ namespace Fusion.Resources.Database.Entities
                 entity.OwnsOne(e => e.Position, op =>
                 {
                     op.OwnsOne(p => p.TaskOwner);
+                    op.Property(ps => ps.AppliesFrom)
+                        .HasConversion(x => x, dt => DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+                    op.Property(ps => ps.AppliesTo)
+                        .HasConversion(x => x, dt => DateTime.SpecifyKind(dt, DateTimeKind.Utc));
+
                 });
 
                 entity.Property(e => e.State).HasConversion(new EnumToStringConverter<DbRequestState>());
