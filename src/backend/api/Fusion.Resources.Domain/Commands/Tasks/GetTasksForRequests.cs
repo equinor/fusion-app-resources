@@ -9,16 +9,19 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands.Tasks
 {
-    public class GetMultipleRequestTasks : IRequest<ILookup<Guid, QueryRequestTask>>
+    /// <summary>
+    /// Get all tasks for multiple requests, specified with request ids.
+    /// </summary>
+    public class GetTasksForRequests : IRequest<ILookup<Guid, QueryRequestTask>>
     {
         private IEnumerable<Guid> requestId;
 
-        public GetMultipleRequestTasks(IEnumerable<Guid> requestId)
+        public GetTasksForRequests(IEnumerable<Guid> requestId)
         {
             this.requestId = requestId;
         }
 
-        public class Handler : IRequestHandler<GetMultipleRequestTasks, ILookup<Guid, QueryRequestTask>>
+        public class Handler : IRequestHandler<GetTasksForRequests, ILookup<Guid, QueryRequestTask>>
         {
             private readonly ResourcesDbContext db;
 
@@ -26,7 +29,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             {
                 this.db = db;
             }
-            public async Task<ILookup<Guid, QueryRequestTask>> Handle(GetMultipleRequestTasks request, CancellationToken cancellationToken)
+            public async Task<ILookup<Guid, QueryRequestTask>> Handle(GetTasksForRequests request, CancellationToken cancellationToken)
             {
                 var result = await db.RequestTasks
                     .Include(t => t.ResolvedBy)

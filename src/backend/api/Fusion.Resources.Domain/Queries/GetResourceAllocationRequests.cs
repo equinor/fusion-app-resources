@@ -217,7 +217,7 @@ namespace Fusion.Resources.Domain.Queries
             {
                 if (!expands.HasFlag(ExpandFields.Tasks)) return;
 
-                var tasks = await mediator.Send(new GetMultipleRequestTasks(pagedQuery.Select(x => x.RequestId)));
+                var tasks = await mediator.Send(new GetTasksForRequests(pagedQuery.Select(x => x.RequestId)));
 
                 foreach (var request in pagedQuery)
                 {
