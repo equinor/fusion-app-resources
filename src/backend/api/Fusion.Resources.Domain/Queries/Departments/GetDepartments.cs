@@ -89,7 +89,6 @@ namespace Fusion.Resources.Domain
             {
                 List<QueryDepartment> result;
 
-                var trackedDepartments = await request.Execute(db.Departments).ToListAsync(cancellationToken);
                 var lineOrgDepartments = await lineOrgResolver.GetResourceOwners(request.resourceOwnerSearch, cancellationToken);
 
                 if (request.departmentIds is not null)
@@ -114,7 +113,7 @@ namespace Fusion.Resources.Domain
                         .ToList();
                 }
 
-                result = MergeResults(trackedDepartments, lineOrgDepartments);
+                result = lineOrgDepartments.Select(x => new QueryDepartment(x)).ToList();
 
                 // Cannot filter requests from db before merging with line org results as we need to
                 // 1. Maintain sector info if tracked in db, and 
@@ -134,23 +133,6 @@ namespace Fusion.Resources.Domain
                 }
 
                 return result;
-            }
-
-            private static List<QueryDepartment> MergeResults(List<QueryDepartment> trackedDepartments, List<LineOrgDepartment> lineOrgDepartments)
-            {
-                var departmentMap = trackedDepartments.ToDictionary(dpt => dpt.DepartmentId);
-                foreach (var lineOrgDepartment in lineOrgDepartments)
-                {
-                    if (departmentMap.ContainsKey(lineOrgDepartment.DepartmentId))
-                    {
-                        departmentMap[lineOrgDepartment.DepartmentId].LineOrgResponsible = lineOrgDepartment.Responsible;
-                    }
-                    else
-                    {
-                        trackedDepartments.Add(new QueryDepartment(lineOrgDepartment));
-                    }
-                }
-                return trackedDepartments;
             }
         }
     }

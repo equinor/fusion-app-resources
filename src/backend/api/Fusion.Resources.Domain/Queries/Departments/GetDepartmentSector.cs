@@ -36,7 +36,9 @@ namespace Fusion.Resources.Domain.Queries
 
             public async Task<string?> Handle(GetDepartmentSector query, CancellationToken cancellationToken)
             {
-                return await query.Execute(db.Departments).FirstOrDefaultAsync(cancellationToken);
+                var path = new DepartmentPath(query.departmentId);
+                return (path.Level > 1) ? path.Parent() : null;
+                //return await query.Execute(db.Departments).FirstOrDefaultAsync(cancellationToken);
             }
         }
     }

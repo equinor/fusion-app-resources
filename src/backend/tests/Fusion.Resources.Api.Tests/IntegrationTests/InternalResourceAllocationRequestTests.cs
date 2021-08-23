@@ -216,8 +216,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             const string expectedDepartment = "TPD PRD TST QWE";
-
-            fixture.EnsureDepartment(expectedDepartment);
+            
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(expectedDepartment).SaveProfile();
 
@@ -494,12 +493,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task UpdateRequest_ShouldNotifyResourceOwner_WhenPatchingAssignedDepartment()
         {
+            const string department = "JHA HRA BAR";
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var usr = LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(TestDepartmentId).SaveProfile();
+            var usr = LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(department).SaveProfile();
 
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject);
-            var payload = new JObject { { "assignedDepartment", JToken.FromObject(TestDepartmentId) } };
+            var payload = new JObject { { "assignedDepartment", JToken.FromObject(department) } };
 
             var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
             response.Should().BeSuccessfull();

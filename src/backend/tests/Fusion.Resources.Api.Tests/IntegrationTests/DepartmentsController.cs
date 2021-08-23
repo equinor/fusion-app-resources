@@ -36,84 +36,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
 
-
-        [Fact]
-        public async Task CreateSector_ShouldBeSuccessfull()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
-            {
-                DepartmentId = "TPD PRD TXT",
-            });
-
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
-            resp.Value.Name.Should().Be("TPD PRD TXT");
-            resp.Value.Sector.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task AddDepartment_Should_BeSuccessfull()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            fixture.EnsureDepartment("TPD PRD LVL3");
-
-            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
-            {
-                DepartmentId = "TPD PRD LVL3 LVL4",
-                SectorId = "TPD PRD LVL3",
-            });
-
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
-        }
-
-        [Fact]
-        public async Task AddeDepartment_Should_BeSuccessfull_WhenExistsInLineOrg()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            fixture.EnsureDepartment("TPD PRD LVL3");
-            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment("TPD PRD LVL3 XXX").SaveProfile();
-
-
-            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
-            {
-                DepartmentId = "TPD PRD LVL3 XXX",
-                SectorId = "TPD PRD LVL3",
-            });
-
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
-        }
-
-        [Fact]
-        public async Task AddDepartment_ShouldGiveBadRequest_WhenSectorDoesNotExist()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var resp = await Client.TestClientPostAsync<TestDepartment>("/departments?api-version=1.0-preview", new
-            {
-                DepartmentId = "TPD PRD TST DPT",
-                SectorId = "TPD PRD TST"
-            });
-
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        }
-
-        [Fact]
-        public async Task UpdateDepartment_ShouldGiveNotFound_WhenDepartmentNotInDb()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var resp = await Client.TestClientPutAsync<TestDepartment>("/departments/TPD PRD TST DPT?api-version=1.0-preview", new
-            {
-                SectorId = "TPD PRD TST"
-            });
-
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
         [Fact]
         public async Task GetDepartment_ShouldGiveNotFound_WhenNotInLineOrg()
         {
@@ -194,30 +116,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var department = "PDP TST ABC";
             var siblings = new[] { "PDP TST DEF", "PDP TST GHI" };
             var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
-            fixture.EnsureDepartment(department);
 
             foreach (var sibling in siblings)
             {
                 fixture.EnsureDepartment(sibling);
-                LineOrgServiceMock.AddDepartment(sibling);
-                LineOrgServiceMock.AddTestUser()
-                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
-                    .WithFullDepartment(sibling)
-                    .AsResourceOwner()
-                    .SaveProfile();
             }
             foreach (var child in children)
             {
                 fixture.EnsureDepartment(child);
-                LineOrgServiceMock.AddDepartment(child);
-                LineOrgServiceMock.AddTestUser()
-                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
-                    .WithFullDepartment(child)
-                    .AsResourceOwner()
-                    .SaveProfile();
             }
-
-                LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
             LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
             using var adminScope = fixture.AdminScope();
@@ -250,30 +158,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             foreach (var sibling in siblings) {
                 fixture.EnsureDepartment(sibling);
-                LineOrgServiceMock.AddDepartment(sibling);
-                LineOrgServiceMock.AddTestUser()
-                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
-                    .WithFullDepartment(sibling)
-                    .AsResourceOwner()
-                    .SaveProfile();
             }
             foreach (var child in children) {
                 fixture.EnsureDepartment(child);
-                LineOrgServiceMock.AddDepartment(child);
-                LineOrgServiceMock.AddTestUser()
-                    .MergeWithProfile(fixture.AddProfile(FusionAccountType.Employee))
-                    .WithFullDepartment(child)
-                    .AsResourceOwner()
-                    .SaveProfile();
             }
 
             var project = new FusionTestProjectBuilder();
             var pos = project.AddPosition().WithEnsuredFutureInstances();
             pos.BasePosition = project
                 .AddBasePosition("Senior Child Process Terminator", x => x.Department = department);
-
-            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
-            LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync(
