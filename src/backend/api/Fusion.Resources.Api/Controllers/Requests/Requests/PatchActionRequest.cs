@@ -3,7 +3,7 @@ using Fusion.AspNetCore.Api;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class PatchRequestTaskRequest : PatchRequest
+    public class PatchActionRequest : PatchRequest
     {
         public PatchProperty<string> Title { get; set; } = new();
         public PatchProperty<string> Body { get; set; } = new();
@@ -12,7 +12,7 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<bool> IsResolved { get; set; } = new();
         public PatchProperty<ApiPropertiesCollection> Properties { get; set; } = new();
 
-        public class Validator : AbstractValidator<PatchRequestTaskRequest>
+        public class Validator : AbstractValidator<PatchActionRequest>
         {
             public Validator()
             {

@@ -5,10 +5,10 @@ using System.Text.Json;
 
 namespace Fusion.Resources.Domain
 {
-    public class QueryRequestTask
+    public class QueryRequestAction
     {
         private readonly string? propertiesJson;
-        public QueryRequestTask(DbRequestTask dbTask)
+        public QueryRequestAction(DbRequestTask dbTask)
         {
             Id = dbTask.Id;
             Title = dbTask.Title;

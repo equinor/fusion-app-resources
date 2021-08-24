@@ -12,16 +12,16 @@ namespace Fusion.Resources.Domain.Commands.Tasks
     /// <summary>
     /// Get all tasks for multiple requests, specified with request ids.
     /// </summary>
-    public class GetTasksForRequests : IRequest<ILookup<Guid, QueryRequestTask>>
+    public class GetActionsForRequests : IRequest<ILookup<Guid, QueryRequestAction>>
     {
         private IEnumerable<Guid> requestId;
 
-        public GetTasksForRequests(IEnumerable<Guid> requestId)
+        public GetActionsForRequests(IEnumerable<Guid> requestId)
         {
             this.requestId = requestId;
         }
 
-        public class Handler : IRequestHandler<GetTasksForRequests, ILookup<Guid, QueryRequestTask>>
+        public class Handler : IRequestHandler<GetActionsForRequests, ILookup<Guid, QueryRequestAction>>
         {
             private readonly ResourcesDbContext db;
 
@@ -29,7 +29,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             {
                 this.db = db;
             }
-            public async Task<ILookup<Guid, QueryRequestTask>> Handle(GetTasksForRequests request, CancellationToken cancellationToken)
+            public async Task<ILookup<Guid, QueryRequestAction>> Handle(GetActionsForRequests request, CancellationToken cancellationToken)
             {
                 var result = await db.RequestTasks
                     .Include(t => t.ResolvedBy)
@@ -37,7 +37,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                     .ToListAsync(cancellationToken);
 
                 return result
-                    .ToLookup(x => x.RequestId, x => new QueryRequestTask(x));
+                    .ToLookup(x => x.RequestId, x => new QueryRequestAction(x));
             }
         }
     }

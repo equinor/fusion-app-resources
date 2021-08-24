@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class AddRequestTask : IRequest<QueryRequestTask>
+    public class AddRequestAction : IRequest<QueryRequestAction>
     {
-        public AddRequestTask(Guid requestId, string title, string body, string type)
+        public AddRequestAction(Guid requestId, string title, string body, string type)
         {
             RequestId = requestId;
             Title = title;
@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain.Commands
         public QueryTaskResponsible Responsible { get; set; }
         public Dictionary<string, object>? Properties { get; set; }
 
-        public class Handler : IRequestHandler<AddRequestTask, QueryRequestTask>
+        public class Handler : IRequestHandler<AddRequestAction, QueryRequestAction>
         {
             private readonly ResourcesDbContext db;
 
@@ -37,7 +37,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.db = db;
             }
 
-            public async Task<QueryRequestTask> Handle(AddRequestTask request, CancellationToken cancellationToken)
+            public async Task<QueryRequestAction> Handle(AddRequestAction request, CancellationToken cancellationToken)
             {
                 var newTask = new DbRequestTask
                 {
@@ -55,7 +55,7 @@ namespace Fusion.Resources.Domain.Commands
                 db.RequestTasks.Add(newTask);
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestTask(newTask);
+                return new QueryRequestAction(newTask);
             }
         }
     }

@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class ApiRequestTask
+    public class ApiRequestAction
     {
-        public ApiRequestTask(QueryRequestTask task)
+        public ApiRequestAction(QueryRequestAction task)
         {
             Id = task.Id;
             Title = task.Title;

@@ -75,7 +75,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 responsible = "TaskOwner"
             };
 
-            var result = await adminClient.TestClientPostAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks", payload);
+            var result = await adminClient.TestClientPostAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions", payload);
 
             result.Should().BeSuccessfull();
             result.Value.id.Should().NotBeEmpty();
@@ -105,7 +105,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 type = "Updated test",
                 subType = (string)null,
             };
-            var result = await adminClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+            var result = await adminClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.title.Should().Be(payload.title);
@@ -126,7 +126,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeTrue();
@@ -147,11 +147,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
-            _ = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+            _ = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
 
             payload = new { isResolved = false };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeFalse();
@@ -183,7 +183,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     ["customProp2"] = new DateTime(2021, 03, 03)
                 }
             };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.properties["customProp1"].Should().Be(123);
@@ -205,7 +205,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .AddTestAuthToken();
 
             var payload = new { title = "Updated Test title" };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/tasks/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/actions/{task.id}", payload);
             result.Should().BeNotFound();
         }
 
@@ -221,7 +221,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .WithTestUser(testUser)
                .AddTestAuthToken();
 
-            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/tasks/{task.id}");
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}");
             result.Should().BeSuccessfull();
         }
 
@@ -239,7 +239,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .WithTestUser(testUser)
                .AddTestAuthToken();
 
-            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/tasks/{task.id}");
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/actions/{task.id}");
             result.Should().BeNotFound();
         }
 

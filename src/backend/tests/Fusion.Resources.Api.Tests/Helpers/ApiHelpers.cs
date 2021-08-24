@@ -224,7 +224,7 @@ namespace Fusion.Resources.Api.Tests
             };
 
             var result = await client.TestClientPostAsync<TestApiRequestTask>(
-                $"/requests/{requestId}/tasks", payload
+                $"/requests/{requestId}/actions", payload
             );
 
             result.Should().BeSuccessfull();

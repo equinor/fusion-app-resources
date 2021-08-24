@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands.Tasks
 {
-    public class UpdateRequestTask : TrackableRequest<QueryRequestTask>
+    public class UpdateRequestAction : TrackableRequest<QueryRequestAction>
     {
         private Guid requestId;
         private Guid taskId;
 
-        public UpdateRequestTask(Guid requestId, Guid taskId)
+        public UpdateRequestAction(Guid requestId, Guid taskId)
         {
             this.requestId = requestId;
             this.taskId = taskId;
@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
         public MonitorableProperty<bool> IsResolved { get; set; } = new();
         public MonitorableProperty<Dictionary<string, object>?> Properties { get; set; } = new();
 
-        public class Handler : IRequestHandler<UpdateRequestTask, QueryRequestTask>
+        public class Handler : IRequestHandler<UpdateRequestAction, QueryRequestAction>
         {
             private readonly ResourcesDbContext db;
 
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 this.db = db;
             }
 
-            public async Task<QueryRequestTask> Handle(UpdateRequestTask request, CancellationToken cancellationToken)
+            public async Task<QueryRequestAction> Handle(UpdateRequestAction request, CancellationToken cancellationToken)
             {
                 var task = await db.RequestTasks
                     .Include(t => t.ResolvedBy)
@@ -72,14 +72,14 @@ namespace Fusion.Resources.Domain.Commands.Tasks
 
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestTask(task);
+                return new QueryRequestAction(task);
             }
 
             private static void UpdateCustomProperties(Database.Entities.DbRequestTask task, Dictionary<string, object>? props)
             {
                 if (props is null) return;
 
-                var existingProps = new QueryRequestTask(task).Properties;
+                var existingProps = new QueryRequestAction(task).Properties;
                 foreach(var prop in props)
                 {
                     if (existingProps.ContainsKey(prop.Key))

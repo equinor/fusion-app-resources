@@ -50,7 +50,7 @@ namespace Fusion.Resources.Api.Controllers
                 TaskOwner = new ApiTaskOwner(query.TaskOwner);
 
             if (query.Tasks is not null)
-                Tasks = query.Tasks.Select(x => new ApiRequestTask(x)).ToList();
+                Actions = query.Tasks.Select(x => new ApiRequestAction(x)).ToList();
 
             if (query.Conversation is not null)
                 Conversation = query.Conversation.Select(x => new ApiRequestConversationMessage(x)).ToList();
@@ -104,7 +104,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
-        public List<ApiRequestTask>? Tasks { get; }
+        public List<ApiRequestAction>? Actions { get; }
         public List<ApiRequestConversationMessage>? Conversation { get; }
 
         internal bool ShouldHideProposalsForProject
