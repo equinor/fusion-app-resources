@@ -12,6 +12,7 @@ using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
+using Fusion.Resources.Domain.Commands.Tasks;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -27,6 +28,8 @@ namespace Fusion.Resources.Domain.Queries
                 Expands |= ExpandFields.OrgPositionInstance;
             if (Query.ShouldExpand("DepartmentDetails"))
                 Expands |= ExpandFields.DepartmentDetails;
+            if (Query.ShouldExpand("Tasks"))
+                Expands |= ExpandFields.Tasks;
         }
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
@@ -111,7 +114,8 @@ namespace Fusion.Resources.Domain.Queries
             None = 0,
             OrgPosition = 1 << 0,
             OrgPositionInstance = 1 << 1,
-            DepartmentDetails = 1 << 2
+            DepartmentDetails = 1 << 2,
+            Tasks = 1 << 3
         }
 
         public class Validator : AbstractValidator<GetResourceAllocationRequests>
@@ -203,9 +207,25 @@ namespace Fusion.Resources.Domain.Queries
                     await AddProposedPersons(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
                     await AddDepartmentDetails(pagedQuery, request.Expands);
+                    await AddTasks(pagedQuery, request.Expands);
                 }
 
                 return pagedQuery;
+            }
+
+            private async Task AddTasks(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
+            {
+                if (!expands.HasFlag(ExpandFields.Tasks)) return;
+
+                var tasks = await mediator.Send(new GetTasksForRequests(pagedQuery.Select(x => x.RequestId)));
+
+                foreach (var request in pagedQuery)
+                {
+                    if(tasks.Contains(request.RequestId))
+                    {
+                        request.Tasks = tasks[request.RequestId].ToList();
+                    }
+                }
             }
 
             private async Task AddDepartmentDetails(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
