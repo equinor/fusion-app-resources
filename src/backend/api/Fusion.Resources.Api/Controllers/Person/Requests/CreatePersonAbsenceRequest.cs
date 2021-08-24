@@ -57,9 +57,9 @@ namespace Fusion.Resources.Api.Controllers
                     .WithMessage("Cannot set task details when type is not 'other tasks'.");
 
                 RuleFor(x => x.TaskDetails!.RoleName)
-                    .NotEmpty()
-                    .When(x => x.TaskDetails != null && x.Type == ApiPersonAbsence.ApiAbsenceType.OtherTasks && x.TaskDetails?.BasePositionId != null)
-                    .WithMessage("Either role name or base position must be set.");
+                   .NotEmpty()
+                   .When(x => x.TaskDetails is not null && x.Type == ApiPersonAbsence.ApiAbsenceType.OtherTasks && !x.TaskDetails!.BasePositionId.HasValue)
+                   .WithMessage("Either role name or base position must be set.");
             }
         }
 
