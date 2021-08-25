@@ -49,10 +49,12 @@ namespace Fusion.Resources.Database.Entities
                 builder
                     .HasOne(t => t.SentBy)
                     .WithMany()
-                    .HasForeignKey(t => t.SentById);
+                    .HasForeignKey(t => t.SentById)
+                    .IsRequired();
 
                 builder.Property(x => x.IsRequired)
-                    .HasDefaultValueSql("(0)");
+                    .HasDefaultValueSql("(0)")
+                    .IsRequired();
             });
 
             modelBuilder.Entity<DbResourceAllocationRequest>()
