@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -31,14 +32,20 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : IRequestHandler<AddRequestAction, QueryRequestAction>
         {
             private readonly ResourcesDbContext db;
+            private readonly IProfileService profileService;
+            private readonly IHttpContextAccessor context;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IHttpContextAccessor context)
             {
                 this.db = db;
+                this.profileService = profileService;
+                this.context = context;
             }
 
             public async Task<QueryRequestAction> Handle(AddRequestAction request, CancellationToken cancellationToken)
             {
+                var userId = context.HttpContext!.User.GetAzureUniqueIdOrThrow();
+                var creator = await profileService.EnsurePersonAsync(userId);
                 var newTask = new DbRequestAction
                 {
                     Title = request.Title,
@@ -48,7 +55,7 @@ namespace Fusion.Resources.Domain.Commands
                     Source = request.Source.MapToDatabase(),
                     Responsible = request.Responsible.MapToDatabase(),
                     PropertiesJson = request.Properties?.SerializeToStringOrDefault(),
-
+                    SentById = creator!.Id,
                     RequestId = request.RequestId,
                 };
 
