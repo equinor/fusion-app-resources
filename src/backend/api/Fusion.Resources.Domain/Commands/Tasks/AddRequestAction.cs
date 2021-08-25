@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryRequestAction> Handle(AddRequestAction request, CancellationToken cancellationToken)
             {
-                var newTask = new DbRequestTask
+                var newTask = new DbRequestAction
                 {
                     Title = request.Title,
                     Body = request.Body,

@@ -75,7 +75,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 return new QueryRequestAction(task);
             }
 
-            private static void UpdateCustomProperties(Database.Entities.DbRequestTask task, Dictionary<string, object>? props)
+            private static void UpdateCustomProperties(Database.Entities.DbRequestAction task, Dictionary<string, object>? props)
             {
                 if (props is null) return;
 
