@@ -40,6 +40,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             {
                 var task = await db.RequestTasks
                     .Include(t => t.ResolvedBy)
+                    .Include(t => t.SentBy)
                     .SingleOrDefaultAsync(t => t.Id == request.taskId && t.RequestId == request.requestId, cancellationToken);
 
                 if (task is null) throw new TaskNotFoundError(request.requestId, request.taskId);

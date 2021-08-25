@@ -25,8 +25,8 @@ namespace Fusion.Resources.Database.Entities
         public DbPerson? ResolvedBy { get; set; }
         public string? PropertiesJson { get; set; }
 
-        public Guid? SentById { get; set; }
-        public DbPerson? SentBy { get; set; }
+        public Guid SentById { get; set; }
+        public DbPerson SentBy { get; set; } = null!;
 
         public bool IsRequired { get; set; } = false;
 

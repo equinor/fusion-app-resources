@@ -33,6 +33,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             {
                 var result = await db.RequestTasks
                     .Include(t => t.ResolvedBy)
+                    .Include(t => t.SentBy)
                     .Where(t => request.requestId.Contains(t.RequestId))
                     .ToListAsync(cancellationToken);
 

@@ -28,8 +28,11 @@ namespace Fusion.Resources.Api.Controllers
             };
 
             IsResolved = task.IsResolved;
+            IsRequired = task.IsRequired;
+
             ResolvedAt = task.ResolvedAt;
             ResolvedBy = (task.ResolvedBy is not null) ? new ApiPerson(task.ResolvedBy) : null;
+            SentBy = new ApiPerson(task.SentBy);
 
             Properties = new ApiPropertiesCollection(task.Properties);
         }
@@ -42,8 +45,10 @@ namespace Fusion.Resources.Api.Controllers
         public ApiTaskSource Source { get; }
         public ApiTaskResponsible Responsible { get; }
         public bool IsResolved { get; }
+        public bool IsRequired { get; }
         public DateTimeOffset? ResolvedAt { get; }
         public ApiPerson? ResolvedBy { get; }
+        public ApiPerson SentBy { get; }
 
         public ApiPropertiesCollection Properties { get;  }
     }

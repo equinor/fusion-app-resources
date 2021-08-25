@@ -155,6 +155,7 @@ namespace Fusion.Resources.Domain.Queries
             {
                 requestItem.Tasks = await db.RequestTasks
                     .Include(t => t.ResolvedBy)
+                    .Include(t => t.SentBy)
                     .Where(t => t.RequestId == requestItem.RequestId)
                     .Select(t => new QueryRequestAction(t))
                     .ToListAsync();
