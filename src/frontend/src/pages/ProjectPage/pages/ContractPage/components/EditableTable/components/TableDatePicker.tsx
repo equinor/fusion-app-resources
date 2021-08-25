@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { DatePicker} from '@equinor/fusion-components';
 import { DefaultTableType } from './TableTypes';
+import ResourcesDatePicker from '../../../../../../../components/ResourcesDatePicker';
 
 function TableDatePicker<T>({
     item,
@@ -8,7 +8,6 @@ function TableDatePicker<T>({
     accessKey,
     accessor,
     rowIdentifier,
-    columnLabel,
 }: DefaultTableType<T, Date>) {
     const onDateChange = useCallback(
         (newDate: Date | null) => {
@@ -16,7 +15,7 @@ function TableDatePicker<T>({
         },
         [onChange, item, accessKey, rowIdentifier]
     );
-    return <DatePicker onChange={onDateChange} selectedDate={accessor(item)} />;
+    return <ResourcesDatePicker onChange={onDateChange} date={accessor(item)} />;
 }
 
 export default TableDatePicker;

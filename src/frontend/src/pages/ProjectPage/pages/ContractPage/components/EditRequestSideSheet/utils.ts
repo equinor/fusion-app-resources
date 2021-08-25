@@ -112,7 +112,15 @@ export const transformPositionsToCopyRequest = (
         lastActivity: null,
     }));
 };
-
+const formatDateISOString = (date: Date | null): string | null => {
+    if(!date) {
+        return null
+    }
+    const isoDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000) //Converts to local date
+        .toISOString()
+        .split('T')[0];
+    return isoDate;
+};
 export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
     id: req.requestId || undefined,
     description: req.description,
@@ -120,8 +128,8 @@ export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePerso
         mail: req.person?.mail || '',
     },
     position: {
-        appliesFrom: req.appliesFrom,
-        appliesTo: req.appliesTo,
+        appliesFrom: formatDateISOString(req.appliesFrom),
+        appliesTo: formatDateISOString(req.appliesTo),
         basePosition: req.basePosition,
         id: req.positionId || null,
         name: req.positionName,
