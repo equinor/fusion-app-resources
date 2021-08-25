@@ -37,7 +37,7 @@ namespace Fusion.Resources.Database.Migrations
             migrationBuilder.Sql("update dbo.RequestTasks set SentById = (" +
                 "select top 1 Id " +
                 "from Persons " +
-                "where AzureUniqueObjectId = '9561207e-f642-47ee-98f4-b9e864bf1110') " +
+                "where AzureUniqueId = '9561207e-f642-47ee-98f4-b9e864bf1110') " +
             "where SentById IS NULL");
         }
 
