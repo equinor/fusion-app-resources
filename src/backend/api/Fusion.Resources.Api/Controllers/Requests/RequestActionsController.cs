@@ -70,6 +70,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     ApiTaskResponsible.Both => QueryTaskResponsible.Both,
                     _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(QueryTaskSource)}.")
                 },
+                IsRequired = request.IsRequired,
                 Properties = request.Properties
             };
 

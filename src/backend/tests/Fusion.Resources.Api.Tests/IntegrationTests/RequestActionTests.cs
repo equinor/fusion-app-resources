@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
-    public class RequestTaskTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
+    public class RequestActionTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
@@ -22,7 +22,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel normalRequest;
 
-        public RequestTaskTests(ResourceApiFixture fixture, ITestOutputHelper output)
+        public RequestActionTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
             this.fixture = fixture;
 
@@ -72,10 +72,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 type = "test",
                 subType = "Test Test",
                 source = "ResourceOwner",
-                responsible = "TaskOwner"
+                responsible = "TaskOwner",
+                isRequired = true
             };
 
-            var result = await adminClient.TestClientPostAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions", payload);
+            var result = await adminClient.TestClientPostAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions", payload);
 
             result.Should().BeSuccessfull();
             result.Value.id.Should().NotBeEmpty();
@@ -84,9 +85,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.subType.Should().Be(payload.subType);
             result.Value.source.Should().Be(payload.source);
             result.Value.responsible.Should().Be(payload.responsible);
-            result.Value.isResolved.Should().Be(false);
+            result.Value.isResolved.Should().BeFalse();
             result.Value.resolvedAt.Should().BeNull();
             result.Value.resolvedBy.Should().BeNull();
+            result.Value.isRequired.Should().BeTrue();
         }
 
         [Fact]
@@ -105,7 +107,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 type = "Updated test",
                 subType = (string)null,
             };
-            var result = await adminClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.title.Should().Be(payload.title);
@@ -126,7 +128,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeTrue();
@@ -147,11 +149,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
-            _ = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            _ = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
 
             payload = new { isResolved = false };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeFalse();
@@ -183,7 +185,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     ["customProp2"] = new DateTime(2021, 03, 03)
                 }
             };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.properties["customProp1"].Should().Be(123);
@@ -205,7 +207,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .AddTestAuthToken();
 
             var payload = new { title = "Updated Test title" };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{otherRequest.Id}/actions/{task.id}", payload);
             result.Should().BeNotFound();
         }
 
@@ -221,7 +223,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .WithTestUser(testUser)
                .AddTestAuthToken();
 
-            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{normalRequest.Id}/actions/{task.id}");
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}");
             result.Should().BeSuccessfull();
         }
 
@@ -239,7 +241,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .WithTestUser(testUser)
                .AddTestAuthToken();
 
-            var result = await userClient.TestClientDeleteAsync<TestApiRequestTask>($"/requests/{otherRequest.Id}/actions/{task.id}");
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{otherRequest.Id}/actions/{task.id}");
             result.Should().BeNotFound();
         }
 

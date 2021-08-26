@@ -28,6 +28,7 @@ namespace Fusion.Resources.Domain.Commands
         public QueryTaskSource Source { get; set; }
         public QueryTaskResponsible Responsible { get; set; }
         public Dictionary<string, object>? Properties { get; set; }
+        public bool IsRequired { get; set; }
 
         public class Handler : IRequestHandler<AddRequestAction, QueryRequestAction>
         {
@@ -57,6 +58,7 @@ namespace Fusion.Resources.Domain.Commands
                     PropertiesJson = request.Properties?.SerializeToStringOrDefault(),
                     SentById = creator!.Id,
                     RequestId = request.RequestId,
+                    IsRequired = request.IsRequired
                 };
 
                 db.RequestTasks.Add(newTask);

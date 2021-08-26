@@ -19,6 +19,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [JsonConverter(typeof(Json.DictionaryStringObjectJsonConverter))]
         public Dictionary<string, object>? Properties { get; set; }
 
+        public bool IsRequired { get; set; } = false;
+
         public class Validator : AbstractValidator<AddActionRequest>
         {
             public Validator()
