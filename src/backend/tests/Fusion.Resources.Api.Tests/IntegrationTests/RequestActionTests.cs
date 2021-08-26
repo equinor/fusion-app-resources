@@ -106,6 +106,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 category = "Updated Test category",
                 type = "Updated test",
                 subType = (string)null,
+                isRequired = true
             };
             var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
 
@@ -113,6 +114,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.title.Should().Be(payload.title);
             result.Value.type.Should().Be(payload.type);
             result.Value.subType.Should().Be(payload.subType);
+            result.Value.isRequired.Should().BeTrue();
         }
 
         [Fact]

@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             }
             public async Task<QueryRequestAction?> Handle(GetRequestAction request, CancellationToken cancellationToken)
             {
-                var task = await db.RequestTasks
+                var task = await db.RequestActions
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
                     .SingleOrDefaultAsync(t => t.RequestId == request.requestId && t.Id == request.taskId, cancellationToken);

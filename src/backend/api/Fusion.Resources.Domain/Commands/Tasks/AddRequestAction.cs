@@ -61,7 +61,7 @@ namespace Fusion.Resources.Domain.Commands
                     IsRequired = request.IsRequired
                 };
 
-                db.RequestTasks.Add(newTask);
+                db.RequestActions.Add(newTask);
                 await db.SaveChangesAsync(cancellationToken);
 
                 return new QueryRequestAction(newTask);

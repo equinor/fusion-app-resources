@@ -31,7 +31,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             }
             public async Task<ILookup<Guid, QueryRequestAction>> Handle(GetActionsForRequests request, CancellationToken cancellationToken)
             {
-                var result = await db.RequestTasks
+                var result = await db.RequestActions
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
                     .Where(t => request.requestId.Contains(t.RequestId))
