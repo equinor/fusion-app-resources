@@ -274,7 +274,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 BasePositionId = testProject.Positions.First().BasePosition.Id,
                 Sector = "ABC",
                 Unit = department,
-                ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
             };
 
             var matrixResponse = await Client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", matrixRequest);
