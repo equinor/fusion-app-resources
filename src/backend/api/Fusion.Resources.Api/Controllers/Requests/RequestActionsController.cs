@@ -207,6 +207,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (patch.Type.HasValue) command.Type = patch.Type.Value;
             if (patch.SubType.HasValue) command.SubType = patch.SubType.Value;
             if (patch.IsResolved.HasValue) command.IsResolved = patch.IsResolved.Value;
+            if (patch.IsRequired.HasValue) command.IsRequired = patch.IsRequired.Value;
             if (patch.Properties.HasValue) command.Properties = patch.Properties.Value;
 
             try
