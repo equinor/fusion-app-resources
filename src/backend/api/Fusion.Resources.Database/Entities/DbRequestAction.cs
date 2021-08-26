@@ -39,7 +39,7 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbRequestAction>(builder =>
             {
                 builder.HasKey(t => t.Id);
-                //builder.ToTable("RequestActions");
+                builder.ToTable("RequestActions");
 
                 builder
                     .HasOne(t => t.ResolvedBy)
