@@ -6,6 +6,7 @@ using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
@@ -38,9 +39,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
 
-
-            fixture.EnsureDepartment(testDepartment);
-
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.Employee);
             testUser.FullDepartment = testDepartment;
@@ -49,6 +47,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.FullDepartment = testUser.FullDepartment;
             resourceOwner.IsResourceOwner = true;
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(resourceOwner).SaveProfile();
 
             taskOwner = fixture.AddProfile(FusionAccountType.Employee);
         }

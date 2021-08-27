@@ -13,6 +13,7 @@ using System.Data;
 using System.Linq; 
 using Fusion.Events;
 using Newtonsoft.Json;
+using Fusion.Testing.Mocks.LineOrgService;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -76,18 +77,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             using var scope = ApiFactory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
 
-            var dept = db.Departments.Find(departmentId) ?? new Database.Entities.DbDepartment();
-            var entry = db.Entry(dept);
-
-            dept.DepartmentId = departmentId;
-            dept.SectorId = sectorId;
-
-            if (entry.State == Microsoft.EntityFrameworkCore.EntityState.Detached)
-            {
-                entry.State = Microsoft.EntityFrameworkCore.EntityState.Added;
-            }
-
-            if(defactoResponsible is not null)
+            if (defactoResponsible is not null)
             {
                 db.DepartmentResponsibles.Add(new Database.Entities.DbDepartmentResponsible
                 {
@@ -97,6 +87,12 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.Value,
                 });
             }
+
+            LineOrgServiceMock.AddDepartment(departmentId);
+
+            var resourceOwner = this.AddProfile(FusionAccountType.Application);                
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(resourceOwner)
+                .WithFullDepartment(departmentId).SaveProfile();
 
             try { db.SaveChanges(); } catch (DBConcurrencyException) { }
         }

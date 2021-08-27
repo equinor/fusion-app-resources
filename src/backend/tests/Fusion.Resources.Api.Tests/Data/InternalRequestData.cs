@@ -1,4 +1,6 @@
 ﻿using Bogus;
+using Fusion.Testing.Mocks.LineOrgService;
+using Fusion.Testing.Mocks.ProfileService;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -24,6 +26,12 @@ namespace Fusion.Resources.Api
             var sectorInfo = JsonConvert.DeserializeAnonymousType(data, new[] { new { sector = string.Empty, departments = Array.Empty<string>() } });
 
             SupportedDepartments = sectorInfo.SelectMany(s => s.departments).Union(sectorInfo.Select(s => s.sector)).ToList();
+
+            foreach (var department in SupportedDepartments)
+            {
+                var user = PeopleServiceMock.AddTestProfile().SaveProfile();
+                LineOrgServiceMock.AddTestUser().MergeWithProfile(user).AsResourceOwner().WithFullDepartment(department).SaveProfile();
+            }
         }
     }
 }
