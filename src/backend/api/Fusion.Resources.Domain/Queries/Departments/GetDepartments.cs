@@ -1,11 +1,7 @@
 ﻿using Fusion.Integration;
-using Fusion.Integration.Profile;
 using Fusion.Resources.Application.LineOrg;
-using Fusion.Resources.Application.LineOrg.Models;
 using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,27 +19,6 @@ namespace Fusion.Resources.Domain
         private string? departmentIdStartsWith;
         private string? sector;
         private string[]? departmentIds = null;
-
-        public IQueryable<QueryDepartment> Execute(IQueryable<DbDepartment> departments)
-        {
-            if (!string.IsNullOrEmpty(sector))
-            {
-                departments = departments.Where(dpt => dpt.SectorId == sector);
-            }
-
-            if (!string.IsNullOrEmpty(departmentIdStartsWith))
-            {
-                departments = departments.Where(dpt => dpt.DepartmentId.StartsWith(departmentIdStartsWith));
-            }
-
-            if (departmentIds?.Any() == true)
-            {
-                departments = departments.Where(dpt => departmentIds.Contains(dpt.DepartmentId));
-            }
-
-            return departments.Select(dpt => new QueryDepartment(dpt));
-        }
-
         public GetDepartments StartsWith(string department)
         {
             this.departmentIdStartsWith = department;

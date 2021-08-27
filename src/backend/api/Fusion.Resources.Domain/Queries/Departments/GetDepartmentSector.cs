@@ -15,13 +15,6 @@ namespace Fusion.Resources.Domain.Queries
             this.departmentId = departmentId;
         }
 
-        public IQueryable<string?> Execute(IQueryable<DbDepartment> departments)
-        {
-            return departments
-                .Where(dpt => dpt.DepartmentId == departmentId)
-                .Select(dpt => dpt.SectorId);
-        }
-
         public class Handler : IRequestHandler<GetDepartmentSector, string?>
         {
             public Task<string?> Handle(GetDepartmentSector query, CancellationToken cancellationToken)

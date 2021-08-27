@@ -53,31 +53,6 @@ namespace Fusion.Resources.Api.Controllers.Departments
             return Ok(new ApiRelevantDepartments(departments));
         }
 
-
-
-        [HttpPut("/departments/{departmentString}")]
-        public async Task<ActionResult<ApiDepartment>> UpdateDepartment(string departmentString, UpdateDepartmentRequest request)
-        {
-            #region Authorization
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-            #endregion
-
-            var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
-            if (existingDepartment is null || !existingDepartment.IsTracked) return NotFound();
-
-            var command = new UpdateDepartment(departmentString, request.SectorId);
-
-            var newDepartment = await DispatchAsync(command);
-
-            return Ok(new ApiDepartment(newDepartment));
-        }
-
         [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
         public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
         {
