@@ -12,8 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Fusion.Events.People;
-using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Newtonsoft.Json;
 using ContractRole = Fusion.Resources.Api.Authorization.ContractRole;
 
@@ -157,16 +155,16 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.NotFound($"Personnel with given id not found", "resources/personnel/{personIdentifier}");
             }
-        }
 
-        private async Task<bool> ConsiderRemovedProfileAsync()
-        {
-            var bodyString = await Request.ReadRequestBodyAsync();
-            if (string.IsNullOrEmpty(bodyString))
-                return false;
+            async Task<bool> ConsiderRemovedProfileAsync()
+            {
+                var bodyString = await Request.ReadRequestBodyAsync();
+                if (string.IsNullOrEmpty(bodyString))
+                    return false;
 
-            var body = JsonConvert.DeserializeAnonymousType(bodyString, new { userRemoved = false });
-            return body?.userRemoved ?? false;
+                var body = JsonConvert.DeserializeAnonymousType(bodyString, new { userRemoved = false });
+                return body?.userRemoved ?? false;
+            }
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
