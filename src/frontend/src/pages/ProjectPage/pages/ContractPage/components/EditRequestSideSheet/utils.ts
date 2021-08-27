@@ -5,6 +5,7 @@ import { Position } from '@equinor/fusion';
 import CreatePersonnelRequest from '../../../../../../models/CreatePersonnelRequest';
 import PersonnelRequestPosition from '../../../../../../models/PersonnelRequestPosition';
 import Personnel from '../../../../../../models/Personnel';
+import { format } from 'date-fns';
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
@@ -112,14 +113,11 @@ export const transformPositionsToCopyRequest = (
         lastActivity: null,
     }));
 };
-const formatDateISOString = (date: Date | null): string | null => {
+const formatDateToString = (date: Date | null): string | null => {
     if(!date) {
         return null
     }
-    const isoDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000) //Converts to local date
-        .toISOString()
-        .split('T')[0];
-    return isoDate;
+    return format(date, 'yyyy-MM-dd')
 };
 export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
     id: req.requestId || undefined,
@@ -128,8 +126,8 @@ export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePerso
         mail: req.person?.mail || '',
     },
     position: {
-        appliesFrom: formatDateISOString(req.appliesFrom),
-        appliesTo: formatDateISOString(req.appliesTo),
+        appliesFrom:formatDateToString(req.appliesFrom),
+        appliesTo: formatDateToString(req.appliesTo),
         basePosition: req.basePosition,
         id: req.positionId || null,
         name: req.positionName,
