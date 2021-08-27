@@ -181,6 +181,35 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
             }
         }
 
+        [Fact]
+        public async Task RefreshProfile_UserRemoved_ShouldMarkAsDeleted()
+        {
+            using var adminScope = fixture.AdminScope();
+            var person = await client.CreatePersonnelAsync(projectId, contractId);
+            var resp = await client.TestClientPostAsync<TestApiPersonnel>($"resources/personnel/{person.Mail}/refresh", new { userRemoved = true });
+            resp.Should().BeNotFound();
+        }
+
+        [Fact]
+        public async Task RefreshProfile_UserUpdated_ShouldUpdate()
+        {
+            using var adminScope = fixture.AdminScope();
+            var profile = Testing.Mocks.ProfileService.PeopleServiceMock.AddTestProfile().SaveProfile();
+            var person = new PersonnelApiHelpers.TestCreatePersonnelRequest
+            {
+                Mail = profile.Mail,
+                FirstName = "xxx", LastName = "xxx", 
+                PhoneNumber = "12345"
+            };
+            var personnelRequest = await client.TestClientPostAsync<TestApiPersonnel>($"/projects/{projectId}/contracts/{contractId}/resources/personnel", person);
+            personnelRequest.Response.EnsureSuccessStatusCode();
+
+            var resp = await client.TestClientPostAsync<TestApiPersonnel>($"resources/personnel/{person.Mail}/refresh", new { userRemoved = false });
+            resp.Should().BeSuccessfull();
+            resp.Value.Name.Should().Be(profile.Name);
+        }
+
+
         public async Task InitializeAsync()
         {
 

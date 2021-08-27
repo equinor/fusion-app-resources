@@ -34,10 +34,10 @@ namespace Fusion.Resources.Functions.Functions
             log.LogInformation(message.Event.Data);
             var body = message.GetBody<PeopleSubscriptionEvent>();
 
-            if (body.Type != PeopleSubscriptionEventType.ProfileUpdated)
+            if (body.Type != PeopleSubscriptionEventType.ProfileUpdated && body.Type != PeopleSubscriptionEventType.UserRemoved)
                 return;
 
-            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new { });
+            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new { userRemoved = body.Type == PeopleSubscriptionEventType.UserRemoved });
 
             if (refreshResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -63,32 +63,29 @@ namespace Fusion.Resources.Functions.Functions
         public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
             log.LogInformation("Profile sync starting run");
+            log.LogInformation("Reading external person personnel from Resources API");
 
-            log.LogInformation("Reading external person personnel with NoAccount or InviteSent from Resources API");
-
-            var response = await resourcesClient.GetAsync($"resources/personnel?$filter=azureAdStatus in ('NoAccount','InviteSent')");
+            var response = await resourcesClient.GetAsync($"resources/personnel");
             response.EnsureSuccessStatusCode();
 
             var body = await response.Content.ReadAsStringAsync();
             var personnel = JsonConvert.DeserializeAnonymousType(body, new { Value = new List<ApiPersonnel>() });
-            var mailsToEnsure = personnel.Value
+            var mailsToEnsure = personnel!.Value
                 .Where(p => !string.IsNullOrWhiteSpace(p.Mail))
                 .Select(p => p.Mail)
                 .Distinct()
                 .ToList();
 
             log.LogInformation($"Found {mailsToEnsure.Count} profiles to ensure");
-
             var ensuredPeople = await EnsurePeople(mailsToEnsure);
 
             log.LogInformation($"Succesfully ensured {ensuredPeople.Count} people");
 
             bool refreshFailed = false;
-
             foreach (var person in ensuredPeople)
             {
                 log.LogInformation($"Processing person '{person.Identifier}'");
-                var resourcesPerson = personnel.Value.FirstOrDefault(p => p.Mail == person.Identifier);
+                var resourcesPerson = personnel.Value.First(p => p.Mail == person.Identifier);
 
                 if (!InvitationStatusMatches(person.Person.InvitationStatus, resourcesPerson.AzureAdStatus))
                 {

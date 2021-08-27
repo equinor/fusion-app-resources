@@ -37,6 +37,7 @@ namespace Fusion.Resources.Database.Entities
         [MaxLength(100)]
         public string? LinkedInProfile { get; set; }
 
+        public bool IsDeleted { get; set; }
         public ICollection<DbPersonnelDiscipline> Disciplines { get; set; } = null!;
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
@@ -44,8 +45,11 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbExternalPersonnelPerson>(entity =>
             {
                 entity.Property(e => e.AccountStatus).HasConversion(new EnumToStringConverter<DbAzureAccountStatus>());
+                
                 entity.HasMany(e => e.Disciplines).WithOne().OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(e => e.Mail).IsClustered(false);
+
+                entity.HasQueryFilter(e => !e.IsDeleted);
             });
 
         }

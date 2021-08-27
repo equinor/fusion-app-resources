@@ -12,6 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Fusion.Events.People;
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
+using Newtonsoft.Json;
 using ContractRole = Fusion.Resources.Api.Authorization.ContractRole;
 
 namespace Fusion.Resources.Api.Controllers
@@ -140,8 +143,13 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchAsync(new RefreshPersonnel(personIdentifier));
+                var considerRemovedProfile = await ConsiderRemovedProfileAsync();
+                await DispatchAsync(new RefreshPersonnel(personIdentifier, considerRemovedProfile));
                 var refreshedPersonnel = await DispatchAsync(new GetExternalPersonnelPerson(personIdentifier));
+
+                if (refreshedPersonnel is null)
+                    throw new PersonNotFoundError(personIdentifier);
+
 
                 return new ApiExternalPersonnelPerson(refreshedPersonnel);
             }
@@ -149,6 +157,16 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.NotFound($"Personnel with given id not found", "resources/personnel/{personIdentifier}");
             }
+        }
+
+        private async Task<bool> ConsiderRemovedProfileAsync()
+        {
+            var bodyString = await Request.ReadRequestBodyAsync();
+            if (string.IsNullOrEmpty(bodyString))
+                return false;
+
+            var body = JsonConvert.DeserializeAnonymousType(bodyString, new { userRemoved = false });
+            return body?.userRemoved ?? false;
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel")]
