@@ -360,10 +360,102 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
 
             var updated = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{originalRequest.Id}");
-            
+
             updated.Value.State.Should().Be(originalRequest.State);
             updated.Value.IsDraft.Should().BeTrue();
             updated.Value.Workflow.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldIncludeTasks_WhenExpanded()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var task = await Client.AddRequestTask(request.Id);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=tasks", new
+            {
+                tasks = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.tasks.Should().Contain(t => t.id == task.id);
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldNotFailToExpandTasks_WhenNoTasksExist()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=tasks", new
+            {
+                tasks = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.tasks.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldIncludeConversation_WhenExpanded()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var message = await Client.AddRequestMessage(request.Id);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
+            {
+                conversation = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.conversation.Should().Contain(m => m.id == message.Id);
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldNotFailToExpandConversation_WhenNoMessagesExist()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
+            {
+                conversation = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.conversation.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetProjectsRequests_ShouldExpandTasks()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var requestB = await Client.CreateDefaultRequestAsync(testProject);
+            var taskA = await Client.AddRequestTask(requestA.Id);
+            var taskB = await Client.AddRequestTask(requestB.Id);
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=tasks",
+                new
+                {
+                    value = new[] {
+                        new { id = Guid.Empty, tasks = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
+                    }
+                });
+
+
+            result.Should().BeSuccessfull();
+
+
+            result.Value.value.First(x => x.id == requestA.Id).tasks[0].id.Should().Be(taskA.id);
+            result.Value.value.First(x => x.id == requestB.Id).tasks[0].id.Should().Be(taskB.id);
         }
 
         //[Fact]

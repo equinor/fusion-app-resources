@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Application.LineOrg;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -23,7 +24,6 @@ namespace Fusion.Resources.Domain.Commands
         public MonitorableProperty<Guid?> BasePositionId { get; set; } = new MonitorableProperty<Guid?>();
         public MonitorableProperty<string?> Sector { get; set; } = new MonitorableProperty<string?>();
         public MonitorableProperty<string?> Unit { get; set; } = new MonitorableProperty<string?>();
-        public MonitorableProperty<Guid?> ResponsibleId { get; set; } = new MonitorableProperty<Guid?>();
 
         public class Handler : IRequestHandler<UpdateResponsibilityMatrix, QueryResponsibilityMatrix>
         {
@@ -31,13 +31,15 @@ namespace Fusion.Resources.Domain.Commands
             private readonly IMediator mediator;
             private readonly IProfileService profileService;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly ILineOrgResolver lineOrgResolver;
 
-            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProfileService profileService, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProfileService profileService, IProjectOrgResolver orgResolver, ILineOrgResolver lineOrgResolver)
             {
                 this.resourcesDb = resourcesDb;
                 this.mediator = mediator;
                 this.profileService = profileService;
                 this.orgResolver = orgResolver;
+                this.lineOrgResolver = lineOrgResolver;
             }
 
             public async Task<QueryResponsibilityMatrix> Handle(UpdateResponsibilityMatrix request, CancellationToken cancellationToken)
@@ -70,24 +72,6 @@ namespace Fusion.Resources.Domain.Commands
                     isModified = true;
                 }
 
-                if (request.ResponsibleId.HasBeenSet)
-                {
-                    if (request.ResponsibleId.Value != null)
-                    {
-                        var responsible = await profileService.EnsurePersonAsync(request.ResponsibleId.Value.Value);
-                        if (responsible == null)
-                            throw new ArgumentException(
-                                "Cannot create personnel without either a valid azure unique id or mail address");
-                        status.Responsible = responsible;
-                    }
-                    else
-                    {
-                        status.Responsible = null;
-                    }
-
-                    isModified = true;
-                }
-
                 if (request.LocationId.HasBeenSet)
                 {
                     status.LocationId = request.LocationId.Value;
@@ -113,6 +97,8 @@ namespace Fusion.Resources.Domain.Commands
                 {
                     status.Unit = request.Unit.Value;
                     isModified = true;
+
+                    status.Responsible = await GetResourceOwner(request.Unit.Value!);
                 }
 
                 if (isModified)
@@ -125,6 +111,18 @@ namespace Fusion.Resources.Domain.Commands
                 var returnItem = await mediator.Send(new GetResponsibilityMatrixItem(request.Id));
                 return returnItem!;
             }
+
+            private async Task<DbPerson?> GetResourceOwner(string departmentId)
+            {
+                var department = await lineOrgResolver.GetDepartment(departmentId);
+                if(department?.Responsible?.AzureUniqueId is not null)
+                {
+                    var azureUniqueId = department.Responsible.AzureUniqueId.Value;
+                    return await profileService.EnsurePersonAsync(new PersonId(azureUniqueId));
+                }
+                return null;
+            }
+
             private async Task<DbProject?> EnsureProjectAsync(Guid projectId)
             {
                 var orgProject = await orgResolver.ResolveProjectAsync(projectId);
