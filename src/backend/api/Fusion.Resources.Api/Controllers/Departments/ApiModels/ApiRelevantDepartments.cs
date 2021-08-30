@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Fusion.Resources.Api.Controllers.Departments
+namespace Fusion.Resources.Api.Controllers
 {
     public class ApiRelevantDepartments
     {

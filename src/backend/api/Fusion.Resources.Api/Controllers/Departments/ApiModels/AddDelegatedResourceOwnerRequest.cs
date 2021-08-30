@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Fusion.Resources.Api.Controllers.Departments
+namespace Fusion.Resources.Api.Controllers
 {
     public class AddDelegatedResourceOwnerRequest
     {

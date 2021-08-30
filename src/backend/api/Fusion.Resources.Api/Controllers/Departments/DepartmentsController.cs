@@ -1,7 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Commands.Departments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Fusion.Resources.Api.Controllers.Departments
+namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
     [Authorize]

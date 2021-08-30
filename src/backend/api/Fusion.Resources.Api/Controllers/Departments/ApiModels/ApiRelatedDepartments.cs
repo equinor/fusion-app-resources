@@ -1,5 +1,4 @@
-﻿using Fusion.Resources.Api.Controllers.Departments;
-using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Domain;
 using System.Collections.Generic;
 using System.Linq;
 
