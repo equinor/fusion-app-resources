@@ -9,14 +9,11 @@ namespace Fusion.Resources.Api.Controllers
     {
         public ApiRelatedDepartments(QueryRelatedDepartments relevantDepartments)
         {
-            Children = relevantDepartments.Children is not null 
-                ? relevantDepartments.Children.Select(x => new ApiDepartment(x)).ToList()
-                : new List<ApiDepartment>();
-            Siblings = relevantDepartments.Siblings is not null
-                ? relevantDepartments.Siblings.Select(x => new ApiDepartment(x)).ToList()
-                : new List<ApiDepartment>();
+            Children = relevantDepartments.Children.Select(x => new ApiDepartment(x)).ToList();
+            Siblings = relevantDepartments.Siblings.Select(x => new ApiDepartment(x)).ToList();
         }
-        public List<ApiDepartment> Children { get; set; }
-        public List<ApiDepartment> Siblings { get; set; }
+
+        public List<ApiDepartment> Children { get; }
+        public List<ApiDepartment> Siblings { get; }
     }
 }
