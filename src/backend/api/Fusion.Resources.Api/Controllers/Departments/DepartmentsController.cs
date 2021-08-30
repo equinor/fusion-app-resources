@@ -85,31 +85,40 @@ namespace Fusion.Resources.Api.Controllers.Departments
         public async Task<ActionResult<List<ApiDepartment>>> GetPositionDepartments(
             Guid projectId, Guid positionId, Guid instanceId)
         {
-            var result = new List<ApiDepartment>();
+            var relevantDepartments = new List<ApiDepartment>();
+
             var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
             if (position is null) return NotFound();
 
-            var department = await DispatchAsync(new GetDepartment(position.BasePosition.Department));
-            if(department is not null) result.Add(new ApiDepartment(department));
+            QueryDepartment? department = null;
+            QueryRelevantDepartments? related = null;
 
-            var command = new GetRelevantDepartments(position.BasePosition.Department);
-            var relevantDepartments = await DispatchAsync(command);
+            // Empty string is a valid department in line org (CEO), but we don't want to return that.
+            if (!string.IsNullOrWhiteSpace(position.BasePosition.Department))
+            {
+                department = await DispatchAsync(new GetDepartment(position.BasePosition.Department));
+                related = await DispatchAsync(new GetRelevantDepartments(position.BasePosition.Department));
+            }
 
             // TODO: lookup based on responsibility matrix
-
-            if (relevantDepartments is not null)
+            if (related is not null)
             {
-                result.AddRange(
-                    relevantDepartments.Siblings
-                        .Union(relevantDepartments.Children)
+                relevantDepartments.AddRange(
+                    related.Siblings
+                        .Union(related.Children)
                         .Select(x => new ApiDepartment(x))
                 );
+            }
+
+            if (department is not null)
+            {
+                relevantDepartments.Add(new ApiDepartment(department));
             }
 
             return Ok(new
             {
                 department = (department is null) ? null : new ApiDepartment(department),
-                relevant = result
+                relevant = relevantDepartments
             });
         }
     }
