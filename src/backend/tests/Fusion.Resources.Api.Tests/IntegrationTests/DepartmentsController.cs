@@ -52,7 +52,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var department = "NOT IN DB";
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(department).SaveProfile();
-           
+
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{department}?api-version=1.0-preview");
@@ -67,7 +67,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var department = "TPD LIN ORG TST1";
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(department).SaveProfile();
-           
+
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
@@ -82,7 +82,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().SaveProfile();
-           
+
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}&api-version=1.0-preview");
@@ -140,7 +140,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task RelevantDepartments_ShouldGiveNotFound_WhenNoData()
         {
             var department = "PDP TST NOT FND";
-            
+
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
             resp.Should().BeNotFound();
@@ -156,10 +156,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.EnsureDepartment(department);
 
-            foreach (var sibling in siblings) {
+            foreach (var sibling in siblings)
+            {
                 fixture.EnsureDepartment(sibling);
             }
-            foreach (var child in children) {
+            foreach (var child in children)
+            {
                 fixture.EnsureDepartment(child);
             }
 
@@ -178,6 +180,30 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.relevant.Select(x => x.Name).Should().Contain(siblings);
             resp.Value.relevant.Select(x => x.Name).Should().Contain(children);
             resp.Value.relevant.Select(x => x.Name).Should().Contain(department);
+        }
+
+        [Fact]
+        public async Task RelevantDepartment_ShouldBeNull_WhenBasePositionDepartmentIsEmptyString()
+        {
+            var ceo = fixture.AddProfile(FusionAccountType.Employee);
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(ceo)
+                .WithDepartment("")
+                .WithFullDepartment("")
+                .SaveProfile();
+
+            var project = new FusionTestProjectBuilder();
+            var pos = project.AddPosition().WithEnsuredFutureInstances();
+            pos.BasePosition = project
+                .AddBasePosition("Senior Child Process Terminator", x => x.Department = "");
+
+            using var adminScope = fixture.AdminScope();
+            var resp = await Client.TestClientGetAsync(
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
+            );
+            resp.Should().BeSuccessfull();
+            resp.Value.department.Should().BeNull();
         }
 
         private class TestApiRelevantDepartments
