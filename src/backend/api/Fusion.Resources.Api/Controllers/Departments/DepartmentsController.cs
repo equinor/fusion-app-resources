@@ -21,7 +21,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
 
         public DepartmentsController(IOrgApiClientFactory orgApiClientFactory)
         {
-            this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);;
+            this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application); ;
         }
         [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
@@ -45,12 +45,12 @@ namespace Fusion.Resources.Api.Controllers.Departments
         }
 
         [HttpGet("/departments/{departmentString}/related")]
-        public async Task<ActionResult<ApiRelevantDepartments>> GetRelevantDepartments(string departmentString)
+        public async Task<ActionResult<ApiRelatedDepartments>> GetRelevantDepartments(string departmentString)
         {
-            var departments = await DispatchAsync(new GetRelevantDepartments(departmentString));
+            var departments = await DispatchAsync(new GetRelatedDepartments(departmentString));
             if (departments is null) return NotFound();
 
-            return Ok(new ApiRelevantDepartments(departments));
+            return Ok(new ApiRelatedDepartments(departments));
         }
 
         [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
@@ -82,28 +82,24 @@ namespace Fusion.Resources.Api.Controllers.Departments
         }
 
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
-        public async Task<ActionResult<List<ApiDepartment>>> GetPositionDepartments(
+        public async Task<ActionResult<ApiRelevantDepartments>> GetPositionDepartments(
             Guid projectId, Guid positionId, Guid instanceId)
         {
-            var relevantDepartments = new List<ApiDepartment>();
+            var result = new ApiRelevantDepartments();
 
             var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
             if (position is null) return NotFound();
 
-            QueryDepartment? department = null;
-            QueryRelevantDepartments? related = null;
-
             // Empty string is a valid department in line org (CEO), but we don't want to return that.
-            if (!string.IsNullOrWhiteSpace(position.BasePosition.Department))
-            {
-                department = await DispatchAsync(new GetDepartment(position.BasePosition.Department));
-                related = await DispatchAsync(new GetRelevantDepartments(position.BasePosition.Department));
-            }
+            if (string.IsNullOrWhiteSpace(position.BasePosition.Department)) return result;
 
-            // TODO: lookup based on responsibility matrix
+            var department = await DispatchAsync(new GetDepartment(position.BasePosition.Department));
+            var related = await DispatchAsync(new GetRelatedDepartments(position.BasePosition.Department));
+
+            // TODO: also lookup based on responsibility matrix
             if (related is not null)
             {
-                relevantDepartments.AddRange(
+                result.Relevant.AddRange(
                     related.Siblings
                         .Union(related.Children)
                         .Select(x => new ApiDepartment(x))
@@ -112,14 +108,10 @@ namespace Fusion.Resources.Api.Controllers.Departments
 
             if (department is not null)
             {
-                relevantDepartments.Add(new ApiDepartment(department));
+                result.Relevant.Add(new ApiDepartment(department));
             }
 
-            return Ok(new
-            {
-                department = (department is null) ? null : new ApiDepartment(department),
-                relevant = relevantDepartments
-            });
+            return result;
         }
     }
 }
