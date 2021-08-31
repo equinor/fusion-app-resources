@@ -130,7 +130,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp = await Client.TestClientDeleteAsync<dynamic>(
                 $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}?api-version=1.0-preview"
             );
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
         [Fact]

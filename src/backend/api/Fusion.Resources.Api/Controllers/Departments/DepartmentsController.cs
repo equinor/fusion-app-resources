@@ -96,7 +96,7 @@ namespace Fusion.Resources.Api.Controllers
                 new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)
             );
 
-            if (deleted) return Ok();
+            if (deleted) return NoContent();
             else return NotFound();
         }
 

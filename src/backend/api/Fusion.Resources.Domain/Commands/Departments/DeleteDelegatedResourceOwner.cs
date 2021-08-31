@@ -12,12 +12,12 @@ namespace Fusion.Resources.Domain.Commands.Departments
     public  class DeleteDelegatedResourceOwner : IRequest<bool>
     {
         private readonly string departmentId;
-        private readonly Guid delegatedOnwerAzureUniqueId;
+        private readonly Guid delegatedOwnerAzureUniqueId;
 
-        public DeleteDelegatedResourceOwner(string departmentId, Guid delegatedOnwerAzureUniqueId)
+        public DeleteDelegatedResourceOwner(string departmentId, Guid delegatedOwnerAzureUniqueId)
         {
             this.departmentId = departmentId;
-            this.delegatedOnwerAzureUniqueId = delegatedOnwerAzureUniqueId;
+            this.delegatedOwnerAzureUniqueId = delegatedOwnerAzureUniqueId;
         }
 
         public class Handler : IRequestHandler<DeleteDelegatedResourceOwner, bool>
@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
             {
                 var query = db.DepartmentResponsibles
                     .Where(x => x.DepartmentId == request.departmentId
-                        && x.ResponsibleAzureObjectId == request.delegatedOnwerAzureUniqueId);
+                        && x.ResponsibleAzureObjectId == request.delegatedOwnerAzureUniqueId);
                 db.DepartmentResponsibles.RemoveRange(query);
 
                 return await db.SaveChangesAsync(cancellationToken) > 0;
