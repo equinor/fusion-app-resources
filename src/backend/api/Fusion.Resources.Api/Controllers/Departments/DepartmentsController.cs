@@ -79,6 +79,27 @@ namespace Fusion.Resources.Api.Controllers
             return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
         }
 
+        [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
+        public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
+        {
+            #region Authorization
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            var deleted = await DispatchAsync(
+                new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)
+            );
+
+            if (deleted) return Ok();
+            else return NotFound();
+        }
+
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
         public async Task<ActionResult<ApiRelevantDepartments>> GetPositionDepartments(
             Guid projectId, Guid positionId, Guid instanceId)

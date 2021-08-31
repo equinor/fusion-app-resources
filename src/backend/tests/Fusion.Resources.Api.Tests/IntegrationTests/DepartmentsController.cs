@@ -110,6 +110,44 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
         }
 
+
+        [Fact]
+        public async Task DeleteDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
+        {
+            var testDepartment = "TPD LIN ORG TST";
+            fixture.EnsureDepartment(testDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner?api-version=1.0-preview", new
+            {
+                DateFrom = "2021-02-02",
+                DateTo = "2022-02-05",
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+
+            resp = await Client.TestClientDeleteAsync<dynamic>(
+                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}?api-version=1.0-preview"
+            );
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task DeleteDepartmentResponsible_ShouldGive404_WhenNotExisting()
+        {
+            var testDepartment = "TPD LIN ORG TST";
+            fixture.EnsureDepartment(testDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientDeleteAsync<dynamic>(
+                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}?api-version=1.0-preview"
+            );
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
         [Fact]
         public async Task RelevantDepartments_ShouldGetDataFromLineOrg()
         {
