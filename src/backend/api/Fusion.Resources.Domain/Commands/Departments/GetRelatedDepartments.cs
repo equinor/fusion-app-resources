@@ -61,8 +61,10 @@ namespace Fusion.Resources.Domain
             private async Task<QueryRelatedDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
             {
                 var relevantDepartments = new QueryRelatedDepartments();
+                var department = await lineOrgResolver.ResolveDepartmentAsync(fullDepartmentPath);
+                if (department is null) return null;
 
-                var children = await lineOrgResolver.GetChildren(fullDepartmentPath);
+                var children = await lineOrgResolver.GetChildren(department);
                 if (children is not null)
                 {
                     relevantDepartments.Children = await children.ToQueryDepartment(profileService);

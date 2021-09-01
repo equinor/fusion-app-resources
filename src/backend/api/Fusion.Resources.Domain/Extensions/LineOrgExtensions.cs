@@ -15,13 +15,20 @@ namespace Fusion.Resources.Application
         public static async Task<List<LineOrgDepartment>?> GetChildren(this ILineOrgResolver resolver, string departmentId)
         {
             var department = await resolver.ResolveDepartmentAsync(departmentId);
+            if (department is null) return null;
+
+            return await resolver.GetChildren(department);
+        }
+
+        public static async Task<List<LineOrgDepartment>?> GetChildren(this ILineOrgResolver resolver, LineOrgDepartment department)
+        {
             if (department?.Children is null) return null;
 
             var children = new List<LineOrgDepartment>();
-            foreach(var child in department.Children)
+            foreach (var child in department.Children)
             {
                 var childDepartment = await resolver.ResolveDepartmentAsync(child.FullName);
-                if(childDepartment is not null) children.Add(childDepartment);
+                if (childDepartment is not null) children.Add(childDepartment);
             }
 
             return children;
