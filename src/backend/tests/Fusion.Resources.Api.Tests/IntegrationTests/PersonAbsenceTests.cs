@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Controllers;
-using Fusion.Resources.Domain;
 using Fusion.Testing.Authentication.User;
 using Xunit;
 using Xunit.Abstractions;
@@ -49,8 +48,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var testScope = fixture.UserScope(testUser);
             var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
             response.Should().BeSuccessfull();
-
-            response.Value.value.Count().Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
@@ -59,6 +56,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var otherUser = fixture.AddProfile(FusionAccountType.Employee);
             using var testScope = fixture.UserScope(otherUser);
             var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeUnauthorized();
+        }
+
+        [Fact]
+        public async Task GetAbsenceItem_ShouldBeOk_WhenCurrentUser()
+        {
+            using var testScope = fixture.UserScope(testUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task GetAbsenceForUser_ShouldBeUnauthorized_WhenOtherUser()
+        {
+            var otherUser = fixture.AddProfile(FusionAccountType.Employee);
+            using var testScope = fixture.UserScope(otherUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", new { value = new[] { new { id = Guid.Empty } } });
             response.Should().BeUnauthorized();
         }
 
@@ -275,7 +289,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             };
 
             using var authScope = fixture.AdminScope();
-            
+
             var response = method switch
             {
                 "POST" => await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", task),
