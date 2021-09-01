@@ -44,6 +44,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ListMyAbsence_ShouldBeOk_WhenCurrentUser()
+        {
+            using var testScope = fixture.UserScope(testUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeSuccessfull();
+
+            response.Value.value.Count().Should().BeGreaterOrEqualTo(1);
+        }
+
+        [Fact]
+        public async Task ListAbsenceForUser_ShouldBeUnauthorized_WhenOtherUser()
+        {
+            var otherUser = fixture.AddProfile(FusionAccountType.Employee);
+            using var testScope = fixture.UserScope(otherUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeUnauthorized();
+        }
+
+        [Fact]
         public async Task ListAbsence_ShouldBeOk_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
