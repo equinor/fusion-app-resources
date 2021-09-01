@@ -127,6 +127,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (department is not null)
             {
+                result.Department = new ApiDepartment(department);
                 result.Relevant.Add(new ApiDepartment(department));
             }
 
