@@ -28,16 +28,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel testRequest;
 
-        private ApiPersonProfileV3 testUser;
+        private ApiPersonProfileV3 user;
         public DepartmentRequestsTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
             this.fixture = fixture;
 
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
-
-            // Generate random test user
-            testUser = fixture.AddProfile(FusionAccountType.External);
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
@@ -45,8 +42,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         public async Task InitializeAsync()
         {
-            testUser = PeopleServiceMock.AddTestProfile()
+            user = fixture.AddProfile(FusionAccountType.Employee);
+            user.Department = TimelineDepartment;
+            user.FullDepartment = TimelineDepartment;
+
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(user)
+                .AsResourceOwner()
                 .SaveProfile();
+
 
             // Mock project
             testProject = new FusionTestProjectBuilder()
@@ -62,9 +66,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             testRequest = await adminClient.CreateDefaultRequestAsync(testProject);
             testRequest = await adminClient.StartProjectRequestAsync(testProject, testRequest.Id);
-            testRequest = await adminClient.AssignAnDepartmentAsync(testRequest.Id);
-
-            fixture.EnsureDepartment(TimelineDepartment);
+            testRequest = await adminClient.AssignRandomDepartmentAsync(testRequest.Id);
         }
 
         #region GetDeparmentRequests
@@ -459,15 +461,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetTimeline_ShouldIncludeTaskDetails()
         {
-            var user = fixture.AddProfile(FusionAccountType.Employee);
-            user.Department = TimelineDepartment;
-
-            LineOrgServiceMock.AddTestUser()
-                .MergeWithProfile(user)
-                .WithFullDepartment(TimelineDepartment)
-                .AsResourceOwner()
-                .SaveProfile();
-
             using var adminScope = fixture.AdminScope();
 
             var absenceResp = await Client.AddAbsence(user, x =>
@@ -496,16 +489,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetTimeline_ShouldNotIncludeTaskDetailsForOtherResourceOwner()
         {
-            var user = fixture.AddProfile(FusionAccountType.Employee);
-            user.FullDepartment = TimelineDepartment;
-            user.Department = TimelineDepartment;
-            
-            LineOrgServiceMock.AddTestUser()
-                .MergeWithProfile(user)
-                .WithFullDepartment(TimelineDepartment)
-                .AsResourceOwner()
-                .SaveProfile();
-
             TestAbsence absence;
             using (var adminScope = fixture.AdminScope())
             {

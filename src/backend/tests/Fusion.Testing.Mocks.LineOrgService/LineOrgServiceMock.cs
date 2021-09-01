@@ -68,6 +68,7 @@ namespace Fusion.Testing.Mocks.LineOrgService
         }
         public FusionTestUserBuilder WithFullDepartment(string fullDepartment)
         {
+            user.Department = fullDepartment;
             user.FullDepartment = fullDepartment;
             return this;
         }

@@ -7,12 +7,6 @@ namespace Fusion.Resources.Domain
 {
     public class QueryDepartment
     {
-        public QueryDepartment(DbDepartment department)
-        {
-            DepartmentId = department.DepartmentId;
-            SectorId = department.SectorId;
-        }
-
         public QueryDepartment(LineOrgDepartment lineOrgDepartment)
         {
             DepartmentId = lineOrgDepartment.DepartmentId;

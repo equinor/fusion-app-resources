@@ -73,7 +73,7 @@ namespace Fusion.Resources.Domain.Queries
                 // Resolve info from line org, will be cached.. If integration fails null is returned.
                 
 
-                var lineOrgDepartmentProfile = await mediator.Send(new GetRelevantDepartments(user.FullDepartment), cancellationToken);
+                var lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
 
 
                 var resourceOwnerProfile = new QueryResourceOwnerProfile(user.FullDepartment, isDepartmentManager, departmentsWithResponsibility, relevantSectors)

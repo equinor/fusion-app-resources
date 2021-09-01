@@ -31,14 +31,14 @@ namespace Fusion.Resources.Domain
 
             public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
             {
-                var trackedDepartment = await db.Departments.FindAsync(new[] { request.DepartmentId }, cancellationToken);
                 var lineOrgDpt = await lineOrgResolver.GetDepartment(request.DepartmentId);
 
                 QueryDepartment? result;
-                if (trackedDepartment is not null)
-                    result = new QueryDepartment(trackedDepartment) { IsTracked = true };
-                else if (lineOrgDpt is not null)
-                    result = new QueryDepartment(lineOrgDpt.DepartmentId, null);
+                if (lineOrgDpt is not null)
+                {
+                    var sector = new DepartmentPath(lineOrgDpt.DepartmentId).Parent();
+                    result = new QueryDepartment(lineOrgDpt.DepartmentId, sector);
+                }
                 else
                     return null;
 
