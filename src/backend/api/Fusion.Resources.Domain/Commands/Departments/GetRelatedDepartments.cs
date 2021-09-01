@@ -1,28 +1,24 @@
 ﻿using Fusion.Resources.Application.LineOrg;
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetRelevantDepartments : IRequest<QueryRelevantDepartments?>
+    public class GetRelatedDepartments : IRequest<QueryRelatedDepartments?>
     {
-        public GetRelevantDepartments(string department)
+        public GetRelatedDepartments(string department)
         {
             Department = department;
         }
 
         public string Department { get; }
 
-        public class Handler : IRequestHandler<GetRelevantDepartments, QueryRelevantDepartments?>
+        public class Handler : IRequestHandler<GetRelatedDepartments, QueryRelatedDepartments?>
         {
             private readonly ILogger<Handler> logger;
             private readonly IMediator mediator;
@@ -35,11 +31,11 @@ namespace Fusion.Resources.Domain
                 this.lineOrgResolver = lineOrgResolver;
             }
 
-            public async Task<QueryRelevantDepartments?> Handle(GetRelevantDepartments request, CancellationToken cancellationToken)
+            public async Task<QueryRelatedDepartments?> Handle(GetRelatedDepartments request, CancellationToken cancellationToken)
                 => await TryGetRelevantDepartmentsAsync(request.Department);
 
 
-            private async Task<QueryRelevantDepartments?> TryGetRelevantDepartmentsAsync(string? fullDepartment)
+            private async Task<QueryRelatedDepartments?> TryGetRelevantDepartmentsAsync(string? fullDepartment)
             {
                 if (fullDepartment is null)
                     return null;
@@ -57,9 +53,9 @@ namespace Fusion.Resources.Domain
                 }
             }
 
-            private async Task<QueryRelevantDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
+            private async Task<QueryRelatedDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
             {
-                var relevantDepartments = new QueryRelevantDepartments();
+                var relevantDepartments = new QueryRelatedDepartments();
 
                 var children = await lineOrgResolver.GetChildren(fullDepartmentPath);
                 if (children is null) return null;

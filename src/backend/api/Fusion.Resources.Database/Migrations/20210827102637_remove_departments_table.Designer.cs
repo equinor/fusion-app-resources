@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210827102637_remove_departments_table")]
+    partial class remove_departments_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -518,73 +520,6 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestAction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<bool>("IsRequired")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValueSql("(0)");
-
-                    b.Property<bool>("IsResolved")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PropertiesJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("RequestId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("ResolvedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("ResolvedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Responsible")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("SentById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SubType")
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RequestId");
-
-                    b.HasIndex("ResolvedById");
-
-                    b.HasIndex("SentById");
-
-                    b.ToTable("RequestActions");
-                });
-
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestComment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -624,6 +559,63 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("RequestComments");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PropertiesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("ResolvedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Responsible")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubType")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("ResolvedById");
+
+                    b.ToTable("RequestTasks");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>
@@ -1164,31 +1156,6 @@ namespace Fusion.Resources.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestAction", b =>
-                {
-                    b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", "Request")
-                        .WithMany("Tasks")
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "ResolvedBy")
-                        .WithMany()
-                        .HasForeignKey("ResolvedById");
-
-                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "SentBy")
-                        .WithMany()
-                        .HasForeignKey("SentById")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Request");
-
-                    b.Navigation("ResolvedBy");
-
-                    b.Navigation("SentBy");
-                });
-
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestComment", b =>
                 {
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
@@ -1204,6 +1171,23 @@ namespace Fusion.Resources.Database.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbRequestTask", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", "Request")
+                        .WithMany("Tasks")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "ResolvedBy")
+                        .WithMany()
+                        .HasForeignKey("ResolvedById");
+
+                    b.Navigation("Request");
+
+                    b.Navigation("ResolvedBy");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", b =>

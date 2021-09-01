@@ -122,7 +122,7 @@ namespace Fusion.Resources.Api.Tests
             return newRequestResponse.Value;
         }
 
-        public static async Task<TestApiInternalRequestModel> AssignAnDepartmentAsync(this HttpClient client, Guid requestId)
+        public static async Task<TestApiInternalRequestModel> AssignRandomDepartmentAsync(this HttpClient client, Guid requestId)
         {
             var newRequestResponse = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
             {

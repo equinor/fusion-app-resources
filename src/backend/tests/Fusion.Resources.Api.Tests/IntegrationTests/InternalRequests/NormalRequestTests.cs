@@ -210,7 +210,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var position = testProject.AddPosition();
-            var department = InternalRequestData.RandomDepartment;
+            var department = "RQE AFKA QWE";
             var resourceOwner = LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(department).SaveProfile();
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
@@ -351,7 +351,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-            var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);
@@ -399,7 +399,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-            var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
 
             await FastForward_ProposedRequest();
@@ -533,7 +533,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-            var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);

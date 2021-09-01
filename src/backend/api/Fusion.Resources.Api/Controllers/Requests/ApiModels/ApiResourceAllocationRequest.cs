@@ -1,5 +1,4 @@
 ﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Api.Controllers.Departments;
 using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;

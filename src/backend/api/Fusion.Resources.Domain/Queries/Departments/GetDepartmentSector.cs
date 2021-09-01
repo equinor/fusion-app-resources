@@ -1,8 +1,5 @@
-﻿using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain.Models;
+﻿using Fusion.Resources.Database.Entities;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,25 +15,13 @@ namespace Fusion.Resources.Domain.Queries
             this.departmentId = departmentId;
         }
 
-        public IQueryable<string?> Execute(IQueryable<DbDepartment> departments)
-        {
-            return departments
-                .Where(dpt => dpt.DepartmentId == departmentId)
-                .Select(dpt => dpt.SectorId);
-        }
-
         public class Handler : IRequestHandler<GetDepartmentSector, string?>
         {
-            private readonly ResourcesDbContext db;
-
-            public Handler(ResourcesDbContext db)
+            public Task<string?> Handle(GetDepartmentSector query, CancellationToken cancellationToken)
             {
-                this.db = db;
-            }
-
-            public async Task<string?> Handle(GetDepartmentSector query, CancellationToken cancellationToken)
-            {
-                return await query.Execute(db.Departments).FirstOrDefaultAsync(cancellationToken);
+                var path = new DepartmentPath(query.departmentId);
+                var sector = (path.Level > 1) ? path.Parent() : null;
+                return Task.FromResult(sector);
             }
         }
     }
