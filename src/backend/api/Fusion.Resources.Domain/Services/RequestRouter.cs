@@ -38,12 +38,12 @@ namespace Fusion.Resources.Domain
 
             if (string.IsNullOrEmpty(departmentId))
             {
-                departmentId = await RouteFromResponsibilityMatrix(request, cancellationToken);
+                departmentId = await RouteFromBasePosition(request);
             }
 
-            if (string.IsNullOrEmpty(departmentId))
+            if (!string.IsNullOrEmpty(departmentId))
             {
-                departmentId = await RouteFromBasePosition(request);
+                departmentId = await RouteFromResponsibilityMatrix(request, departmentId, cancellationToken);
             }
 
             return departmentId;
@@ -64,30 +64,29 @@ namespace Fusion.Resources.Domain
             if (!request.OrgPositionId.HasValue) return null;
 
             var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
-            var departmentPath = position?.BasePosition?.Department;
-            if (!string.IsNullOrEmpty(departmentPath))
+            var departmentPath = default(string);
+            if (!string.IsNullOrEmpty(position?.BasePosition?.Department))
             {
                 // Check if department path is an actual department
-                // TODO: Maybe round robin when partial match?
-
-                var actualDepartment = await mediator.Send(new GetDepartment(departmentPath));
+                var actualDepartment = await mediator.Send(new GetDepartment(position.BasePosition.Department));
                 departmentPath = actualDepartment?.DepartmentId;
             }
 
             return departmentPath;
         }
 
-        private async Task<string?> RouteFromResponsibilityMatrix(DbResourceAllocationRequest request, CancellationToken cancellationToken)
+        private async Task<string?> RouteFromResponsibilityMatrix(DbResourceAllocationRequest request, string departmentId, CancellationToken cancellationToken)
         {
             var props = new MatchingProperties(request.Project.OrgProjectId)
             {
                 Discipline = request.Discipline,
                 LocationId = request.OrgPositionInstance.LocationId,
+                BasePositionDepartment = departmentId
             };
             var matches = Match(props);
             var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
 
-            return bestMatch?.Row.Unit;
+            return bestMatch?.Row.Unit ?? departmentId;
         }
 
         private IQueryable<ResponsibilityMatch> Match(MatchingProperties props)
@@ -97,8 +96,8 @@ namespace Fusion.Resources.Domain
                 .Include(m => m.Project)
                 .Select(m => new ResponsibilityMatch
                 {
-                    Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 7 : 0)
-                            + (props.BasePositionDepartment != null && m.Unit!.StartsWith(props.BasePositionDepartment) ? 5 : 0)
+                    Score = (props.BasePositionDepartment != null && m.Unit!.StartsWith(props.BasePositionDepartment) ? 7 : 0)
+                            + (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
                     Row = m

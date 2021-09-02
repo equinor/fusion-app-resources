@@ -23,6 +23,7 @@ namespace Fusion.Resources.Logic.Tests
         private ResourcesDbContext db;
         private DbPerson proposed;
         private DbPerson initiator;
+        private ApiPositionV2 requestPosition;
         private DbResourceAllocationRequest request;
 
         public async Task InitializeAsync()
@@ -36,6 +37,12 @@ namespace Fusion.Resources.Logic.Tests
             proposed = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Robert C. Martin" };
             initiator = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Wobert D. Martin" };
 
+            requestPosition = new ApiPositionV2
+            {
+                Id = Guid.NewGuid(),
+                BasePosition = new ApiPositionBasePositionV2 { Department = "TPD PRD" }
+            };
+
             request = new DbResourceAllocationRequest
             {
                 Id = Guid.NewGuid(),
@@ -45,7 +52,7 @@ namespace Fusion.Resources.Logic.Tests
                     Id = Guid.NewGuid(),
                     DomainId = "Project"
                 },
-                OrgPositionId = Guid.NewGuid(),
+                OrgPositionId = requestPosition.Id,
                 OrgPositionInstance = new DbResourceAllocationRequest.DbOpPositionInstance
                 {
                     LocationId = Guid.NewGuid(),
@@ -56,7 +63,7 @@ namespace Fusion.Resources.Logic.Tests
                 ProposedPerson = new DbResourceAllocationRequest.DbOpProposedPerson
                 {
                     AzureUniqueId = proposed.AzureUniqueId
-                }
+                },
             };
 
             db.Add(request);
@@ -202,16 +209,6 @@ namespace Fusion.Resources.Logic.Tests
                 BasePosition = new ApiPositionBasePositionV2 { Department = "PDP PRD FE ANE" }
             };
 
-            var orgServiceMock = new Mock<IProjectOrgResolver>();
-            orgServiceMock
-                .Setup(x => x.ResolvePositionAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(position);
-
-            var mediatorMock = new Mock<IMediator>();
-            mediatorMock
-                .Setup(x => x.Send<QueryDepartment>(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null));
-
             var handler = CreateHandler(
                 orgServiceMock => orgServiceMock
                     .Setup(x => x.ResolvePositionAsync(It.IsAny<Guid>()))
@@ -230,14 +227,48 @@ namespace Fusion.Resources.Logic.Tests
             resolvedDepartment.Should().Be(position.BasePosition.Department);
         }
 
+        [Fact]
+        public async Task Should_NotRoute_WhenNotRelevant()
+        {
+            var position = new ApiPositionV2
+            {
+                BasePosition = new ApiPositionBasePositionV2 { Department = "" }
+            };
+
+            var handler = CreateHandler(
+                orgServiceMock => orgServiceMock
+                    .Setup(x => x.ResolvePositionAsync(It.IsAny<Guid>()))
+                    .ReturnsAsync(position),
+
+                mediatorMock => mediatorMock
+                    .Setup(x => x.Send(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(default(QueryDepartment))
+            );
+
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
+                CancellationToken.None
+            );
+
+            resolvedDepartment.Should().Be(null);
+        }
+
         private Queries.ResolveResponsibleDepartment.Handler CreateHandler(
             Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null, 
             Action<Mock<IMediator>> setupMediatorMock = null)
         {
             var orgServiceMock = new Mock<IProjectOrgResolver>(MockBehavior.Loose);
+            orgServiceMock
+                    .Setup(x => x.ResolvePositionAsync(It.Is<Guid>(x => x == requestPosition.Id)))
+                    .ReturnsAsync(requestPosition);
+
             setupOrgServiceMock?.Invoke(orgServiceMock);
 
             var mediatorMock = new Mock<IMediator>(MockBehavior.Loose);
+            mediatorMock
+                    .Setup(x => x.Send(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new QueryDepartment(requestPosition.BasePosition.Department, null));
+
             setupMediatorMock?.Invoke(mediatorMock);
 
             var profileServiceMock = new Mock<IProfileService>(MockBehavior.Loose);
