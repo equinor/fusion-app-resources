@@ -210,7 +210,7 @@ namespace Fusion.Resources.Api.Tests
             });
         }
 
-        public static async Task<TestApiRequestTask> AddRequestTask(this HttpClient client, Guid requestId, Dictionary<string, object> props = null )
+        public static async Task<TestApiRequestAction> AddRequestTask(this HttpClient client, Guid requestId, Dictionary<string, object> props = null )
         {
             var payload = new
             {
@@ -223,8 +223,8 @@ namespace Fusion.Resources.Api.Tests
                 Properties = props
             };
 
-            var result = await client.TestClientPostAsync<TestApiRequestTask>(
-                $"/requests/{requestId}/tasks", payload
+            var result = await client.TestClientPostAsync<TestApiRequestAction>(
+                $"/requests/{requestId}/actions", payload
             );
 
             result.Should().BeSuccessfull();

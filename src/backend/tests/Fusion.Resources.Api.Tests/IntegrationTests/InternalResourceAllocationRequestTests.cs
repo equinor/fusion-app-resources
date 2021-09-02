@@ -372,13 +372,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var request = await Client.CreateDefaultRequestAsync(testProject);
             var task = await Client.AddRequestTask(request.Id);
 
-            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=tasks", new
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
             {
-                tasks = new[] { new { id = Guid.Empty } }
+                actions = new[] { new { id = Guid.Empty } }
             });
 
             result.Should().BeSuccessfull();
-            result.Value.tasks.Should().Contain(t => t.id == task.id);
+            result.Value.actions.Should().Contain(t => t.id == task.id);
         }
 
         [Fact]
@@ -388,13 +388,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = await Client.CreateDefaultRequestAsync(testProject);
 
-            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=tasks", new
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
             {
-                tasks = new[] { new { id = Guid.Empty } }
+                actions = new[] { new { id = Guid.Empty } }
             });
 
             result.Should().BeSuccessfull();
-            result.Value.tasks.Should().BeEmpty();
+            result.Value.actions.Should().BeEmpty();
         }
 
         [Fact]
@@ -440,11 +440,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskA = await Client.AddRequestTask(requestA.Id);
             var taskB = await Client.AddRequestTask(requestB.Id);
 
-            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=tasks",
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
                 new
                 {
                     value = new[] {
-                        new { id = Guid.Empty, tasks = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
+                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
                     }
                 });
 
@@ -452,8 +452,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
 
 
-            result.Value.value.First(x => x.id == requestA.Id).tasks[0].id.Should().Be(taskA.id);
-            result.Value.value.First(x => x.id == requestB.Id).tasks[0].id.Should().Be(taskB.id);
+            result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
         }
 
         //[Fact]
