@@ -64,7 +64,11 @@ namespace Fusion.Resources.Domain
             {
                 List<QueryDepartment> result;
 
-                var lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync(request!.resourceOwnerSearch);
+                IEnumerable<LineOrgUser> lineOrgDepartments;
+                if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
+                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync(request.resourceOwnerSearch);
+                else
+                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync();
 
                 if (request.departmentIds is not null)
                 {
@@ -84,15 +88,12 @@ namespace Fusion.Resources.Domain
                 if (!string.IsNullOrEmpty(request.departmentIdStartsWith))
                 {
                     lineOrgDepartments = lineOrgDepartments
-                        .Where(x => new DepartmentPath(x.FullDepartment).Parent() == request.sector)
+                        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
                         .ToList();
                 }
 
                 result = await lineOrgDepartments.ToQueryDepartment(profileResolver);
 
-                // Cannot filter requests from db before merging with line org results as we need to
-                // 1. Maintain sector info if tracked in db, and 
-                // 2. Search info from line org if it exists there.
                 if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
                 {
                     result = result.Where(dpt =>
