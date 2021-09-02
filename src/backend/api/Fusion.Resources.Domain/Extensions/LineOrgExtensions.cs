@@ -2,25 +2,23 @@
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Application
 {
     public static class LineOrgExtensions
     {
-        public static async Task<List<LineOrgDepartment>?> GetChildren(this ILineOrgResolver resolver, string departmentId)
+        public static async Task<List<LineOrgDepartment>?> ResolveDepartmentChildrenAsync(this ILineOrgResolver resolver, string departmentId)
         {
             var department = await resolver.ResolveDepartmentAsync(departmentId);
             if (department is null) return null;
 
-            return await resolver.GetChildren(department);
+            return await resolver.ResolveDepartmentChildrenAsync(department);
         }
 
-        public static async Task<List<LineOrgDepartment>?> GetChildren(this ILineOrgResolver resolver, LineOrgDepartment department)
+        public static async Task<List<LineOrgDepartment>?> ResolveDepartmentChildrenAsync(this ILineOrgResolver resolver, LineOrgDepartment department)
         {
             if (department?.Children is null) return null;
 

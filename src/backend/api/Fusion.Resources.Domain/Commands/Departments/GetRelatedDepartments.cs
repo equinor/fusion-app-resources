@@ -64,13 +64,13 @@ namespace Fusion.Resources.Domain
                 var department = await lineOrgResolver.ResolveDepartmentAsync(fullDepartmentPath);
                 if (department is null) return null;
 
-                var children = await lineOrgResolver.GetChildren(department);
+                var children = await lineOrgResolver.ResolveDepartmentChildrenAsync(department);
                 if (children is not null)
                 {
                     relevantDepartments.Children = await children.ToQueryDepartment(profileService);
                 }
 
-                var siblings = await lineOrgResolver.GetChildren(string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1)));
+                var siblings = await lineOrgResolver.ResolveDepartmentChildrenAsync(string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1)));
                 if(siblings is not null)
                 {
                     relevantDepartments.Siblings = await siblings.ToQueryDepartment(profileService);
