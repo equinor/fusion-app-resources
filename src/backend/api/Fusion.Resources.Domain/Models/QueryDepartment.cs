@@ -6,7 +6,7 @@ namespace Fusion.Resources.Domain
 {
     public class QueryDepartment
     {
-        public QueryDepartment(LineOrgDepartment lineOrgDepartment, FusionPersonProfile manager)
+        public QueryDepartment(LineOrgDepartment lineOrgDepartment, FusionPersonProfile? manager)
         {
             DepartmentId = lineOrgDepartment.FullName;
             LineOrgResponsible = manager;

@@ -48,7 +48,7 @@ namespace Fusion.Resources.Application
             }
 
             var profileLookup = profiles.ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
-            return departments.Select(x => new QueryDepartment(x, profileLookup[x.Manager!.AzureUniqueId!])).ToList();
+            return departments.Select(x => new QueryDepartment(x, x.Manager != null ? profileLookup[x.Manager!.AzureUniqueId!] : null)).ToList();
         }
 
         public static async Task<List<QueryDepartment>> ToQueryDepartment(this IEnumerable<LineOrgUser> users, IFusionProfileResolver profileResolver)

@@ -136,18 +136,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             const string department = "PDP PRD FE ANE ANE5";
 
-            var resourceOwner = PeopleServiceMock
-                .AddTestProfile()
-                .WithAccountType(FusionAccountType.Employee)
-                .WithFullDepartment(department)
-                .SaveProfile();
-
-            LineOrgServiceMock.AddDepartment(department);
-            LineOrgServiceMock
-                .AddTestUser()
-                .MergeWithProfile(resourceOwner)
-                .AsResourceOwner()
-                .SaveProfile();
+            var resourceOwner = fixture.AddResourceOwner(department);
 
             var request = new UpdateResponsibilityMatrixRequest
             {
@@ -168,18 +157,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetMatrix_ShouldHaveResponsibleSet()
         {
             const string department = "ABC DEF";
-            var resourceOwner = PeopleServiceMock
-                .AddTestProfile()
-                .WithAccountType(FusionAccountType.Employee)
-                .WithFullDepartment(department)
-                .SaveProfile();
-
-            LineOrgServiceMock.AddDepartment(department);
-            LineOrgServiceMock
-                .AddTestUser()
-                .MergeWithProfile(resourceOwner)
-                .AsResourceOwner()
-                .SaveProfile();
+            var resourceOwner = fixture.AddResourceOwner(department);
 
             var client = fixture.ApiFactory.CreateClient()
                 .WithTestUser(fixture.AdminUser)
@@ -199,7 +177,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", request);
             response.Response.EnsureSuccessStatusCode();
-            
+
             var matrixId = response.Value.Id;
 
             response = await client.TestClientGetAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix/{matrixId}");
@@ -247,7 +225,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.BasePosition.Should().NotBeNull();
             response.Value.Sector.Should().Be(request.Sector);
             response.Value.Unit.Should().Be(request.Unit);
-            
+
             testResponsibilityMatrixId = response.Value.Id;
         }
 

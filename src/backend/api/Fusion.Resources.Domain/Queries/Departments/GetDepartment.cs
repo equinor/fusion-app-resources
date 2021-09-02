@@ -34,13 +34,10 @@ namespace Fusion.Resources.Domain
                 var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(request.DepartmentId);
 
                 QueryDepartment? result;
-                if (lineOrgDpt is not null)
-                {
-                    var sector = new DepartmentPath(lineOrgDpt.FullName).Parent();
-                    result = new QueryDepartment(lineOrgDpt.FullName, sector);
-                }
-                else
-                    return null;
+                if (lineOrgDpt is null) return null;
+
+                var sector = new DepartmentPath(lineOrgDpt.FullName).Parent();
+                result = new QueryDepartment(lineOrgDpt.FullName, sector);
 
                 if (request.shouldExpandDelegatedResourceOwners)
                     await ExpandDelegatedResourceOwner(result, cancellationToken);
