@@ -210,6 +210,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             );
             resp.Should().BeSuccessfull();
 
+            resp.Value.department.Name.Should().Be(department);
+
             resp.Value.relevant.Select(x => x.Name).Should().Contain(siblings);
             resp.Value.relevant.Select(x => x.Name).Should().Contain(children);
             resp.Value.relevant.Select(x => x.Name).Should().Contain(department);
