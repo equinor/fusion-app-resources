@@ -16,10 +16,10 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [Authorize]
     [ApiController]
     [ApiVersion("1.0")]
-    public class TasksController : ResourceControllerBase
+    public class RequestActionsController : ResourceControllerBase
     {
-        [HttpPost("requests/{requestId}/tasks")]
-        public async Task<ActionResult> AddRequestTask([FromRoute] Guid requestId, [FromBody] AddRequestTaskRequest request)
+        [HttpPost("requests/{requestId}/actions")]
+        public async Task<ActionResult> AddRequestTask([FromRoute] Guid requestId, [FromBody] AddActionRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -54,7 +54,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new AddRequestTask(requestId, request.Title, request.Body, request.Type)
+            var command = new AddRequestAction(requestId, request.Title, request.Body, request.Type)
             {
                 SubType = request.SubType,
                 Source = request.Source switch
@@ -70,15 +70,16 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     ApiTaskResponsible.Both => QueryTaskResponsible.Both,
                     _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(QueryTaskSource)}.")
                 },
+                IsRequired = request.IsRequired,
                 Properties = request.Properties
             };
 
             var created = await DispatchAsync(command);
 
-            return CreatedAtAction(nameof(GetRequestTask), new { requestId, taskId = created.Id }, new ApiRequestTask(created));
+            return CreatedAtAction(nameof(GetRequestTask), new { requestId, actionId = created.Id }, new ApiRequestAction(created));
         }
 
-        [HttpGet("requests/{requestId}/tasks")]
+        [HttpGet("requests/{requestId}/actions")]
         public async Task<ActionResult> GetRequestTasks([FromRoute] Guid requestId)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -114,14 +115,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new GetRequestTasks(requestId);
+            var command = new GetRequestActions(requestId);
             var tasks = await DispatchAsync(command);
 
-            return Ok(tasks.Select(t => new ApiRequestTask(t)));
+            return Ok(tasks.Select(t => new ApiRequestAction(t)));
         }
 
-        [HttpGet("requests/{requestId}/tasks/{taskId}")]
-        public async Task<ActionResult> GetRequestTask([FromRoute] Guid requestId, [FromRoute] Guid taskId)
+        [HttpGet("requests/{requestId}/actions/{actionId}")]
+        public async Task<ActionResult> GetRequestTask([FromRoute] Guid requestId, [FromRoute] Guid actionId)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -156,15 +157,15 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new GetRequestTask(requestId, taskId);
+            var command = new GetRequestAction(requestId, actionId);
             var task = await DispatchAsync(command);
-            if (task is null) return FusionApiError.NotFound(taskId, $"A task with id '{taskId}' was not found on request with id '{requestId}'.");
+            if (task is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
 
-            return Ok(new ApiRequestTask(task));
+            return Ok(new ApiRequestAction(task));
         }
 
-        [HttpPatch("requests/{requestId}/tasks/{taskId}")]
-        public async Task<ActionResult> UpdateRequestTask([FromRoute] Guid requestId, [FromRoute] Guid taskId, [FromBody] PatchRequestTaskRequest patch)
+        [HttpPatch("requests/{requestId}/actions/{actionId}")]
+        public async Task<ActionResult> UpdateRequestTask([FromRoute] Guid requestId, [FromRoute] Guid actionId, [FromBody] PatchActionRequest patch)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -199,28 +200,29 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new UpdateRequestTask(requestId, taskId);
+            var command = new UpdateRequestAction(requestId, actionId);
 
             if (patch.Title.HasValue) command.Title = patch.Title.Value;
             if (patch.Body.HasValue) command.Body = patch.Body.Value;
             if (patch.Type.HasValue) command.Type = patch.Type.Value;
             if (patch.SubType.HasValue) command.SubType = patch.SubType.Value;
             if (patch.IsResolved.HasValue) command.IsResolved = patch.IsResolved.Value;
+            if (patch.IsRequired.HasValue) command.IsRequired = patch.IsRequired.Value;
             if (patch.Properties.HasValue) command.Properties = patch.Properties.Value;
 
             try
             {
                 var updated = await DispatchAsync(command);
-                return Ok(new ApiRequestTask(updated));
+                return Ok(new ApiRequestAction(updated));
             }
             catch (TaskNotFoundError err)
             {
-                return FusionApiError.NotFound(taskId, err.Message);
+                return FusionApiError.NotFound(actionId, err.Message);
             }
         }
 
-        [HttpDelete("requests/{requestId}/tasks/{taskId}")]
-        public async Task<ActionResult> DeleteRequestTask([FromRoute] Guid requestId, [FromRoute] Guid taskId)
+        [HttpDelete("requests/{requestId}/actions/{actionId}")]
+        public async Task<ActionResult> DeleteRequestTask([FromRoute] Guid requestId, [FromRoute] Guid actionId)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -255,11 +257,11 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new DeleteRequestTask(requestId, taskId);
+            var command = new DeleteRequestTask(requestId, actionId);
             var wasDeleted = await DispatchAsync(command);
 
             if (wasDeleted) return NoContent();
-            else return FusionApiError.NotFound(taskId, $"A task with id '{taskId}' was not found on request with id '{requestId}'.");
+            else return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
         }
     }
 }

@@ -5,10 +5,10 @@ using System.Text.Json;
 
 namespace Fusion.Resources.Domain
 {
-    public class QueryRequestTask
+    public class QueryRequestAction
     {
         private readonly string? propertiesJson;
-        public QueryRequestTask(DbRequestTask dbTask)
+        public QueryRequestAction(DbRequestAction dbTask)
         {
             Id = dbTask.Id;
             Title = dbTask.Title;
@@ -21,6 +21,8 @@ namespace Fusion.Resources.Domain
             IsResolved = dbTask.IsResolved;
             ResolvedAt = dbTask.ResolvedAt;
             ResolvedBy = (dbTask.ResolvedBy is not null) ? new QueryPerson(dbTask.ResolvedBy) : null;
+            SentBy = new QueryPerson(dbTask.SentBy);
+            IsRequired = dbTask.IsRequired;
             propertiesJson = dbTask.PropertiesJson;
         }
 
@@ -32,8 +34,10 @@ namespace Fusion.Resources.Domain
         public QueryTaskSource Source { get; }
         public QueryTaskResponsible Responsible { get; }
         public bool IsResolved { get; }
+        public bool IsRequired { get; set; }
         public DateTimeOffset? ResolvedAt { get; }
         public QueryPerson? ResolvedBy { get; }
+        public QueryPerson SentBy { get; }
 
         public Dictionary<string, object> Properties
         {
