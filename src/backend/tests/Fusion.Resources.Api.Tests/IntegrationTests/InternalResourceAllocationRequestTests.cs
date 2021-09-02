@@ -216,9 +216,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             const string expectedDepartment = "TPD PRD TST QWE";
-            
-            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(expectedDepartment).SaveProfile();
+
+            var fakeResourceOwner = fixture.AddResourceOwner(expectedDepartment);
 
             var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
             var request = await Client.CreateRequestAsync(projectId, r => r.AsTypeNormal().WithPosition(requestPosition));

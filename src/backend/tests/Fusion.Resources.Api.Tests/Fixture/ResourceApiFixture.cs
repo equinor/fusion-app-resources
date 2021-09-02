@@ -14,6 +14,7 @@ using System.Linq;
 using Fusion.Events;
 using Newtonsoft.Json;
 using Fusion.Testing.Mocks.LineOrgService;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Api.Tests.Fixture
 {
@@ -72,6 +73,22 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
             return account;
         }
+
+        internal ApiPersonProfileV3 AddResourceOwner(string department)
+        {
+            var resourceOwner = this.AddProfile(FusionAccountType.Employee);
+            resourceOwner.IsResourceOwner = true;
+            resourceOwner.FullDepartment = department;
+            resourceOwner.Department = new DepartmentPath(department).GetShortName();
+            LineOrgServiceMock.AddTestUser()
+                .MergeWithProfile(resourceOwner)
+                .WithFullDepartment(department)
+                .AsResourceOwner()
+                .SaveProfile();
+
+            return resourceOwner;
+        }
+
         internal void EnsureDepartment(string departmentId, string sectorId = null, ApiPersonProfileV3 defactoResponsible = null)
         {
             using var scope = ApiFactory.Services.CreateScope();

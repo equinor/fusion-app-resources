@@ -1,12 +1,12 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration.LineOrg;
+using Fusion.Integration.Org;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Integration.Org;
-using Microsoft.EntityFrameworkCore;
-using Fusion.Resources.Application.LineOrg;
 
 #nullable enable
 
@@ -73,10 +73,10 @@ namespace Fusion.Resources.Domain.Commands
 
             private async Task<DbPerson?> GetResourceOwner(string departmentId)
             {
-                var department = await lineOrgResolver.GetDepartment(departmentId);
-                if (department?.Responsible?.AzureUniqueId is not null)
+                var department = await lineOrgResolver.ResolveDepartmentAsync(departmentId);
+                if (department?.Manager?.AzureUniqueId is not null)
                 {
-                    var azureUniqueId = department.Responsible.AzureUniqueId.Value;
+                    var azureUniqueId = department.Manager.AzureUniqueId;
                     return await profileService.EnsurePersonAsync(new PersonId(azureUniqueId));
                 }
                 return null;

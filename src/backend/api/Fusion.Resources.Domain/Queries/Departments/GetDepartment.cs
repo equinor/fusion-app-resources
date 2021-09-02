@@ -1,5 +1,5 @@
 ﻿using Fusion.Integration;
-using Fusion.Resources.Application.LineOrg;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Database;
 using MediatR;
 using System.Threading;
@@ -31,21 +31,21 @@ namespace Fusion.Resources.Domain
 
             public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
             {
-                var lineOrgDpt = await lineOrgResolver.GetDepartment(request.DepartmentId);
+                var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(request.DepartmentId);
 
                 QueryDepartment? result;
-                if (lineOrgDpt is not null)
-                {
-                    var sector = new DepartmentPath(lineOrgDpt.DepartmentId).Parent();
-                    result = new QueryDepartment(lineOrgDpt.DepartmentId, sector);
-                }
-                else
-                    return null;
+                if (lineOrgDpt is null) return null;
+
+                var sector = new DepartmentPath(lineOrgDpt.FullName).Parent();
+                result = new QueryDepartment(lineOrgDpt.FullName, sector);
 
                 if (request.shouldExpandDelegatedResourceOwners)
                     await ExpandDelegatedResourceOwner(result, cancellationToken);
 
-                result.LineOrgResponsible = lineOrgDpt?.Responsible;
+                if (lineOrgDpt?.Manager?.AzureUniqueId is not null)
+                {
+                    result.LineOrgResponsible = await profileResolver.ResolvePersonBasicProfileAsync(new Integration.Profile.PersonIdentifier(lineOrgDpt.Manager.AzureUniqueId));
+                }
 
                 return result;
             }
