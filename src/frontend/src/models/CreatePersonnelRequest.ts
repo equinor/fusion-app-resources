@@ -14,8 +14,8 @@ type CreatePersonnelRequestPosition = {
     id: string | null;
     basePosition: BasePosition | null;
     name: string;
-    appliesFrom: Date | null;
-    appliesTo: Date | null;
+    appliesFrom: string | null;
+    appliesTo: string | null;
     workload: number;
     obs: string;
     taskOwner: {

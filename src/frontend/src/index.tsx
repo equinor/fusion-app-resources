@@ -17,6 +17,8 @@ import ServiceNowApiClient from './api/ServiceNowApiClient';
 import { getResourceApiBaseUrl, getFunctionsBaseUrl, getFusionAppId } from './api/env';
 import HelpPage from './pages/HelpPage';
 import { FC, useMemo, useEffect, useRef } from 'react';
+//TODO: Remove this when fusion datepicker package bundles the css
+import 'react-datepicker/dist/react-datepicker-cssmodules.min.css';
 
 const App: FC = () => {
     const fusionContext = useFusionContext();
