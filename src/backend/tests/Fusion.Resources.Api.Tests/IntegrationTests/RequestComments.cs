@@ -44,10 +44,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser.FullDepartment = testDepartment;
             testUser.Department = "L2 L3 L4";
 
-            resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            resourceOwner.FullDepartment = testUser.FullDepartment;
-            resourceOwner.IsResourceOwner = true;
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(resourceOwner).SaveProfile();
+            resourceOwner = fixture.AddResourceOwner(testDepartment);
 
             taskOwner = fixture.AddProfile(FusionAccountType.Employee);
         }
@@ -108,13 +105,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ShouldBeIncludedForParentResourceOwner()
         {
-            var parentResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            parentResourceOwner.FullDepartment = new DepartmentPath(testDepartment).Parent();
-            parentResourceOwner.IsResourceOwner = true;
+            var parentResourceOwner = fixture.AddResourceOwner(new DepartmentPath(testDepartment).Parent());
 
             var client = fixture.ApiFactory
                 .CreateClient()
-                .WithTestUser(resourceOwner)
+                .WithTestUser(parentResourceOwner)
                 .AddTestAuthToken();
 
             var comments = await client.TestClientGetAsync<List<TestApiComment>>($"/resources/requests/internal/{request.Id}/comments");
@@ -126,9 +121,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ShouldBeIncludedForSiblingResourceOwner()
         {
-            var siblingResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            siblingResourceOwner.FullDepartment = new DepartmentPath(testDepartment).Parent() + " QWE";
-            siblingResourceOwner.IsResourceOwner = true;
+            var siblingResourceOwner = fixture.AddResourceOwner(new DepartmentPath(testDepartment).Parent() + " QWE");
 
             var client = fixture.ApiFactory
                 .CreateClient()

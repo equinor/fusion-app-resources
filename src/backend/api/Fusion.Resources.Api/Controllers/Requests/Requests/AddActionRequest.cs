@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers.Requests
 {
-    public class AddRequestTaskRequest
+    public class AddActionRequest
     {
         public string Title { get; set; } = null!;
         public string Body { get; set; } = null!;
@@ -19,7 +19,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [JsonConverter(typeof(Json.DictionaryStringObjectJsonConverter))]
         public Dictionary<string, object>? Properties { get; set; }
 
-        public class Validator : AbstractValidator<AddRequestTaskRequest>
+        public bool IsRequired { get; set; } = false;
+
+        public class Validator : AbstractValidator<AddActionRequest>
         {
             public Validator()
             {

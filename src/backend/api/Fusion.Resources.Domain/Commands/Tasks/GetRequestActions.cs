@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands.Tasks
 {
-    public class GetRequestTasks : IRequest<IEnumerable<QueryRequestTask>>
+    public class GetRequestActions : IRequest<IEnumerable<QueryRequestAction>>
     {
         private Guid requestId;
 
-        public GetRequestTasks(Guid requestId)
+        public GetRequestActions(Guid requestId)
         {
             this.requestId = requestId;
         }
 
-        public class Handler : IRequestHandler<GetRequestTasks, IEnumerable<QueryRequestTask>>
+        public class Handler : IRequestHandler<GetRequestActions, IEnumerable<QueryRequestAction>>
         {
             private readonly ResourcesDbContext db;
 
@@ -26,14 +26,15 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             {
                 this.db = db;
             }
-            public async Task<IEnumerable<QueryRequestTask>> Handle(GetRequestTasks request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryRequestAction>> Handle(GetRequestActions request, CancellationToken cancellationToken)
             {
-                var result = await db.RequestTasks
+                var result = await db.RequestActions
                     .Include(t => t.ResolvedBy)
+                    .Include(t => t.SentBy)
                     .Where(t => t.RequestId == request.requestId)
                     .ToListAsync(cancellationToken);
 
-                return result.Select(t => new QueryRequestTask(t));
+                return result.Select(t => new QueryRequestAction(t));
             }
         }
     }

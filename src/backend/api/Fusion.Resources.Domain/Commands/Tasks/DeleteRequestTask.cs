@@ -29,7 +29,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
 
             public async Task<bool> Handle(DeleteRequestTask request, CancellationToken cancellationToken)
             {
-                var query = db.RequestTasks
+                var query = db.RequestActions
                     .Where(t => t.Id == request.taskId && t.RequestId == request.requestId);
                 db.RemoveRange(query);
 

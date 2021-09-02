@@ -41,5 +41,7 @@ namespace Fusion.Resources.Domain
             return (levelDelta <= 2 && fullDepartmentPath.StartsWith(other.fullDepartmentPath, StringComparison.OrdinalIgnoreCase))
                 || (other.fullDepartmentPath.StartsWith(fullDepartmentPath, StringComparison.OrdinalIgnoreCase));
         }
+
+        public string GetShortName() => string.Join(' ', path.TakeLast(3));
     }
 }
