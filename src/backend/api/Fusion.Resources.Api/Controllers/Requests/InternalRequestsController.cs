@@ -468,7 +468,7 @@ namespace Fusion.Resources.Api.Controllers
             if (result.Project.OrgProjectId != projectIdentifier.ProjectId)
                 return ApiErrors.NotFound("Could not locate request in project", $"{requestId}");
 
-            if (result.Tasks?.Any(x => x.IsRequired && !x.IsResolved) == true)
+            if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
             #region Authorization

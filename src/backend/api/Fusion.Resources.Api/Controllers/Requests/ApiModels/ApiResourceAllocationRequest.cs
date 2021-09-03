@@ -48,8 +48,8 @@ namespace Fusion.Resources.Api.Controllers
             if (query.TaskOwner is not null)
                 TaskOwner = new ApiTaskOwner(query.TaskOwner);
 
-            if (query.Tasks is not null)
-                Actions = query.Tasks.Select(x => new ApiRequestAction(x)).ToList();
+            if (query.Actions is not null)
+                Actions = query.Actions.Select(x => new ApiRequestAction(x)).ToList();
 
             if (query.Conversation is not null)
                 Conversation = query.Conversation.Select(x => new ApiRequestConversationMessage(x)).ToList();

@@ -130,7 +130,7 @@ namespace Fusion.Resources.Domain
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
         public QueryTaskOwner? TaskOwner { get; set; }
-        public List<QueryRequestAction>? Tasks { get; set; }
+        public List<QueryRequestAction>? Actions { get; set; }
         public List<QueryConversationMessage>? Conversation { get; set; }
 
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)

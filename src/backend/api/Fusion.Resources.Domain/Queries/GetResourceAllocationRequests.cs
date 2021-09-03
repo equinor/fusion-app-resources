@@ -223,7 +223,7 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     if(tasks.Contains(request.RequestId))
                     {
-                        request.Tasks = tasks[request.RequestId].ToList();
+                        request.Actions = tasks[request.RequestId].ToList();
                     }
                 }
             }
