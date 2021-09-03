@@ -85,7 +85,7 @@ namespace Fusion.Resources.Functions.Functions
             foreach (var person in ensuredPeople)
             {
                 log.LogInformation($"Processing person '{person.Identifier}'");
-                var resourcesPerson = personnel.Value.First(p => p.Mail == person.Identifier);
+                var resourcesPerson = personnel.Value.FirstOrDefault(p => p.Mail == person.Identifier);
 
                 if (!InvitationStatusMatches(person.Person.InvitationStatus, resourcesPerson.AzureAdStatus))
                 {

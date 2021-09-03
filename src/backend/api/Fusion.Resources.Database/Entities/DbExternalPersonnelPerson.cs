@@ -48,8 +48,6 @@ namespace Fusion.Resources.Database.Entities
                 
                 entity.HasMany(e => e.Disciplines).WithOne().OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(e => e.Mail).IsClustered(false);
-
-                entity.HasQueryFilter(e => !e.IsDeleted);
             });
 
         }
