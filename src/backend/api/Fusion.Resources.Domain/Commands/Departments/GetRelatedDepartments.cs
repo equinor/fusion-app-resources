@@ -1,4 +1,7 @@
-﻿using Fusion.Resources.Application.LineOrg;
+﻿using Fusion.Integration;
+using Fusion.Integration.LineOrg;
+using Fusion.Integration.Profile;
+using Fusion.Resources.Application;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -23,12 +26,14 @@ namespace Fusion.Resources.Domain
             private readonly ILogger<Handler> logger;
             private readonly IMediator mediator;
             private readonly ILineOrgResolver lineOrgResolver;
+            private readonly IFusionProfileResolver profileService;
 
-            public Handler(ILogger<Handler> logger, IMediator mediator, ILineOrgResolver lineOrgResolver)
+            public Handler(ILogger<Handler> logger, IMediator mediator, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileService)
             {
                 this.logger = logger;
                 this.mediator = mediator;
                 this.lineOrgResolver = lineOrgResolver;
+                this.profileService = profileService;
             }
 
             public async Task<QueryRelatedDepartments?> Handle(GetRelatedDepartments request, CancellationToken cancellationToken)
@@ -56,16 +61,25 @@ namespace Fusion.Resources.Domain
             private async Task<QueryRelatedDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
             {
                 var relevantDepartments = new QueryRelatedDepartments();
+                var department = await lineOrgResolver.ResolveDepartmentAsync(fullDepartmentPath);
+                if (department is null) return null;
 
-                var children = await lineOrgResolver.GetChildren(fullDepartmentPath);
-                if (children is null) return null;
+                var children = await lineOrgResolver.ResolveDepartmentChildrenAsync(department);
+                if (children is not null)
+                {
+                    relevantDepartments.Children = await children.ToQueryDepartment(profileService);
+                }
 
-                var siblings = await lineOrgResolver.GetChildren(string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1)));
-                relevantDepartments.Children = children.Select(x => new QueryDepartment(x)).ToList();
-                relevantDepartments.Siblings = siblings?.Select(x => new QueryDepartment(x))?.ToList() ?? new List<QueryDepartment>();
+                var siblings = await lineOrgResolver.ResolveDepartmentChildrenAsync(string.Join(" ", fullDepartmentPath.Split(" ").SkipLast(1)));
+                if(siblings is not null)
+                {
+                    relevantDepartments.Siblings = await siblings.ToQueryDepartment(profileService);
+                }
 
                 return relevantDepartments;
             }
+
+           
         }
     }
 }

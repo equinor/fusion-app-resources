@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -9,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class AddRequestTask : IRequest<QueryRequestTask>
+    public class AddRequestAction : IRequest<QueryRequestAction>
     {
-        public AddRequestTask(Guid requestId, string title, string body, string type)
+        public AddRequestAction(Guid requestId, string title, string body, string type)
         {
             RequestId = requestId;
             Title = title;
@@ -27,19 +28,26 @@ namespace Fusion.Resources.Domain.Commands
         public QueryTaskSource Source { get; set; }
         public QueryTaskResponsible Responsible { get; set; }
         public Dictionary<string, object>? Properties { get; set; }
+        public bool IsRequired { get; set; }
 
-        public class Handler : IRequestHandler<AddRequestTask, QueryRequestTask>
+        public class Handler : IRequestHandler<AddRequestAction, QueryRequestAction>
         {
             private readonly ResourcesDbContext db;
+            private readonly IProfileService profileService;
+            private readonly IHttpContextAccessor context;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IHttpContextAccessor context)
             {
                 this.db = db;
+                this.profileService = profileService;
+                this.context = context;
             }
 
-            public async Task<QueryRequestTask> Handle(AddRequestTask request, CancellationToken cancellationToken)
+            public async Task<QueryRequestAction> Handle(AddRequestAction request, CancellationToken cancellationToken)
             {
-                var newTask = new DbRequestTask
+                var userId = context.HttpContext!.User.GetAzureUniqueIdOrThrow();
+                var creator = await profileService.EnsurePersonAsync(userId);
+                var newTask = new DbRequestAction
                 {
                     Title = request.Title,
                     Body = request.Body,
@@ -48,14 +56,15 @@ namespace Fusion.Resources.Domain.Commands
                     Source = request.Source.MapToDatabase(),
                     Responsible = request.Responsible.MapToDatabase(),
                     PropertiesJson = request.Properties?.SerializeToStringOrDefault(),
-
+                    SentById = creator!.Id,
                     RequestId = request.RequestId,
+                    IsRequired = request.IsRequired
                 };
 
-                db.RequestTasks.Add(newTask);
+                db.RequestActions.Add(newTask);
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestTask(newTask);
+                return new QueryRequestAction(newTask);
             }
         }
     }

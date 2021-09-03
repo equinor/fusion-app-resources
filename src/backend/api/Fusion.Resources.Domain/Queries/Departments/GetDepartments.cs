@@ -1,11 +1,11 @@
 ﻿using Fusion.Integration;
-using Fusion.Resources.Application.LineOrg;
+using Fusion.Integration.LineOrg;
+using Fusion.Resources.Application;
 using Fusion.Resources.Database;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -64,35 +64,36 @@ namespace Fusion.Resources.Domain
             {
                 List<QueryDepartment> result;
 
-                var lineOrgDepartments = await lineOrgResolver.GetResourceOwners(request.resourceOwnerSearch, cancellationToken);
+                IEnumerable<LineOrgUser> lineOrgDepartments;
+                if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
+                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync(request.resourceOwnerSearch);
+                else
+                    lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync();
 
                 if (request.departmentIds is not null)
                 {
                     var ids = new HashSet<string>(request.departmentIds);
                     lineOrgDepartments = lineOrgDepartments
-                        .Where(x => ids.Contains(x.DepartmentId))
+                        .Where(x => ids.Contains(x.FullDepartment!))
                         .ToList();
                 }
 
                 if (!string.IsNullOrEmpty(request.sector))
                 {
                     lineOrgDepartments = lineOrgDepartments
-                        .Where(x => new DepartmentPath(x.DepartmentId).Parent() == request.sector)
+                        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
                         .ToList();
                 }
 
                 if (!string.IsNullOrEmpty(request.departmentIdStartsWith))
                 {
                     lineOrgDepartments = lineOrgDepartments
-                        .Where(x => new DepartmentPath(x.DepartmentId).Parent() == request.sector)
+                        .Where(x => new DepartmentPath(x.FullDepartment!).Parent() == request.sector)
                         .ToList();
                 }
 
-                result = lineOrgDepartments.Select(x => new QueryDepartment(x)).ToList();
+                result = await lineOrgDepartments.ToQueryDepartment(profileResolver);
 
-                // Cannot filter requests from db before merging with line org results as we need to
-                // 1. Maintain sector info if tracked in db, and 
-                // 2. Search info from line org if it exists there.
                 if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
                 {
                     result = result.Where(dpt =>
