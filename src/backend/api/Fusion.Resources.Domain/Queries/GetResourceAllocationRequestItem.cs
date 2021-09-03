@@ -32,9 +32,9 @@ namespace Fusion.Resources.Domain.Queries
             {
                 Expands |= ExpandProperties.DepartmentDetails;
             }
-            if(query.ShouldExpand("tasks"))
+            if(query.ShouldExpand("actions"))
             {
-                Expands |= ExpandProperties.Tasks;
+                Expands |= ExpandProperties.Actions;
             }
             if(query.ShouldExpand("conversation"))
             {
@@ -67,9 +67,9 @@ namespace Fusion.Resources.Domain.Queries
             TaskOwner           = 1 << 0,
             ResourceOwner       = 1 << 1,
             DepartmentDetails   = 1 << 2,
-            Tasks               = 1 << 3,
+            Actions               = 1 << 3,
             Conversation        = 1 << 4,
-            All = TaskOwner | ResourceOwner | DepartmentDetails | Tasks | Conversation,
+            All = TaskOwner | ResourceOwner | DepartmentDetails | Actions | Conversation,
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -129,9 +129,9 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await ExpandDepartmentDetails(requestItem);
                 }
-                if(request.Expands.HasFlag(ExpandProperties.Tasks))
+                if(request.Expands.HasFlag(ExpandProperties.Actions))
                 {
-                    await ExpandTasks(requestItem);
+                    await ExpandActions(requestItem);
                 }
                 if(request.Expands.HasFlag(ExpandProperties.Conversation))
                 {
@@ -151,12 +151,13 @@ namespace Fusion.Resources.Domain.Queries
                 
             }
 
-            private async Task ExpandTasks(QueryResourceAllocationRequest requestItem)
+            private async Task ExpandActions(QueryResourceAllocationRequest requestItem)
             {
-                requestItem.Tasks = await db.RequestTasks
+                requestItem.Tasks = await db.RequestActions
                     .Include(t => t.ResolvedBy)
+                    .Include(t => t.SentBy)
                     .Where(t => t.RequestId == requestItem.RequestId)
-                    .Select(t => new QueryRequestTask(t))
+                    .Select(t => new QueryRequestAction(t))
                     .ToListAsync();
             }
 

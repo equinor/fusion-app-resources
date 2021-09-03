@@ -65,8 +65,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public Task InitializeAsync()
         {
             // Mock profile
-            testUser = PeopleServiceMock.AddTestProfile()
-                .SaveProfile();
+            testUser = fixture.AddResourceOwner(TestDepartmentId);
 
             // Mock project
             testProject = new FusionTestProjectBuilder()
@@ -78,8 +77,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Prepare context resolver.
             fixture.ContextResolver
                 .AddContext(testProject.Project);
-
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(testUser.FullDepartment).SaveProfile();
 
             return Task.CompletedTask;
         }

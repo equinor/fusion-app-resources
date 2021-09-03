@@ -1,15 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
-    public class DbRequestTask
+    public class DbRequestAction
     {
         public Guid Id { get; set; }
+
+        [MaxLength(100)]
         public string Title { get; set; } = null!;
+        [MaxLength(2000)]
         public string Body { get; set; } = null!;
+        [MaxLength(60)]
         public string Type { get; set; } = null!;
+        [MaxLength(60)]
         public string? SubType { get; set; }
         public DbTaskSource Source { get; set; }
         public DbTaskResponsible Responsible { get; set; }
@@ -19,46 +25,48 @@ namespace Fusion.Resources.Database.Entities
         public DbPerson? ResolvedBy { get; set; }
         public string? PropertiesJson { get; set; }
 
+        public Guid SentById { get; set; }
+        public DbPerson SentBy { get; set; } = null!;
+
+        public bool IsRequired { get; set; } = false;
+
         public Guid RequestId { get; set; }
         public DbResourceAllocationRequest Request { get; set; } = null!;
 
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DbRequestTask>()
-                .HasKey(t => t.Id);
+            modelBuilder.Entity<DbRequestAction>(builder =>
+            {
+                builder.HasKey(t => t.Id);
+                builder.ToTable("RequestActions");
 
-            modelBuilder.Entity<DbRequestTask>()
-                .HasOne(t => t.ResolvedBy)
-                .WithMany()
-                .HasForeignKey(t => t.ResolvedById);
+                builder
+                    .HasOne(t => t.ResolvedBy)
+                    .WithMany()
+                    .HasForeignKey(t => t.ResolvedById);
 
-            modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.Title)
-                .HasMaxLength(100);
-            
-            modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.Body)
-                .HasMaxLength(2000);
+                builder
+                    .HasOne(t => t.SentBy)
+                    .WithMany()
+                    .HasForeignKey(t => t.SentById)
+                    .IsRequired();
 
-            modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.Type)
-                .HasMaxLength(60);
-
-            modelBuilder.Entity<DbRequestTask>()
-                .Property(t => t.SubType)
-                .HasMaxLength(60);
+                builder.Property(x => x.IsRequired)
+                    .HasDefaultValueSql("(0)")
+                    .IsRequired();
+            });
 
             modelBuilder.Entity<DbResourceAllocationRequest>()
                 .HasMany(rq => rq.Tasks)
                 .WithOne(t => t.Request)
                 .HasForeignKey(t => t.RequestId);
 
-            modelBuilder.Entity<DbRequestTask>()
+            modelBuilder.Entity<DbRequestAction>()
                 .Property(x => x.Responsible)
                 .HasConversion(new EnumToStringConverter<DbTaskResponsible>());
 
-            modelBuilder.Entity<DbRequestTask>()
+            modelBuilder.Entity<DbRequestAction>()
                 .Property(x => x.Source)
                 .HasConversion(new EnumToStringConverter<DbTaskSource>());
         }

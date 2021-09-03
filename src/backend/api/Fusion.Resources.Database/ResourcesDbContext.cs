@@ -41,10 +41,9 @@ namespace Fusion.Resources.Database
         public DbSet<DbPersonAbsence> PersonAbsences { get; set; }
         public DbSet<DbPersonNote> PersonNotes { get; set; }
 
-        public DbSet<DbDepartment> Departments { get; set; }
         public DbSet<DbDepartmentResponsible> DepartmentResponsibles { get; set; }
 
-        public DbSet<DbRequestTask> RequestTasks { get; set; }
+        public DbSet<DbRequestAction> RequestActions { get; set; }
         public DbSet<DbConversationMessage> RequestConversations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -61,9 +60,8 @@ namespace Fusion.Resources.Database
             DbPersonNote.OnModelCreating(modelBuilder);
             DbResponsibilityMatrix.OnModelCreating(modelBuilder);
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
-            DbDepartment.OnModelCreating(modelBuilder);
             DbDepartmentResponsible.OnModelCreating(modelBuilder);
-            DbRequestTask.OnModelCreating(modelBuilder);
+            DbRequestAction.OnModelCreating(modelBuilder);
             DbConversationMessage.OnModelCreating(modelBuilder);
         }
 

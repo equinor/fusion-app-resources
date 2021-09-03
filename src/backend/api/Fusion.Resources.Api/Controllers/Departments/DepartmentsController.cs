@@ -1,7 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
-using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Commands.Departments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Fusion.Resources.Api.Controllers.Departments
+namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
     [Authorize]
@@ -21,7 +19,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
 
         public DepartmentsController(IOrgApiClientFactory orgApiClientFactory)
         {
-            this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application);;
+            this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application); ;
         }
         [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
@@ -35,46 +33,6 @@ namespace Fusion.Resources.Api.Controllers.Departments
             return Ok(result.Select(x => new ApiDepartment(x)));
         }
 
-        [HttpPost("/departments")]
-        public async Task<ActionResult<ApiDepartment>> AddDepartment(AddDepartmentRequest request)
-        {
-            #region Authorization
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-            #endregion
-
-            var existingDepartment = await DispatchAsync(new GetDepartment(request.DepartmentId));
-            if (existingDepartment is not null && existingDepartment.IsTracked) return Conflict();
-
-            if (request.SectorId is not null)
-            {
-                var existingSector = await DispatchAsync(new GetDepartment(request.SectorId));
-                if (existingSector is null) return BadRequest($"Cannot add department with parent {request.SectorId}. The parent does not exist");
-
-                if (!existingSector.IsTracked)
-                {
-                    var addSector = new AddDepartment(existingSector.DepartmentId, null);
-                    var newSector = await DispatchAsync(addSector);
-                }
-            }
-
-
-            var command = new AddDepartment(request.DepartmentId, request.SectorId);
-
-            var newDepartment = await DispatchAsync(command);
-
-            return CreatedAtAction(
-                nameof(GetDepartments),
-                new { departmentString = newDepartment.DepartmentId },
-                new ApiDepartment(newDepartment)
-            );
-        }
-
         [HttpGet("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
         {
@@ -85,37 +43,12 @@ namespace Fusion.Resources.Api.Controllers.Departments
         }
 
         [HttpGet("/departments/{departmentString}/related")]
-        public async Task<ActionResult<ApiRelevantDepartments>> GetRelevantDepartments(string departmentString)
+        public async Task<ActionResult<ApiRelatedDepartments>> GetRelevantDepartments(string departmentString)
         {
-            var departments = await DispatchAsync(new GetRelevantDepartments(departmentString));
+            var departments = await DispatchAsync(new GetRelatedDepartments(departmentString));
             if (departments is null) return NotFound();
 
-            return Ok(new ApiRelevantDepartments(departments));
-        }
-
-
-
-        [HttpPut("/departments/{departmentString}")]
-        public async Task<ActionResult<ApiDepartment>> UpdateDepartment(string departmentString, UpdateDepartmentRequest request)
-        {
-            #region Authorization
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-            #endregion
-
-            var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
-            if (existingDepartment is null || !existingDepartment.IsTracked) return NotFound();
-
-            var command = new UpdateDepartment(departmentString, request.SectorId);
-
-            var newDepartment = await DispatchAsync(command);
-
-            return Ok(new ApiDepartment(newDepartment));
+            return Ok(new ApiRelatedDepartments(departments));
         }
 
         [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
@@ -132,7 +65,7 @@ namespace Fusion.Resources.Api.Controllers.Departments
             #endregion
 
             var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
-            if (existingDepartment is null || !existingDepartment.IsTracked) return NotFound();
+            if (existingDepartment is null) return NotFound();
 
             var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
             {
@@ -146,36 +79,59 @@ namespace Fusion.Resources.Api.Controllers.Departments
             return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
         }
 
+        [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
+        public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
+        {
+            #region Authorization
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            var deleted = await DispatchAsync(
+                new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)
+            );
+
+            if (deleted) return NoContent();
+            else return NotFound();
+        }
+
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
-        public async Task<ActionResult<List<ApiDepartment>>> GetPositionDepartments(
+        public async Task<ActionResult<ApiRelevantDepartments>> GetPositionDepartments(
             Guid projectId, Guid positionId, Guid instanceId)
         {
-            var result = new List<ApiDepartment>();
+            var result = new ApiRelevantDepartments();
+
             var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
             if (position is null) return NotFound();
 
+            // Empty string is a valid department in line org (CEO), but we don't want to return that.
+            if (string.IsNullOrWhiteSpace(position.BasePosition.Department)) return result;
+
             var department = await DispatchAsync(new GetDepartment(position.BasePosition.Department));
-            if(department is not null) result.Add(new ApiDepartment(department));
+            var related = await DispatchAsync(new GetRelatedDepartments(position.BasePosition.Department));
 
-            var command = new GetRelevantDepartments(position.BasePosition.Department);
-            var relevantDepartments = await DispatchAsync(command);
-
-            // TODO: lookup based on responsibility matrix
-
-            if (relevantDepartments is not null)
+            // TODO: also lookup based on responsibility matrix
+            if (related is not null)
             {
-                result.AddRange(
-                    relevantDepartments.Siblings
-                        .Union(relevantDepartments.Children)
+                result.Relevant.AddRange(
+                    related.Siblings
+                        .Union(related.Children)
                         .Select(x => new ApiDepartment(x))
                 );
             }
 
-            return Ok(new
+            if (department is not null)
             {
-                department = (department is null) ? null : new ApiDepartment(department),
-                relevant = result
-            });
+                result.Department = new ApiDepartment(department);
+                result.Relevant.Add(new ApiDepartment(department));
+            }
+
+            return result;
         }
     }
 }

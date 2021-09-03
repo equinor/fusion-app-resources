@@ -8,7 +8,7 @@
     <PackageReference Include="Fusion.AspNetCore" Version="5.0.0" />
     <PackageReference Include="Fusion.Integration.Context" Version="5.1.0" />
     <PackageReference Include="Fusion.Integration.Context.Abstractions" Version="5.1.0" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.4" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
 
   </ItemGroup>
 

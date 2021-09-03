@@ -6,6 +6,7 @@ using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
@@ -38,17 +39,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
             loggingScope = new TestLoggingScope(output);
 
-
-            fixture.EnsureDepartment(testDepartment);
-
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.Employee);
             testUser.FullDepartment = testDepartment;
             testUser.Department = "L2 L3 L4";
 
-            resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            resourceOwner.FullDepartment = testUser.FullDepartment;
-            resourceOwner.IsResourceOwner = true;
+            resourceOwner = fixture.AddResourceOwner(testDepartment);
 
             taskOwner = fixture.AddProfile(FusionAccountType.Employee);
         }
@@ -109,13 +105,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ShouldBeIncludedForParentResourceOwner()
         {
-            var parentResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            parentResourceOwner.FullDepartment = new DepartmentPath(testDepartment).Parent();
-            parentResourceOwner.IsResourceOwner = true;
+            var parentResourceOwner = fixture.AddResourceOwner(new DepartmentPath(testDepartment).Parent());
 
             var client = fixture.ApiFactory
                 .CreateClient()
-                .WithTestUser(resourceOwner)
+                .WithTestUser(parentResourceOwner)
                 .AddTestAuthToken();
 
             var comments = await client.TestClientGetAsync<List<TestApiComment>>($"/resources/requests/internal/{request.Id}/comments");
@@ -127,9 +121,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ShouldBeIncludedForSiblingResourceOwner()
         {
-            var siblingResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            siblingResourceOwner.FullDepartment = new DepartmentPath(testDepartment).Parent() + " QWE";
-            siblingResourceOwner.IsResourceOwner = true;
+            var siblingResourceOwner = fixture.AddResourceOwner(new DepartmentPath(testDepartment).Parent() + " QWE");
 
             var client = fixture.ApiFactory
                 .CreateClient()

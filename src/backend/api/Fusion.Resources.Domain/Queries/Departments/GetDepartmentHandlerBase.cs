@@ -1,6 +1,6 @@
 ﻿using Fusion.Integration;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
-using Fusion.Resources.Application.LineOrg;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;

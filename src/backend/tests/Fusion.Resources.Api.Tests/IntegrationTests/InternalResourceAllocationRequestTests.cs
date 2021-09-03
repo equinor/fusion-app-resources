@@ -217,9 +217,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             const string expectedDepartment = "TPD PRD TST QWE";
 
-            fixture.EnsureDepartment(expectedDepartment);
-            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(expectedDepartment).SaveProfile();
+            var fakeResourceOwner = fixture.AddResourceOwner(expectedDepartment);
 
             var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
             var request = await Client.CreateRequestAsync(projectId, r => r.AsTypeNormal().WithPosition(requestPosition));
@@ -374,13 +372,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var request = await Client.CreateDefaultRequestAsync(testProject);
             var task = await Client.AddRequestTask(request.Id);
 
-            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=tasks", new
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
             {
-                tasks = new[] { new { id = Guid.Empty } }
+                actions = new[] { new { id = Guid.Empty } }
             });
 
             result.Should().BeSuccessfull();
-            result.Value.tasks.Should().Contain(t => t.id == task.id);
+            result.Value.actions.Should().Contain(t => t.id == task.id);
         }
 
         [Fact]
@@ -390,13 +388,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = await Client.CreateDefaultRequestAsync(testProject);
 
-            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=tasks", new
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
             {
-                tasks = new[] { new { id = Guid.Empty } }
+                actions = new[] { new { id = Guid.Empty } }
             });
 
             result.Should().BeSuccessfull();
-            result.Value.tasks.Should().BeEmpty();
+            result.Value.actions.Should().BeEmpty();
         }
 
         [Fact]
@@ -442,11 +440,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskA = await Client.AddRequestTask(requestA.Id);
             var taskB = await Client.AddRequestTask(requestB.Id);
 
-            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=tasks",
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
                 new
                 {
                     value = new[] {
-                        new { id = Guid.Empty, tasks = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
+                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
                     }
                 });
 
@@ -454,8 +452,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
 
 
-            result.Value.value.First(x => x.id == requestA.Id).tasks[0].id.Should().Be(taskA.id);
-            result.Value.value.First(x => x.id == requestB.Id).tasks[0].id.Should().Be(taskB.id);
+            result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
         }
 
         //[Fact]
@@ -586,12 +584,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task UpdateRequest_ShouldNotifyResourceOwner_WhenPatchingAssignedDepartment()
         {
+            const string department = "JHA HRA BAR";
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var usr = LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(TestDepartmentId).SaveProfile();
+            var usr = LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(department).SaveProfile();
 
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject);
-            var payload = new JObject { { "assignedDepartment", JToken.FromObject(TestDepartmentId) } };
+            var payload = new JObject { { "assignedDepartment", JToken.FromObject(department) } };
 
             var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
             response.Should().BeSuccessfull();
