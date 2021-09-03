@@ -187,7 +187,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
             using var adminScope = fixture.AdminScope();
             var person = await client.CreatePersonnelAsync(projectId, contractId);
             var resp = await client.TestClientPostAsync<TestApiPersonnel>($"resources/personnel/{person.Mail}/refresh", new { userRemoved = true });
-            resp.Should().BeNotFound();
+            resp.Should().BeSuccessfull();
         }
 
         [Fact]
