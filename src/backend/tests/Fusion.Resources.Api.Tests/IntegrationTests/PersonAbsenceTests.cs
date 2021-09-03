@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Controllers;
-using Fusion.Resources.Domain;
 using Fusion.Testing.Authentication.User;
 using Xunit;
 using Xunit.Abstractions;
@@ -41,6 +40,76 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser = fixture.AddProfile(FusionAccountType.Employee);
             testUser.FullDepartment = "TPD PRD FE MMC EAM";
             testUser.Department = "FE MMC EAM";
+        }
+
+        [Fact]
+        public async Task OptionsAbsence_GetAllowedForPerson_WhenCurrentUser()
+        {
+            using var userScope = fixture.UserScope(testUser);
+            var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence");
+            result.Should().BeSuccessfull();
+            CheckAllowHeader("GET", result);
+        }
+        [Fact]
+        public async Task OptionsAbsence_GetNotAllowedForPerson_WhenOtherUser()
+        {
+            var otherUser = fixture.AddProfile(FusionAccountType.Employee);
+            using var userScope = fixture.UserScope(otherUser);
+            var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence");
+            result.Should().BeSuccessfull();
+            CheckAllowHeader("!GET", result);
+        }
+
+        [Fact]
+        public async Task OptionsAbsenceItem_GetAllowedForPerson_WhenCurrentUser()
+        {
+            using var userScope = fixture.UserScope(testUser);
+            var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}");
+            result.Should().BeSuccessfull();
+            CheckAllowHeader("GET", result);
+        }
+        [Fact]
+        public async Task OptionsAbsenceItem_GetNotAllowedForPerson_WhenOtherUser()
+        {
+            var otherUser = fixture.AddProfile(FusionAccountType.Employee);
+            using var userScope = fixture.UserScope(otherUser);
+            var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}");
+            result.Should().BeSuccessfull();
+            CheckAllowHeader("!GET", result);
+        }
+        
+        [Fact]
+        public async Task GetAbsenceForUser_ShouldBeOk_WhenCurrentUser()
+        {
+            using var testScope = fixture.UserScope(testUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task GetAbsenceForUser_ShouldBeUnauthorized_WhenOtherUser()
+        {
+            var otherUser = fixture.AddProfile(FusionAccountType.Employee);
+            using var testScope = fixture.UserScope(otherUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeUnauthorized();
+        }
+
+        [Fact]
+        public async Task GetAbsenceItem_ShouldBeOk_WhenCurrentUser()
+        {
+            using var testScope = fixture.UserScope(testUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task GetAbsenceItemForUser_ShouldBeUnauthorized_WhenOtherUser()
+        {
+            var otherUser = fixture.AddProfile(FusionAccountType.Employee);
+            using var testScope = fixture.UserScope(otherUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence/{TestAbsenceId}", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeUnauthorized();
         }
 
         [Fact]
@@ -256,7 +325,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             };
 
             using var authScope = fixture.AdminScope();
-            
+
             var response = method switch
             {
                 "POST" => await client.TestClientPostAsync<TestAbsence>($"/persons/{testUser.AzureUniqueId}/absence/", task),
@@ -293,6 +362,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             loggingScope.Dispose();
 
             return Task.CompletedTask;
+        }
+
+        private static void CheckAllowHeader(string allowed, TestClientHttpResponse<dynamic> result)
+        {
+            var expectedVerbs = allowed
+                .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(x => x.StartsWith('!') ? new { Key = "disallowed", Method = new HttpMethod(x.Substring(1)) } : new { Key = "allowed", Method = new HttpMethod(x) })
+                .ToLookup(x => x.Key, x => x.Method);
+
+            if (expectedVerbs["allowed"].Any())
+                result.Should().HaveAllowHeaders(expectedVerbs["allowed"].ToArray());
+
+            if (expectedVerbs["disallowed"].Any())
+                result.Should().NotHaveAllowHeaders(expectedVerbs["disallowed"].ToArray());
         }
     }
 
