@@ -6,12 +6,15 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class RefreshPersonnel : TrackableRequest
     {
-        private readonly PersonnelId personellId;
+        public PersonnelId PersonellId { get; }
+        public bool ConsiderRemovedProfile { get; }
 
-        public RefreshPersonnel(PersonnelId personellId)
+        public RefreshPersonnel(PersonnelId personellId, bool considerRemovedProfile = false)
         {
-            this.personellId = personellId;
+            this.PersonellId = personellId;
+            this.ConsiderRemovedProfile = considerRemovedProfile;
         }
+
 
         public class Handler : AsyncRequestHandler<RefreshPersonnel>
         {
@@ -24,7 +27,7 @@ namespace Fusion.Resources.Domain.Commands
 
             protected override async Task Handle(RefreshPersonnel request, CancellationToken cancellationToken)
             {
-                await profileService.RefreshExternalPersonnelAsync(request.personellId.OriginalIdentifier);
+                await profileService.RefreshExternalPersonnelAsync(request.PersonellId.OriginalIdentifier, request.ConsiderRemovedProfile);
             }
         }
     }
