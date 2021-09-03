@@ -460,7 +460,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/start")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandActions());
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -468,6 +468,8 @@ namespace Fusion.Resources.Api.Controllers
             if (result.Project.OrgProjectId != projectIdentifier.ProjectId)
                 return ApiErrors.NotFound("Could not locate request in project", $"{requestId}");
 
+            if (result.Tasks?.Any(x => x.IsRequired && !x.IsResolved) == true)
+                return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
             #region Authorization
 

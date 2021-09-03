@@ -60,6 +60,12 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequestItem ExpandActions()
+        {
+            Expands |= ExpandProperties.Actions;
+            return this;
+        }
+
         [Flags]
         public enum ExpandProperties
         {

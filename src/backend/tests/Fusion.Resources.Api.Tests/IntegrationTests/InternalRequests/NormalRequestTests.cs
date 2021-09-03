@@ -261,6 +261,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task NormalRequest_Start_ShouldBeBadRequest_WhenStartingWithUnresolvedRequiredTasks()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await Client.AddRequestTask(normalRequest.Id, x => x.isRequired = true);
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task NormalRequest_Should_Be_Routed_To_Correct_Department()
         {
             var department = "ABC DEF";

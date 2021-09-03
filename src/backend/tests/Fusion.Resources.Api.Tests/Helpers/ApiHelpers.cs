@@ -231,6 +231,28 @@ namespace Fusion.Resources.Api.Tests
             return result.Value;
         }
 
+        public static async Task<TestApiRequestAction> AddRequestTask(this HttpClient client, Guid requestId, Action<TestApiRequestAction> setup,  Dictionary<string, object> props = null)
+        {
+            var payload = new TestApiRequestAction
+            {
+                title = "Test title",
+                body = "Test body",
+                type = "test",
+                subType = "Test Test",
+                source = "ResourceOwner",
+                responsible = "TaskOwner",
+                properties = props
+            };
+            setup(payload);
+
+            var result = await client.TestClientPostAsync<TestApiRequestAction>(
+                $"/requests/{requestId}/actions", payload
+            );
+
+            result.Should().BeSuccessfull();
+            return result.Value;
+        }
+
         public static Task<TestApiRequestMessage> AddRequestMessage(this HttpClient client, Guid requestId, Dictionary<string, object> props = null)
         {
             return AddRequestMessage(client, requestId,
