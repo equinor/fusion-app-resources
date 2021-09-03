@@ -30,8 +30,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .CurrentUserIs(profile.Identifier)
+                    .FullControl()
+                    .FullControlInternal();
 
                 r.AnyOf(or =>
                 {
@@ -74,8 +76,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .CurrentUserIs(profile.Identifier)
+                    .FullControl()
+                    .FullControlInternal();
 
                 r.AnyOf(or =>
                 {
@@ -241,8 +245,10 @@ namespace Fusion.Resources.Api.Controllers
             
             var getAuthResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .CurrentUserIs(profile.Identifier)
+                    .FullControl()
+                    .FullControlInternal();
 
                 r.AnyOf(or =>
                 {
@@ -282,8 +288,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var getAuthResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
+                r.AlwaysAccessWhen()
+                    .CurrentUserIs(profile.Identifier)
+                    .FullControl()
+                    .FullControlInternal();
 
                 r.AnyOf(or =>
                 {
