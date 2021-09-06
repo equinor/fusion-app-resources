@@ -207,23 +207,23 @@ namespace Fusion.Resources.Domain.Queries
                     await AddProposedPersons(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
                     await AddDepartmentDetails(pagedQuery, request.Expands);
-                    await AddTasks(pagedQuery, request.Expands);
+                    await AddActions(pagedQuery, request.Expands);
                 }
 
                 return pagedQuery;
             }
 
-            private async Task AddTasks(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
+            private async Task AddActions(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
             {
                 if (!expands.HasFlag(ExpandFields.Actions)) return;
 
-                var tasks = await mediator.Send(new GetActionsForRequests(pagedQuery.Select(x => x.RequestId)));
+                var actions = await mediator.Send(new GetActionsForRequests(pagedQuery.Select(x => x.RequestId)));
 
                 foreach (var request in pagedQuery)
                 {
-                    if(tasks.Contains(request.RequestId))
+                    if(actions.Contains(request.RequestId))
                     {
-                        request.Tasks = tasks[request.RequestId].ToList();
+                        request.Actions = actions[request.RequestId].ToList();
                     }
                 }
             }

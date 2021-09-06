@@ -370,7 +370,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var request = await Client.CreateDefaultRequestAsync(testProject);
-            var task = await Client.AddRequestTask(request.Id);
+            var task = await Client.AddRequestActionAsync(request.Id);
 
             var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
             {
@@ -431,14 +431,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetProjectsRequests_ShouldExpandTasks()
+        public async Task GetProjectsRequests_ShouldExpandActions()
         {
             using var adminScope = fixture.AdminScope();
 
             var requestA = await Client.CreateDefaultRequestAsync(testProject);
             var requestB = await Client.CreateDefaultRequestAsync(testProject);
-            var taskA = await Client.AddRequestTask(requestA.Id);
-            var taskB = await Client.AddRequestTask(requestB.Id);
+            var taskA = await Client.AddRequestActionAsync(requestA.Id);
+            var taskB = await Client.AddRequestActionAsync(requestB.Id);
 
             var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
                 new

@@ -261,6 +261,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task NormalRequest_Start_ShouldBeBadRequest_WhenStartingWithUnresolvedRequiredActions()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await Client.AddRequestActionAsync(normalRequest.Id, x => x.isRequired = true);
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task NormalRequest_Propose_ShouldBeBadRequest_WhenStartingWithUnresolvedRequiredActions()
+        {
+            using var adminScope = fixture.AdminScope();
+            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
+            await Client.ProposePersonAsync(normalRequest.Id, testPerson);
+            await Client.AddRequestActionAsync(normalRequest.Id, x => x.isRequired = true);
+
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);
+            resp.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task NormalRequest_Should_Be_Routed_To_Correct_Department()
         {
             var department = "ABC DEF";

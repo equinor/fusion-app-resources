@@ -60,6 +60,12 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequestItem ExpandActions()
+        {
+            Expands |= ExpandProperties.Actions;
+            return this;
+        }
+
         [Flags]
         public enum ExpandProperties
         {
@@ -153,7 +159,7 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task ExpandActions(QueryResourceAllocationRequest requestItem)
             {
-                requestItem.Tasks = await db.RequestActions
+                requestItem.Actions = await db.RequestActions
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
                     .Where(t => t.RequestId == requestItem.RequestId)
