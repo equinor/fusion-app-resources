@@ -58,7 +58,7 @@ namespace Fusion.Resources.Database.Entities
             });
 
             modelBuilder.Entity<DbResourceAllocationRequest>()
-                .HasMany(rq => rq.Tasks)
+                .HasMany(rq => rq.Actions)
                 .WithOne(t => t.Request)
                 .HasForeignKey(t => t.RequestId);
 
