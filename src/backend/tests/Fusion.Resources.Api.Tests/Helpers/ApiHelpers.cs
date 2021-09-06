@@ -210,7 +210,7 @@ namespace Fusion.Resources.Api.Tests
             });
         }
 
-        public static async Task<TestApiRequestAction> AddRequestTask(this HttpClient client, Guid requestId, Dictionary<string, object> props = null )
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Dictionary<string, object> props = null )
         {
             var payload = new
             {
@@ -231,7 +231,7 @@ namespace Fusion.Resources.Api.Tests
             return result.Value;
         }
 
-        public static async Task<TestApiRequestAction> AddRequestTask(this HttpClient client, Guid requestId, Action<TestApiRequestAction> setup,  Dictionary<string, object> props = null)
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestApiRequestAction> setup,  Dictionary<string, object> props = null)
         {
             var payload = new TestApiRequestAction
             {
