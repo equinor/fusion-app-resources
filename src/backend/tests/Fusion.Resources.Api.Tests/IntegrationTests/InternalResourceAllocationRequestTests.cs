@@ -431,7 +431,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetProjectsRequests_ShouldExpandTasks()
+        public async Task GetProjectsRequests_ShouldExpandActions()
         {
             using var adminScope = fixture.AdminScope();
 

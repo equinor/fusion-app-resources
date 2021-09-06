@@ -257,7 +257,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new DeleteRequestTask(requestId, actionId);
+            var command = new DeleteRequestAction(requestId, actionId);
             var wasDeleted = await DispatchAsync(command);
 
             if (wasDeleted) return NoContent();
