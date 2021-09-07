@@ -55,6 +55,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             // Mock profile
             testUser = PeopleServiceMock.AddTestProfile()
+                .WithFullDepartment("PDP PRD FE TST XN ASD")
                 .SaveProfile();
 
             // Mock project

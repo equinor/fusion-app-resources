@@ -32,6 +32,14 @@ namespace Fusion.Resources.Domain.Queries
             {
                 Expands |= ExpandProperties.DepartmentDetails;
             }
+            if(query.ShouldExpand("actions"))
+            {
+                Expands |= ExpandProperties.Actions;
+            }
+            if(query.ShouldExpand("conversation"))
+            {
+                Expands |= ExpandProperties.Conversation;
+            }
 
 
             return this;
@@ -52,14 +60,22 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequestItem ExpandActions()
+        {
+            Expands |= ExpandProperties.Actions;
+            return this;
+        }
+
         [Flags]
         public enum ExpandProperties
         {
-            None = 0,
-            TaskOwner = 1 << 1,
-            ResourceOwner = 1 << 2,
-            DepartmentDetails = 1 << 3,
-            All = TaskOwner | ResourceOwner | DepartmentDetails,
+            None                = 0,
+            TaskOwner           = 1 << 0,
+            ResourceOwner       = 1 << 1,
+            DepartmentDetails   = 1 << 2,
+            Actions               = 1 << 3,
+            Conversation        = 1 << 4,
+            All = TaskOwner | ResourceOwner | DepartmentDetails | Actions | Conversation,
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -119,8 +135,36 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await ExpandDepartmentDetails(requestItem);
                 }
+                if(request.Expands.HasFlag(ExpandProperties.Actions))
+                {
+                    await ExpandActions(requestItem);
+                }
+                if(request.Expands.HasFlag(ExpandProperties.Conversation))
+                {
+                    await ExpandConversation(requestItem);
+                }
 
                 return requestItem;
+            }
+
+            private async Task ExpandConversation(QueryResourceAllocationRequest requestItem)
+            {
+                requestItem.Conversation = await db.RequestConversations
+                    .Include(x => x.Sender)
+                    .Where(x => x.RequestId == requestItem.RequestId)
+                    .Select(x => new QueryConversationMessage(x))
+                    .ToListAsync();
+                
+            }
+
+            private async Task ExpandActions(QueryResourceAllocationRequest requestItem)
+            {
+                requestItem.Actions = await db.RequestActions
+                    .Include(t => t.ResolvedBy)
+                    .Include(t => t.SentBy)
+                    .Where(t => t.RequestId == requestItem.RequestId)
+                    .Select(t => new QueryRequestAction(t))
+                    .ToListAsync();
             }
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)

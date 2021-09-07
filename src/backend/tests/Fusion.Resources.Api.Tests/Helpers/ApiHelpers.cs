@@ -6,6 +6,7 @@ using Fusion.Testing;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -121,7 +122,7 @@ namespace Fusion.Resources.Api.Tests
             return newRequestResponse.Value;
         }
 
-        public static async Task<TestApiInternalRequestModel> AssignAnDepartmentAsync(this HttpClient client, Guid requestId)
+        public static async Task<TestApiInternalRequestModel> AssignRandomDepartmentAsync(this HttpClient client, Guid requestId)
         {
             var newRequestResponse = await client.TestClientPatchAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{requestId}", new
             {
@@ -207,6 +208,70 @@ namespace Fusion.Resources.Api.Tests
                 dateFrom,
                 dateTo
             });
+        }
+
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Dictionary<string, object> props = null )
+        {
+            var payload = new
+            {
+                title = "Test title",
+                body = "Test body",
+                type = "test",
+                subType = "Test Test",
+                source = "ResourceOwner",
+                responsible = "TaskOwner",
+                Properties = props
+            };
+
+            var result = await client.TestClientPostAsync<TestApiRequestAction>(
+                $"/requests/{requestId}/actions", payload
+            );
+
+            result.Should().BeSuccessfull();
+            return result.Value;
+        }
+
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestApiRequestAction> setup,  Dictionary<string, object> props = null)
+        {
+            var payload = new TestApiRequestAction
+            {
+                title = "Test title",
+                body = "Test body",
+                type = "test",
+                subType = "Test Test",
+                source = "ResourceOwner",
+                responsible = "TaskOwner",
+                properties = props
+            };
+            setup(payload);
+
+            var result = await client.TestClientPostAsync<TestApiRequestAction>(
+                $"/requests/{requestId}/actions", payload
+            );
+
+            result.Should().BeSuccessfull();
+            return result.Value;
+        }
+
+        public static Task<TestApiRequestMessage> AddRequestMessage(this HttpClient client, Guid requestId, Dictionary<string, object> props = null)
+        {
+            return AddRequestMessage(client, requestId,
+                new
+                {
+                    title = "Hello, world!",
+                    body = "Goodbye, world!",
+                    category = "world",
+                    recipient = "TaskOwner",
+                    properties = props
+                }
+            );
+        }
+        public static async Task<TestApiRequestMessage> AddRequestMessage<T>(this HttpClient client, Guid requestId, T payload)
+        {
+            var result = await client.TestClientPostAsync<TestApiRequestMessage>($"/requests/internal/{requestId}/conversation", payload);
+            result.Should().BeSuccessfull();
+
+            return result.Value;
         }
 
         public static async Task<TestClientHttpResponse<TestAbsence>> AddAbsence(this HttpClient client, ApiPersonProfileV3 user, Action<TestAbsence> setup = null)

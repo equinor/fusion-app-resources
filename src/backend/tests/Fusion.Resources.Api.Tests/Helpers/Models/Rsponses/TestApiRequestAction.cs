@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Fusion.Resources.Api.Tests
 {
-    public class TestApiRequestTask
+    public class TestApiRequestAction
     {
         public Guid id { get; set; }
         public string title { get; set; }
@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Tests
         public bool isResolved { get; set; }
         public DateTimeOffset? resolvedAt { get; set; }
         public TestApiPerson resolvedBy { get; set; }
-
+        public bool isRequired { get; set; }
         public Dictionary<string, object> properties { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Api.Controllers.Departments;
 using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;
@@ -32,11 +31,11 @@ namespace Fusion.Resources.Api.Controllers
             Project = new ApiProjectReference(query.Project);
 
             OrgPositionId = query.OrgPositionId;
-            if (query.OrgPosition != null)
+            if (query.OrgPosition is not null)
                 OrgPosition = query.OrgPosition;
 
             OrgPositionInstanceId = query.OrgPositionInstanceId;
-            if (query.OrgPositionInstance != null)
+            if (query.OrgPositionInstance is not null)
                 OrgPositionInstance = query.OrgPositionInstance;
 
             AdditionalNote = query.AdditionalNote;
@@ -46,8 +45,14 @@ namespace Fusion.Resources.Api.Controllers
 
             ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
 
-            if (query.TaskOwner != null)
+            if (query.TaskOwner is not null)
                 TaskOwner = new ApiTaskOwner(query.TaskOwner);
+
+            if (query.Actions is not null)
+                Actions = query.Actions.Select(x => new ApiRequestAction(x)).ToList();
+
+            if (query.Conversation is not null)
+                Conversation = query.Conversation.Select(x => new ApiRequestConversationMessage(x)).ToList();
 
             Created = query.Created;
             Updated = query.Updated;
@@ -98,6 +103,8 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
+        public List<ApiRequestAction>? Actions { get; }
+        public List<ApiRequestConversationMessage>? Conversation { get; }
 
         internal bool ShouldHideProposalsForProject
         {

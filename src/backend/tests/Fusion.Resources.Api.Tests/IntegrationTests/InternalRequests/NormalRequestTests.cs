@@ -210,7 +210,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var position = testProject.AddPosition();
-            var department = InternalRequestData.RandomDepartment;
+            var department = "RQE AFKA QWE";
             var resourceOwner = LineOrgServiceMock.AddTestUser().MergeWithProfile(testUser).AsResourceOwner().WithFullDepartment(department).SaveProfile();
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
@@ -261,6 +261,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task NormalRequest_Start_ShouldBeBadRequest_WhenStartingWithUnresolvedRequiredActions()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await Client.AddRequestActionAsync(normalRequest.Id, x => x.isRequired = true);
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task NormalRequest_Propose_ShouldBeBadRequest_WhenStartingWithUnresolvedRequiredActions()
+        {
+            using var adminScope = fixture.AdminScope();
+            var testPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
+            await Client.ProposePersonAsync(normalRequest.Id, testPerson);
+            await Client.AddRequestActionAsync(normalRequest.Id, x => x.isRequired = true);
+
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);
+            resp.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task NormalRequest_Should_Be_Routed_To_Correct_Department()
         {
             var department = "ABC DEF";
@@ -274,7 +299,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 BasePositionId = testProject.Positions.First().BasePosition.Id,
                 Sector = "ABC",
                 Unit = department,
-                ResponsibleId = testUser.AzureUniqueId.GetValueOrDefault()
             };
 
             var matrixResponse = await Client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", matrixRequest);
@@ -352,7 +376,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-            var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);
@@ -400,7 +424,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-            var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
 
             await FastForward_ProposedRequest();
@@ -534,7 +558,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testPerson = fixture.AddProfile(FusionAccountType.Employee);
 
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-            var assignedRequest = await Client.AssignAnDepartmentAsync(normalRequest.Id);
+            var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);

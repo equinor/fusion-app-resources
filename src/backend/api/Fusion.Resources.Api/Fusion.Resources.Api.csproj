@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bogus" Version="33.0.2" />
-    <PackageReference Include="Fusion.Integration" Version="5.3.1" />
+    <PackageReference Include="Fusion.Integration" Version="5.4.2" />
     <PackageReference Include="Fusion.Events.Server" Version="2.0.0" />
     <!-- No longer need this reference, but keeping for future ref. -->
     <!--<PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />-->
@@ -32,7 +32,7 @@
     <PackageReference Include="Fusion.AspNetCore" Version="5.0.0" />
 
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.5" />  
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />  
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="5.0.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.14" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.14" />

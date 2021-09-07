@@ -39,11 +39,11 @@ namespace Fusion.Resources.Domain.Services
             return existingEntry;
         }
 
-        public async Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId)
+        public async Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId, bool considerRemovedProfile = false)
         {
             var profile = await ResolveProfileAsync(personId);
 
-            if (profile == null) //early check for null to avoid hitting DB unnecessary
+            if (profile == null && !considerRemovedProfile) //early check for null to avoid hitting DB unnecessary
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
             var resolvedPerson = await ResolveExternalPersonnelAsync(personId);
@@ -51,12 +51,21 @@ namespace Fusion.Resources.Domain.Services
             if (resolvedPerson == null)
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
-            resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-            resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
-            resolvedPerson.JobTitle = profile.JobTitle;
-            resolvedPerson.Name = profile.Name;
-            resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
-            resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+            if (profile != null)
+            {
+                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
+                resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                resolvedPerson.JobTitle = profile.JobTitle;
+                resolvedPerson.Name = profile.Name;
+                resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
+                resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+            }
+            else
+            {
+                // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
+                resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
+                resolvedPerson.IsDeleted = true;
+            }
 
             await resourcesDb.SaveChangesAsync();
 

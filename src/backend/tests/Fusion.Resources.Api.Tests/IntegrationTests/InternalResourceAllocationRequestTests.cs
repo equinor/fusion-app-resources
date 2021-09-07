@@ -217,9 +217,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             const string expectedDepartment = "TPD PRD TST QWE";
 
-            fixture.EnsureDepartment(expectedDepartment);
-            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(expectedDepartment).SaveProfile();
+            var fakeResourceOwner = fixture.AddResourceOwner(expectedDepartment);
 
             var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
             var request = await Client.CreateRequestAsync(projectId, r => r.AsTypeNormal().WithPosition(requestPosition));
@@ -384,10 +382,102 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
 
             var updated = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{originalRequest.Id}");
-            
+
             updated.Value.State.Should().Be(originalRequest.State);
             updated.Value.IsDraft.Should().BeTrue();
             updated.Value.Workflow.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldIncludeTasks_WhenExpanded()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var task = await Client.AddRequestActionAsync(request.Id);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
+            {
+                actions = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.actions.Should().Contain(t => t.id == task.id);
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldNotFailToExpandTasks_WhenNoTasksExist()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
+            {
+                actions = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.actions.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldIncludeConversation_WhenExpanded()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var message = await Client.AddRequestMessage(request.Id);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
+            {
+                conversation = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.conversation.Should().Contain(m => m.id == message.Id);
+        }
+
+        [Fact]
+        public async Task GetRequest_ShouldNotFailToExpandConversation_WhenNoMessagesExist()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
+            {
+                conversation = new[] { new { id = Guid.Empty } }
+            });
+
+            result.Should().BeSuccessfull();
+            result.Value.conversation.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetProjectsRequests_ShouldExpandActions()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var requestB = await Client.CreateDefaultRequestAsync(testProject);
+            var taskA = await Client.AddRequestActionAsync(requestA.Id);
+            var taskB = await Client.AddRequestActionAsync(requestB.Id);
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
+                new
+                {
+                    value = new[] {
+                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
+                    }
+                });
+
+
+            result.Should().BeSuccessfull();
+
+
+            result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
         }
 
         //[Fact]
@@ -518,12 +608,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task UpdateRequest_ShouldNotifyResourceOwner_WhenPatchingAssignedDepartment()
         {
+            const string department = "JHA HRA BAR";
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var usr = LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(TestDepartmentId).SaveProfile();
+            var usr = LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeResourceOwner).AsResourceOwner().WithFullDepartment(department).SaveProfile();
 
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject);
-            var payload = new JObject { { "assignedDepartment", JToken.FromObject(TestDepartmentId) } };
+            var payload = new JObject { { "assignedDepartment", JToken.FromObject(department) } };
 
             var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
             response.Should().BeSuccessfull();

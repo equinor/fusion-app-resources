@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Fusion.Resources.Api.Controllers.Departments
+namespace Fusion.Resources.Api.Controllers
 {
     public class ApiDepartment
     {

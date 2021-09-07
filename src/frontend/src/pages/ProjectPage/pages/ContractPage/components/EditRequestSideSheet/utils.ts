@@ -5,6 +5,7 @@ import { Position } from '@equinor/fusion';
 import CreatePersonnelRequest from '../../../../../../models/CreatePersonnelRequest';
 import PersonnelRequestPosition from '../../../../../../models/PersonnelRequestPosition';
 import Personnel from '../../../../../../models/Personnel';
+import { format } from 'date-fns';
 
 export const transFormRequest = (
     personnelRequest: PersonnelRequest[] | null,
@@ -112,7 +113,12 @@ export const transformPositionsToCopyRequest = (
         lastActivity: null,
     }));
 };
-
+const formatDateToString = (date: Date | null): string | null => {
+    if(!date) {
+        return null
+    }
+    return format(date, 'yyyy-MM-dd')
+};
 export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
     id: req.requestId || undefined,
     description: req.description,
@@ -120,8 +126,8 @@ export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePerso
         mail: req.person?.mail || '',
     },
     position: {
-        appliesFrom: req.appliesFrom,
-        appliesTo: req.appliesTo,
+        appliesFrom:formatDateToString(req.appliesFrom),
+        appliesTo: formatDateToString(req.appliesTo),
         basePosition: req.basePosition,
         id: req.positionId || null,
         name: req.positionName,

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetExternalPersonnelPerson : IRequest<QueryExternalPersonnelPerson>
+    public class GetExternalPersonnelPerson : IRequest<QueryExternalPersonnelPerson?>
     {
         public GetExternalPersonnelPerson(PersonnelId personnelId)
         {
@@ -15,7 +15,7 @@ namespace Fusion.Resources.Domain
 
         public PersonnelId PersonnelId { get; }
 
-        public class Handler : IRequestHandler<GetExternalPersonnelPerson, QueryExternalPersonnelPerson>
+        public class Handler : IRequestHandler<GetExternalPersonnelPerson, QueryExternalPersonnelPerson?>
         {
             private readonly ResourcesDbContext db;
 
@@ -24,14 +24,14 @@ namespace Fusion.Resources.Domain
                 this.db = db;
             }
 
-            public async Task<QueryExternalPersonnelPerson> Handle(GetExternalPersonnelPerson request, CancellationToken cancellationToken)
+            public async Task<QueryExternalPersonnelPerson?> Handle(GetExternalPersonnelPerson request, CancellationToken cancellationToken)
             {
                 var person = await db.ExternalPersonnel
                     .Include(ep => ep.Disciplines)
                     .GetById(request.PersonnelId)
                     .FirstOrDefaultAsync();
 
-                return new QueryExternalPersonnelPerson(person);
+                return person is null ? null : new QueryExternalPersonnelPerson(person);
             }
         }
     }

@@ -1,13 +1,14 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration.LineOrg;
+using Fusion.Integration.Org;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Integration.Org;
-using Microsoft.EntityFrameworkCore;
 
-#nullable enable 
+#nullable enable
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -19,7 +20,7 @@ namespace Fusion.Resources.Domain.Commands
         public string? Discipline { get; set; }
         public Guid? BasePositionId { get; set; }
         public string? Sector { get; set; }
-        public string? Unit { get; set; }
+        public string Unit { get; set; } = null!;
         public Guid? ResponsibleId { get; set; }
 
         public class Handler : IRequestHandler<CreateResponsibilityMatrix, QueryResponsibilityMatrix>
@@ -27,12 +28,14 @@ namespace Fusion.Resources.Domain.Commands
             private readonly ResourcesDbContext resourcesDb;
             private readonly IProfileService profileService;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly ILineOrgResolver lineOrgResolver;
 
-            public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext resourcesDb, IProfileService profileService, IProjectOrgResolver orgResolver, ILineOrgResolver lineOrgResolver)
             {
                 this.resourcesDb = resourcesDb;
                 this.profileService = profileService;
                 this.orgResolver = orgResolver;
+                this.lineOrgResolver = lineOrgResolver;
             }
 
             public async Task<QueryResponsibilityMatrix> Handle(CreateResponsibilityMatrix request,
@@ -45,14 +48,8 @@ namespace Fusion.Resources.Domain.Commands
                     if (project == null)
                         throw new ArgumentException("Unable to resolve project using org service");
                 }
-                DbPerson? responsible = null;
-                if (request.ResponsibleId != null)
-                {
-                    responsible = await profileService.EnsurePersonAsync(request.ResponsibleId.Value);
-                    if (responsible == null)
-                        throw new ArgumentException(
-                            "Cannot create personnel without either a valid azure unique id or mail address");
-                }
+
+                DbPerson? responsible = await GetResourceOwner(request.Unit);
 
                 var newItem = new DbResponsibilityMatrix
                 {
@@ -68,10 +65,21 @@ namespace Fusion.Resources.Domain.Commands
                     Responsible = responsible
                 };
 
-                await resourcesDb.ResponsibilityMatrices.AddAsync(newItem);
-                await resourcesDb.SaveChangesAsync();
+                resourcesDb.ResponsibilityMatrices.Add(newItem);
+                await resourcesDb.SaveChangesAsync(cancellationToken);
 
                 return new QueryResponsibilityMatrix(newItem);
+            }
+
+            private async Task<DbPerson?> GetResourceOwner(string departmentId)
+            {
+                var department = await lineOrgResolver.ResolveDepartmentAsync(departmentId);
+                if (department?.Manager?.AzureUniqueId is not null)
+                {
+                    var azureUniqueId = department.Manager.AzureUniqueId;
+                    return await profileService.EnsurePersonAsync(new PersonId(azureUniqueId));
+                }
+                return null;
             }
 
             private async Task<DbProject?> EnsureProjectAsync(Guid projectId)

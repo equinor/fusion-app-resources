@@ -1,22 +1,15 @@
-﻿using Fusion.Integration.Profile;
-using Fusion.Resources.Application.LineOrg.Models;
-using Fusion.Resources.Database.Entities;
+﻿using Fusion.Integration.LineOrg;
+using Fusion.Integration.Profile;
 using System.Collections.Generic;
 
 namespace Fusion.Resources.Domain
 {
     public class QueryDepartment
     {
-        public QueryDepartment(DbDepartment department)
+        public QueryDepartment(LineOrgDepartment lineOrgDepartment, FusionPersonProfile? manager)
         {
-            DepartmentId = department.DepartmentId;
-            SectorId = department.SectorId;
-        }
-
-        public QueryDepartment(LineOrgDepartment lineOrgDepartment)
-        {
-            DepartmentId = lineOrgDepartment.DepartmentId;
-            LineOrgResponsible = lineOrgDepartment.Responsible;
+            DepartmentId = lineOrgDepartment.FullName;
+            LineOrgResponsible = manager;
         }
 
         public QueryDepartment(string departmentId, string? sectorId)

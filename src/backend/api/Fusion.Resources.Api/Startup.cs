@@ -1,4 +1,10 @@
 using FluentValidation.AspNetCore;
+using Fusion.Events;
+using Fusion.Integration.Authentication;
+using Fusion.Integration.LineOrg;
+using Fusion.Integration.Org;
+using Fusion.Resources.Api.Authentication;
+using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,13 +15,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Fusion.Resources.Api.Middleware;
-using Fusion.Resources.Application.LineOrg;
-using Fusion.Integration.Authentication;
-using Fusion.Resources.Api.Authentication;
-using Fusion.Events;
-using Fusion.Integration.Http;
-using Fusion.Integration.Org;
 
 namespace Fusion.Resources.Api
 {
@@ -68,6 +67,7 @@ namespace Fusion.Resources.Api
 
                 options.AddFusionAuthorization();
                 options.AddOrgIntegration();
+                options.AddLineOrgIntegration();
                 options.AddFusionRoles();
                 options.AddFusionNotifications(opts => opts.OriginatingAppKey = "resources");
 
@@ -123,7 +123,7 @@ namespace Fusion.Resources.Api
             services.AddCommonLibHttpClient();
             services.AddLineOrgHttpClient();
 
-            services.UseLineOrgIntegration();
+            services.AddLineOrgIntegration();
 
             services.AddMemoryCache();
         }

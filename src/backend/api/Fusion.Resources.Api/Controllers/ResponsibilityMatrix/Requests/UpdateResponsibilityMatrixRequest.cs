@@ -11,8 +11,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? Discipline { get; set; }
         public Guid? BasePositionId { get; set; } 
         public string? Sector { get; set; }
-        public string? Unit { get; set; }
-        public Guid? ResponsibleId { get; set; }
+        public string Unit { get; set; } = null!;
 
 
 
@@ -24,7 +23,6 @@ namespace Fusion.Resources.Api.Controllers
             command.BasePositionId = BasePositionId;
             command.Sector = Sector;
             command.Unit = Unit;
-            command.ResponsibleId = ResponsibleId;
         }
 
         public void LoadCommand(UpdateResponsibilityMatrix command)
@@ -35,7 +33,6 @@ namespace Fusion.Resources.Api.Controllers
             command.BasePositionId = BasePositionId;
             command.Sector = Sector;
             command.Unit = Unit;
-            command.ResponsibleId = ResponsibleId;
         }
 
         #region Validation
@@ -48,11 +45,11 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.Discipline).MaximumLength(5000);
                 RuleFor(x => x.Sector).NotContainScriptTag();
                 RuleFor(x => x.Sector).MaximumLength(100);
-                RuleFor(x => x.Unit).NotContainScriptTag();
-                RuleFor(x => x.Unit).MaximumLength(100);
-
+                RuleFor(x => x.Unit)
+                    .NotEmpty()
+                    .MaximumLength(100)
+                    .NotContainScriptTag();
             }
-
         }
 
         #endregion

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Testing.Mocks.LineOrgService
 {
@@ -28,17 +29,20 @@ namespace Fusion.Testing.Mocks.LineOrgService
         }
 
         public static FusionTestUserBuilder AddTestUser() => new FusionTestUserBuilder();
-        public static void AddDepartment(string name, string[] children = null)
+        public static void AddDepartment(string fullName, string[] children = null)
         {
             var childRefs = children?
-                .Select(x => new ApiDepartment.ApiDepartmentRef() { Name = x, FullName = x })
+                .Select(x => new ApiDepartment.ApiDepartmentRef() { Name = new DepartmentPath(x).GetShortName(), FullName = x })
                 .ToList();
 
-            if (Departments.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase)) == null)
-                Departments.Add(new ApiDepartment { Name = name, Children = childRefs });
+            var name = new DepartmentPath(fullName);
+
+            if (Departments.FirstOrDefault(x => string.Equals(x.Name, fullName, StringComparison.OrdinalIgnoreCase)) == null)
+                Departments.Add(new ApiDepartment { Name = name.GetShortName(), FullName = fullName, Children = childRefs });
         }
         public static void UpdateDepartmentManager(string name, ApiLineOrgUser manager)
         {
+            name = new DepartmentPath(name).GetShortName();
             var dep = Departments.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
 
             if (dep == null)
@@ -68,6 +72,7 @@ namespace Fusion.Testing.Mocks.LineOrgService
         }
         public FusionTestUserBuilder WithFullDepartment(string fullDepartment)
         {
+            user.Department = new DepartmentPath(fullDepartment).GetShortName();
             user.FullDepartment = fullDepartment;
             return this;
         }
@@ -96,9 +101,9 @@ namespace Fusion.Testing.Mocks.LineOrgService
             if (!exists)
                 LineOrgServiceMock.Users.Add(user);
 
-            LineOrgServiceMock.AddDepartment(user.Department);
+            LineOrgServiceMock.AddDepartment(user.FullDepartment);
             if (user.IsResourceOwner)
-                LineOrgServiceMock.UpdateDepartmentManager(user.Department, user);
+                LineOrgServiceMock.UpdateDepartmentManager(user.FullDepartment, user);
             return user;
         }
     }
