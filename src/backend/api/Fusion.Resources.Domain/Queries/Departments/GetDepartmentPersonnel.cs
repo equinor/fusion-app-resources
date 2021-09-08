@@ -85,7 +85,7 @@ namespace Fusion.Resources.Domain
                     if (request.ExpandTimeline)
                     {
                         p.PositionInstances = p.PositionInstances
-                            .Where(instance => !(instance.AppliesTo < request.TimelineStart || instance.AppliesFrom > request.TimelineEnd))
+                            .Where(instance => instance.AppliesTo >= request.TimelineStart && instance.AppliesFrom <= request.TimelineEnd)
                             .ToList();
 
                         // Timeline date input has been verified when shouldExpandTimline is true.
