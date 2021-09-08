@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using System;
+﻿using System;
 
 namespace Fusion.Resources.Api.Tests
 {
@@ -15,16 +14,9 @@ namespace Fusion.Resources.Api.Tests
         public object fullDepartment { get; set; }
         public bool isResourceOwner { get; set; }
         public string accountType { get; set; }
+        public object[] disciplines { get; set; }
         public Employmentstatus[] employmentStatuses { get; set; }
         public TestTimeline[] timeline { get; set; }
-        public TestPersonPosition[] positionInstances { get; set; }
-    }
-
-    public class TestPersonPosition
-    {
-        public DateTime AppliesFrom { get; set; }
-        public DateTime AppliesTo { get; set; }
-
     }
 
     public class Employmentstatus
@@ -51,14 +43,14 @@ namespace Fusion.Resources.Api.Tests
         public DateTime appliesFrom { get; set; }
         public DateTime appliesTo { get; set; }
         public TestTimeLineItem[] items { get; set; }
-        public double? workload { get; set; }
+        public int workload { get; set; }
     }
 
     public class TestTimeLineItem
     {
         public string id { get; set; }
         public string type { get; set; }
-        public double? workload { get; set; }
+        public int workload { get; set; }
         public string description { get; set; }
         public string roleName { get; set; }
         public string taskName { get; set; }

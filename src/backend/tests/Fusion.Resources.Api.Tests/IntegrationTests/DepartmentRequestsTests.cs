@@ -10,14 +10,13 @@ using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static System.Linq.Enumerable;
+
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -479,7 +478,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
             );
 
-            var person = response.Value.value
+            var person = response.Value.Value
                 .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
             person.employmentStatuses.Should().Contain(x => x.id == absence.Id);
 
@@ -522,7 +521,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
                 );
 
-                var person = response.Value.value
+                var person = response.Value.Value
                     .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
                 var actualAbsence = person.employmentStatuses.FirstOrDefault(x => x.id == absence.Id);
 
@@ -538,36 +537,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }
         }
 
-        [Fact]
-        public async Task GetTimelineShouldNotIncludePositionsOutsideTimeframe()
-        {
-            const string department = "PDP BTAD AWQ";
-            fixture.EnsureDepartment(department);
-
-            var project = new FusionTestProjectBuilder()
-                .WithPositions(10, 50)
-                .AddToMockService();
-
-            var profile = PeopleServiceMock.AddTestProfile().WithFullDepartment(department);
-            foreach(var position in project.Positions) profile.WithPosition(position);
-            profile.SaveProfile();
-
-            using var scope = fixture.AdminScope();
-            var timelineStart = new DateTime(2020, 03, 01);
-            var timelineEnd = new DateTime(2020, 03, 31);
-
-            var response = await Client.TestClientGetAsync<TestResponse>(
-                $"/departments/{department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
-            );
-
-            response.Should().BeSuccessfull();
-            response.Value.value
-                .SelectMany(x => x.positionInstances)
-                .Any(x => x.AppliesTo < timelineStart || x.AppliesFrom > timelineEnd)
-                .Should()
-                .BeFalse();
-        }
-
         public Task DisposeAsync()
         {
             loggingScope.Dispose();
@@ -577,7 +546,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         class TestResponse
         {
-            public List<TestApiPersonnelPerson> value { get; set; }
+            public List<TestApiPersonnelPerson> Value { get; set; }
         }
 
 
