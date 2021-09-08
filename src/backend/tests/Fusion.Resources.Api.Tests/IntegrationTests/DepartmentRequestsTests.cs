@@ -560,6 +560,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 $"/departments/{department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
             );
 
+            response.Should().BeSuccessfull();
             response.Value.value
                 .SelectMany(x => x.positionInstances)
                 .Any(x => x.AppliesTo < timelineStart || x.AppliesFrom > timelineEnd)
