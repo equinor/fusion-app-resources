@@ -1,12 +1,10 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Profile;
+﻿using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Testing.Mocks.ProfileService.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 
 namespace Fusion.Testing.Mocks.ProfileService
@@ -39,7 +37,6 @@ namespace Fusion.Testing.Mocks.ProfileService
         public FusionTestUserBuilder()
         {
             profile = FusionTestProfiles.CreateTestUser();
-            profile.Positions = new List<ApiPersonPositionV3>();
         }
 
         public FusionTestUserBuilder(FusionAccountType type, AccountClassification? classification = null)
@@ -64,42 +61,6 @@ namespace Fusion.Testing.Mocks.ProfileService
             profile.Department = department;
             return this;
         }
-
-        public FusionTestUserBuilder WithPosition(ApiPositionV2 position)
-        {
-            var instance = position.Instances.FirstOrDefault();
-
-            profile.Positions.Add(new ApiPersonPositionV3
-            {
-                AppliesFrom = instance.AppliesFrom,
-                AppliesTo = instance.AppliesTo,
-                ParentPositionId = position.Id,
-                PositionExternalId = position.ExternalId,
-                BasePosition = new ApiPersonBasePositionV3
-                {
-                    Id = position.BasePosition.Id,
-                    Name = position.BasePosition.Name,
-                    Discipline = position.BasePosition.Discipline,
-                    SubDiscipline = position.BasePosition.SubDiscipline,
-                    Type = position.BasePosition.ProjectType
-                },
-                Project = new ApiPersonPositionProjectV3
-                {
-                    DomainId = position.Project.DomainId,
-                    Id = position.Project.ProjectId,
-                    Name = position.Project.Name,
-                    Type = position.Project.Name,
-                },
-                Workload = instance.Workload,
-                Obs = instance.Obs,
-                Name = position.Name,
-                Id = instance.Id,
-                PositionId = position.Id
-            });
-
-            return this;
-        }
-
         public FusionTestUserBuilder WithRoles(string name)
         {
             if (profile.Roles == null) profile.Roles = new List<ApiPersonRoleV3>();
