@@ -178,6 +178,7 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("state", i => i.State.State);
                         m.MapField("state.isComplete", i => i.State.IsCompleted);
                         m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
+                        m.MapField("proposedPerson.azureUniqueId", x => x.ProposedPerson.AzureUniqueId);
                     });
                 }
 
