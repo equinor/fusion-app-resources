@@ -103,6 +103,81 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
+        [MapToApiVersion("2.0")]
+        [HttpPost("/projects/{projectIdentifier}/resources/requests")]
+        [HttpPost("/projects/{projectIdentifier}/requests")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequestV2(
+           [FromRoute] PathProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequestV2 request)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.OrgChartPositionWriteAccess(projectIdentifier.ProjectId, request.OrgPositionId);
+                });
+            });
+
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            if (request.ResolveType() == InternalRequestType.Allocation)
+            {
+                // Must resolve the subType to use when allocation request.
+                if (string.IsNullOrEmpty(request.SubType))
+                {
+                    request.SubType = await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.ResolveSubType(request.OrgPositionId, request.OrgPositionInstanceIds.First()));
+                }
+            }
+
+            var requests = new List<QueryResourceAllocationRequest>();
+
+            try
+            {
+                using var transaction = await BeginTransactionAsync();
+                foreach (var instanceId in request.OrgPositionInstanceIds)
+                {
+                    // Create all requests as draft
+                    var command = new CreateInternalRequest(InternalRequestOwner.Project, request.ResolveType())
+                    {
+                        SubType = request.SubType,
+                        AdditionalNote = request.AdditionalNote,
+                        OrgPositionId = request.OrgPositionId,
+                        OrgProjectId = projectIdentifier.ProjectId,
+                        OrgPositionInstanceId = instanceId,
+                        AssignedDepartment = request.AssignedDepartment,
+                        ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId,
+                    };
+
+                    var newRequest = await DispatchAsync(command);
+
+                    if (request.ProposedChanges is not null || request.ProposedPersonAzureUniqueId is not null)
+                    {
+                        newRequest = await DispatchAsync(new UpdateInternalRequest(newRequest.RequestId)
+                        {
+                            ProposedChanges = request.ProposedChanges,
+                            ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId
+                        });
+                    }
+
+                    newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+                    requests.Add(newRequest!);
+                }
+                await transaction.CommitAsync();
+
+                return Accepted(requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
+            }
+            catch (ValidationException ex)
+            {
+                return ApiErrors.InvalidOperation(ex);
+            }
+        }
+
         [HttpPost("/departments/{departmentPath}/resources/requests")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateResourceOwnerRequest(
             [FromRoute] string departmentPath, [FromBody] CreateResourceOwnerAllocationRequest request)
@@ -354,7 +429,7 @@ namespace Fusion.Resources.Api.Controllers
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
 
             // When querying by project, hide proposed values if type is allocation and state is in proposal.
-            foreach (var request in apiModel.Where(x=>x.ShouldHideProposalsForProject))
+            foreach (var request in apiModel.Where(x => x.ShouldHideProposalsForProject))
                 request.HideProposals();
 
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
@@ -449,9 +524,9 @@ namespace Fusion.Resources.Api.Controllers
 
             var apiModel = new ApiResourceAllocationRequest(result);
 
-            if (projectIdentifier is null) 
+            if (projectIdentifier is null)
                 return apiModel;
-            
+
             return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
         }
 
@@ -511,7 +586,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
-            
+
             if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
@@ -663,7 +738,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-            
+
             if (string.Equals(result!.State, AllocationNormalWorkflowV1.APPROVAL, StringComparison.OrdinalIgnoreCase))
                 await DispatchAsync(new InternalRequestNotifications.ProposedPerson(result.RequestId));
 
@@ -680,7 +755,7 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
             //if (result.AssignedDepartment != departmentPath)
             //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
-            
+
             if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
