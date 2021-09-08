@@ -336,6 +336,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task FilterByProposedPerson_ShouldBeOk_WhenRequestNotProposed()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition();
+            var rq = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
+            var filtered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests?$filter=proposedPerson.azureUniqueId%20eq%20'{Guid.NewGuid()}'");
+            filtered.Should().BeSuccessfull();
+            filtered.Value.Value.Should().NotContain(x => x.Id == rq.Id);
+        }
+
+        [Fact]
+        public async Task FilterByProposedPerson_ShouldFindRequest()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition();
+            var rq = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
+            await Client.ProposePersonAsync(rq.Id, testUser);
+
+            var filtered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests?$filter=proposedPerson.azureUniqueId%20eq%20'{testUser.AzureUniqueId}'");
+            filtered.Should().BeSuccessfull();
+            filtered.Value.Value.Should().Contain(x => x.Id == rq.Id);
+        }
+
+        [Fact]
         public async Task GetAllRequests_ShouldReturnEverything()
         {
             using var adminScope = fixture.AdminScope();
