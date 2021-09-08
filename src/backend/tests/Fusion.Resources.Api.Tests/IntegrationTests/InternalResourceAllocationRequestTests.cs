@@ -342,7 +342,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var position = testProject.AddPosition();
             var rq = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
-            var filtered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests?$filter=proposedPerson%20eq%20'{Guid.NewGuid()}'");
+            var filtered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests?$filter=proposedPerson.azureUniqueId%20eq%20'{Guid.NewGuid()}'");
             filtered.Should().BeSuccessfull();
             filtered.Value.Value.Should().NotContain(x => x.Id == rq.Id);
         }
@@ -356,7 +356,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var rq = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
             await Client.ProposePersonAsync(rq.Id, testUser);
 
-            var filtered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests?$filter=proposedPerson%20eq%20'{testUser.AzureUniqueId}'");
+            var filtered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests?$filter=proposedPerson.azureUniqueId%20eq%20'{testUser.AzureUniqueId}'");
             filtered.Should().BeSuccessfull();
             filtered.Value.Value.Should().Contain(x => x.Id == rq.Id);
         }
