@@ -114,7 +114,7 @@ namespace Fusion.Resources.Domain
             var props = new MatchingProperties(position.Project.ProjectId)
             {
                 Discipline = position.BasePosition.Discipline,
-                LocationId = position.Instances.Select(x => x.Location.Id).FirstOrDefault(),
+                LocationId = position.Instances.Select(x => x.Location?.Id).FirstOrDefault(),
                 BasePositionDepartment = departmentId
             };
             var matches = Match(props);
