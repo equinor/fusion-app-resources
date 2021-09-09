@@ -124,5 +124,4 @@ namespace Fusion.Resources.Domain
             public DbResponsibilityMatrix Row { get; set; } = null!;
         }
     }
-
 }
