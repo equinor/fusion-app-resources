@@ -31,7 +31,8 @@ namespace Fusion.Resources.Domain
         /// Will add it to database if not present.
         /// </summary>
         /// <param name="personId">Identifier for person, can be e-mail or azure unique id</param>
+        /// <param name="considerRemovedProfile">Refresh will proceed even if unable to resolve profile from people service. Profile still may exist in external personnel</param>
         /// <returns>The updated person entity</returns>
-        Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId);
+        Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId, bool considerRemovedProfile = false);
     }
 }

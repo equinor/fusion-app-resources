@@ -204,6 +204,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task AdjustmentRequest_Start_ShouldBeBadRequest_WhenUnresolvedRequiredAction()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            // Propose changes
+
+            await Client.ProposeChangesAsync(adjustmentRequest.Id, new { workload = 50 });
+            await Client.SetChangeParamsAsync(adjustmentRequest.Id, DateTime.Today.AddDays(1));
+            await Client.AddRequestActionAsync(adjustmentRequest.Id, x => x.isRequired = true);
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{adjustmentRequest.Id}/start", null);
+            response.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task AdjustmentRequest_Start_ShouldBeBadRequest_WhenMissingProposedChanges()
         {
             using var adminScope = fixture.AdminScope();

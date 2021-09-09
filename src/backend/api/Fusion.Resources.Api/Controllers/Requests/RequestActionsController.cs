@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -19,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     public class RequestActionsController : ResourceControllerBase
     {
         [HttpPost("requests/{requestId}/actions")]
-        public async Task<ActionResult> AddRequestTask([FromRoute] Guid requestId, [FromBody] AddActionRequest request)
+        public async Task<ActionResult> AddRequestActionAsync([FromRoute] Guid requestId, [FromBody] AddActionRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -76,11 +77,11 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var created = await DispatchAsync(command);
 
-            return CreatedAtAction(nameof(GetRequestTask), new { requestId, actionId = created.Id }, new ApiRequestAction(created));
+            return CreatedAtAction(nameof(GetRequestAction), new { requestId, actionId = created.Id }, new ApiRequestAction(created));
         }
 
         [HttpGet("requests/{requestId}/actions")]
-        public async Task<ActionResult> GetRequestTasks([FromRoute] Guid requestId)
+        public async Task<ActionResult> GetRequestActions([FromRoute] Guid requestId, [FromRoute] ODataQueryParams query)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -115,14 +116,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new GetRequestActions(requestId);
+            var command = new GetRequestActions(requestId).WithQuery(query);
             var tasks = await DispatchAsync(command);
 
             return Ok(tasks.Select(t => new ApiRequestAction(t)));
         }
 
         [HttpGet("requests/{requestId}/actions/{actionId}")]
-        public async Task<ActionResult> GetRequestTask([FromRoute] Guid requestId, [FromRoute] Guid actionId)
+        public async Task<ActionResult> GetRequestAction([FromRoute] Guid requestId, [FromRoute] Guid actionId)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -165,7 +166,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpPatch("requests/{requestId}/actions/{actionId}")]
-        public async Task<ActionResult> UpdateRequestTask([FromRoute] Guid requestId, [FromRoute] Guid actionId, [FromBody] PatchActionRequest patch)
+        public async Task<ActionResult> UpdateRequestAction([FromRoute] Guid requestId, [FromRoute] Guid actionId, [FromBody] PatchActionRequest patch)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -222,7 +223,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpDelete("requests/{requestId}/actions/{actionId}")]
-        public async Task<ActionResult> DeleteRequestTask([FromRoute] Guid requestId, [FromRoute] Guid actionId)
+        public async Task<ActionResult> DeleteRequestAction([FromRoute] Guid requestId, [FromRoute] Guid actionId)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -257,7 +258,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new DeleteRequestTask(requestId, actionId);
+            var command = new DeleteRequestAction(requestId, actionId);
             var wasDeleted = await DispatchAsync(command);
 
             if (wasDeleted) return NoContent();

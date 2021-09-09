@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using ContractRole = Fusion.Resources.Api.Authorization.ContractRole;
 
 namespace Fusion.Resources.Api.Controllers
@@ -140,14 +141,29 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchAsync(new RefreshPersonnel(personIdentifier));
+                var considerRemovedProfile = await ConsiderRemovedProfileAsync();
+                await DispatchAsync(new RefreshPersonnel(personIdentifier, considerRemovedProfile));
                 var refreshedPersonnel = await DispatchAsync(new GetExternalPersonnelPerson(personIdentifier));
+
+                if (refreshedPersonnel is null)
+                    throw new PersonNotFoundError(personIdentifier);
+
 
                 return new ApiExternalPersonnelPerson(refreshedPersonnel);
             }
             catch (PersonNotFoundError)
             {
                 return ApiErrors.NotFound($"Personnel with given id not found", "resources/personnel/{personIdentifier}");
+            }
+
+            async Task<bool> ConsiderRemovedProfileAsync()
+            {
+                var bodyString = await Request.ReadRequestBodyAsync();
+                if (string.IsNullOrEmpty(bodyString))
+                    return false;
+
+                var body = JsonConvert.DeserializeAnonymousType(bodyString, new { userRemoved = false });
+                return body?.userRemoved ?? false;
             }
         }
 
