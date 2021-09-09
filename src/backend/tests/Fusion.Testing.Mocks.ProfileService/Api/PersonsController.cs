@@ -48,6 +48,7 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
         }
 
         [MapToApiVersion("2.0")]
+        [MapToApiVersion("3.0")]
         [HttpPost("/persons/ensure")]
         public ActionResult<ApiEnsuredProfileV2> ResolveProfileV3(ProfilesRequest request)
         {
