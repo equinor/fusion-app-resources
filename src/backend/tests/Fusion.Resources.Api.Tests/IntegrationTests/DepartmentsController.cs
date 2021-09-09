@@ -218,6 +218,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task PositionRelevantDepartments_ShouldNotFaile_WhenBasePositionDepartmentIsEmpty()
+        {
+            var department = "PDP TST ABC";
+            var siblings = new[] { "PDP TST DEF", "PDP TST GHI" };
+            var children = new[] { "PDP TST ABC QWE", "PDP TST ABC ASD" };
+
+            LineOrgServiceMock.AddDepartment(department, children);
+            LineOrgServiceMock.AddDepartment("PDP TST", siblings);
+
+            foreach (var sibling in siblings) fixture.EnsureDepartment(sibling);
+            foreach (var child in children) fixture.EnsureDepartment(child);
+
+            var project = new FusionTestProjectBuilder();
+            var pos = project.AddPosition().WithEnsuredFutureInstances();
+            pos.BasePosition = project
+                .AddBasePosition("Senior Child Process Terminator", x => x.Department = null);
+
+            using var adminScope = fixture.AdminScope();
+            var resp = await Client.TestClientGetAsync(
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
+            );
+            resp.Should().BeSuccessfull();
+
+            //resp.Value.department.Name.Should().Be(department);
+
+            //resp.Value.relevant.Select(x => x.Name).Should().Contain(siblings);
+            //resp.Value.relevant.Select(x => x.Name).Should().Contain(children);
+            //resp.Value.relevant.Select(x => x.Name).Should().Contain(department);
+        }
+
+        [Fact]
         public async Task PositionRelevantDepartments_ShouldUseResponsiblityMatrix()
         {
             var department = "PDP TST ABC";
