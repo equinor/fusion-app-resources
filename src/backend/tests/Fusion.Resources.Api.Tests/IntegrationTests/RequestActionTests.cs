@@ -8,6 +8,7 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -97,7 +98,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var adminClient = fixture.ApiFactory.CreateClient()
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
-            var task = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
 
             var payload = new
             {
@@ -108,7 +109,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 subType = (string)null,
                 isRequired = true
             };
-            var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.title.Should().Be(payload.title);
@@ -123,14 +124,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var adminClient = fixture.ApiFactory.CreateClient()
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
-            var task = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
 
             var userClient = fixture.ApiFactory.CreateClient()
                 .WithTestUser(testUser)
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeTrue();
@@ -144,18 +145,18 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var adminClient = fixture.ApiFactory.CreateClient()
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
-            var task = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
 
             var userClient = fixture.ApiFactory.CreateClient()
                 .WithTestUser(testUser)
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
-            _ = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            _ = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
 
 
             payload = new { isResolved = false };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeFalse();
@@ -170,7 +171,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
 
-            var task = await adminClient.AddRequestActionAsync(normalRequest.Id, new Dictionary<string, object>
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, new Dictionary<string, object>
             {
                 ["customProp1"] = 123,
                 ["customProp2"] = new DateTime(2021, 05, 05)
@@ -187,7 +188,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     ["customProp2"] = new DateTime(2021, 03, 03)
                 }
             };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
 
             result.Should().BeSuccessfull();
             result.Value.properties["customProp1"].Should().Be(123);
@@ -201,7 +202,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
 
-            var task = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
             var otherRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
             var userClient = fixture.ApiFactory.CreateClient()
@@ -209,7 +210,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .AddTestAuthToken();
 
             var payload = new { title = "Updated Test title" };
-            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{otherRequest.Id}/actions/{task.id}", payload);
+            var result = await userClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{otherRequest.Id}/actions/{action.id}", payload);
             result.Should().BeNotFound();
         }
 
@@ -220,12 +221,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
 
-            var task = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
             var userClient = fixture.ApiFactory.CreateClient()
                .WithTestUser(testUser)
                .AddTestAuthToken();
 
-            var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{task.id}");
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}");
             result.Should().BeSuccessfull();
         }
 
@@ -236,15 +237,72 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
 
-            var task = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
             var otherRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
             var userClient = fixture.ApiFactory.CreateClient()
                .WithTestUser(testUser)
                .AddTestAuthToken();
 
-            var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{otherRequest.Id}/actions/{task.id}");
+            var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{otherRequest.Id}/actions/{action.id}");
             result.Should().BeNotFound();
+        }
+
+        [Fact]
+        public async Task GetRequests_ShouldFilterBySource()
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var resourceOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.source = "ResourceOwner");
+            var taskOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.source = "TaskOwner");
+
+            var userClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(testUser)
+               .AddTestAuthToken();
+
+            var result = await userClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions?$filter=Source eq 'ResourceOwner'");
+            result.Should().BeSuccessfull();
+            result.Value.All(x => x.source == "ResourceOwner");
+        }
+
+        [Fact]
+        public async Task GetRequests_ShouldFilterByResponsible()
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var resourceOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = "ResourceOwner");
+            var taskOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = "TaskOwner");
+
+            var userClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(testUser)
+               .AddTestAuthToken();
+
+            var result = await userClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions?$filter=Responsible eq 'ResourceOwner'");
+            result.Should().BeSuccessfull();
+            result.Value.All(x => x.responsible == "ResourceOwner");
+        }
+
+        [Fact]
+        public async Task GetRequests_ShouldFilterByType()
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var resourceOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.type = "TestType");
+            var taskOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.type = "AnotherType");
+
+            var userClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(testUser)
+               .AddTestAuthToken();
+
+            var result = await userClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions?$filter=Type eq 'TestType'");
+            result.Should().BeSuccessfull();
+            result.Value.All(x => x.type == "TestType");
         }
 
         public Task DisposeAsync() => Task.CompletedTask;

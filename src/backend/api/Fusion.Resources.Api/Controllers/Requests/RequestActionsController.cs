@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -80,7 +81,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("requests/{requestId}/actions")]
-        public async Task<ActionResult> GetRequestActions([FromRoute] Guid requestId)
+        public async Task<ActionResult> GetRequestActions([FromRoute] Guid requestId, [FromRoute] ODataQueryParams query)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -115,7 +116,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new GetRequestActions(requestId);
+            var command = new GetRequestActions(requestId).WithQuery(query);
             var tasks = await DispatchAsync(command);
 
             return Ok(tasks.Select(t => new ApiRequestAction(t)));
