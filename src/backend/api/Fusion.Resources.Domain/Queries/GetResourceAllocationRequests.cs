@@ -38,6 +38,15 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests WithPositionId(Guid positionId)
+        {
+            Expands |= ExpandFields.OrgPosition;
+            Expands |= ExpandFields.OrgPositionInstance;
+            PositionId = positionId;
+
+            return this;
+        }
+
         public GetResourceAllocationRequests ExpandPositions(bool shouldExpand = true)
         {
             if (shouldExpand)
@@ -106,7 +115,8 @@ namespace Fusion.Resources.Domain.Queries
 
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
-        public bool? ShouldIncludeAllRequests { get; private set; }
+        public bool? ShouldIncludeAllRequests { get; set; }
+        public Guid? PositionId { get; set; }
 
         [Flags]
         private enum ExpandFields
@@ -192,6 +202,8 @@ namespace Fusion.Resources.Domain.Queries
                 if (request.Unassigned)
                     query = query.Where(c => c.AssignedDepartment == null);
 
+                if (request.PositionId.HasValue)
+                    query = query.Where(r => r.OrgPositionId == request.PositionId.Value);
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(DefaultPageSize);
@@ -314,6 +326,6 @@ namespace Fusion.Resources.Domain.Queries
                         request.ProposedPerson!.Person = profiles[id.Value];
                 }
             }
-        }
+        }       
     }
 }

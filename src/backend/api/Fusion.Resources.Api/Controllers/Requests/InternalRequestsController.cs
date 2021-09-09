@@ -170,7 +170,7 @@ namespace Fusion.Resources.Api.Controllers
                 }
                 await transaction.CommitAsync();
 
-                return Accepted(requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
+                return CreatedAtAction(nameof(GetRequestsForPosition), requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
             }
             catch (ValidationException ex)
             {
@@ -528,6 +528,35 @@ namespace Fusion.Resources.Api.Controllers
                 return apiModel;
 
             return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
+        }
+
+        [HttpGet("/projects/{projectIdentifier}/positions/{positionId}/requests")]
+        public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetRequestsForPosition(PathProjectIdentifier projectIdentifier, Guid positionId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
+                    or.OrgChartReadAccess(projectIdentifier.ProjectId);
+                    or.OrgChartPositionReadAccess(projectIdentifier.ProjectId, positionId);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var command = new GetResourceAllocationRequests()
+                .WithProjectId(projectIdentifier.ProjectId)
+                .WithPositionId(positionId);
+
+            var result = await DispatchAsync(command);
+            return Ok(result);
         }
 
 
