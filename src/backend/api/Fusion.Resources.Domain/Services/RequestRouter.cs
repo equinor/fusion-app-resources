@@ -38,7 +38,7 @@ namespace Fusion.Resources.Domain
 
             if (string.IsNullOrEmpty(departmentId))
             {
-                departmentId = await RouteFromBasePosition(request);
+                departmentId = await RouteFromBasePosition(request.OrgPositionId);
             }
 
             if (!string.IsNullOrEmpty(departmentId))
@@ -48,6 +48,23 @@ namespace Fusion.Resources.Domain
 
             return departmentId;
         }
+
+        public async Task<string?> RouteAsync(ApiPositionV2 position, CancellationToken cancellationToken)
+        {
+            string? departmentId = null;
+            
+            if (string.IsNullOrEmpty(departmentId))
+            {
+                departmentId = await RouteFromBasePosition(position.Id);
+            }
+
+            if (!string.IsNullOrEmpty(departmentId))
+            {
+                departmentId = await RouteFromResponsibilityMatrix(position.Id, departmentId, cancellationToken);
+            }
+            return departmentId;
+        }
+
 
         private async Task<string?> RouteFromProposedPerson(DbResourceAllocationRequest.DbOpProposedPerson proposedPerson, CancellationToken cancellationToken)
         {
@@ -59,11 +76,11 @@ namespace Fusion.Resources.Domain
             return profile?.FullDepartment;
         }
 
-        private async Task<string?> RouteFromBasePosition(DbResourceAllocationRequest request)
+        private async Task<string?> RouteFromBasePosition(Guid? orgPositionId)
         {
-            if (!request.OrgPositionId.HasValue) return null;
+            if (!orgPositionId.HasValue) return null;
 
-            var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
+            var position = await orgResolver.ResolvePositionAsync(orgPositionId.Value);
             var departmentPath = default(string);
             if (!string.IsNullOrEmpty(position?.BasePosition?.Department))
             {
@@ -81,6 +98,23 @@ namespace Fusion.Resources.Domain
             {
                 Discipline = request.Discipline,
                 LocationId = request.OrgPositionInstance.LocationId,
+                BasePositionDepartment = departmentId
+            };
+            var matches = Match(props);
+            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
+
+            return bestMatch?.Row.Unit ?? departmentId;
+        }
+
+        private async Task<string?> RouteFromResponsibilityMatrix(Guid orgPositionId, string departmentId, CancellationToken cancellationToken)
+        {
+            var position = await orgResolver.ResolvePositionAsync(orgPositionId);
+            if (position is null) return departmentId;
+
+            var props = new MatchingProperties(position.Project.ProjectId)
+            {
+                Discipline = position.BasePosition.Discipline,
+                LocationId = position.Instances.Select(x => x.Location.Id).FirstOrDefault(),
                 BasePositionDepartment = departmentId
             };
             var matches = Match(props);
