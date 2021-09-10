@@ -36,32 +36,25 @@ namespace Fusion.Resources.Domain
                 departmentId = await RouteFromProposedPerson(request.ProposedPerson, cancellationToken);
             }
 
-            if (string.IsNullOrEmpty(departmentId))
-            {
-                departmentId = await RouteFromBasePosition(request.OrgPositionId);
-            }
+            if (!request.OrgPositionId.HasValue) return departmentId;
 
-            if (!string.IsNullOrEmpty(departmentId))
-            {
-                departmentId = await RouteFromResponsibilityMatrix(request, departmentId, cancellationToken);
-            }
+            var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
+            if (position is null) return departmentId;
 
-            return departmentId;
+            return await RouteAsync(position, request.OrgPositionInstance.Id, cancellationToken);
         }
 
-        public async Task<string?> RouteAsync(ApiPositionV2 position, CancellationToken cancellationToken)
+        public async Task<string?> RouteAsync(ApiPositionV2 position, Guid? instanceId, CancellationToken cancellationToken)
         {
             string? departmentId = null;
-            
+
             if (string.IsNullOrEmpty(departmentId))
             {
-                departmentId = await RouteFromBasePosition(position.Id);
+                departmentId = await RouteFromBasePosition(position.BasePosition);
             }
 
-            if (!string.IsNullOrEmpty(departmentId))
-            {
-                departmentId = await RouteFromResponsibilityMatrix(position.Id, departmentId, cancellationToken);
-            }
+            departmentId = await RouteFromResponsibilityMatrix(position, instanceId, departmentId, cancellationToken);
+
             return departmentId;
         }
 
@@ -76,52 +69,44 @@ namespace Fusion.Resources.Domain
             return profile?.FullDepartment;
         }
 
-        private async Task<string?> RouteFromBasePosition(Guid? orgPositionId)
+        private async Task<string?> RouteFromBasePosition(ApiPositionBasePositionV2 basePosition)
         {
-            if (!orgPositionId.HasValue) return null;
-
-            var position = await orgResolver.ResolvePositionAsync(orgPositionId.Value);
             var departmentPath = default(string);
-            if (!string.IsNullOrEmpty(position?.BasePosition?.Department))
+            if (!string.IsNullOrEmpty(basePosition.Department))
             {
                 // Check if department path is an actual department
-                var actualDepartment = await mediator.Send(new GetDepartment(position.BasePosition.Department));
+                var actualDepartment = await mediator.Send(new GetDepartment(basePosition.Department));
                 departmentPath = actualDepartment?.DepartmentId;
             }
 
             return departmentPath;
         }
 
-        private async Task<string?> RouteFromResponsibilityMatrix(DbResourceAllocationRequest request, string departmentId, CancellationToken cancellationToken)
+        private async Task<string?> RouteFromResponsibilityMatrix(ApiPositionV2 position, Guid? instanceId, string? departmentId, CancellationToken cancellationToken)
         {
-            var props = new MatchingProperties(request.Project.OrgProjectId)
-            {
-                Discipline = request.Discipline,
-                LocationId = request.OrgPositionInstance.LocationId,
-                BasePositionDepartment = departmentId
-            };
-            var matches = Match(props);
-            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
-
-            return bestMatch?.Row.Unit ?? departmentId;
-        }
-
-        private async Task<string?> RouteFromResponsibilityMatrix(Guid orgPositionId, string departmentId, CancellationToken cancellationToken)
-        {
-            var position = await orgResolver.ResolvePositionAsync(orgPositionId);
-            if (position is null) return departmentId;
+            var instance = instanceId.HasValue 
+                ? position.Instances.FirstOrDefault(x => x.Id == instanceId) 
+                : position.Instances.FirstOrDefault();
 
             var props = new MatchingProperties(position.Project.ProjectId)
             {
                 Discipline = position.BasePosition.Discipline,
-                LocationId = position.Instances.Select(x => x.Location?.Id).FirstOrDefault(),
-                BasePositionDepartment = departmentId
+                LocationId = instance?.Location?.Id,
+                BasePositionDepartment = departmentId,
+                BasePositionId = position.BasePosition.Id
             };
             var matches = Match(props);
             var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
 
-            return bestMatch?.Row.Unit ?? departmentId;
+            if (bestMatch?.Row.BasePositionId != null || IsRelevant(position, bestMatch?.Row.Unit))
+            {
+                return bestMatch!.Row.Unit;
+            }
+
+            return departmentId;
         }
+
+        private static bool IsRelevant(ApiPositionV2 position, string? unit) => new DepartmentPath(position.BasePosition.Department).IsRelevant(unit);
 
         private IQueryable<ResponsibilityMatch> Match(MatchingProperties props)
         {
@@ -132,6 +117,7 @@ namespace Fusion.Resources.Domain
                 {
                     Score = (props.BasePositionDepartment != null && m.Unit!.StartsWith(props.BasePositionDepartment) ? 7 : 0)
                             + (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
+                            + (m.BasePositionId == props.BasePositionId ? 5 : 0)
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
                     Row = m
@@ -149,6 +135,7 @@ namespace Fusion.Resources.Domain
             public string? Discipline { get; set; }
             public string? BasePositionDepartment { get; set; }
             public Guid? LocationId { get; set; }
+            public Guid BasePositionId { get; internal set; }
         }
 
         public class ResponsibilityMatch
@@ -157,5 +144,4 @@ namespace Fusion.Resources.Domain
             public DbResponsibilityMatrix Row { get; set; } = null!;
         }
     }
-
 }

@@ -115,7 +115,7 @@ namespace Fusion.Resources.Api.Controllers
             // Empty string is a valid department in line org (CEO), but we don't want to return that.
             if (string.IsNullOrWhiteSpace(position.BasePosition.Department)) return result;
 
-            var routedDepartment = await requestRouter.RouteAsync(position, cancellationToken);
+            var routedDepartment = await requestRouter.RouteAsync(position, instanceId, cancellationToken);
             if (string.IsNullOrWhiteSpace(routedDepartment)) return result;
 
             var department = await DispatchAsync(new GetDepartment(routedDepartment));

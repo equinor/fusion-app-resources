@@ -4,14 +4,11 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Logic.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -36,26 +33,31 @@ namespace Fusion.Resources.Logic.Tests
 
             proposed = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Robert C. Martin" };
             initiator = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Wobert D. Martin" };
+            var locationId = Guid.NewGuid();
+            var project = new DbProject
+            {
+                Id = Guid.NewGuid(),
+                OrgProjectId = Guid.NewGuid(),
+                DomainId = "Project"
+            };
 
             requestPosition = new ApiPositionV2
             {
                 Id = Guid.NewGuid(),
-                BasePosition = new ApiPositionBasePositionV2 { Department = "TPD PRD" }
+                BasePosition = new ApiPositionBasePositionV2 { Id = Guid.NewGuid(), Department = "TPD PRD", Discipline = "IT" },
+                Project = new ApiProjectReferenceV2 { ProjectId = project.OrgProjectId, DomainId = project.DomainId },
+                Instances = new List<ApiPositionInstanceV2> { new ApiPositionInstanceV2 { Location = new ApiPositionLocationV2 { Id = locationId } } }
             };
 
             request = new DbResourceAllocationRequest
             {
                 Id = Guid.NewGuid(),
                 Discipline = "IT",
-                Project = new DbProject
-                {
-                    Id = Guid.NewGuid(),
-                    DomainId = "Project"
-                },
+                Project = project,
                 OrgPositionId = requestPosition.Id,
                 OrgPositionInstance = new DbResourceAllocationRequest.DbOpPositionInstance
                 {
-                    LocationId = Guid.NewGuid(),
+                    LocationId = locationId,
                     AppliesFrom = new DateTime(2021, 01, 01),
                     AppliesTo = new DateTime(2021, 12, 31),
                     Workload = 50
@@ -206,7 +208,9 @@ namespace Fusion.Resources.Logic.Tests
         {
             var position = new ApiPositionV2
             {
-                BasePosition = new ApiPositionBasePositionV2 { Department = "PDP PRD FE ANE" }
+                Project = new ApiProjectReferenceV2 { ProjectId = request.Project.OrgProjectId },
+                BasePosition = new ApiPositionBasePositionV2 { Department = "PDP PRD FE ANE" },
+                Instances = new List<ApiPositionInstanceV2>()
             };
 
             var handler = CreateHandler(
@@ -228,11 +232,13 @@ namespace Fusion.Resources.Logic.Tests
         }
 
         [Fact]
-        public async Task Should_NotRoute_WhenNotRelevant()
+        public async Task Should_NotRoute_WhenNotRelevant_And_NotMatchingBaseposition()
         {
             var position = new ApiPositionV2
             {
-                BasePosition = new ApiPositionBasePositionV2 { Department = "" }
+                Project = new ApiProjectReferenceV2 { ProjectId = request.Project.Id },
+                BasePosition = new ApiPositionBasePositionV2 { Department = "" },
+                Instances = new List<ApiPositionInstanceV2>()
             };
 
             var handler = CreateHandler(
@@ -253,8 +259,34 @@ namespace Fusion.Resources.Logic.Tests
             resolvedDepartment.Should().Be(null);
         }
 
+        [Fact]
+        public async Task Should_Route_WhenMatchingBaseposition()
+        {
+            var handler = CreateHandler();
+
+            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+
+            var matrix = new DbResponsibilityMatrix
+            {
+                Unit = "ANO THER DEP ART MENT",
+                Responsible = responsible,
+                Project = request.Project,
+                BasePositionId = requestPosition.BasePosition.Id
+            };
+
+            db.Add(matrix);
+            await db.SaveChangesAsync();
+
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
+                 CancellationToken.None
+             );
+
+            resolvedDepartment.Should().Be(matrix.Unit);
+        }
+
         private Queries.ResolveResponsibleDepartment.Handler CreateHandler(
-            Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null, 
+            Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null,
             Action<Mock<IMediator>> setupMediatorMock = null)
         {
             var orgServiceMock = new Mock<IProjectOrgResolver>(MockBehavior.Loose);

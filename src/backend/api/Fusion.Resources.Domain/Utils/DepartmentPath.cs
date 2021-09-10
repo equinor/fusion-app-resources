@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain
         public string Parent(int levelsToJump = 1) => string.Join(" ", path.SkipLast(levelsToJump));
         public string GoToLevel(int level) => string.Join(" ", path.Take(level <= 0 ? 1 : level));
 
-        public bool IsRelevant(string other)
+        public bool IsRelevant(string? other)
         {
             if (string.IsNullOrEmpty(other)) return false;
 
