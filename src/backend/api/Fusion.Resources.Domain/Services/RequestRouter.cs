@@ -36,7 +36,7 @@ namespace Fusion.Resources.Domain
                 departmentId = await RouteFromProposedPerson(request.ProposedPerson, cancellationToken);
             }
 
-            if (!request.OrgPositionId.HasValue) return departmentId;
+            if (!String.IsNullOrEmpty(departmentId) || !request.OrgPositionId.HasValue) return departmentId;
 
             var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
             if (position is null) return departmentId;
@@ -46,13 +46,7 @@ namespace Fusion.Resources.Domain
 
         public async Task<string?> RouteAsync(ApiPositionV2 position, Guid? instanceId, CancellationToken cancellationToken)
         {
-            string? departmentId = null;
-
-            if (string.IsNullOrEmpty(departmentId))
-            {
-                departmentId = await RouteFromBasePosition(position.BasePosition);
-            }
-
+            var departmentId = await RouteFromBasePosition(position.BasePosition);
             departmentId = await RouteFromResponsibilityMatrix(position, instanceId, departmentId, cancellationToken);
 
             return departmentId;
@@ -84,8 +78,8 @@ namespace Fusion.Resources.Domain
 
         private async Task<string?> RouteFromResponsibilityMatrix(ApiPositionV2 position, Guid? instanceId, string? departmentId, CancellationToken cancellationToken)
         {
-            var instance = instanceId.HasValue 
-                ? position.Instances.FirstOrDefault(x => x.Id == instanceId) 
+            var instance = instanceId.HasValue
+                ? position.Instances.FirstOrDefault(x => x.Id == instanceId)
                 : position.Instances.FirstOrDefault();
 
             var props = new MatchingProperties(position.Project.ProjectId)
