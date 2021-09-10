@@ -118,7 +118,7 @@ namespace Fusion.Resources.Api.Controllers
             var routedDepartment = await requestRouter.RouteAsync(position, cancellationToken);
             if (string.IsNullOrWhiteSpace(routedDepartment)) return result;
 
-            var department = await DispatchAsync(new GetDepartment(routedDepartment!));
+            var department = await DispatchAsync(new GetDepartment(routedDepartment));
             var related = await DispatchAsync(new GetRelatedDepartments(position.BasePosition.Department));
 
             if (related is not null)
