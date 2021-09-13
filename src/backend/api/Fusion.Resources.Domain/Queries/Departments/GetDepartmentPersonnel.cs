@@ -2,6 +2,7 @@
 using Fusion.AspNetCore.OData;
 using Fusion.Integration.Http;
 using Fusion.Resources.Database;
+using Fusion.Resources.Domain.Queries;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -75,12 +76,13 @@ namespace Fusion.Resources.Domain
             {
                 var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments);
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
-
+                var departmentRequests = await GetProposedRequestsAsync(request.Department);
 
                 departmentPersonnel.ForEach(p =>
                 {
-
                     p.Absence = departmentAbsence[p.AzureUniqueId];
+                    if (departmentRequests.ContainsKey(p.AzureUniqueId))
+                        p.PendingRequests = departmentRequests[p.AzureUniqueId];
 
                     if (request.ExpandTimeline)
                     {
@@ -89,15 +91,29 @@ namespace Fusion.Resources.Domain
                             .ToList();
 
                         // Timeline date input has been verified when shouldExpandTimline is true.
-                        p.Timeline = TimelineUtils.GeneratePersonnelTimeline(p.PositionInstances, p.Absence, request.TimelineStart!.Value, request.TimelineEnd!.Value).OrderBy(p => p.AppliesFrom)
-                            //.Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
-                            .ToList();
+                        p.Timeline = new PersonnelTimelineBuilder(request.TimelineStart!.Value, request.TimelineEnd!.Value)
+                            .WithPositions(p.PositionInstances)
+                            .WithAbsences(p.Absence)
+                            .WithPendingRequests(p.PendingRequests)
+                            .Build();
                     }
                 });
 
                 return departmentPersonnel;
             }
 
+            private async Task<Dictionary<Guid,List<QueryResourceAllocationRequest>>> GetProposedRequestsAsync(string department)
+            {
+                var command = new GetResourceAllocationRequests()
+                    .WithAssignedDepartment(department)
+                    .ForAll()
+                    .WithExcludeCompleted()
+                    .WithExcludeWithoutProposedPerson();
+                var pendingRequests = await mediator.Send(command);
+                return pendingRequests
+                    .ToLookup(x => x.ProposedPerson!.AzureUniqueId)
+                    .ToDictionary(x => x.Key, x => x.ToList());
+            }
 
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments)
             {

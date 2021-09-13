@@ -96,6 +96,12 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests WithExcludeWithoutProposedPerson()
+        {
+            ExcludeWithoutProposedPerson = true;
+            return this;
+    }
+
         public Guid? ProjectId { get; private set; }
         public string? DepartmentString { get; private set; }
         public bool Unassigned { get; private set; }
@@ -107,6 +113,7 @@ namespace Fusion.Resources.Domain.Queries
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
         public bool? ShouldIncludeAllRequests { get; private set; }
+        public bool ExcludeWithoutProposedPerson { get; private set; }
 
         [Flags]
         private enum ExpandFields
@@ -130,7 +137,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Must(o => o.HasValue).When(x => !x.Owner.HasValue)
                     .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
             }
-        }
+        }      
 
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
@@ -182,8 +189,6 @@ namespace Fusion.Resources.Domain.Queries
                     });
                 }
 
-                
-
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
 
@@ -191,6 +196,9 @@ namespace Fusion.Resources.Domain.Queries
                     query = query.Where(c => c.AssignedDepartment == request.DepartmentString);
                 if (request.Unassigned)
                     query = query.Where(c => c.AssignedDepartment == null);
+
+                if (request.ExcludeWithoutProposedPerson)
+                    query = query.Where(x => x.ProposedPerson.HasBeenProposed);
 
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);

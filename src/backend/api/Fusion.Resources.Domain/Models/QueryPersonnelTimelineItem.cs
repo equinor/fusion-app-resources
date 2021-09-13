@@ -12,9 +12,9 @@ namespace Fusion.Resources.Domain
             Description = $"{absence.Type}";
             AppliesFrom = absence.AppliesFrom.Date;
             AppliesTo = absence.AppliesTo.GetValueOrDefault(DateTime.MaxValue).Date;
-            
+
             IsNotePrivate = absence.IsPrivate;
-            if(absence.TaskDetails is not null)
+            if (absence.TaskDetails is not null)
             {
                 RoleName = absence.TaskDetails.RoleName;
                 Location = absence.TaskDetails.Location;
@@ -34,8 +34,22 @@ namespace Fusion.Resources.Domain
             AppliesTo = position.AppliesTo;
         }
 
+        public QueryPersonnelTimelineItem(string type, QueryResourceAllocationRequest request)
+        {
+            var instance = request.OrgPositionInstance ?? new ApiClients.Org.ApiPositionInstanceV2();
+            Type = type;
+            Workload = instance.Workload;
+            Id = request.RequestId;
+            Description = $"{request.OrgPosition?.Name}";
+            BasePosition = (request.OrgPosition?.BasePosition is not null)
+                ? new QueryBasePosition(request.OrgPosition.BasePosition) : null;
+            Project = new QueryProjectRef(request.Project);
+            AppliesFrom = instance.AppliesFrom;
+            AppliesTo = instance.AppliesTo;
+        }
+
         public Guid Id { get; set; }
-        public string Type { get; set; } 
+        public string Type { get; set; }
         public double? Workload { get; set; }
         public string Description { get; set; }
 

@@ -7,45 +7,58 @@ using System.Linq;
 
 namespace Fusion.Resources.Domain
 {
-    public static class TimelineUtils
+
+    public class PersonnelTimelineBuilder
     {
-        public static IEnumerable<QueryTimelineRange<QueryPersonnelTimelineItem>> GeneratePersonnelTimeline(
-            List<QueryPersonnelPosition> position,
-            List<QueryPersonAbsenceBasic> absences,
-            DateTime filterStart,
-            DateTime filterEnd)
+        private DateTime filterStart, filterEnd;
+        private Timeline<QueryPersonnelTimelineItem> timeline;
+
+        public PersonnelTimelineBuilder(DateTime filterStart, DateTime filterEnd)
         {
-            // Ensure utc dates
             if (filterStart.Kind != DateTimeKind.Utc)
                 filterStart = DateTime.SpecifyKind(filterStart, DateTimeKind.Utc);
 
             if (filterEnd.Kind != DateTimeKind.Utc)
                 filterEnd = DateTime.SpecifyKind(filterEnd, DateTimeKind.Utc);
 
-            var timeline = GeneratePersonnelTimelineInternal(position, absences, filterStart, filterEnd).ToList();
-            //FixOverlappingPeriods(timeline);
-            return timeline;
+            this.filterStart = filterStart;
+            this.filterEnd = filterEnd;
+            timeline = new Timeline<QueryPersonnelTimelineItem>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
         }
 
-        private static IEnumerable<QueryTimelineRange<QueryPersonnelTimelineItem>> GeneratePersonnelTimelineInternal(
-            List<QueryPersonnelPosition> positions,
-            List<QueryPersonAbsenceBasic> absences,
-            DateTime filterStart,
-            DateTime filterEnd)
+        public PersonnelTimelineBuilder WithPositions(List<QueryPersonnelPosition> positions)
         {
-            var timeline = new Timeline<QueryPersonnelTimelineItem>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
-
             positions.ForEach(p => timeline.Add(new QueryPersonnelTimelineItem("PositionInstance", p)));
-            absences.ForEach(a => timeline.Add(new QueryPersonnelTimelineItem("Absence", a)));
+            return this;
+        }
 
+        public PersonnelTimelineBuilder WithAbsences(List<QueryPersonAbsenceBasic> absences)
+        {
+            absences.ForEach(a => timeline.Add(new QueryPersonnelTimelineItem("Absence", a)));
+            return this;
+        }
+        public PersonnelTimelineBuilder WithPendingRequests(List<QueryResourceAllocationRequest> pendingRequests)
+        {
+            pendingRequests.ForEach(rq => timeline.Add(new QueryPersonnelTimelineItem("Request", rq)));
+            return this;
+        }
+
+        public List<QueryTimelineRange<QueryPersonnelTimelineItem>> Build()
+        {
             var view = timeline.GetView(filterStart, filterEnd);
             return view.Segments.Select(x => new QueryTimelineRange<QueryPersonnelTimelineItem>(x.FromDate, x.ToDate)
             {
                 Items = x.Items,
                 Workload = x.Items.Sum(item => item.Workload ?? 0)
-            });
+            })
+            .OrderBy(x => x.AppliesFrom)
+            .ToList();
         }
+    }
 
+
+    public static class TimelineUtils
+    {
         public static IEnumerable<QueryTimelineRange<QueryRequestsTimelineItem>> GenerateRequestsTimeline(
             List<QueryResourceAllocationRequest> requests,
             DateTime filterStart,
@@ -86,7 +99,7 @@ namespace Fusion.Resources.Domain
                 .ToList();
 
             var timeline = new Timeline<QueryTbnPosition>(x => x.AppliesFrom.Date, x => x.AppliesTo.Date);
-            foreach(var position in filteredPositions)
+            foreach (var position in filteredPositions)
             {
                 timeline.Add(position);
             }
