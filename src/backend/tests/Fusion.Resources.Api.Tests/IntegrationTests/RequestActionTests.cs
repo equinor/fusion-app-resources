@@ -125,6 +125,26 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task CreateRequestAction_ShouldGiveBadRequest_WhenAssignedToIdIsInvalid()
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                .WithTestUser(fixture.AdminUser)
+                .AddTestAuthToken();
+
+            var payload = new
+            {
+                title = "Test title",
+                category = "Test category",
+                type = "test",
+                assignedToId = Guid.NewGuid()
+            };
+
+            var result = await adminClient.TestClientPostAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions", payload);
+
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task PatchRequestAction_ShouldBeOk()
         {
             var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
@@ -153,6 +173,57 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.isRequired.Should().BeTrue();
             result.Value.assignedTo.AzureUniquePersonId.Should().Be(assignedPerson.AzureUniqueId.Value);
             result.Value.dueDate.Should().Be(new DateTime(2021, 10, 02));
+        }
+
+        [Fact]
+        public async Task Patch_ShouldGiveBadRequest_WhenAssignedToIdIsInvalid()
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
+
+            var payload = new
+            {
+                title = "Updated Test title",
+                body = "Updated Test body",
+                category = "Updated Test category",
+                type = "Updated test",
+                subType = (string)null,
+                isRequired = true,
+                assignedToId = Guid.NewGuid(),
+                dueDate = "2021-10-02"
+            };
+            var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
+
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task Patch_ShouldBeAbleToUnassignAction()
+        {
+            var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, x => { x.assignedToId = assignedPerson.AzureUniqueId; });
+
+            var payload = new
+            {
+                title = "Updated Test title",
+                body = "Updated Test body",
+                category = "Updated Test category",
+                type = "Updated test",
+                subType = (string)null,
+                isRequired = true,
+                assignedToId = default(Guid?),
+                dueDate = "2021-10-02"
+            };
+            var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
+
+            result.Should().BeSuccessfull();
+            result.Value.assignedTo.Should().BeNull();
         }
 
         [Fact]
