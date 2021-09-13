@@ -8,6 +8,8 @@ namespace Fusion.Resources.Domain
     public class QueryRequestAction
     {
         private readonly string? propertiesJson;
+
+
         public QueryRequestAction(DbRequestAction dbTask)
         {
             Id = dbTask.Id;
@@ -24,11 +26,13 @@ namespace Fusion.Resources.Domain
             SentBy = new QueryPerson(dbTask.SentBy);
             IsRequired = dbTask.IsRequired;
             propertiesJson = dbTask.PropertiesJson;
+            DueDate = dbTask.DueDate;
+            AssignedTo = (dbTask.AssignedTo is not null) ? new QueryPerson(dbTask.AssignedTo) : null;
         }
 
         public Guid Id { get; }
         public string Title { get; }
-        public string Body { get; }
+        public string? Body { get; }
         public string Type { get; }
         public string? SubType { get; }
         public QueryTaskSource Source { get; }
@@ -38,6 +42,9 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? ResolvedAt { get; }
         public QueryPerson? ResolvedBy { get; }
         public QueryPerson SentBy { get; }
+        public QueryPerson? AssignedTo { get; }
+
+        public DateTime? DueDate { get; }
 
         public Dictionary<string, object> Properties
         {

@@ -72,7 +72,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(QueryTaskSource)}.")
                 },
                 IsRequired = request.IsRequired,
-                Properties = request.Properties
+                Properties = request.Properties,
+                DueDate = request.DueDate,
+                AssignedToId = request.AssignedToId
             };
 
             var created = await DispatchAsync(command);
@@ -210,6 +212,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (patch.IsResolved.HasValue) command.IsResolved = patch.IsResolved.Value;
             if (patch.IsRequired.HasValue) command.IsRequired = patch.IsRequired.Value;
             if (patch.Properties.HasValue) command.Properties = patch.Properties.Value;
+            if (patch.AssignedToId.HasValue) command.AssignedToId = patch.AssignedToId.Value;
+            if (patch.DueDate.HasValue) command.DueDate = patch.DueDate.Value;
 
             try
             {

@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Fusion.AspNetCore.Api;
+using System;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -11,6 +12,9 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<string?> SubType { get; set; } = new();
         public PatchProperty<bool> IsResolved { get; set; } = new();
         public PatchProperty<bool> IsRequired { get; set; } = new();
+        public PatchProperty<DateTime?> DueDate { get; set; } = new();
+        public PatchProperty<Guid?> AssignedToId { get; set; } = new();
+
         public PatchProperty<ApiPropertiesCollection> Properties { get; set; } = new();
 
         public class Validator : AbstractValidator<PatchActionRequest>

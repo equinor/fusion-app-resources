@@ -21,20 +21,26 @@ namespace Fusion.Resources.Domain.Commands.Tasks
         }
 
         public MonitorableProperty<string> Title { get; set; } = new();
-        public MonitorableProperty<string> Body { get; set; } = new();
+        public MonitorableProperty<string?> Body { get; set; } = new();
         public MonitorableProperty<string> Type { get; set; } = new();
         public MonitorableProperty<string?> SubType { get; set; } = new();
         public MonitorableProperty<bool> IsResolved { get; set; } = new();
         public MonitorableProperty<bool> IsRequired { get; set; } = new();
+
+        public MonitorableProperty<DateTime?> DueDate { get; set; } = new();
+        public MonitorableProperty<Guid?> AssignedToId { get; set; } = new();
+
         public MonitorableProperty<Dictionary<string, object>?> Properties { get; set; } = new();
 
         public class Handler : IRequestHandler<UpdateRequestAction, QueryRequestAction>
         {
             private readonly ResourcesDbContext db;
+            private readonly IProfileService profileService;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IProfileService profileService)
             {
                 this.db = db;
+                this.profileService = profileService;
             }
 
             public async Task<QueryRequestAction> Handle(UpdateRequestAction request, CancellationToken cancellationToken)
@@ -72,6 +78,14 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                         action.ResolvedById = null;
                     }
                 });
+
+                await request.AssignedToId.IfSetAsync(async x => {
+                    if (!x.HasValue) return;
+
+                    var assignedTo = await profileService.EnsurePersonAsync(x.Value);
+                    action.AssignedToId = assignedTo!.Id;
+                });
+                request.DueDate.IfSet(x => action.DueDate = x);
 
                 await db.SaveChangesAsync(cancellationToken);
 

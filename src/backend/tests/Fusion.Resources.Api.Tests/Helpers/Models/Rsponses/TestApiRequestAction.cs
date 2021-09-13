@@ -18,5 +18,9 @@ namespace Fusion.Resources.Api.Tests
         public TestApiPerson resolvedBy { get; set; }
         public bool isRequired { get; set; }
         public Dictionary<string, object> properties { get; set; }
+        public DateTime? dueDate { get; set; }
+
+        public TestApiPerson assignedTo { get; set; }
+
     }
 }

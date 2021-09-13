@@ -4,7 +4,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +11,7 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class AddRequestAction : IRequest<QueryRequestAction>
     {
-        public AddRequestAction(Guid requestId, string title, string body, string type)
+        public AddRequestAction(Guid requestId, string title, string? body, string type)
         {
             RequestId = requestId;
             Title = title;
@@ -22,13 +21,15 @@ namespace Fusion.Resources.Domain.Commands
 
         public Guid RequestId { get; }
         public string Title { get; }
-        public string Body { get; set; }
+        public string? Body { get; set; }
         public string Type { get; set; }
         public string? SubType { get; set; }
         public QueryTaskSource Source { get; set; }
         public QueryTaskResponsible Responsible { get; set; }
         public Dictionary<string, object>? Properties { get; set; }
         public bool IsRequired { get; set; }
+        public Guid? AssignedToId { get; set; }
+        public DateTime? DueDate { get; set; }
 
         public class Handler : IRequestHandler<AddRequestAction, QueryRequestAction>
         {
@@ -47,6 +48,11 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var userId = context.HttpContext!.User.GetAzureUniqueIdOrThrow();
                 var creator = await profileService.EnsurePersonAsync(userId);
+
+                DbPerson? assignedTo = null;
+                if (request.AssignedToId.HasValue)
+                    assignedTo = await profileService.EnsurePersonAsync(request.AssignedToId.Value);
+
                 var newTask = new DbRequestAction
                 {
                     Title = request.Title,
@@ -58,7 +64,9 @@ namespace Fusion.Resources.Domain.Commands
                     PropertiesJson = request.Properties?.SerializeToStringOrDefault(),
                     SentById = creator!.Id,
                     RequestId = request.RequestId,
-                    IsRequired = request.IsRequired
+                    IsRequired = request.IsRequired,
+                    AssignedToId = assignedTo?.Id,
+                    DueDate = request.DueDate
                 };
 
                 db.RequestActions.Add(newTask);

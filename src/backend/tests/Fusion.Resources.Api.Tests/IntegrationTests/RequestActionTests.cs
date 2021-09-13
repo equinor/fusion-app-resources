@@ -61,6 +61,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task CreateRequestAction_ShouldBeSuccesfull()
         {
+            var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
             var adminClient = fixture.ApiFactory.CreateClient()
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
@@ -74,7 +75,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 subType = "Test Test",
                 source = "ResourceOwner",
                 responsible = "TaskOwner",
-                isRequired = true
+                isRequired = true,
+                assignedToId = assignedPerson.AzureUniqueId,
+                dueDate = "2021-10-02"
             };
 
             var result = await adminClient.TestClientPostAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions", payload);
@@ -90,11 +93,41 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.resolvedAt.Should().BeNull();
             result.Value.resolvedBy.Should().BeNull();
             result.Value.isRequired.Should().BeTrue();
+            result.Value.assignedTo.AzureUniquePersonId.Should().Be(assignedPerson.AzureUniqueId.Value);
+            result.Value.dueDate.Should().Be(new DateTime(2021, 10, 02));
+        }
+
+        [Fact]
+        public async Task CreateRequestAction_Body_ShouldBeOptional()
+        {
+            var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
+            var adminClient = fixture.ApiFactory.CreateClient()
+                .WithTestUser(fixture.AdminUser)
+                .AddTestAuthToken();
+
+            var payload = new
+            {
+                title = "Test title",
+                category = "Test category",
+                type = "test",
+            };
+
+            var result = await adminClient.TestClientPostAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions", payload);
+
+            result.Should().BeSuccessfull();
+            result.Value.id.Should().NotBeEmpty();
+            result.Value.title.Should().Be(payload.title);
+            result.Value.type.Should().Be(payload.type);
+            result.Value.isResolved.Should().BeFalse();
+            result.Value.resolvedAt.Should().BeNull();
+            result.Value.resolvedBy.Should().BeNull();
+            result.Value.isRequired.Should().BeFalse();
         }
 
         [Fact]
         public async Task PatchRequestAction_ShouldBeOk()
         {
+            var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
             var adminClient = fixture.ApiFactory.CreateClient()
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
@@ -107,7 +140,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 category = "Updated Test category",
                 type = "Updated test",
                 subType = (string)null,
-                isRequired = true
+                isRequired = true,
+                assignedToId = assignedPerson.AzureUniqueId,
+                dueDate = "2021-10-02"
             };
             var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
 
@@ -116,6 +151,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.type.Should().Be(payload.type);
             result.Value.subType.Should().Be(payload.subType);
             result.Value.isRequired.Should().BeTrue();
+            result.Value.assignedTo.AzureUniquePersonId.Should().Be(assignedPerson.AzureUniqueId.Value);
+            result.Value.dueDate.Should().Be(new DateTime(2021, 10, 02));
         }
 
         [Fact]
