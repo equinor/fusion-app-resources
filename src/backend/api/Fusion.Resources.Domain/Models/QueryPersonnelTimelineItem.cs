@@ -36,7 +36,8 @@ namespace Fusion.Resources.Domain
 
         public QueryPersonnelTimelineItem(string type, QueryResourceAllocationRequest request)
         {
-            var instance = request.OrgPositionInstance ?? new ApiClients.Org.ApiPositionInstanceV2();
+            if (request.OrgPositionInstance is null) throw new ArgumentException($"Position instance cannot be null. [{request.RequestId}]");
+            var instance = request.OrgPositionInstance;
             Type = type;
             Workload = instance.Workload;
             Id = request.RequestId;
