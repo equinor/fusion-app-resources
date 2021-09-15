@@ -106,6 +106,8 @@ namespace Fusion.Resources.Domain
             {
                 var command = new GetResourceAllocationRequests()
                     .WithAssignedDepartment(department)
+                    .ExpandPositions()
+                    .ExpandPositionInstances()
                     .ForAll()
                     .WithExcludeCompleted()
                     .WithExcludeWithoutProposedPerson();
