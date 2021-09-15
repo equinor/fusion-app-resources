@@ -413,6 +413,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.All(x => x.type == "TestType");
         }
 
+        [Fact]
+        public async Task GetActions_ShouldIncludeAssignedTo()
+        {
+            var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.assignedToId = assignedPerson.AzureUniqueId);
+            var result = await adminClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions");
+            result.Should().BeSuccessfull();
+            result.Value.All(x => x.assignedTo is not null).Should().BeTrue();
+        }
+
         public Task DisposeAsync() => Task.CompletedTask;
     }
 }

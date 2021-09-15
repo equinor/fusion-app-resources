@@ -37,6 +37,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             public async Task<IEnumerable<QueryRequestAction>> Handle(GetRequestActions request, CancellationToken cancellationToken)
             {
                 var query = db.RequestActions
+                    .Include(t => t.AssignedTo)
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
                     .Where(t => t.RequestId == request.requestId);
