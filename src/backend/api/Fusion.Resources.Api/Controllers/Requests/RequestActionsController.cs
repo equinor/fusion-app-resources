@@ -119,9 +119,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var command = new GetRequestActions(requestId).WithQuery(query);
-            var tasks = await DispatchAsync(command);
+            var actions = await DispatchAsync(command);
 
-            return Ok(tasks.Select(t => new ApiRequestAction(t)));
+            return Ok(actions.Select(t => new ApiRequestAction(t)));
         }
 
         [HttpGet("requests/{requestId}/actions/{actionId}")]
@@ -161,10 +161,10 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var command = new GetRequestAction(requestId, actionId);
-            var task = await DispatchAsync(command);
-            if (task is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
+            var action = await DispatchAsync(command);
+            if (action is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
 
-            return Ok(new ApiRequestAction(task));
+            return Ok(new ApiRequestAction(action));
         }
 
         [HttpPatch("requests/{requestId}/actions/{actionId}")]
@@ -220,7 +220,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 var updated = await DispatchAsync(command);
                 return Ok(new ApiRequestAction(updated));
             }
-            catch (TaskNotFoundError err)
+            catch (ActionNotFoundError err)
             {
                 return FusionApiError.NotFound(actionId, err.Message);
             }

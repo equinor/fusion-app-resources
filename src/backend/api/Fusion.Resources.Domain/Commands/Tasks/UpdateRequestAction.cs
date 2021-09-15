@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                     .Include(t => t.SentBy)
                     .SingleOrDefaultAsync(t => t.Id == request.taskId && t.RequestId == request.requestId, cancellationToken);
 
-                if (action is null) throw new TaskNotFoundError(request.requestId, request.taskId);
+                if (action is null) throw new ActionNotFoundError(request.requestId, request.taskId);
 
                 request.Title.IfSet(title => action.Title = title);
                 request.Body.IfSet(body => action.Body = body);
@@ -92,11 +92,11 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 return new QueryRequestAction(action);
             }
 
-            private static void UpdateCustomProperties(Database.Entities.DbRequestAction task, Dictionary<string, object>? props)
+            private static void UpdateCustomProperties(Database.Entities.DbRequestAction action, Dictionary<string, object>? props)
             {
                 if (props is null) return;
 
-                var existingProps = new QueryRequestAction(task).Properties;
+                var existingProps = new QueryRequestAction(action).Properties;
                 foreach(var prop in props)
                 {
                     if (existingProps.ContainsKey(prop.Key))
@@ -108,7 +108,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                         existingProps.Add(prop.Key, prop.Value);
                     }
                 }
-                task.PropertiesJson = JsonSerializer.Serialize(existingProps);
+                action.PropertiesJson = JsonSerializer.Serialize(existingProps);
             }
         }
     }

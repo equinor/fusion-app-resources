@@ -53,7 +53,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (request.AssignedToId.HasValue)
                     assignedTo = await profileService.EnsurePersonAsync(request.AssignedToId.Value);
 
-                var newTask = new DbRequestAction
+                var newAction = new DbRequestAction
                 {
                     Title = request.Title,
                     Body = request.Body,
@@ -69,10 +69,10 @@ namespace Fusion.Resources.Domain.Commands
                     DueDate = request.DueDate
                 };
 
-                db.RequestActions.Add(newTask);
+                db.RequestActions.Add(newAction);
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestAction(newTask);
+                return new QueryRequestAction(newAction);
             }
         }
     }

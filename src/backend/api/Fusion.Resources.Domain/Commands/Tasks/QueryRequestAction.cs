@@ -10,24 +10,24 @@ namespace Fusion.Resources.Domain
         private readonly string? propertiesJson;
 
 
-        public QueryRequestAction(DbRequestAction dbTask)
+        public QueryRequestAction(DbRequestAction dbAction)
         {
-            Id = dbTask.Id;
-            Title = dbTask.Title;
-            Body = dbTask.Body;
-            Type = dbTask.Type;
-            SubType = dbTask.SubType;
-            Source = dbTask.Source.MapToDomain();
-            Responsible = dbTask.Responsible.MapToDomain();
+            Id = dbAction.Id;
+            Title = dbAction.Title;
+            Body = dbAction.Body;
+            Type = dbAction.Type;
+            SubType = dbAction.SubType;
+            Source = dbAction.Source.MapToDomain();
+            Responsible = dbAction.Responsible.MapToDomain();
 
-            IsResolved = dbTask.IsResolved;
-            ResolvedAt = dbTask.ResolvedAt;
-            ResolvedBy = (dbTask.ResolvedBy is not null) ? new QueryPerson(dbTask.ResolvedBy) : null;
-            SentBy = new QueryPerson(dbTask.SentBy);
-            IsRequired = dbTask.IsRequired;
-            propertiesJson = dbTask.PropertiesJson;
-            DueDate = dbTask.DueDate;
-            AssignedTo = (dbTask.AssignedTo is not null) ? new QueryPerson(dbTask.AssignedTo) : null;
+            IsResolved = dbAction.IsResolved;
+            ResolvedAt = dbAction.ResolvedAt;
+            ResolvedBy = (dbAction.ResolvedBy is not null) ? new QueryPerson(dbAction.ResolvedBy) : null;
+            SentBy = new QueryPerson(dbAction.SentBy);
+            IsRequired = dbAction.IsRequired;
+            propertiesJson = dbAction.PropertiesJson;
+            DueDate = dbAction.DueDate;
+            AssignedTo = (dbAction.AssignedTo is not null) ? new QueryPerson(dbAction.AssignedTo) : null;
         }
 
         public Guid Id { get; }
