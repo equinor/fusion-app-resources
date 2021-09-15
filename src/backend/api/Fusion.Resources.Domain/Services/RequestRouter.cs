@@ -90,7 +90,7 @@ namespace Fusion.Resources.Domain
                 BasePositionId = position.BasePosition.Id
             };
             var matches = Match(props);
-            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
+            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score && m.Score >= m.RequiredScore, cancellationToken);
 
             if (bestMatch?.Row.BasePositionId != null || IsRelevant(position, bestMatch?.Row.Unit))
             {
@@ -114,6 +114,10 @@ namespace Fusion.Resources.Domain
                             + (m.BasePositionId == props.BasePositionId ? 5 : 0)
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
+                    RequiredScore = (m.Project != null ? 5 : 0)
+                            + (m.BasePositionId != null ? 5 : 0)
+                            + (m.Discipline != null ? 2 : 0)
+                            + (m.LocationId != null ? 1 : 0),
                     Row = m
                 })
                 .OrderByDescending(x => x.Score);
@@ -136,6 +140,7 @@ namespace Fusion.Resources.Domain
         {
             public int Score { get; set; }
             public DbResponsibilityMatrix Row { get; set; } = null!;
+            public int RequiredScore { get; set; }
         }
     }
 }

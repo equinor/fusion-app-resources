@@ -296,7 +296,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var matrixRequest = new UpdateResponsibilityMatrixRequest
             {
                 ProjectId = testProject.Project.ProjectId,
-                LocationId = Guid.NewGuid(),
                 Discipline = normalRequest.Discipline,
                 BasePositionId = testProject.Positions.First().BasePosition.Id,
                 Sector = "ABC",
