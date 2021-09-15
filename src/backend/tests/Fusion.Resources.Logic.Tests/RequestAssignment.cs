@@ -285,6 +285,33 @@ namespace Fusion.Resources.Logic.Tests
             resolvedDepartment.Should().Be(matrix.Unit);
         }
 
+        [Fact]
+        public async Task Should_NotRoute_WhenLocationIsNotMatched()
+        {
+            var handler = CreateHandler();
+
+            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+
+            var matrix = new DbResponsibilityMatrix
+            {
+                Unit = "ANO THER DEP ART MENT",
+                Responsible = responsible,
+                Project = request.Project,
+                LocationId = Guid.NewGuid(),
+                BasePositionId = requestPosition.BasePosition.Id
+            };
+
+            db.Add(matrix);
+            await db.SaveChangesAsync();
+
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
+                 CancellationToken.None
+             );
+
+            resolvedDepartment.Should().NotBe(matrix.Unit);
+        }
+
         private Queries.ResolveResponsibleDepartment.Handler CreateHandler(
             Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null,
             Action<Mock<IMediator>> setupMediatorMock = null)
