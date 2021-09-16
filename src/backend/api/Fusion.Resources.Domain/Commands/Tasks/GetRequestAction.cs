@@ -28,12 +28,13 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             }
             public async Task<QueryRequestAction?> Handle(GetRequestAction request, CancellationToken cancellationToken)
             {
-                var task = await db.RequestActions
+                var action = await db.RequestActions
+                    .Include(t => t.AssignedTo)
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
                     .SingleOrDefaultAsync(t => t.RequestId == request.requestId && t.Id == request.taskId, cancellationToken);
 
-                return task is not null ? new QueryRequestAction(task) : null;
+                return action is not null ? new QueryRequestAction(action) : null;
             }
         }
     }

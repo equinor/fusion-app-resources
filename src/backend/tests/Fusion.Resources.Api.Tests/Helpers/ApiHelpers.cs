@@ -2,6 +2,7 @@
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Controllers;
+using Fusion.Resources.Api.Tests.Helpers.Models.Requests;
 using Fusion.Resources.Api.Tests.IntegrationTests;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
@@ -233,9 +234,9 @@ namespace Fusion.Resources.Api.Tests
             return result.Value;
         }
 
-        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestApiRequestAction> setup,  Dictionary<string, object> props = null)
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestCreateRequestAction> setup,  Dictionary<string, object> props = null)
         {
-            var payload = new TestApiRequestAction
+            var payload = new TestCreateRequestAction
             {
                 title = "Test title",
                 body = "Test body",

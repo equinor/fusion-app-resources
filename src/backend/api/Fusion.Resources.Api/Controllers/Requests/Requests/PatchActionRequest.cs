@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
 using Fusion.AspNetCore.Api;
+using Fusion.Resources.Domain;
+using System;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -11,11 +13,14 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<string?> SubType { get; set; } = new();
         public PatchProperty<bool> IsResolved { get; set; } = new();
         public PatchProperty<bool> IsRequired { get; set; } = new();
+        public PatchProperty<DateTime?> DueDate { get; set; } = new();
+        public PatchProperty<Guid?> AssignedToId { get; set; } = new();
+
         public PatchProperty<ApiPropertiesCollection> Properties { get; set; } = new();
 
         public class Validator : AbstractValidator<PatchActionRequest>
         {
-            public Validator()
+            public Validator(IProfileService profileService)
             {
                 RuleFor(x => x.Title.Value)
                     .MaximumLength(100)
@@ -32,6 +37,14 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.SubType.Value)
                     .MaximumLength(60)
                     .When(x => x.SubType.HasValue && !string.IsNullOrEmpty(x.SubType.Value));
+
+                RuleFor(x => x.AssignedToId)
+                    .MustAsync(async (assignedToId, cancelToken) =>
+                    {
+                        var assigned = await profileService.EnsurePersonAsync(assignedToId.Value!.Value);
+                        return assigned != null;
+                    })
+                    .When(x => x.AssignedToId.HasValue && x.AssignedToId.Value.HasValue);
             }
         }
     }
