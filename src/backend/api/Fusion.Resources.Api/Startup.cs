@@ -57,9 +57,6 @@ namespace Fusion.Resources.Api
             services.AddHttpContextAccessor();
             services.AddSwagger(Configuration);
 
-            
-
-
             // Configure fusion integration
             services.AddFusionIntegration(options =>
             {
