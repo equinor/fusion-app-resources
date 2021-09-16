@@ -1,15 +1,8 @@
 ﻿using Fusion.ApiClients.Org;
-using Fusion.Integration.Http;
-using Fusion.Integration.Org;
-using Fusion.Resources.Database;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
