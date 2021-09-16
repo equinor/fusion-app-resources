@@ -278,7 +278,7 @@ namespace Fusion.Resources.Api.Tests
         }
 
 
-        public static async Task<TestResponsibilitMatrix> AddResponsibilityMatrix(this HttpClient client, FusionTestProjectBuilder testProject, Action<UpdateResponsibilityMatrixRequest>? setup = null)
+        public static async Task<TestResponsibilitMatrix> AddResponsibilityMatrixAsync(this HttpClient client, FusionTestProjectBuilder testProject, Action<UpdateResponsibilityMatrixRequest> setup = null)
         {
             var request = new UpdateResponsibilityMatrixRequest
             {

@@ -291,7 +291,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             project.AddToMockService();
 
             using var adminScope = fixture.AdminScope();
-            await Client.AddResponsibilityMatrix(project, x => {
+            await Client.AddResponsibilityMatrixAsync(project, x => {
                 x.BasePositionId = pos.BasePosition.Id;
                 x.Unit = "PDP TST ABC QWE";
             });
