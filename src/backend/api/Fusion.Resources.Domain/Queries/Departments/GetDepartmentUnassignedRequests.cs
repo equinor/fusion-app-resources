@@ -42,12 +42,11 @@ namespace Fusion.Resources.Domain.Queries
                     .ForResourceOwners()
                     .WithExcludeCompleted(true), cancellationToken) ;
 
-                var sourceDepartmentLevel = request.DepartmentString.Split(" ").Length;
+                var sourceDepartment = new DepartmentPath(request.DepartmentString);
 
 
                 // This should be some sort of configuration in the future
-                Func<QueryResourceAllocationRequest, bool> departmentCheck = (r) =>
-                    DepartmentUtils.IsRelevantBasePositionDepartment(sourceDepartmentLevel, request.DepartmentString, r.OrgPosition!.BasePosition.Department);
+                Func<QueryResourceAllocationRequest, bool> departmentCheck = (r) => sourceDepartment.IsRelevant(r.OrgPosition!.BasePosition.Department);
 
                 var relevantRequests = unassignedRequests
                     .Where(r => r.OrgPosition != null && departmentCheck(r))

@@ -289,12 +289,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task NormalRequest_Should_Be_Routed_To_Correct_Department()
         {
             var department = "ABC DEF";
+            LineOrgServiceMock.AddDepartment("ABC", new[] { department });
+            
             using var adminScope = fixture.AdminScope();
 
             var matrixRequest = new UpdateResponsibilityMatrixRequest
             {
                 ProjectId = testProject.Project.ProjectId,
-                LocationId = Guid.NewGuid(),
                 Discipline = normalRequest.Discipline,
                 BasePositionId = testProject.Positions.First().BasePosition.Id,
                 Sector = "ABC",
@@ -304,7 +305,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var matrixResponse = await Client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", matrixRequest);
             matrixResponse.Should().BeSuccessfull();
 
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{normalRequest.Id}/start", null);
+            using var scope = fixture.AdminScope();
+            var adminClient = fixture.ApiFactory.CreateClient();
+
+            var position = testProject.AddPosition()
+                .WithEnsuredFutureInstances();
+            position.BasePosition = testProject.AddBasePosition("ABC Rescue Manager", x => x.Department = "ABC");
+
+            var request = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeNormal().WithPosition(position));
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{request.Id}/start", null);
             response.Should().BeSuccessfull();
 
             response.Value.AssignedDepartment.Should().Be(department);
