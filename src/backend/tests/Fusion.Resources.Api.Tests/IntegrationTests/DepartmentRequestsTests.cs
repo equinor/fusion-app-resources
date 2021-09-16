@@ -10,10 +10,8 @@ using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -549,7 +547,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddToMockService();
 
             var profile = PeopleServiceMock.AddTestProfile().WithFullDepartment(department);
-            foreach(var position in project.Positions) profile.WithPosition(position);
+            foreach (var position in project.Positions) profile.WithPosition(position);
             profile.SaveProfile();
 
             using var scope = fixture.AdminScope();
@@ -566,6 +564,30 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .Any(x => x.AppliesTo < timelineStart || x.AppliesFrom > timelineEnd)
                 .Should()
                 .BeFalse();
+        }
+
+        [Fact]
+        public async Task GetTimeline_ShouldIncludeRequests()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            result.pendingRequests.Should().Contain(x => x.Id == request.Id);
+            result.timeline.Single().items.Should().Contain(x => x.type == "Request" && x.id == request.Id.ToString());
         }
 
         public Task DisposeAsync()

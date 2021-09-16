@@ -1,4 +1,5 @@
 ﻿using Fusion.ApiClients.Org;
+using Fusion.Testing.Mocks;
 using System;
 
 namespace Fusion.Resources.Api.Tests
@@ -18,6 +19,7 @@ namespace Fusion.Resources.Api.Tests
         public Employmentstatus[] employmentStatuses { get; set; }
         public TestTimeline[] timeline { get; set; }
         public TestPersonPosition[] positionInstances { get; set; }
+        public TestApiInternalRequestModel[] pendingRequests { get; set; }
     }
 
     public class TestPersonPosition

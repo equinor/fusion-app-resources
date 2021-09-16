@@ -29,6 +29,9 @@ namespace Fusion.Resources.Api.Controllers
                 .Where(d => !string.IsNullOrEmpty(d))
                 .Distinct()
                 .ToList();
+            PendingRequests = p.PendingRequests != null
+                ? p.PendingRequests.Select(x => new ApiResourceAllocationRequest(x)).ToList()
+                : new();
         }
 
         public static ApiInternalPersonnelPerson CreateWithoutConfidentialTaskInfo(QueryInternalPersonnelPerson person) 
@@ -61,7 +64,7 @@ namespace Fusion.Resources.Api.Controllers
         public string AccountType { get; set; }
 
         public List<string> Disciplines { get; set; } = new List<string>();
-
+        public List<ApiResourceAllocationRequest> PendingRequests { get; }
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
         public List<ApiPersonAbsence> EmploymentStatuses { get; set; } = new List<ApiPersonAbsence>();
 
