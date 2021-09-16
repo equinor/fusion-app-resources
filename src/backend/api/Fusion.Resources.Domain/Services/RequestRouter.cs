@@ -13,7 +13,6 @@ namespace Fusion.Resources.Domain
 {
     public class RequestRouter : IRequestRouter
     {
-        private const int min_score = 7;
         private readonly ResourcesDbContext db;
         private readonly IProjectOrgResolver orgResolver;
         private readonly IMediator mediator;
@@ -90,7 +89,7 @@ namespace Fusion.Resources.Domain
                 BasePositionId = position.BasePosition.Id
             };
             var matches = Match(props);
-            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score && m.Score >= m.RequiredScore, cancellationToken);
+            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= m.RequiredScore, cancellationToken);
 
             if (bestMatch?.Row.BasePositionId != null || IsRelevant(position, bestMatch?.Row.Unit))
             {
