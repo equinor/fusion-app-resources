@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -81,10 +82,10 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 });
 
                 await request.AssignedToId.IfSetAsync(async x => {
-                    if (!x.HasValue) return;
-
-                    var assignedTo = await profileService.EnsurePersonAsync(x.Value);
-                    action.AssignedToId = assignedTo!.Id;
+                    var assignedTo = default(DbPerson);
+                    if(x.HasValue)
+                        assignedTo = await profileService.EnsurePersonAsync(x.Value);
+                    action.AssignedToId = assignedTo?.Id;
                 });
                 request.DueDate.IfSet(x => action.DueDate = x);
 
