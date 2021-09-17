@@ -48,6 +48,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 var action = await db.RequestActions
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
+                    .Include(t => t.AssignedTo)
                     .SingleOrDefaultAsync(t => t.Id == request.taskId && t.RequestId == request.requestId, cancellationToken);
 
                 if (action is null) throw new ActionNotFoundError(request.requestId, request.taskId);
