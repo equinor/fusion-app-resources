@@ -293,6 +293,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             await Client.AddResponsibilityMatrixAsync(project, x => {
                 x.BasePositionId = pos.BasePosition.Id;
+                x.Discipline = null;
+                x.LocationId = null;
                 x.Unit = "PDP TST ABC QWE";
             });
 

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -312,6 +313,91 @@ namespace Fusion.Resources.Logic.Tests
             resolvedDepartment.Should().NotBe(matrix.Unit);
         }
 
+        [Fact]
+        public async Task Should_NotPrioritizeWrongPosition_WhenRelevant()
+        {
+            /*
+             * Request:     "prosjekt1"     "ingen lokasjon"        "project control manager
+             * Regel 1:     "prosjekt2"     "null"                  "project control manager"
+             * Regel 2:     "null"          "null"                  "project control manager" 
+             */
+            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+
+            var position = new ApiPositionV2
+            {
+                Id = Guid.NewGuid(),
+                Project = new ApiProjectReferenceV2 { ProjectId = request.Project.Id },
+                BasePosition = new ApiPositionBasePositionV2
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Project Control Manager",
+                    Department = "PDP PRD FE ANE"
+                },
+                Instances = new List<ApiPositionInstanceV2> { new() }
+            };
+
+            var expectedNotMatched = new DbResponsibilityMatrix
+            {
+                Unit = "PDP PRD FE ANE4",
+                Project = new DbProject
+                {
+                    Id = Guid.NewGuid(),
+                    OrgProjectId = Guid.NewGuid(),
+                    DomainId = "Project2"
+                },
+                Responsible = responsible,
+                BasePositionId = position.BasePosition.Id
+            };
+            var expected = new DbResponsibilityMatrix
+            {
+                Unit = "PDP PRD FE ANE2",
+                Responsible = responsible,
+                BasePositionId = position.BasePosition.Id
+            };
+
+            db.Add(expected);
+            db.Add(expectedNotMatched);
+            await db.SaveChangesAsync();
+
+            var myRequest = new DbResourceAllocationRequest
+            {
+                Id = Guid.NewGuid(),
+                Discipline = "IT",
+                ProjectId = request.Project.Id,
+                OrgPositionId = position.Id,
+                OrgPositionInstance = new DbResourceAllocationRequest.DbOpPositionInstance
+                {
+                    LocationId = request.OrgPositionInstance.LocationId,
+                    AppliesFrom = new DateTime(2021, 01, 01),
+                    AppliesTo = new DateTime(2021, 12, 31),
+                    Workload = 50
+                },
+                ProposedPerson = new DbResourceAllocationRequest.DbOpProposedPerson
+                {
+                    AzureUniqueId = proposed.AzureUniqueId
+                },
+            };
+
+            db.Add(myRequest);
+            await db.SaveChangesAsync();
+
+            var handler = CreateHandler(
+              orgServiceMock => orgServiceMock
+                  .Setup(x => x.ResolvePositionAsync(It.Is<Guid>(x => x == position.Id)))
+                  .ReturnsAsync(position),
+              mediatorMock => mediatorMock
+                   .Setup(x => x.Send(It.Is<GetDepartment>(x => x.DepartmentId == position.BasePosition.Department), It.IsAny<CancellationToken>()))
+                   .ReturnsAsync(new QueryDepartment(position.BasePosition.Department, null))
+            );
+
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(myRequest.Id),
+                CancellationToken.None
+            );
+
+            resolvedDepartment.Should().Be(expected.Unit);
+        }
+
         private Queries.ResolveResponsibleDepartment.Handler CreateHandler(
             Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null,
             Action<Mock<IMediator>> setupMediatorMock = null)
@@ -325,7 +411,7 @@ namespace Fusion.Resources.Logic.Tests
 
             var mediatorMock = new Mock<IMediator>(MockBehavior.Loose);
             mediatorMock
-                    .Setup(x => x.Send(It.IsAny<GetDepartment>(), It.IsAny<CancellationToken>()))
+                    .Setup(x => x.Send(It.Is<GetDepartment>(x => x.DepartmentId == requestPosition.BasePosition.Department), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(new QueryDepartment(requestPosition.BasePosition.Department, null));
 
             setupMediatorMock?.Invoke(mediatorMock);

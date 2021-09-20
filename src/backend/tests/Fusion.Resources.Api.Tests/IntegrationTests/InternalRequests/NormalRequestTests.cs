@@ -293,11 +293,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             
             using var adminScope = fixture.AdminScope();
 
+            var position = testProject.AddPosition()
+               .WithEnsuredFutureInstances();
+            position.BasePosition = testProject.AddBasePosition("ABC Rescue Manager", x => x.Department = "ABC");
+
             var matrixRequest = new UpdateResponsibilityMatrixRequest
             {
                 ProjectId = testProject.Project.ProjectId,
-                Discipline = normalRequest.Discipline,
-                BasePositionId = testProject.Positions.First().BasePosition.Id,
+                BasePositionId = position.BasePosition.Id,
                 Sector = "ABC",
                 Unit = department,
             };
@@ -307,10 +310,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var scope = fixture.AdminScope();
             var adminClient = fixture.ApiFactory.CreateClient();
-
-            var position = testProject.AddPosition()
-                .WithEnsuredFutureInstances();
-            position.BasePosition = testProject.AddBasePosition("ABC Rescue Manager", x => x.Department = "ABC");
 
             var request = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeNormal().WithPosition(position));
 
