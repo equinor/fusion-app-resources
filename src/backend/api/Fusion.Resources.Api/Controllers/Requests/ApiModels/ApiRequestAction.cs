@@ -32,7 +32,7 @@ namespace Fusion.Resources.Api.Controllers
 
             ResolvedAt = action.ResolvedAt;
             ResolvedBy = (action.ResolvedBy is not null) ? new ApiPerson(action.ResolvedBy) : null;
-            SentBy = new ApiPerson(action.SentBy);
+            SentBy = (action.SentBy is not null) ? new ApiPerson(action.SentBy) : null;
 
             DueDate = action.DueDate;
             AssignedTo = (action.AssignedTo is not null) ? new ApiPerson(action.AssignedTo) : null;
@@ -51,7 +51,7 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsRequired { get; }
         public DateTimeOffset? ResolvedAt { get; }
         public ApiPerson? ResolvedBy { get; }
-        public ApiPerson SentBy { get; }
+        public ApiPerson? SentBy { get; }
         public DateTime? DueDate { get; }
         public ApiPerson? AssignedTo { get; }
         public ApiPropertiesCollection Properties { get;  }

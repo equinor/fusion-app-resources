@@ -22,6 +22,7 @@ namespace Fusion.Resources.Api.Controllers
             PhoneNumber = profile.MobilePhone;
             JobTitle = profile.JobTitle;
             AccountType = profile.AccountType;
+            FullDepartment = profile.FullDepartment;
         }
 
         internal static ApiPerson? FromEntityOrDefault(ApiPersonV2? person)
@@ -61,12 +62,14 @@ namespace Fusion.Resources.Api.Controllers
             else
                 AccountType = FusionAccountType.External;
         }
-
+          
         public Guid? AzureUniquePersonId { get; set; }
         public string? Mail { get; set; } = null!;
         public string Name { get; set; } = null!;
         public string? PhoneNumber { get; set; }
-        public string? JobTitle { get; set; } 
+        public string? JobTitle { get; set; }
+
+        public string? FullDepartment { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public FusionAccountType AccountType { get; set; }

@@ -1,4 +1,6 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Integration;
+using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -24,11 +26,14 @@ namespace Fusion.Resources.Domain.Commands.Tasks
         public class Handler : IRequestHandler<GetActionsForRequests, ILookup<Guid, QueryRequestAction>>
         {
             private readonly ResourcesDbContext db;
+            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver)
             {
                 this.db = db;
+                this.profileResolver = profileResolver;
             }
+
             public async Task<ILookup<Guid, QueryRequestAction>> Handle(GetActionsForRequests request, CancellationToken cancellationToken)
             {
                 var result = await db.RequestActions
@@ -38,8 +43,9 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                     .Where(t => request.requestId.Contains(t.RequestId))
                     .ToListAsync(cancellationToken);
 
-                return result
-                    .ToLookup(x => x.RequestId, x => new QueryRequestAction(x));
+                var actions = await result.AsQueryRequestActionsAsync(profileResolver);
+
+                return actions.ToLookup(x => x.RequestId);
             }
         }
     }

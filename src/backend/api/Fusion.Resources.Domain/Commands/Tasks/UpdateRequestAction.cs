@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -37,11 +38,13 @@ namespace Fusion.Resources.Domain.Commands.Tasks
         {
             private readonly ResourcesDbContext db;
             private readonly IProfileService profileService;
+            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ResourcesDbContext db, IProfileService profileService)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IFusionProfileResolver profileResolver)
             {
                 this.db = db;
                 this.profileService = profileService;
+                this.profileResolver = profileResolver;
             }
 
             public async Task<QueryRequestAction> Handle(UpdateRequestAction request, CancellationToken cancellationToken)
@@ -91,7 +94,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
 
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestAction(action);
+                return await action.AsQueryRequestActionAsync(profileResolver);
             }
 
             private static void UpdateCustomProperties(Database.Entities.DbRequestAction action, Dictionary<string, object>? props)
