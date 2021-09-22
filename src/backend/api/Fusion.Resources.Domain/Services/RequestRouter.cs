@@ -108,8 +108,7 @@ namespace Fusion.Resources.Domain
                 .Include(m => m.Project)
                 .Select(m => new ResponsibilityMatch
                 {
-                    Score = (props.BasePositionDepartment != null && m.Unit!.StartsWith(props.BasePositionDepartment) ? 7 : 0)
-                            + (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
+                    Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
                             + (m.BasePositionId == props.BasePositionId ? 5 : 0)
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
