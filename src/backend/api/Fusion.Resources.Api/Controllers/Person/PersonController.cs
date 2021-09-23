@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Errors;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -61,10 +62,17 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
+            try
+            {
+                var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
 
-            var respObject = new ApiResourceOwnerProfile(resourceOwnerProfile);
-            return respObject;
+                var respObject = new ApiResourceOwnerProfile(resourceOwnerProfile);
+                return respObject;
+            }
+            catch (NotAuthorizedException ex)
+            {
+                return FusionApiError.Forbidden(ex.Message);
+            }
         }
 
         [HttpGet("/persons/{personId}/resources/notes")]

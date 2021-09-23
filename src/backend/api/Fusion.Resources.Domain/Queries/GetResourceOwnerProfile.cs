@@ -1,9 +1,8 @@
 ﻿using Fusion.Integration;
 using Fusion.Integration.Profile;
+using Fusion.Resources.Domain.Errors;
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,9 +49,9 @@ namespace Fusion.Resources.Domain.Queries
                 var user = await profileResolver.ResolvePersonBasicProfileAsync(request.ProfileId.OriginalIdentifier);
 
                 if (user is null)
-                    throw new InvalidOperationException($"Could not resolve profile '{request.ProfileId.OriginalIdentifier}'");
+                    throw new PersonNotFoundError(request.ProfileId.OriginalIdentifier);
                 if (user.FullDepartment is null) 
-                    throw new Exception();
+                    throw new NotAuthorizedException("No department found for the current user.");
 
                 var sector = await ResolveSector(user.FullDepartment);
 
