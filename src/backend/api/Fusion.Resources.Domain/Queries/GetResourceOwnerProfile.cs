@@ -43,15 +43,11 @@ namespace Fusion.Resources.Domain.Queries
 
             }
 
-            public async Task<QueryResourceOwnerProfile> Handle(GetResourceOwnerProfile request, CancellationToken cancellationToken)
+            public async Task<QueryResourceOwnerProfile?> Handle(GetResourceOwnerProfile request, CancellationToken cancellationToken)
             {
-                
                 var user = await profileResolver.ResolvePersonBasicProfileAsync(request.ProfileId.OriginalIdentifier);
 
-                if (user is null)
-                    throw new PersonNotFoundError(request.ProfileId.OriginalIdentifier);
-                if (user.FullDepartment is null) 
-                    throw new NotAuthorizedException("No department found for the current user.");
+                if (user is null) return null;
 
                 var sector = await ResolveSector(user.FullDepartment);
 

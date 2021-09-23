@@ -62,17 +62,10 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            try
-            {
-                var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
+            var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
+            if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
 
-                var respObject = new ApiResourceOwnerProfile(resourceOwnerProfile);
-                return respObject;
-            }
-            catch (NotAuthorizedException ex)
-            {
-                return FusionApiError.Forbidden(ex.Message);
-            }
+            return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
 
         [HttpGet("/persons/{personId}/resources/notes")]
