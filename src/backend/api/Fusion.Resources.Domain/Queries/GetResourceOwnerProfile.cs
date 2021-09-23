@@ -15,7 +15,7 @@ namespace Fusion.Resources.Domain.Queries
     /// <summary>
     /// Fetch the profile for a resource owner. Will compile a list of departments the person has responsibilities in and which is relevant.
     /// </summary>
-    public class GetResourceOwnerProfile : IRequest<QueryResourceOwnerProfile>
+    public class GetResourceOwnerProfile : IRequest<QueryResourceOwnerProfile?>
     {
         public GetResourceOwnerProfile(string profileId)
         {
@@ -27,20 +27,17 @@ namespace Fusion.Resources.Domain.Queries
         /// </summary>
         public PersonId ProfileId { get; set; }
 
-        public class Handler : IRequestHandler<GetResourceOwnerProfile, QueryResourceOwnerProfile>
+        public class Handler : IRequestHandler<GetResourceOwnerProfile, QueryResourceOwnerProfile?>
         {
             private readonly ILogger<Handler> logger;
             private readonly IFusionProfileResolver profileResolver;
             private readonly IMediator mediator;
-            private readonly HttpClient lineOrgClient;
 
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IMediator mediator, IHttpClientFactory httpClientFactory)
+            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IMediator mediator)
             {
                 this.logger = logger;
                 this.profileResolver = profileResolver;
                 this.mediator = mediator;
-                this.lineOrgClient = httpClientFactory.CreateClient("lineorg");
-
             }
 
             public async Task<QueryResourceOwnerProfile?> Handle(GetResourceOwnerProfile request, CancellationToken cancellationToken)
@@ -65,11 +62,11 @@ namespace Fusion.Resources.Domain.Queries
                     relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
                 }
 
-                // Resolve info from line org, will be cached.. If integration fails null is returned.
-                
-
-                var lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
-
+                QueryRelatedDepartments? lineOrgDepartmentProfile = null;
+                if (!string.IsNullOrEmpty(user.FullDepartment))
+                    lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
+                else
+                    logger.LogDebug("No department found for profile. Skipping related department check.");
 
                 var resourceOwnerProfile = new QueryResourceOwnerProfile(user.FullDepartment, isDepartmentManager, departmentsWithResponsibility, relevantSectors)
                 {
