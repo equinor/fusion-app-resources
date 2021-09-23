@@ -77,6 +77,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }
         }
 
+        [Fact]
+        public async Task GetProfile_ShouldBeUnauthorized_WhenUserHasNoDepartment()
+        {
+            using (var userScope = fixture.UserScope(testUser))
+            {
+                testUser.FullDepartment = null;
+                var client = fixture.ApiFactory.CreateClient();
+                var resp = await client.TestClientGetAsync(
+                    $"/persons/me/resources/profile?api-version=1.0-preview",
+                    new { responsibilityInDepartments = Array.Empty<string>() }
+                );
+
+                resp.Should().BeUnauthorized();
+            }
+        }
+
 
 
         public Task InitializeAsync() => Task.CompletedTask;
