@@ -1,4 +1,6 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration;
+using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -36,11 +38,13 @@ namespace Fusion.Resources.Domain.Commands.Tasks
         {
             private readonly ResourcesDbContext db;
             private readonly IProfileService profileService;
+            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ResourcesDbContext db, IProfileService profileService)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IFusionProfileResolver profileResolver)
             {
                 this.db = db;
                 this.profileService = profileService;
+                this.profileResolver = profileResolver;
             }
 
             public async Task<QueryRequestAction> Handle(UpdateRequestAction request, CancellationToken cancellationToken)
@@ -48,6 +52,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 var action = await db.RequestActions
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
+                    .Include(t => t.AssignedTo)
                     .SingleOrDefaultAsync(t => t.Id == request.taskId && t.RequestId == request.requestId, cancellationToken);
 
                 if (action is null) throw new ActionNotFoundError(request.requestId, request.taskId);
@@ -80,16 +85,16 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 });
 
                 await request.AssignedToId.IfSetAsync(async x => {
-                    if (!x.HasValue) return;
-
-                    var assignedTo = await profileService.EnsurePersonAsync(x.Value);
-                    action.AssignedToId = assignedTo!.Id;
+                    var assignedTo = default(DbPerson);
+                    if(x.HasValue)
+                        assignedTo = await profileService.EnsurePersonAsync(x.Value);
+                    action.AssignedToId = assignedTo?.Id;
                 });
                 request.DueDate.IfSet(x => action.DueDate = x);
 
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestAction(action);
+                return await action.AsQueryRequestActionAsync(profileResolver);
             }
 
             private static void UpdateCustomProperties(Database.Entities.DbRequestAction action, Dictionary<string, object>? props)

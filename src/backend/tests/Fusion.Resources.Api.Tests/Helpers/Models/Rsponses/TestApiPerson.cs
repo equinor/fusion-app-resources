@@ -9,6 +9,7 @@ namespace Fusion.Testing.Mocks
         public Guid AzureUniquePersonId { get; set; }
         public string Name { get; set; } = null!;
         public string Mail { get; set; } = null!;
+        public string? FullDepartment { get; set; }
     }
 
 

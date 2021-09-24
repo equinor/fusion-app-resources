@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -35,12 +36,14 @@ namespace Fusion.Resources.Domain.Commands
         {
             private readonly ResourcesDbContext db;
             private readonly IProfileService profileService;
+            private readonly IFusionProfileResolver profileResolver;
             private readonly IHttpContextAccessor context;
 
-            public Handler(ResourcesDbContext db, IProfileService profileService, IHttpContextAccessor context)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IFusionProfileResolver profileResolver, IHttpContextAccessor context)
             {
                 this.db = db;
                 this.profileService = profileService;
+                this.profileResolver = profileResolver;
                 this.context = context;
             }
 
@@ -72,7 +75,7 @@ namespace Fusion.Resources.Domain.Commands
                 db.RequestActions.Add(newAction);
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestAction(newAction);
+                return await newAction.AsQueryRequestActionAsync(profileResolver);
             }
         }
     }

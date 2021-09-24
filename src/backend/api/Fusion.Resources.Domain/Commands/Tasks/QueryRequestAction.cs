@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database.Entities;
+﻿using Fusion.Integration.Profile;
+using Fusion.Resources.Database.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -13,6 +14,7 @@ namespace Fusion.Resources.Domain
         public QueryRequestAction(DbRequestAction dbAction)
         {
             Id = dbAction.Id;
+            RequestId = dbAction.RequestId;
             Title = dbAction.Title;
             Body = dbAction.Body;
             Type = dbAction.Type;
@@ -22,15 +24,13 @@ namespace Fusion.Resources.Domain
 
             IsResolved = dbAction.IsResolved;
             ResolvedAt = dbAction.ResolvedAt;
-            ResolvedBy = (dbAction.ResolvedBy is not null) ? new QueryPerson(dbAction.ResolvedBy) : null;
-            SentBy = new QueryPerson(dbAction.SentBy);
             IsRequired = dbAction.IsRequired;
             propertiesJson = dbAction.PropertiesJson;
             DueDate = dbAction.DueDate;
-            AssignedTo = (dbAction.AssignedTo is not null) ? new QueryPerson(dbAction.AssignedTo) : null;
         }
 
         public Guid Id { get; }
+        public Guid RequestId { get; set; }
         public string Title { get; }
         public string? Body { get; }
         public string Type { get; }
@@ -40,9 +40,9 @@ namespace Fusion.Resources.Domain
         public bool IsResolved { get; }
         public bool IsRequired { get; set; }
         public DateTimeOffset? ResolvedAt { get; }
-        public QueryPerson? ResolvedBy { get; }
-        public QueryPerson SentBy { get; }
-        public QueryPerson? AssignedTo { get; }
+        public FusionPersonProfile? ResolvedBy { get; set; }
+        public FusionPersonProfile? SentBy { get; set; }
+        public FusionPersonProfile? AssignedTo { get; set; }
 
         public DateTime? DueDate { get; }
 

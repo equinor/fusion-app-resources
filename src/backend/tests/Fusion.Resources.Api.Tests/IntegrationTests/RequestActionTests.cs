@@ -227,6 +227,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task Patch_ShouldNotUnassignActionByDefault()
+        {
+            var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, x => { x.assignedToId = assignedPerson.AzureUniqueId; });
+
+            var payload = new
+            {
+                title = "Updated Test title",
+                body = "Updated Test body",
+                category = "Updated Test category",
+                type = "Updated test",
+                subType = (string)null,
+                isRequired = true,
+                dueDate = "2021-10-02"
+            };
+            var result = await adminClient.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
+
+            result.Should().BeSuccessfull();
+            result.Value.assignedTo.Should().NotBeNull();
+        }
+
+        [Fact]
         public async Task ResolveRequestAction_ShouldSetResolvedMetadata()
         {
             var adminClient = fixture.ApiFactory.CreateClient()
@@ -426,6 +452,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var result = await adminClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions");
             result.Should().BeSuccessfull();
             result.Value.All(x => x.assignedTo is not null).Should().BeTrue();
+        }
+        
+        [Fact]
+        public async Task GetActions_ShouldIncludeAssignedToWithFullDepartment()
+        {
+            var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.assignedToId = assignedPerson.AzureUniqueId);
+            var result = await adminClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions");
+            result.Should().BeSuccessfull();
+            result.Value.All(x => x.assignedTo?.FullDepartment is not null).Should().BeTrue();
         }
 
         public Task DisposeAsync() => Task.CompletedTask;
