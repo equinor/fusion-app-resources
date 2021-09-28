@@ -811,6 +811,26 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        [Fact]
+        public async Task CreateRequest_ShouldHaveSameCorrelationId_WhenCreatedInSameBatch()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject
+                .AddPosition()
+                .WithEnsuredFutureInstances();
+
+            var payload = new ApiTestBatchRequestModel()
+                .AsTypeNormal()
+                .WithPosition(position);
+
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests/$batch", payload, 
+                new[] { new { CorrelationId = Guid.Empty } });
+
+            response.Should().BeSuccessfull();
+            response.Value.First().CorrelationId.Should().NotBeEmpty();
+            response.Value.All(x => x.CorrelationId == response.Value.First().CorrelationId).Should().BeTrue();
+        }
+
         #endregion
 
         #region Provision

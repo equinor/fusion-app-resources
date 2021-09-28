@@ -65,6 +65,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
+
+            CorrelationId = query.CorrelationId;
         }
 
         public Guid Id { get; set; }
@@ -103,6 +105,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
+        public Guid CorrelationId { get; }
         public List<ApiRequestAction>? Actions { get; }
         public List<ApiRequestConversationMessage>? Conversation { get; }
 

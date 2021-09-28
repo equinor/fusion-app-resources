@@ -65,7 +65,7 @@ namespace Fusion.Resources.Api.Tests
 
             var requestModel = new ApiCreateInternalRequestModel()
                 .AsTypeNormal()
-                .WithPosition(position);
+                .WithPosition(position) as ApiCreateInternalRequestModel;
 
             setup?.Invoke(requestModel);
 
@@ -104,7 +104,7 @@ namespace Fusion.Resources.Api.Tests
 
             var requestModel = new ApiCreateInternalRequestModel()
                 .AsTypeResourceOwner()
-                .WithPosition(position);
+                .WithPosition(position) as ApiCreateInternalRequestModel;
 
             setup?.Invoke(requestModel);
 

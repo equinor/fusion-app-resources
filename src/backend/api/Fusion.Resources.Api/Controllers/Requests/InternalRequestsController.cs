@@ -103,9 +103,8 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
-        [MapToApiVersion("2.0")]
-        [HttpPost("/projects/{projectIdentifier}/resources/requests")]
-        [HttpPost("/projects/{projectIdentifier}/requests")]
+        [HttpPost("/projects/{projectIdentifier}/resources/requests/$batch")]
+        [HttpPost("/projects/{projectIdentifier}/requests/$batch")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequestV2(
            [FromRoute] PathProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequestV2 request)
         {
@@ -136,7 +135,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             var requests = new List<QueryResourceAllocationRequest>();
-
+            var correlationId = Guid.NewGuid();
             try
             {
                 using var transaction = await BeginTransactionAsync();
@@ -152,6 +151,7 @@ namespace Fusion.Resources.Api.Controllers
                         OrgPositionInstanceId = instanceId,
                         AssignedDepartment = request.AssignedDepartment,
                         ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId,
+                        CorrelationId = correlationId
                     };
 
                     var newRequest = await DispatchAsync(command);
@@ -170,7 +170,7 @@ namespace Fusion.Resources.Api.Controllers
                 }
                 await transaction.CommitAsync();
 
-                return CreatedAtAction(nameof(GetRequestsForPosition), requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
+                return CreatedAtAction(nameof(GetRequestsForPosition),new { projectIdentifier, positionId = request.OrgPositionId } ,requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
             }
             catch (ValidationException ex)
             {

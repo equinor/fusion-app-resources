@@ -72,6 +72,8 @@ namespace Fusion.Resources.Database.Entities
         public List<DbRequestAction>? Actions { get;  set; }
         public List<DbConversationMessage>? Conversation { get; set; }
 
+        public Guid CorrelationId { get; set; }
+
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbResourceAllocationRequest>(entity =>
@@ -103,6 +105,9 @@ namespace Fusion.Resources.Database.Entities
                 entity.Property(e => e.RequestNumber)
                     .UseIdentityColumn(1)
                     .ValueGeneratedOnAdd();
+
+                entity.Property(x => x.CorrelationId)
+                .HasDefaultValueSql("newid()");
             });
         }
 
