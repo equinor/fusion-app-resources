@@ -125,7 +125,7 @@ namespace Fusion.Resources.Domain.Queries
                 RuleFor(x => x.Owner)
                     .Must(o => o.HasValue).When(x => !x.ShouldIncludeAllRequests.HasValue)
                     .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
-
+                
                 RuleFor(x => x.ShouldIncludeAllRequests)
                     .Must(o => o.HasValue).When(x => !x.Owner.HasValue)
                     .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
@@ -182,7 +182,7 @@ namespace Fusion.Resources.Domain.Queries
                     });
                 }
 
-
+                
 
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
@@ -200,7 +200,7 @@ namespace Fusion.Resources.Domain.Queries
                 var countOnly = request.OnlyCount;
 
                 var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take, countOnly);
-
+                
 
                 if (!countOnly)
                 {
@@ -222,7 +222,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var request in pagedQuery)
                 {
-                    if (actions.Contains(request.RequestId))
+                    if(actions.Contains(request.RequestId))
                     {
                         request.Actions = actions[request.RequestId].ToList();
                     }
@@ -250,7 +250,6 @@ namespace Fusion.Resources.Domain.Queries
                     // Assigned Department on request may not be valid anymore. Make sure to check if dictionary actually contains the value before trying to apply details.
                     if (string.IsNullOrEmpty(req.AssignedDepartment) || !departmentMap.ContainsKey(req.AssignedDepartment)) continue;
                     req.AssignedDepartmentDetails = departmentMap[req.AssignedDepartment];
-
                 }
             }
 
@@ -308,7 +307,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var profiles = await mediator.Send(new GetPersonProfiles(ids));
 
-                foreach (var request in requestItems)
+                foreach(var request in requestItems)
                 {
                     var id = request.ProposedPerson?.AzureUniqueId;
                     if (id is not null && profiles.ContainsKey(id.Value))
