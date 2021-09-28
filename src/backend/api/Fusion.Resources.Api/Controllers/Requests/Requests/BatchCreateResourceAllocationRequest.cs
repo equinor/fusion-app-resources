@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class CreateResourceAllocationRequestV2
+    public class BatchCreateResourceAllocationRequest
     {
         public string Type { get; set; } = null!;
 
@@ -39,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
 
         #region Validator
 
-        public class Validator : AbstractValidator<CreateResourceAllocationRequestV2>
+        public class Validator : AbstractValidator<BatchCreateResourceAllocationRequest>
         {
             public Validator(IMediator mediator, IFusionProfileResolver profileResolver)
             {

@@ -106,7 +106,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/resources/requests/$batch")]
         [HttpPost("/projects/{projectIdentifier}/requests/$batch")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> CreateProjectAllocationRequestV2(
-           [FromRoute] PathProjectIdentifier projectIdentifier, [FromBody] CreateResourceAllocationRequestV2 request)
+           [FromRoute] PathProjectIdentifier projectIdentifier, [FromBody] BatchCreateResourceAllocationRequest request)
         {
             #region Authorization
 
