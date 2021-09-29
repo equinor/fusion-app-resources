@@ -170,7 +170,10 @@ namespace Fusion.Resources.Api.Controllers
                 }
                 await transaction.CommitAsync();
 
-                return CreatedAtAction(nameof(GetRequestsForPosition),new { projectIdentifier, positionId = request.OrgPositionId } ,requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
+                var getRequestUrl = Url.Action(nameof(GetResourceAllocationRequestsForProject), new { projectIdentifier = projectIdentifier.ProjectId });
+                var createdAtUrl = getRequestUrl + $"?$filter=orgPositionId eq '{request.OrgPositionId}'";
+
+                return Created(createdAtUrl, requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
             }
             catch (ValidationException ex)
             {
@@ -529,36 +532,6 @@ namespace Fusion.Resources.Api.Controllers
 
             return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
         }
-
-        [HttpGet("/projects/{projectIdentifier}/positions/{positionId}/requests")]
-        public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetRequestsForPosition(PathProjectIdentifier projectIdentifier, Guid positionId)
-        {
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
-                r.AnyOf(or =>
-                {
-                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
-                    or.OrgChartReadAccess(projectIdentifier.ProjectId);
-                    or.OrgChartPositionReadAccess(projectIdentifier.ProjectId, positionId);
-                });
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion
-
-            var command = new GetResourceAllocationRequests()
-                .WithProjectId(projectIdentifier.ProjectId)
-                .WithPositionId(positionId);
-
-            var result = await DispatchAsync(command);
-            return Ok(result);
-        }
-
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/start")]

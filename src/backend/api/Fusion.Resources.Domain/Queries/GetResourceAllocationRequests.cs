@@ -189,10 +189,9 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("state.isComplete", i => i.State.IsCompleted);
                         m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
                         m.MapField("proposedPerson.azureUniqueId", x => x.ProposedPerson.AzureUniqueId);
+                        m.MapField(nameof(QueryResourceAllocationRequest.OrgPositionId), i => i.OrgPositionId);
                     });
                 }
-
-                
 
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
