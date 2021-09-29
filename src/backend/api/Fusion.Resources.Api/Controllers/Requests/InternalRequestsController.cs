@@ -556,7 +556,8 @@ namespace Fusion.Resources.Api.Controllers
 
             var command = new GetResourceAllocationRequests()
                 .WithProjectId(projectIdentifier.ProjectId)
-                .WithPositionId(positionId);
+                .WithPositionId(positionId)
+                .ForAll();
 
             var result = await DispatchAsync(command);
             return Ok(result);
