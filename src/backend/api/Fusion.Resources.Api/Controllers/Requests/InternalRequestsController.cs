@@ -639,9 +639,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
-        [HttpPost("/departments/{departmentPath}/requests/{requestId}/approve")]
-        [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] PathProjectIdentifier? projectIdentifier, [FromRoute] string? departmentPath, Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandActions());
 
@@ -666,9 +664,37 @@ namespace Fusion.Resources.Api.Controllers
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             
-            if (string.Equals(result!.State, AllocationNormalWorkflowV1.APPROVAL, StringComparison.OrdinalIgnoreCase))
-                await DispatchAsync(new InternalRequestNotifications.ProposedPerson(result.RequestId));
+            return new ApiResourceAllocationRequest(result!);
+        }
 
+        [HttpPost("/departments/{departmentPath}/requests/{requestId}/approve")]
+        [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] string departmentPath, Guid requestId)
+        {
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandActions());
+
+            if (result == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+            //if (result.AssignedDepartment != departmentPath)
+            //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
+            
+            if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
+                return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
+
+            await using var scope = await BeginTransactionAsync();
+
+            try
+            {
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await scope.CommitAsync();
+            }
+            catch (UnauthorizedWorkflowException ex)
+            {
+                await scope.RollbackAsync();
+                return new ObjectResult(ex.ToErrorObject()) { StatusCode = (int)HttpStatusCode.Forbidden };
+            }
+
+            result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             return new ApiResourceAllocationRequest(result!);
         }
 
