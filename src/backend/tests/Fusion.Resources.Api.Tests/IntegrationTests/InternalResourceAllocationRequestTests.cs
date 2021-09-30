@@ -830,7 +830,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.First().CorrelationId.Should().NotBeEmpty();
             response.Value.All(x => x.CorrelationId == response.Value.First().CorrelationId).Should().BeTrue();
         }
-
         #endregion
 
         #region Provision

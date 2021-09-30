@@ -51,15 +51,15 @@ namespace Fusion.Resources.Logic.Commands
 
                         await AllocateRequestInstanceAsync(dbRequest, draft, position);
 
-                        switch (dbRequest.ProposalParameters.Scope)
-                        {
-                            case DbResourceAllocationRequest.DbChangeScope.Default:
-                                await ProcessFutureInstancesAsync(dbRequest, draft, position);
-                                break;
+                        //switch (dbRequest.ProposalParameters.Scope)
+                        //{
+                        //    case DbResourceAllocationRequest.DbChangeScope.Default:
+                        //        await ProcessFutureInstancesAsync(dbRequest, draft, position);
+                        //        break;
 
-                            case DbResourceAllocationRequest.DbChangeScope.InstanceOnly:
-                                break;
-                        }
+                        //    case DbResourceAllocationRequest.DbChangeScope.InstanceOnly:
+                        //        break;
+                        //}
 
 
                         draft = await client.PublishAndWaitAsync(draft);
