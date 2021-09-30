@@ -106,6 +106,7 @@ namespace Fusion.Resources.Domain
             return db.ResponsibilityMatrices
                 .Include(m => m.Responsible)
                 .Include(m => m.Project)
+                .Where(m => m.Unit!.StartsWith(props.BasePositionDepartment!) || m.BasePositionId != null)
                 .Select(m => new ResponsibilityMatch
                 {
                     Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
