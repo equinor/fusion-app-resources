@@ -560,7 +560,7 @@ namespace Fusion.Resources.Api.Controllers
                 .ForAll();
 
             var result = await DispatchAsync(command);
-            return Ok(result);
+            return Ok(result.Select(x => new ApiResourceAllocationRequest(x)));
         }
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
