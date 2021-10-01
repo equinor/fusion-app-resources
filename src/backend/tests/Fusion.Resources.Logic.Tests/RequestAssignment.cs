@@ -397,6 +397,36 @@ namespace Fusion.Resources.Logic.Tests
 
             resolvedDepartment.Should().Be(expected.Unit);
         }
+        
+        [Fact]
+        public async Task Should_NotMatchIrrelevantPosition()
+        {
+            var handler = CreateHandler();
+
+            var badMatrix = new DbResponsibilityMatrix
+            {
+                Unit = "DEF NOT HERE",
+                Project = request.Project,
+                Discipline = request.Discipline,
+            };
+
+            var matrix = new DbResponsibilityMatrix
+            {
+                Unit = "TPD PRD MMS STR1",
+                Project = request.Project,
+            };
+
+            db.Add(badMatrix);
+            db.Add(matrix);
+            await db.SaveChangesAsync();
+
+            var resolvedDepartment = await handler.Handle(
+                new Queries.ResolveResponsibleDepartment(request.Id),
+                 CancellationToken.None
+             );
+
+            resolvedDepartment.Should().Be(matrix.Unit);
+        }
 
         private Queries.ResolveResponsibleDepartment.Handler CreateHandler(
             Action<Mock<IProjectOrgResolver>> setupOrgServiceMock = null,
