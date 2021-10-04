@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -148,6 +149,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #endregion
 
         #region get tests
+        [Fact]
+        public async Task Get_ProjectRequest_ShouldBeSuccessfull_WhenQueryRequestsAccess()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal");
+            response.Should().BeSuccessfull();
+        }
+
+
         [Fact]
         public async Task Get_ProjectRequest_ShouldBeSuccessfull_WhenAdmin()
         {
