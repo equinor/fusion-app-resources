@@ -150,7 +150,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #region get tests
         [Fact]
-        public async Task Get_ProjectRequest_ShouldBeSuccessfull_WhenQueryRequestsAccess()
+        public async Task Get_AnalyticsRequestsInternal_ShouldBeSuccessfull_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
             var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal");
