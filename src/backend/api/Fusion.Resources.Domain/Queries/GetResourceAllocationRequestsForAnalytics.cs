@@ -12,11 +12,11 @@ namespace Fusion.Resources.Domain.Queries
 {
     public class GetResourceAllocationRequestsForAnalytics : IRequest<QueryRangedList<QueryResourceAllocationRequest>>
     {
-        public GetResourceAllocationRequestsForAnalytics(ODataQueryParams? query = null)
+        public GetResourceAllocationRequestsForAnalytics(ODataQueryParams query)
         {
-            this.Query = query ?? new ODataQueryParams();
+            this.Query = query;
         }
-        private ODataQueryParams Query { get; set; }
+        public ODataQueryParams Query { get; }
 
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestsForAnalytics, QueryRangedList<QueryResourceAllocationRequest>>
@@ -58,8 +58,10 @@ namespace Fusion.Resources.Domain.Queries
                     });
                 }
 
+                var totalCount = await query.CountAsync(cancellationToken);
                 var skip = request.Query.Skip.GetValueOrDefault(0);
-                var take = request.Query.Top.GetValueOrDefault(100);
+                var take = request.Query.Top.GetValueOrDefault(totalCount);
+
                 var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take);
 
                 log.LogTrace($"Analytics query executed");

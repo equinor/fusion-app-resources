@@ -1,22 +1,23 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
+﻿using System.Linq;
+using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
-using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Threading.Tasks;
 using Fusion.Resources.Api.Authorization;
+using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Queries;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    [ApiVersion("1.0")]
+    [ApiVersion("1.0-preview")]
     [Authorize]
     [ApiController]
     public class AnalyticsController : ResourceControllerBase
     {
 
         [HttpGet("/analytics/requests/internal")]
-        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetAllRequests([FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequestForAnalytics>>> GetAllRequests([FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -33,11 +34,38 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-            var requestCommand = new GetResourceAllocationRequestsForAnalytics(query);
-            var result = await DispatchAsync(requestCommand);
+             
+            var requestQuery = await DispatchAsync(new GetResourceAllocationRequestsForAnalytics(query));
 
-            var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
-            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
+            var apiModel = requestQuery.Select(x => new ApiResourceAllocationRequestForAnalytics(x)).ToList();
+            return new ApiCollection<ApiResourceAllocationRequestForAnalytics>(apiModel) { TotalCount = requestQuery.TotalCount };
+        }
+
+        [HttpGet("/analytics/absence/internal")]
+        public async Task<ActionResult<ApiCollection<ApiPersonAbsenceForAnalytics>>> GetPersonsAbsence([FromQuery] ODataQueryParams query)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.ScopeAccess(ScopeAccess.QueryAnalyticsRequests);
+                });
+
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var allAbsenceQuery = await DispatchAsync(new GetPersonsAbsenceForAnalytics(query));
+
+            var returnItems = allAbsenceQuery.Select(ApiPersonAbsenceForAnalytics.CreateWithoutConfidentialTaskInfo);
+
+            var collection = new ApiCollection<ApiPersonAbsenceForAnalytics>(returnItems) { TotalCount = allAbsenceQuery.TotalCount };
+            return collection;
         }
     }
 }
