@@ -34,11 +34,11 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-             
-            var requestQuery = await DispatchAsync(new GetResourceAllocationRequestsForAnalytics(query));
 
+            var requestQuery = await DispatchAsync(new GetResourceAllocationRequestsForAnalytics(query));
             var apiModel = requestQuery.Select(x => new ApiResourceAllocationRequestForAnalytics(x)).ToList();
-            return new ApiCollection<ApiResourceAllocationRequestForAnalytics>(apiModel) { TotalCount = requestQuery.TotalCount };
+            var collection = new ApiCollection<ApiResourceAllocationRequestForAnalytics>(apiModel) { TotalCount = requestQuery.TotalCount };
+            return collection;
         }
 
         [HttpGet("/analytics/absence/internal")]
@@ -61,10 +61,9 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var allAbsenceQuery = await DispatchAsync(new GetPersonsAbsenceForAnalytics(query));
+            var apiModel = allAbsenceQuery.Select(ApiPersonAbsenceForAnalytics.CreateWithoutConfidentialTaskInfo);
 
-            var returnItems = allAbsenceQuery.Select(ApiPersonAbsenceForAnalytics.CreateWithoutConfidentialTaskInfo);
-
-            var collection = new ApiCollection<ApiPersonAbsenceForAnalytics>(returnItems) { TotalCount = allAbsenceQuery.TotalCount };
+            var collection = new ApiCollection<ApiPersonAbsenceForAnalytics>(apiModel) { TotalCount = allAbsenceQuery.TotalCount };
             return collection;
         }
     }

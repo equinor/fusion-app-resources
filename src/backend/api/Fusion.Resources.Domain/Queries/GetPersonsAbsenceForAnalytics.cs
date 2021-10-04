@@ -38,8 +38,8 @@ namespace Fusion.Resources.Domain
                     .Include(x => x.Person)
                     .Include(x => x.CreatedBy)
                     .Include(x => x.TaskDetails)
+                    .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterion.
                     .AsQueryable();
-
 
                 if (request.Query.HasFilter)
                 {

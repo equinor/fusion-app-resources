@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)
                     .Include(r => r.ProposedPerson)
-                    .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterias.
+                    .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterion.
                     .AsQueryable();
                 
                 if (request.Query.HasFilter)
