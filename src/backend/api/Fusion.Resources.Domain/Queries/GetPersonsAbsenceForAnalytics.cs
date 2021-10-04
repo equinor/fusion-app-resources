@@ -39,6 +39,8 @@ namespace Fusion.Resources.Domain
                     .AsQueryable();
 
                 var totalCount = await query.CountAsync(cancellationToken);
+                if (totalCount == 0)
+                    totalCount = 100;
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(totalCount);
