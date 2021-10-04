@@ -6,8 +6,8 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPersonAbsenceForAnalytics
     {
-       
-        private ApiPersonAbsenceForAnalytics(QueryPersonAbsenceBasic absence, bool hidePrivateNotes)
+
+        private ApiPersonAbsenceForAnalytics(QueryPersonAbsenceBasic absence)
         {
             Id = absence.Id;
             AppliesFrom = absence.AppliesFrom;
@@ -19,14 +19,14 @@ namespace Fusion.Resources.Api.Controllers
             Comment = absence.Comment;
             TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
 
-            if (hidePrivateNotes && absence.IsPrivate)
+            if (absence.IsPrivate)
             {
                 Comment = "Not disclosed.";
                 TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;
             }
         }
 
-        public static ApiPersonAbsenceForAnalytics CreateWithoutConfidentialTaskInfo(QueryPersonAbsenceBasic absence) => new(absence, hidePrivateNotes: true);
+        public static ApiPersonAbsenceForAnalytics CreateWithoutConfidentialTaskInfo(QueryPersonAbsenceBasic absence) => new(absence);
 
         public Guid Id { get; set; }
         public bool IsPrivate { get; set; }

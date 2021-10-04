@@ -1,13 +1,11 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
 using Fusion.Integration.Diagnostics;
-using Fusion.Resources.Domain.Queries;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Domain
@@ -26,7 +24,7 @@ namespace Fusion.Resources.Domain
             private readonly ResourcesDbContext db;
             private readonly IFusionLogger<GetPersonsAbsenceForAnalytics> log;
 
-            public Handler(ResourcesDbContext db,IFusionLogger<GetPersonsAbsenceForAnalytics> log)
+            public Handler(ResourcesDbContext db, IFusionLogger<GetPersonsAbsenceForAnalytics> log)
             {
                 this.db = db;
                 this.log = log;
@@ -36,18 +34,9 @@ namespace Fusion.Resources.Domain
             {
                 var query = db.PersonAbsences
                     .Include(x => x.Person)
-                    .Include(x => x.CreatedBy)
                     .Include(x => x.TaskDetails)
                     .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterion.
                     .AsQueryable();
-
-                if (request.Query.HasFilter)
-                {
-                    query = query.ApplyODataFilters(request.Query, m =>
-                    {
-                        m.MapField("person.azureUniqueId", i => i.Person.AzureUniqueId);
-                    });
-                }
 
                 var totalCount = await query.CountAsync(cancellationToken);
 
