@@ -19,7 +19,7 @@ namespace Fusion.Resources.Api.Controllers
             Comment = absence.Comment;
             TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
 
-            if (absence.IsPrivate)
+            if (absence.IsPrivate || absence.Type == QueryAbsenceType.Absence)
             {
                 Comment = "Not disclosed.";
                 TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;

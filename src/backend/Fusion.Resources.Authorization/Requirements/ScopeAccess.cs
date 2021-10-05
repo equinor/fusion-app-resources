@@ -24,7 +24,7 @@ namespace Fusion.Resources.Api.Authorization
         public static readonly ScopeAccess ManageMatrices = new ScopeAccess(AccessType.ManageMatrix, "Fusion.Resources.Internal.ResponsibilityMatrix",
             "You need permission to manage matrix. This is typically granted to persons responsible.");
 
-        public static readonly ScopeAccess QueryAnalyticsRequests = new ScopeAccess(AccessType.AnalyticsRequests, "Fusion.Analytics.Requests", "You need permission to query requests.");
+        public static readonly ScopeAccess QueryAnalyticsRequests = new ScopeAccess(AccessType.AnalyticsRequests, "Fusion.Analytics.Requests", "You need permission to query data.");
 
 
         public enum AccessType { ManageMatrix, AnalyticsRequests }

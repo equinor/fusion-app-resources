@@ -1,8 +1,5 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Domain;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -31,39 +28,21 @@ namespace Fusion.Resources.Api.Controllers
             Project = new ApiProjectReference(query.Project);
 
             OrgPositionId = query.OrgPositionId;
-            if (query.OrgPosition is not null)
-                OrgPosition = query.OrgPosition;
-
             OrgPositionInstanceId = query.OrgPositionInstanceId;
-            if (query.OrgPositionInstance is not null)
-                OrgPositionInstance = query.OrgPositionInstance;
 
             AdditionalNote = query.AdditionalNote;
 
-            if (query.ProposedChanges is not null)
-                ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
-
+            ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
             ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
-
-            if (query.TaskOwner is not null)
-                TaskOwner = new ApiTaskOwner(query.TaskOwner);
-
-            if (query.Actions is not null)
-                Actions = query.Actions.Select(x => new ApiRequestAction(x)).ToList();
-
-            if (query.Conversation is not null)
-                Conversation = query.Conversation.Select(x => new ApiRequestConversationMessage(x)).ToList();
 
             Created = query.Created;
             Updated = query.Updated;
             CreatedBy = new ApiPerson(query.CreatedBy);
-
             UpdatedBy = ApiPerson.FromEntityOrDefault(query.UpdatedBy);
 
             LastActivity = query.LastActivity;
             IsDraft = query.IsDraft;
 
-            if (query.Workflow != null) Workflow = new ApiWorkflow(query.Workflow);
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
         }
 
@@ -79,11 +58,8 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         public string Type { get; set; }
         public string? SubType { get; set; }
-        public ApiWorkflow? Workflow { get; set; }
         public ApiProjectReference Project { get; set; }
-        public ApiPositionV2? OrgPosition { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
         public Guid? OrgPositionInstanceId { get; set; }
         public string? AdditionalNote { get; set; }
 
@@ -92,7 +68,6 @@ namespace Fusion.Resources.Api.Controllers
         public ApiProposedPerson? ProposedPerson { get; set; }
         public ApiProposalParameters? ProposalParameters { get; set; }
 
-        public ApiTaskOwner? TaskOwner { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public ApiPerson CreatedBy { get; set; }
@@ -103,8 +78,6 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
-        public List<ApiRequestAction>? Actions { get; }
-        public List<ApiRequestConversationMessage>? Conversation { get; }
 
     }
 }
