@@ -13,7 +13,7 @@ namespace Fusion.Resources.Api.Authorization
             this.code = code;
             this.description = description;
         }
-
+        
         public AccessType Type { get; }
 
         public override string Description => description;
@@ -21,12 +21,9 @@ namespace Fusion.Resources.Api.Authorization
         public override string Code => code;
 
 
-        public static readonly ScopeAccess ManageMatrices = new ScopeAccess(AccessType.ManageMatrix, "Fusion.Resources.Internal.ResponsibilityMatrix",
+        public static readonly ScopeAccess ManageMatrices = new ScopeAccess(AccessType.ManageMatrix, "Fusion.Resources.Internal.ResponsibilityMatrix", 
             "You need permission to manage matrix. This is typically granted to persons responsible.");
 
-        public static readonly ScopeAccess QueryAnalyticsRequests = new ScopeAccess(AccessType.AnalyticsRequests, "Fusion.Analytics.Requests", "You need permission to query data.");
-
-
-        public enum AccessType { ManageMatrix, AnalyticsRequests }
+        public enum AccessType { ManageMatrix }
     }
 }

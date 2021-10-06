@@ -4,9 +4,9 @@ using Fusion.AspNetCore.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
+
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.ScopeAccess(ScopeAccess.QueryAnalyticsRequests);
+                    or.GlobalRoleAccess("Fusion.Analytics.Requests");
                 });
             });
 
@@ -51,7 +51,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.ScopeAccess(ScopeAccess.QueryAnalyticsRequests);
+                    or.GlobalRoleAccess("Fusion.Analytics.Requests");
                 });
 
             });
