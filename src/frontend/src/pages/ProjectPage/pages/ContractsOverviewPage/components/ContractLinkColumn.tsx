@@ -5,14 +5,14 @@ import { Link } from 'react-router-dom';
 import { FC } from 'react';
 
 type ContractLinkColumnProps = { contractId: string | null };
-const ContractLinkColumn: FC<ContractLinkColumnProps> = ({ contractId, children }) => {
+const ContractLinkColumn: FC<ContractLinkColumnProps> = ({ contractId, children, ...props }) => {
     const currentContext = useCurrentContext();
     if (!currentContext || !contractId) {
         return null;
     }
 
     return (
-        <Link className={styles.linkInColumn} to={combineUrls(currentContext.id, contractId)}>
+        <Link {...props} className={styles.linkInColumn} to={combineUrls(currentContext.id, contractId)}>
             {children}
         </Link>
     );

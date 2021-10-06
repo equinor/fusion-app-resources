@@ -168,7 +168,7 @@ const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
                 </Button>,
             ]}
         >
-            <div className={styles.helpButton}>
+            <div data-cy="help-btn" className={styles.helpButton}>
                 <Link target="_blank" to="/help">
                     <IconButton ref={helpIconRef}>
                         <HelpIcon />

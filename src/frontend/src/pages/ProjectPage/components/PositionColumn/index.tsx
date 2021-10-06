@@ -5,12 +5,12 @@ import styles from './styles.less';
 import { getInstances } from '../../orgHelpers';
 import { FC, useState, useEffect, useMemo } from 'react';
 
-type PositionColumnProps = {
+type PositionColumnProps = JSX.IntrinsicElements['div'] & {
     position?: Position | null;
     positionId?: string | null;
 };
 
-const PositionColumn: FC<PositionColumnProps> = ({ position, positionId }) => {
+const PositionColumn: FC<PositionColumnProps> = ({ position, positionId, ...props }) => {
     const [internalPosition, setPosition] = useState<Position | null>(position || null);
     const [isFetching, setIsFetching] = useState(false);
     const currentProject = useCurrentContext();
@@ -41,7 +41,7 @@ const PositionColumn: FC<PositionColumnProps> = ({ position, positionId }) => {
 
     if (isFetching) {
         return (
-            <div className={styles.container}>
+            <div  {...props}  className={styles.container}>
                 <SkeletonDisc size="medium" />
                 <div className={styles.details}>
                     <div className={styles.positionName}>
@@ -59,7 +59,7 @@ const PositionColumn: FC<PositionColumnProps> = ({ position, positionId }) => {
         return <>TBN</>;
     }
     return (
-        <div className={styles.container}>
+        <div  {...props} data-position-id={instance?.id}  className={styles.container}>
             <PersonPhoto person={instance?.assignedPerson || undefined} size="medium" />
             <div className={styles.details}>
                 <div className={styles.positionName}>{internalPosition.name}</div>

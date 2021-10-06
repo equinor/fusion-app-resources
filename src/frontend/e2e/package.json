@@ -1,0 +1,19 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "cypress open --project .",
+    "start:docker": "npm start  -- --config baseUrl=\"http://localhost:8080\"",
+    "run": "cypress run --project .",
+    "run:docker": "npm run run -- --config baseUrl=\"http://localhost:8080\""
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^8.5.0",
+    "faker": "^5.5.3",
+    "typescript": "^4.4.3"
+  }
+}

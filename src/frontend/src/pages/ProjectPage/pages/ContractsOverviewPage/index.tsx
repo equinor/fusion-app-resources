@@ -37,13 +37,14 @@ const ContractsOverviewPage = () => {
                         <Button relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
                             Allocate contract
                         </Button>
-                        <Link target="_blank" to="/help">
+                        <Link data-cy="help-btn" target="_blank" to="/help">
                             <IconButton ref={helpIconRef}>
                                 <HelpIcon />
                             </IconButton>
                         </Link>
                     </div>
-                    <div className={styles.table}>
+                    { /** TODO add atributes to component */}
+                    <div className={styles.table} data-cy="contract-table-container">
                         <ErrorMessage
                             hasError={hasError}
                             errorType="noData"

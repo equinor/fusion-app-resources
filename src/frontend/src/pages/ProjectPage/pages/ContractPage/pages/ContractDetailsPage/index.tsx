@@ -187,7 +187,7 @@ const ContractDetailsPage = () => {
                 </div>
                 <DelegateAdminTitle />
 
-                <div className={styles.row}>
+                <div data-cy="equinor-resp-delegate-admin-access" className={styles.row}>
                     <ContractAdminTable
                         accountType="Internal"
                         admins={internalAdministrators}
@@ -200,8 +200,9 @@ const ContractDetailsPage = () => {
                     <ExternalContractResponsible />
                 </div>
                 <DelegateAdminTitle />
-                <div className={styles.row}>
+                <div data-cy="external-resp-delegate-admin-access" className={styles.row}>
                     <ContractAdminTable
+                        data-cy="external-resp-delegate-table"
                         accountType="External"
                         admins={externalAdministrators}
                         isFetchingAdmins={isFetching}

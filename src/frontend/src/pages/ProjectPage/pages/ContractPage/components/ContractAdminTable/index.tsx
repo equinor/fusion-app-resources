@@ -33,6 +33,7 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
     accountType,
     admins,
     isFetchingAdmins,
+//    ...props
 }) => {
     const { apiClient } = useAppContext();
     const { contract } = useContractContext();
@@ -108,8 +109,9 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
                     disabled={!canDelete || selectedAdmins.length <= 0}
                 />
             </div>
-            <div className={tableClasses}>
+            <div data-cy="delegate-table" className={tableClasses}>
                 <DataTable
+                    // {...props}
                     data={admins}
                     isFetching={isFetchingAdmins}
                     rowIdentifier="id"
