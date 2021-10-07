@@ -3,6 +3,7 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
@@ -125,7 +126,7 @@ namespace Fusion.Resources.Domain.Queries
                 RuleFor(x => x.Owner)
                     .Must(o => o.HasValue).When(x => !x.ShouldIncludeAllRequests.HasValue)
                     .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
-                
+
                 RuleFor(x => x.ShouldIncludeAllRequests)
                     .Must(o => o.HasValue).When(x => !x.Owner.HasValue)
                     .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
@@ -165,7 +166,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 if (request.ExcludeCompleted.GetValueOrDefault(false))
                     query = query.Where(c => c.State.IsCompleted == false);
-
+                
                 if (request.Query.HasFilter)
                 {
                     query = query.ApplyODataFilters(request.Query, m =>
@@ -182,7 +183,26 @@ namespace Fusion.Resources.Domain.Queries
                     });
                 }
 
-                
+                if (HasOrderByClause(request))
+                {
+                    // er en liste - skal man kunne sortere på mer enn ett felt?
+                    var oDataOrderByOption = request.Query.OrderBy.First();
+
+                    var sortKey = oDataOrderByOption.Field;
+                    var sortDirection = oDataOrderByOption.Direction;
+
+                    //check if valid field?
+                    // boxing of value-types to match the return-type of the expression
+                    var param = Expression.Parameter(typeof(DbResourceAllocationRequest), nameof(DbResourceAllocationRequest));
+                    //var orderExpression = Expression.Lambda<Func<DbResourceAllocationRequest, object>>(Expression.Property(param, field), param);
+
+                    var body = Expression.Convert(Expression.Property(param, sortKey), typeof(object));
+                    var sortExpression = Expression.Lambda<Func<DbResourceAllocationRequest, object>>(body, param);
+
+                    query = sortDirection.Equals(SortDirection.asc)
+                        ? query.OrderBy(sortExpression)
+                        : query.OrderByDescending(sortExpression);
+                }
 
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
@@ -200,7 +220,7 @@ namespace Fusion.Resources.Domain.Queries
                 var countOnly = request.OnlyCount;
 
                 var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take, countOnly);
-                
+
 
                 if (!countOnly)
                 {
@@ -212,6 +232,11 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 return pagedQuery;
+            }
+
+            private static bool HasOrderByClause(GetResourceAllocationRequests request)
+            {
+                return request.Query.OrderBy is not null && request.Query.OrderBy.Any();
             }
 
             private async Task AddActions(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)

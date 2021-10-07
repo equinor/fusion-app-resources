@@ -482,6 +482,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
         }
 
+        [Fact]
+        public async Task GetRequests_OrderedByLastActivity_ShouldBeDescending()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition();
+            await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
+            var ordered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/resources/requests?$orderby=lastactivity%20desc");
+            ordered.Should().BeSuccessfull();
+            var dateTimeOffset = ordered.Value.Value.First().LastActivity.GetValueOrDefault();
+            var dateTimeOffset2 = ordered.Value.Value.Last().LastActivity.GetValueOrDefault();
+            dateTimeOffset.Should().BeAfter(dateTimeOffset2);
+        }
+        
+        [Fact]
+        public async Task GetRequests_OrderedByLastActivity_ShouldBeAscending()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition();
+            await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
+            var ordered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/resources/requests?$orderby=lastactivity");
+            ordered.Should().BeSuccessfull();
+            var dateTimeOffset = ordered.Value.Value.First().LastActivity.GetValueOrDefault();
+            var dateTimeOffset2 = ordered.Value.Value.Last().LastActivity.GetValueOrDefault();
+            dateTimeOffset.Should().BeBefore(dateTimeOffset2);
+        }
+
         //[Fact]
         //public async Task UnassignedRequests_ShouldReturnRequestsWithoutDepartment()
         //{
