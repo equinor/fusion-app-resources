@@ -651,10 +651,9 @@ namespace Fusion.Resources.Database.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<Guid>("CorrelationId")
+                    b.Property<Guid?>("CorrelationId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("newid()");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");

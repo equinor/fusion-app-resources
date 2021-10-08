@@ -130,7 +130,7 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
-        public Guid CorrelationId { get; }
+        public Guid? CorrelationId { get; }
         public QueryTaskOwner? TaskOwner { get; set; }
         public List<QueryRequestAction>? Actions { get; set; }
         public List<QueryConversationMessage>? Conversation { get; set; }

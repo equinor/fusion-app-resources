@@ -135,7 +135,7 @@ namespace Fusion.Resources.Domain.Commands
                     Created = created,
                     CreatedBy = request.Editor.Person,
                     LastActivity = created,
-                    CorrelationId = request.CorrelationId ?? Guid.NewGuid()
+                    CorrelationId = request.CorrelationId
                 };
 
                 if (proposedPerson is not null)

@@ -11,8 +11,7 @@ namespace Fusion.Resources.Database.Migrations
                 name: "CorrelationId",
                 table: "ResourceAllocationRequests",
                 type: "uniqueidentifier",
-                nullable: false,
-                defaultValueSql: "newid()");
+                nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

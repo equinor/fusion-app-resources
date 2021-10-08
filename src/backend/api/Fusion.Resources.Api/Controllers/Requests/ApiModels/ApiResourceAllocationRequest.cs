@@ -105,7 +105,7 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
-        public Guid CorrelationId { get; }
+        public Guid? CorrelationId { get; }
         public List<ApiRequestAction>? Actions { get; }
         public List<ApiRequestConversationMessage>? Conversation { get; }
 
