@@ -124,7 +124,6 @@ namespace Fusion.Resources.Api.Controllers
 
                 if (query.ProposedPerson != null)
                 {
-                    ProposedPerson = new ApiProposedPerson(query.ProposedPerson);
                     ProposedPersonAzureUniqueId = query.ProposedPerson.AzureUniqueId;
                 }
 
