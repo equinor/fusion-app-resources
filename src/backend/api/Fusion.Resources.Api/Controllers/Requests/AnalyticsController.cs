@@ -165,7 +165,6 @@ namespace Fusion.Resources.Api.Controllers
 
             public ApiPropertiesCollection? ProposedChanges { get; set; }
             public Guid? ProposedPersonAzureUniqueId { get; set; }
-            public ApiProposedPerson? ProposedPerson { get; set; }
             public ApiProposalParameters? ProposalParameters { get; set; }
 
 
