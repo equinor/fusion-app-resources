@@ -185,19 +185,15 @@ namespace Fusion.Resources.Domain.Queries
 
                 if (HasOrderByClause(request))
                 {
-                    // er en liste - skal man kunne sortere på mer enn ett felt?
                     var oDataOrderByOption = request.Query.OrderBy.First();
 
                     var sortKey = oDataOrderByOption.Field;
                     var sortDirection = oDataOrderByOption.Direction;
 
-                    //check if valid field?
-                    // boxing of value-types to match the return-type of the expression
-                    var param = Expression.Parameter(typeof(DbResourceAllocationRequest), nameof(DbResourceAllocationRequest));
-                    //var orderExpression = Expression.Lambda<Func<DbResourceAllocationRequest, object>>(Expression.Property(param, field), param);
-
-                    var body = Expression.Convert(Expression.Property(param, sortKey), typeof(object));
-                    var sortExpression = Expression.Lambda<Func<DbResourceAllocationRequest, object>>(body, param);
+                    // konvertere strengverdi i query option til property på entitet
+                    var parameterExpression = Expression.Parameter(typeof(DbResourceAllocationRequest), nameof(DbResourceAllocationRequest));
+                    var convertedExpression = Expression.Convert(Expression.Property(parameterExpression, sortKey), typeof(object));
+                    var sortExpression = Expression.Lambda<Func<DbResourceAllocationRequest, object>>(convertedExpression, parameterExpression);
 
                     query = sortDirection.Equals(SortDirection.asc)
                         ? query.OrderBy(sortExpression)
