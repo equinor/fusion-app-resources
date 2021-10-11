@@ -1,10 +1,12 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
+using Fusion.Integration;
 using Fusion.Integration.Org;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -85,13 +87,15 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
             private readonly IOrgApiClient orgClient;
+            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ILogger<Handler> logger, ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IOrgApiClientFactory apiClientFactory)
+            public Handler(ILogger<Handler> logger, ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IOrgApiClientFactory apiClientFactory, IFusionProfileResolver profileResolver)
             {
                 this.logger = logger;
                 this.db = db;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
+                this.profileResolver = profileResolver;
                 this.orgClient = apiClientFactory.CreateClient(ApiClientMode.Application);
             }
 
@@ -159,12 +163,21 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task ExpandActions(QueryResourceAllocationRequest requestItem)
             {
-                requestItem.Actions = await db.RequestActions
-                    .Include(t => t.ResolvedBy)
-                    .Include(t => t.SentBy)
-                    .Where(t => t.RequestId == requestItem.RequestId)
-                    .Select(t => new QueryRequestAction(t))
-                    .ToListAsync();
+                var result = await db.RequestActions
+                                     .Include(t => t.ResolvedBy)
+                                     .Include(t => t.SentBy)
+                                     .Where(t => t.RequestId == requestItem.RequestId)
+                                     .ToListAsync();
+
+                var requestActions = await result.AsQueryRequestActionsAsync(profileResolver);
+                var actionsLookup = requestActions.ToLookup(x => x.RequestId);
+                
+                requestItem.Actions = actionsLookup.Contains(requestItem.RequestId)
+                    ? requestItem.Actions = actionsLookup[requestItem.RequestId].ToList()
+                    : requestItem.Actions = new List<QueryRequestAction>();
+
+
+
             }
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
