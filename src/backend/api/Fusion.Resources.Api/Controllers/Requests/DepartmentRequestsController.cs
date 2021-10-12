@@ -59,7 +59,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         /// <param name="positionId">The org position id</param>
         /// <returns></returns>
         [HttpGet("/departments/positions/{positionId}/requests")]
-        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetRequestsForPosition(Guid positionId)
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetRequestsForPosition(Guid positionId, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -76,7 +76,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new GetResourceAllocationRequests()
+            var command = new GetResourceAllocationRequests(query)
                 .WithPositionId(positionId)
                 .ForResourceOwners();
 
