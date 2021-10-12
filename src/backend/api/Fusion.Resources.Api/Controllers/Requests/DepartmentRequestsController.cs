@@ -46,6 +46,45 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
         }
 
+        /// <summary>
+        /// List all requests that is relevant for a position. This endpoint is relevant for resource owners, and will include drafts that has not been sent to the task owners.
+        /// 
+        /// The endpoint only requires the user to be a resource owner to list requests. 
+        /// This is due to the nature of knowing that a request exists is not restricted in itself. 
+        /// However internal data like comments should not be exposed in this endpoint.
+        /// 
+        /// It is also difficult to determine a proper authorization rule, as requests could span multiple departments and sectors. The use case is 
+        /// to get an overview of other requests for the position.
+        /// </summary>
+        /// <param name="positionId">The org position id</param>
+        /// <returns></returns>
+        [HttpGet("/departments/positions/{positionId}/requests")]
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetRequestsForPosition(Guid positionId)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            var command = new GetResourceAllocationRequests()
+                .WithPositionId(positionId)
+                .ForResourceOwners();
+
+            var result = await DispatchAsync(command);
+
+            return new ApiCollection<ApiResourceAllocationRequest>(result.Select(x => new ApiResourceAllocationRequest(x)));
+        }
+
         [HttpGet("departments/{departmentString}/resources/requests/timeline")]
         public async Task<ActionResult<ApiRequestsTimeline>> GetDepartmentTimeline(
             [FromRoute] string departmentString,

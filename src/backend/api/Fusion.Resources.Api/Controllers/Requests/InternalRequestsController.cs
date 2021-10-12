@@ -533,8 +533,17 @@ namespace Fusion.Resources.Api.Controllers
             return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
         }
 
+        /// <summary>
+        /// Endpoint for the task owners to get all requests that exists for a position.
+        /// The collection can be filtered on multiple properties like state and state.iscomplete ++.
+        /// 
+        /// Resource owners should use department scoped path, so to not mix task owner and resource owner internal data (like draft requests).
+        /// </summary>
+        /// <param name="projectIdentifier"></param>
+        /// <param name="positionId"></param>
+        /// <returns></returns>
         [HttpGet("/projects/{projectIdentifier}/positions/{positionId}/requests")]
-        public async Task<ActionResult<List<ApiResourceAllocationRequest>>> GetRequestsForPosition(PathProjectIdentifier projectIdentifier, Guid positionId)
+        public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetRequestsForPosition(PathProjectIdentifier projectIdentifier, Guid positionId)
         {
             #region Authorization
 
@@ -546,7 +555,6 @@ namespace Fusion.Resources.Api.Controllers
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
                     or.OrgChartReadAccess(projectIdentifier.ProjectId);
                     or.OrgChartPositionReadAccess(projectIdentifier.ProjectId, positionId);
-                    or.BeResourceOwner();
                 });
             });
 
@@ -557,10 +565,10 @@ namespace Fusion.Resources.Api.Controllers
             var command = new GetResourceAllocationRequests()
                 .WithProjectId(projectIdentifier.ProjectId)
                 .WithPositionId(positionId)
-                .ForAll();
+                .ForTaskOwners();
 
             var result = await DispatchAsync(command);
-            return Ok(result.Select(x => new ApiResourceAllocationRequest(x)));
+            return new ApiCollection<ApiResourceAllocationRequest>(result.Select(x => new ApiResourceAllocationRequest(x)));
         }
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/start")]
