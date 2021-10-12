@@ -90,6 +90,14 @@ namespace Fusion.Resources.Domain
                             .Where(instance => instance.AppliesTo >= request.TimelineStart && instance.AppliesFrom <= request.TimelineEnd)
                             .ToList();
 
+                        p.Absence = p.Absence
+                                     .Where(instance => instance.AppliesTo >= request.TimelineStart && instance.AppliesFrom <= request.TimelineEnd)
+                                     .ToList();
+
+                        p.PendingRequests = p.PendingRequests
+                                             .Where(instance => instance.OrgPositionInstance?.AppliesTo >= request.TimelineStart && instance.OrgPositionInstance?.AppliesFrom <= request.TimelineEnd)
+                                             .ToList();
+
                         // Timeline date input has been verified when shouldExpandTimline is true.
                         p.Timeline = new PersonnelTimelineBuilder(request.TimelineStart!.Value, request.TimelineEnd!.Value)
                             .WithPositions(p.PositionInstances)
@@ -102,7 +110,7 @@ namespace Fusion.Resources.Domain
                 return departmentPersonnel;
             }
 
-            private async Task<Dictionary<Guid,List<QueryResourceAllocationRequest>>> GetProposedRequestsAsync(string department)
+            private async Task<Dictionary<Guid, List<QueryResourceAllocationRequest>>> GetProposedRequestsAsync(string department)
             {
                 var command = new GetResourceAllocationRequests()
                     .WithAssignedDepartment(department)

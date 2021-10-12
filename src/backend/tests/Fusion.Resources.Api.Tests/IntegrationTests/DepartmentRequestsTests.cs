@@ -565,7 +565,57 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .Should()
                 .BeFalse();
         }
+        
+        [Fact]
+        public async Task GetTimelineShouldNotIncludeEmploymentStatusesOutsideTimeframe()
+        {
+            using var adminScope = fixture.AdminScope();
 
+            await Client.AddAbsence(user, x =>
+                                          {
+                                              x.AppliesFrom = new DateTime(2021, 08, 06);
+                                              x.AppliesTo = new DateTime(2021, 09, 03);
+                                          });
+            
+            var timelineStart = new DateTime(2022, 04, 01);
+            var timelineEnd = new DateTime(2022, 09, 30);
+
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                                                                         $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+                                                                        );
+
+            response.Should().BeSuccessfull();
+            response.Value.value
+                .SelectMany(x => x.employmentStatuses)
+                .Any(x => x.appliesTo < timelineStart || x.appliesFrom > timelineEnd)
+                .Should()
+                .BeFalse();
+        }
+
+        [Fact]
+        public async Task GetTimeline_ShouldNotIncludeRequestsOutsideTimeframe()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+
+            var timelineStart = new DateTime(2022, 04, 01);
+            var timelineEnd = new DateTime(2022, 09, 30);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            result.pendingRequests.Should().BeEmpty();
+        }
+        
         [Fact]
         public async Task GetTimeline_ShouldIncludeRequests()
         {
