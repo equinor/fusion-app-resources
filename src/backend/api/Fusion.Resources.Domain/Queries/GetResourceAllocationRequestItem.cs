@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Commands.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -154,30 +155,19 @@ namespace Fusion.Resources.Domain.Queries
             private async Task ExpandConversation(QueryResourceAllocationRequest requestItem)
             {
                 requestItem.Conversation = await db.RequestConversations
-                    .Include(x => x.Sender)
-                    .Where(x => x.RequestId == requestItem.RequestId)
-                    .Select(x => new QueryConversationMessage(x))
-                    .ToListAsync();
-                
+                                                   .Include(x => x.Sender)
+                                                   .Where(x => x.RequestId == requestItem.RequestId)
+                                                   .Select(x => new QueryConversationMessage(x))
+                                                   .ToListAsync();
             }
 
-            private async Task ExpandActions(QueryResourceAllocationRequest requestItem)
+            private async Task ExpandActions(QueryResourceAllocationRequest request)
             {
-                var result = await db.RequestActions
-                                     .Include(t => t.ResolvedBy)
-                                     .Include(t => t.SentBy)
-                                     .Where(t => t.RequestId == requestItem.RequestId)
-                                     .ToListAsync();
-
-                var requestActions = await result.AsQueryRequestActionsAsync(profileResolver);
-                var actionsLookup = requestActions.ToLookup(x => x.RequestId);
+                var actions = await mediator.Send(new GetActionsForRequests(new[] { request.RequestId }));
                 
-                requestItem.Actions = actionsLookup.Contains(requestItem.RequestId)
-                    ? requestItem.Actions = actionsLookup[requestItem.RequestId].ToList()
-                    : requestItem.Actions = new List<QueryRequestAction>();
-
-
-
+                request.Actions = actions.Contains(request.RequestId)
+                    ? actions[request.RequestId].ToList()
+                    : new List<QueryRequestAction>();
             }
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
