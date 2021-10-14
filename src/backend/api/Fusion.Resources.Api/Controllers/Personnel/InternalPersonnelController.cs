@@ -21,6 +21,7 @@ namespace Fusion.Resources.Api.Controllers
         public InternalPersonnelController()
         {
         }
+
         /// <summary>
         /// Get personnel for a department
         /// </summary>
@@ -29,10 +30,10 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="timelineDuration">Optional: duration of timeline i.e. P1M for 1 month</param>
         /// <param name="timelineEnd">Optional: specific end date of timeline</param>
         /// <param name="includeSubdepartments">Certain departments in line org exists where a 
-        /// <param name="currentAllocations">Show only current allocations
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
         /// <returns></returns>
+        /// <param name="currentAllocations">Currentallocations</param>
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
             [FromQuery] ODataQueryParams query,
