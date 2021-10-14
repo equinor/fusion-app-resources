@@ -255,8 +255,8 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var req in pagedQuery)
                 {
-                    if (string.IsNullOrEmpty(req.AssignedDepartment)) continue;
-
+                    // Assigned Department on request may not be valid anymore. Make sure to check if dictionary actually contains the value before trying to apply details.
+                    if (string.IsNullOrEmpty(req.AssignedDepartment) || !departmentMap.ContainsKey(req.AssignedDepartment)) continue;
                     req.AssignedDepartmentDetails = departmentMap[req.AssignedDepartment];
                 }
             }

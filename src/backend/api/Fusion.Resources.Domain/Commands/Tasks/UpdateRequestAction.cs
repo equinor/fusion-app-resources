@@ -1,4 +1,6 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration;
+using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -21,20 +23,28 @@ namespace Fusion.Resources.Domain.Commands.Tasks
         }
 
         public MonitorableProperty<string> Title { get; set; } = new();
-        public MonitorableProperty<string> Body { get; set; } = new();
+        public MonitorableProperty<string?> Body { get; set; } = new();
         public MonitorableProperty<string> Type { get; set; } = new();
         public MonitorableProperty<string?> SubType { get; set; } = new();
         public MonitorableProperty<bool> IsResolved { get; set; } = new();
         public MonitorableProperty<bool> IsRequired { get; set; } = new();
+
+        public MonitorableProperty<DateTime?> DueDate { get; set; } = new();
+        public MonitorableProperty<Guid?> AssignedToId { get; set; } = new();
+
         public MonitorableProperty<Dictionary<string, object>?> Properties { get; set; } = new();
 
         public class Handler : IRequestHandler<UpdateRequestAction, QueryRequestAction>
         {
             private readonly ResourcesDbContext db;
+            private readonly IProfileService profileService;
+            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IProfileService profileService, IFusionProfileResolver profileResolver)
             {
                 this.db = db;
+                this.profileService = profileService;
+                this.profileResolver = profileResolver;
             }
 
             public async Task<QueryRequestAction> Handle(UpdateRequestAction request, CancellationToken cancellationToken)
@@ -42,9 +52,10 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 var action = await db.RequestActions
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
+                    .Include(t => t.AssignedTo)
                     .SingleOrDefaultAsync(t => t.Id == request.taskId && t.RequestId == request.requestId, cancellationToken);
 
-                if (action is null) throw new TaskNotFoundError(request.requestId, request.taskId);
+                if (action is null) throw new ActionNotFoundError(request.requestId, request.taskId);
 
                 request.Title.IfSet(title => action.Title = title);
                 request.Body.IfSet(body => action.Body = body);
@@ -73,16 +84,24 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                     }
                 });
 
+                await request.AssignedToId.IfSetAsync(async x => {
+                    var assignedTo = default(DbPerson);
+                    if(x.HasValue)
+                        assignedTo = await profileService.EnsurePersonAsync(x.Value);
+                    action.AssignedToId = assignedTo?.Id;
+                });
+                request.DueDate.IfSet(x => action.DueDate = x);
+
                 await db.SaveChangesAsync(cancellationToken);
 
-                return new QueryRequestAction(action);
+                return await action.AsQueryRequestActionAsync(profileResolver);
             }
 
-            private static void UpdateCustomProperties(Database.Entities.DbRequestAction task, Dictionary<string, object>? props)
+            private static void UpdateCustomProperties(Database.Entities.DbRequestAction action, Dictionary<string, object>? props)
             {
                 if (props is null) return;
 
-                var existingProps = new QueryRequestAction(task).Properties;
+                var existingProps = new QueryRequestAction(action).Properties;
                 foreach(var prop in props)
                 {
                     if (existingProps.ContainsKey(prop.Key))
@@ -94,7 +113,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                         existingProps.Add(prop.Key, prop.Value);
                     }
                 }
-                task.PropertiesJson = JsonSerializer.Serialize(existingProps);
+                action.PropertiesJson = JsonSerializer.Serialize(existingProps);
             }
         }
     }

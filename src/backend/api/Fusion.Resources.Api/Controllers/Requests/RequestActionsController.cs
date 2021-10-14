@@ -72,7 +72,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     _ => throw new NotSupportedException($"Could not map {request.Source} to {nameof(QueryTaskSource)}.")
                 },
                 IsRequired = request.IsRequired,
-                Properties = request.Properties
+                Properties = request.Properties,
+                DueDate = request.DueDate,
+                AssignedToId = request.AssignedToId
             };
 
             var created = await DispatchAsync(command);
@@ -117,9 +119,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var command = new GetRequestActions(requestId).WithQuery(query);
-            var tasks = await DispatchAsync(command);
+            var actions = await DispatchAsync(command);
 
-            return Ok(tasks.Select(t => new ApiRequestAction(t)));
+            return Ok(actions.Select(t => new ApiRequestAction(t)));
         }
 
         [HttpGet("requests/{requestId}/actions/{actionId}")]
@@ -159,10 +161,10 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var command = new GetRequestAction(requestId, actionId);
-            var task = await DispatchAsync(command);
-            if (task is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
+            var action = await DispatchAsync(command);
+            if (action is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
 
-            return Ok(new ApiRequestAction(task));
+            return Ok(new ApiRequestAction(action));
         }
 
         [HttpPatch("requests/{requestId}/actions/{actionId}")]
@@ -210,13 +212,15 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (patch.IsResolved.HasValue) command.IsResolved = patch.IsResolved.Value;
             if (patch.IsRequired.HasValue) command.IsRequired = patch.IsRequired.Value;
             if (patch.Properties.HasValue) command.Properties = patch.Properties.Value;
+            if (patch.AssignedToId.HasValue) command.AssignedToId = patch.AssignedToId.Value;
+            if (patch.DueDate.HasValue) command.DueDate = patch.DueDate.Value;
 
             try
             {
                 var updated = await DispatchAsync(command);
                 return Ok(new ApiRequestAction(updated));
             }
-            catch (TaskNotFoundError err)
+            catch (ActionNotFoundError err)
             {
                 return FusionApiError.NotFound(actionId, err.Message);
             }

@@ -44,7 +44,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var tbnPositions = new List<QueryTbnPosition>();
 
-                var sourceDepartmentLevel = request.Department.Split(" ").Length;
+                var sourceDepartment = new DepartmentPath(request.Department);
 
                 foreach (var pos in positions)
                 {
@@ -53,7 +53,7 @@ namespace Fusion.Resources.Domain.Queries
                         if (instance.AssignedPerson is not null) continue;
 
                         // This should be some sort of configuration in the future
-                        if (DepartmentUtils.IsRelevantBasePositionDepartment(sourceDepartmentLevel, request.Department, pos.BasePosition.Department))
+                        if (sourceDepartment.IsRelevant(pos.BasePosition.Department))
                         {
                             tbnPositions.Add(new QueryTbnPosition(pos, instance));
                         }

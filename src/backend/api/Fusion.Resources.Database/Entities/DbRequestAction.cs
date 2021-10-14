@@ -12,7 +12,7 @@ namespace Fusion.Resources.Database.Entities
         [MaxLength(100)]
         public string Title { get; set; } = null!;
         [MaxLength(2000)]
-        public string Body { get; set; } = null!;
+        public string? Body { get; set; } = null!;
         [MaxLength(60)]
         public string Type { get; set; } = null!;
         [MaxLength(60)]
@@ -28,7 +28,12 @@ namespace Fusion.Resources.Database.Entities
         public Guid SentById { get; set; }
         public DbPerson SentBy { get; set; } = null!;
 
+        public Guid? AssignedToId { get; set; }
+        public DbPerson? AssignedTo { get; set; }
+
         public bool IsRequired { get; set; } = false;
+
+        public DateTime? DueDate { get; set; }
 
         public Guid RequestId { get; set; }
         public DbResourceAllocationRequest Request { get; set; } = null!;
@@ -51,6 +56,11 @@ namespace Fusion.Resources.Database.Entities
                     .WithMany()
                     .HasForeignKey(t => t.SentById)
                     .IsRequired();
+
+                builder
+                    .HasOne(t => t.AssignedTo)
+                    .WithMany()
+                    .HasForeignKey(t => t.AssignedToId);
 
                 builder.Property(x => x.IsRequired)
                     .HasDefaultValueSql("(0)")

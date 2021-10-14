@@ -1,12 +1,15 @@
 ﻿using Bogus;
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.Controllers;
+using Fusion.Resources.Api.Tests.Helpers.Models.Requests;
 using Fusion.Resources.Api.Tests.IntegrationTests;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -231,9 +234,9 @@ namespace Fusion.Resources.Api.Tests
             return result.Value;
         }
 
-        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestApiRequestAction> setup,  Dictionary<string, object> props = null)
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestCreateRequestAction> setup,  Dictionary<string, object> props = null)
         {
-            var payload = new TestApiRequestAction
+            var payload = new TestCreateRequestAction
             {
                 title = "Test title",
                 body = "Test body",
@@ -272,6 +275,26 @@ namespace Fusion.Resources.Api.Tests
             result.Should().BeSuccessfull();
 
             return result.Value;
+        }
+
+
+        public static async Task<TestResponsibilitMatrix> AddResponsibilityMatrixAsync(this HttpClient client, FusionTestProjectBuilder testProject, Action<UpdateResponsibilityMatrixRequest> setup = null)
+        {
+            var request = new UpdateResponsibilityMatrixRequest
+            {
+                ProjectId = testProject.Project.ProjectId,
+                LocationId = Guid.NewGuid(),
+                Discipline = "WallaWallaUpdated",
+                BasePositionId = testProject.Positions.First().BasePosition.Id,
+                Sector = "ABC DEF",
+                Unit = "ABC DEF GHI",
+            };
+            setup?.Invoke(request);
+
+            var response = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", request);
+            response.Should().BeSuccessfull();
+
+            return response.Value;
         }
 
         public static async Task<TestClientHttpResponse<TestAbsence>> AddAbsence(this HttpClient client, ApiPersonProfileV3 user, Action<TestAbsence> setup = null)

@@ -13,7 +13,6 @@ namespace Fusion.Resources.Domain
 {
     public class RequestRouter : IRequestRouter
     {
-        private const int min_score = 7;
         private readonly ResourcesDbContext db;
         private readonly IProjectOrgResolver orgResolver;
         private readonly IMediator mediator;
@@ -36,18 +35,22 @@ namespace Fusion.Resources.Domain
                 departmentId = await RouteFromProposedPerson(request.ProposedPerson, cancellationToken);
             }
 
-            if (string.IsNullOrEmpty(departmentId))
-            {
-                departmentId = await RouteFromResponsibilityMatrix(request, cancellationToken);
-            }
+            if (!String.IsNullOrEmpty(departmentId) || !request.OrgPositionId.HasValue) return departmentId;
 
-            if (string.IsNullOrEmpty(departmentId))
-            {
-                departmentId = await RouteFromBasePosition(request);
-            }
+            var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
+            if (position is null) return departmentId;
+
+            return await RouteAsync(position, request.OrgPositionInstance.Id, cancellationToken);
+        }
+
+        public async Task<string?> RouteAsync(ApiPositionV2 position, Guid? instanceId, CancellationToken cancellationToken)
+        {
+            var departmentId = await RouteFromBasePosition(position.BasePosition);
+            departmentId = await RouteFromResponsibilityMatrix(position, instanceId, departmentId, cancellationToken);
 
             return departmentId;
         }
+
 
         private async Task<string?> RouteFromProposedPerson(DbResourceAllocationRequest.DbOpProposedPerson proposedPerson, CancellationToken cancellationToken)
         {
@@ -59,48 +62,61 @@ namespace Fusion.Resources.Domain
             return profile?.FullDepartment;
         }
 
-        private async Task<string?> RouteFromBasePosition(DbResourceAllocationRequest request)
+        private async Task<string?> RouteFromBasePosition(ApiPositionBasePositionV2 basePosition)
         {
-            if (!request.OrgPositionId.HasValue) return null;
-
-            var position = await orgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
-            var departmentPath = position?.BasePosition?.Department;
-            if (!string.IsNullOrEmpty(departmentPath))
+            var departmentPath = default(string);
+            if (!string.IsNullOrEmpty(basePosition.Department))
             {
                 // Check if department path is an actual department
-                // TODO: Maybe round robin when partial match?
-
-                var actualDepartment = await mediator.Send(new GetDepartment(departmentPath));
+                var actualDepartment = await mediator.Send(new GetDepartment(basePosition.Department));
                 departmentPath = actualDepartment?.DepartmentId;
             }
 
             return departmentPath;
         }
 
-        private async Task<string?> RouteFromResponsibilityMatrix(DbResourceAllocationRequest request, CancellationToken cancellationToken)
+        private async Task<string?> RouteFromResponsibilityMatrix(ApiPositionV2 position, Guid? instanceId, string? departmentId, CancellationToken cancellationToken)
         {
-            var props = new MatchingProperties(request.Project.OrgProjectId)
+            var instance = instanceId.HasValue
+                ? position.Instances.FirstOrDefault(x => x.Id == instanceId)
+                : position.Instances.FirstOrDefault();
+
+            var props = new MatchingProperties(position.Project.ProjectId)
             {
-                Discipline = request.Discipline,
-                LocationId = request.OrgPositionInstance.LocationId,
+                Discipline = position.BasePosition.Discipline,
+                LocationId = instance?.Location?.Id,
+                BasePositionDepartment = departmentId,
+                BasePositionId = position.BasePosition.Id
             };
             var matches = Match(props);
-            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= min_score, cancellationToken);
+            var bestMatch = await matches.FirstOrDefaultAsync(m => m.Score >= m.RequiredScore, cancellationToken);
 
-            return bestMatch?.Row.Unit;
+            if (bestMatch?.Row.BasePositionId != null || IsRelevant(position, bestMatch?.Row.Unit))
+            {
+                return bestMatch!.Row.Unit;
+            }
+
+            return departmentId;
         }
+
+        private static bool IsRelevant(ApiPositionV2 position, string? unit) => new DepartmentPath(position.BasePosition.Department).IsRelevant(unit);
 
         private IQueryable<ResponsibilityMatch> Match(MatchingProperties props)
         {
             return db.ResponsibilityMatrices
                 .Include(m => m.Responsible)
                 .Include(m => m.Project)
+                .Where(m => m.Unit!.StartsWith(props.BasePositionDepartment!) || m.BasePositionId != null)
                 .Select(m => new ResponsibilityMatch
                 {
-                    Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 7 : 0)
-                            + (props.BasePositionDepartment != null && m.Unit!.StartsWith(props.BasePositionDepartment) ? 5 : 0)
+                    Score = (m.Project!.OrgProjectId == props.OrgProjectId ? 5 : 0)
+                            + (m.BasePositionId == props.BasePositionId ? 5 : 0)
                             + (m.Discipline == props.Discipline ? 2 : 0)
                             + (m.LocationId == props.LocationId ? 1 : 0),
+                    RequiredScore = (m.Project != null ? 5 : 0)
+                            + (m.BasePositionId != null ? 5 : 0)
+                            + (m.Discipline != null ? 2 : 0)
+                            + (m.LocationId != null ? 1 : 0),
                     Row = m
                 })
                 .OrderByDescending(x => x.Score);
@@ -116,12 +132,14 @@ namespace Fusion.Resources.Domain
             public string? Discipline { get; set; }
             public string? BasePositionDepartment { get; set; }
             public Guid? LocationId { get; set; }
+            public Guid BasePositionId { get; internal set; }
         }
 
         public class ResponsibilityMatch
         {
             public int Score { get; set; }
             public DbResponsibilityMatrix Row { get; set; } = null!;
+            public int RequiredScore { get; set; }
         }
     }
 }

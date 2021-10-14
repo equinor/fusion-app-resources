@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
@@ -16,10 +17,12 @@ namespace Fusion.Resources.Api.Controllers
     public class DepartmentsController : ResourceControllerBase
     {
         private readonly IOrgApiClient orgApiClient;
+        private readonly IRequestRouter requestRouter;
 
-        public DepartmentsController(IOrgApiClientFactory orgApiClientFactory)
+        public DepartmentsController(IOrgApiClientFactory orgApiClientFactory, IRequestRouter requestRouter)
         {
             this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application); ;
+            this.requestRouter = requestRouter;
         }
         [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
@@ -102,7 +105,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
         public async Task<ActionResult<ApiRelevantDepartments>> GetPositionDepartments(
-            Guid projectId, Guid positionId, Guid instanceId)
+            Guid projectId, Guid positionId, Guid instanceId, CancellationToken cancellationToken)
         {
             var result = new ApiRelevantDepartments();
 
@@ -112,10 +115,12 @@ namespace Fusion.Resources.Api.Controllers
             // Empty string is a valid department in line org (CEO), but we don't want to return that.
             if (string.IsNullOrWhiteSpace(position.BasePosition.Department)) return result;
 
-            var department = await DispatchAsync(new GetDepartment(position.BasePosition.Department));
+            var routedDepartment = await requestRouter.RouteAsync(position, instanceId, cancellationToken);
+            if (string.IsNullOrWhiteSpace(routedDepartment)) return result;
+
+            var department = await DispatchAsync(new GetDepartment(routedDepartment));
             var related = await DispatchAsync(new GetRelatedDepartments(position.BasePosition.Department));
 
-            // TODO: also lookup based on responsibility matrix
             if (related is not null)
             {
                 result.Relevant.AddRange(

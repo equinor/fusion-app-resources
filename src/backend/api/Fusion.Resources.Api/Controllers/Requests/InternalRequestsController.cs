@@ -664,9 +664,6 @@ namespace Fusion.Resources.Api.Controllers
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             
-            if (string.Equals(result!.State, AllocationNormalWorkflowV1.APPROVAL, StringComparison.OrdinalIgnoreCase))
-                await DispatchAsync(new InternalRequestNotifications.ProposedPerson(result.RequestId));
-
             return new ApiResourceAllocationRequest(result!);
         }
 

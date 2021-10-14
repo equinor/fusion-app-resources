@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Errors;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -62,9 +63,9 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
+            if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
 
-            var respObject = new ApiResourceOwnerProfile(resourceOwnerProfile);
-            return respObject;
+            return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
 
         [HttpGet("/persons/{personId}/resources/notes")]

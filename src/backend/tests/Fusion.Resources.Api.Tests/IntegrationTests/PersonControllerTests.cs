@@ -30,7 +30,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUser = fixture.AddProfile(FusionAccountType.Employee);
-            
+
             testProject = new FusionTestProjectBuilder()
                 .WithPositions()
                 .AddToMockService();
@@ -75,6 +75,48 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 resp.Value.responsibilityInDepartments.Should().NotContain(futureDelegatedDept);
                 resp.Value.responsibilityInDepartments.Should().NotContain(previousDelegatedDept);
             }
+        }
+
+        [Fact]
+        public async Task GetProfile_ShouldBeEmpty_WhenUserHasNoDepartment()
+        {
+            using (var userScope = fixture.UserScope(testUser))
+            {
+                testUser.FullDepartment = null;
+                var client = fixture.ApiFactory.CreateClient();
+                var resp = await client.TestClientGetAsync(
+                    $"/persons/me/resources/profile?api-version=1.0-preview",
+                    new
+                    {
+                        fullDepartment = default(string),
+                        isResourceOwner = true,
+                        responsibilityInDepartments = Array.Empty<string>()
+                    }
+                );
+
+                resp.Should().BeSuccessfull();
+                resp.Value.fullDepartment.Should().BeNull();
+                resp.Value.isResourceOwner.Should().BeFalse();
+            }
+        }
+
+
+        [Fact]
+        public async Task GetProfile_ShouldBeNotFound_WhenUserDoesNotExist()
+        {
+            using var userScope = fixture.AdminScope();
+            var client = fixture.ApiFactory.CreateClient();
+            var resp = await client.TestClientGetAsync(
+                $"/persons/{Guid.NewGuid()}/resources/profile?api-version=1.0-preview",
+                new
+                {
+                    fullDepartment = default(string),
+                    isResourceOwner = true,
+                    responsibilityInDepartments = Array.Empty<string>()
+                }
+            );
+
+            resp.Should().BeNotFound();
         }
 
 

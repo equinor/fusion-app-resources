@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.OData;
+using Fusion.Integration;
 using Fusion.Resources.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -29,14 +30,17 @@ namespace Fusion.Resources.Domain.Commands.Tasks
         public class Handler : IRequestHandler<GetRequestActions, IEnumerable<QueryRequestAction>>
         {
             private readonly ResourcesDbContext db;
+            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver)
             {
                 this.db = db;
+                this.profileResolver = profileResolver;
             }
             public async Task<IEnumerable<QueryRequestAction>> Handle(GetRequestActions request, CancellationToken cancellationToken)
             {
                 var query = db.RequestActions
+                    .Include(t => t.AssignedTo)
                     .Include(t => t.ResolvedBy)
                     .Include(t => t.SentBy)
                     .Where(t => t.RequestId == request.requestId);
@@ -53,7 +57,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
 
                 var result = await query.ToListAsync(cancellationToken);
 
-                return result.Select(t => new QueryRequestAction(t));
+                return await result.AsQueryRequestActionsAsync(profileResolver);
             }
         }
     }
