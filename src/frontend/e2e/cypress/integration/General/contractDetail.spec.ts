@@ -34,16 +34,20 @@ describe('Contract Detail', () => {
     })
 
     // verify General tab is active
-    contractDetail.GeneralButton().invoke('attr', 'class').should('contain', 'isActive')
+    // give a data-cy to the general tab
+    //cy.get('#general-tab').invoke('attr', 'class').should('contain', 'isActive')
 
     cy.contains('Contract details').should('be.visible')
 
-    cy.contains('Equinor responsible').next().find('[class^="fc--PositionCard__context"]').its('length').should('be.greaterThan', 0)
+    cy.contains('Equinor responsible').should('be.visible').as('equinor-resp')
+    cy.get('@equinor-resp').next().find('[class^="fc--PositionCard__context"]').its('length').should('be.greaterThan', 0)
+    contractDetail.EquinorRespDelegate().find('[data-cy="delegate-table"]').should('be.visible')
 
 
-    cy.contains('External responsible').next().find('[class^="fc--PositionCard__context"]').its('length').should('be.greaterThan', 0)
-
-
+    cy.contains('External responsible').should('be.exist').as('external-resp')
+    // TODO: give a data-cy to the position card
+    cy.get('@external-resp').next().find('[class^="fc--PositionCard__context"]').its('length').should('be.greaterThan', 0)
+    contractDetail.ExternalRespDelegate().find('[data-cy="delegate-table"]').should('be.exist')
     
   });
 

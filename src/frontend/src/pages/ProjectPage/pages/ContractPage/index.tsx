@@ -64,9 +64,11 @@ const ContractPage: FC<ContractPageProps> = ({ match }) => {
         return (
             <div className={styles.container}>
                 <header className={styles.header}>
+                    <div data-cy="close-btn">
                     <IconButton onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
+                    </div>
                 </header>
                 <div className={styles.content}>
                     <ResourceErrorMessage error={contractError} />
@@ -79,7 +81,7 @@ const ContractPage: FC<ContractPageProps> = ({ match }) => {
         <ContractContext.Provider value={contractContext}>
             <div className={styles.container}>
                 <header className={styles.header}>
-                    <IconButton onClick={onClose}>
+                    <IconButton data-cy="close-btn" onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
                     <h2>

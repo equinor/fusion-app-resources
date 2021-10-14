@@ -137,7 +137,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <IconButton onClick={onGoBack} ref={backButtonTooltipRef}>
+                <IconButton data-cy="close-btn" onClick={onGoBack} ref={backButtonTooltipRef}>
                     <CloseIcon />
                 </IconButton>
                 <h2>{title}</h2>

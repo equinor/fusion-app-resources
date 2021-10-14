@@ -211,13 +211,14 @@ const ContractDetailsPage = () => {
             </div>
             <div className={styles.aside}>
                 <IconButton
+                    data-cy="edit-btn"
                     ref={editTooltipRef}
                     onClick={() => history.push(`/${currentContext?.id}/${contract?.id}/edit`)}
                 >
                     <EditIcon />
                 </IconButton>
                 <Link target="_blank" to="/help">
-                    <IconButton ref={helpIconRef}>
+                    <IconButton data-cy="help-btn" ref={helpIconRef}>
                         <HelpIcon />
                     </IconButton>
                 </Link>
