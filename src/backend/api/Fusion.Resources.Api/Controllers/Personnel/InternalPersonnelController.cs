@@ -33,15 +33,13 @@ namespace Fusion.Resources.Api.Controllers
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
         /// <returns></returns>
-        /// <param name="currentAllocations">Currentallocations</param>
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
             [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
             [FromQuery] string? timelineDuration = null,
             [FromQuery] DateTime? timelineEnd = null,
-            [FromQuery] bool includeSubdepartments = false,
-            [FromQuery] bool currentAllocations = false)
+            [FromQuery] bool includeSubdepartments = false)
         {
             #region Authorization
 
@@ -97,7 +95,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
                 .IncludeSubdepartments(includeSubdepartments)
-                .CurrentAllocations(currentAllocations)
+                //.CurrentAllocations(currentAllocations)
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
 
             var department = await DispatchAsync(command);
