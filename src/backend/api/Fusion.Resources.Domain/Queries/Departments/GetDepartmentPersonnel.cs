@@ -25,6 +25,7 @@ namespace Fusion.Resources.Domain
         }
 
         private bool includeSubdepartments = false;
+        private bool currentAllocations;
         public bool ExpandTimeline { get; set; }
         public string Department { get; set; }
         public ODataQueryParams? QueryParams { get; }
@@ -45,6 +46,12 @@ namespace Fusion.Resources.Domain
         public GetDepartmentPersonnel IncludeSubdepartments(bool includeSubdepartments)
         {
             this.includeSubdepartments = includeSubdepartments;
+            return this;
+        }
+        
+        public GetDepartmentPersonnel CurrentAllocations(bool getCurrentAllocations)
+        {
+            currentAllocations = getCurrentAllocations;
             return this;
         }
 
@@ -104,6 +111,21 @@ namespace Fusion.Resources.Domain
                             .WithAbsences(p.Absence)
                             .WithPendingRequests(p.PendingRequests)
                             .Build();
+                    }
+
+                    if (request.currentAllocations)
+                    {
+                        p.PositionInstances = p.PositionInstances
+                                               .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
+                                               .ToList();
+
+                        p.Absence = p.Absence
+                                     .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
+                                     .ToList();
+
+                        p.PendingRequests = p.PendingRequests
+                                             .Where(instance => instance.OrgPositionInstance?.AppliesTo >= DateTime.Now && instance.OrgPositionInstance?.AppliesFrom <= DateTime.Now)
+                                             .ToList();
                     }
                 });
 

@@ -617,6 +617,37 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
         
         [Fact]
+        public async Task GetRequests_ShouldNotIncludeRequestsOutsideCurrentAllocations()
+        {
+            const string department = "PDP BTAD AWQ";
+            fixture.EnsureDepartment(department);
+
+            var project = new FusionTestProjectBuilder()
+                          .WithPositions(10, 50)
+                          .AddToMockService();
+
+            var profile = PeopleServiceMock.AddTestProfile().WithFullDepartment(department);
+            foreach (var position in project.Positions) profile.WithPosition(position);
+            profile.SaveProfile();
+
+            using var scope = fixture.AdminScope();
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                                                                         $"/departments/{department}/resources/personnel/?currentAllocations=true&{ApiVersion}"
+                                                                        );
+
+            response.Should().BeSuccessfull();
+            
+            response.Value.value
+                    .SelectMany(x => x.positionInstances)
+                    .Any(x => x.AppliesFrom > DateTime.Now || x.AppliesTo < DateTime.Now)
+                    .Should()
+                    .BeFalse();
+        }
+        
+        [Fact]
         public async Task GetTimeline_ShouldIncludeRequests()
         {
             TestApiInternalRequestModel request;
