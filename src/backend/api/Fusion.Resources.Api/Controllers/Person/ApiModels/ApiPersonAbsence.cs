@@ -68,7 +68,7 @@ namespace Fusion.Resources.Api.Controllers
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAbsenceType Type { get; set; }
         public double? AbsencePercentage { get; set; }
-
+        
         public enum ApiAbsenceType { Absence, Vacation, OtherTasks }
     }
 }
