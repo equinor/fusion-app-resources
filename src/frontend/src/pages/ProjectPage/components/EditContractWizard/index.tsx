@@ -185,6 +185,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                         <div className={styles.row}>
                             <div className={classNames(styles.field, styles.big)}>
                                 <TextInput
+                                    data-cy="contract-name"
                                     ref={nameInputRef}
                                     label="Contract name"
                                     value={formState.name || ''}

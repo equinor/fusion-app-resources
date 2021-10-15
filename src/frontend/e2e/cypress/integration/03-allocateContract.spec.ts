@@ -5,11 +5,11 @@
 /// <reference types="../support" />
 import {componentSelector} from "../support/index"
 import ExternalPersonnelLandingPage from "../POM/ExternalPersonnelLandingPage"
-import AllocateContractPage from "../POM/AllocateContractPage"
+import ContractEditPage from "../POM/ContractEditPage"
 import { contains } from "cypress/types/jquery"
 
 const externalPersonnelPage = new ExternalPersonnelLandingPage()
-const allocateContractPage = new AllocateContractPage()
+const allocateContractPage = new ContractEditPage()
 
 describe('Allocate contract', () => {
   /** TODO make login persistent between tests */
@@ -40,7 +40,8 @@ describe('Allocate contract', () => {
     cy.intercept('GET', 'api').as('load-contract-dropdown')
     cy.wait('@load-contract-dropdown')
 
-    allocateContractPage.ContractDropdownMenu().contains(contractNo).click()
+    // get the contract drop down menu element
+    cy.get('ContractDropdownMenu').contains(contractNo).click()
 
     // expect the contract no is selected, and move to step 2
     allocateContractPage.Step2Button().invoke('attr', 'class').should('contain', 'current')

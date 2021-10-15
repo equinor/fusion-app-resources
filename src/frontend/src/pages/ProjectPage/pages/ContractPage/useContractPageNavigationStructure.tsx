@@ -52,10 +52,11 @@ const createNavItem = (
     title: string,
     path: string,
     type: NavStructureType,
+    customid?: string,
     icon?: ReactNode,
-    aside?: ReactNode
+    aside?: ReactNode,
 ): NavigationStructure => ({
-    id: title,
+    id: customid ?? title,
     title,
     type,
     isActive: history.location.pathname === createContractPath(history, contractId, path),
@@ -70,7 +71,7 @@ const getNavigationStructure = (
     provisioningComponent: ReactNode
 ): NavigationStructure[] => {
     return [
-        createNavItem(history, contractId, 'General', '', 'grouping', <GeneralIcon />),
+        createNavItem(history, contractId, 'General', '', 'grouping', 'general-tab',<GeneralIcon />),
 
         {
             id: 'manage-personnel',
