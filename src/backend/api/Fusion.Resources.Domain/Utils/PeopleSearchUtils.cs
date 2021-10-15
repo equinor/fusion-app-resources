@@ -37,7 +37,7 @@ namespace Fusion.Resources.Domain
         {
             var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
 
-            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, null);
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, null, queryResourceAllocationRequests);
             return searchResponse;
         }
 
