@@ -631,20 +631,18 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             profile.SaveProfile();
 
             using var scope = fixture.AdminScope();
-            var timelineStart = new DateTime(2020, 03, 01);
-            var timelineEnd = new DateTime(2020, 03, 31);
 
             var response = await Client.TestClientGetAsync<TestResponse>(
                                                                          $"/departments/{department}/resources/personnel/?currentAllocations=true&{ApiVersion}"
                                                                         );
 
             response.Should().BeSuccessfull();
-            
-            //response.Value.value
-            //        .SelectMany(x => x.positionInstances)
-            //        .Any(x => x.AppliesFrom > DateTime.Now || x.AppliesTo < DateTime.Now)
-            //        .Should()
-            //        .BeFalse();
+
+            response.Value.value
+                    .SelectMany(x => x.positionInstances)
+                    .Any(x => x.AppliesFrom > DateTime.Now || x.AppliesTo < DateTime.Now)
+                    .Should()
+                    .BeFalse();
         }
         
         [Fact]
