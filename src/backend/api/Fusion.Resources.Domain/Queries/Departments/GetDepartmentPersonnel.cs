@@ -175,7 +175,7 @@ namespace Fusion.Resources.Domain
                 }
                 else
                 {
-                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value);
+                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value, queryResourceAllocationRequests);
                 }
 
                 return personnel;
