@@ -10,17 +10,19 @@ namespace Fusion.Resources.Domain
     public static class PeopleSearchUtils
     {
         const int default_page_size = 500;
+
         /// <summary>
         /// Get department personnel from search index.
         /// </summary>
         /// <param name="peopleClient">HttpClient for Fusion people service</param>
+        /// <param name="queryResourceAllocationRequests"></param>
+        /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <param name="includeSubDepartments">Certain departments in line org exists where a 
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
-        /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <returns></returns>
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, params string[] departments)
-            => await GetDepartmentFromSearchIndexAsync(peopleClient, departments.AsEnumerable());
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, List<QueryResourceAllocationRequest> queryResourceAllocationRequests, params string[] departments)
+            => await GetDepartmentFromSearchIndexAsync(peopleClient, queryResourceAllocationRequests, departments.AsEnumerable());
 
         /// <summary>
         /// Get department personnel from search index.
@@ -31,7 +33,7 @@ namespace Fusion.Resources.Domain
         /// include such personnel in the result.</param>
         /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <returns></returns>
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, IEnumerable<string> departments)
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, List<QueryResourceAllocationRequest> queryResourceAllocationRequests, IEnumerable<string> departments)
         {
             var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
 
@@ -53,7 +55,7 @@ namespace Fusion.Resources.Domain
             return await GetFromSearchIndexAsync(peopleClient, filter, search);
         }
 
-        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null)
+        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null, List<QueryResourceAllocationRequest>? queryResourceAllocationRequests = null)
         {
             var result = new List<QueryInternalPersonnelPerson>();
 
@@ -103,7 +105,8 @@ namespace Fusion.Resources.Domain
                             Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
                             Workload = p.workload,
                             AllocationState = p.allocationState,
-                            AllocationUpdated = p.allocationUpdated
+                            AllocationUpdated = p.allocationUpdated,
+                            HasChangeRequest = queryResourceAllocationRequests != null && queryResourceAllocationRequests.Any(x => x.OrgPositionId == p.id)
                         }).OrderBy(p => p.AppliesFrom).ToList()
                     })
                 );

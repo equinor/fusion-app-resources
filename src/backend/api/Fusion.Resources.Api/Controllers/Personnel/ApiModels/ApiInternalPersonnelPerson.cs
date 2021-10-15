@@ -154,6 +154,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 Project = new ApiProjectReference(pos.Project);
                 BasePosition = new ApiBasePosition(pos.BasePosition);
+
+                HasChangeRequest = pos.HasChangeRequest;
             }
 
             public Guid PositionId { get; set; }
@@ -170,6 +172,8 @@ namespace Fusion.Resources.Api.Controllers
             public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
             public double Workload { get; set; }
             public ApiProjectReference Project { get; set; } = null!;
+
+            public bool HasChangeRequest { get; set; }
         }
     }
 
