@@ -201,6 +201,7 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
                         m.MapField("proposedPerson.azureUniqueId", x => x.ProposedPerson.AzureUniqueId);
                         m.MapField("orgPositionId", i => i.OrgPositionId);
+                        m.MapField("correlationId", i => i.CorrelationId);
                     });
                 }
 
