@@ -18,6 +18,7 @@ namespace Fusion.Resources.Domain
 
             IsPrivate = absence.IsPrivate;
             TaskDetails = (absence.TaskDetails != null) ? new QueryTaskDetails(absence.TaskDetails) : null;
+            Person = new QueryPerson(absence.Person);
         }
 
         public Guid Id { get; set; }
@@ -31,6 +32,7 @@ namespace Fusion.Resources.Domain
 
         public bool IsPrivate { get; set; }
         public QueryTaskDetails? TaskDetails { get; set; }
+        public QueryPerson Person { get; set; }
     }
 
     /// <summary>
@@ -51,7 +53,7 @@ namespace Fusion.Resources.Domain
             Person = new QueryPerson(absence.Person);
         }
 
-        
+
         public QueryPersonAbsenceBasic(QueryPersonAbsence absence)
         {
             Id = absence.Id;
@@ -63,6 +65,7 @@ namespace Fusion.Resources.Domain
 
             IsPrivate = absence.IsPrivate;
             TaskDetails = absence.TaskDetails != null ? new QueryTaskDetails(absence.TaskDetails) : null;
+            Person = absence.Person;
         }
 
         public Guid Id { get; set; }
