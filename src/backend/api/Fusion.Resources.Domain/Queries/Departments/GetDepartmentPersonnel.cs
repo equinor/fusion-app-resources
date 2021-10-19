@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain
             QueryParams = queryParams;
         }
 
-        private bool includeSubdepartments = false;
+        private bool includeSubdepartments;
         private bool currentAllocations;
         public bool ExpandTimeline { get; set; }
         public string Department { get; set; }
@@ -81,11 +81,12 @@ namespace Fusion.Resources.Domain
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
             {
-                var depReqs = await GetRequestsAsync(request.Department);
-                var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments, depReqs);
-                var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
                 var departmentRequests = await GetProposedRequestsAsync(request.Department);
-
+                var requestsWithStateNullOrCreated = departmentRequests.SelectMany(x => x.Value)
+                                                                  .Where(r => string.IsNullOrWhiteSpace(r.State) || r.State == "created").ToList();
+                var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments, requestsWithStateNullOrCreated);
+                var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
+                
                 departmentPersonnel.ForEach(p =>
                 {
                     p.Absence = departmentAbsence[p.AzureUniqueId];
@@ -147,20 +148,8 @@ namespace Fusion.Resources.Domain
                     .ToLookup(x => x.ProposedPerson!.AzureUniqueId)
                     .ToDictionary(x => x.Key, x => x.ToList());
             }
-            
-            private async Task<List<QueryResourceAllocationRequest>> GetRequestsAsync(string department)
-            {
-                var command = new GetResourceAllocationRequests()
-                              .ForResourceOwners()
-                              .WithAssignedDepartment(department)
-                              .ExpandPositions()
-                              .ExpandPositionInstances();
-                var requests = await mediator.Send(command);
 
-                return requests.Where(r => string.IsNullOrWhiteSpace(r.State) || r.State == "created").ToList();
-            }
-
-            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments, List<QueryResourceAllocationRequest> queryResourceAllocationRequests)
+            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments, List<QueryResourceAllocationRequest> requests)
             {
                 var department = await mediator.Send(new GetDepartment(fullDepartmentString));
                 if (department is null) return new List<QueryInternalPersonnelPerson>();
@@ -171,11 +160,11 @@ namespace Fusion.Resources.Domain
 
                 if (includeSubDepartments || department.LineOrgResponsible?.AzureUniqueId is null)
                 {
-                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, queryResourceAllocationRequests,  fullDepartmentString);
+                    personnel = await PeopleSearchUtils.GetDepartmentFromSearchIndexAsync(peopleClient, requests,  fullDepartmentString);
                 }
                 else
                 {
-                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value, queryResourceAllocationRequests);
+                    personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value, requests);
                 }
 
                 return personnel;

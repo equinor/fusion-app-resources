@@ -7,8 +7,9 @@ namespace Fusion.Resources.Domain
 {
     public class PersonnelTimelineBuilder
     {
-        private DateTime filterStart, filterEnd;
-        private Timeline<QueryPersonnelTimelineItem> timeline;
+        private readonly DateTime filterStart;
+        private readonly DateTime filterEnd;
+        private readonly Timeline<QueryPersonnelTimelineItem> timeline;
 
         public PersonnelTimelineBuilder(DateTime filterStart, DateTime filterEnd)
         {

@@ -14,7 +14,6 @@ namespace Fusion.Resources.Domain
             DateTime filterStart,
             DateTime filterEnd)
         {
-            var segments = new List<QueryTimelineRange<QueryRequestsTimelineItem>>();
             var filterPeriod = new TimeRange(filterStart, filterEnd);
 
             var applicableRequests = requests
@@ -41,7 +40,6 @@ namespace Fusion.Resources.Domain
            DateTime filterStart,
            DateTime filterEnd)
         {
-            var segments = new List<QueryTimelineRange<QueryTbnPositionTimelineItem>>();
             var filterPeriod = new TimeRange(filterStart, filterEnd);
 
             var filteredPositions = tbnPositions

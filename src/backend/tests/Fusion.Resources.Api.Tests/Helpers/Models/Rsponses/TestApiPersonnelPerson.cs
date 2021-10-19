@@ -1,5 +1,4 @@
-﻿using Fusion.ApiClients.Org;
-using Fusion.Testing.Mocks;
+﻿using Fusion.Testing.Mocks;
 using System;
 
 namespace Fusion.Resources.Api.Tests
