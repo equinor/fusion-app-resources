@@ -1,4 +1,3 @@
-
 import { useContractContext } from '../../../../../../contractContex';
 import styles from './styles.less';
 import {
@@ -74,22 +73,28 @@ const DelegateAdminTitle = () => (
 );
 
 const renderPosition = (position: Position | null) => {
-    if (!position) {
-        return 'N/A';
-    }
+    if (!position) return 'N/A';
+
     const filterToDate = useMemo(() => new Date(), []);
-    const instance = useMemo(() => getInstances(position, filterToDate)[0], [
-        position,
-        filterToDate,
-    ]);
-    const isFuture = useMemo(() => isInstanceFuture(instance, filterToDate), [
-        position,
-        filterToDate,
-    ]);
-    const isPast = useMemo(() => isInstancePast(instance, filterToDate), [
-        position,
-        filterToDate,
-    ]);
+    const instance = useMemo(
+        () => getInstances(position, filterToDate)[0],
+        [position, filterToDate]
+    );
+    const isFuture = useMemo(
+        () => isInstanceFuture(instance, filterToDate),
+        [position, filterToDate]
+    );
+    const isPast = useMemo(() => isInstancePast(instance, filterToDate), [position, filterToDate]);
+
+    /**
+     * showTimeline throws an error "No Range" if it calculates the positions length to be 0 or below.
+     * Crashing the entire app.
+     */
+    const hasTimeline = useMemo(
+        () => instance.appliesTo.getTime() - instance.appliesFrom.getTime() > 0,
+        [instance]
+    );
+
     return (
         <PositionCard
             position={position}
@@ -98,7 +103,7 @@ const renderPosition = (position: Position | null) => {
             showExternalId
             showLocation
             showObs
-            showTimeline
+            showTimeline={hasTimeline}
             showRotation
             isFuture={isFuture}
             isPast={isPast}
