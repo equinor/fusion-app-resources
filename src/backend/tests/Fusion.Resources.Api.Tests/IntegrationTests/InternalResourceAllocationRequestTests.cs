@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -78,8 +79,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
-
-
+            
             //fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
             //    .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
@@ -148,6 +148,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #endregion
 
         #region get tests
+        [Fact]
+        public async Task Get_AnalyticsRequestsInternal_ShouldBeSuccessfull_WhenAdmin()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal?api-version=1.0-preview");
+            response.Should().BeSuccessfull();
+        }
+        [Fact]
+        public async Task Get_AnalyticsPersonsAbsenceInternal_ShouldBeSuccessfull_WhenAdmin()
+        {
+            using var adminScope = fixture.AdminScope();
+            var response = await Client.TestClientGetAsync<object>($"/analytics/absence/internal?api-version=1.0-preview");
+            response.Should().BeSuccessfull();
+        }
+
+
         [Fact]
         public async Task Get_ProjectRequest_ShouldBeSuccessfull_WhenAdmin()
         {

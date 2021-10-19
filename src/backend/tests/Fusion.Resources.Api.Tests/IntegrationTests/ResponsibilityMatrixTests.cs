@@ -44,6 +44,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task ListMatrix_ShouldBeUnauthorized_WhenEmployeeUser()
+        {
+            using var userScope = fixture.UserScope(testUser);
+            var response = await client.TestClientGetAsync($"/internal-resources/responsibility-matrix", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeUnauthorized();
+
+        }
+        [Fact]
         public async Task ListMatrix_ShouldBeOk_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
