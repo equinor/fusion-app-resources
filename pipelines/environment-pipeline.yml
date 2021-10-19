@@ -46,6 +46,20 @@ stages:
               environment: $(environmentName)
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
               sqlServer: fusion-test-sqlserver
+              
+          ## To get the pr slots to talk to the correct databases, we need to kill the key vault secret for connection string.
+          ## The secret would override the direct env property used to target the correct db.
+          - task: AzurePowerShell@5
+            displayName: 'Remove db connection string secret'
+            inputs:
+              azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+              ScriptType: InlineScript
+              FailOnStandardError: true
+              azurePowerShellVersion: 'LatestVersion'
+              Inline: |
+                Write-Host "Deleting secret @ kv-fap-resources-pr/ConnectionStrings--ResourcesDbContext"
+                Remove-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name ConnectionStrings--ResourcesDbContext
+
 
 - stage: DeployQA
   displayName: QA Azure Infra
