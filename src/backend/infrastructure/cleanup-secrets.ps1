@@ -27,9 +27,9 @@ foreach ($s in $secretWithVersions) {
             Write-Host "`tExpired secret.. Deleting key id: $keyId"
             $newTags = $s.Tags
             $newTags["deleted"] = (Get-Date).ToString()
-            #Update-AzKeyVaultSecret $s -Version $s.Version -Tag $newTags
+            Update-AzKeyVaultSecret $s -Version $s.Version -Tag $newTags
 
-            #Remove-AzADAppCredential -ApplicationId $AAD_APP_ID -KeyId $keyId -Force
+            Remove-AzADAppCredential -ApplicationId $AAD_APP_ID -KeyId $keyId -Force
         }
     } else {
         Write-Host "Non auto generated key, skipping"

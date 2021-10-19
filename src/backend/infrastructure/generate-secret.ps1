@@ -42,11 +42,11 @@ $passwordString = [System.Convert]::ToBase64String([System.Text.UTF8Encoding]::U
 $password = ConvertTo-SecureString -String $passwordString -AsPlainText -Force
 $startDate = Get-Date
 $endDate = $startDate.AddMonths(6)
-#$newSecret = New-AzADAppCredential -Password $password -ApplicationId $AAD_APP_ID -StartDate $startDate -EndDate $endDate
-$newSecret = @{ keyId = "test-key-GUID" }
+$newSecret = New-AzADAppCredential -Password $password -ApplicationId $AAD_APP_ID -StartDate $startDate -EndDate $endDate
+
 Write-Host "New secret [$($newSecret.KeyId)] generated with expiration date $endDate"
 
 ## Add to key vault
-#Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $password -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId }
+Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $password -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId }
 
 
