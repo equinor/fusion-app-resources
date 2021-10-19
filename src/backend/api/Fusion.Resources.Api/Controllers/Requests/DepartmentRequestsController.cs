@@ -57,6 +57,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         /// to get an overview of other requests for the position.
         /// </summary>
         /// <param name="positionId">The org position id</param>
+        /// <param name="query">OData-like query params. Supports filtering and 1-level order</param>
         /// <returns></returns>
         [HttpGet("/departments/positions/{positionId}/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetRequestsForPosition(Guid positionId, [FromQuery] ODataQueryParams query)
