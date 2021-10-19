@@ -170,10 +170,8 @@ namespace Fusion.Resources.Api.Controllers
                 }
                 await transaction.CommitAsync();
 
-                var getRequestUrl = Url.Action(nameof(GetResourceAllocationRequestsForProject), new { projectIdentifier = projectIdentifier.ProjectId });
-                var createdAtUrl = getRequestUrl + $"?$filter=orgPositionId eq '{request.OrgPositionId}'";
-
-                return Created(createdAtUrl, requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
+                // Using the requests for position endpoint as created ref.. This is not completely accurate as it could return more than those created. Best option though.
+                return Created($"/projects/{projectIdentifier}/positions/{request.OrgPositionId}/requests", requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
             }
             catch (ValidationException ex)
             {
