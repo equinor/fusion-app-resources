@@ -49,7 +49,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 RuleFor(x => x.OrgProjectId).NotEmpty().When(x => x.OrgProjectId != null);
 
-                RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(500);
+                RuleFor(x => x.AssignedDepartment).NotContainScriptTag().MaximumLength(100);
                 RuleFor(x => x.AdditionalNote).NotContainScriptTag().MaximumLength(5000);
 
                 RuleFor(x => x.OrgPositionId).NotEmpty();
