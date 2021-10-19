@@ -99,7 +99,7 @@ namespace Fusion.Resources.Api.Controllers
             public Guid Id { get; set; }
             public bool IsPrivate { get; set; }
             public string? Comment { get; set; }
-            public ApiPerson? Person { get; set; }
+            public ApiPerson Person { get; set; }
             public ApiTaskDetails? TaskDetails { get; set; }
             public DateTimeOffset AppliesFrom { get; set; }
             public DateTimeOffset? AppliesTo { get; set; }
