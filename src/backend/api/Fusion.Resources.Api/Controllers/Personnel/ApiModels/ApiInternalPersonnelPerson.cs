@@ -29,9 +29,7 @@ namespace Fusion.Resources.Api.Controllers
                 .Where(d => !string.IsNullOrEmpty(d))
                 .Distinct()
                 .ToList();
-            PendingRequests = p.PendingRequests != null
-                ? p.PendingRequests.Select(x => new ApiResourceAllocationRequest(x)).ToList()
-                : new();
+            PendingRequests = p.PendingRequests.Select(x => new ApiResourceAllocationRequest(x)).ToList();
         }
 
         public static ApiInternalPersonnelPerson CreateWithoutConfidentialTaskInfo(QueryInternalPersonnelPerson person) 

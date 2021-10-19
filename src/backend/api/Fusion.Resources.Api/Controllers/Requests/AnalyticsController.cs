@@ -103,10 +103,8 @@ namespace Fusion.Resources.Api.Controllers
             [JsonConverter(typeof(JsonStringEnumConverter))]
             public ApiPersonAbsence.ApiAbsenceType Type { get; set; }
             public double? AbsencePercentage { get; set; }
-
-            //[JsonConverter(typeof(JsonStringEnumConverter))]
-            //public enum ApiAbsenceType { Absence, Vacation, OtherTasks }
         }
+
         public class ApiResourceAllocationRequestForAnalytics
         {
             private ApiResourceAllocationRequestForAnalytics(QueryResourceAllocationRequest query)
