@@ -20,8 +20,32 @@
         return cy.get('[data-cy="close-btn"]');
     }
 
+    EquinorResponsible(){
+        return cy.get('[data-cy="equinor-responsible"]');
+    }
+
+    EquinorCompanyRep(){
+        return cy.get('#equinor-company-rep');
+    }
+
+    EquinorContractResp(){
+        return cy.get('#equinor-contract-resp');
+    }
+
     EquinorRespDelegate(){
         return cy.get('[data-cy="equinor-resp-delegate-admin-access"]');
+    }
+
+    ExternalResponsible(){
+        return cy.get('[data-cy="external-responsible"]');
+    }
+
+    ExternalCompanyRep(){
+        return cy.get('#external-company-rep');
+    }
+
+    ExternalContractResp(){
+        return cy.get('#external-contract-resp');
     }
 
     ExternalRespDelegate(){

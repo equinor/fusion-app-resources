@@ -20,9 +20,6 @@ describe('Choose Project', () => {
     const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
 
     cy.loadProject(projectName)
-    // wait for the response
-    cy.intercept('GET', '/projects/'+projectId+'/contracts').as('load-project-contracts')
-    cy.wait('@load-project-contracts')
     
     cy.get(componentSelector.contractTable.getCell('contractId')).should('be.visible')
     

@@ -22,12 +22,13 @@ import { ReactNode, useMemo, useCallback } from 'react';
 const createFieldWithSkeleton = (
     name: string,
     render: (contract: Contract) => ReactNode,
-    renderSkeleton?: () => ReactNode
+    renderSkeleton?: () => ReactNode,
+    id?: string
 ) => {
     const { isFetchingContract, contract } = useContractContext();
 
     return (
-        <div className={styles.field}>
+        <div id={id} className={styles.field}>
             <label>{name}</label>
             <div className={styles.value}>
                 {isFetchingContract && !contract ? (
@@ -58,9 +59,9 @@ const ToDate = () =>
     );
 
 const PositionCardSkeleton = () => (
-    <div className={styles.positionCardSkeleton}>
+    <div data-cy="position-card-skeleton" className={styles.positionCardSkeleton}>
         <SkeletonDisc size="medium" />
-        <div className={styles.content}>
+        <div data-cy="position-card" className={styles.content}>
             <SkeletonBar />
             <SkeletonBar />
         </div>
@@ -110,25 +111,29 @@ const EquinorContractResponsible = () =>
     createFieldWithSkeleton(
         'Equinor contract responsible',
         (contract) => renderPosition(contract.contractResponsible),
-        () => <PositionCardSkeleton />
+        () => <PositionCardSkeleton />,
+        'equinor-contract-resp'
     );
 const EquinorCompanyRep = () =>
     createFieldWithSkeleton(
         'Equinor company rep',
         (contract) => renderPosition(contract.companyRep),
-        () => <PositionCardSkeleton />
+        () => <PositionCardSkeleton />,
+        'equinor-company-rep'
     );
 const ExternalCompanyRep = () =>
     createFieldWithSkeleton(
         'External company rep',
         (contract) => renderPosition(contract.externalCompanyRep),
-        () => <PositionCardSkeleton />
+        () => <PositionCardSkeleton />,
+        'external-company-rep'
     );
 const ExternalContractResponsible = () =>
     createFieldWithSkeleton(
         'External contract responsible',
         (contract) => renderPosition(contract.externalContractResponsible),
-        () => <PositionCardSkeleton />
+        () => <PositionCardSkeleton />,
+        'external-contract-resp'
     );
 
 const ContractDetailsPage = () => {
@@ -181,7 +186,7 @@ const ContractDetailsPage = () => {
                     <ToDate />
                 </div>
                 <div className={styles.header}>Equinor responsible</div>
-                <div className={styles.row}>
+                <div data-cy="equinor-responsible" className={styles.row}>
                     <EquinorCompanyRep />
                     <EquinorContractResponsible />
                 </div>
@@ -195,7 +200,7 @@ const ContractDetailsPage = () => {
                     />
                 </div>
                 <div className={styles.header}>External responsible</div>
-                <div className={styles.row}>
+                <div data-cy="external-responsible" className={styles.row}>
                     <ExternalCompanyRep />
                     <ExternalContractResponsible />
                 </div>

@@ -48,7 +48,7 @@ const acquireToken = (tenant: string): Cypress.Chainable<Cypress.Response<{}>> =
  * @param resource 
  * @returns 
  */
-const processAuthResponse = (resource: string) => (response: Cypress.Response<{access_token}>): void => {
+const processAuthResponse = (resource: string) => (response: Cypress.Response<{ access_token }>): void => {
   const token = response.body.access_token;
   faker.seed(0);
   const familyName = faker.name.lastName();
@@ -70,7 +70,7 @@ const processAuthResponse = (resource: string) => (response: Cypress.Response<{a
 
 Cypress.Commands.add('login', () => {
   const token = Cypress.env('TOKEN');
-  if(token) {
+  if (token) {
     return localStorage.setItem('FUSION_AUTH_CACHE', JSON.stringify(token));
   }
   const tenant = Cypress.env('FUSION_TENANT_ID');
@@ -82,12 +82,26 @@ const API_KEY = '74b1613f-f22a-451b-a5c3-1c9391e91e68';
 
 Cypress.Commands.add('fusion', () => cy.window().then((window: Window) => window[API_KEY]));
 
-Cypress.Commands.add('currentUser', () => cy.fusion().then(async(x) => await x.auth.container.getCachedUserAsync()));
+Cypress.Commands.add('currentUser', () => cy.fusion().then(async (x) => await x.auth.container.getCachedUserAsync()));
 
 Cypress.Commands.add('loadProject', (name) => {
   cy.get('input[class^=fc--ContextSelector__searchInput]').should('be.visible').as('context-selector');
+  // cy.get('[data-cy="context-selector"]').find('input').should('be.visible').as('context-selector');
   cy.get('@context-selector').type(name)
   cy.get("div[class^=fc--Menu__container]").contains(name, { timeout: 10000 }).click()
+  // cy.get('[data-cy="context-selector-dropdown"]').contains(name, { timeout: 10000 }).click()
+  cy.wait(3000)
+});
+
+Cypress.Commands.add('openContract', (number) => {
+  cy.get('[data-cy="contract-id"]').contains(number).should('be.visible').as('contract-id')
+
+  cy.get('@contract-id').invoke('attr', 'href').then(($href) => {
+    const contractUrl = $href.toString().trim()
+    cy.get('@contract-id').click()
+    cy.intercept('GET', contractUrl).as('load-contract')
+    cy.wait('@load-contract')
+  })
 });
 
 

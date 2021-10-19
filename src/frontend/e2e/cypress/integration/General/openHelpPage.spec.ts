@@ -4,7 +4,6 @@
 
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../support" />
-import {componentSelector} from "../../support/index"
 import ExternalPersonnelLandingPage from "../../POM/ExternalPersonnelLandingPage"
 const externalPersonnelPage = new ExternalPersonnelLandingPage()
 
@@ -22,11 +21,12 @@ describe('Help Page', () => {
     const tab2 = 'Role delegation'
 
     cy.loadProject('Query test project')
-    // wait for the response
-    cy.intercept('GET', '/projects/'+projectId+'/contracts').as('load-project-contracts')
-    cy.wait('@load-project-contracts', {timeout:10000})
     
     externalPersonnelPage.HelpButton().invoke('removeAttr', 'target').click()
+
+    cy.intercept('GET', '/help').as('load-help')
+    cy.wait('@load-help', {timeout:10000})
+
     cy.url().should('include', '/help')
 
     cy.contains('div', tab1).parent('a')

@@ -45,27 +45,27 @@
     }
 
     ContractNameInputBox(){
-        return cy.contains('Contract name');
+        return cy.get('[data-cy="contract-name"]');
     }
 
     CompanySelector(){
-        return cy.get('[class^="fc--TextInput__inputContent]');
+        return cy.get('[data-cy="company-picker"]');
     }
 
     FromDatePicker(){
-        return cy.contains('Allocate contract');
+        return cy.get('[data-cy="from-date-picker"]');
     }
 
     ToDatePicker(){
-        return cy.contains('Cancel');
+        return cy.get('[data-cy="to-date-picker"]');
     }
 
     EquinorContractRespPicker(){
-        return cy.contains('Cancel');
+        return cy.get('[data-cy="equinor-contract-resp"]');
     }
 
     EquinorCompanyRepPicker(){
-        return cy.contains('Cancel');
+        return cy.get('[data-cy="equinor-company-rep"]');
     }
 
     Step3Button(){
@@ -73,11 +73,11 @@
     }
 
     ExternalCompanyRepPicker(){
-        return cy.contains('Cancel');
+        return cy.get('[data-cy="external-company-rep"]').find('input');
     }
 
     ExternalContractRespPicker(){
-        return cy.contains('Cancel');
+        return cy.get('[data-cy="external-contract-resp"]').find('input');
     }
    
 }

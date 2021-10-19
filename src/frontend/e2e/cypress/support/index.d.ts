@@ -14,5 +14,6 @@ declare namespace Cypress {
      fusion(): Chainable<Fusion>
      currentUser(): Chainable<{id: string, fullName: string}>
      loadProject(name: string): Chainable<void> 
+     openContract(number: string): Chainable<void>
   }
 }

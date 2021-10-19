@@ -183,9 +183,8 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                 >
                     <div className={styles.stepContainer}>
                         <div className={styles.row}>
-                            <div className={classNames(styles.field, styles.big)}>
+                            <div data-cy="contract-name" className={classNames(styles.field, styles.big)}>
                                 <TextInput
-                                    data-cy="contract-name"
                                     ref={nameInputRef}
                                     label="Contract name"
                                     value={formState.name || ''}
@@ -195,8 +194,9 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                         </div>
 
                         <div className={styles.row}>
-                            <div className={classNames(styles.field, styles.big)}>
+                            <div data-cy="company-picker" className={classNames(styles.field, styles.big)}>
                                 <CompanyPicker
+                                    data-cy="company-dropdown"
                                     selectedCompanyId={formState.company?.id || null}
                                     onSelect={formFieldSetter('company')}
                                 />
@@ -204,14 +204,14 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                         </div>
 
                         <div className={styles.row}>
-                            <div className={styles.field}>
+                            <div data-cy="from-date-picker" className={styles.field}>
                                 <DatePicker
                                     label="From Date"
                                     selectedDate={formState.startDate}
                                     onChange={formFieldSetter('startDate')}
                                 />
                             </div>
-                            <div className={styles.field}>
+                            <div data-cy="to-date-picker" className={styles.field}>
                                 <DatePicker
                                     label="To Date"
                                     selectedDate={formState.endDate}
@@ -221,7 +221,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                         </div>
 
                         <div className={styles.row}>
-                            <div className={styles.field}>
+                            <div data-cy="equinor-contract-resp" className={styles.field}>
                                 <ContractPositionPicker
                                     label="Equinor Contract responsible"
                                     selectedPosition={formState.contractResponsible}
@@ -233,7 +233,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                                     </Button>
                                 )}
                             </div>
-                            <div className={styles.field}>
+                            <div data-cy="equinor-company-rep" className={styles.field}>
                                 <ContractPositionPicker
                                     label="Equinor Company rep"
                                     selectedPosition={formState.companyRep}
@@ -268,7 +268,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                 <Step title="External" stepKey="external" disabled={formState.id === null}>
                     <div className={styles.stepContainer}>
                         <div className={styles.row}>
-                            <div className={styles.field} ref={externalCompanyRepRef}>
+                            <div data-cy="external-company-rep" className={styles.field} ref={externalCompanyRepRef}>
                                 <ContractPositionPicker
                                     label="External Company rep"
                                     contractId={formState.id || undefined}
@@ -289,7 +289,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                             </div>
                         </div>
                         <div className={styles.row}>
-                            <div className={styles.field}>
+                            <div data-cy="external-contract-resp" className={styles.field}>
                                 <ContractPositionPicker
                                     label="External Contract responsible"
                                     contractId={formState.id || undefined}

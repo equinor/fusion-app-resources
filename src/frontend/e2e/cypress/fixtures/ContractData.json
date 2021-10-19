@@ -1,0 +1,10 @@
+{
+    "contractName": "Test Contract",
+    "companyName": "My company",
+    "fromDate": "12/10/2021",
+    "toDate": "15/10/2021",
+    "equinorContractResp": "Commissioning Lead",
+    "equinorCompanyRep": "Company Engineering Manager",
+    "externalCompanyRep": "Area Manager",
+    "externalContractResp": "Automation Engineer"
+}
