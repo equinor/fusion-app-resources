@@ -378,20 +378,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task FilterByProposedPerson_ShouldFindRequest_2()
-        {
-            using var adminScope = fixture.AdminScope();
-
-            var position = testProject.AddPosition();
-            var rq = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, position);
-            await Client.ProposePersonAsync(rq.Id, testUser);
-
-            var filtered = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>($"/projects/{projectId}/requests?$filter=state ne 'completed'");
-            filtered.Should().BeSuccessfull();
-            filtered.Value.Value.Should().Contain(x => x.Id == rq.Id);
-        }
-
-        [Fact]
         public async Task GetAllRequests_ShouldReturnEverything()
         {
             using var adminScope = fixture.AdminScope();
