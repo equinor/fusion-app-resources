@@ -86,7 +86,7 @@ stages:
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
                 Inline: |
-                    $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
+                    $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name AzureAd--ClientSecret
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
 
             - task: AzurePowerShell@4
