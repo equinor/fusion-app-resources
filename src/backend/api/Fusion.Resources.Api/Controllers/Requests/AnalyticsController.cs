@@ -6,6 +6,7 @@ using Fusion.AspNetCore.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Fusion.Events.People;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 
@@ -85,6 +86,8 @@ namespace Fusion.Resources.Api.Controllers
                 Comment = absence.Comment;
                 TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
 
+                Person = new ApiPerson(absence.Person);
+
                 if (absence.IsPrivate || absence.Type == QueryAbsenceType.Absence)
                 {
                     Comment = "Not disclosed.";
@@ -97,6 +100,7 @@ namespace Fusion.Resources.Api.Controllers
             public Guid Id { get; set; }
             public bool IsPrivate { get; set; }
             public string? Comment { get; set; }
+            public ApiPerson Person { get; set; }
             public ApiTaskDetails? TaskDetails { get; set; }
             public DateTimeOffset AppliesFrom { get; set; }
             public DateTimeOffset? AppliesTo { get; set; }

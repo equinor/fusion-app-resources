@@ -48,7 +48,10 @@ namespace Fusion.Resources.Domain
             AbsencePercentage = absence.AbsencePercentage;
             IsPrivate = absence.IsPrivate;
             TaskDetails = absence.TaskDetails != null ? new QueryTaskDetails(absence.TaskDetails) : null;
+            Person = new QueryPerson(absence.Person);
         }
+
+        
         public QueryPersonAbsenceBasic(QueryPersonAbsence absence)
         {
             Id = absence.Id;
@@ -70,6 +73,8 @@ namespace Fusion.Resources.Domain
         public double? AbsencePercentage { get; set; }
         public bool IsPrivate { get; }
         public QueryTaskDetails? TaskDetails { get; set; }
+        public QueryPerson Person { get; set; }
+
     }
 
     public class QueryTaskDetails
