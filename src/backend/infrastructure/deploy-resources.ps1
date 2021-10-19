@@ -19,7 +19,7 @@ New-AzResourceGroupDeployment -Mode Incremental -Name "fusion-app-resources-envi
 
 Write-Host "Setting service principal key vault access"
 $spName = (Get-AzContext).Account.Id
-Set-AzKeyVaultAccessPolicy -VaultName $envKeyVault -ServicePrincipalName $spName -PermissionsToSecrets get,list,set
+Set-AzKeyVaultAccessPolicy -VaultName $envKeyVault -ServicePrincipalName $spName -PermissionsToSecrets get,list,set,delete
 
 Write-Host "Setting ad app service principal key vault access"
 $appSpId = (Get-AzADServicePrincipal -ApplicationId $clientId).Id
