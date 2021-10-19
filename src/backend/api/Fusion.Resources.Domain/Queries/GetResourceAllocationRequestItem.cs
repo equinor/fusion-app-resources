@@ -164,10 +164,7 @@ namespace Fusion.Resources.Domain.Queries
             private async Task ExpandActions(QueryResourceAllocationRequest request)
             {
                 var actions = await mediator.Send(new GetActionsForRequests(new[] { request.RequestId }));
-                
-                request.Actions = actions.Contains(request.RequestId)
-                    ? actions[request.RequestId].ToList()
-                    : new List<QueryRequestAction>();
+                request.Actions = actions[request.RequestId].ToList();
             }
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
