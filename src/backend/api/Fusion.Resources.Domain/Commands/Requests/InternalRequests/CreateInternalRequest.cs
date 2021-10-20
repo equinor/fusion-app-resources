@@ -36,6 +36,7 @@ namespace Fusion.Resources.Domain.Commands
         public string? AdditionalNote { get; set; }
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public bool IsDraft { get; set; }
+        public Guid? CorrelationId { get; set; }
 
         public class Validator : AbstractValidator<CreateInternalRequest>
         {
@@ -133,8 +134,8 @@ namespace Fusion.Resources.Domain.Commands
 
                     Created = created,
                     CreatedBy = request.Editor.Person,
-                    LastActivity = created
-
+                    LastActivity = created,
+                    CorrelationId = request.CorrelationId
                 };
 
                 if (proposedPerson is not null)
