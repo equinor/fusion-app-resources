@@ -107,7 +107,7 @@ namespace Fusion.Resources.Domain
                             Workload = p.workload,
                             AllocationState = p.allocationState,
                             AllocationUpdated = p.allocationUpdated,
-                            HasChangeRequest = requests is { Count: >= 1 }
+                            HasChangeRequest = requests != null && requests.Any(x => x.OrgPositionId == p.id)
                         }).OrderBy(p => p.AppliesFrom).ToList()
                     })
                 );
