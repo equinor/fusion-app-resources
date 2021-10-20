@@ -90,20 +90,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #region Notification tests
 
         [Fact]
-        public async Task DirectRequest_DeleteRequest_ShouldSendNotification()
+        public async Task Request_Delete_ShouldNotify()
         {
             using var adminScope = fixture.AdminScope();
-            var directRequest = await Client.CreateRequestAsync(ProjectId, r => r
-                .AsTypeDirect()
+            var request = await Client.CreateRequestAsync(ProjectId, r => r
+                .AsTypeNormal()
                 .WithPosition(requestPosition)
-                .WithProposedPerson(testUser)
                 .WithAssignedDepartment(testUser.FullDepartment!));
 
             NotificationClientMock.SentMessages.Clear();
-            await Client.TestClientDeleteAsync($"/resources/requests/internal/{directRequest.Id}");
-
-            var taskOwner = directRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+            await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
+            NotificationClientMock.SentMessages.Count(x => string.Equals(x.Title, "Personnel request has been deleted", StringComparison.OrdinalIgnoreCase)).Should().Be(1);
         }
 
 
@@ -159,7 +156,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(2);
         }
 
         [Fact]
