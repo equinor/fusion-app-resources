@@ -89,6 +89,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
         #region Notification tests
 
+        [Fact]
+        public async Task DirectRequest_DeleteRequest_ShouldSendNotification()
+        {
+            using var adminScope = fixture.AdminScope();
+            var directRequest = await Client.CreateRequestAsync(ProjectId, r => r
+                .AsTypeDirect()
+                .WithPosition(requestPosition)
+                .WithProposedPerson(testUser)
+                .WithAssignedDepartment(testUser.FullDepartment!));
+
+            NotificationClientMock.SentMessages.Clear();
+            await Client.TestClientDeleteAsync($"/resources/requests/internal/{directRequest.Id}");
+
+            var taskOwner = directRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+        }
+
 
         [Fact]
         public async Task DirectRequest_StartWorkFlow_ShouldNotify()
