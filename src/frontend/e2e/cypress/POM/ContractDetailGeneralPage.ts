@@ -32,8 +32,20 @@
         return cy.get('#equinor-contract-resp');
     }
 
-    EquinorRespDelegate(){
+    EquinorRespDelegateAccess(){
         return cy.get('[data-cy="equinor-resp-delegate-admin-access"]');
+    }
+
+    EquinorRespDelegateButton(){
+        return cy.get('[data-cy="equinor-resp-delegate-admin-access"]').find('button').contains('Delegate');
+    }
+
+    EquinorRespRecertifyButton(){
+        return cy.get('[data-cy="equinor-resp-delegate-admin-access"]').find('button').contains('Re-certify');
+    }
+
+    EquinorRespRemoveButton(){
+        return cy.get('[data-cy="equinor-resp-delegate-admin-access"]').find('button').contains('Remove');
     }
 
     ExternalResponsible(){
@@ -48,8 +60,20 @@
         return cy.get('#external-contract-resp');
     }
 
-    ExternalRespDelegate(){
+    ExternalRespDelegateAccess(){
         return cy.get('[data-cy="external-resp-delegate-admin-access"]');
+    }
+
+    ExternalRespDelegateButton(){
+        return cy.get('[data-cy="external-resp-delegate-admin-access"]').find('button').contains('Delegate');
+    }
+
+    ExternalRespRecertifyButton(){
+        return cy.get('[data-cy="external-resp-delegate-admin-access"]').find('button').contains('Re-certify');
+    }
+
+    ExternalRespRemoveButton(){
+        return cy.get('[data-cy="external-resp-delegate-admin-access"]').find('button').contains('Remove');
     }
    
 }

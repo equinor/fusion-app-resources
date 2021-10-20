@@ -7,7 +7,7 @@
 import ContractDetailGeneralPage from "../../POM/ContractDetailGeneralPage"
 const contractDetail = new ContractDetailGeneralPage()
 
-describe('Contract Detail', () => {
+describe('TC 13035 Delegate Admin Access', () => {
   /** TODO make login persistent between tests */
   before(() => {
     cy.clearLocalStorage();
@@ -15,7 +15,7 @@ describe('Contract Detail', () => {
     cy.visit('/');
   });
 
-  it('TC 13034 Contract Detail', () => {
+  it('Delegate Admin Access - Equinor Responsible', () => {
     const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
     const contractNo = '312312341'
 
@@ -30,13 +30,10 @@ describe('Contract Detail', () => {
     cy.contains('Contract details').should('be.visible')
 
     cy.contains('Equinor responsible').should('be.visible')
-    contractDetail.EquinorResponsible().find('[class^="fc--PositionCard__context"]').its('length').should('be.greaterThan', 0)
     contractDetail.EquinorRespDelegateAccess().find('[data-cy="delegate-table"]').should('be.visible')
+    contractDetail.EquinorRespDelegateButton().click()
 
-
-    cy.contains('External responsible').should('be.exist').as('external-resp')
-    contractDetail.ExternalResponsible().find('[class^="fc--PositionCard__context"]').its('length').should('be.greaterThan', 0)
-    contractDetail.ExternalRespDelegateAccess().find('[data-cy="delegate-table"]').should('be.exist')
+    // delegate sidesheet should show up
     
   });
 

@@ -9,7 +9,7 @@ type CompanyPickerProps = {
     onSelect: (company: Company) => void;
 };
 
-const CompanyPicker: FC<CompanyPickerProps> = ({ selectedCompanyId, onSelect }) => {
+const CompanyPicker: FC<CompanyPickerProps> = ({ selectedCompanyId, onSelect}) => {
     const { companies } = useCompanies();
 
     const options = useMemo(() => {
@@ -30,7 +30,7 @@ const CompanyPicker: FC<CompanyPickerProps> = ({ selectedCompanyId, onSelect }) 
         [onSelect, companies]
     );
 
-    return <SearchableDropdown label="Company" options={options} onSelect={onDropdownSelect} />;
+    return <SearchableDropdown data-cy="company-dropdown" label="Company" options={options} onSelect={onDropdownSelect} />;
 };
 
 export default CompanyPicker;

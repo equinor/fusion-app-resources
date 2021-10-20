@@ -37,6 +37,7 @@ describe('Edit contract', () => {
     cy.contains('h2', 'Edit').should('be.visible')
 
     // change the contract data
+    cy.wait(1000);  // wait for rending
     contractEditPage.ContractNameInputBox().find('input').clear().type(this.contractData.contractName)
 
     contractEditPage.CompanySelector().type(this.contractData.companyName)

@@ -62,7 +62,7 @@ const CertifyToPicker: FC<CertifyToPickerProps> = ({ onChange, defaultSelected, 
     return (
         <div className={styles.container}>
             {dates.map((date) => (
-                <div className={styles.certifiedToItem} onClick={() => onCertifyToChange(date)}>
+                <div key={date.key} className={styles.certifiedToItem} onClick={() => onCertifyToChange(date)}>
                     <RadioButton selected={date.key === selectedDate} />
                     <span>{`${certifyPrefix} for ${date.title}`}</span>
                 </div>
