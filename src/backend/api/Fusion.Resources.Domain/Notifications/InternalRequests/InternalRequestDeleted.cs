@@ -26,7 +26,7 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
         public string Type { get; set; }
         public string? SubType { get; set; }
         public long RequestNumber { get; set; }
-        public string AssignedDepartment { get; set; }
+        public string? AssignedDepartment { get; set; }
         public string RemovedByPerson { get; set; }
     }
 }
