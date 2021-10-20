@@ -76,11 +76,10 @@ namespace Fusion.Resources.Domain.Commands
             public async Task<QueryResourceAllocationRequest> Handle(CreateInternalRequest request, CancellationToken cancellationToken)
             {
                 var dbItem = await CreateDbRequestAsync(request);
-                var propertiesSet = dbContext.Entry(dbItem).Properties.Where(x => x.CurrentValue is not null).ToList();
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id, propertiesSet));
+                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id));
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(dbItem.Id), cancellationToken);
                 return requestItem!;
