@@ -118,12 +118,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{directRequest.Id}/start", null);
             response.Should().BeSuccessfull();
 
-            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = directRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
-
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+            NotificationClientMock.SentMessages.Count(x => string.Equals(x.Title, "A personnel request for which you are the task owner has been updated", StringComparison.OrdinalIgnoreCase)).Should().Be(1);
+            NotificationClientMock.SentMessages.Count(x => string.Equals(x.Title, "You have been assigned as resource owner for a personnel request", StringComparison.OrdinalIgnoreCase)).Should().Be(1);
         }
 
         private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
@@ -151,12 +148,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
 
             // Assert
-            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = patchPerson.Value.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
-
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(2);
+            NotificationClientMock.SentMessages.Count(x => string.Equals(x.Title, "A personnel request for which you are the task owner has been updated", StringComparison.OrdinalIgnoreCase)).Should().Be(1);
         }
 
         [Fact]
@@ -173,12 +166,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             // Assert
-            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
-            var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+            NotificationClientMock.SentMessages.Count(x => string.Equals(x.Title, "A personnel request for which you are the task owner has been updated", StringComparison.OrdinalIgnoreCase)).Should().Be(1);
         }
 
         [Fact]
