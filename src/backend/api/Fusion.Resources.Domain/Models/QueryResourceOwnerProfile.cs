@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Fusion.Resources.Domain.Queries
@@ -27,5 +28,20 @@ namespace Fusion.Resources.Domain.Queries
         /// </summary>
         public List<string>? SiblingDepartments { get; set; }
         public string? Sector { get; set; }
+
+        public List<string>? DelegatedSiblingDepartments { get; set; }
+        public List<string>? DelegatedChildDepartments { get; set; }
+
+        internal void AddDelegatedDepartments(QueryRelatedDepartments orgProfile)
+        {
+            if (DelegatedChildDepartments is null)
+                DelegatedChildDepartments = new List<string>();
+
+            if (DelegatedSiblingDepartments is null)
+                DelegatedSiblingDepartments = new List<string>();
+
+            DelegatedChildDepartments.AddRange(orgProfile.Children.Select(x => x.DepartmentId));
+            DelegatedSiblingDepartments.AddRange(orgProfile.Siblings.Select(x => x.DepartmentId));
+        }
     }
 }

@@ -19,12 +19,14 @@ namespace Fusion.Resources.Api.Controllers
 
             // Compile the relevant department list
             RelevantDepartments = ResponsibilityInDepartments
-                .Union(resourceOwnerProfile.ChildDepartments ?? new ())
-                .Union(resourceOwnerProfile.SiblingDepartments ?? new ())                
+                .Union(IsResourceOwner ? resourceOwnerProfile.ChildDepartments ?? new () : new ())
+                .Union(IsResourceOwner ? resourceOwnerProfile.SiblingDepartments ?? new () : new ())       
+                .Union(resourceOwnerProfile.DelegatedChildDepartments ?? new ())
+                .Union(resourceOwnerProfile.DelegatedSiblingDepartments ?? new ())
                 .Distinct()
                 .ToList();
 
-            if (Sector is not null && !RelevantDepartments.Contains(Sector))
+            if (IsResourceOwner && Sector is not null && !RelevantDepartments.Contains(Sector))
                 RelevantDepartments.Add(Sector);
         }
 

@@ -62,11 +62,14 @@ namespace Fusion.Resources.Domain.Queries
                     relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
                 }
 
+                
                 QueryRelatedDepartments? lineOrgDepartmentProfile = null;
                 if (!string.IsNullOrEmpty(user.FullDepartment))
                     lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
                 else
                     logger.LogDebug("No department found for profile. Skipping related department check.");
+
+                
 
                 var resourceOwnerProfile = new QueryResourceOwnerProfile(user.FullDepartment, isDepartmentManager, departmentsWithResponsibility, relevantSectors)
                 {
@@ -74,6 +77,14 @@ namespace Fusion.Resources.Domain.Queries
                     ChildDepartments = lineOrgDepartmentProfile?.Children.Select(x => x.DepartmentId).ToList(),
                     SiblingDepartments = lineOrgDepartmentProfile?.Siblings.Select(x => x.DepartmentId).ToList()
                 };
+
+                // Resolve related departments for all departments where user has responsibility
+                foreach (var department in departmentsWithResponsibility.Where(d => d != user.FullDepartment))
+                {
+                    var orgProfile = await mediator.Send(new GetRelatedDepartments(department), cancellationToken);
+                    if (orgProfile is not null)
+                        resourceOwnerProfile.AddDelegatedDepartments(orgProfile);
+                }
 
                 return resourceOwnerProfile;
             }
