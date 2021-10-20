@@ -82,8 +82,7 @@ namespace Fusion.Resources.Domain
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
             {
                 var departmentRequests = await GetProposedRequestsAsync(request.Department);
-                var requestsWithStateNullOrCreated = departmentRequests.SelectMany(x => x.Value)
-                                                                  .Where(r => string.IsNullOrWhiteSpace(r.State) || r.State == "created").ToList();
+                var requestsWithStateNullOrCreated = await GetRequestsWithStateNullOrCreatedAsync(request.Department);
                 var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments, requestsWithStateNullOrCreated);
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
                 
@@ -147,6 +146,18 @@ namespace Fusion.Resources.Domain
                 return pendingRequests
                     .ToLookup(x => x.ProposedPerson!.AzureUniqueId)
                     .ToDictionary(x => x.Key, x => x.ToList());
+            }
+
+            private async Task<List<QueryResourceAllocationRequest>> GetRequestsWithStateNullOrCreatedAsync(string department)
+            {
+                var command = new GetResourceAllocationRequests()
+                              .ForResourceOwners()
+                              .WithAssignedDepartment(department)
+                              .ExpandPositions()
+                              .ExpandPositionInstances();
+                var requests = await mediator.Send(command);
+
+                return requests.Where(r => string.IsNullOrWhiteSpace(r.State) || r.State == "created").ToList();
             }
 
             private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(string fullDepartmentString, bool includeSubDepartments, List<QueryResourceAllocationRequest> requests)
