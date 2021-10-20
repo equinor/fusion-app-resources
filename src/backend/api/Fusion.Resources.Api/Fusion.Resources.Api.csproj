@@ -29,7 +29,7 @@
     <PackageReference Include="Fusion.Integration.Roles" Version="5.1.0" />
     <PackageReference Include="Fusion.Integration.Notification" Version="5.1.1" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
-    <PackageReference Include="Fusion.AspNetCore" Version="5.1.0" />
+    <PackageReference Include="Fusion.AspNetCore" Version="5.1.1" />
 
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />  
