@@ -76,7 +76,7 @@ namespace Fusion.Resources.Domain
         public double? AbsencePercentage { get; set; }
         public bool IsPrivate { get; }
         public QueryTaskDetails? TaskDetails { get; set; }
-        public QueryPerson Person { get; set; }
+        public QueryPerson? Person { get; set; }
 
     }
 
