@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Notifications
             {
                 var recipients = await GenerateRecipientsAsync(request.Editor.Person.AzureUniqueId, request.AssignedDepartment);
 
-                var arguments = new NotificationArguments(request.NotificationTitle ?? "You have been assigned as resource owner for a personnel request") { AppKey = "personnel-allocation" };
+                var arguments = new NotificationArguments(request.NotificationTitle) { AppKey = "personnel-allocation" };
                 foreach (var recipient in recipients)
                 {
                     await notificationClient.CreateNotificationForUserAsync(recipient, arguments, request.Card);

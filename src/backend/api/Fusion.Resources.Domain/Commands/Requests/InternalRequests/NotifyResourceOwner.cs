@@ -4,7 +4,7 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class NotifyResourceOwner : TrackableRequest
     {
-        public NotifyResourceOwner(string assignedDepartment, AdaptiveCard card, string? notificationTitle = null)
+        public NotifyResourceOwner(string assignedDepartment, AdaptiveCard card, string notificationTitle)
         {
             this.AssignedDepartment = assignedDepartment;
             this.Card = card;
@@ -12,7 +12,7 @@ namespace Fusion.Resources.Domain.Commands
         }
 
         public string AssignedDepartment { get; }
-        public string? NotificationTitle { get; }
+        public string NotificationTitle { get; }
         public AdaptiveCard Card { get; }
 
     }
