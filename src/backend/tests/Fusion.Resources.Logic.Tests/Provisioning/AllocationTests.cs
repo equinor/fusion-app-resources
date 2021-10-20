@@ -92,7 +92,7 @@ namespace Fusion.Resources.Logic.Tests
         }
 
         [Fact]
-        public async Task ShouldAssignPerson_WhenFutureSplitIsRotation()
+        public async Task ShouldNotAssignPerson_WhenFutureSplitIsRotation()
         {
             #region Setup
             ApiPositionInstanceV2 testInstance = null!;
@@ -118,9 +118,9 @@ namespace Fusion.Resources.Logic.Tests
 
             var patchRequests = await RunProvisioningAsync(request);
 
-            patchRequests.Should().HaveCount(2);
+            patchRequests.Should().HaveCount(1);
             patchRequests.Should().ContainSingle(i => i.Item1.OriginalString.Contains($"{testInstance.Id}"), "Should execute patch request on future instance");
-            patchRequests.Should().ContainSingle(i => i.Item1.OriginalString.Contains($"{rotation_1.Id}"), "Should execute patch request on first rotation split");
+            patchRequests.Should().NotContain(i => i.Item1.OriginalString.Contains($"{rotation_1.Id}"), "Should execute patch request on first rotation split");
 
         }
 
@@ -156,7 +156,7 @@ namespace Fusion.Resources.Logic.Tests
         }
 
         [Fact]
-        public async Task Rotation_ShouldAssignPerson_ToSucceedingRotationSplits_WhenSameRotationId()
+        public async Task Rotation_ShouldNotAssignPerson_ToSucceedingRotationSplits_WhenSameRotationId()
         {
             #region Setup
             ApiPositionInstanceV2 onShore = null!;
@@ -184,37 +184,8 @@ namespace Fusion.Resources.Logic.Tests
 
             var patchRequests = await RunProvisioningAsync(request);
 
-            patchRequests.Should().HaveCount(2);
-            patchRequests.Should().ContainSingle(i => i.Item1.OriginalString.Contains($"{testInstance.Id}"));
-            patchRequests.Should().ContainSingle(i => i.Item1.OriginalString.Contains($"{rotation_2_2.Id}"));
-        }
-
-        [Fact]
-        public async Task ShouldAssignPersonToSucceedingInstance_WhenTbn()
-        {
-            #region Setup
-            ApiPositionInstanceV2 testInstance = null!;
-            ApiPositionInstanceV2 futureTbnInstance = null!;
-
-
-            var testPerson = GenerateTestPerson();
-            var testPosition = GeneratePosition(p =>
-            {
-                p.WithInstances(s =>
-                {
-                    // Future instance
-                    testInstance = s.AddInstance(DateTime.UtcNow.AddDays(10), TimeSpan.FromDays(20));
-                    futureTbnInstance = s.AddInstance(testInstance.AppliesTo.AddDays(1), TimeSpan.FromDays(40));
-                });
-            });
-
-            var request = GenerateRequest(testInstance, r => r.WithProposedPerson(testPerson));
-            #endregion
-
-            var patchRequests = await RunProvisioningAsync(request);
-
-            patchRequests.Should().HaveCount(2);
-            patchRequests.Should().ContainSingle(i => i.Item1.OriginalString.Contains($"{futureTbnInstance.Id}"), "Should execute patch request on future instance");
+            patchRequests.Should().HaveCount(1);
+            patchRequests.Should().NotContain(i => i.Item1.OriginalString.Contains($"{rotation_2_2.Id}"));
         }
 
         [Fact]
@@ -244,6 +215,34 @@ namespace Fusion.Resources.Logic.Tests
 
             patchRequests.Should().HaveCount(1);
             patchRequests.Should().NotContain(i => i.Item1.OriginalString.Contains($"{futureTbnInstance.Id}"), "Should execute patch request on future instance");
+        }
+
+        [Fact]
+        public async Task ShouldNotAssignFutureSplits()
+        {
+            #region Setup
+            ApiPositionInstanceV2 testInstance = null!;
+            ApiPositionInstanceV2 futureTbnInstance = null!;
+
+
+            var testPerson = GenerateTestPerson();
+            var otherTestPerson = GenerateTestPerson();
+            var testPosition = GeneratePosition(p =>
+            {
+                p.WithInstances(s =>
+                {
+                    // Future instance
+                    testInstance = s.AddInstance(DateTime.UtcNow.AddDays(10), TimeSpan.FromDays(20));
+                    futureTbnInstance = s.AddInstance(testInstance.AppliesTo.AddDays(1), TimeSpan.FromDays(40));
+                });
+            });
+
+            var request = GenerateRequest(testInstance, r => r.WithProposedPerson(testPerson));
+            #endregion
+
+            var patchRequests = await RunProvisioningAsync(request);
+            patchRequests.Should().HaveCount(1);
+            patchRequests.Should().NotContain(x => x.Item1.OriginalString.Contains(futureTbnInstance.Id.ToString()));
         }
 
         [Fact]
