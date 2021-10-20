@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Controllers
                 Comment = absence.Comment;
                 TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
 
-                Person = new ApiPerson(absence.Person);
+                if (absence.Person != null) Person = new ApiPerson(absence.Person);
 
                 if (absence.IsPrivate || absence.Type == QueryAbsenceType.Absence)
                 {
