@@ -3,7 +3,6 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "env-name": { "type": "string" },        
-        "aad-client-secret": { "type": "securestring" },
         "sql-connection-string": { "type": "string", "metadata": { "description": "Conection string without username/password"} }
     },
     "variables": {
@@ -216,17 +215,6 @@
             "name": "[concat(variables('keyvault-name'), '/', 'Connectionstrings--ResourcesDbContext')]",
             "properties": {
                 "value": "[parameters('sql-connection-string')]"
-            },
-            "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
-            ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "apiVersion": "2015-06-01",
-            "name": "[concat(variables('keyvault-name'), '/', 'AzureAd--ClientSecret')]",
-            "properties": {
-                "value": "[parameters('aad-client-secret')]"
             },
             "dependsOn": [
                 "[concat('Microsoft.KeyVault/vaults/', variables('keyvault-name'))]"
