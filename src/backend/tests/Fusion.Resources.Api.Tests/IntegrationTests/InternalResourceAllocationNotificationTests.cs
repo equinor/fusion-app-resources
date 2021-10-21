@@ -156,7 +156,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(2);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
 
         [Fact]
