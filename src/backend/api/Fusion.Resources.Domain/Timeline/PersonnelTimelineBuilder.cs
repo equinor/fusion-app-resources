@@ -35,9 +35,9 @@ namespace Fusion.Resources.Domain
             absences.ForEach(a => timeline.Add(new QueryPersonnelTimelineItem("Absence", a)));
             return this;
         }
-        public PersonnelTimelineBuilder WithPendingRequests(List<QueryResourceAllocationRequest> pendingRequests)
+        public PersonnelTimelineBuilder WithPendingRequests(List<QueryResourceAllocationRequest>? pendingRequests)
         {
-            pendingRequests.ForEach(rq => timeline.Add(new QueryPersonnelTimelineItem("Request", rq)));
+            pendingRequests?.ForEach(rq => timeline.Add(new QueryPersonnelTimelineItem("Request", rq)));
             return this;
         }
 

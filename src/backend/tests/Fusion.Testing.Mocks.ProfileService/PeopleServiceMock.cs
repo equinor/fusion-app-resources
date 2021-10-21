@@ -67,35 +67,33 @@ namespace Fusion.Testing.Mocks.ProfileService
 
         public FusionTestUserBuilder WithPosition(ApiPositionV2 position)
         {
-            var instance = position.Instances.FirstOrDefault();
-
-            profile.Positions.Add(new ApiPersonPositionV3
+            position.Instances.ForEach(instance => profile.Positions.Add(new ApiPersonPositionV3
             {
                 AppliesFrom = instance.AppliesFrom,
                 AppliesTo = instance.AppliesTo,
                 ParentPositionId = position.Id,
                 PositionExternalId = position.ExternalId,
                 BasePosition = new ApiPersonBasePositionV3
-                {
-                    Id = position.BasePosition.Id,
-                    Name = position.BasePosition.Name,
-                    Discipline = position.BasePosition.Discipline,
-                    SubDiscipline = position.BasePosition.SubDiscipline,
-                    Type = position.BasePosition.ProjectType
-                },
+                               {
+                                   Id = position.BasePosition.Id,
+                                   Name = position.BasePosition.Name,
+                                   Discipline = position.BasePosition.Discipline,
+                                   SubDiscipline = position.BasePosition.SubDiscipline,
+                                   Type = position.BasePosition.ProjectType
+                               },
                 Project = new ApiPersonPositionProjectV3
-                {
-                    DomainId = position.Project.DomainId,
-                    Id = position.Project.ProjectId,
-                    Name = position.Project.Name,
-                    Type = position.Project.Name,
-                },
+                          {
+                              DomainId = position.Project.DomainId,
+                              Id = position.Project.ProjectId,
+                              Name = position.Project.Name,
+                              Type = position.Project.Name,
+                          },
                 Workload = instance.Workload,
                 Obs = instance.Obs,
                 Name = position.Name,
                 Id = instance.Id,
                 PositionId = position.Id
-            });
+            }));
 
             return this;
         }

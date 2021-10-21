@@ -41,6 +41,7 @@ namespace Fusion.Resources.Domain
         public List<QueryPersonAbsenceBasic> Absence { get; set; }
         public bool IsResourceOwner { get; set; }
         public Guid? ManagerAzureId { get; set; }
-        public List<QueryResourceAllocationRequest> PendingRequests { get; set; } = new();
+        //public List<QueryResourceAllocationRequest> PendingRequests { get; set; } = new();
+        public List<QueryResourceAllocationRequest>? PendingRequests { get; set; }
     }
 }

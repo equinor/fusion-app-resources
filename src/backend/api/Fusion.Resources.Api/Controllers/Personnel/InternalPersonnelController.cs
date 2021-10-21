@@ -32,7 +32,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="includeSubdepartments">Certain departments in line org exists where a 
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
-        /// <param name="currentAllocations">Optional: only include current allocation</param>
+        /// <param name="includeCurrentAllocations">Optional: only include current allocation</param>
         /// <returns></returns>
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
@@ -41,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
             [FromQuery] string? timelineDuration = null,
             [FromQuery] DateTime? timelineEnd = null,
             [FromQuery] bool includeSubdepartments = false,
-            [FromQuery] bool currentAllocations = false)
+            [FromQuery] bool includeCurrentAllocations = false)
         {
             #region Authorization
 
@@ -97,7 +97,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
                 .IncludeSubdepartments(includeSubdepartments)
-                .CurrentAllocations(currentAllocations)
+                .IncludeCurrentAllocations(includeCurrentAllocations)
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
 
             var department = await DispatchAsync(command);
@@ -182,7 +182,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}")]
-        public async Task<ActionResult<ApiInternalPersonnelPerson>> GetPersonnelAllocation(string fullDepartmentString, string personIdentifier)
+        public async Task<ActionResult<ApiInternalPersonnelPerson>> GetPersonnelAllocation(string fullDepartmentString, string personIdentifier, [FromQuery] bool includeCurrentAllocations = false)
         {
             #region Authorization
 
@@ -208,7 +208,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var personnelItem = await DispatchAsync(new GetPersonnelAllocation(personIdentifier));
+            var personnelItem = await DispatchAsync(new GetPersonnelAllocation(personIdentifier)
+                                                        .IncludeCurrentAllocations(includeCurrentAllocations));
 
             if (personnelItem is null)
                 throw new InvalidOperationException("Could locate profile for person");

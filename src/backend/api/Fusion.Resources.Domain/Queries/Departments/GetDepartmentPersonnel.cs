@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain
         }
 
         private bool includeSubdepartments;
-        private bool currentAllocations;
+        private bool includeCurrentAllocations;
         public bool ExpandTimeline { get; set; }
         public string Department { get; set; }
         public ODataQueryParams? QueryParams { get; }
@@ -49,9 +49,9 @@ namespace Fusion.Resources.Domain
             return this;
         }
         
-        public GetDepartmentPersonnel CurrentAllocations(bool getCurrentAllocations)
+        public GetDepartmentPersonnel IncludeCurrentAllocations(bool includeCurrentAllocations)
         {
-            currentAllocations = getCurrentAllocations;
+            this.includeCurrentAllocations = includeCurrentAllocations;
             return this;
         }
 
@@ -102,19 +102,19 @@ namespace Fusion.Resources.Domain
                                      .Where(instance => instance.AppliesTo >= request.TimelineStart && instance.AppliesFrom <= request.TimelineEnd)
                                      .ToList();
 
-                        p.PendingRequests = p.PendingRequests
-                                             .Where(instance => instance.OrgPositionInstance?.AppliesTo >= request.TimelineStart && instance.OrgPositionInstance?.AppliesFrom <= request.TimelineEnd)
-                                             .ToList();
+                        if (p.PendingRequests != null)
+                            p.PendingRequests = p.PendingRequests.Where(instance => instance.OrgPositionInstance?.AppliesTo >= request.TimelineStart && instance.OrgPositionInstance?.AppliesFrom <= request.TimelineEnd).ToList();
 
                         // Timeline date input has been verified when shouldExpandTimline is true.
                         p.Timeline = new PersonnelTimelineBuilder(request.TimelineStart!.Value, request.TimelineEnd!.Value)
-                            .WithPositions(p.PositionInstances)
-                            .WithAbsences(p.Absence)
-                            .WithPendingRequests(p.PendingRequests)
-                            .Build();
+                                     .WithPositions(p.PositionInstances)
+                                     .WithAbsences(p.Absence)
+                                     .WithPendingRequests(p.PendingRequests)
+                                     .Build();
+                        
                     }
 
-                    if (request.currentAllocations)
+                    if (request.includeCurrentAllocations)
                     {
                         p.PositionInstances = p.PositionInstances
                                                .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
@@ -124,9 +124,10 @@ namespace Fusion.Resources.Domain
                                      .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
                                      .ToList();
 
-                        p.PendingRequests = p.PendingRequests
-                                             .Where(instance => instance.OrgPositionInstance?.AppliesTo >= DateTime.Now && instance.OrgPositionInstance?.AppliesFrom <= DateTime.Now)
-                                             .ToList();
+                        if (p.PendingRequests != null)
+                        {
+                            p.PendingRequests = p.PendingRequests.Where(instance => instance.OrgPositionInstance?.AppliesTo >= DateTime.Now && instance.OrgPositionInstance?.AppliesFrom <= DateTime.Now).ToList();
+                        }
                     }
                 });
 

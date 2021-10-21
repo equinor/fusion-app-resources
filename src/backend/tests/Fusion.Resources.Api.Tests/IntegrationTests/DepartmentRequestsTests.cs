@@ -633,7 +633,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var scope = fixture.AdminScope();
 
             var response = await Client.TestClientGetAsync<TestResponse>(
-                                                                         $"/departments/{department}/resources/personnel/?currentAllocations=true&{ApiVersion}"
+                                                                         $"/departments/{department}/resources/personnel/?includeCurrentAllocations=true&{ApiVersion}"
                                                                         );
 
             response.Should().BeSuccessfull();
@@ -667,6 +667,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
             result.pendingRequests.Should().Contain(x => x.Id == request.Id);
             result.timeline.Single().items.Should().Contain(x => x.type == "Request" && x.id == request.Id.ToString());
+        }
+
+        [Fact(Skip = "Unable to test due to persons search mock not filtering correctly and returning random person element - returns NotFound Person does not belong to department due to mismatch on department property.")]
+        public async Task GetRequestsOnPerson_ShouldNotIncludeRequestsOutsideCurrentAllocations()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+                                                                                                                  {
+                                                                                                                      x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
+                                                                                                                  }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+            
+            var response = await Client.TestClientGetAsync<TestApiPersonnelPerson>(
+                                                                                   $"/departments/{user.Department}/resources/personnel/{user.AzureUniqueId}?includeCurrentAllocations=true&{ApiVersion}"
+                                                                                  );
+
+            response.Should().BeSuccessfull();
+            var positionInstances = response.Value.positionInstances;
+            positionInstances.Any(x => x.AppliesFrom > DateTime.Now || x.AppliesTo < DateTime.Now).Should().BeFalse();
         }
 
         public Task DisposeAsync()
