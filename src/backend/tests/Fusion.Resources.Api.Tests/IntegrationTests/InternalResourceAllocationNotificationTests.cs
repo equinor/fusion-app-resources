@@ -101,9 +101,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             NotificationClientMock.SentMessages.Clear();
             await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
+            NotificationClientMock.SentMessages.Count.Should().Be(1);
         }
-
 
         [Fact]
         public async Task DirectRequest_StartWorkFlow_ShouldNotify()
@@ -119,8 +118,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{directRequest.Id}/start", null);
             response.Should().BeSuccessfull();
 
+            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
+            var taskOwner = directRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
+
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
 
         private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
@@ -148,8 +151,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
 
             // Assert
+            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
+            var taskOwner = patchPerson.Value.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
+
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(2);
         }
 
         [Fact]
@@ -166,9 +173,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             // Assert
+            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
+            var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
         }
 
         [Fact]

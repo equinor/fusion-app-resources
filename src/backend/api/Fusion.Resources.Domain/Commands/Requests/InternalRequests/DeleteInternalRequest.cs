@@ -45,18 +45,9 @@ namespace Fusion.Resources.Domain.Commands
                 await dbContext.SaveChangesAsync();
 
                 if (req is not null)
-                    await mediator.Publish(new Notifications.InternalRequests.InternalRequestDeleted(
-                        req.Id,
-                        req.Project.OrgProjectId,
-                        req.OrgPositionId,
-                        req.OrgPositionInstance.Id,
-                        $"{req.Type}",
-                        req.SubType,
-                        req.RequestNumber,
-                        req.AssignedDepartment, 
-                        request.Editor.Person.Name)
-                    );
-
+                {
+                    await mediator.Publish(new Notifications.InternalRequests.InternalRequestDeleted(new QueryResourceAllocationRequest(req), request.Editor.Person.Name));
+                }
             }
         }
     }

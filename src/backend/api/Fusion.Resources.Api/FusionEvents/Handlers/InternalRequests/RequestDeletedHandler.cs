@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
 
         public async Task Handle(InternalRequestDeleted notification, CancellationToken cancellationToken)
         {
-            if (notification.OrgPositionId is null)
+            if (notification.OrgPositionId is null || notification.PositionInstanceId is null)
                 return;
 
             try
@@ -34,7 +34,7 @@ namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
                 {
                     Type = EventType.RequestRemoved,
                     ItemId = notification.RequestId,                    
-                    Request = new ResourceAllocationRequestEvent(notification.RequestId, notification.OrgProjectId, notification.OrgPositionId.Value, notification.PositionInstanceId, notification.Type, notification.SubType)
+                    Request = new ResourceAllocationRequestEvent(notification.RequestId, notification.OrgProjectId, notification.OrgPositionId.Value, notification.PositionInstanceId.Value, notification.Type, notification.SubType)
                 };
                 var @event = new FusionEvent<ResourceAllocationRequestSubscriptionEvent>(new FusionEventType("resourceallocation.request"), payload);
                 await notificationClient.SendNotificationAsync(@event);
