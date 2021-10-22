@@ -101,7 +101,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().Be(1);
+            NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
@@ -123,7 +123,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
         }
 
         private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
@@ -178,7 +178,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().Be(1);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
