@@ -4,14 +4,6 @@
 
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../support" />
-import ContractDetailGeneralPage from "../../POM/ContractDetailGeneralPage"
-const contractDetail = new ContractDetailGeneralPage()
-
-import DelegateAccessSideSheet from "../../POM/DelegateAccessSideSheet"
-const delegateSidesheet = new DelegateAccessSideSheet()
-
-import RecertifyPopup from "../../POM/RecertifyPopup"
-const recertifyPopup = new RecertifyPopup ()
 
 describe('TC 13035 Delegate Admin Access', () => {
   /** TODO make login persistent between tests */
@@ -21,55 +13,45 @@ describe('TC 13035 Delegate Admin Access', () => {
     cy.visit('/');
   });
 
-  it('Delegate Admin Access - Equinor Responsible', () => {
+  beforeEach(() => {
     const contractNo = '312312341'
-    const DelegatePeople = 'Qi Jin'
 
-    cy.loadProject('Query test project')
-    
+    cy.loadProject('Query test project')  
     cy.openContract(contractNo)
+  })
 
+  it('Delegate Admin Access - Equinor Responsible', () => {
+    /** verify the equinor responsible session is visible */
     cy.contains('Contract details').should('be.visible')
-
     cy.contains('Equinor responsible').should('be.visible')
-    contractDetail.EquinorRespDelegateAccess().find('[data-cy="delegate-table"]').should('be.visible')
-    cy.wait(1000)
-    contractDetail.EquinorRespDelegateButton().click()
 
-    /**  delegate sidesheet should show up */
-    delegateSidesheet.DelegateSideSheet().should('be.visible')
-    cy.contains('Delegate access').should('be.visible')
+    /** delegate equinor admin access to a new person */    
+    cy.delegateAdminAccess('equinor', 'Qi Jin', '1-month')
 
-    // delegateSidesheet.DelegateButton().invoke('').should('contain', 'disabled')
+    /** re-certify to a person existing in the equinor admin access table*/
+    cy.recertifyAdminAccess('equinor', 8, '6-months')
 
-    delegateSidesheet.Certify6MonthsRadioButton().click()
- 
-    delegateSidesheet.AddPeopleSelector().type(DelegatePeople)
-    cy.get('[class^="fc--SearchableDropdown"]').contains(DelegatePeople).click()
-    cy.get('[data-cy="selected-person"]').should('contain', DelegatePeople)
+    /** remove a existing person from the equinor admin access table */
+    cy.removeAdminAccess('equinor', 8)
 
-    // delegateSidesheet.DelegateButton().invoke('attr', 'class').should('not.contain', 'disabled')
-    delegateSidesheet.DelegateButton().click({force: true})
-    cy.wait(1000)
+    cy.get('[data-cy="close-btn"]').click()
+  });
 
-    /** verify the updates in the delegate table */ 
-    contractDetail.EquinorRespDelegateAccess().find('[data-cy="assigned-person"]').should('contain', DelegatePeople)
-    contractDetail.EquinorRespDelegateAccess().find('[data-cy="recertification-date"]').last().should('contain', '-')
+  it('Delegate Admin Access - External Responsible', () => {
+    /** verify the external responsible sessions is visible */
+    cy.contains('Contract details').should('be.visible')
+    cy.contains('External responsible').should('be.exist')
 
-    /** re-certify a person */
-    contractDetail.EquinorRespDelegateAccess().find('input[type="checkbox"]').last().click()
+    /** delegate external admin access to a new person */    
+    cy.delegateAdminAccess('external', 'Qi Jin', '1-month')
 
-    contractDetail.EquinorRespRecertifyButton().click()
+    /** re-certify to a person existing in the external admin access table*/
+    cy.recertifyAdminAccess('external', 4, '6-months')
 
-    recertifyPopup.RecertifyPopupDropdown().should('be.visible')
+    /** remove a existing person from the external admin access table */
+    cy.removeAdminAccess('external', 4)
 
-    recertifyPopup.Certify1YearRadioButton().click()
-
-    recertifyPopup.ReCertifyButton().click()
-    cy.wait(1000)
-
-    contractDetail.EquinorRespDelegateAccess().find('[data-cy="recertification-date"]').last().should('not.contain', '-')
-
+    cy.get('[data-cy="close-btn"]').click()
   });
 
 })
