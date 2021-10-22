@@ -56,6 +56,26 @@ namespace Fusion.Resources.Domain
             return await GetFromSearchIndexAsync(peopleClient, filter, search);
         }
 
+        /// <summary>
+        /// Perform normal search on the index. The resultset will be paged but includes the total result. 
+        /// Paging can be done by using the paramSetup: q => q.WithSkip(100).
+        /// </summary>
+        /// <param name="peopleClient"></param>
+        /// <param name="search"></param>
+        /// <param name="paramSetup"></param>
+        /// <returns></returns>
+        public static async Task<QueryRangedList<QueryInternalPersonnelPerson>> Search(HttpClient peopleClient, string search, Action<SearchParams>? paramSetup = null)
+        {
+            var query = new SearchParams(search);
+
+            paramSetup?.Invoke(query);
+
+            var searchResult = await SearchIndexAsync(peopleClient, query);
+
+            return QueryRangedList.FromItems(searchResult.items, searchResult.totalCount, query.Skip);
+        }
+
+        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null)
         private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null, List<QueryResourceAllocationRequest>? requests = null)
         {
             var result = new List<QueryInternalPersonnelPerson>();
@@ -116,7 +136,68 @@ namespace Fusion.Resources.Domain
             return result;
         }
 
-        
+        private static async Task<(List<QueryInternalPersonnelPerson> items, int totalCount)> SearchIndexAsync(HttpClient peopleClient, SearchParams query)
+        {
+            var result = new List<QueryInternalPersonnelPerson>();
+
+            if (query.Top > 1000)
+                throw new InvalidOperationException("Max page size is 1000");
+
+
+            var top = query.Top;
+            var skip = query.Skip;
+
+            var response = await peopleClient.PostAsJsonAsync("/search/persons/query", new
+            {
+                filter = query.Filter,
+                search = query.Search,
+                top = query.Top,
+                skip = query.Skip,
+                includeTotalResultCount = true
+            });
+
+            var data = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            var items = JsonConvert.DeserializeAnonymousType(data, new
+            {
+                results = new[]
+                {
+                        new { document = new SearchPersonDTO() }
+                    },
+                count = (int?)0
+            });
+
+
+            var resultItems = items.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
+            {
+                PhoneNumber = i.document.mobilePhone,
+                JobTitle = i.document.jobTitle,
+                OfficeLocation = i.document.officeLocation,
+                Department = i.document.department,
+                IsResourceOwner = i.document.isResourceOwner,
+                FullDepartment = i.document.fullDepartment,
+                ManagerAzureId = i.document.managerAzureId,
+                PositionInstances = i.document.positions.Select(p => new QueryPersonnelPosition
+                {
+                    PositionId = p.id,
+                    InstanceId = p.instanceId,
+                    AppliesFrom = p.appliesFrom!.Value,
+                    AppliesTo = p.appliesTo!.Value,
+                    Name = p.name,
+                    Location = p.locationName,
+                    BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
+                    Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
+                    Workload = p.workload,
+                    AllocationState = p.allocationState,
+                    AllocationUpdated = p.allocationUpdated
+                }).OrderBy(p => p.AppliesFrom).ToList()
+            }).ToList();
+
+            return (resultItems, items.count ?? 0);
+        }
+
 
         private class SearchProjectDTO
         {
@@ -166,6 +247,39 @@ namespace Fusion.Resources.Domain
             public Guid? managerAzureId { get; set; }
             public List<SearchPositionDTO> positions { get; set; } = new();
 
+        }
+
+        public class SearchParams
+        {
+            public const int DEFAULT_PAGE_SIZE = 50;
+
+            public SearchParams(string search)
+            {
+                Search = search;
+            }
+
+            public int Top { get; set; } = DEFAULT_PAGE_SIZE;
+            public int Skip { get; set; } = 0;
+            public string Search { get; set; }
+            public string? Filter { get; set; }
+
+            public SearchParams WithSkip(int? skip)
+            {
+                Skip = skip ?? 0;
+                return this;
+            }
+
+            public SearchParams WithTop(int? top)
+            {
+                Top = top ?? DEFAULT_PAGE_SIZE;
+                return this;
+            }
+
+            public SearchParams WithFilter(string? filter)
+            {
+                Filter = filter;
+                return this;
+            }
         }
     }
 }
