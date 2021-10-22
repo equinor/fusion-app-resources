@@ -75,7 +75,6 @@ namespace Fusion.Resources.Domain
             return QueryRangedList.FromItems(searchResult.items, searchResult.totalCount, query.Skip);
         }
 
-        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null)
         private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null, List<QueryResourceAllocationRequest>? requests = null)
         {
             var result = new List<QueryInternalPersonnelPerson>();
