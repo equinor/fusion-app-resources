@@ -89,6 +89,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
         #region Notification tests
 
+        [Fact]
+        public async Task Request_Delete_ShouldNotify()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateRequestAsync(ProjectId, r => r
+                .AsTypeNormal()
+                .WithPosition(requestPosition)
+                .WithAssignedDepartment(testUser.FullDepartment!));
+
+            NotificationClientMock.SentMessages.Clear();
+            await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
+            NotificationClientMock.SentMessages.Count.Should().Be(1);
+        }
 
         [Fact]
         public async Task DirectRequest_StartWorkFlow_ShouldNotify()
