@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 /**
- * Landing page of a project
+ * External Personnel Landing page
  */
  export default class ExternalPersonnelLandingPage {
     AllocateContractButton(){

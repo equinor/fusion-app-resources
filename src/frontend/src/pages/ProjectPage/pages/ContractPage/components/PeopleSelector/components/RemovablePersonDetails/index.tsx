@@ -14,12 +14,12 @@ const RemovablePersonDetails: FC<RemovablePersonDetailsProps> = ({ person, onRem
     return (
         <div className={styles.personDetailsContainer}>
             <div className={styles.removeContainer}>
-                <IconButton onClick={removePerson}>
+                <IconButton data-cy="remove-person-btn" onClick={removePerson}>
                     <DeleteIcon outline />
                 </IconButton>
             </div>
             <PersonPhoto size="medium" personId={person.azureUniqueId} />
-            <div className={styles.details}>
+            <div data-cy="selected-person" className={styles.details}>
                 <span>{person.name}</span>
                 {person.mail ? (
                     <a href={`mailto:${person.mail}`}>{person.mail}</a>

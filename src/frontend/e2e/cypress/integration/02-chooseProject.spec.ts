@@ -15,9 +15,8 @@ describe('Choose Project', () => {
   });
 
   it('TC 13029 Choose project', () => {
-    // select a project and load data
+    /**  select a project and load data */
     const projectName = 'Query test project'
-    const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
 
     cy.loadProject(projectName)
     

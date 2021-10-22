@@ -16,7 +16,6 @@ describe('Help Page', () => {
   });
 
   it('TC 13042 Open the Help page', () => {
-    const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
     const tab1 = 'Contract management'
     const tab2 = 'Role delegation'
 

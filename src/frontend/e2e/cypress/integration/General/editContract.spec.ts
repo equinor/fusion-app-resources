@@ -26,7 +26,6 @@ describe('Edit contract', () => {
   });
 
   it('TC 13041 Edit Contract', function () {
-    const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
     const contractNo = '312312341'
 
     cy.loadProject('Query test project')
@@ -36,8 +35,8 @@ describe('Edit contract', () => {
     cy.get('[data-cy="edit-btn"]').click()
     cy.contains('h2', 'Edit').should('be.visible')
 
-    // change the contract data
-    cy.wait(1000);  // wait for rending
+    /** change the contract data*/
+    cy.wait(1000);  /**  wait for rending */
     contractEditPage.ContractNameInputBox().find('input').clear().type(this.contractData.contractName)
 
     contractEditPage.CompanySelector().type(this.contractData.companyName)
@@ -64,7 +63,7 @@ describe('Edit contract', () => {
     contractEditPage.SubmitButton().click()
     cy.wait(1000)
 
-    // verify changes are shown in contract details page
+    /** verify changes are shown in contract details page */
     cy.contains('h2', this.contractData.contractName)
     cy.contains('label', 'Contractor').next().should('contain', this.contractData.companyName)
     cy.contains('label', 'From date').next().should('contain', this.contractData.fromDate)

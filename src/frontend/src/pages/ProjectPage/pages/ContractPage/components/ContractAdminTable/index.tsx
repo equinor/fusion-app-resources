@@ -33,7 +33,6 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
     accountType,
     admins,
     isFetchingAdmins,
-//    ...props
 }) => {
     const { apiClient } = useAppContext();
     const { contract } = useContractContext();
@@ -94,7 +93,7 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
     });
     return (
         <div className={styles.container}>
-            <div className={styles.toolbar}>
+            <div data-cy="delegate-toolbar" className={styles.toolbar}>
                 <ToolbarButton
                     icon={<AddIcon />}
                     title="Delegate"
@@ -111,7 +110,6 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
             </div>
             <div data-cy="delegate-table" className={tableClasses}>
                 <DataTable
-                    // {...props}
                     data={admins}
                     isFetching={isFetchingAdmins}
                     rowIdentifier="id"

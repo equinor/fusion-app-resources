@@ -80,13 +80,13 @@ const CertifyToPopover: FC<CertifyToPopoverProps> = ({ canEdit, admins, children
 
     return (
         <Dropdown controller={controller}>
-            <div className={styles.container}>
+            <div data-cy="recertify-popup" className={styles.container}>
                 <CertifyToPicker
                     onChange={setSelectedDate}
                     defaultSelected="12-months"
                     isReCertification
                 />
-                <div className={styles.certifyButtonContainer}>
+                <div data-cy="recertify-btn" className={styles.certifyButtonContainer}>
                     <Button disabled={!canEdit} onClick={onReCertifyClick}>
                         <div className={styles.syncButton}>
                             {isReCertifying ? (

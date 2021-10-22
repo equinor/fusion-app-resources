@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 /**
- * Landing page of a project
+ * Contract Detail General page
  */
  export default class ContractDetailGeneralPage {
     GeneralButton(){

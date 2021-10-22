@@ -35,7 +35,7 @@ const PeopleSelector: FC<PeopleSelectorProps> = ({ selectedPersons, setSelectedP
             {selectedPersons.map((person) => (
                 <RemovablePersonDetails person={person} onRemove={removePerson} />
             ))}
-            <div className={styles.personPicker}>
+            <div data-cy="person-picker" className={styles.personPicker}>
                 <PersonPicker onSelect={addPerson} selectedPerson={null} />
             </div>
         </div>

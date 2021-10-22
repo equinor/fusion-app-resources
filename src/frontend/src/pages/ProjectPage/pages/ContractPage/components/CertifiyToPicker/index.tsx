@@ -38,7 +38,7 @@ const dates: CertifyToDate[] = [
     },
 ];
 
-const CertifyToPicker: FC<CertifyToPickerProps> = ({ onChange, defaultSelected, isReCertification }) => {
+const CertifyToPicker: FC<CertifyToPickerProps> = ({ onChange, defaultSelected, isReCertification}) => {
     const [selectedDate, setSelectedDate] = useState<CertifyToDateKey>();
     const certifyPrefix = useMemo(() => (isReCertification ? 'Re-certify ' : 'Certify '), [
         isReCertification,
@@ -60,9 +60,9 @@ const CertifyToPicker: FC<CertifyToPickerProps> = ({ onChange, defaultSelected, 
     }, [])
 
     return (
-        <div className={styles.container}>
+        <div data-cy="certify-to-picker" className={styles.container}>
             {dates.map((date) => (
-                <div key={date.key} className={styles.certifiedToItem} onClick={() => onCertifyToChange(date)}>
+                <div data-cy={`certify-${date.key}`} key={date.key} className={styles.certifiedToItem} onClick={() => onCertifyToChange(date)}>
                     <RadioButton selected={date.key === selectedDate} />
                     <span>{`${certifyPrefix} for ${date.title}`}</span>
                 </div>

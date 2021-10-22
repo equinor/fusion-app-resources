@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 /**
- * Landing page of a project
+ * Contract Edit pages
  */
  export default class ContractEditPage {
     CloseButton(){

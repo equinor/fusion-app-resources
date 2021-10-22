@@ -19,10 +19,11 @@ type DelegateAccessSideSheetProps = {
 type DelegationSectionProps = {
     title: string;
     strong?: boolean;
+    id?: string;
 };
 
-const DelegationSection: FC<DelegationSectionProps> = ({ title, strong, children }) => (
-    <div className={styles.delegationSection}>
+const DelegationSection: FC<DelegationSectionProps> = ({ title, strong, children, id }) => (
+    <div id={id} className={styles.delegationSection}>
         <label
             className={classNames(styles.delegationTitle, {
                 [styles.strong]: strong,
@@ -74,6 +75,7 @@ const DelegateAccessSideSheet: FC<DelegateAccessSideSheetProps> = ({
 
     return (
         <ModalSideSheet
+            data-cy="delegate-sidesheet"
             show={showSideSheet}
             onClose={onClose}
             header="Delegate access"
@@ -81,10 +83,10 @@ const DelegateAccessSideSheet: FC<DelegateAccessSideSheetProps> = ({
         >
             <div className={styles.delegateContainer}>
                 <div className={styles.delegationForm}>
-                    <DelegationSection title="Valid to">
+                    <DelegationSection id="valid-to" title="Valid to">
                         <CertifyToPicker onChange={setDelegateTo} defaultSelected="12-months" />
                     </DelegationSection>
-                    <DelegationSection title="Add people" strong>
+                    <DelegationSection id="add-people" title="Add people" strong>
                         <PeopleSelector
                             selectedPersons={selectedPersons}
                             setSelectedPersons={setSelectedPersons}

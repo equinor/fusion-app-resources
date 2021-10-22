@@ -16,15 +16,13 @@ describe('Contract Detail', () => {
   });
 
   it('TC 13034 Contract Detail', () => {
-    const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
     const contractNo = '312312341'
 
     cy.loadProject('Query test project')
     
     cy.openContract(contractNo)
 
-    // verify General tab is active
-    // give a data-cy to the general tab
+    /** verify General tab is active */
     //cy.get('#general-tab').invoke('attr', 'class').should('contain', 'isActive')
 
     cy.contains('Contract details').should('be.visible')
