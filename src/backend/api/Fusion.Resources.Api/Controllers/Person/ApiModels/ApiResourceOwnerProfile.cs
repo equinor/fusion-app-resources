@@ -23,6 +23,7 @@ namespace Fusion.Resources.Api.Controllers
                 .Union(IsResourceOwner ? resourceOwnerProfile.SiblingDepartments ?? new () : new ())       
                 .Union(resourceOwnerProfile.DelegatedChildDepartments ?? new ())
                 .Union(resourceOwnerProfile.DelegatedSiblingDepartments ?? new ())
+                .Union(resourceOwnerProfile.DelegatedParentDepartments ?? new ())
                 .Distinct()
                 .ToList();
 

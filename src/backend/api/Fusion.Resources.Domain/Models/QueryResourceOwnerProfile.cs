@@ -31,6 +31,7 @@ namespace Fusion.Resources.Domain.Queries
 
         public List<string>? DelegatedSiblingDepartments { get; set; }
         public List<string>? DelegatedChildDepartments { get; set; }
+        public List<string>? DelegatedParentDepartments { get; set; }
 
         internal void AddDelegatedDepartments(QueryRelatedDepartments orgProfile)
         {
@@ -42,6 +43,14 @@ namespace Fusion.Resources.Domain.Queries
 
             DelegatedChildDepartments.AddRange(orgProfile.Children.Select(x => x.DepartmentId));
             DelegatedSiblingDepartments.AddRange(orgProfile.Siblings.Select(x => x.DepartmentId));
+        }
+
+        internal void AddDelegatedParentDepartment(string department)
+        {
+            if (DelegatedParentDepartments is null)
+                DelegatedParentDepartments = new List<string>();
+
+            DelegatedParentDepartments.Add(department);
         }
     }
 }

@@ -81,6 +81,10 @@ namespace Fusion.Resources.Domain.Queries
                 // Resolve related departments for all departments where user has responsibility
                 foreach (var department in departmentsWithResponsibility.Where(d => d != user.FullDepartment))
                 {
+                    // Add the parent department, as when you have responsibility in a department, the parent department will always be relevant
+                    var parentDepartment = new DepartmentPath(department).Parent();
+                    resourceOwnerProfile.AddDelegatedParentDepartment(parentDepartment);
+
                     var orgProfile = await mediator.Send(new GetRelatedDepartments(department), cancellationToken);
                     if (orgProfile is not null)
                         resourceOwnerProfile.AddDelegatedDepartments(orgProfile);
