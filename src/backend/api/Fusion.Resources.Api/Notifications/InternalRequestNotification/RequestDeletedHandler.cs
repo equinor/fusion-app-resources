@@ -31,6 +31,11 @@ namespace Fusion.Resources.Api.Notifications
 
             public async Task Handle(InternalRequestDeleted notification, CancellationToken cancellationToken)
             {
+                if (notification.IsDraft)
+                {
+                    logger.LogInformation($"Request {notification.RequestId} was removed. Notification not sent due to request beeing a draft request.");
+                    return;
+                }
                 if (string.IsNullOrEmpty(notification.AssignedDepartment))
                 {
                     logger.LogInformation($"Request {notification.RequestId} was removed. Notification not sent due to missing assigned department.");
