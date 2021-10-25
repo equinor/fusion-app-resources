@@ -8,6 +8,7 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
         public InternalRequestDeleted(QueryResourceAllocationRequest req, string editor)
         {
             RequestId = req.RequestId;
+            IsDraft = req.IsDraft;
             OrgProjectId = req.Project.OrgProjectId;
             OrgPositionId = req.OrgPositionId;
             PositionInstanceId = req.OrgPositionInstanceId;
@@ -19,6 +20,7 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
         }
 
         public Guid RequestId { get; set; }
+        public bool IsDraft { get; set; }
         public Guid OrgProjectId { get; set; }
         public Guid? OrgPositionId { get; set; }
         public Guid? PositionInstanceId { get; set; }
