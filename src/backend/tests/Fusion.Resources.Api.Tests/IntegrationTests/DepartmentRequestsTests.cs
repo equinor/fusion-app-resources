@@ -669,7 +669,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.timeline.Single().items.Should().Contain(x => x.type == "Request" && x.id == request.Id.ToString());
         }
 
-        [Fact(Skip = "Unable to test due to persons search mock not filtering correctly and returning random person element - returns NotFound Person does not belong to department due to mismatch on department property.")]
+        [Fact]
         public async Task GetRequestsOnPerson_ShouldNotIncludeRequestsOutsideCurrentAllocations()
         {
             TestApiInternalRequestModel request;
