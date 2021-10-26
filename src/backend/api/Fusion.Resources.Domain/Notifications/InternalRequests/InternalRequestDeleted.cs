@@ -5,21 +5,29 @@ namespace Fusion.Resources.Domain.Notifications.InternalRequests
 {
     public class InternalRequestDeleted : INotification
     {
-        public InternalRequestDeleted(Guid requestId, Guid orgProjectId, Guid? orgPositionId, Guid positionInstanceId, string type, string? subType)
+        public InternalRequestDeleted(QueryResourceAllocationRequest req, string editor)
         {
-            RequestId = requestId;
-            OrgProjectId = orgProjectId;
-            OrgPositionId = orgPositionId;
-            PositionInstanceId = positionInstanceId;
-            Type = type;
-            SubType = subType;
+            RequestId = req.RequestId;
+            IsDraft = req.IsDraft;
+            OrgProjectId = req.Project.OrgProjectId;
+            OrgPositionId = req.OrgPositionId;
+            PositionInstanceId = req.OrgPositionInstanceId;
+            Type = $"{req.Type}";
+            SubType = req.SubType;
+            RequestNumber = req.RequestNumber;
+            AssignedDepartment = req.AssignedDepartment;
+            RemovedByPerson = editor;
         }
 
         public Guid RequestId { get; set; }
+        public bool IsDraft { get; set; }
         public Guid OrgProjectId { get; set; }
         public Guid? OrgPositionId { get; set; }
-        public Guid PositionInstanceId { get; set; }
+        public Guid? PositionInstanceId { get; set; }
         public string Type { get; set; }
         public string? SubType { get; set; }
+        public long RequestNumber { get; set; }
+        public string? AssignedDepartment { get; set; }
+        public string RemovedByPerson { get; set; }
     }
 }

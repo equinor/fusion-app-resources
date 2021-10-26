@@ -4,10 +4,8 @@ using Fusion.Resources.Integration.Models.FusionEvents;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
 {
@@ -46,12 +44,6 @@ namespace Fusion.Resources.Api.FusionEvents.Handlers.InternalRequests
             {
                 // Fails if topic doesn't exist
                 logger.LogError(ex.Message);
-            }
-
-            var assignedDepartmentModified = notification.ModifiedProperties.Any(x => x.Metadata.Name == nameof(DbResourceAllocationRequest.AssignedDepartment));
-            if (assignedDepartmentModified)
-            {
-                await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(notification.RequestId));
             }
         }
     }

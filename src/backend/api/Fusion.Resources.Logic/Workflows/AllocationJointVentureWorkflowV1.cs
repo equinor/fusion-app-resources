@@ -10,7 +10,6 @@ namespace Fusion.Resources.Logic.Workflows
         public const string SUBTYPE = "jointventure";
 
         public const string CREATED = "created";
-        public const string APPROVAL = "approval";
 
         public override string Version => "v1";
         public override string Name => "Joint venture personnel assignment request";

@@ -38,6 +38,15 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests WithPositionId(Guid positionId)
+        {
+            Expands |= ExpandFields.OrgPosition;
+            Expands |= ExpandFields.OrgPositionInstance;
+            PositionId = positionId;
+
+            return this;
+        }
+
         public GetResourceAllocationRequests ExpandPositions(bool shouldExpand = true)
         {
             if (shouldExpand)
@@ -106,7 +115,16 @@ namespace Fusion.Resources.Domain.Queries
 
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
+
+        /// <summary>
+        /// Use <see cref="ForAll(bool?)"/>
+        /// </summary>
         public bool? ShouldIncludeAllRequests { get; private set; }
+        
+        /// <summary>
+        /// Use <see cref="WithPositionId(Guid)"/>
+        /// </summary>
+        public Guid? PositionId { get; private set; }
 
         [Flags]
         private enum ExpandFields
@@ -157,9 +175,10 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)
                     .Include(r => r.ProposedPerson)
-                    .OrderBy(x => x.Id) // Should have consistent sorting due to OData criterias.
                     .AsQueryable();
 
+                query = ApplySorting(query, request.Query);
+                
                 if (request.Owner is not null)
                     query = query.Where(r => r.IsDraft == false || r.RequestOwner == request.Owner);
 
@@ -170,8 +189,10 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     query = query.ApplyODataFilters(request.Query, m =>
                     {
-                        m.MapField(nameof(QueryResourceAllocationRequest.AssignedDepartment), i => i.AssignedDepartment);
-                        m.MapField(nameof(QueryResourceAllocationRequest.Discipline), i => i.Discipline);
+                        // These fields are provided by the api, so must match the api model fields unfortunately. This is a known limitation, however 
+                        // it is done instead of having to handle complexities in query expression logic..
+                        m.MapField("assignedDepartment", i => i.AssignedDepartment);
+                        m.MapField("discipline", i => i.Discipline);
                         m.MapField("isDraft", i => i.IsDraft);
                         m.MapField("project.id", i => i.Project.OrgProjectId);
                         m.MapField("updated", i => i.Updated);
@@ -179,10 +200,10 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("state.isComplete", i => i.State.IsCompleted);
                         m.MapField("provisioningStatus.state", i => i.ProvisioningStatus.State);
                         m.MapField("proposedPerson.azureUniqueId", x => x.ProposedPerson.AzureUniqueId);
+                        m.MapField("orgPositionId", i => i.OrgPositionId);
+                        m.MapField("correlationId", i => i.CorrelationId);
                     });
                 }
-
-                
 
                 if (request.ProjectId.HasValue)
                     query = query.Where(c => c.Project.OrgProjectId == request.ProjectId);
@@ -192,6 +213,8 @@ namespace Fusion.Resources.Domain.Queries
                 if (request.Unassigned)
                     query = query.Where(c => c.AssignedDepartment == null);
 
+                if (request.PositionId.HasValue)
+                    query = query.Where(r => r.OrgPositionId == request.PositionId.Value);
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(DefaultPageSize);
@@ -212,6 +235,30 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 return pagedQuery;
+            }
+
+            private IQueryable<DbResourceAllocationRequest> ApplySorting(IQueryable<DbResourceAllocationRequest> query, ODataQueryParams odataQuery)
+            {
+                if (odataQuery.OrderBy.Any())
+                {
+                    // Limited support, only one lever supported... 
+
+                    var mainOrder = odataQuery.OrderBy.First();
+                    switch (mainOrder.Field)
+                    {
+                        case "id": return mainOrder.Direction == SortDirection.desc ? query.OrderByDescending(e => e.Id) : query.OrderBy(e => e.Id);
+                        case "orgPositionId": return mainOrder.Direction == SortDirection.desc ? query.OrderByDescending(e => e.OrgPositionId) : query.OrderBy(e => e.OrgPositionId);
+                        case "number": return mainOrder.Direction == SortDirection.desc ? query.OrderByDescending(e => e.RequestNumber) : query.OrderBy(e => e.RequestNumber);
+                        case "created": return mainOrder.Direction == SortDirection.desc ? query.OrderByDescending(e => e.Created) : query.OrderBy(e => e.Created);
+                        case "updated": return mainOrder.Direction == SortDirection.desc ? query.OrderByDescending(e => e.Updated) : query.OrderBy(e => e.Updated);
+                        case "lastActivity": return mainOrder.Direction == SortDirection.desc ? query.OrderByDescending(e => e.LastActivity) : query.OrderBy(e => e.LastActivity);
+
+                        default:
+                            throw new InvalidOperationException("Unsupported sorting field");
+                    }
+                }
+
+                return query.OrderBy(r => r.Id);
             }
 
             private async Task AddActions(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
@@ -314,6 +361,6 @@ namespace Fusion.Resources.Domain.Queries
                         request.ProposedPerson!.Person = profiles[id.Value];
                 }
             }
-        }
+        }       
     }
 }

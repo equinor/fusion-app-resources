@@ -1,11 +1,14 @@
 ﻿using Fusion.Resources.Database;
 using MediatR;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
+using Fusion.Integration;
 using Fusion.Integration.Org;
+using Fusion.Resources.Domain.Commands.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -85,13 +88,15 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IProjectOrgResolver orgResolver;
             private readonly IMediator mediator;
             private readonly IOrgApiClient orgClient;
+            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ILogger<Handler> logger, ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IOrgApiClientFactory apiClientFactory)
+            public Handler(ILogger<Handler> logger, ResourcesDbContext db, IProjectOrgResolver orgResolver, IMediator mediator, IOrgApiClientFactory apiClientFactory, IFusionProfileResolver profileResolver)
             {
                 this.logger = logger;
                 this.db = db;
                 this.orgResolver = orgResolver;
                 this.mediator = mediator;
+                this.profileResolver = profileResolver;
                 this.orgClient = apiClientFactory.CreateClient(ApiClientMode.Application);
             }
 
@@ -150,21 +155,16 @@ namespace Fusion.Resources.Domain.Queries
             private async Task ExpandConversation(QueryResourceAllocationRequest requestItem)
             {
                 requestItem.Conversation = await db.RequestConversations
-                    .Include(x => x.Sender)
-                    .Where(x => x.RequestId == requestItem.RequestId)
-                    .Select(x => new QueryConversationMessage(x))
-                    .ToListAsync();
-                
+                                                   .Include(x => x.Sender)
+                                                   .Where(x => x.RequestId == requestItem.RequestId)
+                                                   .Select(x => new QueryConversationMessage(x))
+                                                   .ToListAsync();
             }
 
-            private async Task ExpandActions(QueryResourceAllocationRequest requestItem)
+            private async Task ExpandActions(QueryResourceAllocationRequest request)
             {
-                requestItem.Actions = await db.RequestActions
-                    .Include(t => t.ResolvedBy)
-                    .Include(t => t.SentBy)
-                    .Where(t => t.RequestId == requestItem.RequestId)
-                    .Select(t => new QueryRequestAction(t))
-                    .ToListAsync();
+                var actions = await mediator.Send(new GetActionsForRequests(new[] { request.RequestId }));
+                request.Actions = actions[request.RequestId].ToList();
             }
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)

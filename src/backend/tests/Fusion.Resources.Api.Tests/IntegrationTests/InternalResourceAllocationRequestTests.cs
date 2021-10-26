@@ -486,7 +486,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 new
                 {
                     value = new[] {
-                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
+                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, sentBy = new { } } } }
                     }
                 });
 
@@ -496,6 +496,52 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
             result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].sentBy.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetResourcesRequests_ShouldExpandActions_SentByShouldNotBeNull()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var taskA = await Client.AddRequestActionAsync(requestA.Id);
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/resources/requests/{requestA.Id}/?$expand=actions",
+                                                         new
+                                                         {
+                                                             id = Guid.Empty,
+                                                             actions = new[] { new { requestId = Guid.Empty, id = Guid.Empty, sentBy = new { } } }
+                                                         });
+
+            result.Should().BeSuccessfull();
+            result.Value.actions[0].id.Should().Be(taskA.id);
+            result.Value.actions[0].sentBy.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task ListRequests_ShouldOrderRequests_WhenNumberSpecified()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            // To ensure we do not get correct order due to coincidence, we will sort both asc and desc to verify test.
+            
+
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var requestB = await Client.CreateDefaultRequestAsync(testProject);
+            
+            var respModel = new
+            {
+                value = new[] { new { number = default(long) } }
+            };
+
+            var resultDesc = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$orderBy=number desc", respModel);
+            var resultAsc = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$orderBy=number asc", respModel);
+            resultDesc.Should().BeSuccessfull();
+            resultAsc.Should().BeSuccessfull();
+
+            resultDesc.Value.value.First().number.Should().BeGreaterThan(resultDesc.Value.value.Skip(1).First().number);
+            resultAsc.Value.value.First().number.Should().BeLessThan(resultAsc.Value.value.Skip(1).First().number);
         }
 
         //[Fact]
@@ -827,6 +873,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+        [Fact]
+        public async Task CreateRequest_ShouldHaveSameCorrelationId_WhenCreatedInSameBatch()
+        {
+            using var adminScope = fixture.AdminScope();
+            var position = testProject
+                .AddPosition()
+                .WithEnsuredFutureInstances();
+
+            var payload = new ApiTestBatchRequestModel()
+                .AsTypeNormal()
+                .WithPosition(position);
+
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests/$batch", payload, 
+                new[] { new { CorrelationId = Guid.Empty } });
+
+            response.Should().BeSuccessfull();
+            response.Value.First().CorrelationId.Should().NotBeEmpty();
+            response.Value.All(x => x.CorrelationId == response.Value.First().CorrelationId).Should().BeTrue();
+        }
         #endregion
 
         #region Provision

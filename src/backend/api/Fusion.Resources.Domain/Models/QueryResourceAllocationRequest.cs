@@ -71,6 +71,7 @@ namespace Fusion.Resources.Domain
             IsDraft = entity.IsDraft;
 
             ProvisioningStatus = new QueryProvisioningStatus(entity.ProvisioningStatus);
+            CorrelationId = entity.CorrelationId;
         }
 
         public Guid RequestId { get; set; }
@@ -129,6 +130,7 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? LastActivity { get; set; }
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
+        public Guid? CorrelationId { get; }
         public QueryTaskOwner? TaskOwner { get; set; }
         public List<QueryRequestAction>? Actions { get; set; }
         public List<QueryConversationMessage>? Conversation { get; set; }
