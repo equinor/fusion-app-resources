@@ -486,7 +486,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 new
                 {
                     value = new[] {
-                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
+                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, sentBy = new { } } } }
                     }
                 });
 
@@ -496,6 +496,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
             result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].sentBy.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetResourcesRequests_ShouldExpandActions_SentByShouldNotBeNull()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var taskA = await Client.AddRequestActionAsync(requestA.Id);
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/resources/requests/{requestA.Id}/?$expand=actions",
+                                                         new
+                                                         {
+                                                             id = Guid.Empty,
+                                                             actions = new[] { new { requestId = Guid.Empty, id = Guid.Empty, sentBy = new { } } }
+                                                         });
+
+            result.Should().BeSuccessfull();
+            result.Value.actions[0].id.Should().Be(taskA.id);
+            result.Value.actions[0].sentBy.Should().NotBeNull();
         }
 
         [Fact]
