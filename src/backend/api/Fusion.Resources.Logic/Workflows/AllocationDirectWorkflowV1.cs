@@ -11,7 +11,6 @@ namespace Fusion.Resources.Logic.Workflows
 
         public const string CREATED = "created";
         public const string PROPOSAL = "proposal";
-        public const string APPROVAL = "approval";
 
         public override string Version => "v1";
         public override string Name => "Direct personnel assignment request";

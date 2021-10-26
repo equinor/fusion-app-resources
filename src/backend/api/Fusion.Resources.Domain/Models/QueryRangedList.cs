@@ -63,5 +63,10 @@ namespace Fusion.Resources.Domain
             var pageCount = await source.Skip(skip).Take(take).CountAsync();
             return new QueryRangedList<T>(pageCount, count, skip);
         }
+
+        public static QueryRangedList<T> FromItems<T>(IEnumerable<T> items, int totalCount, int skip)
+        {
+            return new QueryRangedList<T>(items, totalCount, skip);
+        }
     }
 }

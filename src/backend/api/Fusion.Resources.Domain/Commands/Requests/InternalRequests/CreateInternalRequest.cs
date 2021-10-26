@@ -36,6 +36,7 @@ namespace Fusion.Resources.Domain.Commands
         public string? AdditionalNote { get; set; }
         public Dictionary<string, object>? ProposedChanges { get; set; }
         public bool IsDraft { get; set; }
+        public Guid? CorrelationId { get; set; }
 
         public class Validator : AbstractValidator<CreateInternalRequest>
         {
@@ -75,11 +76,10 @@ namespace Fusion.Resources.Domain.Commands
             public async Task<QueryResourceAllocationRequest> Handle(CreateInternalRequest request, CancellationToken cancellationToken)
             {
                 var dbItem = await CreateDbRequestAsync(request);
-                var propertiesSet = dbContext.Entry(dbItem).Properties.Where(x => x.CurrentValue is not null).ToList();
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id, propertiesSet));
+                await mediator.Publish(new Notifications.InternalRequests.InternalRequestCreated(dbItem.Id));
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(dbItem.Id), cancellationToken);
                 return requestItem!;
@@ -133,8 +133,8 @@ namespace Fusion.Resources.Domain.Commands
 
                     Created = created,
                     CreatedBy = request.Editor.Person,
-                    LastActivity = created
-
+                    LastActivity = created,
+                    CorrelationId = request.CorrelationId
                 };
 
                 if (proposedPerson is not null)

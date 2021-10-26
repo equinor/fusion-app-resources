@@ -9,10 +9,7 @@ using Fusion.Integration.Profile.ApiClient;
 
 namespace Fusion.Testing.Mocks
 {
-    /// <summary>
-    /// Test model for creating a new request
-    /// </summary>
-    public class ApiCreateInternalRequestModel
+    public abstract class ApiCreateInternalRequestModelBase
     {
         public string Type { get; set; } = null!;
         public string? SubType { get; set; }
@@ -21,59 +18,76 @@ namespace Fusion.Testing.Mocks
         // Not required unless created from the resource owner side. Change requests.
         internal Guid? OrgProjectId { get; set; }
         public Guid OrgPositionId { get; set; }
-        public Guid OrgPositionInstanceId { get; set; }
 
         public string? AdditionalNote { get; set; }
         public Dictionary<string, object>? ProposedChanges { get; set; }
-        
+
         public string? AssignedDepartment { get; set; }
 
         public Guid? ProposedPersonAzureUniqueId { get; set; }
 
-        public ApiCreateInternalRequestModel AsTypeResourceOwner(string? subType = null)
+
+
+        public ApiCreateInternalRequestModelBase AsTypeResourceOwner(string? subType = null)
         {
             Type = "resourceOwnerChange";
             SubType = subType;
             return this;
         }
 
-        public ApiCreateInternalRequestModel AsTypeNormal()
+        public ApiCreateInternalRequestModelBase AsTypeNormal()
         {
             Type = "allocation";
             SubType = "normal";
             return this;
         }
-        public ApiCreateInternalRequestModel AsTypeJointVenture()
+        public ApiCreateInternalRequestModelBase AsTypeJointVenture()
         {
             Type = "allocation";
             SubType = "jointVenture";
             return this;
         }
-        public ApiCreateInternalRequestModel AsTypeEnterprise()
+        public ApiCreateInternalRequestModelBase AsTypeEnterprise()
         {
             Type = "allocation";
             SubType = "enterprise";
             return this;
         }
-        public ApiCreateInternalRequestModel AsTypeDirect()
+        public ApiCreateInternalRequestModelBase AsTypeDirect()
         {
             Type = "allocation";
             SubType = "direct";
             return this;
         }
 
-        public ApiCreateInternalRequestModel WithProposedPerson(ApiPersonProfileV3 person)
+        public ApiCreateInternalRequestModelBase WithProposedPerson(ApiPersonProfileV3 person)
         {
             ProposedPersonAzureUniqueId = person.AzureUniqueId;
             return this;
         }
-        public ApiCreateInternalRequestModel WithAssignedDepartment(string? department)
+        public ApiCreateInternalRequestModelBase WithAssignedDepartment(string? department)
         {
             AssignedDepartment = department;
             return this;
         }
 
-        public ApiCreateInternalRequestModel WithPosition(ApiPositionV2 position, Guid? instanceId = null)
+        public abstract ApiCreateInternalRequestModelBase WithPosition(ApiPositionV2 position, Guid? instanceId = null);
+
+        public ApiCreateInternalRequestModelBase WithAdditionalNote(string note)
+        {
+            AdditionalNote = note;
+            return this;
+        }
+    }
+
+    /// <summary>
+    /// Test model for creating a new request
+    /// </summary>
+    public class ApiCreateInternalRequestModel : ApiCreateInternalRequestModelBase
+    {
+        public Guid OrgPositionInstanceId { get; set; }
+
+        public override ApiCreateInternalRequestModelBase WithPosition(ApiPositionV2 position, Guid? instanceId = null)
         {
             OrgPositionId = position.Id;
 
@@ -95,20 +109,22 @@ namespace Fusion.Testing.Mocks
 
             return this;
         }
-    
-        public ApiCreateInternalRequestModel WithAdditionalNote(string note)
-        {
-            AdditionalNote = note;
-            return this;
-        }
-
-        //public ApiCreateInternalRequestModel WithIsDraft(bool isDraft)
-        //{
-        //    IsDraft = IsDraft;
-        //    return this;
-        //}
 
     }
 
+    public class ApiTestBatchRequestModel : ApiCreateInternalRequestModel
+    {
+        public Guid[]? OrgPositionInstanceIds { get; set; }
 
+        public override ApiCreateInternalRequestModel WithPosition(ApiPositionV2 position, Guid? instanceId = null)
+        {
+            OrgPositionId = position.Id;
+            OrgPositionInstanceIds = position.Instances
+                .Where(i => i.AppliesTo >= DateTime.UtcNow.Date)
+                .Select(i => i.Id)
+                .ToArray();
+
+            return this;
+        }
+    }
 }

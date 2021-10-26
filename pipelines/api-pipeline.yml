@@ -90,7 +90,7 @@ stages:
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
                 Inline: |
-                    $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
+                    $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-ci -Name AzureAd--ClientSecret
                     Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
 
             - template: templates/get-appinsights-key.yml
@@ -144,7 +144,7 @@ stages:
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
                   Inline: |
-                      $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-CI
+                      $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fqa -Name AzureAd--ClientSecret
                       Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
   
               - template: templates/get-appinsights-key.yml
@@ -197,7 +197,7 @@ stages:
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
                   Inline: |
-                      $secret = Get-AzKeyVaultSecret -VaultName ProView-Shared-Secrets -Name ClientSecret-ProView-PROD
+                      $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fprd -Name AzureAd--ClientSecret
                       Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
   
               - template: templates/get-appinsights-key.yml

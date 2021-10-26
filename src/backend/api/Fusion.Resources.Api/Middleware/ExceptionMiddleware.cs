@@ -28,6 +28,12 @@ namespace Fusion.Resources.Api.Middleware
             {
                 await _next(httpContext);
             }
+            catch (Exception ex) when (ex is AspNetCore.ODataException)
+            {
+                var responseData = new ApiProblem(HttpStatusCode.BadRequest, "Invalid query expression", ex.Message);
+
+                await WriteResponseAsync(httpContext, responseData);
+            }
             catch (Exception ex)
             {
                 
@@ -44,16 +50,22 @@ namespace Fusion.Resources.Api.Middleware
                     responseData.StackTrace = ex.ToString().Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
-
-                var formater = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
-                var errorString = JsonConvert.SerializeObject(responseData, Formatting.Indented, formater);
-
-                httpContext.Response.ContentType = "application/json";
-                httpContext.Response.ContentLength = errorString.Length;
-                httpContext.Response.StatusCode = 500;
-
-                await httpContext.Response.WriteAsync(errorString);
+                await WriteResponseAsync(httpContext, responseData);
             }
+        }
+
+        private async Task WriteResponseAsync(HttpContext httpContext, ApiProblem responseData)
+        {
+
+            var formater = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+            var errorString = JsonConvert.SerializeObject(responseData, Formatting.Indented, formater);
+
+            httpContext.Response.ContentType = "application/json";
+            httpContext.Response.ContentLength = errorString.Length;
+            httpContext.Response.StatusCode = responseData.Status;
+
+            await httpContext.Response.WriteAsync(errorString);
+
         }
 
         private bool IsNotTransientException(Exception ex)
