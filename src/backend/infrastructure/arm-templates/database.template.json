@@ -27,11 +27,6 @@
                 "fusion-app-component-type": "db",
                 "fusion-app-component-id": "[concat('resources-api-db-', toLower(parameters('env-name')))]"
             },
-            "sku": {
-                "name": "ElasticPool",
-                "tier": "Standard",
-                "capacity": 0
-            },
             "kind": "v12.0,user,pool",
             "properties": {
                 "collation": "SQL_Latin1_General_CP1_CI_AS",
