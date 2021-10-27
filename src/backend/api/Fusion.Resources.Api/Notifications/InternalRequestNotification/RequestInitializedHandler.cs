@@ -59,7 +59,7 @@ namespace Fusion.Resources.Api.Notifications
                                 .AddFact("Period", $"{request.Instance?.GetFormattedPeriodString()}")
                                 .AddFact("Workload", $"{request.Instance?.GetFormattedWorkloadString()}")
                             )
-                            .AddTextBlockIf($"Additional comment: {request.AllocationRequest.AdditionalNote}", !string.IsNullOrEmpty(request.AllocationRequest.AdditionalNote))
+                            .AddTextBlockIf($"Additional comment: {request.AllocationRequest.AdditionalNote.TrimText(500)}", !string.IsNullOrEmpty(request.AllocationRequest.AdditionalNote))
                             .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
                             .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgAdminUrl}")
                             ;
