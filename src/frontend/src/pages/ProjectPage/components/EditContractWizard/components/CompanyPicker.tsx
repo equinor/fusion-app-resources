@@ -30,7 +30,7 @@ const CompanyPicker: FC<CompanyPickerProps> = ({ selectedCompanyId, onSelect}) =
         [onSelect, companies]
     );
 
-    return <SearchableDropdown data-cy="company-dropdown" label="Company" options={options} onSelect={onDropdownSelect} />;
+    return <SearchableDropdown id="company-dropdown" label="Company" options={options} onSelect={onDropdownSelect} />;
 };
 
 export default CompanyPicker;

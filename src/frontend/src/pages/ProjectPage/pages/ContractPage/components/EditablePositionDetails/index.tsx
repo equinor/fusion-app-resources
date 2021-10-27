@@ -164,7 +164,7 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edi
                 <h4>Disciplines</h4>
                 {edit ? (
                     <div className={styles.disciplineDropDown}>
-                        <SearchableDropdown options={dropDownOptions} onSelect={onSelect} />
+                        <SearchableDropdown id="discipline-dropdown" options={dropDownOptions} onSelect={onSelect} />
                     </div>
                 ) : (
                     <div className={styles.disciplinesChips}>

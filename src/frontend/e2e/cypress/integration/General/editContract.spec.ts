@@ -40,8 +40,7 @@ describe('Edit contract', () => {
     contractEditPage.ContractNameInputBox().find('input').clear().type(this.contractData.contractName)
 
     contractEditPage.CompanySelector().type(this.contractData.companyName)
-    cy.get('[class^="fc--SearchableDropdown"]').contains(this.contractData.companyName).click()
-    // cy.get('#company-dropdown').contains(this.contractData.companyName).click()
+    cy.get('#company-dropdown').contains(this.contractData.companyName).click()
 
     contractEditPage.FromDatePicker().type(this.contractData.fromDate)
     contractEditPage.ToDatePicker().type(this.contractData.toDate)

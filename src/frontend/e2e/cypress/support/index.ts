@@ -16,6 +16,7 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 import './delegateAccess'
+import './searchAndFilters'
 
 const contractTableColumnSelector = {
     contractId: '[data-cy="contract-id"]',

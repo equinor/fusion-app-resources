@@ -30,7 +30,7 @@ const ContractNumberPicker: FC<ContractNumberSelectorProps> = ({
     );
 
     return (
-        <SearchableDropdown label="Contract No." options={options} onSelect={onDropdownSelect} />
+        <SearchableDropdown id="contract-number-dropdown" label="Contract No." options={options} onSelect={onDropdownSelect} />
     );
 };
 

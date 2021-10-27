@@ -87,14 +87,16 @@ const getNavigationStructure = (
                     contractId,
                     'Contract personnel',
                     'manage-personnel',
-                    'child'
+                    'child',
+                    'contract-personnel-tab'
                 ),
                 createNavItem(
                     history,
                     contractId,
                     'Preferred contact mail',
                     'manage-personnel-mails',
-                    'child'
+                    'child',
+                    'preferred-contact-mail-tab'
                 ),
             ],
         },
@@ -107,14 +109,15 @@ const getNavigationStructure = (
             icon: <ManageMppIcon />,
             onClick: () => history.push(createContractPath(history, contractId, 'actual-mpp')),
             navigationChildren: [
-                createNavItem(history, contractId, 'Actual MPP', 'actual-mpp', 'child'),
-                createNavItem(history, contractId, 'Active requests', 'active-requests', 'child'),
+                createNavItem(history, contractId, 'Actual MPP', 'actual-mpp', 'child', 'actual-mpp-tab'),
+                createNavItem(history, contractId, 'Active requests', 'active-requests', 'child', 'active-requests-tab'),
                 createNavItem(
                     history,
                     contractId,
                     'Provisioning requests',
                     'provisioning-requests',
                     'child',
+                    'provisioning-tab',
                     undefined,
                     provisioningComponent
                 ),
@@ -123,7 +126,8 @@ const getNavigationStructure = (
                     contractId,
                     'Completed requests',
                     'completed-requests',
-                    'child'
+                    'child',
+                    'completed-requests-tab'
                 ),
             ],
         },

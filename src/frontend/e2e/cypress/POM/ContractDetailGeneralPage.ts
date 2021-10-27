@@ -4,8 +4,8 @@
  * Contract Detail General page
  */
  export default class ContractDetailGeneralPage {
-    GeneralButton(){
-        return cy.contains('General');
+    GeneralTab(){
+        return cy.get('#general-tab');
     }
 
     EditButton(){

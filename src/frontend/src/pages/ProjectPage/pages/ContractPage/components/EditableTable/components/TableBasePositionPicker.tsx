@@ -54,6 +54,7 @@ function TableBasePosition<T, TState extends BasePosition>({
 
     return (
         <SearchableDropdown
+            id="table-base-position-dropdown"
             placeholder="Base position"
             options={options}
             onSelect={onDropdownSelect}

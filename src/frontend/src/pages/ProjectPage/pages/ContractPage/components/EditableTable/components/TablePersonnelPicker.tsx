@@ -62,6 +62,7 @@ function TablePersonnelPicker<T>({
 
     return (
         <SearchableDropdown
+            id="table-personnel-dropdown"
             placeholder={columnLabel}
             options={options}
             onSelect={onDropdownSelect}

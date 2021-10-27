@@ -28,6 +28,7 @@ describe('Help Page', () => {
 
     cy.url().should('include', '/help')
 
+    cy.wait(3000)
     cy.contains('div', tab1).parent('a')
     .invoke('attr', 'class').should('contain', 'Tabs__current')
     cy.contains('h1', 'Contract Management').should('be.visible')

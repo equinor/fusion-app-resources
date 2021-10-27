@@ -47,6 +47,7 @@ const BasePositionPicker: FC<BasePositionPickerProps> = ({
 
     return (
         <SearchableDropdown
+            id="basic-position-dropdown"
             label="Base position"
             options={options}
             onSelect={onDropdownSelect}

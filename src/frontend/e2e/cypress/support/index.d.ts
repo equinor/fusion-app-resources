@@ -18,5 +18,7 @@ declare namespace Cypress {
      delegateAdminAccess(responsible: string, person: string, period: string): Chainable<void>
      recertifyAdminAccess(responsible: string, personIndex: number, period: string): Chainable<void>
      removeAdminAccess(responsible: string, personIndex: number): Chainable<void>
+     searchInFilterPane(column: string, keyword: string): Chainable<void>
+     filter(filter: string, item: string): Chainable<void>
   }
 }

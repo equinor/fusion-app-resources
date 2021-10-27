@@ -23,7 +23,7 @@ describe('Contract Detail', () => {
     cy.openContract(contractNo)
 
     /** verify General tab is active */
-    //cy.get('#general-tab').invoke('attr', 'class').should('contain', 'isActive')
+    cy.get('#general-tab').invoke('attr', 'class').should('contain', 'isActive')
 
     cy.contains('Contract details').should('be.visible')
 
