@@ -178,7 +178,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
             await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testProject.AddPosition().WithBasePosition(bp));
             await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testProject.AddPosition().WithBasePosition(bp));
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned&$count=only",
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?$count=only",
                 new { totalCount = -1 });
             resp.Value.totalCount.Should().Be(2);
         }
