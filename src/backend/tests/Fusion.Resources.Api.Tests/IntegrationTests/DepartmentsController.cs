@@ -68,7 +68,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             resp.Value.Should().Contain(x => x.Name == department);
@@ -83,7 +83,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}&api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             resp.Value.Should().Contain(x => x.Name == fakeResourceOwner.FullDepartment);
