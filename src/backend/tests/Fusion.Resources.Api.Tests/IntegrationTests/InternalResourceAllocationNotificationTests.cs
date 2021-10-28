@@ -92,7 +92,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         #region Notification tests
 
         [Fact]
-        public async Task Request_Delete_ShouldNotify()
+        public async Task Request_Delete_ShouldNotify_WhenAssignedDepartment_WhenPublishedDraft()
         {
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateRequestAsync(ProjectId, r => r
@@ -100,11 +100,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithPosition(requestPosition)
                 .WithAssignedDepartment(testUser.FullDepartment!));
 
+            await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{request.Id}/start", null);
             await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
         }
-
+       
         [Fact]
         public async Task DirectRequest_StartWorkFlow_ShouldNotify()
         {
