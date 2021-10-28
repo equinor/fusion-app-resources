@@ -82,7 +82,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("requests/{requestId}/actions")]
-        public async Task<ActionResult> GetRequestActions([FromRoute] Guid requestId, [FromRoute] ODataQueryParams query)
+        public async Task<ActionResult> GetRequestActions([FromRoute] Guid requestId, [FromQuery] ODataQueryParams query)
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
