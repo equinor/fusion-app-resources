@@ -1,9 +1,9 @@
 import { BasePosition } from '@equinor/fusion';
 
 export type AssignedPerson = {
-    azureUniqueId: string | null;
+    azureUniquePersonId: string | null;
     mail: string | null;
-}
+};
 
 type CreatePositionRequest = {
     basePosition: BasePosition | null;

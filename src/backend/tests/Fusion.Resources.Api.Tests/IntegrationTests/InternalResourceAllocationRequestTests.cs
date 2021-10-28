@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -152,14 +151,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Get_AnalyticsRequestsInternal_ShouldBeSuccessfull_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal?api-version=1.0-preview");
+            var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal");
             response.Should().BeSuccessfull();
         }
         [Fact]
         public async Task Get_AnalyticsPersonsAbsenceInternal_ShouldBeSuccessfull_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<object>($"/analytics/absence/internal?api-version=1.0-preview");
+            var response = await Client.TestClientGetAsync<object>($"/analytics/absence/internal");
             response.Should().BeSuccessfull();
         }
 

@@ -62,6 +62,7 @@ namespace Fusion.Resources.Api.Notifications
                         .AddFact("Workload", $"{request.Instance?.GetFormattedWorkloadString()}")
                         )
                     .AddTextBlockIf($"Additional task owners: {tr.AdditionalTaskOwnerString}", tr.HasMultipleTaskOwners)
+                    .AddTextBlockIf($"Additional comment: {request.AllocationRequest.AdditionalNote.TrimText(500)}", !string.IsNullOrEmpty(request.AllocationRequest.AdditionalNote))
                     .AddTextBlock($"Created by: {request.AllocationRequest.CreatedBy.Name}")
                     .TryAddOpenPortalUrlAction("Open request", $"{request.PersonnelAllocationPortalUrl}")
                     .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}");

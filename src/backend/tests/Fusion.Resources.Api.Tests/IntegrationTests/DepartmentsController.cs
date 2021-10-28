@@ -1,10 +1,8 @@
 ﻿using FluentAssertions;
 using Fusion.Integration.Profile;
-using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
 using Fusion.Testing.Mocks.OrgService;
-using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Net;
@@ -41,7 +39,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/NOT EXI ST ING?api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<TestDepartment>("/departments/NOT EXI ST ING");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -55,7 +53,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{department}?api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{department}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             resp.Value.Name.Should().Be(department);
@@ -70,7 +68,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}&api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             resp.Value.Should().Contain(x => x.Name == department);
@@ -85,7 +83,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}&api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={fakeResourceOwner.Name.ToUpper()}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             resp.Value.Should().Contain(x => x.Name == fakeResourceOwner.FullDepartment);
@@ -100,7 +98,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner?api-version=1.0-preview", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",
@@ -120,7 +118,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner?api-version=1.0-preview", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",
@@ -128,7 +126,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
 
             resp = await Client.TestClientDeleteAsync<dynamic>(
-                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}?api-version=1.0-preview"
+                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
             );
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
@@ -143,7 +141,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientDeleteAsync<dynamic>(
-                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}?api-version=1.0-preview"
+                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
             );
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
@@ -167,7 +165,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddDepartment("PDP TST ABC", children);
 
             using var adminScope = fixture.AdminScope();
-            var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related");
             resp.Should().BeSuccessfull();
 
             resp.Value.Siblings.Select(x => x.Name).Should().BeEquivalentTo(siblings);
@@ -180,7 +178,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var department = "PDP TST NOT FND";
 
             using var adminScope = fixture.AdminScope();
-            var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related?api-version=1.0-preview");
+            var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related");
             resp.Should().BeNotFound();
         }
 
@@ -205,7 +203,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync(
-                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments",
                 new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
             );
             resp.Should().BeSuccessfull();
@@ -237,7 +235,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync(
-                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments",
                 new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
             );
             resp.Should().BeSuccessfull();
@@ -263,7 +261,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync(
-                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments",
                 new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
             );
             resp.Should().BeSuccessfull();
@@ -299,7 +297,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
 
             var resp = await Client.TestClientGetAsync(
-                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments",
                 new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
             );
             resp.Should().BeSuccessfull();
@@ -328,7 +326,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
             var resp = await Client.TestClientGetAsync(
-                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments?api-version=1.0-preview",
+                $"/projects/{pos.ProjectId}/positions/{pos.Id}/instances/{pos.Instances.First().Id}/relevant-departments",
                 new { department = new TestDepartment(), relevant = new List<TestDepartment>() }
             );
             resp.Should().BeSuccessfull();
