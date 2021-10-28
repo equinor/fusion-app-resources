@@ -105,20 +105,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
             NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
         }
-        [Fact]
-        public async Task Request_Delete_ShouldNotNotify_WhenAssignedDepartment_WhenDraft()
-        {
-            using var adminScope = fixture.AdminScope();
-            var request = await Client.CreateRequestAsync(ProjectId, r => r
-                .AsTypeNormal()
-                .WithPosition(requestPosition)
-                .WithAssignedDepartment(testUser.FullDepartment!));
-
-            await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
-            DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().Be(0);
-        }
-
+       
         [Fact]
         public async Task DirectRequest_StartWorkFlow_ShouldNotify()
         {
