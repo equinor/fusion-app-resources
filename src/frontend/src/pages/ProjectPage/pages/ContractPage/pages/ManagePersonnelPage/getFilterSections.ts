@@ -3,6 +3,7 @@ import Personnel, { azureAdStatus } from '../../../../../../models/Personnel';
 import {
     AzureAdStatusColor,
     AzureAdStatusTextFormat,
+    AzureAdStatusId,
 } from '../../components/AzureAdStatusIndicator';
 
 const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] => {
@@ -64,6 +65,7 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                         key: ads,
                         label: AzureAdStatusTextFormat(ads),
                         color: AzureAdStatusColor(ads),
+                        id: AzureAdStatusId(ads),
                     })),
                 },
             ],

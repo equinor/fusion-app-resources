@@ -33,6 +33,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
         <div className={styles.container}>
             {addButton && (
                 <IconButton
+                    id="add-btn"
                     ref={useTooltipRef('Add new personnel')}
                     onClick={addButton?.onClick}
                     disabled={addButton?.disabled}
@@ -42,6 +43,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
             )}
             {excelImportButton && (
                 <IconButton
+                    id="excel-import-btn"
                     ref={useTooltipRef('Import personnel from excel file')}
                     onClick={excelImportButton?.onClick}
                     disabled={excelImportButton?.disabled}
@@ -51,6 +53,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
             )}
             {deleteButton && (
                 <IconButton
+                    id="delete-btn"
                     ref={useTooltipRef('Delete selected personnel')}
                     onClick={deleteButton?.onClick}
                     disabled={deleteButton?.disabled}
@@ -60,6 +63,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
             )}
             {editButton && (
                 <IconButton
+                    id="edit-btn"
                     ref={useTooltipRef('Edit selected personnel')}
                     onClick={editButton?.onClick}
                     disabled={editButton?.disabled}

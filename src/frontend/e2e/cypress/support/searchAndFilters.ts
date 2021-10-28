@@ -1,47 +1,73 @@
 /** commands relates to delegate access, re-certify, and remove delegate */
 
+import { el } from "date-fns/locale";
+
 
 /** search a keyword
- *  column: the column to search the keyword
+ *  column: the column to search the keyword, eg. 'email', 'first-name', 'last-name', 'disciplines', 'phone', 'position', etc
  *  keyword: the keyword to search
 */
-Cypress.Commands.add('searchInFilterPane', (column, keyword) => {
+Cypress.Commands.add('searchText', (column, keyword) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
     .invoke('attr', 'class').should('not.contain', 'isCollapsed')
 
-    cy.get('#search-filter').type(keyword) 
+    cy.get('#search-bar').type(keyword) 
     cy.wait(100)
 
     cy.get('[class^="fc--DataTable__container"]').within(() => {
         /** TODO: add column id to each column in the data table !!! */
-        cy.get('[id="'+column+'"]').each(function($el, index, $list){
+        cy.get('[id="'+column+'-column"]').each(function($el, index, $list){
             console.log($el, index, $list)
-            expect($el).to.contain(keyword)           
+            expect($el).to.contain(keyword.trim())           
         });
     });
 
-    cy.get('#search-filter').clear()
+    cy.get('#search-bar').clear()
 });
 
-/** use a filter
- *  filter: the filter section to use
- *  item: the filter item to use
+/** Disciplines filter
+ *  item: the filter item to use, lists in the disciplines filter section, eg. 'Electro', 'IT', 'Aut/Inst/Tele', etc
 */
-Cypress.Commands.add('filter', (filter, item) => {
+Cypress.Commands.add('disciplineFilter', (item) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
     .invoke('attr', 'class').should('not.contain', 'isCollapsed')
 
-    cy.get('[id="'+filter+'-filter"]').as('filter')
-    cy.get('@filter').find('li').contains(item).click()
+    cy.get('#disciplines-filter').find('li').contains(item.trim()).click()
     cy.wait(100)
 
     cy.get('[class^="fc--DataTable__container"]').within(() => {
         /** TODO: add column id to each column in the data table !!! */
-        cy.get('[id="'+filter+'"]').each(function($el, index, $list){
+        cy.get('#disciplines-column').each(function($el, index, $list){
             console.log($el, index, $list)
-            expect($el).to.contain(item)           
+            expect($el).to.contain(item.trim())           
         });
     });
 
-    cy.get('@filter').find('#reset-btn').click() /** wait for fusion-component filter pane to be merged */
+    cy.get('#disciplines-filter').find('#reset-btn').click() /** wait for fusion-component filter pane to be merged */
+})
+
+/** AD Status filter
+ *  item: the filter item to use, lists in AD status filter section, eg. 'Azure AD Approved', 'Azure AD pending approval', or 'No Azure Access'
+*/
+Cypress.Commands.add('adStatusFilter', (item) => {
+    cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
+    .invoke('attr', 'class').should('not.contain', 'isCollapsed')
+
+    cy.get('#ad-status-filter').find('li').contains(item.trim()).click()
+    cy.wait(100)
+
+    cy.get('[class^="fc--DataTable__container"]').within(() => {
+        /** TODO: add column id to each column in the data table !!! */
+        cy.get('#ad-column').each(function($el, index, $list){
+            console.log($el, index, $list)
+            if(item === 'Azure AD Approved')
+                cy.wrap($el).find('#approved').should('exist')
+            else if (item === 'Azure AD pending approval')
+                cy.wrap($el).find('#invite-sent').should('exist')
+            else 
+                cy.wrap($el).find('#no-access').should('exist')
+        });
+    });
+
+    cy.get('#ad-status-filter').find('#reset-btn').click() /** wait for fusion-component filter pane to be merged */
 })
