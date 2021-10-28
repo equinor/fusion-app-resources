@@ -13,6 +13,7 @@ using Fusion.Resources.Domain.Queries;
 namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
     public class AnalyticsController : ResourceControllerBase

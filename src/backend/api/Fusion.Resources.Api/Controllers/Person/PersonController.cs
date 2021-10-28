@@ -3,7 +3,6 @@ using Fusion.Integration;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +10,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
-using Fusion.Resources.Domain.Errors;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -23,6 +21,7 @@ namespace Fusion.Resources.Api.Controllers
     /// 
     /// </summary>
     [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
     public class PersonController : ResourceControllerBase
