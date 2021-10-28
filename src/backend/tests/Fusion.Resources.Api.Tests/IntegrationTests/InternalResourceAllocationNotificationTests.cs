@@ -14,6 +14,7 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 #nullable enable 
@@ -110,11 +111,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             var directRequest = await Client.CreateRequestAsync(ProjectId, r => r
                 .AsTypeDirect()
+                .WithAdditionalNote("se separate description of tasks and skills for US IDM position.  The position should be an expatriate position until a suitable local candidate is available.   Task for US IDM.  Building an information management culture for wind projects in the US sector​  Establish new routines for information handling for new contract models, including handover to operations​  Establish a best practice for handling information and communication from stakeholders​  Networking to get to know American requirements, work culture and stakeholder management​  Ensure alignment and correct handling of information from permitting, stakeholder management and commercial disciplines​  Close collaboration with legal discipline to ensure correct handling of information with regards to local requirements​  Establish local IDM work processes for projects and operations​  Alignment with REN BD US​   Skillset .  Proven leadership experience and international experience​  Strong multi-discipline understanding​  Strong ability to identify the need for new processes, define requirements and, together with stakeholders, establish efficient solutions​  Methodical, analytical and structured problem solving​  Strong understanding of risk picture in the project and how this effects IDM deliveries​  Highly experienced in IDM​  Strong cultural collaboration skills​  Strong focus on good team collaboration and communication both with site team and home team​   Task on behalf of IDM home team.  Implement and follow-up information security and information management routines​  Solving ad-hoc issues regarding information security and information handling​  Emergency access management ​  Ensure alignment with the home team and PDC​  Ensure correct handling of authority communications​  Responsibility for follow up of site specific contract issues​  Training of internal and external personnel​  Hire and train local IDM resources​  Establish and maintain an archive for paper originals​  Leading by example​  Multi-discipline approach to the tasks​  ")
                 .WithPosition(requestPosition)
                 .WithProposedPerson(testUser)
                 .WithAssignedDepartment(testUser.FullDepartment!));
 
-            
+
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{directRequest.Id}/start", null);
             response.Should().BeSuccessfull();
 
@@ -128,11 +130,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
         {
-            foreach (var notification in sentMessages)
-            {
-                TestLogger.TryLog($"PersonIdentifier:{notification.PersonIdentifier}, Title:{notification.Title}");
-            }
-
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(sentMessages)}");
         }
 
         [Fact]
@@ -144,7 +142,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var proposedPerson = new { ProposedPersonAzureUniqueId = testUser.AzureUniqueId };
             var patchPerson = await Client.TestClientPatchAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{jointVentureRequest.Id}", proposedPerson);
             patchPerson.Should().BeSuccessfull();
-            
+
 
             // Act
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{jointVentureRequest.Id}/start", null);
@@ -165,7 +163,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Arrange
             using var adminScope = fixture.AdminScope();
             var normalRequest = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeNormal().WithPosition(requestPosition));
-            
+
 
             // Act
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}/start", null);
@@ -193,7 +191,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{normalRequest.Id}/start", null);
             response.Should().BeSuccessfull();
-            
+
 
             var resourceOwner = PeopleServiceMock.AddTestProfile().WithRoles("Fusion.Resources.FullControl").SaveProfile();
             using var resourceOwnerScope = fixture.UserScope(resourceOwner);
