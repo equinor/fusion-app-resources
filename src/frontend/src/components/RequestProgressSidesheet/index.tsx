@@ -188,6 +188,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
 
     return (
         <ModalSideSheet
+            // id="request-progress-sidesheet"
             header={title}
             show={isShowing}
             onClose={onClose}
@@ -202,7 +203,7 @@ function RequestProgressSidesheet<TRequest, TResponse>({
                 <div className={styles.failedRequests}>
                     <div className={styles.header}>
                         <h3>Invalid requests</h3>
-                        <Button onClick={closeSidesheet}>Edit failed</Button>
+                        <Button /** id="close-btn" */ onClick={closeSidesheet}>Edit failed</Button> 
                     </div>
                     <div className={styles.progressList}>
                         {invalidRequests.map((request, index) => (

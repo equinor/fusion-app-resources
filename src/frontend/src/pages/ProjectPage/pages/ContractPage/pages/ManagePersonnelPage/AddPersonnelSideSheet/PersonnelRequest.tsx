@@ -9,7 +9,7 @@ type PersonnelRequestProps = {
 
 const PersonnelRequest: FC<PersonnelRequestProps> = ({ person }) => {
     return (
-        <div className={styles.personnelRequest}>
+        <div data-cy="personnel-request" className={styles.personnelRequest}>
             <div className={styles.personName}>
                 {person.firstName} {person.lastName}
             </div>

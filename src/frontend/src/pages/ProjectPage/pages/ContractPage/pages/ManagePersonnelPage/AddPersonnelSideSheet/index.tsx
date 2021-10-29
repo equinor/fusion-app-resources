@@ -246,6 +246,7 @@ const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
     const saveButton = useMemo(() => {
         return (
             <Button
+                // id="save-btn"
                 disabled={!(isDirty && isFormValid) || saveInProgress}
                 key={'save'}
                 outlined
@@ -286,6 +287,7 @@ const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
 
     return (
         <ModalSideSheet
+            // id="add-person-sidesheet"
             header="Add Person"
             show={isOpen}
             size={'fullscreen'}

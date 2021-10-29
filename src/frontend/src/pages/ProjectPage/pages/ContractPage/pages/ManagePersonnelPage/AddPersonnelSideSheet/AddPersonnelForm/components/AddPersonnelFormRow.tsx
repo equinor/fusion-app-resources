@@ -62,6 +62,7 @@ export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
             </td>
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput
+                    id="first-name-input"
                     key={`firstname${formState.personnelId}`}
                     disabled={saveInProgress}
                     item={formState}
@@ -71,6 +72,7 @@ export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
             </td>
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput
+                    id="last-name-input"
                     key={`lastname${formState.personnelId}`}
                     disabled={saveInProgress}
                     item={formState}
@@ -80,6 +82,7 @@ export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
             </td>
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput
+                    id="email-input"
                     key={`mail${formState.personnelId}`}
                     disabled={Boolean(formState.created || saveInProgress)}
                     item={formState}
@@ -90,6 +93,7 @@ export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
 
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput
+                    id="phone-input"
                     key={`phoneNumber${formState.personnelId}`}
                     disabled={saveInProgress}
                     item={formState}
@@ -100,6 +104,7 @@ export const AddPersonnelFormRow: FC<AddPersonnelFormRowProps> = ({
 
             <td className={styles.tableRowCell}>
                 <AddPersonnelFormTextInput
+                    id="dawinci-code-input"
                     key={`dawinci${formState.personnelId}`}
                     disabled={saveInProgress}
                     item={formState}

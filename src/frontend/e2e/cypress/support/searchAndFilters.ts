@@ -9,16 +9,16 @@ import { el } from "date-fns/locale";
 */
 Cypress.Commands.add('searchText', (column, keyword) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
-    .invoke('attr', 'class').should('not.contain', 'isCollapsed')
+        .invoke('attr', 'class').should('not.contain', 'isCollapsed')
 
-    cy.get('#search-bar').type(keyword) 
+    cy.get('#search-bar').type(keyword)
     cy.wait(100)
 
     cy.get('[class^="fc--DataTable__container"]').within(() => {
         /** TODO: add column id to each column in the data table !!! */
-        cy.get('[id="'+column+'-column"]').each(function($el, index, $list){
+        cy.get('[id="' + column + '-column"]').each(function ($el, index, $list) {
             console.log($el, index, $list)
-            expect($el).to.contain(keyword.trim())           
+            expect($el).to.contain(keyword.trim())
         });
     });
 
@@ -30,16 +30,16 @@ Cypress.Commands.add('searchText', (column, keyword) => {
 */
 Cypress.Commands.add('disciplineFilter', (item) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
-    .invoke('attr', 'class').should('not.contain', 'isCollapsed')
+        .invoke('attr', 'class').should('not.contain', 'isCollapsed')
 
     cy.get('#disciplines-filter').find('li').contains(item.trim()).click()
     cy.wait(100)
 
     cy.get('[class^="fc--DataTable__container"]').within(() => {
         /** TODO: add column id to each column in the data table !!! */
-        cy.get('#disciplines-column').each(function($el, index, $list){
+        cy.get('#disciplines-column').each(function ($el, index, $list) {
             console.log($el, index, $list)
-            expect($el).to.contain(item.trim())           
+            expect($el).to.contain(item.trim())
         });
     });
 
@@ -51,21 +51,21 @@ Cypress.Commands.add('disciplineFilter', (item) => {
 */
 Cypress.Commands.add('adStatusFilter', (item) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
-    .invoke('attr', 'class').should('not.contain', 'isCollapsed')
+        .invoke('attr', 'class').should('not.contain', 'isCollapsed')
 
     cy.get('#ad-status-filter').find('li').contains(item.trim()).click()
     cy.wait(100)
 
     cy.get('[class^="fc--DataTable__container"]').within(() => {
         /** TODO: add column id to each column in the data table !!! */
-        cy.get('#ad-column').each(function($el, index, $list){
+        cy.get('#ad-column').each(function ($el, index, $list) {
             console.log($el, index, $list)
-            if(item === 'Azure AD Approved')
-                cy.wrap($el).find('#approved').should('exist')
+            if (item === 'Azure AD Approved')
+                cy.wrap($el).find('div').should('have.id', 'approved')
             else if (item === 'Azure AD pending approval')
-                cy.wrap($el).find('#invite-sent').should('exist')
-            else 
-                cy.wrap($el).find('#no-access').should('exist')
+                cy.wrap($el).find('div').should('have.id', 'invite-sent')
+            else
+                cy.wrap($el).find('div').should('have.id', 'no-access')
         });
     });
 
