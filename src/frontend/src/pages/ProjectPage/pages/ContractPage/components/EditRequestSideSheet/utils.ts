@@ -15,7 +15,7 @@ export const transFormRequest = (
         return null;
     }
 
-    return personnelRequest.map(req => ({
+    return personnelRequest.map((req) => ({
         id: uuid(),
         requestId: req.id.length === 0 ? null : req.id,
         positionId: req.position?.id || '',
@@ -29,7 +29,7 @@ export const transFormRequest = (
         person: req.person,
         taskOwner:
             taskOwners?.find(
-                position => position.id === req.position?.taskOwner?.positionId || ''
+                (position) => position.id === req.position?.taskOwner?.positionId || ''
             ) || null,
         originalPositionId: req.originalPositionId,
     }));
@@ -63,14 +63,18 @@ const transformPositionDetailsToPersonnel = (
     if (!instance) {
         return null;
     }
-    return personnel.find(p => p.mail.toLowerCase() === instance.assignedPerson?.mail?.toLowerCase()) || null;
+    return (
+        personnel.find(
+            (p) => p.mail.toLowerCase() === instance.assignedPerson?.mail?.toLowerCase()
+        ) || null
+    );
 };
 
 export const transformPositionsToChangeRequest = (
     positions: Position[],
     personnel: Personnel[]
 ): PersonnelRequest[] => {
-    return positions.map<PersonnelRequest>(p => ({
+    return positions.map<PersonnelRequest>((p) => ({
         id: '',
         created: new Date(),
         state: 'Created',
@@ -94,7 +98,7 @@ export const transformPositionsToCopyRequest = (
     positions: Position[],
     personnel: Personnel[]
 ): PersonnelRequest[] => {
-    return positions.map<PersonnelRequest>(p => ({
+    return positions.map<PersonnelRequest>((p) => ({
         id: '',
         created: new Date(),
         state: 'Created',
@@ -105,7 +109,7 @@ export const transformPositionsToCopyRequest = (
         project: null,
         comments: [],
         originalPosition: null,
-        originalPositionId:null,
+        originalPositionId: null,
         originalPerson: null,
         createdBy: null,
         workflow: null,
@@ -114,19 +118,20 @@ export const transformPositionsToCopyRequest = (
     }));
 };
 const formatDateToString = (date: Date | null): string | null => {
-    if(!date) {
-        return null
+    if (!date) {
+        return null;
     }
-    return format(date, 'yyyy-MM-dd')
+    return format(date, 'yyyy-MM-dd');
 };
 export const transformToCreatePersonnelRequest = (req: EditRequest): CreatePersonnelRequest => ({
     id: req.requestId || undefined,
     description: req.description,
     person: {
+        azureUniquePersonId: req.person?.azureUniquePersonId || '',
         mail: req.person?.mail || '',
     },
     position: {
-        appliesFrom:formatDateToString(req.appliesFrom),
+        appliesFrom: formatDateToString(req.appliesFrom),
         appliesTo: formatDateToString(req.appliesTo),
         basePosition: req.basePosition,
         id: req.positionId || null,
@@ -165,4 +170,4 @@ export const createCopyState = (request: EditRequest): EditRequest => ({
     id: uuid(),
     requestId: null,
     originalPositionId: null,
-})
+});
