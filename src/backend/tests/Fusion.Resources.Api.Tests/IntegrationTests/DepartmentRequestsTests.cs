@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
 using Xunit.Abstractions;
 using static System.Linq.Enumerable;
