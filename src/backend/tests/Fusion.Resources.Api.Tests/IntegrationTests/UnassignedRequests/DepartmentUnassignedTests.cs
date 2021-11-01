@@ -2,8 +2,6 @@
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Testing;
-using Fusion.Testing.Authentication.User;
-using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Linq;
@@ -45,7 +43,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
 
             var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned", new { value = new[] { new { id = Guid.Empty } } });
             resp.Value.value.Should().Contain(r => r.id == unassignedRequest.Id);
         }
 
@@ -63,7 +61,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
 
             var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned", new { value = new[] { new { id = Guid.Empty } } });
             resp.Value.value.Should().Contain(r => r.id == unassignedRequest.Id);
         }
 
@@ -81,7 +79,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
 
             var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned", new { value = new[] { new { id = Guid.Empty } } });
             resp.Value.value.Should().Contain(r => r.id == unassignedRequest.Id);
         }
 
@@ -99,7 +97,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
 
             var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned", new { value = new[] { new { id = Guid.Empty } } });
             resp.Value.value.Should().NotContain(r => r.id == unassignedRequest.Id);
         }
         
@@ -124,7 +122,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
             await Client.ProvisionRequestAsync(unassignedRequest.Id);
 
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned", new { value = new[] { new { id = Guid.Empty } } });
             resp.Value.value.Should().NotContain(r => r.id == unassignedRequest.Id);
         }
 
@@ -143,7 +141,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
                 pos => pos.WithBasePosition(bp)
             );
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", new { value = new[] { new { id = Guid.Empty } } });
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned", new { value = new[] { new { id = Guid.Empty } } });
             resp.Value.value.Should().NotContain(r => r.id == unassignedRequest.Id);
         }
 
@@ -161,7 +159,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
 
             var unassignedRequest = await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testPosition);
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview", 
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned", 
                 new { value = new[] { new { id = Guid.Empty, orgPosition = new { instances = Array.Empty<object>() } } } });
             resp.Value.value.Single().orgPosition.instances.Should().HaveCount(3);
         }
@@ -180,7 +178,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.UnassignedRequests
             await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testProject.AddPosition().WithBasePosition(bp));
             await Client.CreateAndStartDefaultRequestOnPositionAsync(testProject, testProject.AddPosition().WithBasePosition(bp));
 
-            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?api-version=1.0-preview&$count=only",
+            var resp = await Client.TestClientGetAsync($"/departments/{department}/resources/requests/unassigned?$count=only",
                 new { totalCount = -1 });
             resp.Value.totalCount.Should().Be(2);
         }

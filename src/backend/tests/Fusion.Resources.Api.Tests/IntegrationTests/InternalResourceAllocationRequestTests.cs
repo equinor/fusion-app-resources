@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -152,14 +151,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task Get_AnalyticsRequestsInternal_ShouldBeSuccessfull_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal?api-version=1.0-preview");
+            var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal");
             response.Should().BeSuccessfull();
         }
         [Fact]
         public async Task Get_AnalyticsPersonsAbsenceInternal_ShouldBeSuccessfull_WhenAdmin()
         {
             using var adminScope = fixture.AdminScope();
-            var response = await Client.TestClientGetAsync<object>($"/analytics/absence/internal?api-version=1.0-preview");
+            var response = await Client.TestClientGetAsync<object>($"/analytics/absence/internal");
             response.Should().BeSuccessfull();
         }
 
@@ -486,7 +485,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 new
                 {
                     value = new[] {
-                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty } } }
+                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, sentBy = new { } } } }
                     }
                 });
 
@@ -496,6 +495,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
             result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].sentBy.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetResourcesRequests_ShouldExpandActions_SentByShouldNotBeNull()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var taskA = await Client.AddRequestActionAsync(requestA.Id);
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/resources/requests/{requestA.Id}/?$expand=actions",
+                                                         new
+                                                         {
+                                                             id = Guid.Empty,
+                                                             actions = new[] { new { requestId = Guid.Empty, id = Guid.Empty, sentBy = new { } } }
+                                                         });
+
+            result.Should().BeSuccessfull();
+            result.Value.actions[0].id.Should().Be(taskA.id);
+            result.Value.actions[0].sentBy.Should().NotBeNull();
         }
 
         [Fact]

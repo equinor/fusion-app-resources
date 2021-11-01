@@ -205,7 +205,7 @@ namespace Fusion.Resources.Api.Tests
 
         public static async Task AddDelegatedDepartmentOwner(this HttpClient client, ApiPersonProfileV3 testUser, string department, DateTime dateFrom, DateTime dateTo)
         {
-            await client.TestClientPostAsync($"/departments/{department}/delegated-resource-owner?api-version=1.0-preview", new
+            await client.TestClientPostAsync($"/departments/{department}/delegated-resource-owner", new
             {
                 responsibleAzureUniqueId = testUser.AzureUniqueId,
                 dateFrom,

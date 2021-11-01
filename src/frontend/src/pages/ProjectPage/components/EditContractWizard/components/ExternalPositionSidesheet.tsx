@@ -1,4 +1,3 @@
-
 import { Position, PersonDetails } from '@equinor/fusion';
 import Contract from '../../../../../models/contract';
 import CreatePositionRequest from '../../../../../models/createPositionRequest';
@@ -27,14 +26,19 @@ const createRequestFromPosition = (position: Position | null) => {
     }
 
     const now = new Date();
-    const instance = position.instances.find(i => i.appliesFrom <= now && i.appliesTo >= now);
+    const instance = position.instances.find((i) => i.appliesFrom <= now && i.appliesTo >= now);
 
     const request: CreatePositionRequest = {
         basePosition: position.basePosition,
         name: position.name,
         appliesFrom: instance?.appliesFrom || null,
         appliesTo: instance?.appliesTo || null,
-        assignedPerson: instance?.assignedPerson || null,
+        assignedPerson: instance?.assignedPerson
+            ? {
+                  mail: instance.assignedPerson.mail,
+                  azureUniquePersonId: instance.assignedPerson.azureUniqueId,
+              }
+            : null,
         workload: instance?.workload || 0,
     };
 
@@ -48,25 +52,20 @@ const ExternalPositionSidesheet: FC<ExternalPositionSidesheetProps> = ({
     existingPosition,
     onClose,
 }) => {
-    const editPosition = useMemo(() => createRequestFromPosition(existingPosition), [
-        existingPosition,
-    ]);
+    const editPosition = useMemo(
+        () => createRequestFromPosition(existingPosition),
+        [existingPosition]
+    );
 
-    const {
-        formState,
-        formFieldSetter,
-        setFormField,
-        resetForm,
-        isFormValid,
-        isFormDirty,
-    } = useCreatePositionForm(editPosition);
+    const { formState, formFieldSetter, setFormField, resetForm, isFormValid, isFormDirty } =
+        useCreatePositionForm(editPosition);
 
     const [selectedPerson, setSelectedPerson] = useState<PersonDetails | null>(null);
     const onPersonSelect = useCallback(
         (person: PersonDetails) => {
             setSelectedPerson(person);
             setFormField('assignedPerson', {
-                azureUniqueId: person.azureUniqueId,
+                azureUniquePersonId: person.azureUniqueId,
                 mail: person.mail,
             });
         },
@@ -75,10 +74,10 @@ const ExternalPositionSidesheet: FC<ExternalPositionSidesheetProps> = ({
 
     useEffect(() => {
         if (
-            formState.assignedPerson?.azureUniqueId &&
-            formState.assignedPerson.azureUniqueId !== selectedPerson?.azureUniqueId
+            formState.assignedPerson?.azureUniquePersonId &&
+            formState.assignedPerson.azureUniquePersonId !== selectedPerson?.azureUniqueId
         ) {
-            setSelectedPerson(formState.assignedPerson as PersonDetails);
+            setSelectedPerson({ ...formState.assignedPerson } as unknown as PersonDetails);
         }
     }, [formState.assignedPerson]);
 
@@ -143,7 +142,7 @@ const ExternalPositionSidesheet: FC<ExternalPositionSidesheetProps> = ({
                     <TextInput
                         label="Workload (%)"
                         value={formState.workload.toString()}
-                        onChange={value => setFormField('workload', parseInt(value, 10))}
+                        onChange={(value) => setFormField('workload', parseInt(value, 10))}
                     />
                 </div>
             </div>

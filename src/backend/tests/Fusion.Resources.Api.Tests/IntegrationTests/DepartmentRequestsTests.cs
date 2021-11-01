@@ -7,7 +7,6 @@ using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
-using Fusion.Testing.Mocks.ProfileService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +36,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
-        private const string ApiVersion = "api-version=1.0-Preview";
+        private const string ApiVersion = "api-version=1.0";
 
         public async Task InitializeAsync()
         {
@@ -76,7 +75,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
-                $"/departments/{testRequest.AssignedDepartment}/resources/requests?api-version=1.0-preview");
+                $"/departments/{testRequest.AssignedDepartment}/resources/requests");
             response.Should().BeSuccessfull();
 
             response.Value.Value.Should().OnlyContain(r => r.AssignedDepartment == testRequest.AssignedDepartment);
@@ -90,7 +89,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var unassignedRequest = await Client.CreateDefaultRequestAsync(testProject);
 
             var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
-                $"/departments/{testRequest.AssignedDepartment}/resources/requests?api-version=1.0-preview");
+                $"/departments/{testRequest.AssignedDepartment}/resources/requests");
             response.Should().BeSuccessfull();
 
             response.Value.Value.Should().NotContain(r => r.Id == unassignedRequest.Id);
@@ -123,7 +122,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.ProposePersonAsync(testRequest.Id, proposedPerson);
 
             var response = await Client.TestClientGetAsync<ApiCollection<TestApiInternalRequestModel>>(
-                $"/departments/{testRequest.AssignedDepartment}/resources/requests?api-version=1.0-preview");
+                $"/departments/{testRequest.AssignedDepartment}/resources/requests");
 
             response.Value.Value.Should().OnlyContain(req => !String.IsNullOrEmpty(req.ProposedPerson.Person.Name));
         }
