@@ -23,7 +23,9 @@ namespace Fusion.Resources.Api.Tests.Fixture
         public readonly ResourcesApiWebAppFactory ApiFactory;
 
         public ApiPersonProfileV3 AdminUser { get; }
+        public ApiPersonProfileV3 ExternalAdminUser { get; }
 
+        public TestClientScope ExternalAdminScope() => new TestClientScope(ExternalAdminUser);
         public TestClientScope AdminScope() => new TestClientScope(AdminUser);
         public TestClientScope UserScope(ApiPersonProfileV3 profile) => new TestClientScope(profile);
 
@@ -54,6 +56,10 @@ namespace Fusion.Resources.Api.Tests.Fixture
             ApiFactory = new ResourcesApiWebAppFactory();
             AdminUser = PeopleServiceMock.AddTestProfile()
                 .WithRoles("Fusion.Resources.FullControl")
+                .SaveProfile();
+
+            ExternalAdminUser = PeopleServiceMock.AddTestProfile()
+                .WithRoles("Fusion.Resources.External.FullControl")
                 .SaveProfile();
 
         }
