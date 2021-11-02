@@ -10,17 +10,19 @@ namespace Fusion.Resources.Domain
     public static class PeopleSearchUtils
     {
         const int default_page_size = 500;
+
         /// <summary>
         /// Get department personnel from search index.
         /// </summary>
         /// <param name="peopleClient">HttpClient for Fusion people service</param>
+        /// <param name="requests">List of requests where state is null or created, meaning there is a change request.</param>
+        /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <param name="includeSubDepartments">Certain departments in line org exists where a 
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
-        /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <returns></returns>
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, params string[] departments)
-            => await GetDepartmentFromSearchIndexAsync(peopleClient, departments.AsEnumerable());
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, List<QueryResourceAllocationRequest> requests, params string[] departments)
+            => await GetDepartmentFromSearchIndexAsync(peopleClient, departments.AsEnumerable(), requests);
 
         /// <summary>
         /// Get department personnel from search index.
@@ -29,18 +31,19 @@ namespace Fusion.Resources.Domain
         /// <param name="includeSubDepartments">Certain departments in line org exists where a 
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
+        /// <param name="requests">List of requests where state is null or created, meaning there is a change request.</param>
         /// <param name="departments">The deparments to retrieve personnel from.</param>
         /// <returns></returns>
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, IEnumerable<string> departments)
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsync(HttpClient peopleClient, IEnumerable<string> departments, List<QueryResourceAllocationRequest>? requests = null)
         {
             var filterString = string.Join(" or ", departments.Select(dep => $"manager/fullDepartment eq '{dep}'"));
 
-            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, null);
+            var searchResponse = await GetFromSearchIndexAsync(peopleClient, filterString, null, requests);
             return searchResponse;
         }
 
-        public static async Task<List<QueryInternalPersonnelPerson>> GetDirectReportsTo(HttpClient peopleClient, Guid azureUniqueId)
-            => await GetFromSearchIndexAsync(peopleClient, $"managerAzureId eq '{azureUniqueId}'");
+        public static async Task<List<QueryInternalPersonnelPerson>> GetDirectReportsTo(HttpClient peopleClient, Guid azureUniqueId, List<QueryResourceAllocationRequest> queryResourceAllocationRequests)
+            => await GetFromSearchIndexAsync(peopleClient, $"managerAzureId eq '{azureUniqueId}'", null, queryResourceAllocationRequests);
 
         public static async Task<QueryInternalPersonnelPerson?> GetPersonFromSearchIndexAsync(HttpClient peopleClient, Guid uniqueId)
         {
@@ -72,7 +75,7 @@ namespace Fusion.Resources.Domain
             return QueryRangedList.FromItems(searchResult.items, searchResult.totalCount, query.Skip);
         }
 
-        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null)
+        private static async Task<List<QueryInternalPersonnelPerson>> GetFromSearchIndexAsync(HttpClient peopleClient, string? filter, string? search = null, List<QueryResourceAllocationRequest>? requests = null)
         {
             var result = new List<QueryInternalPersonnelPerson>();
 
@@ -122,7 +125,8 @@ namespace Fusion.Resources.Domain
                             Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
                             Workload = p.workload,
                             AllocationState = p.allocationState,
-                            AllocationUpdated = p.allocationUpdated
+                            AllocationUpdated = p.allocationUpdated,
+                            HasChangeRequest = requests != null && requests.Any(x => x.OrgPositionId == p.id)
                         }).OrderBy(p => p.AppliesFrom).ToList()
                     })
                 );

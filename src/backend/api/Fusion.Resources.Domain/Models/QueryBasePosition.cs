@@ -43,6 +43,16 @@ namespace Fusion.Resources.Domain
             Resolved = true;
         }
 
+        public QueryBasePosition(ApiPositionBasePositionV2 basePosition)
+        {
+            Id = basePosition.Id;
+            Name = basePosition.Name;
+            Discipline = basePosition.Discipline;
+            ProjectType = basePosition.ProjectType;
+            
+            Resolved = true;
+        }
+
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Discipline { get; set; }
