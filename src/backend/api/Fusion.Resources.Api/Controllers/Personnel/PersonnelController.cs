@@ -38,6 +38,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.BeTrustedApplication();
                     or.FullControl();
+                    or.FullControlExternal();
                 });
             });
 
@@ -62,7 +63,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -92,7 +93,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -131,6 +132,7 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.BeTrustedApplication();
                     or.FullControl();
+                    or.FullControlExternal();
                 });
             });
 
@@ -174,7 +176,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -216,7 +218,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -266,7 +268,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -298,7 +300,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -334,7 +336,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -363,7 +365,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {

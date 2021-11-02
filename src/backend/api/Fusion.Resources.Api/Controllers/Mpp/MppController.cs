@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Controllers.Mpp
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
@@ -55,7 +55,7 @@ namespace Fusion.Resources.Api.Controllers.Mpp
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
 
                 r.AnyOf(or =>
                 {
