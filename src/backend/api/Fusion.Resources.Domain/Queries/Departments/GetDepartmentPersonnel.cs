@@ -99,7 +99,7 @@ namespace Fusion.Resources.Domain
                             .ToList();
 
                         p.Absence = p.Absence
-                                     .Where(instance => instance.AppliesTo >= request.TimelineStart && instance.AppliesFrom <= request.TimelineEnd)
+                                     .Where(instance => (instance.AppliesTo == null || instance.AppliesTo >= request.TimelineStart) && instance.AppliesFrom <= request.TimelineEnd)
                                      .ToList();
 
                         if (p.PendingRequests != null)
@@ -121,7 +121,7 @@ namespace Fusion.Resources.Domain
                                                .ToList();
 
                         p.Absence = p.Absence
-                                     .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
+                                     .Where(instance => (instance.AppliesTo == null || instance.AppliesTo >= DateTime.Now) && instance.AppliesFrom <= DateTime.Now)
                                      .ToList();
 
                         if (p.PendingRequests != null)

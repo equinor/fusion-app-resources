@@ -32,7 +32,7 @@ namespace Fusion.Resources.Api.Tests
     {
         public Guid id { get; set; }
         public DateTime appliesFrom { get; set; }
-        public DateTime appliesTo { get; set; }
+        public DateTime? appliesTo { get; set; }
         public int absencePercentage { get; set; }
         public string type { get; set; }
         public TestTaskdetails taskDetails { get; set; }
