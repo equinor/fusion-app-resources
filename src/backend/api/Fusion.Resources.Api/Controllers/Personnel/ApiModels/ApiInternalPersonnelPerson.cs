@@ -29,6 +29,8 @@ namespace Fusion.Resources.Api.Controllers
                 .Where(d => !string.IsNullOrEmpty(d))
                 .Distinct()
                 .ToList();
+            if (p.PendingRequests != null)
+                PendingRequests = p.PendingRequests.Select(x => new ApiResourceAllocationRequest(x)).ToList();
         }
 
         public static ApiInternalPersonnelPerson CreateWithoutConfidentialTaskInfo(QueryInternalPersonnelPerson person) 
@@ -61,7 +63,7 @@ namespace Fusion.Resources.Api.Controllers
         public string AccountType { get; set; }
 
         public List<string> Disciplines { get; set; } = new List<string>();
-
+        public List<ApiResourceAllocationRequest>? PendingRequests { get; }
         public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
         public List<ApiPersonAbsence> EmploymentStatuses { get; set; } = new List<ApiPersonAbsence>();
 
@@ -151,6 +153,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 Project = new ApiProjectReference(pos.Project);
                 BasePosition = new ApiBasePosition(pos.BasePosition);
+
+                HasChangeRequest = pos.HasChangeRequest;
             }
 
             public Guid PositionId { get; set; }
@@ -167,6 +171,8 @@ namespace Fusion.Resources.Api.Controllers
             public bool IsActive => AppliesFrom >= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
             public double Workload { get; set; }
             public ApiProjectReference Project { get; set; } = null!;
+
+            public bool HasChangeRequest { get; set; }
         }
     }
 

@@ -23,5 +23,7 @@ namespace Fusion.Resources.Domain
         /// </summary>
         public string? AllocationState { get; set; }
         public DateTime? AllocationUpdated { get; set; }
+
+        public bool HasChangeRequest { get; set; }
     }
 }

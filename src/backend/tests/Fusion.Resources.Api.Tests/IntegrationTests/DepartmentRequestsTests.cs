@@ -12,9 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Testing.Mocks.ProfileService;
 using Xunit;
 using Xunit.Abstractions;
-
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -476,7 +476,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
             );
 
-            var person = response.Value.Value
+            var person = response.Value.value
                 .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
             person.employmentStatuses.Should().Contain(x => x.id == absence.Id);
 
@@ -519,7 +519,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
                 );
 
-                var person = response.Value.Value
+                var person = response.Value.value
                     .FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
                 var actualAbsence = person.employmentStatuses.FirstOrDefault(x => x.id == absence.Id);
 
@@ -535,6 +535,218 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }
         }
 
+        [Fact]
+        public async Task GetTimelineShouldNotIncludePositionsOutsideTimeframe()
+        {
+            const string department = "PDP BTAD AWQ";
+            fixture.EnsureDepartment(department);
+
+            var project = new FusionTestProjectBuilder()
+                .WithPositions(10, 50)
+                .AddToMockService();
+
+            var profile = PeopleServiceMock.AddTestProfile().WithFullDepartment(department);
+            foreach (var position in project.Positions) profile.WithPosition(position);
+            profile.SaveProfile();
+
+            using var scope = fixture.AdminScope();
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            response.Should().BeSuccessfull();
+            response.Value.value
+                .SelectMany(x => x.positionInstances)
+                .Any(x => x.AppliesTo < timelineStart || x.AppliesFrom > timelineEnd)
+                .Should()
+                .BeFalse();
+        }
+        
+        [Fact]
+        public async Task GetTimelineShouldNotIncludeEmploymentStatusesOutsideTimeframe()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await Client.AddAbsence(user, x =>
+                                          {
+                                              x.AppliesFrom = new DateTime(2021, 08, 06);
+                                              x.AppliesTo = new DateTime(2021, 09, 03);
+                                          });
+            
+            var timelineStart = new DateTime(2022, 04, 01);
+            var timelineEnd = new DateTime(2022, 09, 30);
+
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                                                                         $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+                                                                        );
+
+            response.Should().BeSuccessfull();
+            response.Value.value
+                .SelectMany(x => x.employmentStatuses)
+                .Any(x => x.appliesTo < timelineStart || x.appliesFrom > timelineEnd)
+                .Should()
+                .BeFalse();
+        }
+        
+        [Fact]
+        public async Task GetTimelineShouldIncludeEmploymentStatusesWithAppliesToNull()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await Client.AddAbsence(user, x =>
+                                          {
+                                              x.AppliesFrom = new DateTime(2021, 08, 06);
+                                              x.AppliesTo = null;
+                                          });
+
+            var timelineStart = new DateTime(2022, 04, 01);
+            var timelineEnd = new DateTime(2022, 09, 30);
+
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                                                                         $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+                                                                        );
+
+            response.Should().BeSuccessfull();
+            response.Value.value
+                    .SelectMany(x => x.employmentStatuses)
+                    .Any(x => x.appliesTo == null)
+                    .Should()
+                    .BeTrue();
+        }
+
+
+        [Fact]
+        public async Task GetTimeline_ShouldNotIncludeRequestsOutsideTimeframe()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+
+            var timelineStart = new DateTime(2022, 04, 01);
+            var timelineEnd = new DateTime(2022, 09, 30);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            result.pendingRequests.Should().BeEmpty();
+        }
+        
+        [Fact]
+        public async Task GetRequests_ShouldNotIncludeRequestsOutsideCurrentAllocations()
+        {
+            const string department = "PDP BTAD AWQ";
+            fixture.EnsureDepartment(department);
+
+            var project = new FusionTestProjectBuilder()
+                          .WithPositions(10, 50)
+                          .AddToMockService();
+
+            var profile = PeopleServiceMock.AddTestProfile().WithFullDepartment(department);
+            foreach (var position in project.Positions) profile.WithPosition(position);
+            profile.SaveProfile();
+
+            using var scope = fixture.AdminScope();
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                                                                         $"/departments/{department}/resources/personnel/?includeCurrentAllocations=true&{ApiVersion}"
+                                                                        );
+
+            response.Should().BeSuccessfull();
+
+            response.Value.value
+                    .SelectMany(x => x.positionInstances)
+                    .Any(x => x.AppliesFrom > DateTime.Now || x.AppliesTo < DateTime.Now)
+                    .Should()
+                    .BeFalse();
+        }
+        
+        [Fact]
+        public async Task GetTimeline_ShouldIncludeRequests()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+            );
+
+            var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            result.pendingRequests.Should().Contain(x => x.Id == request.Id);
+            result.timeline.Single().items.Should().Contain(x => x.type == "Request" && x.id == request.Id.ToString());
+        }
+
+        [Fact]
+        public async Task GetRequestsOnPerson_ShouldNotIncludeRequestsOutsideCurrentAllocations()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+                                                                                                                  {
+                                                                                                                      x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
+                                                                                                                  }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+            
+            var response = await Client.TestClientGetAsync<TestApiPersonnelPerson>(
+                                                                                   $"/departments/{user.Department}/resources/personnel/{user.AzureUniqueId}?includeCurrentAllocations=true&{ApiVersion}"
+                                                                                  );
+
+            response.Should().BeSuccessfull();
+            var positionInstances = response.Value.positionInstances;
+            positionInstances.Any(x => x.AppliesFrom > DateTime.Now || x.AppliesTo < DateTime.Now).Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task GetRequestsOnPerson_ShouldIncludeRequestsWithAppliesToDateNullWithCurrentAllocations()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+                                                                                                                      {
+                                                                                                                          x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
+                                                                                                                      }));
+
+            await Client.AddAbsence(user, x =>
+                                          {
+                                              x.AppliesFrom = new DateTime(2021, 08, 06);
+                                              x.AppliesTo = null;
+                                          });
+
+
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+
+            var response = await Client.TestClientGetAsync<TestApiPersonnelPerson>(
+                                                                                   $"/departments/{user.Department}/resources/personnel/{user.AzureUniqueId}?includeCurrentAllocations=true&{ApiVersion}"
+                                                                                  );
+
+            response.Should().BeSuccessfull();
+
+            var absence = response.Value.employmentStatuses;
+
+            absence.Any(x => x.appliesFrom > DateTime.Now || x.appliesTo < DateTime.Now).Should().BeFalse();
+        }
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();
@@ -544,7 +756,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         class TestResponse
         {
-            public List<TestApiPersonnelPerson> Value { get; set; }
+            public List<TestApiPersonnelPerson> value { get; set; }
         }
 
 
