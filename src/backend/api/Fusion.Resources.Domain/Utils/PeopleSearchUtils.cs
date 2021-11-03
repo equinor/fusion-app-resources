@@ -126,13 +126,19 @@ namespace Fusion.Resources.Domain
                             Workload = p.workload,
                             AllocationState = p.allocationState,
                             AllocationUpdated = p.allocationUpdated,
-                            HasChangeRequest = requests != null && requests.Any(x => x.OrgPositionId == p.id)
+                            HasChangeRequest = PositionHasChangeRequest(requests, p, i.document.azureUniqueId)
                         }).OrderBy(p => p.AppliesFrom).ToList()
                     })
                 );
             } while (skip < totalCount);
 
             return result;
+        }
+
+        private static bool PositionHasChangeRequest(List<QueryResourceAllocationRequest>? requests, SearchPositionDTO position, Guid azureUniqueId)
+        {
+            return requests != null
+                   && requests.Any(x => x.OrgPositionId == position.id && x.OrgPositionInstance?.AssignedPerson?.AzureUniqueId == azureUniqueId);
         }
 
         private static async Task<(List<QueryInternalPersonnelPerson> items, int totalCount)> SearchIndexAsync(HttpClient peopleClient, SearchParams query)
