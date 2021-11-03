@@ -72,7 +72,7 @@ namespace Fusion.Resources.Domain
                                                                                .ToList();
 
                 personWithAllocations.Absence = personWithAllocations.Absence
-                                                                     .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
+                                                                     .Where(instance => (instance.AppliesTo == null || instance.AppliesTo >= DateTime.Now) && instance.AppliesFrom <= DateTime.Now)
                                                                      .ToList();
 
                 if (personWithAllocations.PendingRequests != null)
