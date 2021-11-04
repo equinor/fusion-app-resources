@@ -34,11 +34,11 @@ const ContractsOverviewPage = () => {
             <ResourceErrorMessage error={contractsError}>
                 <div className={styles.tableContainer}>
                     <div className={styles.toolbar}>
-                        <Button relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
+                        <Button id="allocate-contract-btn" relativeUrl={combineUrls(currentProject?.id || '', 'allocate')}>
                             Allocate contract
                         </Button>
                         <Link data-cy="help-btn" target="_blank" to="/help">
-                            <IconButton ref={helpIconRef}>
+                            <IconButton id="help-btn" ref={helpIconRef}>
                                 <HelpIcon />
                             </IconButton>
                         </Link>

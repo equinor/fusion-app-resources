@@ -10,18 +10,14 @@ type ColumnProps = {
 };
 const AssignedPersonComponent: FC<ColumnProps> = ({ item }) => {
     return (
-        <div data-cy="assigned-person">
-            <PersonCard personId={item.person.azureUniquePersonId} photoSize="medium" inline />;
-        </div>
+        <PersonCard personId={item.person.azureUniquePersonId} photoSize="medium" inline />
     );    
 };
 
 const CertifiedByComponent: FC<ColumnProps> = ({ item }) => {
     const certifiedBy = item.recertifiedBy || item.createdBy
     return (
-        <div data-cy="certified-by-person">
-            <PersonCard personId={certifiedBy.azureUniquePersonId} photoSize="medium" inline />;
-        </div>
+        <PersonCard personId={certifiedBy.azureUniquePersonId} photoSize="medium" inline />
     ); 
 };
 
@@ -32,10 +28,10 @@ const ValidToComponent: FC<ColumnProps> = ({ item }) => {
     const diffDays = Math.round(Math.abs((today.getTime() - validTo.getTime()) / oneDay));
 
     if (diffDays > 30) {
-        return <div data-cy="valid-to-date">{formatDate(validTo)}</div>;
+        return <div>{formatDate(validTo)}</div>;
     }
     return (
-        <div data-cy="valid-to-date" className={styles.validToContainer}>
+        <div className={styles.validToContainer}>
             <span>{formatDate(validTo)}</span>
             <span className={styles.daysLeft}>{`${diffDays} days left`}</span>
         </div>
@@ -44,34 +40,38 @@ const ValidToComponent: FC<ColumnProps> = ({ item }) => {
 
 const RecertifyToComponent: FC<ColumnProps> = ({ item }) => {
     if (item.recertifiedDate) {
-        return <div data-cy="recertification-date">{formatDate(item.recertifiedDate)}</div>;
+        return <div>{formatDate(item.recertifiedDate)}</div>;
     }
     return (
-        <div data-cy="recertification-date">-</div>
+        <div>-</div>
     );
 };
 
 const columns: DataTableColumn<PersonDelegation>[] = [
     {
+        id: 'delegated-to-person-column',
         key: 'delegated-to-person',
         label: 'Delegated to person',
         accessor: (d) => d.person.name,
         component: AssignedPersonComponent,
     },
     {
+        id: 'valid-to-column',
         key: 'valid-to',
         label: 'Valid to',
         accessor: (d) => formatDate(d.validTo),
         component: ValidToComponent,
     },
     {
+        id: 're-certification-date-column',
         key: 're-certification-date',
         label: 'Re-certification date',
         accessor: (d) => (d.recertifiedDate ? formatDate(d.recertifiedDate) : ''),
         component: RecertifyToComponent,
     },
     {
-        key: 'Certified by',
+        id: 'certified-by-column',
+        key: 'Certified-by',
         label: 'Certified by',
         accessor: (d) => d.recertifiedBy ? d.recertifiedBy.name : d.createdBy.name,
         component: CertifiedByComponent,

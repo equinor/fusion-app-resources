@@ -39,7 +39,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         ),
         sortable: true,
         width: '20px',
-        // id: 'ad-column',
+        id: 'ad-column',
     },
      
     {
@@ -53,7 +53,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         ),
         priority: 1,
         sortable: true,
-        // id: 'email-column',
+        id: 'email-column',
     },
     {
         key: 'FirstName',
@@ -66,7 +66,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         ),
         priority: 3,
         sortable: true,
-        // id: 'first-name-column',
+        id: 'first-name-column',
     },
     {
         key: 'LastName',
@@ -79,7 +79,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         ),
         priority: 4,
         sortable: true,
-        // id: 'last-name-column',
+        id: 'last-name-column',
     },
     {
         key: 'Disciplines',
@@ -87,7 +87,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         label: 'Discipline',
         priority: 5,
         sortable: true,
-        // id: 'disciplines-column',
+        id: 'disciplines-column',
     },
     {
         key: 'Phone',
@@ -95,7 +95,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         label: 'Phone Number',
         priority: 7,
         sortable: true,
-        // id: 'phone-column',
+        id: 'phone-column',
     },
     {
         key: 'Workload',
@@ -111,7 +111,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         ),
         sortable: true,
         width: '20px',
-        // id: 'workload-column',
+        id: 'workload-column',
     },
     {
         key: 'positions',
@@ -121,7 +121,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         component: (p) => <span>{(p.item.positions?.length || 0).toString()}</span>,
         sortable: true,
         width: '20px',
-        // id: 'position-column',
+        id: 'position-column',
     },
     {
         key: 'equinorMail',
@@ -131,7 +131,7 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         component: HasEquinorMailCell,
         sortable: true,
         width: '20px',
-        // id: 'equinor-email-column',
+        id: 'equinor-email-column',
     },
 ];
 

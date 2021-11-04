@@ -5,9 +5,10 @@ type GenericFilterProps<T> = {
     data: T[] | null;
     filterSections: FilterSection<T>[];
     onFilter: (filteredData: T[]) => void;
+    id?: string;
 };
 
-function GenericFilter<T>({ data, filterSections, onFilter }: GenericFilterProps<T>) {
+function GenericFilter<T>({ data, filterSections, onFilter, id }: GenericFilterProps<T>) {
     const [filterTerms, setFilterTerms] = useState<FilterTerm[]>([]);
 
     const onFilterChange = useCallback((filteredData: T[], terms: FilterTerm[]) => {
@@ -23,6 +24,7 @@ function GenericFilter<T>({ data, filterSections, onFilter }: GenericFilterProps
 
     return (
         <FilterPane
+            id={id}
             data={data}
             sectionDefinitions={filterSections}
             terms={filterTerms}

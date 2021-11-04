@@ -5,6 +5,8 @@
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../support" />
 
+const person = 'Qi Jin'
+
 describe('TC 13035 Delegate Admin Access', () => {
   /** TODO make login persistent between tests */
   before(() => {
@@ -26,13 +28,13 @@ describe('TC 13035 Delegate Admin Access', () => {
     cy.contains('Equinor responsible').should('be.visible')
 
     /** delegate equinor admin access to a new person */    
-    cy.delegateAdminAccess('equinor', 'Qi Jin', '1-month')
+    cy.delegateAdminAccess('equinor', person, '1-month')
 
     /** re-certify to a person existing in the equinor admin access table*/
-    cy.recertifyAdminAccess('equinor', 8, '6-months')
+    cy.recertifyAdminAccess('equinor', person, '6-months')
 
     /** remove a existing person from the equinor admin access table */
-    cy.removeAdminAccess('equinor', 8)
+    cy.removeAdminAccess('equinor', person)
 
     cy.get('[data-cy="close-btn"]').click()
   });
@@ -43,13 +45,13 @@ describe('TC 13035 Delegate Admin Access', () => {
     cy.contains('External responsible').should('be.exist')
 
     /** delegate external admin access to a new person */    
-    cy.delegateAdminAccess('external', 'Qi Jin', '1-month')
+    cy.delegateAdminAccess('external', person, '1-month')
 
     /** re-certify to a person existing in the external admin access table*/
-    cy.recertifyAdminAccess('external', 4, '6-months')
+    cy.recertifyAdminAccess('external', person, '6-months')
 
     /** remove a existing person from the external admin access table */
-    cy.removeAdminAccess('external', 4)
+    cy.removeAdminAccess('external', person)
 
     cy.get('[data-cy="close-btn"]').click()
   });

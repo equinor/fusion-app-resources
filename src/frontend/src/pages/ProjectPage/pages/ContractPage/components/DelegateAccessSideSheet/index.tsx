@@ -64,6 +64,7 @@ const DelegateAccessSideSheet: FC<DelegateAccessSideSheetProps> = ({
     const delegateButton = useMemo(
         () => (
             <Button
+                id="delegate-btn"
                 disabled={!canEdit || isDelegatingAccess || selectedPersons.length <= 0}
                 onClick={onDelegateClick}
             >
@@ -75,7 +76,7 @@ const DelegateAccessSideSheet: FC<DelegateAccessSideSheetProps> = ({
 
     return (
         <ModalSideSheet
-            data-cy="delegate-sidesheet"
+            id="delegate-sidesheet"
             show={showSideSheet}
             onClose={onClose}
             header="Delegate access"

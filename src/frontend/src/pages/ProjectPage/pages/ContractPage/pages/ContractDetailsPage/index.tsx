@@ -227,8 +227,8 @@ const ContractDetailsPage = () => {
                 >
                     <EditIcon />
                 </IconButton>
-                <Link target="_blank" to="/help">
-                    <IconButton data-cy="help-btn" ref={helpIconRef}>
+                <Link data-cy="help-btn" target="_blank" to="/help">
+                    <IconButton id="help-btn" ref={helpIconRef}>
                         <HelpIcon />
                     </IconButton>
                 </Link>

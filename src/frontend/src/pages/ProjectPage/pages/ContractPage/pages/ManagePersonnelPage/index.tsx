@@ -201,6 +201,7 @@ const ManagePersonnelPage: FC = () => {
                     </div>
                     <div className={styles.table}>
                         <DataTable
+                            id="contract-personnel-table"
                             columns={personnelColumns}
                             data={sortedData}
                             isFetching={isFetching}
@@ -220,6 +221,7 @@ const ManagePersonnelPage: FC = () => {
                     </div>
                     {isAddPersonOpen && (
                         <AddPersonnelSideSheet
+                            id="add-personnel-sidesheet"
                             isOpen={isAddPersonOpen}
                             setIsOpen={setIsAddPersonOpen}
                             selectedPersonnel={selectedItems.length ? selectedItems : null}
@@ -228,11 +230,13 @@ const ManagePersonnelPage: FC = () => {
                     )}
                 </div>
                 <GenericFilter
+                    id="contract-personnel-filter-pane"
                     data={personnel}
                     filterSections={filterSections}
                     onFilter={setFilteredPersonnel}
                 />
                 <ExcelImportSideSheet
+                    id="excel-import-sidesheet"
                     setSelectedFile={setSelectedFile}
                     isProccessing={isProccessingFile}
                     isOpen={isUploadFileOpen}

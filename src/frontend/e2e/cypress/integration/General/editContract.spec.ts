@@ -37,7 +37,7 @@ describe('Edit contract', () => {
 
     /** change the contract data*/
     cy.wait(1000);  /**  wait for rending */
-    contractEditPage.ContractNameInputBox().find('input').clear().type(this.contractData.contractName)
+    contractEditPage.ContractNameInputBox().clear().type(this.contractData.contractName)
 
     contractEditPage.CompanySelector().type(this.contractData.companyName)
     cy.get('#company-dropdown').contains(this.contractData.companyName).click()

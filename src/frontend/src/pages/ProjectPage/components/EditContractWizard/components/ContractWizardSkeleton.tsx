@@ -22,16 +22,16 @@ const ContractWizardSkeleton: FC<ContractWizardSkeletonProps> = ({ isEdit, onGoB
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <IconButton onClick={onGoBack}>
+                <IconButton id="close-btn" onClick={onGoBack}>
                     <ArrowBackIcon />
                 </IconButton>
                 <h2>
                     {isEdit ? 'Edit ' : ''} <SkeletonBar />
                 </h2>
-                <Button outlined disabled>
+                <Button id="cancel-btn" outlined disabled>
                     Cancel
                 </Button>
-                <Button outlined disabled>
+                <Button id="save-btn" outlined disabled>
                     Save
                 </Button>
             </header>
@@ -71,11 +71,11 @@ const ContractWizardSkeleton: FC<ContractWizardSkeletonProps> = ({ isEdit, onGoB
                         </div>
                         <div className={styles.actions}>
                             {!isEdit && (
-                                <Button outlined disabled>
+                                <Button id="previous-btn" outlined disabled>
                                     Previous
                                 </Button>
                             )}
-                            <Button disabled>Next</Button>
+                            <Button id="next-btn" disabled>Next</Button>
                         </div>
                     </div>
                 </Step>

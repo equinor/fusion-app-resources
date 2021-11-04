@@ -95,6 +95,7 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
         <div className={styles.container}>
             <div data-cy="delegate-toolbar" className={styles.toolbar}>
                 <ToolbarButton
+                    id="delegate-btn"
                     icon={<AddIcon />}
                     title="Delegate"
                     onClick={openDelegateAccess}
@@ -102,6 +103,7 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
                 />
                 <CertifyToPopover canEdit={canEdit} admins={selectedAdmins} />
                 <ToolbarButton
+                    id="remove-btn"
                     icon={isRemoving ? <Spinner inline /> : <DeleteIcon outline />}
                     title="Remove"
                     onClick={removeDelegateAccess}

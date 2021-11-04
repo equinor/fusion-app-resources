@@ -99,8 +99,7 @@ Cypress.Commands.add('openContract', (number) => {
   cy.get('@contract-id').invoke('attr', 'href').then(($href) => {
     const contractUrl = $href.toString().trim()
     cy.get('@contract-id').click()
-    cy.intercept('GET', contractUrl).as('load-contract')
-    cy.wait('@load-contract')
+    cy.wait(3000)
   })
 });
 

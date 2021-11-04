@@ -32,6 +32,7 @@ const CertifyToPopover: FC<CertifyToPopoverProps> = ({ canEdit, admins, children
 
     const controller = useDropdownController((ref, isOpen, setIsOpen) => (
         <ToolbarButton
+            id="recertify-btn"
             ref={ref}
             onClick={() => setIsOpen(!isOpen)}
             icon={<SyncIcon />}
@@ -86,8 +87,8 @@ const CertifyToPopover: FC<CertifyToPopoverProps> = ({ canEdit, admins, children
                     defaultSelected="12-months"
                     isReCertification
                 />
-                <div data-cy="recertify-btn" className={styles.certifyButtonContainer}>
-                    <Button disabled={!canEdit} onClick={onReCertifyClick}>
+                <div className={styles.certifyButtonContainer}>
+                    <Button id="recertify-btn" disabled={!canEdit} onClick={onReCertifyClick}>
                         <div className={styles.syncButton}>
                             {isReCertifying ? (
                                 <Spinner inline />

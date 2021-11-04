@@ -10,13 +10,14 @@ const delegateSidesheet = new DelegateAccessSideSheet()
  *  period: '1-month', '6-months', or '12-months'
 */
 Cypress.Commands.add('delegateAdminAccess', (responsible, person, period) => {
-    cy.get('[data-cy="'+responsible+'-resp-delegate-admin-access"]').as('delegate-access').within(() => {
-        cy.get('[data-cy="delegate-table"]').should('be.exist')
-        
-        cy.wait(100)
-        cy.get('button').contains('Delegate').click()
-        cy.wait(200)
-    });
+    cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access')
+        .within(() => {
+            cy.get('[data-cy="delegate-table"]').should('be.exist')
+
+            cy.wait(100)
+            cy.get('#delegate-btn').click()
+            cy.wait(200)
+        });
 
     /**  delegate sidesheet should show up */
     delegateSidesheet.DelegateSideSheet().should('be.visible').within(() => {
@@ -24,21 +25,26 @@ Cypress.Commands.add('delegateAdminAccess', (responsible, person, period) => {
 
         delegateSidesheet.DelegateButton().should('have.attr', 'disabled')
 
-        delegateSidesheet.DelegateSideSheet().find('[data-cy="certify-'+period+'"]').click()
-    
+        cy.get('[data-cy="certify-' + period + '"]').click()
+
         delegateSidesheet.AddPeopleSelector().type(person)
-        cy.get('[class^="fc--SearchableDropdown"]').contains(person).click()
+
+        /** temperaly jump out from delegate sidesheet within */
+        cy.wrap(Cypress.$('body')).within(() => {
+            cy.get('[class^="fc--SearchableDropdown"]').contains(person).click()
+        })
+
         cy.get('[data-cy="selected-person"]').should('contain', person)
 
         delegateSidesheet.DelegateButton().should('not.have.attr', 'disabled')
-        delegateSidesheet.DelegateButton().click({force: true})
-        cy.wait(1000)
+        delegateSidesheet.DelegateButton().click({ force: true })
+        cy.wait(2000)
     });
 
-    /** verify the updates in the delegate table */ 
+    /** verify the updates in the delegate table */
     cy.get('@delegate-access').within(() => {
-        cy.get('[data-cy="assigned-person"]').should('contain', person)
-        cy.get('[data-cy="recertification-date"]').last().should('contain', '-')
+        cy.get('[id="delegated-to-person-column"]').last().should('contain', person)
+        cy.get('[id="re-certification-date-column"]').last().should('contain', '-')
     });
 });
 
@@ -47,27 +53,45 @@ Cypress.Commands.add('delegateAdminAccess', (responsible, person, period) => {
  *  personIndex: person index, start from 1
  *  period: '1-month', '6-months', or '12-months'
 */
-Cypress.Commands.add('recertifyAdminAccess', (responsible, personIndex, period) => {
-    cy.get('[data-cy="'+responsible+'-resp-delegate-admin-access"]').as('delegate-access').within(() => {
+Cypress.Commands.add('recertifyAdminAccess', (responsible, person, period) => {
+    cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access').within(() => {
         cy.get('[data-cy="delegate-table"]').should('be.exist')
 
-        cy.get('input[type="checkbox"]').eq(personIndex).click()
+        // cy.contains('[id="delegated-to-person-column"]', person).invoke('index').then((i) => {
+        //     console.log(i)
+        //     const x = (i - 2) / 6
+        //     cy.get('[id="selection-cell"]').eq(x - 1).click()
+        // })
 
-        cy.get('button').contains('Re-certify').click()
+        cy.getDelegateIndex('delegated-to-person-column', person).then(i => {
+            console.log('return index is: ', i)
+            cy.get('[id="selection-cell"]').eq(i).click()
+        });
+
+        cy.get('#recertify-btn').click()
         cy.wait(1000)
     });
 
     cy.get('[data-cy="recertify-popup"]').should('be.visible').within(() => {
-        cy.get('[data-cy="certify-'+period+'"]').click()
+        cy.get('[data-cy="certify-' + period + '"]').click()
 
-        cy.get('[data-cy="recertify-btn"]').click()
-        cy.wait(1000)
+        cy.get('#recertify-btn').click()
+        cy.wait(2000)
     });
 
     cy.get('@delegate-access').within(() => {
-        cy.get('[data-cy="recertification-date"]').eq(personIndex-1).should('not.contain', '-')
+        // cy.contains('[id="delegated-to-person-column"]', person).invoke('index').then((i) => {
+        //     console.log(i)
+        //     const x = (i - 2) / 6
+        //     cy.get('[id="re-certification-date-column"]').eq(x - 1).should('not.contain', '-')
+        //     cy.get('[id="selection-cell"]').eq(x - 1).click() /** unselect the person */
+        // })
 
-        cy.get('input[type="checkbox"]').eq(personIndex).click() /** unselect the person */
+        cy.getDelegateIndex('delegated-to-person-column', person).then(i => {
+            console.log('return index is: ', i)
+            cy.get('[id="re-certification-date-column"]').eq(i).should('not.contain', '-')
+            cy.get('[id="selection-cell"]').eq(i).click() /** unselect the person */
+        });
     });
 });
 
@@ -75,14 +99,18 @@ Cypress.Commands.add('recertifyAdminAccess', (responsible, personIndex, period) 
  *  responsible: 'external' or 'equinor'
  *  personIndex: person index, start from 1
 */
-Cypress.Commands.add('removeAdminAccess', (responsible, personIndex) => {
-    cy.get('[data-cy="'+responsible+'-resp-delegate-admin-access"]').as('delegate-access').within(() => {
+Cypress.Commands.add('removeAdminAccess', (responsible, person) => {
+    cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access').within(() => {
         cy.get('[data-cy="delegate-table"]').should('be.exist')
 
-        cy.get('input[type="checkbox"]').eq(personIndex).click()
+        cy.contains('[id="delegated-to-person-column"]', person).invoke('index').then((i) => {
+            console.log(i)
+            const x = (i - 2) / 6
+            cy.get('[id="selection-cell"]').eq(x - 1).click()
+        })
 
         cy.wait(100)
-        cy.get('button').contains('Remove').click()
+        cy.get('#remove-btn').click()
         cy.wait(100)
     });
 
@@ -94,9 +122,18 @@ Cypress.Commands.add('removeAdminAccess', (responsible, personIndex) => {
     });
 
     cy.get('@delegate-access').within(() => {
-        cy.get('[data-cy="assigned-person"]').its('length').should('eq', personIndex-1)
-
-        cy.get('input[type="checkbox"]').eq(personIndex).click() /** unselect the person */
+        cy.get('[id="delegated-to-person-column"]').should('not.contain', person)
     });
-    
+
+});
+
+
+/** get a element with specific text, and return its index */
+Cypress.Commands.add('getDelegateIndex', (id, person) => {
+    cy.contains('[id="' + id + '"]', person).invoke('index').then((x) => {
+        console.log('x is ', x)
+        const y = ((x - 2) / 6) - 1;
+        console.log('y is', y)
+        cy.wrap(y)
+    });
 });

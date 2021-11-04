@@ -17,6 +17,8 @@
 import './commands'
 import './delegateAccess'
 import './searchAndFilters'
+import './managePerson'
+import './importFile'
 
 const contractTableColumnSelector = {
     contractId: '[data-cy="contract-id"]',
@@ -39,6 +41,3 @@ class TableSelectors<C> {
 export const componentSelector = {
     contractTable: new TableSelectors(contractTableColumnSelector)
 }
-
-// cy.get(componentSelector.contractTable.getCell('companyRep'))
-// cy.get(componentSelector.contractTable.getCell('contractRep'))

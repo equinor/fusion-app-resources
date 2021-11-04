@@ -28,6 +28,7 @@ type AddPersonnelToSideSheetProps = {
     selectedPersonnel: Personnel[] | null;
     setIsOpen: (state: boolean) => void;
     excelImport: boolean;
+    id?: string;
 };
 
 const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
@@ -35,6 +36,7 @@ const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
     setIsOpen,
     selectedPersonnel,
     excelImport,
+    id,
 }) => {
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
@@ -246,7 +248,7 @@ const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
     const saveButton = useMemo(() => {
         return (
             <Button
-                // id="save-btn"
+                id="save-btn"
                 disabled={!(isDirty && isFormValid) || saveInProgress}
                 key={'save'}
                 outlined
@@ -287,7 +289,7 @@ const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
 
     return (
         <ModalSideSheet
-            // id="add-person-sidesheet"
+            id="add-person-sidesheet"
             header="Add Person"
             show={isOpen}
             size={'fullscreen'}
@@ -316,6 +318,7 @@ const AddPersonnelSideSheet: FC<AddPersonnelToSideSheetProps> = ({
                 />
             </div>
             <RequestProgressSidesheet
+                id="add-personnel-request-progress-sidesheet"
                 title="Saving personnel"
                 failedRequests={failedRequests}
                 successfulRequests={successfulRequests}

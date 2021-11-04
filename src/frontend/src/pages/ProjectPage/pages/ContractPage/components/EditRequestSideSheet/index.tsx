@@ -148,6 +148,7 @@ const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
 
     return (
         <ModalSideSheet
+            id="edit-request-sidesheet"
             isResizable
             header="Edit/Create requests"
             show={showSideSheet}
@@ -159,6 +160,7 @@ const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
             safeCloseConfirmLabel={'Discard changes'}
             headerIcons={[
                 <Button
+                    id="save-btn"
                     disabled={!(isFormDirty && isFormValid) || isSubmitting}
                     key={'save'}
                     outlined
@@ -168,9 +170,9 @@ const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
                 </Button>,
             ]}
         >
-            <div data-cy="help-btn" className={styles.helpButton}>
+            <div className={styles.helpButton}>
                 <Link target="_blank" to="/help">
-                    <IconButton ref={helpIconRef}>
+                    <IconButton id="help-btn" ref={helpIconRef}>
                         <HelpIcon />
                     </IconButton>
                 </Link>

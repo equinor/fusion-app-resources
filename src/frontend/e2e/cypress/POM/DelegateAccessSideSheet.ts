@@ -5,11 +5,11 @@
  */
  export default class DelegateAccessSideSheet {
     DelegateSideSheet(){
-        return cy.get('[class^="fc--Modal__modalSideSheet"]');
+        return cy.get('#delegate-sidesheet');
     }
     
     DelegateButton(){
-        return cy.get('[class^="fc--Modal__headerIcons"]').find('button');
+        return cy.get('#delegate-btn');
     }
 
     Certify1MonthRadioButton(){

@@ -141,10 +141,11 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                     <CloseIcon />
                 </IconButton>
                 <h2>{title}</h2>
-                <Button outlined onClick={onCancel}>
+                <Button id="cancel-btn" outlined onClick={onCancel}>
                     Cancel
                 </Button>
                 <Button
+                    id="next-btn"
                     outlined
                     disabled={!isFormValid || !isFormDirty || isSaving}
                     onClick={onSave}
@@ -183,8 +184,9 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                 >
                     <div className={styles.stepContainer}>
                         <div className={styles.row}>
-                            <div data-cy="contract-name" className={classNames(styles.field, styles.big)}>
+                            <div className={classNames(styles.field, styles.big)}>
                                 <TextInput
+                                    id="contract-name-input"
                                     ref={nameInputRef}
                                     label="Contract name"
                                     value={formState.name || ''}
@@ -228,7 +230,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                                     onSelect={formFieldSetter('contractResponsible')}
                                 />
                                 {formState.contractResponsible && (
-                                    <Button frameless onClick={clearEquinorContractResponsible}>
+                                    <Button id="clear-btn" frameless onClick={clearEquinorContractResponsible}>
                                         Clear
                                     </Button>
                                 )}
@@ -240,7 +242,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                                     onSelect={formFieldSetter('companyRep')}
                                 />
                                 {formState.companyRep && (
-                                    <Button frameless onClick={clearEquinorCompanyRep}>
+                                    <Button id="clear-btn" frameless onClick={clearEquinorCompanyRep}>
                                         Clear
                                     </Button>
                                 )}
@@ -249,12 +251,12 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
 
                         <div className={styles.actions}>
                             {!isEdit && (
-                                <Button outlined onClick={gotoContract}>
+                                <Button id="previous-btn" outlined onClick={gotoContract}>
                                     Previous
                                 </Button>
                             )}
                             {isSaving ? (
-                                <Button disabled>
+                                <Button id="save-btn" disabled>
                                     <Spinner inline size={16} /> Saving
                                 </Button>
                             ) : (
@@ -276,7 +278,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                                     onSelect={formFieldSetter('externalCompanyRep')}
                                 />
                                 {formState.externalCompanyRep && (
-                                    <Button frameless onClick={clearExternalCompanyRep}>
+                                    <Button id="clear-btn" frameless onClick={clearExternalCompanyRep}>
                                         Clear
                                     </Button>
                                 )}
@@ -297,7 +299,7 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                                     onSelect={formFieldSetter('externalContractResponsible')}
                                 />
                                 {formState.externalContractResponsible && (
-                                    <Button frameless onClick={clearExternalContractResponsible}>
+                                    <Button id="clear-btn" frameless onClick={clearExternalContractResponsible}>
                                         Clear
                                     </Button>
                                 )}
@@ -310,11 +312,11 @@ const EditContractWizard: FC<EditContractWizardProps> = ({
                             </div>
                         </div>
                         <div className={styles.actions}>
-                            <Button outlined onClick={gotoContractDetails}>
+                            <Button id="previous-btn" outlined onClick={gotoContractDetails}>
                                 Previous
                             </Button>
                             <Button
-                                disabled={!isFormValid || !isFormDirty || isSaving}
+                                id="submit-btn" disabled={!isFormValid || !isFormDirty || isSaving}
                                 onClick={handleSubmit}
                             >
                                 {isSaving ? (

@@ -16,10 +16,12 @@ declare namespace Cypress {
      loadProject(name: string): Chainable<void> 
      openContract(number: string): Chainable<void>
      delegateAdminAccess(responsible: string, person: string, period: string): Chainable<void>
-     recertifyAdminAccess(responsible: string, personIndex: number, period: string): Chainable<void>
-     removeAdminAccess(responsible: string, personIndex: number): Chainable<void>
+     recertifyAdminAccess(responsible: string, person: string, period: string): Chainable<void>
+     removeAdminAccess(responsible: string, person: string): Chainable<void>
+     getDelegateIndex(id: string, text: string): Chainable<number>
      searchText(column: string, keyword: string): Chainable<void>
      disciplineFilter(item: string): Chainable<void>
      adStatusFilter(item: string): Chainable<void>
+     //fillPersonData(personData: object): Chainable<void>
   }
 }

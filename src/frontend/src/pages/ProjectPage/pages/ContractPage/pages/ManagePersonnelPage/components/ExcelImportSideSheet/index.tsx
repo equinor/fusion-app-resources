@@ -10,6 +10,7 @@ type ExcelImportSideSheetProps = {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
     processingError: boolean;
+    id?: string;
 };
 
 const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
@@ -18,6 +19,7 @@ const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
     isOpen,
     setIsOpen,
     processingError,
+    id,
 }) => {
     const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
     const fileInput = useRef<HTMLInputElement>(null);
@@ -108,6 +110,7 @@ const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
 
     return (
         <ModalSideSheet
+            id={id}
             header="Excel Import"
             show={isOpen}
             size={'medium'}
@@ -129,7 +132,7 @@ const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
                                     <p>or </p>
                                     <div className={styles.fileInput}>
                                         <div className={styles.inputButton}>
-                                            <Button onClick={fileInputClick}>
+                                            <Button id="import-excel-btn" onClick={fileInputClick}>
                                                 Select an excel file
                                             </Button>
                                         </div>
@@ -154,6 +157,7 @@ const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
                             </div>
                             <div className={styles.processButton}>
                                 <Button
+                                    id="process-excel-btn"
                                     disabled={!selectedFileForUpload}
                                     onClick={startProcessingSelectedFile}
                                 >
@@ -164,7 +168,7 @@ const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
                                 <h3>Tips</h3>
                                 <ul>
                                     <li>
-                                        <Button outlined onClick={downloadExcelTemplate}>
+                                        <Button id="download-excel-template-btn" outlined onClick={downloadExcelTemplate}>
                                             Get an empty excel template here
                                         </Button>
                                     </li>

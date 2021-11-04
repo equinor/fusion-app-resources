@@ -23,8 +23,8 @@ describe('Help Page', () => {
     
     externalPersonnelPage.HelpButton().invoke('removeAttr', 'target').click()
 
-    cy.intercept('GET', '/help').as('load-help')
-    cy.wait('@load-help', {timeout:10000})
+    // cy.intercept('GET', '/help').as('load-help')
+    // cy.wait('@load-help', {timeout:20000})
 
     cy.url().should('include', '/help')
 

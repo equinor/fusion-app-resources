@@ -9,35 +9,31 @@
     }
 
     SaveButton(){
-        return cy.contains('Save');
+        return cy.get('#save-btn');
     }
 
     CancelButton(){
-        return cy.contains('Cancel');
+        return cy.get('#cancel-btn');
     }
 
     PreviousButton(){
-        return cy.contains('Previous');
+        return cy.get('#previous-btn');
     }
 
     NextButton(){
-        return cy.contains('Next');
+        return cy.get('button').contains('Next');
     }
 
     SubmitButton(){
-        return cy.contains('Submit');
+        return cy.get('#submit-btn');
     }
 
     ClearButton(){
-        return cy.contains('Clear');
+        return cy.get('#clear-btn');
     }
 
     Step1Button(){
         return cy.get('a[class^="fc--Stepper__step]').first();
-    }
-
-    ContractSelector(){
-        return cy.get('[class^="fc--TextInput__inputContent]');
     }
 
     Step2Button(){
@@ -45,7 +41,7 @@
     }
 
     ContractNameInputBox(){
-        return cy.get('[data-cy="contract-name"]');
+        return cy.get('#contract-name-input');
     }
 
     CompanySelector(){
