@@ -747,6 +747,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             absence.Any(x => x.appliesFrom > DateTime.Now || x.appliesTo < DateTime.Now).Should().BeFalse();
         }
 
+        [Fact]
+        public async Task GetTimeline_ShouldNotAggregateWorkloadWithPendingRequests()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+                                                                                                                  {
+                                                                                                                      x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+                                                                                                                  }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                                                                         $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+                                                                        );
+
+            var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            result.pendingRequests.Should().Contain(x => x.Id == request.Id);
+            result.timeline.Single().items.Should().Contain(x => x.type == "Request" && x.id == request.Id.ToString());
+            result.timeline.Single().workload.Should().Be(0);
+        }
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();
