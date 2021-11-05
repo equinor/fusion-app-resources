@@ -47,6 +47,7 @@ namespace Fusion.Resources.Domain
             return view.Segments.Select(x => new QueryTimelineRange<QueryPersonnelTimelineItem>(x.FromDate, x.ToDate)
             {
                 Items = x.Items,
+                // Segments containing Pending requests (item.Type=Request) should not be calculated in aggregated workload. 
                 Workload = x.Items.Where(i => !i.Type.Equals("Request")).Sum(item => item.Workload ?? 0)
             })
             .OrderBy(x => x.AppliesFrom)
