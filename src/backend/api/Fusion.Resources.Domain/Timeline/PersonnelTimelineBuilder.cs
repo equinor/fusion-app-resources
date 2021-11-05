@@ -47,7 +47,7 @@ namespace Fusion.Resources.Domain
             return view.Segments.Select(x => new QueryTimelineRange<QueryPersonnelTimelineItem>(x.FromDate, x.ToDate)
             {
                 Items = x.Items,
-                Workload = x.Items.Sum(item => item.Workload ?? 0)
+                Workload = x.Items.Where(i => !i.Type.Equals("Request")).Sum(item => item.Workload ?? 0)
             })
             .OrderBy(x => x.AppliesFrom)
             .ToList();
