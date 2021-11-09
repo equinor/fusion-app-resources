@@ -114,6 +114,14 @@ Cypress.Commands.add('fillPersonData', (index, type, data) => {
   cy.get('[id="'+type+'-input"]').eq(index).find('input').clear().type(data)
 });
 
+Cypress.Commands.add('collapseExpandSidesheets', () => {
+  /** collapse both navigation sidesheet and filter sidesheet to make sure the first name column and the phone number column show up */
+    // cy.get('#resources-contract-navigation-drawer').find('#collapse-expand-btn').click()
+    // cy.get('filter-pane').find('#collapse-expand-btn').click()
+    cy.get('[class^="fc--NavigationDrawer__collapseButtonContainer"]').find('button').click()
+    cy.get('[class^="fc--FilterPane__collapseExpandButtonContainer"]').find('button').click() 
+});
+
 // Cypress.Commands.add('getPersonIndex', (column, keyword) => {
 //   cy.get('[id="'+column+'-column"]').each(($el, index, $list) => {
 //     console.log($el, index, $list)

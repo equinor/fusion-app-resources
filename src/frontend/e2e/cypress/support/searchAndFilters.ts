@@ -1,7 +1,5 @@
 /** commands relates to delegate access, re-certify, and remove delegate */
 
-import { el } from "date-fns/locale";
-
 
 /** search a keyword
  *  column: the column to search the keyword, eg. 'email', 'first-name', 'last-name', 'disciplines', 'phone', 'position', etc
@@ -14,15 +12,19 @@ Cypress.Commands.add('searchText', (column, keyword) => {
     cy.get('#search-bar').type(keyword)
     cy.wait(100)
 
-    cy.get('[class^="fc--DataTable__container"]').within(() => {
-        /** TODO: add column id to each column in the data table !!! */
+    cy.collapseExpandSidesheets()
+
+    cy.get('#contract-personnel-table').within(() => {
+        /** each elements in the array should contains the keyword */
         cy.get('[id="' + column + '-column"]').each(function ($el, index, $list) {
             console.log($el, index, $list)
             expect($el).to.contain(keyword.trim())
         });
     });
 
-    cy.get('#search-bar').clear()
+    /** expand the sidesheets again */
+    cy.collapseExpandSidesheets()
+    cy.get('#search-bar').find('input').clear()
 });
 
 /** Disciplines filter
@@ -31,19 +33,28 @@ Cypress.Commands.add('searchText', (column, keyword) => {
 Cypress.Commands.add('disciplineFilter', (item) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
         .invoke('attr', 'class').should('not.contain', 'isCollapsed')
-
-    cy.get('#disciplines-filter').find('li').contains(item.trim()).click()
+ 
     cy.wait(100)
-
-    cy.get('[class^="fc--DataTable__container"]').within(() => {
+    cy.get('[id="filter"]').eq(1).as('displines-filter')  // cy.get('#disciplines-filter')
+    
+    cy.wait(500) /** wait for rending, bug: detected multiple renderers concurrently rendering the same context provider */
+    cy.get('@displines-filter').contains('li', item.trim()).click()
+    cy.get('@displines-filter').find('h4').should('contain', item.trim())
+    cy.wait(1000)
+    
+    cy.collapseExpandSidesheets()
+    
+    cy.get('#contract-personnel-table').within(() => {
         /** TODO: add column id to each column in the data table !!! */
-        cy.get('#disciplines-column').each(function ($el, index, $list) {
+        cy.get('[id="disciplines-column"]').each(function ($el, index, $list) {
             console.log($el, index, $list)
             expect($el).to.contain(item.trim())
         });
     });
 
-    cy.get('#disciplines-filter').find('#reset-btn').click() /** wait for fusion-component filter pane to be merged */
+    cy.collapseExpandSidesheets() /** expand the sidesheets again */
+    /** clear the filters */
+    cy.get('@displines-filter').find('#reset-btn').click() /** wait for fusion-component filter pane to be merged */
 })
 
 /** AD Status filter
@@ -53,12 +64,19 @@ Cypress.Commands.add('adStatusFilter', (item) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
         .invoke('attr', 'class').should('not.contain', 'isCollapsed')
 
-    cy.get('#ad-status-filter').find('li').contains(item.trim()).click()
-    cy.wait(100)
+    //cy.get('#ad-status-filter')
+    cy.get('[id="filter"]').eq(2).as('ad-filter')
 
-    cy.get('[class^="fc--DataTable__container"]').within(() => {
+    cy.wait(500) /** wait for rending, bug: detected multiple renderers concurrently rendering the same context provider */
+    cy.get('@ad-filter').contains('li', item.trim()).click()
+    cy.get('@ad-filter').find('h4').should('contain', item.trim())
+    cy.wait(1000)
+
+    cy.collapseExpandSidesheets()
+
+    cy.get('#contract-personnel-table').within(() => {
         /** TODO: add column id to each column in the data table !!! */
-        cy.get('#ad-column').each(function ($el, index, $list) {
+        cy.get('[id="ad-column"]').each(function ($el, index, $list) {
             console.log($el, index, $list)
             if (item === 'Azure AD Approved')
                 cy.wrap($el).find('div').should('have.id', 'approved')
@@ -69,5 +87,6 @@ Cypress.Commands.add('adStatusFilter', (item) => {
         });
     });
 
-    cy.get('#ad-status-filter').find('#reset-btn').click() /** wait for fusion-component filter pane to be merged */
+    cy.collapseExpandSidesheets() /** expand the sidesheets again */
+    cy.get('@ad-filter').find('#reset-btn').click() /** wait for fusion-component filter pane to be merged */
 })

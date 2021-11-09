@@ -24,5 +24,6 @@ declare namespace Cypress {
      disciplineFilter(item: string): Chainable<void>
      adStatusFilter(item: string): Chainable<void>
      fillPersonData(index:number, type: string, data: string): Chainable<void>
+     collapseExpandSidesheets(): Chainable<void>
   }
 }

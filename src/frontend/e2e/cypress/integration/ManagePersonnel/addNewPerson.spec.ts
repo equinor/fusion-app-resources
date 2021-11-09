@@ -76,11 +76,7 @@ describe('Contract Personnel', () => {
             cy.wait(100)
         });
 
-        /** collapse both navigation sidesheet and filter sidesheet to make sure the first name column and the phone number column show up */
-        // cy.get('#resources-contract-navigation-drawer').find('#collapse-expand-btn').click()
-        // cy.get('filter-pane').find('#collapse-expand-btn').click()
-        cy.get('[class^="fc--NavigationDrawer__collapseButtonContainer"]').find('button').click()
-        cy.get('[class^="fc--FilterPane__collapseExpandButtonContainer"]').find('button').click()        
+        cy.collapseExpandSidesheets()       
 
         cy.get('[id="first-name-column"]').should('contain', this.personData.FirstName2) 
 
