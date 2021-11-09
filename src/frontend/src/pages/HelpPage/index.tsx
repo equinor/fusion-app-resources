@@ -51,14 +51,14 @@ const HelpPage: FC = () => {
     return (
         <div className={styles.helpContainer}>
             <Tabs activeTabKey={selectedTab} onChange={setSelectedTab}>
-                <Tab tabKey="contract-management" title="Contract management">
+                <Tab id="contract-management-tab" tabKey="contract-management" title="Contract management">
                     <div className={styles.contentContainer}>
                         <div className={styles.content}>
                             <MarkdownViewer markdown={cmMarkdown} />
                         </div>
                     </div>
                 </Tab>
-                <Tab tabKey="role-delegation" title="Role delegation">
+                <Tab id="role-delegation-tab" tabKey="role-delegation" title="Role delegation">
                     <div className={styles.contentContainer}>
                         <div className={styles.content}>
                             <MarkdownViewer markdown={rdMarkdown} />

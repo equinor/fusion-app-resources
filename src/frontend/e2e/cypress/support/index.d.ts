@@ -19,9 +19,10 @@ declare namespace Cypress {
      recertifyAdminAccess(responsible: string, person: string, period: string): Chainable<void>
      removeAdminAccess(responsible: string, person: string): Chainable<void>
      getDelegateIndex(id: string, text: string): Chainable<number>
+     // getPersonIndex(column: string, keyword: string): Chainable<number>
      searchText(column: string, keyword: string): Chainable<void>
      disciplineFilter(item: string): Chainable<void>
      adStatusFilter(item: string): Chainable<void>
-     //fillPersonData(personData: object): Chainable<void>
+     fillPersonData(index:number, type: string, data: string): Chainable<void>
   }
 }

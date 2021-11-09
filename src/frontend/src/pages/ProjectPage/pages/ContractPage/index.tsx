@@ -64,7 +64,7 @@ const ContractPage: FC<ContractPageProps> = ({ match }) => {
         return (
             <div className={styles.container}>
                 <header className={styles.header}>
-                    <div data-cy="close-btn">
+                    <div id="close-contract-btn">
                     <IconButton onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
@@ -81,7 +81,7 @@ const ContractPage: FC<ContractPageProps> = ({ match }) => {
         <ContractContext.Provider value={contractContext}>
             <div className={styles.container}>
                 <header className={styles.header}>
-                    <IconButton data-cy="close-btn" onClick={onClose}>
+                    <IconButton id="close-contract-btn" onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
                     <h2>
@@ -95,7 +95,7 @@ const ContractPage: FC<ContractPageProps> = ({ match }) => {
                     </h2>
                 </header>
                 <div className={styles.content}>
-                    <div className={styles.nav}>
+                    <div data-cy="resources-contract-navigation-drawer" className={styles.nav}>
                         <NavigationDrawer
                             id="resources-contract-navigation-drawer"
                             structure={structure}

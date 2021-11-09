@@ -68,6 +68,7 @@ const processAuthResponse = (resource: string) => (response: Cypress.Response<{ 
   localStorage.setItem('FUSION_AUTH_CACHE', JSON.stringify(obj));
 }
 
+/** Log in with access token */
 Cypress.Commands.add('login', () => {
   const token = Cypress.env('TOKEN');
   if (token) {
@@ -84,23 +85,42 @@ Cypress.Commands.add('fusion', () => cy.window().then((window: Window) => window
 
 Cypress.Commands.add('currentUser', () => cy.fusion().then(async (x) => await x.auth.container.getCachedUserAsync()));
 
+/** select a project and load content */
 Cypress.Commands.add('loadProject', (name) => {
   cy.get('input[class^=fc--ContextSelector__searchInput]').should('be.visible').as('context-selector');
   // cy.get('[data-cy="context-selector"]').find('input').should('be.visible').as('context-selector');
   cy.get('@context-selector').type(name)
   cy.get("div[class^=fc--Menu__container]").contains(name, { timeout: 10000 }).click()
   // cy.get('[data-cy="context-selector-dropdown"]').contains(name, { timeout: 10000 }).click()
-  cy.wait(3000)
+  cy.wait(1000)
 });
 
+/** select a contract and load content */
 Cypress.Commands.add('openContract', (number) => {
-  cy.get('[data-cy="contract-id"]').contains(number).should('be.visible').as('contract-id')
+  cy.get('[data-cy="contract-id"]', {timeout:10000}).contains(number).should('be.visible').as('contract-id')
 
   cy.get('@contract-id').invoke('attr', 'href').then(($href) => {
     const contractUrl = $href.toString().trim()
     cy.get('@contract-id').click()
-    cy.wait(3000)
+    cy.wait(1000)
   })
 });
 
+/** fill in person data
+ * type: data type, eg. first-name, last-name, email, phone 
+ * data: the data for the selected type
+*/
+Cypress.Commands.add('fillPersonData', (index, type, data) => {
+  cy.get('[id="'+type+'-input"]').eq(index).find('input').clear().type(data)
+});
 
+// Cypress.Commands.add('getPersonIndex', (column, keyword) => {
+//   cy.get('[id="'+column+'-column"]').each(($el, index, $list) => {
+//     console.log($el, index, $list)
+//     if ($el.text() === keyword) {
+//       console.log('index is: ', index)
+//       cy.wrap(index)
+//       //return index
+//     } 
+//   })
+// });

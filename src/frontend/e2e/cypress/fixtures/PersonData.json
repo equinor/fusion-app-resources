@@ -1,14 +1,9 @@
-[
-    {
-        "FirstName": "Test1",
-        "LastName": "Bouvet",
-        "Email": "test1@bouvet.no",
-        "PhoneNumber": "12345678"
-    },
-    {
-        "FirstName": "Test2",
-        "LastName": "Equinor",
-        "Email": "test2@equinor.com",
-        "PhoneNumber": "87654321"
-    }
-]
+{
+    "FirstName1": "Person1",
+    "FirstName2": "Person2",
+    "LastName1": "Test1",
+    "LastName2": "Test2",
+    "Email": "person@test.com",
+    "PhoneNumber1": "12345678",
+    "PhoneNumber2": "87654321"
+}

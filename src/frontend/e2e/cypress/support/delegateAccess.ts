@@ -43,6 +43,7 @@ Cypress.Commands.add('delegateAdminAccess', (responsible, person, period) => {
 
     /** verify the updates in the delegate table */
     cy.get('@delegate-access').within(() => {
+        cy.wait(100)
         cy.get('[id="delegated-to-person-column"]').last().should('contain', person)
         cy.get('[id="re-certification-date-column"]').last().should('contain', '-')
     });
@@ -56,12 +57,6 @@ Cypress.Commands.add('delegateAdminAccess', (responsible, person, period) => {
 Cypress.Commands.add('recertifyAdminAccess', (responsible, person, period) => {
     cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access').within(() => {
         cy.get('[data-cy="delegate-table"]').should('be.exist')
-
-        // cy.contains('[id="delegated-to-person-column"]', person).invoke('index').then((i) => {
-        //     console.log(i)
-        //     const x = (i - 2) / 6
-        //     cy.get('[id="selection-cell"]').eq(x - 1).click()
-        // })
 
         cy.getDelegateIndex('delegated-to-person-column', person).then(i => {
             console.log('return index is: ', i)
@@ -80,14 +75,7 @@ Cypress.Commands.add('recertifyAdminAccess', (responsible, person, period) => {
     });
 
     cy.get('@delegate-access').within(() => {
-        // cy.contains('[id="delegated-to-person-column"]', person).invoke('index').then((i) => {
-        //     console.log(i)
-        //     const x = (i - 2) / 6
-        //     cy.get('[id="re-certification-date-column"]').eq(x - 1).should('not.contain', '-')
-        //     cy.get('[id="selection-cell"]').eq(x - 1).click() /** unselect the person */
-        // })
-
-        cy.getDelegateIndex('delegated-to-person-column', person).then(i => {
+         cy.getDelegateIndex('delegated-to-person-column', person).then(i => {
             console.log('return index is: ', i)
             cy.get('[id="re-certification-date-column"]').eq(i).should('not.contain', '-')
             cy.get('[id="selection-cell"]').eq(i).click() /** unselect the person */
@@ -103,11 +91,10 @@ Cypress.Commands.add('removeAdminAccess', (responsible, person) => {
     cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access').within(() => {
         cy.get('[data-cy="delegate-table"]').should('be.exist')
 
-        cy.contains('[id="delegated-to-person-column"]', person).invoke('index').then((i) => {
-            console.log(i)
-            const x = (i - 2) / 6
-            cy.get('[id="selection-cell"]').eq(x - 1).click()
-        })
+        cy.getDelegateIndex('delegated-to-person-column', person).then(i => {
+            console.log('return index is: ', i)
+            cy.get('[id="selection-cell"]').eq(i).click()
+        });
 
         cy.wait(100)
         cy.get('#remove-btn').click()

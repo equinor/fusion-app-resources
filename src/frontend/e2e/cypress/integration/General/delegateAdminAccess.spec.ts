@@ -36,7 +36,7 @@ describe('TC 13035 Delegate Admin Access', () => {
     /** remove a existing person from the equinor admin access table */
     cy.removeAdminAccess('equinor', person)
 
-    cy.get('[data-cy="close-btn"]').click()
+    cy.get('[id="close-contract-btn"]').click()
   });
 
   it('Delegate Admin Access - External Responsible', () => {
@@ -53,7 +53,7 @@ describe('TC 13035 Delegate Admin Access', () => {
     /** remove a existing person from the external admin access table */
     cy.removeAdminAccess('external', person)
 
-    cy.get('[data-cy="close-btn"]').click()
+    cy.get('[id="close-contract-btn"]').click()
   });
 
 })

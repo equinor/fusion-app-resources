@@ -16,27 +16,20 @@ describe('Help Page', () => {
   });
 
   it('TC 13042 Open the Help page', () => {
-    const tab1 = 'Contract management'
-    const tab2 = 'Role delegation'
 
     cy.loadProject('Query test project')
-    
-    externalPersonnelPage.HelpButton().invoke('removeAttr', 'target').click()
 
-    // cy.intercept('GET', '/help').as('load-help')
-    // cy.wait('@load-help', {timeout:20000})
+    externalPersonnelPage.HelpButton().invoke('removeAttr', 'target').click()
 
     cy.url().should('include', '/help')
 
-    cy.wait(3000)
-    cy.contains('div', tab1).parent('a')
-    .invoke('attr', 'class').should('contain', 'Tabs__current')
+    cy.get('#contract-management-tab', { timeout: 5000 }).invoke('attr', 'class').should('contain', 'Tabs__current')
     cy.contains('h1', 'Contract Management').should('be.visible')
 
-    cy.contains('div', tab2).click()
-    cy.contains('div', tab2).parent('a').invoke('attr', 'class').should('contain', 'Tabs__current')
+    cy.get('#role-delegation-tab').click()
+      .invoke('attr', 'class').should('contain', 'Tabs__current')
     cy.contains('h1', 'Role Delegation').should('be.visible')
-    
+
   });
 
 })

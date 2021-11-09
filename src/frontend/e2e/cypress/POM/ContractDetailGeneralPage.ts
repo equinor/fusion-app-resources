@@ -17,7 +17,7 @@
     }
 
     CloseButton(){
-        return cy.get('[data-cy="close-btn"]');
+        return cy.get('[id="close-contract-btn"]');
     }
 
     EquinorResponsible(){
