@@ -18,7 +18,14 @@ namespace Fusion.Resources.Domain
             PersonId = personId;
         }
 
+        private bool includeCurrentAllocations;
         public PersonnelId PersonId { get; }
+
+        public GetPersonnelAllocation IncludeCurrentAllocations(bool includeCurrentAllocations)
+        {
+            this.includeCurrentAllocations = includeCurrentAllocations;
+            return this;
+        }
 
         public class Handler : IRequestHandler<GetPersonnelAllocation, QueryInternalPersonnelPerson?>
         {
@@ -27,7 +34,7 @@ namespace Fusion.Resources.Domain
             private readonly IHttpClientFactory httpClientFactory;
             private readonly IMediator mediator;
             private readonly IFusionProfileResolver profileResolver;
-
+            
             public Handler(ILogger<Handler> logger, ResourcesDbContext db, IHttpClientFactory httpClientFactory, IMediator mediator, IFusionProfileResolver profileResolver)
             {
                 this.logger = logger;
@@ -56,6 +63,21 @@ namespace Fusion.Resources.Domain
                 var absence = await mediator.Send(new GetPersonAbsence(request.PersonId));
 
                 personWithAllocations.Absence = absence.Select(a => new QueryPersonAbsenceBasic(a)).ToList();
+
+                if (!request.includeCurrentAllocations)
+                    return personWithAllocations;
+
+                personWithAllocations.PositionInstances = personWithAllocations.PositionInstances
+                                                                               .Where(instance => instance.AppliesTo >= DateTime.Now && instance.AppliesFrom <= DateTime.Now)
+                                                                               .ToList();
+
+                personWithAllocations.Absence = personWithAllocations.Absence
+                                                                     .Where(instance => (instance.AppliesTo == null || instance.AppliesTo >= DateTime.Now) && instance.AppliesFrom <= DateTime.Now)
+                                                                     .ToList();
+
+                if (personWithAllocations.PendingRequests != null)
+                    personWithAllocations.PendingRequests = personWithAllocations.PendingRequests.Where(instance => instance.OrgPositionInstance?.AppliesTo >= DateTime.Now && instance.OrgPositionInstance?.AppliesFrom <= DateTime.Now).ToList();
+
                 return personWithAllocations;
             }
         }

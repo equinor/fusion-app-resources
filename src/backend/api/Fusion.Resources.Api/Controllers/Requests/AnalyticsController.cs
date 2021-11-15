@@ -13,6 +13,7 @@ using Fusion.Resources.Domain.Queries;
 namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
     public class AnalyticsController : ResourceControllerBase
@@ -78,12 +79,14 @@ namespace Fusion.Resources.Api.Controllers
                 Id = absence.Id;
                 AppliesFrom = absence.AppliesFrom;
                 AppliesTo = absence.AppliesTo;
-                Type = Enum.Parse<ApiAbsenceType>($"{absence.Type}", true);
+                Type = Enum.Parse<ApiPersonAbsence.ApiAbsenceType>($"{absence.Type}", true);
                 AbsencePercentage = absence.AbsencePercentage;
 
                 IsPrivate = absence.IsPrivate;
                 Comment = absence.Comment;
                 TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
+
+                if (absence.Person is not null) Person = new ApiPerson(absence.Person);
 
                 if (absence.IsPrivate || absence.Type == QueryAbsenceType.Absence)
                 {
@@ -97,15 +100,14 @@ namespace Fusion.Resources.Api.Controllers
             public Guid Id { get; set; }
             public bool IsPrivate { get; set; }
             public string? Comment { get; set; }
+            public ApiPerson? Person { get; set; }
             public ApiTaskDetails? TaskDetails { get; set; }
             public DateTimeOffset AppliesFrom { get; set; }
             public DateTimeOffset? AppliesTo { get; set; }
-            public ApiAbsenceType Type { get; set; }
+            public ApiPersonAbsence.ApiAbsenceType Type { get; set; }
             public double? AbsencePercentage { get; set; }
-
-            [JsonConverter(typeof(JsonStringEnumConverter))]
-            public enum ApiAbsenceType { Absence, Vacation, OtherTasks }
         }
+
         public class ApiResourceAllocationRequestForAnalytics
         {
             private ApiResourceAllocationRequestForAnalytics(QueryResourceAllocationRequest query)

@@ -13,14 +13,16 @@ using System.Xml;
 namespace Fusion.Resources.Api.Controllers
 {
     [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
-    public class InternalPersonnelController : ResourceControllerBase
+    public partial class InternalPersonnelController : ResourceControllerBase
     {
 
         public InternalPersonnelController()
         {
         }
+
         /// <summary>
         /// Get personnel for a department
         /// </summary>
@@ -31,6 +33,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="includeSubdepartments">Certain departments in line org exists where a 
         /// person in the department manages external users. Setting this flag to true will 
         /// include such personnel in the result.</param>
+        /// <param name="includeCurrentAllocations">Optional: only include current allocation</param>
         /// <returns></returns>
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
@@ -38,7 +41,8 @@ namespace Fusion.Resources.Api.Controllers
             [FromQuery] DateTime? timelineStart = null,
             [FromQuery] string? timelineDuration = null,
             [FromQuery] DateTime? timelineEnd = null,
-            [FromQuery] bool includeSubdepartments = false)
+            [FromQuery] bool includeSubdepartments = false,
+            [FromQuery] bool includeCurrentAllocations = false)
         {
             #region Authorization
 
@@ -93,8 +97,9 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
+                .IncludeSubdepartments(includeSubdepartments)
+                .IncludeCurrentAllocations(includeCurrentAllocations)
                 .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
-            command.IncludeSubdepartments(includeSubdepartments);
 
             var department = await DispatchAsync(command);
 
@@ -178,7 +183,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}")]
-        public async Task<ActionResult<ApiInternalPersonnelPerson>> GetPersonnelAllocation(string fullDepartmentString, string personIdentifier)
+        public async Task<ActionResult<ApiInternalPersonnelPerson>> GetPersonnelAllocation(string fullDepartmentString, string personIdentifier, [FromQuery] bool includeCurrentAllocations = false)
         {
             #region Authorization
 
@@ -204,7 +209,8 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var personnelItem = await DispatchAsync(new GetPersonnelAllocation(personIdentifier));
+            var personnelItem = await DispatchAsync(new GetPersonnelAllocation(personIdentifier)
+                                                        .IncludeCurrentAllocations(includeCurrentAllocations));
 
             if (personnelItem is null)
                 throw new InvalidOperationException("Could locate profile for person");
@@ -257,8 +263,11 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+
+        [MapToApiVersion("1.0")]
+        [HttpGet("/departments/resources/persons")]
         [HttpGet("/projects/{projectIdentifier}/resources/persons")]
-        public async Task<ActionResult> Search([FromRoute] PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> Search([FromRoute] PathProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
         {
             #region Authorization
 
@@ -267,7 +276,9 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.OrgChartReadAccess(projectIdentifier.ProjectId);
+                    if (projectIdentifier is not null)
+                        or.OrgChartReadAccess(projectIdentifier.ProjectId);
+
                     or.BeResourceOwner();
                 });
             });
@@ -278,19 +289,24 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var command = new SearchPersonnel(query.Search);
-            if(query.HasFilter)
+            var command = new SearchPersonnel(query.Search)
+                .WithPaging(query);
+
+            if (query.HasFilter)
             {
                 var departmentFilter = query.Filter.GetFilterForField("department");
                 if (departmentFilter.Operation != FilterOperation.Eq)
-                    return BadRequest("Only the 'eq' operator is supported.");
+                    return FusionApiError.InvalidOperation("InvalidQueryFilter", "Only the 'eq' operator is supported.");
 
                 command = command.WithDepartmentFilter(departmentFilter.Value);
             }
             var result = await DispatchAsync(command);
 
-            return Ok(result.Select(x => ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(x)));
+            return new ApiCollection<ApiInternalPersonnelPerson>(result.Select(x => ApiInternalPersonnelPerson.CreateWithoutConfidentialTaskInfo(x)))
+            {
+                TotalCount = result.TotalCount
+            };
         }
-    }
 
+    }
 }

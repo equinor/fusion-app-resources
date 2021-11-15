@@ -134,26 +134,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
-
-        //[Theory]
-        //[InlineData("resourceOwner", TestDepartment, true)]
-        //[InlineData("resourceOwner", SiblingDepartment, true)]
-        //[InlineData("resourceOwner", ParentDepartment, true)]
-        //[InlineData("resourceOwner", SameL2Department, true)]
-        //public async Task CanReadPersonnel(string role, string department, bool shouldBeAllowed)
-        //{
-        //    Users[role].FullDepartment = department;
-        //    using var userScope = fixture.UserScope(Users[role]);
-
-        //    var client = fixture.ApiFactory.CreateClient();
-        //    var result = await client.TestClientGetAsync<dynamic>(
-        //        $"/departments/{TestDepartment}/resources/personnel?api-version=1.0-preview"
-        //    );
-
-        //    if (shouldBeAllowed) result.Should().BeSuccessfull();
-        //    else result.Should().BeUnauthorized();
-        //}
-
         [Theory]
         [InlineData("resourceOwner", TestDepartment, true)]
         [InlineData("resourceOwner", SiblingDepartment, true)]
@@ -658,7 +638,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             var client = fixture.ApiFactory.CreateClient();
 
             var result = await client.TestClientGetAsync<dynamic>(
-                $"/departments/{TestDepartment}/resources/requests/unassigned?api-version=1.0-preview"
+                $"/departments/{TestDepartment}/resources/requests/unassigned"
             );
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();

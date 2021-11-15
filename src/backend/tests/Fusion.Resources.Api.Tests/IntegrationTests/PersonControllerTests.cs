@@ -66,7 +66,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 testUser.FullDepartment = actualDept;
                 var client = fixture.ApiFactory.CreateClient();
                 var resp = await client.TestClientGetAsync(
-                    $"/persons/me/resources/profile?api-version=1.0-preview",
+                    $"/persons/me/resources/profile",
                     new { responsibilityInDepartments = Array.Empty<string>() }
                 );
 
@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 testUser.FullDepartment = null;
                 var client = fixture.ApiFactory.CreateClient();
                 var resp = await client.TestClientGetAsync(
-                    $"/persons/me/resources/profile?api-version=1.0-preview",
+                    $"/persons/me/resources/profile",
                     new
                     {
                         fullDepartment = default(string),
@@ -107,7 +107,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var userScope = fixture.AdminScope();
             var client = fixture.ApiFactory.CreateClient();
             var resp = await client.TestClientGetAsync(
-                $"/persons/{Guid.NewGuid()}/resources/profile?api-version=1.0-preview",
+                $"/persons/{Guid.NewGuid()}/resources/profile",
                 new
                 {
                     fullDepartment = default(string),

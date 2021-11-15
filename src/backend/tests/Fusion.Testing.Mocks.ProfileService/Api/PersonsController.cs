@@ -1,11 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Text;
 using Fusion.Integration.Profile.ApiClient;
 using System.Linq;
 using Fusion.AspNetCore.OData;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Reflection;
+using Microsoft.Data.Edm;
+using Microsoft.Data.Edm.Library;
+using Microsoft.Data.OData.Query;
+using Microsoft.Data.OData.Query.SemanticAst;
+
 
 namespace Fusion.Testing.Mocks.ProfileService.Api
 {
@@ -36,7 +41,7 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
 
             if (!expandParams.ShouldExpand("roles"))
                 copy.Roles = null;
-                
+
 
             if (!expandParams.ShouldExpand("positions"))
                 copy.Positions = null;
@@ -53,8 +58,8 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
         public ActionResult<ApiEnsuredProfileV2> ResolveProfileV3(ProfilesRequest request)
         {
             var results = new List<ApiEnsuredProfileV2>();
-            
-            foreach(var id in request.PersonIdentifiers)
+
+            foreach (var id in request.PersonIdentifiers)
             {
                 var result = new ApiEnsuredProfileV2
                 {
@@ -82,31 +87,67 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
         }
 
         [HttpPost("/search/persons/query")]
-        public ActionResult Search()
+        public ActionResult Search(PeopleSearchRequest peopleSearchRequest)
         {
             var props = typeof(ApiPersonProfileV3).GetProperties();
+
+            var azureUniqueId = GetAzureUniqueIdFromFilterQuery(peopleSearchRequest);
+
             return Ok(new
-            {
-                Results = PeopleServiceMock.profiles
-                .Select(profile => {
-                    var doc = new Dictionary<string, object>();
-                    
-                    foreach(var prop in props) doc.Add(prop.Name, prop.GetValue(profile));
-
-                    doc["ManagerAzureId"] = PeopleServiceMock.profiles.FirstOrDefault(m => m.IsResourceOwner && m.FullDepartment == profile.FullDepartment)?.AzureUniqueId;
-                    doc["IsExpired"] = false;
-                    doc["Positions"] = new List<ApiPersonPositionV3>();
-
-                    return new
-                    {
-                        Document = doc
-                    };
-                })
-            });
+                      {
+                          Results = !string.IsNullOrWhiteSpace(azureUniqueId) 
+                              ? PeopleServiceMock.profiles.Where(x => x.AzureUniqueId.ToString() == azureUniqueId).Select(PeopleSelector(props))
+                              : PeopleServiceMock.profiles.Select(PeopleSelector(props))
+                      });
         }
+
+        private static Func<ApiPersonProfileV3, object> PeopleSelector(PropertyInfo[] props)
+        {
+            return profile =>
+                   {
+                       var doc = new Dictionary<string, object>();
+
+                       foreach (var prop in props) doc.Add(prop.Name, prop.GetValue(profile));
+
+                       doc["ManagerAzureId"] = PeopleServiceMock.profiles.FirstOrDefault(m => m.IsResourceOwner && m.FullDepartment == profile.FullDepartment)?.AzureUniqueId;
+                       doc["IsExpired"] = false;
+
+                       return new
+                              {
+                                  Document = doc
+                              };
+                   };
+        }
+
+        private static string GetAzureUniqueIdFromFilterQuery(PeopleSearchRequest peopleSearchRequest)
+        {
+            if (string.IsNullOrWhiteSpace(peopleSearchRequest.Filter) || !peopleSearchRequest.Filter.Contains("azureUniqueId")) return null;
+            
+            var edmModel = new EdmModel();
+            var persons = new EdmEntityType("AdPerson", "Person");
+            persons.AddStructuralProperty("azureUniqueId", EdmPrimitiveTypeKind.String);
+            persons.AddStructuralProperty("managerAzureId", EdmPrimitiveTypeKind.String);
+            edmModel.AddElement(persons);
+            var filterClause = ODataUriParser.ParseFilter(peopleSearchRequest.Filter, edmModel, persons);
+            var operatorNode = filterClause.Expression as BinaryOperatorNode;
+            var propertyName = (operatorNode?.Left as SingleValuePropertyAccessNode)?.Property.Name;
+            
+            if (propertyName is not "azureUniqueId") return null;
+
+            var value = (operatorNode.Right as ConstantNode)?.Value;
+
+            return value as string;
+        }
+
         public class ProfilesRequest
         {
             public List<string> PersonIdentifiers { get; set; }
         }
+    }
+
+    public class PeopleSearchRequest
+    {
+        public string Filter { get; set; }
+        public int Top { get; set; }
     }
 }

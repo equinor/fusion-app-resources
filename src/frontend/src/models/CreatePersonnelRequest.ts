@@ -6,6 +6,7 @@ type CreatePersonnelRequest = {
     position: CreatePersonnelRequestPosition | null;
     person: {
         mail: string;
+        azureUniquePersonId: string;
     };
     originalPositionId: string | null;
 };
