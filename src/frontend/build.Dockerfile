@@ -1,4 +1,4 @@
-FROM nikolaik/python-nodejs:latest as base
+FROM nikolaik/python-nodejs:14 as base
 WORKDIR /app
 
 COPY package*.json ./

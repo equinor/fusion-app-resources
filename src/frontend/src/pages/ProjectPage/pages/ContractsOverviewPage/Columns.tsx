@@ -10,7 +10,7 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         label: 'Contract no.',
         sortable: true,
         component: ({ item }) => (
-            <ContractLinkColumn contractId={item.id}>{item.contractNumber}</ContractLinkColumn>
+                <ContractLinkColumn data-cy="contract-id" contractId={item.id}>{item.contractNumber}</ContractLinkColumn>
         ),
     },
     {
@@ -27,14 +27,14 @@ const createColumns = (): DataTableColumn<Contract>[] => [
         accessor: contract => contract.companyRep?.name || '',
         key: 'companyRepPositionId',
         label: 'Equinor company rep',
-        component: ({ item }) => <PositionColumn position={item.companyRep} />,
+        component: ({ item }) => <PositionColumn data-cy='company-rep' position={item.companyRep} />,
         sortable: true,
     },
     {
         accessor: contract => contract.contractResponsible?.name || '',
         key: 'contractResponsiblePositionId',
         label: 'Equinor contract rep',
-        component: ({ item }) => <PositionColumn position={item.contractResponsible} />,
+        component: ({ item }) => <PositionColumn data-cy='contract-rep' position={item.contractResponsible} />,
         sortable: true,
     },
     {
