@@ -70,7 +70,7 @@ namespace Fusion.Resources.Logic.Commands
                         Workload = dbRequest.Position.Workload,
                         Obs = dbRequest.Position.Obs,
                         BasePositionId = dbRequest.Position.BasePositionId,
-                        AssignedPerson = dbRequest.Person.Person.Mail,
+                        AssignedPerson =  dbRequest.Person.Person,
                         ParentPositionId = dbRequest.Position.TaskOwner.PositionId
                     };
 
@@ -107,7 +107,7 @@ namespace Fusion.Resources.Logic.Commands
                         Workload = dbRequest.Position.Workload,
                         Obs = dbRequest.Position.Obs,
                         BasePositionId = dbRequest.Position.BasePositionId,
-                        AssignedPerson = dbRequest.Person.Person.Mail,
+                        AssignedPerson = dbRequest.Person.Person,
                         ParentPositionId = dbRequest.Position.TaskOwner.PositionId
                     };
 
