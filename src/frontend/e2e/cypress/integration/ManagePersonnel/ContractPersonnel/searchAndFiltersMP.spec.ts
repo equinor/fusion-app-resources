@@ -2,7 +2,7 @@
 /// <reference types="cypress" />
 
 // type definitions for custom commands like "createDefaultTodos"
-/// <reference types="../../support" />
+/// <reference types="../../../support" />
 
 describe('TC 13064 Search and Filter', () => {
     /** TODO make login persistent between tests */

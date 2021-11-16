@@ -2,7 +2,7 @@
 /// <reference types="cypress" />
 
 // type definitions for custom commands like "createDefaultTodos"
-/// <reference types="../../support" />
+/// <reference types="../../../support" />
 
 describe('Contract Personnel', () => {
     /** TODO make login persistent between tests */
