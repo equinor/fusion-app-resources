@@ -236,7 +236,7 @@ const ManagePersonnelPage: FC = () => {
                     onFilter={setFilteredPersonnel}
                 />
                 <ExcelImportSideSheet
-                    id="excel-import-sidesheet"
+                    id="excel-sidesheet"
                     setSelectedFile={setSelectedFile}
                     isProccessing={isProccessingFile}
                     isOpen={isUploadFileOpen}

@@ -17,6 +17,7 @@
 import './commands'
 import './delegateAccess'
 import './searchAndFilters'
+import './contractPerson'
 import './importFile'
 
 const contractTableColumnSelector = {

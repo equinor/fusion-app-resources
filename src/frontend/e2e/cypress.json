@@ -1,5 +1,6 @@
 {
     "baseUrl": "http://localhost:3000",
     "chromeWebSecurity": false,
-    "downloadsFolder": "cypress/downloads"
+    "downloadsFolder": "cypress/downloads",
+    "fixturesFolder": "cypress/fixtures"
 }

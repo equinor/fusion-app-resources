@@ -84,24 +84,7 @@ describe('Contract Personnel', () => {
     });
 
     it('TC 13062 - Delete selected person', function () {
-        cy.get('#contract-personnel-table').within(() => {            
-            cy.get('[id="email-column"]').each(($el, index, $list) => {
-                console.log($el, index, $list)
-                /** $el is a wrapped jQuery element  */
-                if ($el.text() === this.personData.Email) {
-                  console.log(index)
-                  cy.get('[id="selection-cell"]').eq(index).click()
-                } 
-            })       
-        });
-
-        cy.get('#delete-btn').click()
-
-        /**  confirm in dialog */
-        cy.get('[class^="fc--Dialog__container"]').should('be.visible')
-        .contains('button', 'sure').click() // cy.get('#confirm-btn').click()
-
-        cy.get('[id="email-column"]').should('not.contain', this.personData.Email.trim())
+        cy.deletePerson(this.personData.Email)
 
         cy.get('#close-contract-btn').click()
     });

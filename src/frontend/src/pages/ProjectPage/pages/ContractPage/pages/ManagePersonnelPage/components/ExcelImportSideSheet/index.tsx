@@ -144,7 +144,7 @@ const ExcelImportSideSheet: FC<ExcelImportSideSheetProps> = ({
                                         ></input>
                                     </div>
                                 </div>
-                                <div className={styles.errorMessageText}>
+                                <div data-cy="selected-file-name" className={styles.errorMessageText}>
                                     {selectedFileForUpload &&
                                         !fileError &&
                                         `Selected file: ${selectedFileForUpload.name}`}

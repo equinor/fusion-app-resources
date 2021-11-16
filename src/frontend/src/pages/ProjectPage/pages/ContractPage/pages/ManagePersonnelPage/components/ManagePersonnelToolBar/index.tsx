@@ -43,7 +43,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
             )}
             {excelImportButton && (
                 <IconButton
-                    id="excel-import-btn"
+                    id="excel-btn"
                     ref={useTooltipRef('Import personnel from excel file')}
                     onClick={excelImportButton?.onClick}
                     disabled={excelImportButton?.disabled}

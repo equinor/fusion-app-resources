@@ -26,6 +26,7 @@
 
 
 import * as faker from 'faker';
+import 'cypress-file-upload';
 
 // TODO add interface for user
 const acquireToken = (tenant: string): Cypress.Chainable<Cypress.Response<{}>> => {
@@ -106,14 +107,7 @@ Cypress.Commands.add('openContract', (number) => {
   })
 });
 
-/** fill in person data
- * type: data type, eg. first-name, last-name, email, phone 
- * data: the data for the selected type
-*/
-Cypress.Commands.add('fillPersonData', (index, type, data) => {
-  cy.get('[id="'+type+'-input"]').eq(index).find('input').clear().type(data)
-});
-
+/** collapse or expand the navigation drawer and filter pane, to give more space to the table in between */
 Cypress.Commands.add('collapseExpandSidesheets', () => {
   /** collapse both navigation sidesheet and filter sidesheet to make sure the first name column and the phone number column show up */
     // cy.get('#resources-contract-navigation-drawer').find('#collapse-expand-btn').click()
@@ -122,13 +116,4 @@ Cypress.Commands.add('collapseExpandSidesheets', () => {
     cy.get('[class^="fc--FilterPane__collapseExpandButtonContainer"]').find('button').click() 
 });
 
-// Cypress.Commands.add('getPersonIndex', (column, keyword) => {
-//   cy.get('[id="'+column+'-column"]').each(($el, index, $list) => {
-//     console.log($el, index, $list)
-//     if ($el.text() === keyword) {
-//       console.log('index is: ', index)
-//       cy.wrap(index)
-//       //return index
-//     } 
-//   })
-// });
+
