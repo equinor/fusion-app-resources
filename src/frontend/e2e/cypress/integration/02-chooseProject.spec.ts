@@ -4,9 +4,8 @@
 
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../support" />
-import {componentSelector} from "../support/index"
 
-describe('Choose Project', () => {
+describe('TC 13029 - Choose Project', () => {
   /** TODO make login persistent between tests */
   before(() => {
     cy.clearLocalStorage();
@@ -14,13 +13,13 @@ describe('Choose Project', () => {
     cy.visit('/');
   });
 
-  it('TC 13029 Choose project', () => {
+  it('Choose a project', () => {
     /**  select a project and load data */
     const projectName = 'Query test project'
 
     cy.loadProject(projectName)
     
-    cy.get(componentSelector.contractTable.getCell('contractId')).should('be.visible')
+    cy.get('[data-cy="contract-id"]').should('be.visible')
     
   });
 

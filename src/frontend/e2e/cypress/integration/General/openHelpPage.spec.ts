@@ -23,7 +23,7 @@ describe('Help Page', () => {
 
     cy.url().should('include', '/help')
 
-    cy.get('#contract-management-tab', { timeout: 5000 }).invoke('attr', 'class').should('contain', 'Tabs__current')
+    cy.get('#contract-management-tab', { timeout: 10000 }).invoke('attr', 'class').should('contain', 'Tabs__current')
     cy.contains('h1', 'Contract Management').should('be.visible')
 
     cy.get('#role-delegation-tab').click()

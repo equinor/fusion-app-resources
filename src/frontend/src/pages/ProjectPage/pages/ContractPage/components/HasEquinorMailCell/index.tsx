@@ -9,14 +9,14 @@ type HasEquinorMailCellProps = {
 const HasEquinorMailCell: FC<HasEquinorMailCellProps> = ({ item }) => {
     if (item.mail) {
         return (
-            <div className={styles.icon}>
+            <div data-cy="equinor-mail-column" data-testid="check-circle" className={styles.icon}>
                 <CheckCircleIcon color={styling.colors.green} />
             </div>
         );
     }
 
     return (
-        <div className={styles.icon}>
+        <div data-cy="equinor-mail-column" data-testid="close-circle" className={styles.icon}>
             <CloseCircleIcon color={styling.colors.red} />
         </div>
     );

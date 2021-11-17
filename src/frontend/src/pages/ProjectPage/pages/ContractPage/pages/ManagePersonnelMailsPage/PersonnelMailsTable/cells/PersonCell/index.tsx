@@ -8,7 +8,7 @@ type PersonCellProps = {
 };
 const PersonCell: FC<PersonCellProps> = ({ item }) => {
     return (
-        <div className={styles.container}>
+        <div data-cy="person-column" className={styles.container}>
             {item.azureUniquePersonId ? (
                 <PersonPhoto size="small" personId={item.azureUniquePersonId} hideTooltip />
             ) : null}

@@ -78,6 +78,7 @@ const ToolbarFilter: FC<ToolbarFilterProps> = ({
         <div className={styles.toolbar}>
             <div className={styles.toolbarItem}>
                 <Button
+                    id="personnel-no-mail-btn"
                     outlined={!selectedFilters.noMail.isSelected}
                     onClick={onFilterNoMail}
                     disabled={personnelWithNoMail === 0}
@@ -86,7 +87,7 @@ const ToolbarFilter: FC<ToolbarFilterProps> = ({
                 </Button>
             </div>
             <div className={styles.toolbarItem}>
-                <Button outlined={selectedFilters.showMissingAD.isSelected} onClick={onShowAD}>
+                <Button id="show-missing-ad-btn" outlined={selectedFilters.showMissingAD.isSelected} onClick={onShowAD}>
                     {selectedFilters.showMissingAD.isSelected
                         ? `Show personnel with missing AD (${personnelWithNoAd})`
                         : `Hide personnel with missing AD (${personnelWithNoAd})`}

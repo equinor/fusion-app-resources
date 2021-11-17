@@ -74,8 +74,8 @@ const ManagePersonnelMailsPage: FC = () => {
                         <SaveContactMails />
                     </div>
 
-                    <div className={styles.managePersonnel}>
-                        <PersonnelMailsTable
+                    <div id="personnel-mails-table" className={styles.managePersonnel}>
+                        <PersonnelMailsTable                           
                             isFetching={isFetching}
                             personnel={filteredPersonnel}
                         />

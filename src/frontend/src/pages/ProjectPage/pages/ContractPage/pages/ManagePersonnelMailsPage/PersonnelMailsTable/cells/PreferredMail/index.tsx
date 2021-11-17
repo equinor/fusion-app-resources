@@ -45,7 +45,7 @@ const PreferredMail: FC<PreferredMailProps> = ({ item }) => {
     });
 
     return (
-        <div className={styles.container}>
+        <div data-cy="preferred-mail-column" className={styles.container}>
             <input
                 className={inputClasses}
                 value={input}
