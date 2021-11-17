@@ -36,7 +36,7 @@ type AzureAdStatusIndicatorProps = {
 
 const AzureAdStatusIndicator: FC<AzureAdStatusIndicatorProps> = ({ status }) => {
     const { text, color, id } = AdStatus[status];
-    return <div id={id} ref={useTooltipRef(text)}>{<AdStatusIcon color={color} />}</div>;
+    return <div id={id} data-cy="ad-column" ref={useTooltipRef(text)}>{<AdStatusIcon color={color} />}</div>;
 };
 
 export const AzureAdStatusTextFormat = (status: azureAdStatus) => {
