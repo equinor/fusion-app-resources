@@ -4,6 +4,11 @@
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../../support" />
 
+import NavigationDrawer from "../../../POM/NavigationDrawer"
+const navigationDrawer = new NavigationDrawer()
+
+import PreferredContactMailPage from "../../../POM/PreferredContactMailPage"
+const preferredContactMailPage = new PreferredContactMailPage()
 
 describe('TC 23843 - Personnel with no mail', () => {
     /** TODO make login persistent between tests */
@@ -19,19 +24,19 @@ describe('TC 23843 - Personnel with no mail', () => {
 
     it('Show/Hide personnel with no mail', () => {
         /** open the 'preferred contact mail' tab */
-        cy.get('#preferred-contact-mail-tab').click().invoke('attr', 'class').should('contain', 'isActive')
+        navigationDrawer.PreferredContactMailTab().click().invoke('attr', 'class').should('contain', 'isActive')
 
-        cy.get('#personnel-no-mail-btn').invoke('attr', 'class').should('contain', 'outlined')
-        cy.get('#personnel-no-mail-btn').click()
+        preferredContactMailPage.PersonnelWithNoMailButton().invoke('attr', 'class').should('contain', 'outlined')
+        preferredContactMailPage.PersonnelWithNoMailButton().click()
 
         /** verify that all the filtered results in the table have a red close circle icon in the'Equinor mail' column */
-        cy.get('#personnel-mails-table').within(() => {
+        preferredContactMailPage.PersonnelMailsTable().within(() => {
             cy.get('[data-cy="equinor-mail-column"]').each(($el) => {
                 cy.wrap($el).invoke('attr', 'data-testid').should('eq', 'close-circle')
             })
         })
 
-        cy.get('#close-contract-btn').click()
+        navigationDrawer.CloseContractButton().click()
     });
 
 })

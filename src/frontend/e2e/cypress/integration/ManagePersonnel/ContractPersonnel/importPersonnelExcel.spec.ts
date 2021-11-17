@@ -6,6 +6,18 @@
 
 import path = require("path")
 
+import NavigationDrawer from "../../../POM/NavigationDrawer"
+const navigationDrawer = new NavigationDrawer()
+
+import ContractPersonnelPage from "../../../POM/ContractPersonnelPage"
+const contractPersonnelPage = new ContractPersonnelPage()
+
+import AddEditPersonSidesheet from "../../../POM/AddPersonSidesheet"
+const AddPersonSidesheet = new AddEditPersonSidesheet()
+
+import ExcelImportSidesheet from "../../../POM/ExcelImportSidesheet"
+const excelImportSidesheet = new ExcelImportSidesheet()
+
 describe('TC 13061 Import Personnel Excel', () => {
     /** TODO make login persistent between tests */
     before(() => {
@@ -21,40 +33,41 @@ describe('TC 13061 Import Personnel Excel', () => {
     });
 
     it('Download empty excel template, and import an excel with content', () => {
-        const file = 'Personnel-Import-Test.xlsx'
+        const downloadedFile = 'Personnel import.xlsx'
+        const uploadFile = 'Personnel-Import-Test.xlsx'
         /** open the 'contract personnel' tab */
-        cy.get('#contract-personnel-tab').click().invoke('attr', 'class').should('contain', 'isActive')
+        navigationDrawer.ContractPersonnelTab().click().invoke('attr', 'class').should('contain', 'isActive')
         cy.wait(100)
 
-        cy.get('#excel-btn').click()
-        cy.get('#excel-sidesheet').should('be.visible')
+        contractPersonnelPage.ExcelButton().click()
+        excelImportSidesheet.ExcelSidesheet().should('be.visible')
 
         /** download the excel sample file */
-        cy.get('#download-excel-template-btn').click()
+        excelImportSidesheet.DownloadExcelTemplateButton().click()
         cy.log('**read downloaded file**')
-        cy.validateExcelFile('Personnel import.xlsx');
+        cy.validateExcelFile(downloadedFile);
 
         /** import a valid excel file */
-        cy.get('input[type="file"]').attachFile(file)
-        cy.get('[data-cy="selected-file-name"]').should('contain', file)
-        cy.get('#process-excel-btn').invoke('attr', 'class').should('not.contain', 'disabled')
-        cy.get('#process-excel-btn').click()
+        excelImportSidesheet.UploadExcelInputArea().attachFile(uploadFile)
+        excelImportSidesheet.SelectedFileName().should('contain', uploadFile)
+        excelImportSidesheet.ProcessExcelButton().invoke('attr', 'class').should('not.contain', 'disabled')
+        excelImportSidesheet.ProcessExcelButton().click()
 
         /** jump to the add person sidesheet, click save button */
-        cy.get('#add-person-sidesheet').should('be.visible').within(() => {
-            cy.get('[id="email-input"]').first().should('not.be.empty')
-            cy.get('#save-btn').should('not.have.class', 'disabled').click()
+        AddPersonSidesheet.AddPersonSidesheet().should('be.visible').within(() => {
+            AddPersonSidesheet.EmailInputBox().first().should('not.be.empty')
+            AddPersonSidesheet.SaveButton().should('not.have.class', 'disabled').click()
         });
 
         /** in request progress sidesheet */
-        cy.get('#add-personnel-request-progress-sidesheet').should('be.visible').within(() => {
+        AddPersonSidesheet.RequestProgressSidesheet().should('be.visible').within(() => {
             cy.contains('Successful', { timeout: 20 * 1000 }).should('be.visible')
-            cy.get('#close-btn').click()
+            AddPersonSidesheet.CloseButton().click()
             cy.wait(100)
         });
 
         /** read the content of the excel file  */
-        cy.readExcelFile(file).then(email => {
+        cy.readExcelFile(uploadFile).then(email => {
             console.log('The email is: ', email)
 
             /** verify the added person from excel exist in the contract personnel table */
@@ -64,7 +77,7 @@ describe('TC 13061 Import Personnel Excel', () => {
             cy.deletePerson(email)
         });
 
-        cy.get('#close-contract-btn').click({ force: true })
+        navigationDrawer.CloseContractButton().click({ force: true })
     });
 
 })

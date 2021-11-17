@@ -31,5 +31,9 @@
     RemovePeopleButton(){
         return cy.get('[data-cy="remove-person-btn"]');
     }
+
+    SelectedPerson(){
+        return cy.get('[data-cy="selected-person"]');
+    }
    
 }

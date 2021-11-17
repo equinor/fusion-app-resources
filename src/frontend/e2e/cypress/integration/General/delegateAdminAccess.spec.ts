@@ -5,6 +5,9 @@
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../support" />
 
+import NavigationDrawer from "../../POM/NavigationDrawer"
+const navigationDrawer = new NavigationDrawer()
+
 const person = 'Qi Jin'
 
 describe('TC 13035 Delegate Admin Access', () => {
@@ -36,7 +39,7 @@ describe('TC 13035 Delegate Admin Access', () => {
     /** remove a existing person from the equinor admin access table */
     cy.removeAdminAccess('equinor', person)
 
-    cy.get('[id="close-contract-btn"]').click()
+    navigationDrawer.CloseContractButton().click()
   });
 
   it('Delegate Admin Access - External Responsible', () => {
@@ -53,7 +56,7 @@ describe('TC 13035 Delegate Admin Access', () => {
     /** remove a existing person from the external admin access table */
     cy.removeAdminAccess('external', person)
 
-    cy.get('[id="close-contract-btn"]').click()
+    navigationDrawer.CloseContractButton().click()
   });
 
 })

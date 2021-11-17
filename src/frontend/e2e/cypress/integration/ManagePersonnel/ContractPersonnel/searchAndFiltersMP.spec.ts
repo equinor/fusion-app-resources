@@ -4,6 +4,9 @@
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../../support" />
 
+import NavigationDrawer from "../../../POM/NavigationDrawer"
+const navigationDrawer = new NavigationDrawer()
+
 describe('TC 13064 Search and Filter', () => {
     /** TODO make login persistent between tests */
     before(() => {
@@ -19,7 +22,7 @@ describe('TC 13064 Search and Filter', () => {
         cy.openContract(contractNo)
 
         /** open the 'contract personnel' tab */
-        cy.get('#contract-personnel-tab').click().invoke('attr', 'class').should('contain', 'isActive')
+        navigationDrawer.ContractPersonnelTab().click().invoke('attr', 'class').should('contain', 'isActive')
         cy.wait(100)
         
         /** search keyword */
@@ -38,6 +41,6 @@ describe('TC 13064 Search and Filter', () => {
         cy.adStatusFilter('No Azure Access')
         //cy.adStatusFilter('Azure AD pending approval')  /** this filter is not always exist */
 
-        cy.get('#close-contract-btn').click({force:true})
+        navigationDrawer.CloseContractButton().click({force:true})
     });
 })

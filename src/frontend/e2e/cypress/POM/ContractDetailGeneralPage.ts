@@ -4,20 +4,12 @@
  * Contract Detail General page
  */
  export default class ContractDetailGeneralPage {
-    GeneralTab(){
-        return cy.get('#general-tab');
-    }
-
-    EditButton(){
-        return cy.get('[data-cy="edit-btn"]');
+    EditContractButton(){
+        return cy.get('[data-cy="edit-contract-btn"]');
     }
 
     HelpButton(){
         return cy.get('[data-cy="help-btn"]');
-    }
-
-    CloseButton(){
-        return cy.get('[id="close-contract-btn"]');
     }
 
     EquinorResponsible(){
@@ -36,16 +28,8 @@
         return cy.get('[data-cy="equinor-resp-delegate-admin-access"]');
     }
 
-    EquinorRespDelegateButton(){
-        return cy.get('[data-cy="equinor-resp-delegate-admin-access"]').find('#delegate-btn');
-    }
-
-    EquinorRespRecertifyButton(){
-        return cy.get('[data-cy="equinor-resp-delegate-admin-access"]').find('#recertify-btn');
-    }
-
-    EquinorRespRemoveButton(){
-        return cy.get('[data-cy="equinor-resp-delegate-admin-access"]').find('#remove-btn');
+    EquinorRespDelegateTable(){
+        return cy.get('[data-cy="equinor-resp-delegate-admin-access"]').find('[data-cy="delegate-table"]');
     }
 
     ExternalResponsible(){
@@ -64,16 +48,24 @@
         return cy.get('[data-cy="external-resp-delegate-admin-access"]');
     }
 
-    ExternalRespDelegateButton(){
-        return cy.get('[data-cy="external-resp-delegate-admin-access"]').find('#delegate-btn');
+    ExternalRespDelegateTable(){
+        return cy.get('[data-cy="external-resp-delegate-admin-access"]').find('[data-cy="delegate-table"]');
+    }
+    
+    DelegateTable(){
+        return cy.get('[data-cy="delegate-table"]');
     }
 
-    ExternalRespRecertifyButton(){
-        return cy.get('[data-cy="external-resp-delegate-admin-access"]').find('#recertify-btn');
+    DelegateButton(){
+        return cy.get('#delegate-btn');
     }
 
-    ExternalRespRemoveButton(){
-        return cy.get('[data-cy="external-resp-delegate-admin-access"]').find('#remove-btn');
+    RecertifyButton(){
+        return cy.get('#recertify-btn');
+    }
+
+    RemoveAccessButton(){
+        return cy.get('#remove-access-btn');
     }
    
 }

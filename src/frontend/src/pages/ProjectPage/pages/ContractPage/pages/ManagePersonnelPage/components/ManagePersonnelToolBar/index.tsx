@@ -33,7 +33,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
         <div className={styles.container}>
             {addButton && (
                 <IconButton
-                    id="add-btn"
+                    id="add-contract-person-btn"
                     ref={useTooltipRef('Add new personnel')}
                     onClick={addButton?.onClick}
                     disabled={addButton?.disabled}
@@ -53,7 +53,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
             )}
             {deleteButton && (
                 <IconButton
-                    id="delete-btn"
+                    id="delete-contract-person-btn"
                     ref={useTooltipRef('Delete selected personnel')}
                     onClick={deleteButton?.onClick}
                     disabled={deleteButton?.disabled}
@@ -63,7 +63,7 @@ const ManagePersonnelToolBar: FC<ToolBarProps> = ({
             )}
             {editButton && (
                 <IconButton
-                    id="edit-btn"
+                    id="edit-contract-person-btn"
                     ref={useTooltipRef('Edit selected personnel')}
                     onClick={editButton?.onClick}
                     disabled={editButton?.disabled}

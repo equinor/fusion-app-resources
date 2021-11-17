@@ -103,7 +103,7 @@ const ContractAdminTable: FC<ContractAdminTableProps> = ({
                 />
                 <CertifyToPopover canEdit={canEdit} admins={selectedAdmins} />
                 <ToolbarButton
-                    id="remove-btn"
+                    id="remove-access-btn"
                     icon={isRemoving ? <Spinner inline /> : <DeleteIcon outline />}
                     title="Remove"
                     onClick={removeDelegateAccess}

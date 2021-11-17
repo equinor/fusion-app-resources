@@ -10,7 +10,7 @@ const SaveContactMails: FC = () => {
     return (
         <div className={styles.container}>
             {isSavingContactMails && <span className={styles.savingText}>Saving, this might take a few moments...</span>}
-            <Button disabled={!isContactMailFormDirty} outlined onClick={saveContactMailsAsync}>
+            <Button id="save-contact-mail-btn" disabled={!isContactMailFormDirty} outlined onClick={saveContactMailsAsync}>
                 <div className={styles.buttonContainer}>
                     <div>{isSavingContactMails ? <Spinner inline /> : <SaveIcon />}</div>
                     <span className={styles.title}>

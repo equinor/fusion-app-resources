@@ -1,5 +1,12 @@
 /** commands relates to delegate access, re-certify, and remove delegate */
+import NavigationDrawer from "../POM/NavigationDrawer"
+const navigationDrawer = new NavigationDrawer()
 
+import SearchFilterPane from "../POM/searchAndFiltersPane"
+const searchFilterPane = new SearchFilterPane()
+
+import ContractPersonnelPage from "../POM/contractPersonnelPage"
+const contractPersonnelPage = new ContractPersonnelPage()
 
 /** search a keyword
  *  column: the column to search the keyword, eg. 'email', 'first-name', 'last-name', 'disciplines', 'phone', 'position', etc
@@ -9,12 +16,12 @@ Cypress.Commands.add('searchText', (column, keyword) => {
     cy.get('[class^="fc--FilterPane__container"]').should('be.visible')
         .invoke('attr', 'class').should('not.contain', 'isCollapsed')
 
-    cy.get('#search-bar').type(keyword)
+    searchFilterPane.SearchBar().type(keyword)
     cy.wait(100)
 
     cy.collapseExpandSidesheets()
 
-    cy.get('#contract-personnel-table').within(() => {
+    contractPersonnelPage.ContractPersonnelTable().within(() => {
         /** each elements in the array should contains the keyword */
         cy.get('[id="' + column + '-column"]').each(function ($el, index, $list) {
             console.log($el, index, $list)
@@ -24,7 +31,7 @@ Cypress.Commands.add('searchText', (column, keyword) => {
 
     /** expand the sidesheets again */
     cy.collapseExpandSidesheets()
-    cy.get('#search-bar').find('input').clear()
+    searchFilterPane.SearchBar().find('input').clear()
 });
 
 /** Disciplines filter
@@ -44,7 +51,7 @@ Cypress.Commands.add('disciplineFilter', (item) => {
     
     cy.collapseExpandSidesheets()
     
-    cy.get('#contract-personnel-table').within(() => {
+    contractPersonnelPage.ContractPersonnelTable().within(() => {
         /** TODO: add column id to each column in the data table !!! */
         cy.get('[id="disciplines-column"]').each(function ($el, index, $list) {
             console.log($el, index, $list)
@@ -74,7 +81,7 @@ Cypress.Commands.add('adStatusFilter', (item) => {
 
     cy.collapseExpandSidesheets()
 
-    cy.get('#contract-personnel-table').within(() => {
+    contractPersonnelPage.ContractPersonnelTable().within(() => {
         /** TODO: add column id to each column in the data table !!! */
         cy.get('[id="ad-column"]').each(function ($el, index, $list) {
             console.log($el, index, $list)

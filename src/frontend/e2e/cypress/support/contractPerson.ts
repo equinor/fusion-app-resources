@@ -1,3 +1,6 @@
+import ContractPersonnelPage from "../POM/ContractPersonnelPage"
+const contractPersonnelPage = new ContractPersonnelPage()
+
 /** fill in person data
  * type: data type, eg. first-name, last-name, email, phone 
  * data: the data for the selected type
@@ -9,7 +12,7 @@ Cypress.Commands.add('fillPersonData', (index, type, data) => {
 
 /** delete person with specific email */
 Cypress.Commands.add('deletePerson', (email) => {
-    cy.get('#contract-personnel-table').within(() => {            
+    contractPersonnelPage.ContractPersonnelTable().within(() => {            
         cy.get('[id="email-column"]').each(($el, index, $list) => {
             console.log($el, index, $list)
             /** $el is a wrapped jQuery element  */
@@ -20,7 +23,7 @@ Cypress.Commands.add('deletePerson', (email) => {
         })       
     });
 
-    cy.get('#delete-btn').click()
+    contractPersonnelPage.DeleteContractPersonButton().click()
 
     /**  confirm in dialog */
     cy.get('[class^="fc--Dialog__container"]').should('be.visible')

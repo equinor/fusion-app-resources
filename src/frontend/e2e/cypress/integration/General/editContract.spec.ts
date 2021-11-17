@@ -32,7 +32,7 @@ describe('Edit contract', () => {
     
     cy.openContract(contractNo)
     
-    cy.get('[data-cy="edit-btn"]').click()
+    contractDetail.EditContractButton().click()
     cy.contains('h2', 'Edit').should('be.visible')
 
     /** change the contract data*/
@@ -60,10 +60,10 @@ describe('Edit contract', () => {
     cy.get('[class^="fc--SearchableDropdown"]').contains(this.contractData.externalContractResp).click()
 
     contractEditPage.SubmitButton().click()
-    cy.wait(1000)
+    cy.wait(100)
 
     /** verify changes are shown in contract details page */
-    cy.contains('h2', this.contractData.contractName)
+    cy.contains('h2', this.contractData.contractName, {timeout: 10000})
     cy.contains('label', 'Contractor').next().should('contain', this.contractData.companyName)
     cy.contains('label', 'From date').next().should('contain', this.contractData.fromDate)
     cy.contains('label', 'To date').next().should('contain', this.contractData.toDate)

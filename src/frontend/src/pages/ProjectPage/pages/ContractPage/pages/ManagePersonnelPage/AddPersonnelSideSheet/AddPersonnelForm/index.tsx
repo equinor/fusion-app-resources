@@ -57,7 +57,7 @@ const AddPersonnelForm: FC<AddPersonnelFormProps> = ({
     );
 
     return (
-        <table className={styles.tableBody}>
+        <table data-cy="add-person-table" className={styles.tableBody}>
             {renderFormHeader}
             {renderFormBody}
         </table>
