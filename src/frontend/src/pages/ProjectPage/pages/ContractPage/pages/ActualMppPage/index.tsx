@@ -127,6 +127,7 @@ const ActualMppPage: FC = () => {
                 <div className={styles.actualMpp}>
                     <div className={styles.toolbar}>
                         <IconButton
+                            id="add-mpp-request-btn"
                             onClick={() => setEditRequests([])}
                             disabled={selectedPositions.length !== 0}
                             ref={addRequestTooltipRef}
@@ -134,6 +135,7 @@ const ActualMppPage: FC = () => {
                             <AddIcon />
                         </IconButton>
                         <IconButton
+                            id="add-mpp-request-for-selected-position-btn"
                             onClick={() => editSelected(true)}
                             disabled={selectedPositions.length <= 0}
                             ref={copyTooltipRef}
@@ -141,6 +143,7 @@ const ActualMppPage: FC = () => {
                             <CopyIcon />
                         </IconButton>
                         <IconButton
+                            id="edit-mpp-request-btn"
                             ref={editTooltipRef}
                             onClick={() => editSelected()}
                             disabled={selectedPositions.length === 0}
@@ -148,6 +151,7 @@ const ActualMppPage: FC = () => {
                             <EditIcon outline />
                         </IconButton>
                         <IconButton
+                            id="remove-mpp-request-btn"
                             onClick={deletePositions}
                             disabled={selectedPositions.length === 0 || !canDeletePosition}
                         >
@@ -155,6 +159,7 @@ const ActualMppPage: FC = () => {
                         </IconButton>
                     </div>
                     <SortableTable
+                        id="actual-mpp-request-table"
                         data={filteredContractPositions || []}
                         columns={columns}
                         rowIdentifier="id"

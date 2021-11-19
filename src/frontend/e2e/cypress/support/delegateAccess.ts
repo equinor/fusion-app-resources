@@ -12,7 +12,7 @@ const delegateSidesheet = new DelegateAccessSideSheet()
  *  person: person name
  *  period: '1-month', '6-months', or '12-months'
 */
-Cypress.Commands.add('delegateAdminAccess', (responsible, person, period) => {
+export const delegateAdminAccess = (responsible: string, person: string, period: string) => {
     cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access')
         .within(() => {
             contractDetail.DelegateTable().should('be.exist')
@@ -46,18 +46,18 @@ Cypress.Commands.add('delegateAdminAccess', (responsible, person, period) => {
 
     /** verify the updates in the delegate table */
     cy.get('@delegate-access').within(() => {
-        cy.wait(100)
-        cy.get('[id="delegated-to-person-column"]').last().should('contain', person, {timeout: 10000})
+        cy.wait(1000)
+        cy.get('[id="delegated-to-person-column"]').should('contain', person, {timeout: 10000})
         cy.get('[id="re-certification-date-column"]').last().should('contain', '-')
     });
-});
+}
 
 /** Re-certify period to people already has admin access
  *  responsible: 'external' or 'equinor'
  *  personIndex: person index, start from 1
  *  period: '1-month', '6-months', or '12-months'
 */
-Cypress.Commands.add('recertifyAdminAccess', (responsible, person, period) => {
+export const recertifyAdminAccess = (responsible: string, person: string, period: string) => {
     cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access').within(() => {
         contractDetail.DelegateTable().should('be.exist')
 
@@ -84,13 +84,13 @@ Cypress.Commands.add('recertifyAdminAccess', (responsible, person, period) => {
             cy.get('[id="selection-cell"]').eq(i).click() /** unselect the person */
         });
     });
-});
+}
 
 /** Remove people already has admin access from the table
  *  responsible: 'external' or 'equinor'
  *  personIndex: person index, start from 1
 */
-Cypress.Commands.add('removeAdminAccess', (responsible, person) => {
+export const removeAdminAccess = (responsible: string, person: string) => {
     cy.get('[data-cy="' + responsible + '-resp-delegate-admin-access"]').as('delegate-access').within(() => {
         contractDetail.DelegateTable().should('be.exist')
 
@@ -115,7 +115,7 @@ Cypress.Commands.add('removeAdminAccess', (responsible, person) => {
         cy.get('[id="delegated-to-person-column"]').should('not.contain', person)
     });
 
-});
+}
 
 
 /** get a element with specific text, and return its index */

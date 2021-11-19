@@ -14,6 +14,7 @@ type SortableTableProps<T> = {
     selectedItems?: T[];
     onSelectionChange?: (selectedItems: T[]) => void;
     isFetching?: boolean;
+    id?: string;
 };
 
 function SortableTable<T>({
@@ -25,6 +26,7 @@ function SortableTable<T>({
     isSelectable,
     onSelectionChange,
     selectedItems,
+    id,
 }: SortableTableProps<T>) {
     const { isFetchingContract } = useContractContext();
     const { sortedData, setSortBy, sortBy, direction } = useSorting<T>(data, null, null);
@@ -52,6 +54,7 @@ function SortableTable<T>({
 
     return (
         <DataTable
+            id={id}
             columns={columns}
             data={pagedData}
             pagination={pagination}

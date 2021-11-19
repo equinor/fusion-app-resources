@@ -37,6 +37,7 @@ const ColumnSideSheetLink: FC<ColumnSideSheetLinkProps> = ({ positionId, childre
 
 const columns: DataTableColumn<Position>[] = [
     {
+        id: 'position-column',
         accessor: position => position.name || 'TBN',
         key: 'position',
         label: 'Position',
@@ -46,6 +47,7 @@ const columns: DataTableColumn<Position>[] = [
         ),
     },
     {
+        id: 'person-column',
         accessor: position =>
             position.instances.find(i => i.assignedPerson?.name)?.assignedPerson?.name || '',
         key: 'person',
@@ -54,6 +56,7 @@ const columns: DataTableColumn<Position>[] = [
         component: AssignedPersonComponent,
     },
     {
+        id: 'base-position-column',
         accessor: position => position.basePosition?.name || 'TBN',
         key: 'basePosition',
         label: 'Base position',
@@ -65,6 +68,7 @@ const columns: DataTableColumn<Position>[] = [
         ),
     },
     {
+        id: 'discipline-column',
         accessor: position => position.basePosition?.discipline || 'TBN',
         key: 'discipline',
         label: 'Discipline',
@@ -77,6 +81,7 @@ const columns: DataTableColumn<Position>[] = [
     },
 
     {
+        id: 'task-owner-column',
         accessor: position =>
             position.instances.find(i => i.parentPositionId)?.parentPositionId || '',
         key: 'taskOwnerId',
@@ -89,6 +94,7 @@ const columns: DataTableColumn<Position>[] = [
         },
     },
     {
+        id: 'workload-column',
         accessor: position =>
             position.instances.find(i => !isNaN(i.workload))?.workload.toString() + '%' || '',
         key: 'workload',

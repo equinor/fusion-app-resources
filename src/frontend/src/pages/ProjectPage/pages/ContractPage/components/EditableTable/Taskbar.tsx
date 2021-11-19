@@ -21,10 +21,11 @@ function Taskbar<T>({ onAddItem, onRemoveItems, onCopyItems, selectedItems }: Ta
 
     return (
         <div className={styles.taskBar}>
-            <IconButton onClick={onAddItem} ref={addItemTooltipRef}>
+            <IconButton id="add-request-item-btn" onClick={onAddItem} ref={addItemTooltipRef}>
                 <AddIcon />
             </IconButton>
             <IconButton
+                id="copy-request-item-btn"
                 ref={copyTooltipRef}
                 disabled={selectedItems.length <= 0}
                 onClick={() => onCopyItems(selectedItems)}
@@ -32,6 +33,7 @@ function Taskbar<T>({ onAddItem, onRemoveItems, onCopyItems, selectedItems }: Ta
                 <CopyIcon />
             </IconButton>
             <IconButton
+                id="remove-request-item-btn"
                 ref={removeItemTooltipRef}
                 disabled={selectedItems.length <= 0}
                 onClick={() => onRemoveItems(selectedItems)}

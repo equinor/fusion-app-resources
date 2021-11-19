@@ -28,6 +28,9 @@
 import * as faker from 'faker';
 import 'cypress-file-upload';
 
+import HelpPage from "../POM/HelpPage"
+const helpPage = new HelpPage()
+
 // TODO add interface for user
 const acquireToken = (tenant: string): Cypress.Chainable<Cypress.Response<{}>> => {
   return cy.request({
@@ -115,5 +118,17 @@ Cypress.Commands.add('collapseExpandSidesheets', () => {
     cy.get('[class^="fc--NavigationDrawer__collapseButtonContainer"]').find('button').click()
     cy.get('[class^="fc--FilterPane__collapseExpandButtonContainer"]').find('button').click() 
 });
+
+/** verify the content of Help page is loaded successfully */
+export const verifyHelpPage = () => {
+  cy.url().should('include', '/help')
+
+  helpPage.ContractManagementTab().invoke('attr', 'class').should('contain', 'Tabs__current')
+  cy.contains('h1', 'Contract Management').should('be.visible')
+
+  helpPage.RoleDelegationTab().click()
+    .invoke('attr', 'class').should('contain', 'Tabs__current')
+  cy.contains('h1', 'Role Delegation').should('be.visible')
+}
 
 

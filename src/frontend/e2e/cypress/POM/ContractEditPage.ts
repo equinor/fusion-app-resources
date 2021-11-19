@@ -4,8 +4,8 @@
  * Contract Edit pages
  */
  export default class ContractEditPage {
-    CloseButton(){
-        return cy.get('[data-cy="close-btn"]');
+    CloseSidesheetButton(){
+        return cy.get('#close-btn');
     }
 
     SaveButton(){

@@ -35,5 +35,9 @@
     SelectedPerson(){
         return cy.get('[data-cy="selected-person"]');
     }
+
+    CloseSidesheetButton(){
+        return cy.get('#close-btn');
+    }
    
 }

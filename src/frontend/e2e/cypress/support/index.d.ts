@@ -19,9 +19,6 @@ declare namespace Cypress {
     collapseExpandSidesheets(): Chainable<void>
 
     /** delegate admin access */
-    delegateAdminAccess(responsible: string, person: string, period: string): Chainable<void>
-    recertifyAdminAccess(responsible: string, person: string, period: string): Chainable<void>
-    removeAdminAccess(responsible: string, person: string): Chainable<void>
     getDelegateIndex(id: string, text: string): Chainable<number>
 
     /** search and filters */
@@ -30,12 +27,11 @@ declare namespace Cypress {
     adStatusFilter(item: string): Chainable<void>
 
     /** contract person */
-    fillPersonData(index: number, type: string, data: string): Chainable<void>
-    deletePerson(email: string): Chainable<void>
+    checkContractPersonExistence(email: string): Chainable<number>
+    addContractPerson(firstName: string, lastName: string, email: string, phoneNumber: string): Chainable<void>
+    deleteContractPerson(email: string): Chainable<void>
 
     /** download excel file */
-    deleteDownloadsFolder(): Chainable<void>
-    validateExcelFile(filename: string): Chainable<void>
     readExcelFile(filename: string): Chainable<string>
 
   }

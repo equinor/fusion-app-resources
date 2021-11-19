@@ -5,6 +5,8 @@
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../support" />
 
+import {delegateAdminAccess, recertifyAdminAccess, removeAdminAccess} from "../../support/delegateAccess"
+
 import NavigationDrawer from "../../POM/NavigationDrawer"
 const navigationDrawer = new NavigationDrawer()
 
@@ -31,13 +33,13 @@ describe('TC 13035 Delegate Admin Access', () => {
     cy.contains('Equinor responsible').should('be.visible')
 
     /** delegate equinor admin access to a new person */    
-    cy.delegateAdminAccess('equinor', person, '1-month')
+    delegateAdminAccess('equinor', person, '1-month')
 
     /** re-certify to a person existing in the equinor admin access table*/
-    cy.recertifyAdminAccess('equinor', person, '6-months')
+    recertifyAdminAccess('equinor', person, '6-months')
 
     /** remove a existing person from the equinor admin access table */
-    cy.removeAdminAccess('equinor', person)
+    removeAdminAccess('equinor', person)
 
     navigationDrawer.CloseContractButton().click()
   });
@@ -48,13 +50,13 @@ describe('TC 13035 Delegate Admin Access', () => {
     cy.contains('External responsible').should('be.exist')
 
     /** delegate external admin access to a new person */    
-    cy.delegateAdminAccess('external', person, '1-month')
+    delegateAdminAccess('external', person, '1-month')
 
     /** re-certify to a person existing in the external admin access table*/
-    cy.recertifyAdminAccess('external', person, '6-months')
+    recertifyAdminAccess('external', person, '6-months')
 
     /** remove a existing person from the external admin access table */
-    cy.removeAdminAccess('external', person)
+    removeAdminAccess('external', person)
 
     navigationDrawer.CloseContractButton().click()
   });

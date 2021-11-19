@@ -16,7 +16,7 @@
         return cy.get('#save-btn');
     }
 
-    CloseButton() {
+    CloseSidesheetButton() {
         return cy.get('#close-btn');
     }
 

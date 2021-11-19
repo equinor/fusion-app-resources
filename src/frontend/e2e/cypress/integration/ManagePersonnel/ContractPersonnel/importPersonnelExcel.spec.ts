@@ -6,6 +6,8 @@
 
 import path = require("path")
 
+import {deleteDownloadsFolder, validateExcelFile} from "../../../support/importFile"
+
 import NavigationDrawer from "../../../POM/NavigationDrawer"
 const navigationDrawer = new NavigationDrawer()
 
@@ -21,7 +23,7 @@ const excelImportSidesheet = new ExcelImportSidesheet()
 describe('TC 13061 Import Personnel Excel', () => {
     /** TODO make login persistent between tests */
     before(() => {
-        cy.deleteDownloadsFolder();
+        deleteDownloadsFolder();
 
         cy.clearLocalStorage();
         cy.login();
@@ -45,7 +47,7 @@ describe('TC 13061 Import Personnel Excel', () => {
         /** download the excel sample file */
         excelImportSidesheet.DownloadExcelTemplateButton().click()
         cy.log('**read downloaded file**')
-        cy.validateExcelFile(downloadedFile);
+        validateExcelFile(downloadedFile);
 
         /** import a valid excel file */
         excelImportSidesheet.UploadExcelInputArea().attachFile(uploadFile)
@@ -62,7 +64,7 @@ describe('TC 13061 Import Personnel Excel', () => {
         /** in request progress sidesheet */
         AddPersonSidesheet.RequestProgressSidesheet().should('be.visible').within(() => {
             cy.contains('Successful', { timeout: 20 * 1000 }).should('be.visible')
-            AddPersonSidesheet.CloseButton().click()
+            AddPersonSidesheet.CloseSidesheetButton().click()
             cy.wait(100)
         });
 
@@ -74,7 +76,7 @@ describe('TC 13061 Import Personnel Excel', () => {
             cy.get('[id="email-column"]').should('contain', email.trim())
 
             /** clean up: close the excel sidesheet and the contract detail page */
-            cy.deletePerson(email)
+            cy.deleteContractPerson(email)
         });
 
         navigationDrawer.CloseContractButton().click({ force: true })

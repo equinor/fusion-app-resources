@@ -35,6 +35,7 @@ export type EditableTaleColumn<T> = {
     item: EditableTaleColumnItem;
     label: string;
     accessKey: keyof T;
+    id?: string;
 };
 
 type EditableTableProps<T> = {
@@ -262,6 +263,7 @@ function EditableTable<T>({
                         </td>
                         {columns.map(column => (
                             <td
+                                id={column.id}
                                 key={column.accessKey.toString()}
                                 className={styles.tableRowCell}
                                 onClick={e => {
@@ -286,7 +288,7 @@ function EditableTable<T>({
                 onCopyItems={() => onCopyItems(selectedItems)}
             />
             <div className={styles.container} ref={tableContainerRef}>
-                <table className={styles.table}>
+                <table data-cy="edit-request-table" className={styles.table}>
                     {tableHeader}
                     {tableBody}
                 </table>

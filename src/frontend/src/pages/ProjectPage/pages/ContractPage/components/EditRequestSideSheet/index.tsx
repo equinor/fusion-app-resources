@@ -160,7 +160,7 @@ const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
             safeCloseConfirmLabel={'Discard changes'}
             headerIcons={[
                 <Button
-                    id="save-btn"
+                    id="submit-btn"
                     disabled={!(isFormDirty && isFormValid) || isSubmitting}
                     key={'save'}
                     outlined
@@ -171,7 +171,7 @@ const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
             ]}
         >
             <div className={styles.helpButton}>
-                <Link target="_blank" to="/help">
+                <Link data-cy="help-btn" target="_blank" to="/help">
                     <IconButton id="help-btn" ref={helpIconRef}>
                         <HelpIcon />
                     </IconButton>

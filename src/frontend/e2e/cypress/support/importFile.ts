@@ -8,15 +8,15 @@ import path = require('path')
  * Delete the downloads folder to make sure the test has "clean"
  * slate before starting.
  */
-Cypress.Commands.add('deleteDownloadsFolder', () => {
+export const deleteDownloadsFolder = () => {
     const downloadsFolder = Cypress.config('downloadsFolder')
     cy.task('deleteFolder', downloadsFolder)
-});
+}
 
 /**
  * Validate the downloaded excel has the valid content
  */
-Cypress.Commands.add('validateExcelFile', (filename) => {
+export const validateExcelFile = (filename: string) => {
     const downloadsFolder = Cypress.config('downloadsFolder')
     const downloadedFilename = path.join(downloadsFolder, filename.trim())
 
@@ -36,7 +36,7 @@ Cypress.Commands.add('validateExcelFile', (filename) => {
                 'Email', 'Firstname', 'Lastname', 'Disciplines', 'Dawinci', 'Phone number',
             ])
         })
-});
+}
 
 Cypress.Commands.add('readExcelFile', (filename) => {
     cy.task('readExcelFile', 'cypress/fixtures/'+filename).then((lists) => {

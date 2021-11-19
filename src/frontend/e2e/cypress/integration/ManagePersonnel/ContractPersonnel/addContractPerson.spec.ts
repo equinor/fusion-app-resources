@@ -4,6 +4,8 @@
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../../support" />
 
+import {fillPersonData} from "../../../support/contractPerson"
+
 import NavigationDrawer from "../../../POM/NavigationDrawer"
 const navigationDrawer = new NavigationDrawer()
 
@@ -35,27 +37,16 @@ describe('Contract Personnel', () => {
         })
     });
 
-    it('TC 13060 - Add a new person', function () {
-        contractPersonnelPage.AddContractPersonButton().click()
+    it('TC 13060 - Add a new contract person', function () {
+        cy.checkContractPersonExistence(this.personData[0].Email).then(i => {
+            console.log('return value is: ', i)
+            if (i == 0){ 
+                cy.addContractPerson(this.personData[0].FirstName, this.personData[0].LastName, this.personData[0].Email, this.personData[0].PhoneNumber)  
+            }
 
-        addPersonSidesheet.AddPersonSidesheet().should('be.visible').within(() => {
-            cy.fillPersonData(0, 'first-name', this.personData.FirstName1)
-            cy.fillPersonData(0, 'last-name', this.personData.LastName1)
-            cy.fillPersonData(0, 'email', this.personData.Email)
-            cy.fillPersonData(0, 'phone', this.personData.PhoneNumber1)
-
-            addPersonSidesheet.SaveButton().should('not.have.class', 'disabled').click()            
+            else cy.log('the person with this email aleady exist')  
         });
-
-        // in request progress sidesheet
-        addPersonSidesheet.RequestProgressSidesheet().should('be.visible').within(() => {
-            cy.contains('Successful', {timeout: 20*1000}).should('be.visible')
-            addPersonSidesheet.CloseButton().click()
-            cy.wait(100)
-        });
-
-        cy.get('[id="email-column"]').should('contain', this.personData.Email.trim())
-
+        
         navigationDrawer.CloseContractButton().click({force:true})
     });
 
@@ -64,7 +55,7 @@ describe('Contract Personnel', () => {
             cy.get('[id="email-column"]').each(($el, index, $list) => {
                 console.log($el, index, $list)
                 /** $el is a wrapped jQuery element  */
-                if ($el.text() === this.personData.Email) {
+                if ($el.text() === this.personData[0].Email) {
                   console.log(index)
                   cy.get('[id="selection-cell"]').eq(index).click()
                 } 
@@ -74,26 +65,26 @@ describe('Contract Personnel', () => {
         contractPersonnelPage.EditContractPersonButton().click()
 
         addPersonSidesheet.AddPersonSidesheet().should('be.visible').within(() => {
-            cy.fillPersonData(0, 'first-name', this.personData.FirstName2)
+            fillPersonData(0, 'first-name', this.personData[1].FirstName)
             addPersonSidesheet.SaveButton().should('not.have.class', 'disabled').click()           
         });
 
         /** in request progress sidesheet */ 
         addPersonSidesheet.RequestProgressSidesheet().should('be.visible').within(() => {
             cy.contains('Successful', {timeout: 20*1000}).should('be.visible')
-            addPersonSidesheet.CloseButton().click()
+            addPersonSidesheet.CloseSidesheetButton().click()
             cy.wait(100)
         });
 
         cy.collapseExpandSidesheets()       
 
-        cy.get('[id="first-name-column"]').should('contain', this.personData.FirstName2) 
+        cy.get('[id="first-name-column"]').should('contain', this.personData[1].FirstName) 
 
         navigationDrawer.CloseContractButton().click({force:true})
     });
 
     it('TC 13062 - Delete selected person', function () {
-        cy.deletePerson(this.personData.Email)
+        cy.deleteContractPerson(this.personData[0].Email)
 
         navigationDrawer.CloseContractButton().click({force:true})
     });

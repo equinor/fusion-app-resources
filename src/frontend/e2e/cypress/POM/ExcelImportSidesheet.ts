@@ -8,7 +8,7 @@
         return cy.get('#excel-sidesheet');
     }
     
-    CloseButton() {
+    CloseSidesheetButton() {
         return cy.get('[id="close-btn"]');
     }
 

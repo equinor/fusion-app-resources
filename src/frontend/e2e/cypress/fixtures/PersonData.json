@@ -1,9 +1,20 @@
-{
-    "FirstName1": "Person1",
-    "FirstName2": "Person2",
-    "LastName1": "Test1",
-    "LastName2": "Test2",
-    "Email": "person@test.com",
-    "PhoneNumber1": "11111111",
-    "PhoneNumber2": "22222222"
-}
+[
+    {
+        "FirstName": "Person1",
+        "LastName": "Test1",
+        "Email": "person1@test.com",
+        "PhoneNumber": "11111111"
+    },
+    {
+        "FirstName": "Person2",
+        "LastName": "Test2",
+        "Email": "person2@test.com",
+        "PhoneNumber": "22222222"
+    },
+    {
+        "FirstName": "Qi",
+        "LastName": "Jin",
+        "Email": "qj@equinor.com",
+        "PhoneNumber": "123456"
+    }
+]
