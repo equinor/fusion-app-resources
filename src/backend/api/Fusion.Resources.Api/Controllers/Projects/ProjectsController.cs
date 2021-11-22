@@ -17,7 +17,7 @@ namespace Fusion.Resources.Api.Controllers.Projects
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
                 r.AnyOf(a => a.BeTrustedApplication());
             });
 

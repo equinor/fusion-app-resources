@@ -85,7 +85,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
         {
             var testPersonnel = fixture.AddProfile(FusionAccountType.External);
 
-            using (var adminScope = fixture.AdminScope())
+            using (var adminScope = fixture.ExternalAdminScope())
             {
                 var person = await client.CreatePersonnelAsync(projectId, contractId, s => { s.Mail = testPersonnel.Mail; });
 
@@ -104,7 +104,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
         {
             var testPersonnel = fixture.AddProfile(FusionAccountType.External);
 
-            using (var adminScope = fixture.AdminScope())
+            using (var adminScope = fixture.ExternalAdminScope())
             {
                 var person = await client.CreatePersonnelAsync(projectId, contractId, s => { s.Mail = testPersonnel.Mail; });
 
@@ -122,7 +122,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
         {
             var testPersonnel = fixture.AddProfile(FusionAccountType.External);
 
-            using (var adminScope = fixture.AdminScope())
+            using (var adminScope = fixture.ExternalAdminScope())
             {
                 var person = await client.CreatePersonnelAsync(projectId, contractId, s => { s.Mail = testPersonnel.Mail; });
                 person.PreferredContactMail = "mail@other-company.com";
@@ -141,7 +141,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
             var testPersonnelA = fixture.AddProfile(FusionAccountType.External);
             var testPersonnelB = fixture.AddProfile(FusionAccountType.External);
 
-            using (var adminScope = fixture.AdminScope())
+            using (var adminScope = fixture.ExternalAdminScope())
             {
                 var personA = await client.CreatePersonnelAsync(projectId, contractId, s => { s.Mail = testPersonnelA.Mail; });
                 var personB = await client.CreatePersonnelAsync(projectId, contractId, s => { s.Mail = testPersonnelB.Mail; });
@@ -166,7 +166,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
         [Fact]
         public async Task PreferredMail_UpdateBatchPersonnel_ShouldValidateEmail()
         {
-            using (var adminScope = fixture.AdminScope())
+            using (var adminScope = fixture.ExternalAdminScope())
             {
                 var person = await client.CreatePersonnelAsync(projectId, contractId);
 
@@ -184,7 +184,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
         [Fact]
         public async Task RefreshProfile_UserRemoved_ShouldMarkAsDeleted()
         {
-            using var adminScope = fixture.AdminScope();
+            using var adminScope = fixture.ExternalAdminScope();
             var person = await client.CreatePersonnelAsync(projectId, contractId);
             var resp = await client.TestClientPostAsync<TestApiPersonnel>($"resources/personnel/{person.Mail}/refresh", new { userRemoved = true });
             resp.Should().BeSuccessfull();
@@ -193,7 +193,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
         [Fact]
         public async Task RefreshProfile_UserUpdated_ShouldUpdate()
         {
-            using var adminScope = fixture.AdminScope();
+            using var adminScope = fixture.ExternalAdminScope();
             var profile = Testing.Mocks.ProfileService.PeopleServiceMock.AddTestProfile().SaveProfile();
             var person = new PersonnelApiHelpers.TestCreatePersonnelRequest
             {
@@ -222,7 +222,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
                 .AddContext(testProject.Project);
 
             var client = fixture.ApiFactory.CreateClient()
-                .WithTestUser(fixture.AdminUser)
+                .WithTestUser(fixture.ExternalAdminUser)
                 .AddTestAuthToken();
 
             (var contract, var positions) = testProject.ContractsWithPositions.First();

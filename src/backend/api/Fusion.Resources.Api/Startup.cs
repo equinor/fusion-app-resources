@@ -7,6 +7,7 @@ using Fusion.Resources.Api.Authentication;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
 using MediatR;
+using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -116,6 +117,8 @@ namespace Fusion.Resources.Api
                 .AddDbContextCheck<Database.ResourcesDbContext>("db", tags: new[] { "ready" });
 
             services.AddApplicationInsightsTelemetry();
+            // Enable AI sql dependency telemetry to include sql commands in data
+            services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) => { module.EnableSqlCommandTextInstrumentation = true; });
 
             services.AddCommonLibHttpClient();
             services.AddLineOrgHttpClient();
