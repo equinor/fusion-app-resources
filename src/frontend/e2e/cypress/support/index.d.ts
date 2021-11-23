@@ -1,11 +1,20 @@
 /// <reference types="cypress" />
 
+//import { TestPerson } from "./model";
+
 type Fusion = {
   auth: {
     container: {
       getCachedUserAsync: () => Promise<{}>
     }
   }
+}
+
+type TestPerson = {
+  firstName: string,
+  lastName: string,
+  email: string,
+  phoneNumber: string,
 }
 
 declare namespace Cypress {
@@ -32,7 +41,7 @@ declare namespace Cypress {
 
     /** contract person */
     checkContractPersonExistence(email: string): Chainable<number>
-    addContractPerson(firstName: string, lastName: string, email: string, phoneNumber: string): Chainable<void>
+    addContractPerson(person: TestPerson): Chainable<void>
     deleteContractPerson(email: string): Chainable<void>
 
     /** download excel file */

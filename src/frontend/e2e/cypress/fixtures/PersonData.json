@@ -1,20 +1,20 @@
 [
     {
-        "FirstName": "Person1",
-        "LastName": "Test1",
-        "Email": "person1@test.com",
-        "PhoneNumber": "11111111"
+        "firstName": "Person1",
+        "lastName": "Test1",
+        "email": "person1@test.com",
+        "phoneNumber": "11111111"
     },
     {
-        "FirstName": "Person2",
-        "LastName": "Test2",
-        "Email": "person2@test.com",
-        "PhoneNumber": "22222222"
+        "firstName": "Person2",
+        "lastName": "Test2",
+        "email": "person2@test.com",
+        "phoneNumber": "22222222"
     },
     {
-        "FirstName": "Qi",
-        "LastName": "Jin",
-        "Email": "qj@equinor.com",
-        "PhoneNumber": "123456"
+        "firstName": "Qi",
+        "lastName": "Jin",
+        "email": "qj@equinor.com",
+        "phoneNumber": "123456"
     }
 ]

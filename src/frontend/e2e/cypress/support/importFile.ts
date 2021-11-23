@@ -41,7 +41,7 @@ export const validateExcelFile = (filename: string) => {
 Cypress.Commands.add('readExcelFile', (filename) => {
     cy.task('readExcelFile', 'cypress/fixtures/'+filename).then((lists) => {
         /** returns an array of lines read from Excel file */
-        console.log('the number of rows in excel: ', lists.length)
+        //console.log('the number of rows in excel: ', lists.length)
         expect(lists[1][0]).to.equal('person3@excel.com')
         
         const email = lists[1][0]

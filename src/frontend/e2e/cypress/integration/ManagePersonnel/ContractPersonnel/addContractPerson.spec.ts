@@ -36,10 +36,10 @@ describe('Contract Personnel', () => {
     });
 
     it('TC 13060 - Add a new contract person', function () {
-        cy.checkContractPersonExistence(this.personData[0].Email).then(i => {
+        cy.checkContractPersonExistence(this.personData[0].email).then(i => {
             console.log('return value is: ', i)
             if (i == 0){ 
-                cy.addContractPerson(this.personData[0].FirstName, this.personData[0].LastName, this.personData[0].Email, this.personData[0].PhoneNumber)  
+                cy.addContractPerson(this.personData[0])  
             }
 
             else cy.log('the person with this email aleady exist')  
@@ -53,7 +53,7 @@ describe('Contract Personnel', () => {
             cy.get('[id="email-column"]').each(($el, index, $list) => {
                 console.log($el, index, $list)
                 /** $el is a wrapped jQuery element  */
-                if ($el.text() === this.personData[0].Email) {
+                if ($el.text() === this.personData[0].email) {
                   console.log(index)
                   cy.get('[id="selection-cell"]').eq(index).click()
                 } 
@@ -63,7 +63,7 @@ describe('Contract Personnel', () => {
         contractPersonnelPage.EditContractPersonButton().click()
 
         addPersonSidesheet.AddPersonSidesheet().should('be.visible').within(() => {
-            cy.fillTextInput(0, 'first-name', this.personData[1].FirstName)
+            cy.fillTextInput(0, 'first-name', this.personData[1].firstName)
             addPersonSidesheet.SaveButton().should('not.have.class', 'disabled').click()           
         });
 
@@ -76,13 +76,13 @@ describe('Contract Personnel', () => {
 
         cy.collapseExpandSidesheets()       
 
-        cy.get('[id="first-name-column"]').should('contain', this.personData[1].FirstName) 
+        cy.get('[id="first-name-column"]').should('contain', this.personData[1].firstName) 
 
         navigationDrawer.CloseContractButton().click({force:true})
     });
 
     it('TC 13062 - Delete selected person', function () {
-        cy.deleteContractPerson(this.personData[0].Email)
+        cy.deleteContractPerson(this.personData[0].email)
 
         navigationDrawer.CloseContractButton().click({force:true})
     });
