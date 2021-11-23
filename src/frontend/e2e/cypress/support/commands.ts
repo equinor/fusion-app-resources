@@ -131,4 +131,19 @@ export const verifyHelpPage = () => {
   cy.contains('h1', 'Role Delegation').should('be.visible')
 }
 
+/** fill in data in text input box
+ * type: data type, 
+ * - for personnel data: eg. first-name, last-name, email, phone 
+ * - for request data: eg. custom-position, work-load, obs, request-description
+ * data: the data for the selected type
+*/
+Cypress.Commands.add('fillTextInput', (index, type, data) => {
+  cy.get('[id="' + type + '-input"]').eq(index).find('input').clear().type(data)
+})
+
+/** fill in data in input and pick it from the dropdown menu */
+Cypress.Commands.add('typeAndPick', {prevSubject: true,},(subject, data) => {
+  cy.get(subject).type(data)
+  cy.get('[class^="fc--SearchableDropdown"]').contains(data).click()
+})
 

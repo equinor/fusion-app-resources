@@ -17,6 +17,10 @@ declare namespace Cypress {
     loadProject(name: string): Chainable<void>
     openContract(number: string): Chainable<void>
     collapseExpandSidesheets(): Chainable<void>
+    
+    /** fill in data */
+    fillTextInput(index: number, type: string, data: string): Chainable<void>
+    typeAndPick(data: string): Chainable<void>
 
     /** delegate admin access */
     getDelegateIndex(id: string, text: string): Chainable<number>

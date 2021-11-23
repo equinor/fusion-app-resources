@@ -96,6 +96,7 @@ const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests })
 
     return (
         <ModalSideSheet
+            id="request-details-sidesheet"
             show={showSideSheet}
             header={currentRequest.position?.basePosition?.name || ''}
             onClose={onClose}
@@ -105,7 +106,8 @@ const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests })
                     : [
                           canReject && (
                               <Button
-                                  outlined
+                                id="reject-request-btn"  
+                                outlined
                                   onClick={() => canReject && setRejectRequest([currentRequest])}
                               >
                                   <div className={styles.buttonIcon}>
@@ -122,7 +124,7 @@ const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests })
                               </Button>
                           ),
                           canApprove && (
-                              <Button onClick={() => canApprove && approve()}>
+                              <Button id="approve-request-btn" onClick={() => canApprove && approve()}>
                                   <div className={styles.buttonIcon}>
                                       {isApproving ? (
                                           <Spinner inline />
@@ -140,7 +142,7 @@ const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests })
             }
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
-                <Tab tabKey="general" title="General">
+                <Tab id="request-general-tab" tabKey="general" title="General">
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
                             {currentRequest.workflow && currentRequest.provisioningStatus && (
@@ -212,14 +214,14 @@ const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests })
                         </div>
                     </div>
                 </Tab>
-                <Tab tabKey="description" title="Description">
+                <Tab id="request-description-tab" tabKey="description" title="Description">
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
                             <RequestDetails request={currentRequest} />
                         </div>
                     </div>
                 </Tab>
-                <Tab tabKey="person" title="Person">
+                <Tab id="request-person-tab" tabKey="person" title="Person">
                     <div className={styles.tabContainer}>
                         <div className={styles.container}>
                             {currentPerson ? (

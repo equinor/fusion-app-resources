@@ -39,31 +39,26 @@ describe('Edit contract', () => {
     cy.wait(1000);  /**  wait for rending */
     contractEditPage.ContractNameInputBox().clear().type(this.contractData.contractName)
 
-    contractEditPage.CompanySelector().type(this.contractData.companyName)
-    cy.get('#company-dropdown').contains(this.contractData.companyName).click()
+    contractEditPage.CompanySelector().typeAndPick(this.contractData.companyName)
 
     contractEditPage.FromDatePicker().type(this.contractData.fromDate)
     contractEditPage.ToDatePicker().type(this.contractData.toDate)
 
-    contractEditPage.EquinorContractRespPicker().type(this.contractData.equinorContractResp)
-    cy.get('[class^="fc--SearchableDropdown"]').contains(this.contractData.equinorContractResp).click()
+    contractEditPage.EquinorContractRespPicker().typeAndPick(this.contractData.equinorContractResp)
 
-    contractEditPage.EquinorCompanyRepPicker().type(this.contractData.equinorCompanyRep)
-    cy.get('[class^="fc--SearchableDropdown"]').contains(this.contractData.equinorCompanyRep).click()
+    contractEditPage.EquinorCompanyRepPicker().typeAndPick(this.contractData.equinorCompanyRep)
 
     contractEditPage.NextButton().click()
 
-    contractEditPage.ExternalCompanyRepPicker().type(this.contractData.externalCompanyRep)
-    cy.get('[class^="fc--SearchableDropdown"]').contains(this.contractData.externalCompanyRep).first().click()
+    contractEditPage.ExternalCompanyRepPicker().typeAndPick(this.contractData.externalCompanyRep)
       
-    contractEditPage.ExternalContractRespPicker().type(this.contractData.externalContractResp)
-    cy.get('[class^="fc--SearchableDropdown"]').contains(this.contractData.externalContractResp).click()
+    contractEditPage.ExternalContractRespPicker().typeAndPick(this.contractData.externalContractResp)
 
     contractEditPage.SubmitButton().click()
-    cy.wait(100)
+    cy.wait(1500)
 
     /** verify changes are shown in contract details page */
-    cy.contains('h2', this.contractData.contractName, {timeout: 10000})
+    cy.contains('h2', this.contractData.contractName, {timeout: 15*1000})
     cy.contains('label', 'Contractor').next().should('contain', this.contractData.companyName)
     cy.contains('label', 'From date').next().should('contain', this.contractData.fromDate)
     cy.contains('label', 'To date').next().should('contain', this.contractData.toDate)

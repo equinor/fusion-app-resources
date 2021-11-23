@@ -45,7 +45,7 @@ const columns: EditableTaleColumn<EditRequest>[] = [
         item: 'DatePicker',
     },
     {
-        id: 'work-load-input',
+        id: 'workload-input',
         accessor: item => item.workload,
         accessKey: 'workload',
         label: 'Workload (%)',

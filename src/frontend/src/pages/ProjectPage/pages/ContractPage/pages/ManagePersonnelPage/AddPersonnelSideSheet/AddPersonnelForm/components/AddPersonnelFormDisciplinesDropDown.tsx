@@ -56,6 +56,7 @@ const AddPersonnelFormDisciplinesDropDown: FC<PersonnelFormDisciplinesDropDown> 
 
     return (
         <SearchableDropdown
+            id="add-personnel-from-disciplines-dropdown"
             key={`searchableDropDown${item.personnelId}`}
             options={options}
             onSelect={onSelect}

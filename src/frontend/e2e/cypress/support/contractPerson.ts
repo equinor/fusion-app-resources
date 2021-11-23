@@ -4,14 +4,6 @@ const contractPersonnelPage = new ContractPersonnelPage()
 import AddEditPersonSidesheet from "../POM/AddPersonSidesheet"
 const addPersonSidesheet = new AddEditPersonSidesheet()
 
-/** fill in person data
- * type: data type, eg. first-name, last-name, email, phone 
- * data: the data for the selected type
-*/
-export const fillPersonData = (index: number, type: string, data: string) => {
-    cy.get('[id="' + type + '-input"]').eq(index).find('input').clear().type(data)
-}
-
 /** Check the person whether exist in the contract person table*/
 Cypress.Commands.add('checkContractPersonExistence', (email) => {
     contractPersonnelPage.ContractPersonnelTable().then(($table) => {
@@ -32,10 +24,10 @@ Cypress.Commands.add('addContractPerson', (firstName, lastName, email, phoneNumb
     contractPersonnelPage.AddContractPersonButton().click()
 
     addPersonSidesheet.AddPersonSidesheet().should('be.visible').within(() => {
-        fillPersonData(0, 'first-name', firstName)
-        fillPersonData(0, 'last-name', lastName)
-        fillPersonData(0, 'email', email)
-        fillPersonData(0, 'phone', phoneNumber)
+        cy.fillTextInput(0, 'first-name', firstName)
+        cy.fillTextInput(0, 'last-name', lastName)
+        cy.fillTextInput(0, 'email', email)
+        cy.fillTextInput(0, 'phone', phoneNumber)
 
         addPersonSidesheet.SaveButton().should('not.have.class', 'disabled').click()
     });

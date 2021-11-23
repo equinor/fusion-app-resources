@@ -4,8 +4,6 @@
 // type definitions for custom commands like "createDefaultTodos"
 /// <reference types="../../../support" />
 
-import {fillPersonData} from "../../../support/contractPerson"
-
 import NavigationDrawer from "../../../POM/NavigationDrawer"
 const navigationDrawer = new NavigationDrawer()
 
@@ -65,7 +63,7 @@ describe('Contract Personnel', () => {
         contractPersonnelPage.EditContractPersonButton().click()
 
         addPersonSidesheet.AddPersonSidesheet().should('be.visible').within(() => {
-            fillPersonData(0, 'first-name', this.personData[1].FirstName)
+            cy.fillTextInput(0, 'first-name', this.personData[1].FirstName)
             addPersonSidesheet.SaveButton().should('not.have.class', 'disabled').click()           
         });
 

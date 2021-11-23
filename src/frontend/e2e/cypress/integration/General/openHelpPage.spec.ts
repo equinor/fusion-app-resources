@@ -19,6 +19,9 @@ const contractDetailGeneralPage = new ContractDetailGeneralPage()
 import ActualMppPage from "../../POM/ActualMppPage"
 const actualMppPage = new ActualMppPage()
 
+import ActiveRequestPage from "../../POM/ActiveRequestPage"
+const activeRequestPage = new ActiveRequestPage()
+
 import CreateRequestSidesheet from "../../POM/CreateRequestSidesheet"
 const createRequestSidesheet = new CreateRequestSidesheet()
 
@@ -61,5 +64,16 @@ describe('Verify Help link from different pages', () => {
 
     verifyHelpPage()
   });
+
+  it('TC xxx Open the Help page from Active Requests page', () => {
+    const contractNo = '312312341'
+    cy.openContract(contractNo)
+    
+    /** open the 'Active Request' tab */
+    navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
+    activeRequestPage.HelpButton().invoke('removeAttr', 'target').click()
+    
+    verifyHelpPage()
+  });  
 
 })
