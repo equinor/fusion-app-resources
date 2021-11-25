@@ -10,11 +10,23 @@ type Fusion = {
   }
 }
 
-type TestPerson = {
+type PersonData = {
   firstName: string,
   lastName: string,
   email: string,
   phoneNumber: string,
+}
+
+type RequestData = {
+  basePosition: string,
+  assignedPerson: string,
+  taskOwner?: string,
+  customPositionTitle: string,
+  appliesFrom: string,
+  appliesTo: string,
+  workload: string,
+  oBS?: string,
+  requestDescription?: string,
 }
 
 declare namespace Cypress {
@@ -26,9 +38,10 @@ declare namespace Cypress {
     loadProject(name: string): Chainable<void>
     openContract(number: string): Chainable<void>
     collapseExpandSidesheets(): Chainable<void>
+    random(): Chainable<Element>
     
     /** fill in data */
-    fillTextInput(index: number, type: string, data: string): Chainable<void>
+    fillTextInput(index: number, column: string, data: string): Chainable<void>
     typeAndPick(data: string): Chainable<void>
 
     /** delegate admin access */
@@ -41,11 +54,14 @@ declare namespace Cypress {
 
     /** contract person */
     checkContractPersonExistence(email: string): Chainable<number>
-    addContractPerson(person: TestPerson): Chainable<void>
+    addContractPerson(personData: PersonData): Chainable<void>
     deleteContractPerson(email: string): Chainable<void>
 
     /** download excel file */
     readExcelFile(filename: string): Chainable<string>
+
+    /** request management */
+    createRequest(requestData: RequestData): Chainable<void>
 
   }
 }

@@ -101,7 +101,7 @@ Cypress.Commands.add('loadProject', (name) => {
 
 /** select a contract and load content */
 Cypress.Commands.add('openContract', (number) => {
-  cy.get('[data-cy="contract-id"]', {timeout:10000}).contains(number).should('be.visible').as('contract-id')
+  cy.get('[data-cy="contract-id"]', { timeout: 10000 }).contains(number).should('be.visible').as('contract-id')
 
   cy.get('@contract-id').invoke('attr', 'href').then(($href) => {
     const contractUrl = $href.toString().trim()
@@ -113,10 +113,10 @@ Cypress.Commands.add('openContract', (number) => {
 /** collapse or expand the navigation drawer and filter pane, to give more space to the table in between */
 Cypress.Commands.add('collapseExpandSidesheets', () => {
   /** collapse both navigation sidesheet and filter sidesheet to make sure the first name column and the phone number column show up */
-    // cy.get('#resources-contract-navigation-drawer').find('#collapse-expand-btn').click()
-    // cy.get('filter-pane').find('#collapse-expand-btn').click()
-    cy.get('[class^="fc--NavigationDrawer__collapseButtonContainer"]').find('button').click()
-    cy.get('[class^="fc--FilterPane__collapseExpandButtonContainer"]').find('button').click() 
+  // cy.get('#resources-contract-navigation-drawer').find('#collapse-expand-btn').click()
+  // cy.get('filter-pane').find('#collapse-expand-btn').click()
+  cy.get('[class^="fc--NavigationDrawer__collapseButtonContainer"]').find('button').click()
+  cy.get('[class^="fc--FilterPane__collapseExpandButtonContainer"]').find('button').click()
 });
 
 /** verify the content of Help page is loaded successfully */
@@ -137,13 +137,26 @@ export const verifyHelpPage = () => {
  * - for request data: eg. custom-position, work-load, obs, request-description
  * data: the data for the selected type
 */
-Cypress.Commands.add('fillTextInput', (index, type, data) => {
-  cy.get('[id="' + type + '-input"]').eq(index).find('input').clear().type(data)
+Cypress.Commands.add('fillTextInput', (index, column, data) => {
+  cy.get('[id="' + column + '-input"]').eq(index).find('input').clear().type(data)
 })
 
 /** fill in data in input and pick it from the dropdown menu */
-Cypress.Commands.add('typeAndPick', {prevSubject: true,},(subject, data) => {
+Cypress.Commands.add('typeAndPick', { prevSubject: true, }, (subject, data) => {
   cy.get(subject).type(data)
   cy.get('[class^="fc--SearchableDropdown"]').contains(data).click()
 })
+
+/** select an element randomly in its array */
+Cypress.Commands.add('random', { prevSubject: true },
+  (subject) => {
+    cy.get(subject).then((list) => {
+      const max = list.length
+      console.log('total length: ', max)
+      /** generate a random number between 0 and max length */
+      const i = Math.floor(Math.random() * (max + 1));
+      console.log('random number is: ', i)
+      cy.wrap(subject).eq(i)
+    })
+  })
 

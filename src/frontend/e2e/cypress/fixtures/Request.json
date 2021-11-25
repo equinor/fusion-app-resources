@@ -1,11 +1,11 @@
 {
-    "BasePosition": "Automation Designer",
-    "AssignedPerson": "Qi Jin",
-    "TaskOwner": "Electro Engineer",
-    "CustomPositionTitle": "Automation Designer",
-    "AppliesFrom": "01/011/2021",
-    "AppliesTo": "01/11/2022",
-    "Workload": "100",
-    "OBS": "",
-    "RequestDescription": "Test"
+    "basePosition": "Automation Designer",
+    "assignedPerson": "Qi Jin",
+    "taskOwner": "Electro Engineer",
+    "customPositionTitle": "Automation Designer",
+    "appliesFrom": "01/011/2021",
+    "appliesTo": "01/11/2022",
+    "workload": "100",
+    "oBS": "",
+    "requestDescription": "Test"
 }

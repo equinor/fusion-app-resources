@@ -58,7 +58,7 @@ const PositionDetailsSideSheet: FC<PositionDetailsSideSheetProps> = ({ positions
                     <div className={styles.tabsWrapper}>
                         <Tabs activeTabKey={activeTabKey} onChange={key => setActiveTabKey(key)}>
                             <Tab id="pro-organisation-tab" tabKey="pro-org" title="ProOrganisation">
-                                <div className={styles.tabContent}>
+                                <div data-cy="pro-organisation-tab-content" className={styles.tabContent}>
                                     <ReportingPathTab
                                         filterToDate={filterToDate}
                                         selectedPosition={currentPosition}
@@ -66,7 +66,7 @@ const PositionDetailsSideSheet: FC<PositionDetailsSideSheetProps> = ({ positions
                                 </div>
                             </Tab>
                             <Tab id="position-timeline-tab" tabKey="position-timeline" title="Position timeline">
-                                <div className={styles.tabContent}>
+                                <div data-cy="position-timeline-tab-content" className={styles.tabContent}>
                                     <PositionTimeline
                                         selectedDate={filterToDate}
                                         selectedPosition={currentPosition}
@@ -74,7 +74,7 @@ const PositionDetailsSideSheet: FC<PositionDetailsSideSheetProps> = ({ positions
                                 </div>
                             </Tab>
                             <Tab id="contract-discipline-network-tab" tabKey="discipline-network" title="Contract discipline network">
-                                <div className={styles.tabContent}>
+                                <div data-cy="contract-discipline-network-tab-content" className={styles.tabContent}>
                                     <DisciplineNetworkTab
                                         filterToDate={filterToDate}
                                         selectedPosition={currentPosition}
@@ -83,7 +83,7 @@ const PositionDetailsSideSheet: FC<PositionDetailsSideSheetProps> = ({ positions
                                 </div>
                             </Tab>
                             <Tab id="role-description-tab" tabKey="role-description" title="Role description">
-                                <div className={styles.tabContent}>
+                                <div data-cy="role-description-tab-content" className={styles.tabContent}>
                                     <RoleDescriptionTab
                                         filterToDate={filterToDate}
                                         selectedPosition={currentPosition}

@@ -20,16 +20,27 @@
         return cy.get('#request-general-tab')
     }
 
+    RequestGeneralTabContent() {
+        return cy.get('[data-cy="request-general-tab-content"]')
+    }
+
     RequestDescriptionTab() {
         return cy.get('#request-description-tab')
+    }
+
+    RequestDescriptionTabContent() {
+        return cy.get('[data-cy="request-description-tab-content"]')
     }
 
     RequestPersonTab() {
         return cy.get('#request-person-tab')
     }
     
+    RequestPersonTabContent() {
+        return cy.get('[data-cy="request-person-tab-content"]')
+    }
+
     CloseSidesheetButton() {
         return cy.get('[id="close-btn"]');
-    }
-    
+    }    
 }

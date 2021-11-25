@@ -20,14 +20,14 @@ Cypress.Commands.add('checkContractPersonExistence', (email) => {
 });
 
 /** add a new contract persion */
-Cypress.Commands.add('addContractPerson', (person: TestPerson) => {
+Cypress.Commands.add('addContractPerson', (personData) => {
     contractPersonnelPage.AddContractPersonButton().click()
 
     addPersonSidesheet.AddPersonSidesheet().should('be.visible').within(() => {
-        cy.fillTextInput(0, 'first-name', person.firstName)
-        cy.fillTextInput(0, 'last-name', person.lastName)
-        cy.fillTextInput(0, 'email', person.email)
-        cy.fillTextInput(0, 'phone', person.phoneNumber)
+        cy.fillTextInput(0, 'first-name', personData.firstName)
+        cy.fillTextInput(0, 'last-name', personData.lastName)
+        cy.fillTextInput(0, 'email', personData.email)
+        cy.fillTextInput(0, 'phone', personData.phoneNumber)
 
         addPersonSidesheet.SaveButton().should('not.have.class', 'disabled').click()
     });
@@ -39,7 +39,7 @@ Cypress.Commands.add('addContractPerson', (person: TestPerson) => {
         cy.wait(100)
     });
 
-    cy.get('[id="email-column"]').should('contain', person.email.trim())
+    cy.get('[id="email-column"]').should('contain', personData.email.trim())
 })
 
 

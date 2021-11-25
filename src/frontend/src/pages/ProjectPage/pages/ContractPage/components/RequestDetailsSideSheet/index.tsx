@@ -143,7 +143,7 @@ const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests })
         >
             <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
                 <Tab id="request-general-tab" tabKey="general" title="General">
-                    <div className={styles.tabContainer}>
+                    <div data-cy="request-general-tab-content" className={styles.tabContainer}>
                         <div className={styles.container}>
                             {currentRequest.workflow && currentRequest.provisioningStatus && (
                                 <RequestWorkflow
@@ -215,14 +215,14 @@ const RequestDetailsSideSheet: FC<RequestDetailsSideSheetProps> = ({ requests })
                     </div>
                 </Tab>
                 <Tab id="request-description-tab" tabKey="description" title="Description">
-                    <div className={styles.tabContainer}>
+                    <div data-cy="request-description-tab-content" className={styles.tabContainer}>
                         <div className={styles.container}>
                             <RequestDetails request={currentRequest} />
                         </div>
                     </div>
                 </Tab>
                 <Tab id="request-person-tab" tabKey="person" title="Person">
-                    <div className={styles.tabContainer}>
+                    <div data-cy="request-person-tab-content" className={styles.tabContainer}>
                         <div className={styles.container}>
                             {currentPerson ? (
                                 <>
