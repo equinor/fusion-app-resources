@@ -92,7 +92,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
         ),
     },
     {
-        id: 'discipline-column',
+        id: 'disciplines-column',
         accessor: request => request.position?.basePosition?.discipline || 'TBN',
         key: 'discipline',
         label: 'Discipline',

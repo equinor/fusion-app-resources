@@ -74,7 +74,7 @@ describe('Contract Personnel', () => {
             cy.wait(100)
         });
 
-        cy.collapseExpandSidesheets()       
+        cy.viewport(1920, 1080)       
 
         cy.get('[id="first-name-column"]').should('contain', this.personData[1].firstName) 
 

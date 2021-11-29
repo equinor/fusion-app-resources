@@ -24,7 +24,7 @@ function GenericFilter<T>({ data, filterSections, onFilter, id }: GenericFilterP
 
     return (
         <FilterPane
-            id={id}
+            id="filter-pane"
             data={data}
             sectionDefinitions={filterSections}
             terms={filterTerms}

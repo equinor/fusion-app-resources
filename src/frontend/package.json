@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@equinor/fusion": "^3.2.6",
-        "@equinor/fusion-components": "^2.4.31",
+        "@equinor/fusion-components": "^2.4.38",
         "@equinor/fusion-react-datepicker": "^0.7.2",
         "@equinor/fusion-react-table": "0.1.0-alpha.4",
         "@types/classnames": "^2.2.11",

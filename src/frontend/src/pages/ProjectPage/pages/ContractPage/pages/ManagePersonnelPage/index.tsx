@@ -230,7 +230,6 @@ const ManagePersonnelPage: FC = () => {
                     )}
                 </div>
                 <GenericFilter
-                    id="contract-personnel-filter-pane"
                     data={personnel}
                     filterSections={filterSections}
                     onFilter={setFilteredPersonnel}

@@ -21,6 +21,6 @@ export default class ContractPersonnelPage {
     }
 
     ContractPersonnelTable() {
-        return cy.get('#contract-personnel-table');
+        return cy.get('#contract-personnel-table', {timeout: 10000});
     }
 }

@@ -37,7 +37,6 @@ declare namespace Cypress {
     currentUser(): Chainable<{ id: string, fullName: string }>
     loadProject(name: string): Chainable<void>
     openContract(number: string): Chainable<void>
-    collapseExpandSidesheets(): Chainable<void>
     random(): Chainable<Element>
     
     /** fill in data */
@@ -51,6 +50,7 @@ declare namespace Cypress {
     searchText(column: string, keyword: string): Chainable<void>
     disciplineFilter(item: string): Chainable<void>
     adStatusFilter(item: string): Chainable<void>
+    requestStatusFilter(item: string): Chainable<void>
 
     /** contract person */
     checkContractPersonExistence(email: string): Chainable<number>

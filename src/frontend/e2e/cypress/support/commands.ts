@@ -91,7 +91,7 @@ Cypress.Commands.add('currentUser', () => cy.fusion().then(async (x) => await x.
 
 /** select a project and load content */
 Cypress.Commands.add('loadProject', (name) => {
-  cy.get('input[class^=fc--ContextSelector__searchInput]').should('be.visible').as('context-selector');
+  cy.get('input[class^=fc--ContextSelector__searchInput]', {timeout: 10000}).should('be.visible').as('context-selector');
   // cy.get('[data-cy="context-selector"]').find('input').should('be.visible').as('context-selector');
   cy.get('@context-selector').type(name)
   cy.get("div[class^=fc--Menu__container]").contains(name, { timeout: 10000 }).click()
@@ -110,14 +110,6 @@ Cypress.Commands.add('openContract', (number) => {
   })
 });
 
-/** collapse or expand the navigation drawer and filter pane, to give more space to the table in between */
-Cypress.Commands.add('collapseExpandSidesheets', () => {
-  /** collapse both navigation sidesheet and filter sidesheet to make sure the first name column and the phone number column show up */
-  // cy.get('#resources-contract-navigation-drawer').find('#collapse-expand-btn').click()
-  // cy.get('filter-pane').find('#collapse-expand-btn').click()
-  cy.get('[class^="fc--NavigationDrawer__collapseButtonContainer"]').find('button').click()
-  cy.get('[class^="fc--FilterPane__collapseExpandButtonContainer"]').find('button').click()
-});
 
 /** verify the content of Help page is loaded successfully */
 export const verifyHelpPage = () => {

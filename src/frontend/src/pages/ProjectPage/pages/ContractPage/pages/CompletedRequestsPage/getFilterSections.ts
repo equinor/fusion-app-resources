@@ -16,6 +16,7 @@ const getFilterSections = (requests: PersonnelRequest[]): FilterSection<Personne
             title: '',
             filters: [
                 {
+                    id: 'search-filter',
                     key: 'search-filter',
                     type: FilterTypes.Search,
                     title: 'Search',
@@ -28,11 +29,13 @@ const getFilterSections = (requests: PersonnelRequest[]): FilterSection<Personne
             ],
         },
         {
+            id: 'filters-section',
             key: 'filters',
             title: 'Filters',
             isCollapsible: true,
             filters: [
                 {
+                    id: 'request-status-filter',
                     key: 'status',
                     title: 'Status',
                     type: FilterTypes.Checkbox,
@@ -45,6 +48,7 @@ const getFilterSections = (requests: PersonnelRequest[]): FilterSection<Personne
                     })),
                 },
                 {
+                    id: 'disciplines-filter',
                     key: 'disciplines',
                     title: 'Disciplines',
                     type: FilterTypes.Checkbox,

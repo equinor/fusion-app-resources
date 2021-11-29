@@ -9,7 +9,7 @@
     }
 
     CollapseExpandButton(){
-        return cy.get('#?')
+        return cy.get('[class^="fc--NavigationDrawer__collapseButtonContainer"]').find('button')
     }
 
     GeneralTab(){

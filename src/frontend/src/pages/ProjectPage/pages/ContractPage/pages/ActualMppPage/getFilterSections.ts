@@ -12,6 +12,7 @@ const getFilterSections = (positions: Position[]): FilterSection<Position>[] => 
             title: 'Search',
             filters: [
                 {
+                    id: 'search-filter',
                     key: 'search-filter',
                     type: FilterTypes.Search,
                     title: 'Search',
@@ -26,11 +27,13 @@ const getFilterSections = (positions: Position[]): FilterSection<Position>[] => 
             ],
         },
         {
+            id: 'filter-section',
             key: 'filters',
             title: 'Filters',
             isCollapsible: true,
             filters: [
                 {
+                    id: 'disciplines-filter',
                     key: 'discipline-filter',
                     title: 'Disciplines',
                     type: FilterTypes.Checkbox,

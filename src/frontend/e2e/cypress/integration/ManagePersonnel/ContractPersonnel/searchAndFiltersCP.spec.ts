@@ -7,7 +7,7 @@
 import NavigationDrawer from "../../../POM/NavigationDrawer"
 const navigationDrawer = new NavigationDrawer()
 
-describe('TC 13064 Search and Filter', () => {
+describe('Contract Personnel - Search and Filter', () => {
     /** TODO make login persistent between tests */
     before(() => {
         cy.clearLocalStorage();
@@ -15,7 +15,7 @@ describe('TC 13064 Search and Filter', () => {
         cy.visit('/');
     });
 
-    it('Search and filters', () => {
+    it('TC 13064 Search and Filter', () => {
         const contractNo = '312312341'
 
         cy.loadProject('Query test project')
@@ -33,14 +33,11 @@ describe('TC 13064 Search and Filter', () => {
         cy.disciplineFilter('IT')
         cy.disciplineFilter('Aut/Inst/Tele')
         cy.disciplineFilter('Safety')
-        //cy.disciplineFilter('Engineering Management')  /** the displine column doesn't show up for this filter */
+        cy.disciplineFilter('Engineering Management')
         cy.disciplineFilter('Estimation')
 
         /** AD status filters */
         cy.adStatusFilter('Azure AD Approved')
         cy.adStatusFilter('No Azure Access')
-        //cy.adStatusFilter('Azure AD pending approval')  /** this filter is not always exist */
-
-        navigationDrawer.CloseContractButton().click({force:true})
     });
 })

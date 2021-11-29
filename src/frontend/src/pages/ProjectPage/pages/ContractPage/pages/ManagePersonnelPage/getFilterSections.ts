@@ -23,7 +23,7 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
             title: 'Search',
             filters: [
                 {
-                    // id: 'search-section',
+                    id: 'search-filter',
                     key: 'search-filter',
                     type: FilterTypes.Search,
                     title: '',
@@ -38,13 +38,13 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
             ],
         },
         {
-            // id: 'filters-section',
+            id: 'filters-section',
             key: 'filters',
             title: 'Filters',
             isCollapsible: true,
             filters: [
                 {
-                    // id: 'disciplines-filter',
+                    id: 'disciplines-filter',
                     key: 'discipline-filter',
                     title: 'Disciplines',
                     type: FilterTypes.Checkbox,
@@ -57,7 +57,7 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                     })),
                 },
                 {
-                    // id: 'ad-filter',
+                    id: 'ad-status-filter',
                     key: 'azureAdStatus',
                     title: 'AD Status',
                     type: FilterTypes.Checkbox,

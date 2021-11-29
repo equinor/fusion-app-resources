@@ -68,7 +68,7 @@ const columns: DataTableColumn<Position>[] = [
         ),
     },
     {
-        id: 'discipline-column',
+        id: 'disciplines-column',
         accessor: position => position.basePosition?.discipline || 'TBN',
         key: 'discipline',
         label: 'Discipline',

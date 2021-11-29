@@ -17,14 +17,14 @@
     }
 
     DisciplinesFilter() {
-        return cy.get('#?');
+        return cy.get('#disciplines-filter');
     }
 
     ADStatusFilter() {
-        return cy.get('#?');
+        return cy.get('#ad-filter');
     }
 
     StatusFilter() {
-        return cy.get('#?');
+        return cy.get('#request-status-filter');
     }
 }
