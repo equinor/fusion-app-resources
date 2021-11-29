@@ -1,4 +1,5 @@
 ﻿using Fusion.ApiClients.Org;
+using Fusion.Resources.Database.Entities;
 using System;
 
 #nullable enable
@@ -81,6 +82,18 @@ namespace Fusion.Resources.Domain
             {
                 PersonId.IdentifierType.UniqueId => new ApiPersonV2 { AzureUniqueId = personId.Value.UniqueId },
                 _ => new ApiPersonV2 { Mail = personId.Value.OriginalIdentifier }
+            };
+        }
+
+        public static implicit operator PersonId?(DbExternalPersonnelPerson? person)
+        {
+            if (person is null)
+                return null;
+
+            return person.AzureUniqueId.HasValue switch
+            {
+                true => new PersonId(person.AzureUniqueId.Value),
+                _ => new PersonId(person.Mail)
             };
         }
     }
