@@ -26,6 +26,7 @@ describe('Actual MPP - Position Details', () => {
   it('TC 13087 Position Details', () => {
     navigationDrawer.ActualMPPTab().click().invoke('attr', 'class').should('contain', 'isActive')
 
+    cy.wait(200)
     cy.get('[id="position-column"]', {timeout: 10*1000}).random().click()
 
     positionDetailsSidesheet.PositionDetailsSidesheet().should('be.visible')

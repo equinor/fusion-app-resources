@@ -26,6 +26,7 @@ describe('Active Requests - Request Details', () => {
   it('TC 13091 - Request Details', () => {
     navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
 
+    cy.wait(200)
     cy.get('[id="base-position-column"]', {timeout: 10*1000}).random().click()
 
     requestDetailsSidesheet.RequestDetailsSidesheet().should('be.visible')

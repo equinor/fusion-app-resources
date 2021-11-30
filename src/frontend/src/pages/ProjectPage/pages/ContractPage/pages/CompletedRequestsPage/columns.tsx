@@ -32,6 +32,7 @@ const ColumnSideSheetLink: FC<ColumnSideSheetLinkProps> = ({ requestId, children
 const columns: DataTableColumn<PersonnelRequest>[] = [
     {
         accessor: request => request.position?.basePosition?.name || 'TBN',
+        id: 'base-position-column',
         key: 'basePosition',
         label: 'Base position',
         sortable: true,
@@ -43,6 +44,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
     {
         accessor: request => request.person?.name || '',
+        id: 'person-column',
         key: 'person',
         label: 'Person',
         sortable: true,
@@ -52,6 +54,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
     {
         accessor: request => request.state.toString(),
+        id: 'request-status-column',
         key: 'status',
         label: 'Status',
         component: ({ item }) =>
@@ -66,6 +69,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
     {
         accessor: request => request.position?.name || 'TBN',
+        id: 'position-column',
         key: 'position',
         label: 'Custom position title',
         sortable: true,
@@ -77,6 +81,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
     {
         accessor: request => (request.lastActivity ? formatDateTime(request.lastActivity) : 'N/A'),
+        id: 'last-activity-column',
         key: 'lastActivity',
         label: 'Last activity',
         sortable: true,
@@ -88,6 +93,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
     {
         accessor: request => request.position?.basePosition?.discipline || 'TBN',
+        id: 'disciplines-column',
         key: 'discipline',
         label: 'Discipline',
         sortable: true,
@@ -99,6 +105,7 @@ const columns: DataTableColumn<PersonnelRequest>[] = [
     },
     {
         accessor: request => request.position?.taskOwner?.positionId || '',
+        id: 'task-owner-id-column',
         key: 'taskOwnerId',
         label: 'Task owner',
         sortable: true,
