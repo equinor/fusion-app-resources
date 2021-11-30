@@ -328,8 +328,49 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
             response.Value.value.Should().OnlyContain(i => i.unit.StartsWith("PDP PRD"));
             response.Value.value.Should().NotContain(i => i.unit.StartsWith("PDP PDP FE"));
-            response.Value.value.Should().HaveCountGreaterOrEqualTo(5); // Should include the parent unit as well, but should not include FE and DW
+            response.Value.value.Should().HaveCountGreaterOrEqualTo(5); // Should include the parent unit as well, but should not include FE and DW            
+        }
 
+        [Fact]
+        public async Task GetMatrixItem_ShouldHaveAccessToAllItems_WhenParentResourceOwner()
+        {
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                // Create some random items
+                var units = new List<string>()
+                {
+                    "PDP PRD",
+                    "PDP PRD PMC",
+                    "PDP PRD PMC PCA",
+                    "PDP PRD PMC PCA PCA1",
+                    "PDP PRD PMC PCA PCA2",
+                    "PDP PRD FE",
+                    "PDP DW"
+                };
+
+                foreach (var unit in units)
+                {
+                    var seedResp = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", new { unit = unit });
+                    seedResp.Should().BeSuccessfull();
+                }
+            }
+
+
+            var resourceOwner = fixture.AddResourceOwner("PDP PRD PMC");
+            using var authScope = fixture.UserScope(resourceOwner);
+            var response = await client.TestClientGetAsync($"/internal-resources/responsibility-matrix", new
+            {
+                value = new[] { new { id = Guid.Empty, unit = string.Empty } }
+            });
+
+            response.Should().BeSuccessfull();
+
+            foreach (var item in response.Value.value)
+            {
+                var itemResponse = await client.TestClientGetAsync($"/internal-resources/responsibility-matrix/{item.id}", new { });
+                itemResponse.Should().BeSuccessfull();
+            }
         }
 
         public async Task InitializeAsync()
