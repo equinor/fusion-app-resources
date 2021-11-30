@@ -83,7 +83,7 @@ namespace Fusion.Resources.Functions.Functions
             }
 
             log.LogInformation($"Found {mailsToEnsureCount} profiles to ensure");
-            var ensureResult = await EnsurePeopleAsync(mailsToEnsure);
+            var ensureResult = await EnsurePersonsAsync(mailsToEnsure);
 
             var refreshFailed = false;
             var successCount = ensureResult.Count(x => x.Success);
@@ -119,7 +119,7 @@ namespace Fusion.Resources.Functions.Functions
             log.LogInformation("Profiles sync run successfully completed");
         }
 
-        private async Task<List<PersonValidationResult>> EnsurePeopleAsync(List<string> mailsToEnsure)
+        private async Task<List<PersonValidationResult>> EnsurePersonsAsync(List<string> mailsToEnsure)
         {
             var peopleRequest = new HttpRequestMessage(HttpMethod.Post, $"persons/ensure");
             peopleRequest.Headers.Add("api-version", "3.0");
