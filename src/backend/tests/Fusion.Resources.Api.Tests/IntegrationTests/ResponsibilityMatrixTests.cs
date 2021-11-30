@@ -7,13 +7,13 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Fusion.Resources.Api.Controllers;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks.OrgService;
 using Xunit;
 using Xunit.Abstractions;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -74,7 +74,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task PutMatrix_ShouldBeOk_WhenAdmin()
         {
-            var request = new UpdateResponsibilityMatrixRequest
+            var request = new
             {
                 ProjectId = testProject.Project.ProjectId,
                 LocationId = Guid.NewGuid(),
@@ -99,13 +99,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task PutMatrix_NullablesTest_ShouldBeOk_WhenAdmin()
         {
-            var request = new UpdateResponsibilityMatrixRequest
+            var request = new 
             {
-                ProjectId = null,
-                LocationId = null,
-                Discipline = null,
-                BasePositionId = null,
-                Sector = null,
                 Unit = "PDP PRD EAS",
             };
 
@@ -122,15 +117,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task PutMatrix_ShouldBeBadRequest_WhenUnitIsNull()
+        public async Task PutMatrix_ShouldBeBadRequest_WhenUnitIsEmpty()
         {
-            var request = new UpdateResponsibilityMatrixRequest
+            var request = new
             {
-                ProjectId = null,
-                LocationId = null,
-                Discipline = null,
-                BasePositionId = null,
-                Sector = null,
                 Unit = "",
             };
 
@@ -146,7 +136,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var resourceOwner = fixture.AddResourceOwner(department);
 
-            var request = new UpdateResponsibilityMatrixRequest
+            var request = new
             {
                 ProjectId = testProject.Project.ProjectId,
                 LocationId = Guid.NewGuid(),
@@ -171,7 +161,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
 
-            var request = new UpdateResponsibilityMatrixRequest
+            var request = new 
             {
                 ProjectId = testProject.Project.ProjectId,
                 LocationId = Guid.NewGuid(),
@@ -200,6 +190,188 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
         }
 
+        [Theory]
+        [InlineData("L1 L2 L3", "L1 L2", true)]         // Parent department
+        [InlineData("L1 L2 L3", "L1 L2 L3 L4A", true)]  // Child department
+        [InlineData("L1 L2 L3A", "L1 L2 L3A", true)]    // Same department
+        [InlineData("L1 L2 L3A", "L1 L2 L3B", true)]    // sibling department
+        [InlineData("L1 L2 L3A", "L1 L2A L3A", false)]  // Different L2 node
+        [InlineData("L1 L2 L3A", "L1A L2A L3A", false)] // Different L1 node
+        public async Task CreateMatrixItem_AccessTest(string targetDepartment, string resourceOwnerDepartment, bool shouldHaveAccess)
+        {
+            var resourceOwner = fixture.AddResourceOwner(resourceOwnerDepartment);
+
+            var request = new
+            {
+                Unit = targetDepartment,
+            };
+
+            using var authScope = fixture.UserScope(resourceOwner);
+            var response = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", request);
+
+            if (shouldHaveAccess)
+                response.Should().BeSuccessfull();
+            else
+                response.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("L1 L2 L3", "L1 L2", true)]         // Parent department
+        [InlineData("L1 L2 L3", "L1 L2 L3 L4A", true)]  // Child department
+        [InlineData("L1 L2 L3A", "L1 L2 L3A", true)]    // Same department
+        [InlineData("L1 L2 L3A", "L1 L2 L3B", true)]    // sibling department
+        [InlineData("L1 L2 L3A", "L1 L2A L3A", false)]  // Different L2 node
+        [InlineData("L1 L2 L3A", "L1A L2A L3A", false)] // Different L1 node
+        public async Task UpdateMatrixItem_AccessTest(string targetDepartment, string resourceOwnerDepartment, bool shouldHaveAccess)
+        {
+            var resourceOwner = fixture.AddResourceOwner(resourceOwnerDepartment);
+
+            Guid? itemId = null;
+            using (var adminScope = fixture.AdminScope())
+            {
+                var request = new
+                {
+                    Unit = targetDepartment,
+                };
+                var createResp = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", request);
+                createResp.Should().BeSuccessfull();
+                itemId = createResp.Value.Id;
+            }
+
+            var updateRequest = new
+            {
+                ProjectId = testProject.Project.ProjectId,
+                Unit = targetDepartment,
+            };
+
+            using var authScope = fixture.UserScope(resourceOwner);
+            var response = await client.TestClientPutAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix/{itemId}", updateRequest);
+
+            if (shouldHaveAccess)
+                response.Should().BeSuccessfull();
+            else
+                response.Should().BeUnauthorized();
+        }
+
+        [Fact]
+        public async Task ListMatrixItem_ShouldListRelevantItems_WhenResourceOwner()
+        {
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                // Create some random items
+                var units = new List<string>()
+                {
+                    "PDP PRD",
+                    "PDP PRD PMC",
+                    "PDP PRD PMC PCA",
+                    "PDP PRD PMC PCA PCA1",
+                    "PDP PRD PMC PCA PCA2",
+                    "PDP PRD FE",
+                    "PDP DW"
+                };
+
+                foreach (var unit in units)
+                {
+                    var seedResp = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", new { unit = unit });
+                    seedResp.Should().BeSuccessfull();
+                }
+            }
+
+
+            var resourceOwner = fixture.AddResourceOwner("PDP PRD PMC PCA PCA1");
+            using var authScope = fixture.UserScope(resourceOwner);
+            var response = await client.TestClientGetAsync($"/internal-resources/responsibility-matrix", new
+            {
+                value = new[] { new { unit = string.Empty } }
+            });
+
+            response.Should().BeSuccessfull();
+            response.Value.value.Should().OnlyContain(i => i.unit.StartsWith("PDP PRD PMC PCA"));
+            response.Value.value.Should().HaveCountGreaterOrEqualTo(3); // Unknown if any other test affect us. Should at least have the ones relevant to PCA.
+            
+        }
+
+        [Fact]
+        public async Task ListMatrixItem_ShouldListAllChildItems_WhenParentResourceOwner()
+        {
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                // Create some random items
+                var units = new List<string>()
+                {
+                    "PDP PRD",
+                    "PDP PRD PMC",
+                    "PDP PRD PMC PCA",
+                    "PDP PRD PMC PCA PCA1",
+                    "PDP PRD PMC PCA PCA2",
+                    "PDP PRD FE",
+                    "PDP DW"
+                };
+
+                foreach (var unit in units)
+                {
+                    var seedResp = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", new { unit = unit });
+                    seedResp.Should().BeSuccessfull();
+                }
+            }
+
+
+            var resourceOwner = fixture.AddResourceOwner("PDP PRD PMC");
+            using var authScope = fixture.UserScope(resourceOwner);
+            var response = await client.TestClientGetAsync($"/internal-resources/responsibility-matrix", new
+            {
+                value = new[] { new { unit = string.Empty } }
+            });
+
+            response.Should().BeSuccessfull();
+            response.Value.value.Should().OnlyContain(i => i.unit.StartsWith("PDP PRD"));
+            response.Value.value.Should().NotContain(i => i.unit.StartsWith("PDP PDP FE"));
+            response.Value.value.Should().HaveCountGreaterOrEqualTo(5); // Should include the parent unit as well, but should not include FE and DW            
+        }
+
+        [Fact]
+        public async Task GetMatrixItem_ShouldHaveAccessToAllItems_WhenParentResourceOwner()
+        {
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                // Create some random items
+                var units = new List<string>()
+                {
+                    "PDP PRD",
+                    "PDP PRD PMC",
+                    "PDP PRD PMC PCA",
+                    "PDP PRD PMC PCA PCA1",
+                    "PDP PRD PMC PCA PCA2",
+                    "PDP PRD FE",
+                    "PDP DW"
+                };
+
+                foreach (var unit in units)
+                {
+                    var seedResp = await client.TestClientPostAsync<TestResponsibilitMatrix>($"/internal-resources/responsibility-matrix", new { unit = unit });
+                    seedResp.Should().BeSuccessfull();
+                }
+            }
+
+
+            var resourceOwner = fixture.AddResourceOwner("PDP PRD PMC");
+            using var authScope = fixture.UserScope(resourceOwner);
+            var response = await client.TestClientGetAsync($"/internal-resources/responsibility-matrix", new
+            {
+                value = new[] { new { id = Guid.Empty, unit = string.Empty } }
+            });
+
+            response.Should().BeSuccessfull();
+
+            foreach (var item in response.Value.value)
+            {
+                var itemResponse = await client.TestClientGetAsync($"/internal-resources/responsibility-matrix/{item.id}", new { });
+                itemResponse.Should().BeSuccessfull();
+            }
+        }
 
         public async Task InitializeAsync()
         {
@@ -215,7 +387,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
 
-            var request = new UpdateResponsibilityMatrixRequest
+            var request = new 
             {
                 ProjectId = testProject.Project.ProjectId,
                 LocationId = Guid.NewGuid(),
