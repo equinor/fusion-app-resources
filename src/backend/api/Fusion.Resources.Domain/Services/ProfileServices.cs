@@ -59,6 +59,7 @@ namespace Fusion.Resources.Domain.Services
                 resolvedPerson.Name = profile.Name;
                 resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
                 resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+                resolvedPerson.IsDeleted = false;
             }
             else
             {

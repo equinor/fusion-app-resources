@@ -1,4 +1,5 @@
-﻿using Fusion.Events;
+﻿#nullable enable
+using Fusion.Events;
 using Fusion.Events.People;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -62,8 +62,7 @@ namespace Fusion.Resources.Functions.Functions
         [FunctionName("profile-sync")]
         public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
-            log.LogInformation("Profile sync starting run");
-            log.LogInformation("Reading external person personnel from Resources API");
+            log.LogInformation("Synchronizing external person personnel in Resources API");
 
             var response = await resourcesClient.GetAsync($"resources/personnel");
             response.EnsureSuccessStatusCode();
@@ -76,45 +75,52 @@ namespace Fusion.Resources.Functions.Functions
                 .Distinct()
                 .ToList();
 
-            log.LogInformation($"Found {mailsToEnsure.Count} profiles to ensure");
-            var ensuredPeople = await EnsurePeople(mailsToEnsure);
-
-            log.LogInformation($"Succesfully ensured {ensuredPeople.Count} people");
-
-            bool refreshFailed = false;
-            foreach (var person in ensuredPeople)
+            var mailsToEnsureCount = mailsToEnsure.Count;
+            if (mailsToEnsureCount == 0)
             {
-                log.LogInformation($"Processing person '{person.Identifier}'");
-                var resourcesPerson = personnel.Value.FirstOrDefault(p => p.Mail == person.Identifier);
-
-                if (!InvitationStatusMatches(person.Person.InvitationStatus, resourcesPerson.AzureAdStatus))
-                {
-                    log.LogInformation($"Detected change in profile '{resourcesPerson.Mail}'. Initiating refresh.");
-                    var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { });
-
-                    if (refreshResponse.StatusCode == HttpStatusCode.NotFound) //not found should only be warning
-                    {
-                        log.LogWarning($"Person '{person.Identifier}' was not found in Azure AD");
-                    }
-                    else if (!refreshResponse.IsSuccessStatusCode)
-                    {
-                        body = await refreshResponse.Content.ReadAsStringAsync();
-                        log.LogError($"Failed to refresh '{person.Identifier}': {refreshResponse.StatusCode} - {body}");
-                        refreshFailed = true;
-                    }
-                }
+                log.LogInformation($"Found {mailsToEnsureCount} profiles to ensure. Aborting...");
+                return;
             }
 
+            log.LogInformation($"Found {mailsToEnsureCount} profiles to ensure");
+            var ensureResult = await EnsurePeopleAsync(mailsToEnsure);
+
+            var refreshFailed = false;
+            var successCount = ensureResult.Count(x => x.Success);
+            var failureCount = ensureResult.Count(x => x.Success == false);
+            if (successCount > 0)
+            {
+                log.LogInformation($"Successfully ensured {successCount} profiles");
+            }
+
+            if (failureCount > 0)
+            {
+                log.LogWarning($"Failed to ensure {failureCount} profiles");
+            }
+
+            foreach (var person in ensureResult)
+            {
+                var resourcesPerson = personnel.Value.First(p => p.Mail == person.Identifier);
+                if (InvitationStatusMatches(person.Person?.InvitationStatus, resourcesPerson.AzureAdStatus)) continue;
+
+                log.LogInformation($"Detected change in profile with identifier '{resourcesPerson.Mail}'. Initiating refresh.");
+                var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { userRemoved = !person.Success });
+                if (refreshResponse.IsSuccessStatusCode) continue;
+
+                var content = await refreshResponse.Content.ReadAsStringAsync();
+                log.LogError($"Failed to refresh '{person.Identifier}': {refreshResponse.StatusCode} - {content}");
+                refreshFailed = true;
+            }
             if (refreshFailed)
                 throw new Exception("Failed to refresh all personell successfully. See log for details.");
 
             log.LogInformation("Profiles sync run successfully completed");
         }
 
-        private async Task<List<PersonValidationResult>> EnsurePeople(List<string> mailsToEnsure)
+        private async Task<List<PersonValidationResult>> EnsurePeopleAsync(List<string> mailsToEnsure)
         {
             var peopleRequest = new HttpRequestMessage(HttpMethod.Post, $"persons/ensure");
-            peopleRequest.Headers.Add("api-version", "2.0");
+            peopleRequest.Headers.Add("api-version", "3.0");
             var bodyContent = JsonConvert.SerializeObject(new { PersonIdentifiers = mailsToEnsure });
             peopleRequest.Content = new StringContent(bodyContent, Encoding.UTF8, "application/json");
 
@@ -123,11 +129,11 @@ namespace Fusion.Resources.Functions.Functions
 
             var peopleBody = await peopleResponse.Content.ReadAsStringAsync();
             var people = JsonConvert.DeserializeObject<List<PersonValidationResult>>(peopleBody);
-            var ensuredPeople = people.Where(p => p.Success).ToList();
-            return ensuredPeople;
+
+            return people!;
         }
 
-        private bool InvitationStatusMatches(InvitationStatus? peopleStatus, ApiAccountStatus resourcesStatus)
+        private static bool InvitationStatusMatches(InvitationStatus? peopleStatus, ApiAccountStatus resourcesStatus)
         {
             if ((peopleStatus == InvitationStatus.Accepted && resourcesStatus == ApiAccountStatus.Available) ||
                 (peopleStatus == InvitationStatus.Pending && resourcesStatus == ApiAccountStatus.InviteSent) ||
@@ -143,9 +149,9 @@ namespace Fusion.Resources.Functions.Functions
         {
             public bool Success { get; set; }
             public int StatusCode { get; set; }
-            public string Message { get; set; }
-            public Person Person { get; set; }
-            public string Identifier { get; set; }
+            public string? Message { get; set; }
+            public Person? Person { get; set; }
+            public string? Identifier { get; set; }
         }
 
         public class Person
@@ -158,7 +164,7 @@ namespace Fusion.Resources.Functions.Functions
         {
             public Guid Id { get; set; }
             public Guid? AzureUniquePersonId { get; set; }
-            public string Mail { get; set; }
+            public string Mail { get; set; } = null!;
             public ApiAccountStatus AzureAdStatus { get; set; }
         }
 
