@@ -7,8 +7,12 @@ namespace Fusion.Resources.Domain
     {
         public static DbAzureAccountStatus GetDbAccountStatus(this FusionPersonProfile profile)
         {
-            if (profile.AzureUniqueId.HasValue && profile.InvitationStatus == null)
-                return DbAzureAccountStatus.Available;
+            if (profile.AzureUniqueId.HasValue && profile.InvitationStatus is null)
+            {
+                // External accounts should have a invitation status.
+                return profile.AccountType == FusionAccountType.External ? DbAzureAccountStatus.NoAccount : DbAzureAccountStatus.Available;
+            }
+
 
             return profile.InvitationStatus switch
             {
