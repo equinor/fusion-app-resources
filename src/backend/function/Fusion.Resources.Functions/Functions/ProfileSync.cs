@@ -101,7 +101,9 @@ namespace Fusion.Resources.Functions.Functions
             foreach (var person in ensureResult)
             {
                 var resourcesPerson = personnel.Value.First(p => p.Mail == person.Identifier);
-                if (InvitationStatusMatches(person.Person?.InvitationStatus, resourcesPerson.AzureAdStatus)) continue;
+                // Person with no change in invitation status or azure unique id may be skipped for now.
+                // External personnel may receive a new account in azure. Check both for changes in invitation status and azure unique identifier.
+                if (InvitationStatusMatches(person.Person?.InvitationStatus, resourcesPerson.AzureAdStatus) && person.Person?.AzureUniqueId == resourcesPerson.AzureUniquePersonId) continue;
 
                 log.LogInformation($"Detected change in profile with identifier '{resourcesPerson.Mail}'. Initiating refresh.");
                 var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { userRemoved = !person.Success });
@@ -156,7 +158,8 @@ namespace Fusion.Resources.Functions.Functions
 
         public class Person
         {
-            public string Mail { get; set; }
+            public Guid? AzureUniqueId { get; set; }
+            public string? Mail { get; set; }
             public InvitationStatus? InvitationStatus { get; set; }
         }
 
