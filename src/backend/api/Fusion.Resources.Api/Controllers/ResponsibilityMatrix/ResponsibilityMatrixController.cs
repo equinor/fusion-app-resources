@@ -7,6 +7,7 @@ using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Fusion.Authorization;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -27,6 +28,8 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.ScopeAccess(ScopeAccess.ManageMatrices);
                 });
+
+                r.LimitedAccessWhen(l => l.BeResourceOwner());
             });
 
             if (authResult.Unauthorized)
@@ -38,6 +41,19 @@ namespace Fusion.Resources.Api.Controllers
 
             var returnItems = responsibilityMatrix.Select(p => new ApiResponsibilityMatrix(p));
 
+            // filter items if limited auth
+            if (authResult.LimitedAuth)
+            {
+                var resourceOwnerDepartments = User.GetResponsibleForDepartments()
+                    .Select(d => new DepartmentPath(d))
+                    .ToList();
+
+                returnItems = returnItems.Where(i => i.Unit is not null
+                    // Include parent routing rules
+                    && resourceOwnerDepartments.Any(rodep => rodep.ParentDeparment.IsParent(i.Unit))
+                );
+            }
+
             var collection = new ApiCollection<ApiResponsibilityMatrix>(returnItems);
             return collection;
         }
@@ -46,6 +62,33 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiResponsibilityMatrix>> GetResponsibilityMatrix(Guid matrixId)
         {
             var responsibilityMatrix = await DispatchAsync(new GetResponsibilityMatrixItem(matrixId));
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+
+                r.AnyOf(or =>
+                {
+                    or.ScopeAccess(ScopeAccess.ManageMatrices);
+
+                    if (responsibilityMatrix?.Unit is not null)
+                    {
+                        var department = new DepartmentPath(responsibilityMatrix.Unit);
+
+                        or.BeResourceOwner(responsibilityMatrix.Unit, includeParents: true);
+                        or.BeSiblingResourceOwner(department);
+                        or.BeDirectChildResourceOwner(department);
+                    }
+                });
+
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
 
             if (responsibilityMatrix == null)
                 return FusionApiError.NotFound(matrixId, "Could not locate responsibility matrix");
@@ -66,6 +109,14 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ScopeAccess(ScopeAccess.ManageMatrices);
+                    or.BeResourceOwner(request.Unit, includeParents: true);
+                    if (request.Unit is not null)
+                    {
+                        var department = new DepartmentPath(request.Unit);
+
+                        or.BeSiblingResourceOwner(department);
+                        or.BeDirectChildResourceOwner(department);
+                    }
                 });
             });
 
@@ -106,6 +157,15 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ScopeAccess(ScopeAccess.ManageMatrices);
+
+                    or.BeResourceOwner(request.Unit, includeParents: true);
+                    if (request.Unit is not null)
+                    {
+                        var department = new DepartmentPath(request.Unit);
+
+                        or.BeSiblingResourceOwner(department);
+                        or.BeDirectChildResourceOwner(department);
+                    }
                 });
             });
 
@@ -132,6 +192,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/internal-resources/responsibility-matrix/{matrixId}")]
         public async Task<ActionResult> DeleteResponsibilityMatrix(Guid matrixId)
         {
+            var responsibilityMatrix = await DispatchAsync(new GetResponsibilityMatrixItem(matrixId));
+
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -141,13 +204,27 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.ScopeAccess(ScopeAccess.ManageMatrices);
+
+                    if (responsibilityMatrix?.Unit is not null)
+                    {
+                        var department = new DepartmentPath(responsibilityMatrix.Unit);
+
+                        or.BeResourceOwner(responsibilityMatrix.Unit, includeParents: true);
+                        or.BeSiblingResourceOwner(department);
+                        or.BeDirectChildResourceOwner(department);
+                    }
                 });
+
+
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
+            if (responsibilityMatrix == null)
+                return FusionApiError.NotFound(matrixId, "Could not locate responsibility matrix");
 
             await DispatchAsync(new DeleteResponsibilityMatrix(matrixId));
 

@@ -24,6 +24,8 @@ namespace Fusion.Resources.Domain
 
         public int Level => path.Length;
 
+        public DepartmentPath ParentDeparment => new DepartmentPath(this.Parent());
+
         public string Parent(int levelsToJump = 1) => string.Join(" ", path.SkipLast(levelsToJump));
         public string GoToLevel(int level) => string.Join(" ", path.Take(level <= 0 ? 1 : level));
 
@@ -40,6 +42,22 @@ namespace Fusion.Resources.Domain
 
             return (levelDelta <= 2 && fullDepartmentPath.StartsWith(other.fullDepartmentPath, StringComparison.OrdinalIgnoreCase))
                 || (other.fullDepartmentPath.StartsWith(fullDepartmentPath, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool IsParent(string? path)
+        {
+            if (path is null)
+                return false;
+
+            return path.StartsWith(fullDepartmentPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public bool IsDepartment(string? path)
+        {
+            if (path is null)
+                return false;
+
+            return path.Equals(fullDepartmentPath, StringComparison.OrdinalIgnoreCase);
         }
 
         public string GetShortName() => string.Join(' ', path.TakeLast(3));
