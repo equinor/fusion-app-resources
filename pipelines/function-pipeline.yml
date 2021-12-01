@@ -1,6 +1,6 @@
 name: $(date:yyyyMMdd)$(rev:.r)
 
-trigger: 
+trigger:
   branches:
     include:
     - master
@@ -10,11 +10,11 @@ trigger:
     - src/backend/integration/*
 
 pr: none
-  
+
 variables:
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     webPackage: '$(Pipeline.Workspace)/drop/Fusion.Resources.Functions.zip'
-  
+
 stages:
     - template: templates/build-function.yml
       parameters:
@@ -25,18 +25,18 @@ stages:
       displayName: CI
       dependsOn: BuildFunction
       condition: succeeded()
-      
+
       variables:
         environment: 'ci'
         functionServiceName: func-fap-resources-$(environment)
-    
+
       jobs:
       - deployment: Deploy
-        pool: Private Docker
-    
+        pool: Private Docker VMSS
+
         displayName: 'Deploy function app'
         environment: fusion-ci
-    
+
         strategy:
           runOnce:
             deploy:
@@ -58,18 +58,18 @@ stages:
       displayName: FQA
       dependsOn: DeployCI
       condition: succeeded()
-      
+
       variables:
         environment: 'fqa'
         functionServiceName: func-fap-resources-$(environment)
-    
+
       jobs:
       - deployment: Deploy
-        pool: Private Docker
-    
+        pool: Private Docker VMSS
+
         displayName: 'Deploy function app'
         environment: fusion-resources-fqa
-    
+
         strategy:
           runOnce:
             deploy:
@@ -79,7 +79,7 @@ stages:
                     envName: $(environment)
                     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
                     fusionEnvironment: fqa
-                    
+
                 - task: AzureFunctionApp@1
                   inputs:
                     azureSubscription: $(subscriptionService)
@@ -92,18 +92,18 @@ stages:
       displayName: FPRD
       dependsOn: DeployFQA
       condition: succeeded()
-      
+
       variables:
         environment: 'fprd'
         functionServiceName: func-fap-resources-$(environment)
-    
+
       jobs:
       - deployment: Deploy
-        pool: Private Docker
-    
+        pool: Private Docker VMSS
+
         displayName: 'Deploy function app'
         environment: fusion-prod
-    
+
         strategy:
           runOnce:
             deploy:
@@ -114,7 +114,7 @@ stages:
                     clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
                     fusionResource: '97978493-9777-4d48-b38a-67b0b9cd88d2'
                     fusionEnvironment: fprd
-                    
+
                 - task: AzureFunctionApp@1
                   inputs:
                     azureSubscription: $(subscriptionService)

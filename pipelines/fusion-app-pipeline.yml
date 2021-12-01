@@ -1,4 +1,4 @@
-trigger: 
+trigger:
   branches:
     include:
     - master
@@ -13,60 +13,60 @@ stages:
   ###################################################################################################################
   - stage: Build
     displayName: Build Resources
-  
+
     jobs:
     - job: Build
-      pool: Private Docker
+      pool: Private Docker VMSS
       displayName: 'Build resources bundle'
-      
+
       variables:
         image: fusion-app-resources:$(Build.BuildNumber)
         container: app-resources-$(Build.BuildNumber)
-    
+
       steps:
       - script: |
           docker build -f src/frontend/build.Dockerfile src/frontend/ -t $(image)
         displayName: 'Build dockerfile src/frontend/build.Dockerfile'
-    
+
       - script: |
-          docker container create --name $(container) $(image) 
+          docker container create --name $(container) $(image)
           docker container cp $(container):./app/out $(Agent.TempDirectory)
           docker container rm -f $(container)
         displayName: 'Copy docker output to temp folder'
-    
+
       - task: CopyFiles@2
         inputs:
           sourceFolder: $(Agent.TempDirectory)
           contents: out/*.zip
           targetFolder: $(Build.ArtifactStagingDirectory)
           flattenFolders: true
-    
+
       - task: PublishBuildArtifacts@1
         inputs:
           pathToPublish: $(Build.ArtifactStagingDirectory)
           artifactName: app-bundle
 
-  
+
   # CI DEPLOYMENT
   ###################################################################################################################
   - stage: CI
     displayName: Deploy Resources CI
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-    
+
     jobs:
       - deployment: DeployApp
         displayName: 'Deploy resources'
-        pool: Private Docker
+        pool: Private Docker VMSS
         environment: fusion-ci
         variables:
           portalUrl: 'https://pro-s-portal-ci.azurewebsites.net'
           tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
-        
+
         strategy:
           runOnce:
             deploy:
-              steps: 
+              steps:
               - task: FusionApp@2
                 displayName: 'Deploying app bundle for resources'
                 condition: succeeded()
@@ -95,20 +95,20 @@ stages:
     displayName: Deploy Resources FQA
     dependsOn: CI
     condition: succeeded()
-    
+
     jobs:
       - deployment: DeployApp
         displayName: 'Deploy resources'
-        pool: Private Docker
+        pool: Private Docker VMSS
         environment: fusion-fqa
         variables:
           portalUrl: 'https://pro-s-portal-fqa.azurewebsites.net'
           tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
-        
+
         strategy:
           runOnce:
             deploy:
-              steps: 
+              steps:
               - task: FusionApp@2
                 displayName: 'Deploying app bundle for resources'
                 condition: succeeded()
@@ -137,20 +137,20 @@ stages:
     displayName: Deploy Resources PROD
     dependsOn: FQA
     condition: succeeded()
-    
+
     jobs:
       - deployment: DeployApp
         displayName: 'Deploy resources'
-        pool: Private Docker
+        pool: Private Docker VMSS
         environment: fusion-prod
         variables:
           portalUrl: 'https://pro-s-portal-fprd.azurewebsites.net'
           tokenResource: '97978493-9777-4d48-b38a-67b0b9cd88d2'
-        
+
         strategy:
           runOnce:
             deploy:
-              steps: 
+              steps:
               - task: FusionApp@2
                 displayName: 'Deploying app bundle for resources'
                 condition: succeeded()

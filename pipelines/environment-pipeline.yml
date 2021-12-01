@@ -1,17 +1,17 @@
-trigger: 
+trigger:
   branches:
     include:
     - master
   paths:
     include:
     - src/backend/infrastructure/*
-  
+
 pr: none
-  
+
 stages:
 - stage: DeployCI
   displayName: CI Azure Infra
-  pool: Private Docker
+  pool: Private Docker VMSS
   jobs:
   - deployment: DeployInfra
     environment: fusion-ci
@@ -29,7 +29,7 @@ stages:
 
 - stage: DeployPR
   displayName: PR Azure Infra
-  pool: Private Docker  
+  pool: Private Docker VMSS
   dependsOn: DeployCI
   condition: succeeded()
   jobs:
@@ -63,7 +63,7 @@ stages:
 
 - stage: DeployQA
   displayName: QA Azure Infra
-  pool: Private Docker  
+  pool: Private Docker VMSS
   dependsOn: DeployCI
   condition: succeeded()
   jobs:
@@ -83,7 +83,7 @@ stages:
 
 - stage: DeployPROD
   displayName: PROD Azure Infra
-  pool: Private Docker  
+  pool: Private Docker VMSS
   dependsOn: DeployQA
   condition: succeeded()
   jobs:
@@ -101,4 +101,3 @@ stages:
               clientId: 97978493-9777-4d48-b38a-67b0b9cd88d2
               sqlServer: fusion-prod-sqlserver
               clientSecretName: ClientSecret-Resources-Prod
-                    

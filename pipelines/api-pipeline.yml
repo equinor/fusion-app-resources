@@ -9,7 +9,7 @@ trigger:
   paths:
     include:
     - src/backend/api/*
-  
+
 variables:
     imageTag: $(Build.BuildNumber)
     fusionAcr: 'fusioncr.azurecr.io'
@@ -17,13 +17,13 @@ variables:
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
-  
+
 stages:
   - stage: BuildDockerImage
     displayName: 'Build docker image'
     jobs:
     - job: BuildImage
-      pool: Private Docker
+      pool: Private Docker VMSS
       steps:
       - task: Docker@1
         displayName: 'Build an image'
@@ -36,7 +36,7 @@ stages:
           includeLatestTag: false
           useDefaultContext: false
           buildContext: ./src/backend
-  
+
       - task: Docker@1
         displayName: 'Push an image'
         inputs:
@@ -44,12 +44,12 @@ stages:
           azureContainerRegistry: '$(fusionAcr)'
           command: 'Push an image'
           imageName: '$(imageName)'
-  
+
       ## Since using a multistage pipeline, there is no need to replace the build name etc at this stage.
       # - template: templates/replace-tokens.yml@commonTemplates
       #   parameters:
       #     targetFiles: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s/deployment-test-env.yml'
-  
+
       - script: |
           docker run --rm --entrypoint cat $(fullImageName) /app/migration.sql > $(Build.ArtifactStagingDirectory)/db-migration.sql
         displayName: "Copy EF migration file from container"
@@ -60,23 +60,23 @@ stages:
           SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
           Contents: |
             deployment-test-env.yml
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
-  
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
-  
+
   - stage: DeployCI
     displayName: 'Deploy to CI'
     dependsOn: BuildDockerImage
     condition: succeeded()
-    variables: 
+    variables:
       envName: 'ci'
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-  
+
     jobs:
     - deployment: DeployCI
-      pool: Private Docker
+      pool: Private Docker VMSS
       environment: fusion-ci.fusion-resources-app-ci
       strategy:
         runOnce:
@@ -102,7 +102,7 @@ stages:
               parameters:
                 environment: $(envName)
                 variableName: envKeyVaultUrl
-                
+
 
             - template: templates/replace-tokens.yml
               parameters:
@@ -111,26 +111,26 @@ stages:
             - template: templates/execute-sql-migration.yml
               parameters:
                 artifact: 'k8s-deployment'
-                environment: $(envName)                
-  
+                environment: $(envName)
+
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
               inputs:
                 action: deploy
-                manifests: $(deploymentManifest) 
+                manifests: $(deploymentManifest)
 
   - stage: DeployFQA
     displayName: 'Deploy to FQA'
     dependsOn: DeployCI
     condition: succeeded()
-    variables: 
+    variables:
       envName: 'fqa'
       fusionEnvironment: 'fqa'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-              
+
     jobs:
       - deployment: DeployFQA
-        pool: Private Docker
+        pool: Private Docker VMSS
         environment: fusion-resources-fqa.fusion-resources-app-fqa
         strategy:
           runOnce:
@@ -146,44 +146,44 @@ stages:
                   Inline: |
                       $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fqa -Name AzureAd--ClientSecret
                       Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
-  
+
               - template: templates/get-appinsights-key.yml
                 parameters:
                   environment: $(envName)
-  
+
               # Load the key vault url into variable, so it can be used when replacing tokens.
               - template: templates/get-keyvault-url.yml
                 parameters:
                   environment: $(envName)
                   variableName: envKeyVaultUrl
-  
+
               - template: templates/replace-tokens.yml
                 parameters:
                   targetFiles: '$(deploymentManifest)'
-  
+
               - template: templates/execute-sql-migration.yml
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-    
+
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
                 inputs:
                   action: deploy
-                  manifests: $(deploymentManifest) 
-            
+                  manifests: $(deploymentManifest)
+
   - stage: DeployFPRD
     displayName: 'Deploy to FPRD'
     dependsOn: DeployFQA
     condition: succeeded()
-    variables: 
+    variables:
       envName: 'fprd'
       fusionEnvironment: 'fprd'
       clientId: '97978493-9777-4d48-b38a-67b0b9cd88d2'
-              
+
     jobs:
       - deployment: DeployFPRD
-        pool: Private Docker
+        pool: Private Docker VMSS
         environment: fusion-prod.fusion-resources-app-fprd
         strategy:
           runOnce:
@@ -199,26 +199,26 @@ stages:
                   Inline: |
                       $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fprd -Name AzureAd--ClientSecret
                       Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
-  
+
               - template: templates/get-appinsights-key.yml
                 parameters:
                   environment: $(envName)
-  
+
               # Load the key vault url into variable, so it can be used when replacing tokens.
               - template: templates/get-keyvault-url.yml
                 parameters:
                   environment: $(envName)
                   variableName: envKeyVaultUrl
-  
+
               - template: templates/replace-tokens.yml
                 parameters:
                   targetFiles: '$(deploymentManifest)'
-  
+
               - template: templates/execute-sql-migration.yml
                 parameters:
                   artifact: 'k8s-deployment'
                   environment: $(envName)
-  
+
               - task: KubernetesManifest@0
                 displayName: Deploy to Kubernetes cluster
                 inputs:

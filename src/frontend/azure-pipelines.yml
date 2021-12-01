@@ -1,4 +1,4 @@
-trigger: 
+trigger:
   branches:
     include:
     - master
@@ -32,7 +32,7 @@ stages:
   displayName: 'Build docker image'
   jobs:
   - job: BuildImage
-    pool: Private Docker
+    pool: Private Docker VMSS
     steps:
     - task: Docker@1
       displayName: 'Build an image'
@@ -64,7 +64,7 @@ stages:
         SourceFolder: 'src/frontend/k8s'
         Contents: |
             deployment.template.yml
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'        
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
     - publish: $(Build.ArtifactStagingDirectory)
       artifact: 'k8s-deployment'
@@ -73,13 +73,13 @@ stages:
   displayName: 'Deploy to CI'
   dependsOn: BuildDockerImage
   condition: succeeded()
-  variables: 
+  variables:
     envName: 'ci'
     clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
 
   jobs:
   - deployment: DeployCI
-    pool: Private Docker
+    pool: Private Docker VMSS
     environment: fusion-ci.fusion-resources-app-ci
     strategy:
       runOnce:
@@ -93,4 +93,4 @@ stages:
             displayName: Deploy to Kubernetes cluster
             inputs:
               action: deploy
-              manifests: $(deploymentManifest)    
+              manifests: $(deploymentManifest)

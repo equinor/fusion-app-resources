@@ -13,7 +13,7 @@ schedules:
 jobs:
   - deployment: DeployPR
     displayName: 'Remove pull request environment artifacts'
-    pool: Private Docker
+    pool: Private Docker VMSS
     environment: fusion-resources-pr.fusion-resources-app-pr
     strategy:
       runOnce:
@@ -25,7 +25,7 @@ jobs:
               if ($prs -eq $null) { throw "Could not load pull requests, terminating" }
 
               $activePRs = $prs | select -ExpandProperty number
-              Write-Host "Located active pull requests" 
+              Write-Host "Located active pull requests"
               Write-Host $activePRs
 
               Write-Output "##vso[task.setvariable variable=activePrs]$([string]::Join(",", $activePRs))"
@@ -38,7 +38,7 @@ jobs:
               ScriptType: 'InlineScript'
               FailOnStandardError: true
               azurePowerShellVersion: 'LatestVersion'
-              Inline: |                
+              Inline: |
                 $activePRs = "$(activePrs)".Split(",")
 
                 $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app" = "resources"; "fusion-app-env" = "pr" } -ResourceGroupName Fusion-SQL-Test
@@ -51,7 +51,7 @@ jobs:
 
                     Write-Host "Processing db: $($db.Name)"
                     $dbPrNumber = $db.Tags["pr"]
-                    if ($null -eq $dbPrNumber) { 
+                    if ($null -eq $dbPrNumber) {
                         Write-Host "`tCould not locate pull request number for db, skipping"
                         continue
                     }
@@ -63,7 +63,7 @@ jobs:
                     } else {
                         Write-Host "`tPull request not active, deleting db..."
                         Remove-AzSqlDatabase -ResourceGroupName $db.ResourceGroupName -ServerName $db.Name.Split("/")[0] -DatabaseName $db.Name.Split("/")[1]
-                    }    
+                    }
                 }
 
           - task: Kubernetes@1
@@ -76,13 +76,13 @@ jobs:
 
           - pwsh: |
                 $activePRs = "$(activePrs)".Split(",")
-                
+
                 $deployments = kubectl -n fusion-resources-app-pr get deployments -o json | ConvertFrom-Json
                 $aksPrPortals = $deployments.items | select -Property {$_.metadata.labels.prNumber} | select -ExpandProperty '$_.metadata.labels.prNumber'
 
                 foreach ($prNr in $aksPrPortals) {
                     Write-Host "Processing pr: $prNr"
-                    
+
                     $pullRequestNumber = 0
                     if (-not [int]::TryParse($prNr, [ref]$pullRequestNumber)) {
                         Write-Output "`Not a number, must be custom - SKIPPING"

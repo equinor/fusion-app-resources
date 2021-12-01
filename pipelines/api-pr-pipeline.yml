@@ -1,12 +1,12 @@
 name: $(date:yyyyMMdd)$(rev:.r)
 
-pr: 
+pr:
   paths:
     include:
     - src/backend/api/*
 
 trigger: none
-  
+
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
     fusionAcr: 'fusioncr.azurecr.io'
@@ -15,13 +15,13 @@ variables:
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
     buildNr: $(Build.BuildNumber)
-  
+
 stages:
   - stage: BuildDockerImage
     displayName: 'Build docker image'
     jobs:
     - job: BuildImage
-      pool: Private Docker
+      pool: Private Docker VMSS
       steps:
       - task: Docker@1
         displayName: 'Build an image'
@@ -34,7 +34,7 @@ stages:
           includeLatestTag: false
           useDefaultContext: false
           buildContext: ./src/backend
-  
+
       - task: Docker@1
         displayName: 'Push an image'
         inputs:
@@ -42,7 +42,7 @@ stages:
           azureContainerRegistry: '$(fusionAcr)'
           command: 'Push an image'
           imageName: '$(imageName)'
-  
+
       - script: |
           docker run --rm --entrypoint cat $(fullImageName) /app/migration.sql > $(Build.ArtifactStagingDirectory)/db-migration.sql
         displayName: "Copy EF migration file from container"
@@ -53,24 +53,24 @@ stages:
           SourceFolder: 'src/backend/api/Fusion.Resources.Api/Deployment/k8s'
           Contents: |
             deployment-pr-env.yml
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'        
-  
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
-  
+
   - stage: DeployPR
     displayName: 'Deploy API to PR'
     dependsOn: BuildDockerImage
     condition: succeeded()
-    variables: 
+    variables:
       envName: 'pr'
       fusionEnvironment: 'ci'
       clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-  
+
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      pool: Private Docker
+      pool: Private Docker VMSS
       environment: fusion-resources-pr.fusion-resources-app-pr
       strategy:
         runOnce:
@@ -91,7 +91,7 @@ stages:
 
             - task: AzurePowerShell@4
               displayName: 'Provision database'
-              inputs: 
+              inputs:
                 azureSubscription: $(subscriptionService)
                 ScriptType: 'InlineScript'
                 FailOnStandardError: true
@@ -100,7 +100,7 @@ stages:
                     Import-Module FusionPS
 
                     $dbName = "Fusion-Apps-Resources-PR-$(prNumber)-DB"
-                    $tags = @{ 
+                    $tags = @{
                         "pr" = "$(prNumber)"
                         "fusion-app-component-id" = "resources-api-db-pr-$(prNumber)"
                         "fusion-app" = "resources"
@@ -117,7 +117,7 @@ stages:
                       -InfraEnv Test `
                       -Environment PR `
                       -DatabaseName $dbName
-                    
+
                     $connectionString = Get-FusionSqlServerConnectionString -InfraEnv Test -DatabaseName $dbName
                     Write-Output "##vso[task.setvariable variable=dbConnectionString]$($connectionString)"
 
@@ -139,9 +139,9 @@ stages:
               parameters:
                 artifact: 'k8s-deployment'
                 environment: '$(envName)-$(prNumber)'
-  
+
             - task: KubernetesManifest@0
               displayName: Deploy to Kubernetes cluster
               inputs:
                 action: deploy
-                manifests: $(deploymentManifest) 
+                manifests: $(deploymentManifest)

@@ -2,7 +2,7 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 trigger: none
 
-pr: 
+pr:
   branches:
     include:
     - master
@@ -10,11 +10,11 @@ pr:
     include:
     - src/backend/function/*
     - src/backend/integration/*
-  
+
 variables:
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     webPackage: '$(Pipeline.Workspace)/drop/Fusion.Resources.Functions.zip'
-  
+
 stages:
     - template: templates/build-function.yml
       parameters:
@@ -25,18 +25,18 @@ stages:
       displayName: PR
       dependsOn: BuildFunction
       condition: succeeded()
-      
+
       variables:
         environment: 'pr'
         functionServiceName: func-fap-resources-$(environment)
-    
+
       jobs:
       - deployment: Deploy
-        pool: Private Docker
-    
+        pool: Private Docker VMSS
+
         displayName: 'Deploy function app'
         environment: fusion-pr
-    
+
         strategy:
           runOnce:
             deploy:
