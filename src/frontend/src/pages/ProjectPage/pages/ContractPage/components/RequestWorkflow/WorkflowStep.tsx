@@ -20,12 +20,14 @@ type RequestWorkflowStepProps = {
     step: WorkflowStep;
     provisioningStatus: ProvisioningStatus;
     inline: boolean;
+    id?: string;
 };
 
 const RequestWorkflowStep: FC<RequestWorkflowStepProps> = ({
     step,
     inline,
     provisioningStatus,
+    id,
 }) => {
     const [popoverRef] = usePopoverRef<HTMLDivElement>(
         <WorkflowPopover step={step} provisioningStatus={provisioningStatus} />,
@@ -121,7 +123,7 @@ const RequestWorkflowStep: FC<RequestWorkflowStepProps> = ({
 
     return (
         <div className={workflowStepClasses}>
-            <div className={styles.stepHeader} ref={popoverRef}>
+            <div id={step.id} data-cy={step.state} className={styles.stepHeader} ref={popoverRef}>
                 <div>{icon}</div>
                 {!inline && <span className={styles.stepTitle}>{stepTitle}</span>}
                 {step.nextStep !== null && (

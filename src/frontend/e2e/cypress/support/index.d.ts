@@ -62,6 +62,8 @@ declare namespace Cypress {
 
     /** request management */
     createRequest(requestData: RequestData): Chainable<void>
+    feedRequest(): Chainable<void>
+    removeRequest(): Chainable<void>
 
   }
 }

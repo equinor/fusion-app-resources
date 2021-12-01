@@ -28,12 +28,16 @@
         return cy.get('#submit-btn');
     }
 
+    RequestProgressSidesheet() {
+        return cy.get('#mpp-request-progress-sidesheet', {timeout: 15*1000});
+    }
+
     CloseSidesheetButton() {
         return cy.get('#close-btn')
     }
 
     RequestTable() {
-        return cy.get('[data-cy="edit-request-table"]')
+        return cy.get('[data-cy="edit-request-table"]', {timeout: 15*1000})
     }
     
 }

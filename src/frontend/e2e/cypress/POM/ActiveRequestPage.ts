@@ -4,28 +4,28 @@
  * Active Request Page
  */
  export default class ActiveRequestPage {
-    AddActiveRequestButton() {
-        return cy.get('#add-active-request-btn');
+    AddRequestButton() {
+        return cy.get('#add-request-btn');
     }
 
-    AddActiveRequestForSelectedPositionButton() {
-        return cy.get('#add-active-request-for-selected-position-btn');
+    AddRequestForSelectedPositionButton() {
+        return cy.get('#add-request-for-selected-position-btn');
     }
 
-    EditActiveRequestButton() {
-        return cy.get('#edit-active-request-btn');
+    EditRequestButton() {
+        return cy.get('#edit-request-btn');
     }
 
-    RemoveActiveRequestButton() {
-        return cy.get('#remove-active-request-btn');
+    RemoveRequestButton() {
+        return cy.get('#remove-request-btn');
     }
 
-    RejectActiveRequestButton() {
-        return cy.get('#reject-active-request-btn');
+    RejectRequestButton() {
+        return cy.get('#reject-request-btn');
     }
 
-    ApproveActiveRequestButton() {
-        return cy.get('#approve-active-request-btn');
+    ApproveRequestButton() {
+        return cy.get('#approve-request-btn');
     }
 
     HelpButton() {
@@ -33,7 +33,7 @@
     }
 
     ActiveRequestTable() {
-        return cy.get('#active-request-table');
+        return cy.get('#active-request-table', {timeout: 15*1000});
     }
     
 }

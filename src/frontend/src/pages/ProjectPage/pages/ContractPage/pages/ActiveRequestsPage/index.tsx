@@ -110,14 +110,14 @@ const ActiveRequestsPage: FC = () => {
                     <div className={styles.toolbar}>
                         <div>
                             <IconButton 
-                                id="add-active-request-btn"
+                                id="add-request-btn"
                                 onClick={requestPersonnel} 
                                 ref={addRequestTooltipRef}>
                                 <AddIcon />
                             </IconButton>
 
                             <IconButton
-                                id="add-active-request-for-selected-position-btn"
+                                id="add-request-for-selected-position-btn"
                                 onClick={() => editRequest(true)}
                                 disabled={selectedRequests.length <= 0}
                                 ref={copyTooltipRef}
@@ -125,7 +125,7 @@ const ActiveRequestsPage: FC = () => {
                                 <CopyIcon />
                             </IconButton>
                             <IconButton
-                                id="edit-active-request-btn"
+                                id="edit-request-btn"
                                 onClick={() => editRequest()}
                                 disabled={selectedRequests.length <= 0}
                                 ref={editRequestTooltipRef}
@@ -133,7 +133,7 @@ const ActiveRequestsPage: FC = () => {
                                 <EditIcon outline />
                             </IconButton>
                             <IconButton
-                                id="remove-active-request-btn"
+                                id="remove-request-btn"
                                 disabled={selectedRequests.length <= 0}
                                 ref={deleteRequestTooltipRef}
                                 onClick={deleteRequests}
@@ -144,7 +144,7 @@ const ActiveRequestsPage: FC = () => {
 
                         <div className={styles.buttonContainer}>
                             <Button
-                                id="reject-active-request-btn"
+                                id="reject-request-btn"
                                 outlined
                                 disabled={!canReject}
                                 onClick={() => setRejectRequest(selectedRequests)}
@@ -161,7 +161,7 @@ const ActiveRequestsPage: FC = () => {
                                 </div>
                                 Reject
                             </Button>
-                            <Button id="approve-active-request-btn" disabled={!canApprove} onClick={() => canApprove && approve()}>
+                            <Button id="approve-request-btn" disabled={!canApprove} onClick={() => canApprove && approve()}>
                                 <div className={styles.buttonIcon}>
                                     {isApproving ? (
                                         <Spinner small inline />

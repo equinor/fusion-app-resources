@@ -19,6 +19,7 @@ import './delegateAccess'
 import './searchAndFilters'
 import './contractPerson'
 import './importFile'
+import './requests'
 
 const contractTableColumnSelector = {
     contractId: '[data-cy="contract-id"]',

@@ -192,6 +192,7 @@ const EditRequestSideSheet: FC<EditRequestSideSheetProps> = ({
                 onItemChange={onItemChange}
             />
             <RequestProgressSidesheet
+                data-cy="request-progress-sidesheet"
                 pendingRequests={pendingRequests}
                 failedRequests={failedRequests}
                 successfulRequests={successfulRequests}

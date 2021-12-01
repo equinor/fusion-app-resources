@@ -4,24 +4,24 @@
  * Actual MPP Page
  */
  export default class ActualMppPage {
-    AddMppRequestButton() {
-        return cy.get('#add-mpp-request-btn');
+    AddRequestButton() {
+        return cy.get('#add-request-btn');
     }
 
-    AddMppRequestForSelectedPositionButton() {
-        return cy.get('#add-mpp-request-for-selected-position-btn');
+    AddRequestForSelectedPositionButton() {
+        return cy.get('#add-request-for-selected-position-btn');
     }
 
-    EditMppRequestButton() {
-        return cy.get('#edit-mpp-request-btn');
+    EditRequestButton() {
+        return cy.get('#edit-request-btn');
     }
 
-    RemoveMppRequestButton() {
-        return cy.get('#remove-mpp-request-btn');
+    RemoveRequestButton() {
+        return cy.get('#remove-request-btn');
     }
 
     ActualMppTable() {
-        return cy.get('#actual-mpp-request-table');
+        return cy.get('#actual-mpp-request-table', {timeout: 15*1000});
     }
     
 }

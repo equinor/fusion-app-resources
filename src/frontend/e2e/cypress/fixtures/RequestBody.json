@@ -1,0 +1,28 @@
+{
+    "description": "",
+    "person": {
+        "azureUniquePersonId": "b6223fa9-eade-4d6a-8fd6-a72ff0020070",
+        "mail": "QJ@equinor.com"
+    },
+    "position": {
+        "appliesFrom": "2021-11-16",
+        "appliesTo": "2021-12-30",
+        "basePosition": {
+            "id": "8bacfc01-7eaf-4983-973b-e164cf05cc44",
+            "name": "Area Manager",
+            "discipline": "Engineering Management",
+            "subDiscipline": null,
+            "projectType": "PRD-Contracts",
+            "settings": {
+                "directAssignmentEnabled": null,
+                "isDefaultTaskOwner": false
+            }
+        },
+        "id": null,
+        "name": "Area Manager",
+        "obs": "",
+        "workload": 12,
+        "taskOwner": null
+    },
+    "originalPositionId": null
+}
