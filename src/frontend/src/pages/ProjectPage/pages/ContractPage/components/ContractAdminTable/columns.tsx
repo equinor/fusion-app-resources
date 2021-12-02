@@ -4,6 +4,7 @@ import PersonDelegation from '../../../../../../models/PersonDelegation';
 import { formatDate } from '@equinor/fusion';
 import styles from './styles.less';
 import { FC } from 'react';
+import classNames from 'classnames';
 
 type ColumnProps = {
     item: PersonDelegation;
@@ -13,7 +14,7 @@ const AssignedPersonComponent: FC<ColumnProps> = ({ item }) => {
 };
 
 const CertifiedByComponent: FC<ColumnProps> = ({ item }) => {
-    const certifiedBy = item.recertifiedBy || item.createdBy
+    const certifiedBy = item.recertifiedBy || item.createdBy;
     return <PersonCard personId={certifiedBy.azureUniquePersonId} photoSize="medium" inline />;
 };
 
@@ -22,14 +23,21 @@ const ValidToComponent: FC<ColumnProps> = ({ item }) => {
     const today = new Date();
     const validTo = item.validTo;
     const diffDays = Math.round(Math.abs((today.getTime() - validTo.getTime()) / oneDay));
+    const isOverDue = today.getTime() > validTo.getTime();
 
+    const daysLeftClasses = classNames(styles.daysLeft, {
+        [styles.overdue]: isOverDue,
+    });
+    
     if (diffDays > 30) {
         return <>{formatDate(validTo)}</>;
     }
     return (
         <div className={styles.validToContainer}>
             <span>{formatDate(validTo)}</span>
-            <span className={styles.daysLeft}>{`${diffDays} days left`}</span>
+            <span className={daysLeftClasses}>
+                {isOverDue ? 'Overdue' : `${diffDays} days left`}
+            </span>
         </div>
     );
 };
@@ -55,7 +63,7 @@ const columns: DataTableColumn<PersonDelegation>[] = [
     {
         key: 'Certified by',
         label: 'Certified by',
-        accessor: (d) => d.recertifiedBy ? d.recertifiedBy.name : d.createdBy.name,
+        accessor: (d) => (d.recertifiedBy ? d.recertifiedBy.name : d.createdBy.name),
         component: CertifiedByComponent,
     },
 ];
