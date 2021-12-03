@@ -5,7 +5,6 @@ using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ namespace Fusion.Resources.Domain.Services
     {
         private readonly IFusionProfileResolver profileResolver;
         private readonly ResourcesDbContext resourcesDb;
-        private static readonly SemaphoreSlim locker = new SemaphoreSlim(1);
+        private static readonly SemaphoreSlim Locker = new SemaphoreSlim(1);
 
         public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb)
         {
@@ -51,24 +50,38 @@ namespace Fusion.Resources.Domain.Services
             if (resolvedPerson == null)
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
+            bool hasChanged = false;
+
             if (profile != null)
             {
-                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
-                resolvedPerson.JobTitle = profile.JobTitle;
-                resolvedPerson.Name = profile.Name;
-                resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
-                resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
-                resolvedPerson.IsDeleted = false;
+                if (resolvedPerson.AccountStatus != profile.GetDbAccountStatus() || resolvedPerson.AzureUniqueId != profile.AzureUniqueId || resolvedPerson.IsDeleted)
+                {
+                    resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
+                    resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                    resolvedPerson.JobTitle = profile.JobTitle;
+                    resolvedPerson.Name = profile.Name;
+                    resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
+                    resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+                    resolvedPerson.IsDeleted = false;
+
+                    hasChanged = true;
+                }
             }
             else
             {
-                // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
-                resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
-                resolvedPerson.IsDeleted = true;
+                if (resolvedPerson.AccountStatus != DbAzureAccountStatus.NoAccount || resolvedPerson.IsDeleted == false && considerRemovedProfile)
+                {
+                    // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
+                    resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
+                    if (considerRemovedProfile)
+                        resolvedPerson.IsDeleted = true;
+
+                    hasChanged = true;
+                }
             }
 
-            await resourcesDb.SaveChangesAsync();
+            if (hasChanged)
+                await resourcesDb.SaveChangesAsync();
 
             return resolvedPerson;
         }
@@ -77,7 +90,7 @@ namespace Fusion.Resources.Domain.Services
         {
             // Should refactor this to distributed lock.
 
-            await locker.WaitAsync();
+            await Locker.WaitAsync();
 
             try
             {
@@ -120,13 +133,13 @@ namespace Fusion.Resources.Domain.Services
             }
             finally
             {
-                locker.Release();
+                Locker.Release();
             }
         }
 
         public async Task<DbPerson?> EnsurePersonAsync(PersonId personId)
         {
-            await locker.WaitAsync();
+            await Locker.WaitAsync();
 
             try
             {
@@ -173,13 +186,13 @@ namespace Fusion.Resources.Domain.Services
             }
             finally
             {
-                locker.Release();
+                Locker.Release();
             }
         }
 
         public async Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId)
         {
-            await locker.WaitAsync();
+            await Locker.WaitAsync();
 
             try
             {
@@ -209,7 +222,7 @@ namespace Fusion.Resources.Domain.Services
             }
             finally
             {
-                locker.Release();
+                Locker.Release();
             }
         }
 

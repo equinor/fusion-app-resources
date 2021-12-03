@@ -7,10 +7,12 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Fusion.Resources.Functions.Functions
 {
@@ -37,7 +39,11 @@ namespace Fusion.Resources.Functions.Functions
             if (body.Type != PeopleSubscriptionEventType.ProfileUpdated && body.Type != PeopleSubscriptionEventType.UserRemoved)
                 return;
 
-            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new { userRemoved = body.Type == PeopleSubscriptionEventType.UserRemoved });
+            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new
+            {
+                userRemoved = body.Type == PeopleSubscriptionEventType.UserRemoved
+
+            });
 
             if (refreshResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -64,12 +70,9 @@ namespace Fusion.Resources.Functions.Functions
         {
             log.LogInformation("Synchronizing external person personnel in Resources API");
 
-            var response = await resourcesClient.GetAsync($"resources/personnel");
-            response.EnsureSuccessStatusCode();
+            var personnel = await GetAllExternalPersonnelAsync();
 
-            var body = await response.Content.ReadAsStringAsync();
-            var personnel = JsonConvert.DeserializeAnonymousType(body, new { Value = new List<ApiPersonnel>() });
-            var mailsToEnsure = personnel!.Value
+            var mailsToEnsure = personnel!
                 .Where(p => !string.IsNullOrWhiteSpace(p.Mail))
                 .Select(p => p.Mail)
                 .Distinct()
@@ -82,10 +85,8 @@ namespace Fusion.Resources.Functions.Functions
                 return;
             }
 
-            log.LogInformation($"Found {mailsToEnsureCount} profiles to ensure");
             var ensureResult = await EnsurePersonsAsync(mailsToEnsure);
 
-            var refreshFailed = false;
             var successCount = ensureResult.Count(x => x.Success);
             var failureCount = ensureResult.Count(x => x.Success == false);
             if (successCount > 0)
@@ -100,23 +101,61 @@ namespace Fusion.Resources.Functions.Functions
 
             foreach (var person in ensureResult)
             {
-                var resourcesPerson = personnel.Value.First(p => p.Mail == person.Identifier);
+                var resourcesPerson = personnel.First(p => p.Mail == person.Identifier);
                 // Person with no change in invitation status or azure unique id may be skipped for now.
                 // External personnel may receive a new account in azure. Check both for changes in invitation status and azure unique identifier.
                 if (InvitationStatusMatches(person.Person?.InvitationStatus, resourcesPerson.AzureAdStatus) && person.Person?.AzureUniqueId == resourcesPerson.AzureUniquePersonId) continue;
 
-                log.LogInformation($"Detected change in profile with identifier '{resourcesPerson.Mail}'. Initiating refresh.");
-                var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new { userRemoved = !person.Success });
-                if (refreshResponse.IsSuccessStatusCode) continue;
+                var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new
+                {
+                    userRemoved = !person.Success
+
+                });
+
+                if (refreshResponse.IsSuccessStatusCode || refreshResponse.StatusCode == HttpStatusCode.NotFound) continue;
 
                 var content = await refreshResponse.Content.ReadAsStringAsync();
                 log.LogError($"Failed to refresh '{person.Identifier}': {refreshResponse.StatusCode} - {content}");
-                refreshFailed = true;
             }
-            if (refreshFailed)
-                throw new Exception("Failed to refresh all personell successfully. See log for details.");
+        }
 
-            log.LogInformation("Profiles sync run successfully completed");
+        private async Task<List<ApiPersonnel>> GetAllExternalPersonnelAsync()
+        {
+            var retList = new List<ApiPersonnel>();
+            var errorCount = 0;
+            var index = 0;
+            const int page = 500;
+            do
+            {
+                var response = await resourcesClient.GetAsync($"resources/personnel?$skip={index * page}&$top={page}");
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    errorCount++;
+
+                    await Task.Delay(5000);
+
+                    // If we don't have too many errors, retry the current page
+                    if (errorCount < 3)
+                        continue;
+
+                    throw new Exception(content);
+                }
+
+                var personnel = JsonConvert.DeserializeAnonymousType(content, new { Value = new List<ApiPersonnel>() });
+                retList.AddRange(personnel!.Value);
+
+                // Stop when we reached the end.
+                if (personnel!.Value.Count < 1)
+                    break;
+
+                index++;
+                errorCount = 0;
+
+            } while (true);
+
+            return retList;
         }
 
         private async Task<List<PersonValidationResult>> EnsurePersonsAsync(List<string> mailsToEnsure)
