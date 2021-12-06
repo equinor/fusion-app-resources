@@ -15,7 +15,7 @@ namespace Fusion.Resources.Domain.Services
     {
         private readonly IFusionProfileResolver profileResolver;
         private readonly ResourcesDbContext resourcesDb;
-        private static readonly SemaphoreSlim Locker = new SemaphoreSlim(1);
+        private static readonly SemaphoreSlim locker = new SemaphoreSlim(1);
 
         public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb)
         {
@@ -90,7 +90,7 @@ namespace Fusion.Resources.Domain.Services
         {
             // Should refactor this to distributed lock.
 
-            await Locker.WaitAsync();
+            await locker.WaitAsync();
 
             try
             {
@@ -133,13 +133,13 @@ namespace Fusion.Resources.Domain.Services
             }
             finally
             {
-                Locker.Release();
+                locker.Release();
             }
         }
 
         public async Task<DbPerson?> EnsurePersonAsync(PersonId personId)
         {
-            await Locker.WaitAsync();
+            await locker.WaitAsync();
 
             try
             {
@@ -186,13 +186,13 @@ namespace Fusion.Resources.Domain.Services
             }
             finally
             {
-                Locker.Release();
+                locker.Release();
             }
         }
 
         public async Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId)
         {
-            await Locker.WaitAsync();
+            await locker.WaitAsync();
 
             try
             {
@@ -222,7 +222,7 @@ namespace Fusion.Resources.Domain.Services
             }
             finally
             {
-                Locker.Release();
+                locker.Release();
             }
         }
 
