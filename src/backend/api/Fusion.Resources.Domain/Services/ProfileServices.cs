@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Newtonsoft.Json;
 
 #nullable enable
 namespace Fusion.Resources.Domain.Services
@@ -16,12 +19,14 @@ namespace Fusion.Resources.Domain.Services
     {
         private readonly IFusionProfileResolver profileResolver;
         private readonly ResourcesDbContext resourcesDb;
+        private readonly TelemetryClient telemetryClient;
         private static readonly SemaphoreSlim locker = new SemaphoreSlim(1);
 
-        public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb)
+        public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb, TelemetryClient telemetryClient)
         {
             this.profileResolver = profileResolver;
             this.resourcesDb = resourcesDb;
+            this.telemetryClient = telemetryClient;
         }
 
         public async Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId)
@@ -73,12 +78,14 @@ namespace Fusion.Resources.Domain.Services
 
             }
 
-            var hasChanges = resourcesDb.Entry(resolvedPerson)?.Properties
+            var changedProperties = resourcesDb.Entry(resolvedPerson).Properties
                 .Where(x => x.IsModified)
                 .ToList();
 
-            if (hasChanges != null && hasChanges.Any())
-                await resourcesDb.SaveChangesAsync();
+            if (!changedProperties.Any()) return resolvedPerson;
+
+            telemetryClient.TrackTrace($"Updated properties for user {personId.OriginalIdentifier} : {JsonConvert.SerializeObject(changedProperties.Select(x => new { PropertyName = x.Metadata.Name, OriginalValue = x.OriginalValue, CurrentValue = x.CurrentValue }), Formatting.Indented)}");
+            await resourcesDb.SaveChangesAsync();
 
             return resolvedPerson;
         }
