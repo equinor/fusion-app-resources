@@ -9,8 +9,8 @@ namespace Fusion.Resources.Domain
         {
             if (profile.AzureUniqueId.HasValue && profile.InvitationStatus is null)
             {
-                // External accounts should have a invitation status.
-                return profile.AccountType == FusionAccountType.External ? DbAzureAccountStatus.NoAccount : DbAzureAccountStatus.Available;
+                // As long as AzureUniqueId exists, we consider the account available.
+                return DbAzureAccountStatus.Available;
             }
 
 
