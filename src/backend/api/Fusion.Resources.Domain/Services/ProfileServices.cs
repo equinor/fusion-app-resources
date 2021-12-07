@@ -5,6 +5,7 @@ using Fusion.Resources.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,37 +51,33 @@ namespace Fusion.Resources.Domain.Services
             if (resolvedPerson == null)
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
-            bool hasChanged = false;
 
             if (profile != null)
             {
-                if (resolvedPerson.AccountStatus != profile.GetDbAccountStatus() || resolvedPerson.AzureUniqueId != profile.AzureUniqueId || resolvedPerson.IsDeleted)
-                {
-                    resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                    resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
-                    resolvedPerson.JobTitle = profile.JobTitle;
-                    resolvedPerson.Name = profile.Name;
-                    resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
-                    resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
-                    resolvedPerson.IsDeleted = false;
+                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
+                resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                resolvedPerson.JobTitle = profile.JobTitle;
+                resolvedPerson.Name = profile.Name;
+                resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
+                resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+                resolvedPerson.IsDeleted = false;
 
-                    hasChanged = true;
-                }
             }
             else
             {
-                if (resolvedPerson.AccountStatus != DbAzureAccountStatus.NoAccount || resolvedPerson.IsDeleted == false && considerRemovedProfile)
-                {
-                    // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
-                    resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
-                    if (considerRemovedProfile)
-                        resolvedPerson.IsDeleted = true;
+                // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
+                resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
+                if (considerRemovedProfile)
+                    resolvedPerson.IsDeleted = true;
 
-                    hasChanged = true;
-                }
+
             }
 
-            if (hasChanged)
+            var hasChanges = resourcesDb.Entry(resolvedPerson)?.Properties
+                .Where(x => x.IsModified)
+                .ToList();
+
+            if (hasChanges != null && hasChanges.Any())
                 await resourcesDb.SaveChangesAsync();
 
             return resolvedPerson;
