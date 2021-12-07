@@ -10,7 +10,7 @@
 
 The persons assigned to the roles will by default have the ability to perform actions like manage personnel and approve/reject request.
 
-> **Company Representative (CR)** ![#6f30a0](https://via.placeholder.comt/15/6f30a0/000000?text=+)![#d66dd3](https://via.placeholder.com/15/d66dd3/000000?text=+)
+> **Company Representative (CR)** ![#6f30a0](https://via.placeholder.com/15/6f30a0/000000?text=+)![#d66dd3](https://via.placeholder.com/15/d66dd3/000000?text=+)
 >
 > This role acts as the company's single point of contact towards the contractor/supplier when the agreement has been awarded. Agreement is a collective term which covers contracts, amendments, purchase orders and framework agreements.
 > 
@@ -48,7 +48,7 @@ A guest account in the company Azure AD. This means the user can sign in to the 
 > Once a user is added to the personnel list, the system will do a check to see if that user has an affiliate account. This is indicated with a **grey**/**yellow**/**green** icon. 
 > 
 > ![#a6a6a6](https://via.placeholder.com/15/cacaca/000000?text=+) **Grey** indicates the user does not have an account.</br>
-> ![#f0b913](https://via.placeholder.comt/15/f0b913/000000?text=+) **Yellow** means the user has **not** accepted the invitation yet. That results in the user not being able to sign in.</br>
+> ![#f0b913](https://via.placeholder.com/15/f0b913/000000?text=+) **Yellow** means the user has **not** accepted the invitation yet. That results in the user not being able to sign in.</br>
 > ![#1fcf00](https://via.placeholder.com/15/1fcf00/000000?text=+) **Green** the user can sign in and use company services. 
 
 > ### 3.1 Requests - create/submit
