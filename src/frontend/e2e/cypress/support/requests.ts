@@ -15,11 +15,11 @@ const authorization = `Bearer ${token}`
 Cypress.Commands.add('createRequest', (requestData) => {
     createrequestSidesheet.CreateRequestSidesheet().should('be.visible')
 
-    cy.wait(1000)
+    //cy.wait(5000)
 
-    cy.get('#base-position-input').find('input').should('exist') // cannot find input, why?
+    //cy.get('#base-position-input').find('input').should('exist') // cannot find input, why?
 
-    cy.get('#base-position-input').find('input').typeAndPick(requestData.basePosition)
+    
     cy.get('[id="assigned-person-input"]').first().typeAndPick(requestData.assignedPerson)
     cy.get('[id="task-owner-input"]').first().typeAndPick(requestData.taskOwner)
 
@@ -28,9 +28,11 @@ Cypress.Commands.add('createRequest', (requestData) => {
     cy.get('[id="applies-from-input"]').first().type(requestData.appliesFrom)
     cy.get('[id="applies-to-input"]').first().type(requestData.appliesTo)
 
-    cy.fillTextInput(0, 'workload', requestData.workLoad)
-    cy.fillTextInput(0, 'obs', requestData.oBS)
+    cy.fillTextInput(0, 'workload', requestData.workload)
+    cy.fillTextInput(0, 'obs', requestData.obs)
     cy.fillTextInput(0, 'request-description', requestData.requestDescription)
+
+    cy.get('#base-position-input').find('input').typeAndPick(requestData.basePosition)
 
     createrequestSidesheet.SubmitButton().click()
 
@@ -46,13 +48,11 @@ Cypress.Commands.add('createRequest', (requestData) => {
  * - text input: custom-position, workload, obs, request-description
  * data: the data to fill in
 */
-Cypress.Commands.add('editRequest', (index, column, data) => {
+Cypress.Commands.add('editRequest', (column, data) => {
     createrequestSidesheet.CreateRequestSidesheet().should('be.visible')
 
     if (column == 'base-position' || 'assigned-person' || 'task-owner')
         cy.get('[id="' + column + '-input"]').first().typeAndPick(data)
-
-    /** scroll to right end */
 
     if (column == 'custom-position' || 'workload' || 'obs' || 'request-description')
         cy.fillTextInput(0, column, data)
@@ -60,10 +60,9 @@ Cypress.Commands.add('editRequest', (index, column, data) => {
     if (column == 'applies-from' || 'applies-to')
         cy.get('[id="' + column + '-input"]').first().type(data)
 
-    createrequestSidesheet.SubmitButton().click()
+    else
+        cy.log('this input does not exist')
 
-    cy.get('[id="mpp-request-progress-sidesheet"]', { timeout: 15 * 1000 }).should('contain', 'Successful')
-    cy.get('#close-btn').click()
 });
 
 

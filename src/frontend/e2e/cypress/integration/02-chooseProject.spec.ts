@@ -19,7 +19,7 @@ describe('TC 13029 - Choose Project', () => {
 
     cy.loadProject(projectName)
     
-    cy.get('[data-cy="contract-id"]').should('be.visible')
+    cy.get('[data-cy="contract-id"]', {timeout:15*1000}).should('be.visible')
     
   });
 

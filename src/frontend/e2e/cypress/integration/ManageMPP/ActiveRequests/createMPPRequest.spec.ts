@@ -48,7 +48,7 @@ describe('Active Requests', () => {
         })
     });
 
-    it.only('test', () => {
+    it('test', () => {
         //navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
 
         // activeRequestPage.ActiveRequestTable().within(()=> {
@@ -65,7 +65,7 @@ describe('Active Requests', () => {
 
     });
     
-    it('TC 13086 - Active Requests - Create a new request', function () {
+    it.only('TC 13086 - Active Requests - Create a new request', function () {
         activeRequestPage.AddRequestButton().click()
 
         cy.createRequest(this.requestData)
@@ -83,9 +83,24 @@ describe('Active Requests', () => {
     });
 
     it('TC 13084 - Edit the request for the selected position', function () {
+        // get the index of the new created request
+
+        // select it and edit
+
+        cy.editRequest('base-position', 'xxx')
+        // how to change multiple thing here, should not close sidesheet
+        cy.editRequest('workload', '50')
+        cy.editRequest('applies-to', '31/12/2022')
+
+        createrequestSidesheet.SubmitButton().click()
+
+        createrequestSidesheet.RequestProgressSidesheet().should('contain', 'Successful')
+        cy.get('#close-btn').click()
+
+        // verify data
         
         
-        navigationDrawer.CloseContractButton().click({force:true})
+        //navigationDrawer.CloseContractButton().click({force:true})
     });
 
     it('TC 23978 - Remove the request for the selected position', function () {

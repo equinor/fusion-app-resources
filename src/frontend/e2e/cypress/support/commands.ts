@@ -32,7 +32,7 @@ import HelpPage from "../POM/HelpPage"
 const helpPage = new HelpPage()
 
 // TODO add interface for user
-const acquireToken = (tenant: string): Cypress.Chainable<Cypress.Response<{}>> => {
+export const acquireToken = (tenant: string): Cypress.Chainable<Cypress.Response<{}>> => {
   return cy.request({
     method: "POST",
     url: `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`,
@@ -54,6 +54,7 @@ const acquireToken = (tenant: string): Cypress.Chainable<Cypress.Response<{}>> =
  */
 const processAuthResponse = (resource: string) => (response: Cypress.Response<{ access_token }>): void => {
   const token = response.body.access_token;
+  cy.log(token)
   faker.seed(0);
   const familyName = faker.name.lastName();
   const givenName = faker.name.firstName();
@@ -101,7 +102,8 @@ Cypress.Commands.add('loadProject', (name) => {
 
 /** select a contract and load content */
 Cypress.Commands.add('openContract', (number) => {
-  cy.get('[data-cy="contract-id"]', { timeout: 10000 }).contains(number).should('be.visible').as('contract-id')
+  cy.get('[data-cy="contract-id"]', { timeout: 30000 })
+  cy.get('[data-cy="contract-id"]').contains(number).should('be.visible').as('contract-id')
 
   cy.get('@contract-id').invoke('attr', 'href').then(($href) => {
     const contractUrl = $href.toString().trim()

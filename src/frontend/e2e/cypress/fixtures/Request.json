@@ -6,6 +6,6 @@
     "appliesFrom": "01/011/2021",
     "appliesTo": "01/11/2022",
     "workload": "100",
-    "oBS": "",
+    "obs": "obs",
     "requestDescription": "Test"
 }

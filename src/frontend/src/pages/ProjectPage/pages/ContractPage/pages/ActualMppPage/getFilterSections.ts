@@ -3,7 +3,7 @@ import { Position } from '@equinor/fusion';
 
 const getFilterSections = (positions: Position[]): FilterSection<Position>[] => {
     const uniqueDisciplines = positions
-        .map(position => position.basePosition.discipline)
+        .map((position) => position.basePosition.discipline)
         .filter((d, i, l) => l.indexOf(d) === i);
 
     return [
@@ -16,13 +16,15 @@ const getFilterSections = (positions: Position[]): FilterSection<Position>[] => 
                     key: 'search-filter',
                     type: FilterTypes.Search,
                     title: 'Search',
-                    getValue: position =>
+                    getValue: (position) =>
                         position.id +
                         position.name +
                         position.basePosition.name +
-                        (position.instances.find(i => i.workload)?.workload || '') +
-                        (position.instances.find(i => i.assignedPerson?.name)?.assignedPerson
-                            ?.name || ''),
+                        (position.instances.find((i) => i.workload)?.workload || '') +
+                        (position.instances.find((i) => i.assignedPerson?.name)?.assignedPerson
+                            ?.name || '') +
+                        (position.instances.find((i) => i.assignedPerson?.mail)?.assignedPerson
+                            ?.mail || ''),
                 },
             ],
         },
@@ -37,10 +39,10 @@ const getFilterSections = (positions: Position[]): FilterSection<Position>[] => 
                     key: 'discipline-filter',
                     title: 'Disciplines',
                     type: FilterTypes.Checkbox,
-                    getValue: position => position.basePosition.discipline,
+                    getValue: (position) => position.basePosition.discipline,
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
-                    options: uniqueDisciplines.map(discipline => ({
+                    options: uniqueDisciplines.map((discipline) => ({
                         key: discipline,
                         label: discipline || '(none)',
                     })),
