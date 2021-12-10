@@ -1,6 +1,5 @@
 ﻿using Fusion.Resources.Functions.Notifications;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker;
 using System;
 using System.Threading.Tasks;
 
@@ -17,16 +16,15 @@ namespace Fusion.Resources.Functions
             this.sentNotificationsTable = sentNotificationsTable;
         }
 
-        [Singleton]
-        [FunctionName("request-summary-notification")]
-        public async Task SendRequestSummaryNotification([TimerTrigger("*/5 * * * *", RunOnStartup = false)] TimerInfo timer, ILogger log)
+        [Function("request-summary-notification")]
+        public async Task SendRequestSummaryNotification([TimerTrigger("*/5 * * * *", RunOnStartup = false)] TimerInfo timer)
         {
             await requestNotificationSender.ProcessNotificationsAsync();
         }
 
-        [Singleton]
-        [FunctionName("sent-notifications-cleanup")]
-        public async Task CleanupSentNotifications([TimerTrigger("0 0 0 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log)
+        
+        [Function("sent-notifications-cleanup")]
+        public async Task CleanupSentNotifications([TimerTrigger("0 0 0 * * *", RunOnStartup = false)] TimerInfo timer)
         {
             var dateCutoff = DateTime.Today.AddDays(-1);
 

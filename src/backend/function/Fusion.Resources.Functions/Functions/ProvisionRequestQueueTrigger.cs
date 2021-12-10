@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Integration.Models.Queue;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Functions
@@ -20,26 +20,29 @@ namespace Fusion.Resources.Functions
             this.resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
         }
 
-        [FunctionName("provision-position-request")]
-        public async Task RunAsync(
-            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] Message message,
-            ILogger log,
-            MessageReceiver messageReceiver,
-            [ServiceBus("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] MessageSender sender)
+        [Function("provision-position-request")]
+        public async Task ProvisionPositionRequest([ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] Message message, FunctionContext ctx, MessageReceiver messageReceiver
+            //,[ServiceBus("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] MessageSender sender
+            )
         {
+            var sender = new MessageSender(messageReceiver.ServiceBusConnection, messageReceiver.Path, messageReceiver.RetryPolicy);
+
+            var log = ctx.GetLogger(nameof(ProvisionPositionRequest));
+            
             var processor = new QueueMessageProcessor(log, messageReceiver, sender);
             await processor.ProcessWithRetriesAsync(message, ProcessMessageAsync);
         }
+
 
         private async Task ProcessMessageAsync(string messageBody, ILogger log)
         {
             var payload = JsonSerializer.Deserialize<ProvisionPositionMessageV1>(messageBody);
 
-            var wasProvisioned = payload.Type switch
+            var wasProvisioned = payload?.Type switch
             {
                 ProvisionPositionMessageV1.RequestTypeV1.ContractorPersonnel => await ProvisionContractorPersonnel(log, payload),
                 ProvisionPositionMessageV1.RequestTypeV1.InternalPersonnel => await ProvisionInternalPersonnel(log, payload),
-                _ => throw new InvalidOperationException($" {payload.Type} is not a supported provisioning type.")
+                _ => throw new InvalidOperationException($" {payload?.Type} is not a supported provisioning type.")
             };
 
             log.LogTrace($"Position was provisioned?: {wasProvisioned}");
@@ -67,7 +70,7 @@ namespace Fusion.Resources.Functions
             }
             return true;
         }
-        
+
         private async Task<bool> ProvisionInternalPersonnel(ILogger log, ProvisionPositionMessageV1 payload)
         {
             var provisionResponse =

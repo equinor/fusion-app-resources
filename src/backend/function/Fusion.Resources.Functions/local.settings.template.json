@@ -2,7 +2,7 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
 
     "provision_position_queue": "provision-position-[REPLACE WITH DEV QUEUE]",
 
@@ -14,7 +14,7 @@
 
     "Endpoints_people": "https://pro-s-people-ci.azurewebsites.net",
     "Endpoints_org": "https://pro-s-org-ci.azurewebsites.net",
-    "Endpoints_resources": "https://resources-api.ci.fusion-dev.net/",
+    "Endpoints_resources": "https://resources-api.ci.fusion-dev.net",
     "Endpoints_context": "https://pro-s-context-ci.azurewebsites.net",
     "Endpoints_Resources_Fusion": "5a842df8-3238-415d-b168-9f16a6a6031b",
     "Endpoints_portal": "https://pro-s-portal-ci.azurewebsites.net",

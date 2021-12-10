@@ -1,7 +1,7 @@
 ﻿#nullable enable
 using Fusion.Events;
 using Fusion.Events.People;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -9,10 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Fusion.Resources.Functions.Functions
 {
@@ -27,52 +26,52 @@ namespace Fusion.Resources.Functions.Functions
             resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
         }
 
-        [FunctionName("profile-sync-event")]
-        public async Task SyncProfile(
-            [EventSubscriptionTrigger(HttpClientNames.Application.People, "subscriptions/persons", "resources-profile")] MessageContext message,
-            ILogger log)
-        {
-            log.LogInformation("Profile sync event received");
-            log.LogInformation(message.Event.Data);
-            var body = message.GetBody<PeopleSubscriptionEvent>();
+        //[Function("profile-sync-event")]
+        //public async Task SyncProfile(
+        //    [EventSubscriptionTrigger(HttpClientNames.Application.People, "subscriptions/persons", "resources-profile")] MessageContext message, FunctionContext ctx)
+        //{
+        //    var log = ctx.GetLogger(nameof(SyncProfile));
+        //    log.LogInformation("Profile sync event received");
+        //    log.LogInformation(message.Event.Data);
+        //    var body = message.GetBody<PeopleSubscriptionEvent>();
 
-            if (body.Type != PeopleSubscriptionEventType.ProfileUpdated && body.Type != PeopleSubscriptionEventType.UserRemoved)
-                return;
+        //    if (body.Type != PeopleSubscriptionEventType.ProfileUpdated && body.Type != PeopleSubscriptionEventType.UserRemoved)
+        //        return;
 
-            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new
-            {
-                userRemoved = body.Type == PeopleSubscriptionEventType.UserRemoved
+        //    var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new
+        //    {
+        //        userRemoved = body.Type == PeopleSubscriptionEventType.UserRemoved
 
-            });
+        //    });
 
-            if (refreshResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                log.LogWarning($"Person with email '{body.Person.Mail}' not found in Resources");
-                return;
-            }
+        //    if (refreshResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+        //    {
+        //        log.LogWarning($"Person with email '{body.Person.Mail}' not found in Resources");
+        //        return;
+        //    }
 
-            if (!refreshResponse.IsSuccessStatusCode)
-            {
-                var raw = await refreshResponse.Content.ReadAsStringAsync();
-                log.LogError(raw);
-                refreshResponse.EnsureSuccessStatusCode();
-            }
+        //    if (!refreshResponse.IsSuccessStatusCode)
+        //    {
+        //        var raw = await refreshResponse.Content.ReadAsStringAsync();
+        //        log.LogError(raw);
+        //        refreshResponse.EnsureSuccessStatusCode();
+        //    }
 
-            log.LogInformation($"Successfully refreshed profile '{body.Person.Mail}'");
-        }
+        //    log.LogInformation($"Successfully refreshed profile '{body.Person.Mail}'");
+        //}
 
         /// <summary>
         /// Syncing profiles at 5 am every day.
         /// </summary>
-        [Singleton]
-        [FunctionName("profile-sync")]
-        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        [Function("profile-sync")]
+        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, FunctionContext ctx)
         {
+            var log = ctx.GetLogger(nameof(SyncProfiles));
             log.LogInformation("Synchronizing external person personnel in Resources API");
 
             var personnel = await GetAllExternalPersonnelAsync();
 
-            var mailsToEnsure = personnel!
+            var mailsToEnsure = personnel
                 .Where(p => !string.IsNullOrWhiteSpace(p.Mail))
                 .Select(p => p.Mail)
                 .Distinct()
@@ -147,7 +146,7 @@ namespace Fusion.Resources.Functions.Functions
                 retList.AddRange(personnel!.Value);
 
                 // Stop when we reached the end.
-                if (personnel!.Value.Count < 1)
+                if (personnel.Value.Count < 1)
                     break;
 
                 index++;
@@ -160,7 +159,7 @@ namespace Fusion.Resources.Functions.Functions
 
         private async Task<List<PersonValidationResult>> EnsurePersonsAsync(List<string> mailsToEnsure)
         {
-            var peopleRequest = new HttpRequestMessage(HttpMethod.Post, $"persons/ensure");
+            var peopleRequest = new HttpRequestMessage(HttpMethod.Post, "persons/ensure");
             peopleRequest.Headers.Add("api-version", "3.0");
             var bodyContent = JsonConvert.SerializeObject(new { PersonIdentifiers = mailsToEnsure });
             peopleRequest.Content = new StringContent(bodyContent, Encoding.UTF8, "application/json");
@@ -174,11 +173,11 @@ namespace Fusion.Resources.Functions.Functions
             return people!;
         }
 
-        private static bool InvitationStatusMatches(InvitationStatus? peopleStatus, ApiAccountStatus resourcesStatus)
+        private static bool InvitationStatusMatches(ApiInvitationStatus? peopleStatus, ApiAccountStatus resourcesStatus)
         {
-            if ((peopleStatus == InvitationStatus.Accepted && resourcesStatus == ApiAccountStatus.Available) ||
-                (peopleStatus == InvitationStatus.Pending && resourcesStatus == ApiAccountStatus.InviteSent) ||
-                (peopleStatus == InvitationStatus.NotSent && resourcesStatus == ApiAccountStatus.NoAccount))
+            if ((peopleStatus == ApiInvitationStatus.Accepted && resourcesStatus == ApiAccountStatus.Available) ||
+                (peopleStatus == ApiInvitationStatus.Pending && resourcesStatus == ApiAccountStatus.InviteSent) ||
+                (peopleStatus == ApiInvitationStatus.NotSent && resourcesStatus == ApiAccountStatus.NoAccount))
             {
                 return true;
             }
@@ -199,7 +198,7 @@ namespace Fusion.Resources.Functions.Functions
         {
             public Guid? AzureUniqueId { get; set; }
             public string? Mail { get; set; }
-            public InvitationStatus? InvitationStatus { get; set; }
+            public ApiInvitationStatus? InvitationStatus { get; set; }
         }
 
         public class ApiPersonnel
@@ -210,7 +209,7 @@ namespace Fusion.Resources.Functions.Functions
             public ApiAccountStatus AzureAdStatus { get; set; }
         }
 
-        public enum InvitationStatus { Accepted, Pending, NotSent }
+        public enum ApiInvitationStatus { Accepted, Pending, NotSent }
         public enum ApiAccountStatus { Available, InviteSent, NoAccount }
 
 
