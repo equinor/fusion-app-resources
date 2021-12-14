@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@cypress/code-coverage": "^3.9.12",
-        "@equinor/fusion": "^3.3.5",
+        "@equinor/fusion": "^3.2.8",
         "@equinor/fusion-components": "^2.4.38",
         "@equinor/fusion-react-datepicker": "^0.7.2",
         "@equinor/fusion-react-table": "0.1.0-alpha.4",

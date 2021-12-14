@@ -25,20 +25,21 @@ const requestDetailsSidesheet = new RequestDetailsSidesheet()
 describe('Active Requests', () => {
     /** TODO make login persistent between tests */
     before(() => {
+        const contractNo = '312312341'
+        
         cy.clearLocalStorage();
         cy.login();
         cy.visit('/');
 
-        /** before create request, check and add the person to the contract personnel table */
+        cy.loadProject('Query test project')
+        cy.openContract(contractNo)
+
+        /** prerequirsites: the added the person should exist in the contract personnel table, and have Azure access */
+
         
     });
 
     beforeEach(function () {
-        const contractNo = '312312341'
-
-        cy.loadProject('Query test project')
-        cy.openContract(contractNo)
-
         /** open the 'Actual MPP' tab */
         navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
 
@@ -48,15 +49,12 @@ describe('Active Requests', () => {
         })
     });
 
-    it('test', () => {
-        //navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
+    it('test remove request through API', () => {
+        navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
 
-        // activeRequestPage.ActiveRequestTable().within(()=> {
-        //     cy.get('#base-position-column').click()
-        // })
-
-        cy.wait(1000)
-        cy.get('[id="base-position-column"]', {timeout: 10*1000}).first().click() // click doesn't work, why
+        activeRequestPage.ActiveRequestTable().within(()=> {
+            cy.get('#base-position-column').click()
+        })
 
         requestDetailsSidesheet.RequestDetailsSidesheet().should('be.visible')
         cy.wait(1000)
@@ -65,7 +63,7 @@ describe('Active Requests', () => {
 
     });
     
-    it.only('TC 13086 - Active Requests - Create a new request', function () {
+    it('TC 13086 - Active Requests - Create a new request', function () {
         activeRequestPage.AddRequestButton().click()
 
         cy.createRequest(this.requestData)
@@ -73,40 +71,39 @@ describe('Active Requests', () => {
         /** verify that the new request shows in the Active request table */
         activeRequestPage.ActiveRequestTable().should('contain', this.requestData.assignedPerson)
 
-        //navigationDrawer.CloseContractButton().click({force:true})
     });
 
     it('TC 13083 - Create a new actual MPP request based on the selected position', function () {
+        /** same as edit a request */
         
-        
-        navigationDrawer.CloseContractButton().click({force:true})
     });
 
-    it('TC 13084 - Edit the request for the selected position', function () {
-        // get the index of the new created request
-
-        // select it and edit
-
-        cy.editRequest('base-position', 'xxx')
-        // how to change multiple thing here, should not close sidesheet
-        cy.editRequest('workload', '50')
+    it.only('TC 13084 - Edit the request for the selected position', function () {
+        /** the new created request lists on the top in the table */
+        cy.get('#selection-cell').click()
+        activeRequestPage.EditRequestButton().click()
+        
+        cy.editRequest('custom-position', 'tester')   
         cy.editRequest('applies-to', '31/12/2022')
+        cy.editRequest('base-position', 'Estimator')
 
         createrequestSidesheet.SubmitButton().click()
 
         createrequestSidesheet.RequestProgressSidesheet().should('contain', 'Successful')
-        cy.get('#close-btn').click()
+        createrequestSidesheet.RequestProgressSidesheet().find('#close-btn').click({force: true})
 
-        // verify data
-        
-        
-        //navigationDrawer.CloseContractButton().click({force:true})
+        /** verify data */ 
+        cy.get('#custom-position-column').should('contain', 'tester')
+        cy.get('#base-position-column').should('contain', 'Estimator')
+
     });
 
     it('TC 23978 - Remove the request for the selected position', function () {
-        
-        
-        navigationDrawer.CloseContractButton().click({force:true})
+        cy.get('#selection-cell').click() // remove the first request on the top
+        activeRequestPage.RemoveRequestButton().click()
+
+        cy.removeRequest()
+   
     });
 
 })

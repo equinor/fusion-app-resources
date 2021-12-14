@@ -7,19 +7,17 @@ const createrequestSidesheet = new CreateRequestSidesheet()
 const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
 const contractId = '5ca8efa6-eb36-4a15-8f09-0d92194713d7'
 
-// const token = Cypress.env('FUSION_AUTH_CACHE:5a842df8-3238-415d-b168-9f16a6a6031b:TOKEN');
-const token = Cypress.env('FUSION_TOKEN');
+const token = Cypress.env('FUSION_TOKEN');  // only access token, without user info
 const authorization = `Bearer ${token}`
 
 /** create a request through GUI*/
 Cypress.Commands.add('createRequest', (requestData) => {
     createrequestSidesheet.CreateRequestSidesheet().should('be.visible')
 
-    //cy.wait(5000)
+    /** load the person selector */
+    cy.get('[id="assigned-person-input"]').click()
+    cy.wait(2000)
 
-    //cy.get('#base-position-input').find('input').should('exist') // cannot find input, why?
-
-    
     cy.get('[id="assigned-person-input"]').first().typeAndPick(requestData.assignedPerson)
     cy.get('[id="task-owner-input"]').first().typeAndPick(requestData.taskOwner)
 
@@ -32,12 +30,13 @@ Cypress.Commands.add('createRequest', (requestData) => {
     cy.fillTextInput(0, 'obs', requestData.obs)
     cy.fillTextInput(0, 'request-description', requestData.requestDescription)
 
+    /** input base position in the end */
     cy.get('#base-position-input').find('input').typeAndPick(requestData.basePosition)
 
     createrequestSidesheet.SubmitButton().click()
 
     createrequestSidesheet.RequestProgressSidesheet().should('contain', 'Successful')
-    cy.get('#close-btn').click()
+    createrequestSidesheet.RequestProgressSidesheet().find('#close-btn').click({force: true})
 });
 
 /** edit a selected request 
@@ -50,23 +49,41 @@ Cypress.Commands.add('createRequest', (requestData) => {
 */
 Cypress.Commands.add('editRequest', (column, data) => {
     createrequestSidesheet.CreateRequestSidesheet().should('be.visible')
+    cy.wait(500)
 
-    if (column == 'base-position' || 'assigned-person' || 'task-owner')
-        cy.get('[id="' + column + '-input"]').first().typeAndPick(data)
-
-    if (column == 'custom-position' || 'workload' || 'obs' || 'request-description')
-        cy.fillTextInput(0, column, data)
-
-    if (column == 'applies-from' || 'applies-to')
-        cy.get('[id="' + column + '-input"]').first().type(data)
-
-    else
-        cy.log('this input does not exist')
+    switch (column) {
+        case 'base-position':
+        case 'assigned-person':
+        case 'task-owner': 
+            cy.get('[id="' + column + '-input"]').first().typeAndPick(data)
+            break;
+        case 'custom-position':
+        case 'workload':
+        case 'obs': 
+        case 'request-description':
+            cy.fillTextInput(0, column, data)
+            break;
+        case 'applies-from':
+        case 'applies-to':
+            cy.get('[id="' + column + '-input"]').first().clear().type(data)
+            break;
+        default:
+            cy.log('No such input field')
+            break;
+    }
 
 });
 
 
-/** delete a selected request through GUI*/
+/** remove a selected request through GUI*/
+Cypress.Commands.add('removeRequest', () => {
+    cy.get('[class^="fc--Dialog__container"]').should('be.visible').within(() => {
+        cy.contains('delete', 'request')
+
+        cy.get('button').contains('Ok').click()
+        cy.wait(1000)
+    });
+});
 
 /** approve a selected request 
  * 

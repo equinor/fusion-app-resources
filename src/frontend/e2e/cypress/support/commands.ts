@@ -132,13 +132,14 @@ export const verifyHelpPage = () => {
  * data: the data for the selected type
 */
 Cypress.Commands.add('fillTextInput', (index, column, data) => {
+  cy.log('column and data', column, data)
   cy.get('[id="' + column + '-input"]').eq(index).find('input').clear().type(data)
 })
 
 /** fill in data in input and pick it from the dropdown menu */
 Cypress.Commands.add('typeAndPick', { prevSubject: true, }, (subject, data) => {
   cy.get(subject).type(data)
-  cy.get('[class^="fc--SearchableDropdown"]').contains(data).click()
+  cy.get('[class^="fc--SearchableDropdown"]').contains(data, {timeout:10000}).click()
 })
 
 /** select an element randomly in its array */
