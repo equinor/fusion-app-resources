@@ -141,7 +141,7 @@ namespace Fusion.Resources.Domain
                     .ExpandPositions()
                     .ExpandPositionInstances()
                     .ForAll()
-                    .WithExcludeCompleted()
+                    .WithExcludeCompleted(true)
                     .WithExcludeWithoutProposedPerson();
                 var pendingRequests = await mediator.Send(command);
                 return pendingRequests
