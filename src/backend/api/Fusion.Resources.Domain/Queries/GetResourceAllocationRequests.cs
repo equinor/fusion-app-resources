@@ -82,7 +82,7 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
-        public GetResourceAllocationRequests WithExcludeCompleted(bool exclude = false)
+        public GetResourceAllocationRequests WithExcludeCompleted(bool exclude = true)
         {
             ExcludeCompleted = exclude;
             return this;

@@ -772,6 +772,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.timeline.Single().workload.Should().Be(0);
         }
 
+        [Fact]
+        public async Task GetTimeline_ShouldNot_Include_Requests_That_Are_Completed_In_Pending_Requests()
+        {
+            TestApiInternalRequestModel request;
+            using var adminScope = fixture.AdminScope();
+            request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
+            {
+                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+            }));
+            await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
+            await Client.ProposePersonAsync(request.Id, user);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var approveResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{user.Department}/requests/{request.Id}/approve", null);
+            approveResponse.Should().BeSuccessfull();
+
+            var provisionResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{request.Id}/provision", null);
+            provisionResponse.Should().BeSuccessfull();
+
+            var timelineStart = new DateTime(2020, 03, 01);
+            var timelineEnd = new DateTime(2020, 03, 31);
+
+            var response = await Client.TestClientGetAsync<TestResponse>(
+                                                                         $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
+                                                                        );
+
+            var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            result.Should().NotBeNull();
+            result!.pendingRequests.Should().BeNull();
+        }
+
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();
