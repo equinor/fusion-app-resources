@@ -209,6 +209,29 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
             NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
         }
+
+        [Fact]
+        public async Task EnterpriseRequest_StartWorkFlow_ShouldNotNotifyTaskOwner()
+        {
+            // Arrange
+            using var adminScope = fixture.AdminScope();
+            var enterpriseRequest = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeEnterprise().WithPosition(requestPosition).WithProposedPerson(testUser));
+
+
+            // Act
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{enterpriseRequest.Id}/start", null);
+            response.Should().BeSuccessfull();
+
+
+            // Assert
+            var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
+            var taskOwner = enterpriseRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
+
+            DumpNotificationsToLog(NotificationClientMock.SentMessages);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner && string.Equals(x.Title,
+                "You have been assigned as resource owner for a personnel request", StringComparison.OrdinalIgnoreCase)).Should().Be(0);
+        }
         #endregion
     }
 
