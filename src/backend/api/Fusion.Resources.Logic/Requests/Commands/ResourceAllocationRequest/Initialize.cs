@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
+using Fusion.Resources.Logic.Workflows;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -57,7 +58,7 @@ namespace Fusion.Resources.Logic.Commands
                 private static bool ShouldDispatchNotification(DbResourceAllocationRequest dbRequest)
                 {
                     // Should not notify for enterprise requests
-                    if (string.Equals(dbRequest.SubType, "enterprise", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(dbRequest.SubType, AllocationEnterpriseWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
                         return false;
 
                     return true;
