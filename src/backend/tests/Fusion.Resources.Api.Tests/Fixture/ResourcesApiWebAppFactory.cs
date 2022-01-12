@@ -59,6 +59,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             roleClientMock = new RolesClientMock();
             queueMock = new Mock<IQueueSender>();
             queueMock.Setup(c => c.SendMessageAsync(It.IsAny<QueuePath>(), It.IsAny<object>())).Returns(Task.CompletedTask);
+            queueMock.Setup(c => c.SendMessageDelayedAsync(It.IsAny<QueuePath>(), It.IsAny<object>(), It.IsAny<int>())).Returns(Task.CompletedTask);
 
             EnsureDatabase();
         }
@@ -103,8 +104,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("OrgEventReceiver");
                 services.TryRemoveImplementationService("ContextEventReceiver");
                 services.TryRemoveImplementationService<ICompanyResolver>();
-                
-                if(isMemorycacheDisabled)
+
+                if (isMemorycacheDisabled)
                 {
                     services.TryRemoveImplementationService<IMemoryCache>();
                     services.AddScoped<IMemoryCache, AlwaysEmptyCache>();

@@ -97,7 +97,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
             {
                 type = "normal",
-                subType ="direct",
+                subType = "direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
             }, new
@@ -127,7 +127,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync($"/projects/{newTestProject.Project.ProjectId}/requests", new
             {
                 type = "normal",
-                subType ="direct",
+                subType = "direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
             }, new { });
@@ -144,7 +144,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
-                subType ="direct",
+                subType = "direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id
             });
@@ -191,7 +191,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
-                subType ="direct",
+                subType = "direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id,
                 assignedDepartment = department
@@ -199,7 +199,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
             response.Value.AssignedDepartment.Should().Be(department);
         }
-       
+
         [Fact]
         public async Task DirectRequest_Create_ShouldBeAbleToProposePersonDirectly()
         {
@@ -210,7 +210,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
             {
                 type = "normal",
-                subType ="direct",
+                subType = "direct",
                 orgPositionId = position.Id,
                 orgPositionInstanceId = position.Instances.Last().Id,
                 proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId
@@ -234,7 +234,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}/start", null);
             response.Should().BeSuccessfull();
         }
-        
+
         [Theory]
         [InlineData("isDraft", false)]
         [InlineData("state", "created")]
@@ -262,7 +262,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
             proposedPerson.FullDepartment = "TST DPT 123";
 
-            var request = await Client.CreateDefaultRequestAsync(testProject, 
+            var request = await Client.CreateDefaultRequestAsync(testProject,
                 r => r.AsTypeDirect().WithProposedPerson(proposedPerson).WithAssignedDepartment(null)
             );
 
@@ -335,7 +335,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task DirectRequest_Approval_ShouldBeSuccessful_WhenApproving()
         {
             using var adminScope = fixture.AdminScope();
-            
+
             await Client.StartProjectRequestAsync(testProject, directRequest.Id);
 
             await FastForward_ProposedRequest();
@@ -368,7 +368,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await FastForward_ApprovalRequest();
 
-            fixture.ApiFactory.queueMock.Verify(q => q.SendMessageAsync(QueuePath.ProvisionPosition, It.Is<ProvisionPositionMessageV1>(q => q.RequestId == directRequest.Id)), Times.Once);
+            fixture.ApiFactory.queueMock.Verify(q => q.SendMessageDelayedAsync(QueuePath.ProvisionPosition,  It.Is<ProvisionPositionMessageV1>(q => q.RequestId == directRequest.Id), It.IsAny<int>()), Times.Once);
         }
 
         [Fact]
