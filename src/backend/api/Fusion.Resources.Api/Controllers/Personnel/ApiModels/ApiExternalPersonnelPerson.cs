@@ -12,6 +12,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             Id = person.PersonnelId;
             AzureUniquePersonId = person.AzureUniqueId;
+            UPN = person.UPN;
             Name = person.Name;
             FirstName = person.FirstName;
             LastName = person.LastName;
@@ -32,6 +33,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
         public Guid? AzureUniquePersonId { get; set; }
+        public string? UPN { get; set; }
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

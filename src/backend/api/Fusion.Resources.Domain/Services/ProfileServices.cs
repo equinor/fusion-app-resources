@@ -61,6 +61,7 @@ namespace Fusion.Resources.Domain.Services
             {
                 resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
                 resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                resolvedPerson.UPN = profile.UPN;
                 resolvedPerson.JobTitle = profile.JobTitle;
                 resolvedPerson.Name = profile.Name;
                 resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
@@ -90,7 +91,7 @@ namespace Fusion.Resources.Domain.Services
             return resolvedPerson;
         }
 
-        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string mail, string firstName, string lastName)
+        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, string mail, string firstName, string lastName)
         {
             // Should refactor this to distributed lock.
 
@@ -105,10 +106,11 @@ namespace Fusion.Resources.Domain.Services
 
                 var profile = await ResolveProfileAsync(mail);
 
-                var newEntry = new DbExternalPersonnelPerson()
+                var newEntry = new DbExternalPersonnelPerson
                 {
                     AccountStatus = DbAzureAccountStatus.NoAccount,
                     Disciplines = new List<DbPersonnelDiscipline>(),
+                    UPN = upn,
                     Mail = mail,
                     Name = $"{firstName} {lastName}",
                     FirstName = firstName,
@@ -118,6 +120,7 @@ namespace Fusion.Resources.Domain.Services
 
                 if (profile != null)
                 {
+                    newEntry.UPN = profile.UPN;
                     newEntry.Mail = profile.Mail ?? string.Empty;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;

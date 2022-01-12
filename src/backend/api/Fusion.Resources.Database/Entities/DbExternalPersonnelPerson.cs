@@ -13,6 +13,9 @@ namespace Fusion.Resources.Database.Entities
 
         public Guid? AzureUniqueId { get; set; }
 
+        [MaxLength(1024)]
+        public string? UPN { get; set; }
+
         public DbAzureAccountStatus AccountStatus { get; set; }
 
         [MaxLength(100)]
@@ -45,7 +48,7 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbExternalPersonnelPerson>(entity =>
             {
                 entity.Property(e => e.AccountStatus).HasConversion(new EnumToStringConverter<DbAzureAccountStatus>());
-                
+
                 entity.HasMany(e => e.Disciplines).WithOne().OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(e => e.Mail).IsClustered(false);
             });

@@ -59,7 +59,7 @@ namespace Fusion.Resources.Domain.Commands
                 if (profile == null && request.Person.Mail == null)
                     throw new ArgumentException("Cannot create personnel without either a valid azure unique id or mail address");
 
-                var personnel = await profileService.EnsureExternalPersonnelAsync(profile?.Mail ?? request.Person.Mail!, request.FirstName, request.LastName);
+                var personnel = await profileService.EnsureExternalPersonnelAsync(profile?.UPN, profile?.Mail ?? request.Person.Mail!, request.FirstName, request.LastName);
 
                 // Even if the personnel is fetch from existing. Update to new values, as things might change, like phone number.
                 UpdatePerson(personnel, request);
