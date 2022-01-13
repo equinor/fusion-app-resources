@@ -96,7 +96,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
-        
+
 
         [Fact]
         public async Task NormalRequest_Create_ShouldGetNewNumber()
@@ -270,7 +270,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var department = "ABC DEF";
             LineOrgServiceMock.AddDepartment("ABC", new[] { department });
-            
+
             using var adminScope = fixture.AdminScope();
 
             var position = testProject.AddPosition()
@@ -446,7 +446,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await FastForward_ApprovalRequest();
 
-            fixture.ApiFactory.queueMock.Verify(q => q.SendMessageAsync(QueuePath.ProvisionPosition, It.Is<ProvisionPositionMessageV1>(q => q.RequestId == normalRequest.Id)), Times.Once);
+            fixture.ApiFactory.queueMock.Verify(q => q.SendMessageDelayedAsync(QueuePath.ProvisionPosition, It.Is<ProvisionPositionMessageV1>(q => q.RequestId == normalRequest.Id), It.IsAny<int>()), Times.Once);
         }
 
         [Fact]

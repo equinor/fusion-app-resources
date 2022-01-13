@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.ServiceBus.Core;
+﻿using System;
+using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -19,13 +20,24 @@ namespace Fusion.Resources.ServiceBus
             this.configuration = configuration;
             this.logger = logger;
         }
+
         public async Task SendMessageAsync(QueuePath queue, object message)
+        {
+            await SendMessageDelayedAsync(queue, message, 0);
+        }
+
+        public async Task SendMessageDelayedAsync(QueuePath queue, object message, int delayInSeconds)
         {
             if (!IsDisabled)
             {
                 var sender = GetClient(queue);
                 var jsonMessage = JsonSerializer.Serialize(message);
                 var queueMessage = new Microsoft.Azure.ServiceBus.Message(Encoding.UTF8.GetBytes(jsonMessage)) { ContentType = "application/json" };
+
+                if (delayInSeconds > 0)
+                {
+                    queueMessage.ScheduledEnqueueTimeUtc = DateTime.UtcNow.AddSeconds(delayInSeconds);
+                }
 
                 logger.LogInformation($"Posting message to {sender.Path}: {jsonMessage}");
                 await sender.SendAsync(queueMessage);
