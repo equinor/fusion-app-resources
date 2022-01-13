@@ -66,6 +66,7 @@ namespace Fusion.Resources.Domain.Services
                 resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
                 resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
                 resolvedPerson.IsDeleted = false;
+                resolvedPerson.Deleted = null;
 
             }
             else
@@ -73,9 +74,10 @@ namespace Fusion.Resources.Domain.Services
                 // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
                 resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
                 if (considerRemovedProfile)
+                {
                     resolvedPerson.IsDeleted = true;
-
-
+                    resolvedPerson.Deleted = DateTimeOffset.UtcNow;
+                }
             }
 
             var changedProperties = resourcesDb.Entry(resolvedPerson).Properties

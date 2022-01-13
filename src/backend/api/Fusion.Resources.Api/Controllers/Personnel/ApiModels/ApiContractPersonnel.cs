@@ -27,6 +27,9 @@ namespace Fusion.Resources.Api.Controllers
             Created = personnel.Created;
             Updated = personnel.Updated;
 
+            IsDeleted = personnel.IsDeleted;
+            Deleted = personnel.Deleted;
+
             Positions = personnel.Positions?.Select(p => new ApiPositionInstanceReference(p)).ToList();
             Requests = personnel.Requests?.Select(r => new ApiRequestReference(r)).ToList();
         }
@@ -58,6 +61,8 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
 
+        public bool IsDeleted { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
 
 
         public List<ApiPositionInstanceReference>? Positions { get; set; }

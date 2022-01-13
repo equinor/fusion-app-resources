@@ -26,7 +26,8 @@ namespace Fusion.Resources.Domain
             DawinciCode = item.Person.DawinciCode;
             LinkedInProfile = item.Person.LinkedInProfile;
             PreferredContactMail = item.Person.PreferredContractMail;
-
+            IsDeleted = item.Person.IsDeleted;
+            Deleted = item.Person.Deleted;
             Created = item.Created;
             Updated = item.Updated;
             CreatedBy = new QueryPerson(item.CreatedBy);
@@ -63,6 +64,8 @@ namespace Fusion.Resources.Domain
         public QueryPerson? UpdatedBy { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
 
         //public QueryProject Project { get; set; }
         //public QueryContract Contract { get; set; }
