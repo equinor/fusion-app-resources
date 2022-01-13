@@ -776,7 +776,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-            
+
             return new ApiResourceAllocationRequest(result!);
         }
 
@@ -1125,7 +1125,9 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+                var currentStep = result.Workflow?.GetWorkflowStepByState(result.State);
+                if (string.IsNullOrEmpty(currentStep?.Id) || string.IsNullOrEmpty(currentStep?.NextStep)) return NoContent();
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id, currentStep.NextStep));
             }
             catch (UnauthorizedWorkflowException)
             {
@@ -1399,7 +1401,9 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+                var currentStep = result.Workflow?.GetWorkflowStepByState(result.State);
+                if (string.IsNullOrEmpty(currentStep?.Id) || string.IsNullOrEmpty(currentStep?.NextStep)) return NoContent();
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id, currentStep.NextStep));
             }
             catch (UnauthorizedWorkflowException)
             {

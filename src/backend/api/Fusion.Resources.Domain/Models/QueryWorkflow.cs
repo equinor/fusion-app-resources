@@ -33,14 +33,18 @@ namespace Fusion.Resources.Domain
         public DbWorkflowState State { get; set; }
         public string? SystemMessage { get; set; }
 
-        public  IEnumerable<QueryWorkflowStep> WorkflowSteps { get; set; }
+        public IEnumerable<QueryWorkflowStep> WorkflowSteps { get; set; }
 
         public DateTimeOffset Created { get; set; }
 
         public DateTimeOffset? Completed { get; set; }
 
         public QueryPerson? TerminatedBy { get; set; }
-       
+
+        public QueryWorkflowStep? GetWorkflowStepByState(string state)
+        {
+            return WorkflowSteps?.FirstOrDefault(x => string.Equals(x.Id, state, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }
 
