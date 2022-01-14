@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Fusion.Resources.Logic.Commands;
 
 namespace Fusion.Resources.Api.Controllers
 {
