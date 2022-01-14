@@ -341,10 +341,10 @@ namespace Fusion.Resources.Api.Controllers
                 }
 
                 await using var scope = await BeginTransactionAsync();
-                var updatedRequest = await DispatchAsync(updateCommand);
+                await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
 
-                updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandAll());
+                var updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandAll());
                 return new ApiResourceAllocationRequest(updatedRequest!);
             }
             catch (ValidationException ve)
@@ -538,6 +538,7 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         /// <param name="projectIdentifier"></param>
         /// <param name="positionId"></param>
+        /// <param name="query"></param>
         /// <returns></returns>
         [HttpGet("/projects/{projectIdentifier}/positions/{positionId}/requests")]
         public async Task<ActionResult<ApiCollection<ApiResourceAllocationRequest>>> GetRequestsForPosition(PathProjectIdentifier projectIdentifier, Guid positionId, [FromQuery] ODataQueryParams query)
@@ -775,7 +776,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-            
+
             return new ApiResourceAllocationRequest(result!);
         }
 
@@ -1124,7 +1125,9 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                var canApprove = DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+                var currentStep = result.Workflow?.GetWorkflowStepByState(result.State);
+                if (string.IsNullOrEmpty(currentStep?.Id) || string.IsNullOrEmpty(currentStep?.NextStep)) return NoContent();
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id, currentStep.NextStep));
             }
             catch (UnauthorizedWorkflowException)
             {
@@ -1398,7 +1401,9 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                var canApprove = DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), result.State, null));
+                var currentStep = result.Workflow?.GetWorkflowStepByState(result.State);
+                if (string.IsNullOrEmpty(currentStep?.Id) || string.IsNullOrEmpty(currentStep?.NextStep)) return NoContent();
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.CanApproveStep(requestId, result.Type.MapToDatabase(), currentStep.Id, currentStep.NextStep));
             }
             catch (UnauthorizedWorkflowException)
             {

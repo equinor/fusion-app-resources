@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
+using Fusion.Resources.Logic.Workflows;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -46,10 +48,21 @@ namespace Fusion.Resources.Logic.Commands
                     await resourcesDb.SaveChangesAsync();
 
                     await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, dbRequest.SubType, request.Editor.Person));
-                    await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(dbRequest.Id));
+
+                    if (ShouldDispatchNotification(dbRequest))
+                    {
+                        await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(dbRequest.Id));
+                    }
                 }
 
+                private static bool ShouldDispatchNotification(DbResourceAllocationRequest dbRequest)
+                {
+                    // Should not notify for enterprise requests
+                    if (string.Equals(dbRequest.SubType, AllocationEnterpriseWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
+                        return false;
 
+                    return true;
+                }
             }
 
         }
