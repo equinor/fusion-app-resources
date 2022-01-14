@@ -4,14 +4,16 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    partial class ResourcesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220112143008_ExternalPersonnel UPN property added")]
+    partial class ExternalPersonnelUPNpropertyadded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -353,8 +355,8 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("UPN")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
 
                     b.HasKey("Id");
 
