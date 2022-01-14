@@ -102,7 +102,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var personnel = new Faker<DbExternalPersonnelPerson>()
                .RuleFor(p => p.AzureUniqueId, f => f.PickRandom<Guid?>(new[] { (Guid?)null, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }))
-               .RuleFor(p => p.UPN, f => f.Person.UserName)
+               .RuleFor(p => p.UPN, f => f.Person.Email)
                .RuleFor(p => p.FirstName, f => f.Person.FirstName)
                .RuleFor(p => p.LastName, f => f.Person.LastName)
                .RuleFor(p => p.Name, f => f.Person.FullName)

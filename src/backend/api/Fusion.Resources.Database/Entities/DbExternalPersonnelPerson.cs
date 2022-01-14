@@ -13,7 +13,7 @@ namespace Fusion.Resources.Database.Entities
 
         public Guid? AzureUniqueId { get; set; }
 
-        [MaxLength(1024)]
+        [MaxLength(200)]
         public string? UPN { get; set; }
 
         public DbAzureAccountStatus AccountStatus { get; set; }

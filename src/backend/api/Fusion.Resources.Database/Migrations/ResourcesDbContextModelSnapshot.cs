@@ -353,8 +353,8 @@ namespace Fusion.Resources.Database.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("UPN")
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 

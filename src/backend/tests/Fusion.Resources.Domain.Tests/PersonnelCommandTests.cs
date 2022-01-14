@@ -101,7 +101,7 @@ namespace Fusion.Resources.Domain.Tests
         public static Faker<DbExternalPersonnelPerson> ExternalPersonnel => new Faker<DbExternalPersonnelPerson>()
            .RuleFor(p => p.Id, f => Guid.NewGuid())
            .RuleFor(p => p.AzureUniqueId, f => Guid.NewGuid())
-           .RuleFor(p => p.UPN, f => f.Person.UserName)
+           .RuleFor(p => p.UPN, f => f.Person.Email)
            .RuleFor(p => p.Mail, f => f.Person.Email)
            .RuleFor(p => p.Name, f => f.Person.FullName)
            .RuleFor(p => p.FirstName, f => f.Person.FirstName)
