@@ -12,6 +12,7 @@ namespace Fusion.Resources.Domain
             PersonnelId = item.Id;
 
             AzureUniqueId = item.AzureUniqueId;
+            UPN = item.UPN;
             Name = item.Name;
             FirstName = item.FirstName;
             LastName = item.LastName;
@@ -32,6 +33,7 @@ namespace Fusion.Resources.Domain
         }
         public Guid PersonnelId { get; set; }
         public Guid? AzureUniqueId { get; set; }
+        public string? UPN { get; set; }
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
