@@ -23,6 +23,8 @@ namespace Fusion.Resources.Domain
             DawinciCode = item.DawinciCode;
             LinkedInProfile = item.LinkedInProfile;
             PreferredContactMail = item.PreferredContractMail;
+            IsDeleted = item.IsDeleted;
+            Deleted = item.Deleted;
 
             if (item.Disciplines == null)
                 throw new ArgumentNullException(nameof(item.Disciplines), "Disciplines must be included or initialized on the entity when constructing query model");
@@ -43,6 +45,8 @@ namespace Fusion.Resources.Domain
         public string? PreferredContactMail { get; set; }
 
         public DbAzureAccountStatus AzureAdStatus { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
 
         public List<QueryPersonnelDiscipline> Disciplines { get; set; }
     }

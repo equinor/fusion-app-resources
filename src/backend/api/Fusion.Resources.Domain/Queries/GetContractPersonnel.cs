@@ -81,6 +81,7 @@ namespace Fusion.Resources.Domain
                         m.MapField("name", p => p.Person.Name);
                         m.MapField("phoneNumber", p => p.Person.Phone);
                         m.MapField("created", p => p.Created);
+                        m.MapField("isDeleted", p => p.Person.IsDeleted);
                     });
 
                 var items = await itemQuery

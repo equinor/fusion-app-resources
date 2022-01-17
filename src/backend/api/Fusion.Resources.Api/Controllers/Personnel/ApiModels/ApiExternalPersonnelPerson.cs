@@ -23,6 +23,8 @@ namespace Fusion.Resources.Api.Controllers
             LinkedInProfile = person.LinkedInProfile;
             PreferredContactMail = person.PreferredContactMail;
             AzureAdStatus = Enum.Parse<ApiAccountStatus>($"{person.AzureAdStatus}", true);
+            IsDeleted = person.IsDeleted;
+            Deleted = person.Deleted;
             Disciplines = person.Disciplines?.Select(d => new ApiPersonnelDiscipline(d)).ToList() ?? new List<ApiPersonnelDiscipline>();
         }
 
@@ -49,6 +51,8 @@ namespace Fusion.Resources.Api.Controllers
         public ApiAccountStatus AzureAdStatus { get; set; }
 
         public bool HasCV { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
 
         public List<ApiPersonnelDiscipline> Disciplines { get; set; }
     }

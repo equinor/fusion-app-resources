@@ -112,6 +112,7 @@ namespace Fusion.Resources.Domain.Queries
                         m.MapField("person.firstName", e => e.Person.Person.FirstName);
                         m.MapField("person.lastName", e => e.Person.Person.LastName);
                         m.MapField("person.azureAdStatus", e => e.Person.Person.AccountStatus);
+                        m.MapField("person.isDeleted", e => e.Person.Person.IsDeleted);
                     });
                 }
 
