@@ -81,7 +81,7 @@ namespace Fusion.Resources.Domain
 
             public async Task<IEnumerable<QueryInternalPersonnelPerson>> Handle(GetDepartmentPersonnel request, CancellationToken cancellationToken)
             {
-                var departmentRequests = await GetProposedRequestsAsync(request.Department);
+                var departmentRequests = await GetPendingRequests(request.Department);
                 var requestsWithStateNullOrCreated = await GetRequestsWithStateNullOrCreatedAsync(request.Department);
                 var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments, requestsWithStateNullOrCreated);
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
@@ -134,7 +134,7 @@ namespace Fusion.Resources.Domain
                 return departmentPersonnel;
             }
 
-            private async Task<Dictionary<Guid, List<QueryResourceAllocationRequest>>> GetProposedRequestsAsync(string department)
+            private async Task<Dictionary<Guid, List<QueryResourceAllocationRequest>>> GetPendingRequests(string department)
             {
                 var command = new GetResourceAllocationRequests()
                     .WithAssignedDepartment(department)

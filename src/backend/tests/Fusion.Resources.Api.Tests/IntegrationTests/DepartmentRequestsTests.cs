@@ -53,6 +53,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Mock project
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
+                .WithProperty("pimsWriteSyncEnabled", true)
                 .AddToMockService();
 
             var adminClient = fixture.ApiFactory.CreateClient()
@@ -564,7 +565,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .Should()
                 .BeFalse();
         }
-        
+
         [Fact]
         public async Task GetTimelineShouldNotIncludeEmploymentStatusesOutsideTimeframe()
         {
@@ -575,7 +576,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                                               x.AppliesFrom = new DateTime(2021, 08, 06);
                                               x.AppliesTo = new DateTime(2021, 09, 03);
                                           });
-            
+
             var timelineStart = new DateTime(2022, 04, 01);
             var timelineEnd = new DateTime(2022, 09, 30);
 
@@ -591,7 +592,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .Should()
                 .BeFalse();
         }
-        
+
         [Fact]
         public async Task GetTimelineShouldIncludeEmploymentStatusesWithAppliesToNull()
         {
@@ -642,7 +643,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
             result.pendingRequests.Should().BeEmpty();
         }
-        
+
         [Fact]
         public async Task GetRequests_ShouldNotIncludeRequestsOutsideCurrentAllocations()
         {
@@ -671,7 +672,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     .Should()
                     .BeFalse();
         }
-        
+
         [Fact]
         public async Task GetTimeline_ShouldIncludeRequests()
         {
@@ -697,20 +698,84 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task TimeLineItem_ShouldIncludeChangeRequestState()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition()
+                .WithEnsuredFutureInstances()
+                .WithAssignedPerson(user);
+
+            var instance = position.Instances.First();
+            var bp = position.BasePosition;
+
+            user.Positions.Add(new ApiPersonPositionV3
+            {
+                Id = position.Id,
+                PositionId = position.Id,
+                AppliesFrom = instance.AppliesFrom,
+                AppliesTo = instance.AppliesTo,
+                Workload = instance.Workload,
+                Obs = instance.Obs,
+                Name = position.Name,
+                BasePosition = new ApiPersonBasePositionV3
+                {
+                    Id = bp.Id,
+                    Name = bp.Name,
+                    Discipline = bp.Discipline,
+                    SubDiscipline = bp.SubDiscipline,
+                    Type = bp.ProjectType
+                },
+                Project = new ApiPersonPositionProjectV3
+                {
+                    Id = testProject.Project.ProjectId,
+                    DomainId = testProject.Project.DomainId,
+                    Name = testProject.Project.Name
+                }
+            });
+
+            var request = await Client.CreateDefaultResourceOwnerRequestAsync(user.FullDepartment, testProject,
+                setup: x =>
+                {
+                    x.AsTypeResourceOwner("adjustment");
+                    x.OrgPositionId = position.Id;
+                    x.OrgPositionInstanceId = position.Instances.First().Id;
+                },
+                positionSetup: x =>
+                {
+                    x.Id = position.Id;
+                    x.Instances = position.Instances;
+                });
+            await Client.ProposeChangesAsync(request.Id, new { workload = 50 });
+            await Client.SetChangeParamsAsync(request.Id, DateTime.Today.AddDays(1));
+
+            var timelineStart = request.OrgPositionInstance.AppliesFrom.Date.AddDays(-7).ToUniversalTime();
+            var timelineEnd = request.OrgPositionInstance.AppliesTo.Date.AddDays(7).ToUniversalTime();
+
+            var endpoint = $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}";
+            var response = await Client.TestClientGetAsync<TestResponse>(endpoint);
+
+            var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
+            var timelinePostion = result.positionInstances.FirstOrDefault(x => x.PositionId == position.Id);
+            timelinePostion.Should().NotBeNull();
+            timelinePostion.HasChangeRequest.Should().BeTrue();
+            timelinePostion.ChangeRequestStatus.Should().NotBeNull();
+        }
+
+        [Fact]
         public async Task GetRequestsOnPerson_ShouldNotIncludeRequestsOutsideCurrentAllocations()
         {
             TestApiInternalRequestModel request;
             using var adminScope = fixture.AdminScope();
             request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
-                                                                                                                  {
-                                                                                                                      x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
-                                                                                                                  }));
+            {
+                x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
+            }));
             await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
             await Client.ProposePersonAsync(request.Id, user);
-            
-            var response = await Client.TestClientGetAsync<TestApiPersonnelPerson>(
-                                                                                   $"/departments/{user.Department}/resources/personnel/{user.AzureUniqueId}?includeCurrentAllocations=true&{ApiVersion}"
-                                                                                  );
+
+            var endpoint = $"/departments/{user.Department}/resources/personnel/{user.AzureUniqueId}?includeCurrentAllocations=true&{ApiVersion}";
+            var response = await Client.TestClientGetAsync<TestApiPersonnelPerson>(endpoint);
 
             response.Should().BeSuccessfull();
             var positionInstances = response.Value.positionInstances;
@@ -722,23 +787,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
-                                                                                                                      {
-                                                                                                                          x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
-                                                                                                                      }));
+            {
+                x.AddInstance(new DateTime(2021, 10, 01), TimeSpan.FromDays(30));
+            }));
 
             await Client.AddAbsence(user, x =>
-                                          {
-                                              x.AppliesFrom = new DateTime(2021, 08, 06);
-                                              x.AppliesTo = null;
-                                          });
-
+            {
+                x.AppliesFrom = new DateTime(2021, 08, 06);
+                x.AppliesTo = null;
+            });
 
             await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
             await Client.ProposePersonAsync(request.Id, user);
 
-            var response = await Client.TestClientGetAsync<TestApiPersonnelPerson>(
-                                                                                   $"/departments/{user.Department}/resources/personnel/{user.AzureUniqueId}?includeCurrentAllocations=true&{ApiVersion}"
-                                                                                  );
+            var endpoint = $"/departments/{user.Department}/resources/personnel/{user.AzureUniqueId}?includeCurrentAllocations=true&{ApiVersion}";
+            var response = await Client.TestClientGetAsync<TestApiPersonnelPerson>(endpoint);
 
             response.Should().BeSuccessfull();
 
@@ -753,18 +816,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             TestApiInternalRequestModel request;
             using var adminScope = fixture.AdminScope();
             request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
-                                                                                                                  {
-                                                                                                                      x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
-                                                                                                                  }));
+            {
+                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+            }));
             await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
             await Client.ProposePersonAsync(request.Id, user);
 
             var timelineStart = new DateTime(2020, 03, 01);
             var timelineEnd = new DateTime(2020, 03, 31);
 
-            var response = await Client.TestClientGetAsync<TestResponse>(
-                                                                         $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
-                                                                        );
+            var endpoint = $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}";
+            var response = await Client.TestClientGetAsync<TestResponse>(endpoint);
 
             var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
             result.pendingRequests.Should().Contain(x => x.Id == request.Id);
@@ -794,9 +856,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var timelineStart = new DateTime(2020, 03, 01);
             var timelineEnd = new DateTime(2020, 03, 31);
 
-            var response = await Client.TestClientGetAsync<TestResponse>(
-                                                                         $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}"
-                                                                        );
+            var endpoint = $"/departments/{user.Department}/resources/personnel/?$expand=timeline&{ApiVersion}&timelineStart={timelineStart:O}&timelineEnd={timelineEnd:O}";
+            var response = await Client.TestClientGetAsync<TestResponse>(endpoint);
 
             var result = response.Value.value.FirstOrDefault(x => x.azureUniquePersonId == user.AzureUniqueId);
             result.Should().NotBeNull();
