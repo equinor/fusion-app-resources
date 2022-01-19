@@ -21,7 +21,7 @@ const RejectPersonnelSideSheet: FC<RejectRequestSideSheetProps> = ({
         <ModalSideSheet
             show={requests.length > 0}
             size="medium"
-            id="reject-personnel-side-sheet"
+            id="reject-personnel-sidesheet"
             onClose={() => setRequests([])}
             header={`Reject ${requests.length} requests?`}
             headerIcons={[

@@ -66,6 +66,7 @@ const CompletedRequestsPage: FC = () => {
             <ResourceErrorMessage error={error}>
                 <div className={styles.activeRequests}>
                     <SortableTable
+                        id="completed-request-table"
                         data={filteredCompletedRequests || []}
                         columns={columns}
                         rowIdentifier="id"

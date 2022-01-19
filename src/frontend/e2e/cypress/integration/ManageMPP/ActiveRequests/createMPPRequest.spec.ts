@@ -22,6 +22,8 @@ const activeRequestPage = new ActiveRequestPage()
 import RequestDetailsSidesheet from "../../../POM/RequestDetailsSidesheet"
 const requestDetailsSidesheet = new RequestDetailsSidesheet()
 
+/** prerequirsites: the added the person should exist in the contract personnel table, and have Azure access */
+
 describe('Active Requests', () => {
     /** TODO make login persistent between tests */
     before(() => {
@@ -32,11 +34,7 @@ describe('Active Requests', () => {
         cy.visit('/');
 
         cy.loadProject('Query test project')
-        cy.openContract(contractNo)
-
-        /** prerequirsites: the added the person should exist in the contract personnel table, and have Azure access */
-
-        
+        cy.openContract(contractNo)       
     });
 
     beforeEach(function () {
@@ -49,19 +47,6 @@ describe('Active Requests', () => {
         })
     });
 
-    it('test remove request through API', () => {
-        navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
-
-        activeRequestPage.ActiveRequestTable().within(()=> {
-            cy.get('#base-position-column').click()
-        })
-
-        requestDetailsSidesheet.RequestDetailsSidesheet().should('be.visible')
-        cy.wait(1000)
-
-        cy.removeRequest()
-
-    });
     
     it('TC 13086 - Active Requests - Create a new request', function () {
         activeRequestPage.AddRequestButton().click()
@@ -73,13 +58,10 @@ describe('Active Requests', () => {
 
     });
 
-    it('TC 13083 - Create a new actual MPP request based on the selected position', function () {
-        /** same as edit a request */
-        
-    });
 
-    it.only('TC 13084 - Edit the request for the selected position', function () {
+    it('TC 13084 - Edit the request for the selected position', () => {
         /** the new created request lists on the top in the table */
+        cy.wait(1000)
         cy.get('#selection-cell').click()
         activeRequestPage.EditRequestButton().click()
         
@@ -98,8 +80,10 @@ describe('Active Requests', () => {
 
     });
 
-    it('TC 23978 - Remove the request for the selected position', function () {
-        cy.get('#selection-cell').click() // remove the first request on the top
+    it('TC 23978 - Remove the request for the selected position', () => {
+        /** remove the first request on the top */
+        cy.wait(1000)
+        cy.get('#selection-cell').click() 
         activeRequestPage.RemoveRequestButton().click()
 
         cy.removeRequest()

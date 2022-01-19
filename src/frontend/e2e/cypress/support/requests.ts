@@ -78,7 +78,7 @@ Cypress.Commands.add('editRequest', (column, data) => {
 /** remove a selected request through GUI*/
 Cypress.Commands.add('removeRequest', () => {
     cy.get('[class^="fc--Dialog__container"]').should('be.visible').within(() => {
-        cy.contains('delete', 'request')
+        cy.contains('delete')
 
         cy.get('button').contains('Ok').click()
         cy.wait(1000)
@@ -95,25 +95,34 @@ Cypress.Commands.add('removeRequest', () => {
 
 /** feed a request through API */
 Cypress.Commands.add('feedRequest', () => {
-    cy.fixture('RequestBody.json').then((requestData) => {
-        cy.request('POST', 'projects/' + projectId + '/contracts/' + contractId + '/resources/requests?$expand=originalPosition', requestData)
-        // .then((response)=> {
-        //     expect(response.status).to.eq(200)  
-        //     expect(response.body).to.have.property('id')
-        //     cy.log('request id is', response.body.id)
-        // })
+    const url = Cypress.env('backend') + '/projects/' + projectId + '/contracts/' + contractId + '/resources/requests?$expand=originalPosition'
+
+    cy.fixture('RequestBody.json').then((requestBody) => {
+        cy.request({
+            method: 'POST', 
+            url: url, 
+            headers: {
+                authorization,
+            },
+            body: requestBody
+        })
+        .then((response)=> {
+            expect(response.status).to.eq(200)  
+            //expect(response.body).to.have.property('id')
+            //cy.log('request id is', response.body.id)
+        })
     })
 });
 
 
 /** remove a request through API */
-Cypress.Commands.add('removeRequest', () => {
+Cypress.Commands.add('clearRequest', () => {
     cy.url().then((requestUrl) => {
         cy.log("request url is", requestUrl)
         const requestId = requestUrl.substring(requestUrl.indexOf("=") + 1)
         cy.log("the request id is", requestId)
 
-        const url = 'https://resources-api.ci.fusion-dev.net/projects/' + projectId + '/contracts/' + contractId + '/resources/requests/' + requestId + ''
+        const url = Cypress.env('backend') + '/projects/' + projectId + '/contracts/' + contractId + '/resources/requests/' + requestId + ''
 
         cy.log('url is', url)
 
@@ -125,7 +134,7 @@ Cypress.Commands.add('removeRequest', () => {
             }
         })
         .then((response) => {
-            expect(response.status).to.eq(200)
+            expect(response.status).to.eq(204)
 
         })
     })
