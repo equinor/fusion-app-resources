@@ -19,17 +19,17 @@
 
   <ItemGroup>
     <PackageReference Include="Bogus" Version="33.0.2" />
-    <PackageReference Include="Fusion.Integration" Version="5.4.3" />
+    <PackageReference Include="Fusion.Integration" Version="5.5.1" />
     <PackageReference Include="Fusion.Events.Server" Version="2.0.2" />
     <!-- No longer need this reference, but keeping for future ref. -->
     <!--<PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />-->
-    <PackageReference Include="Fusion.Integration.Authorization" Version="5.1.2" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="5.5.1" />
 
     <PackageReference Include="Fusion.Integration.Org" Version="5.1.3" />
     <PackageReference Include="Fusion.Integration.Roles" Version="5.1.0" />
     <PackageReference Include="Fusion.Integration.Notification" Version="5.1.1" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
-    <PackageReference Include="Fusion.AspNetCore" Version="5.1.1" />
+    <PackageReference Include="Fusion.AspNetCore" Version="5.2.0" />
 
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />  
