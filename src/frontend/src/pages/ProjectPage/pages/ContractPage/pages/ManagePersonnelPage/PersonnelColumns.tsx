@@ -5,6 +5,7 @@ import PersonnelInfoSideSheet from './PersonnelInfoSideSheet';
 import { FC, useState } from 'react';
 import AzureAdStatusIndicator from '../../components/AzureAdStatusIndicator';
 import HasEquinorMailCell from '../../components/HasEquinorMailCell';
+import Tooltip from '@equinor/fusion-react-tooltip';
 
 export type DataItemProps = {
     item: Personnel;
@@ -12,19 +13,29 @@ export type DataItemProps = {
 
 type ColumnPersonnelInfoSideSheetLinkProps = {
     person: Personnel;
+    maxWidth?: string;
+    tooltip?: string | null;
 };
 
 const ColumnPersonnelInfoSideSheetLink: FC<ColumnPersonnelInfoSideSheetLinkProps> = ({
     person,
     children,
+    maxWidth,
+    tooltip,
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
     return (
-        <div onClick={() => setIsOpen(!isOpen)} className={styles.columnLink}>
-            {children}
-            <PersonnelInfoSideSheet person={person} isOpen={isOpen} setIsOpen={setIsOpen} />
-        </div>
+        <Tooltip content={tooltip} disabled={!tooltip}>
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                className={styles.columnLink}
+                style={{ maxWidth }}
+            >
+                {children}
+                <PersonnelInfoSideSheet person={person} isOpen={isOpen} setIsOpen={setIsOpen} />
+            </div>
+        </Tooltip>
     );
 };
 
@@ -40,14 +51,13 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         sortable: true,
         width: '20px',
     },
-     
     {
-        key: 'Mail',
-        accessor: 'mail',
-        label: 'E-Mail',
+        key: 'upn',
+        accessor: 'upn',
+        label: 'UPN',
         component: ({ item }) => (
-            <ColumnPersonnelInfoSideSheetLink person={item}>
-                {item.mail}
+            <ColumnPersonnelInfoSideSheetLink person={item} maxWidth="15rem" tooltip={item.upn}>
+                {item.upn}
             </ColumnPersonnelInfoSideSheetLink>
         ),
         priority: 1,
@@ -123,6 +133,18 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         component: HasEquinorMailCell,
         sortable: true,
         width: '20px',
+    },
+    {
+        key: 'Mail',
+        accessor: 'mail',
+        label: 'E-Mail',
+        component: ({ item }) => (
+            <ColumnPersonnelInfoSideSheetLink person={item}>
+                {item.mail}
+            </ColumnPersonnelInfoSideSheetLink>
+        ),
+        priority: 1,
+        sortable: true,
     },
 ];
 
