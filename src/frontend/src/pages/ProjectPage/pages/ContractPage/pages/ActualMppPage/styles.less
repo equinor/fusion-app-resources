@@ -9,6 +9,7 @@
         padding: calc(var(--grid-unit) * 3px);
         flex-grow: 1;
         min-width: 1px;
+        height: calc(100% - 6rem);
     }
 
     .toolbar {
@@ -25,3 +26,24 @@
         color: var(--color-primary-hover);
     }
 }
+
+.appliesTo {
+    display: flex;
+    align-items: center;
+    
+
+    &.isSoonDue {
+        color: var(--color-yellow);
+    }
+    &.isOverdue {
+        color: var(--color-secondary);
+    }
+
+    .icon  {
+        padding-left: 1rem;
+    }
+    .date {
+        width: 5rem;
+    }
+}
+  

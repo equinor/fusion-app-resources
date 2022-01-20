@@ -80,9 +80,10 @@ namespace Fusion.Resources.Domain
                     if (request.ExpandTimeline)
                     {
                         // Timeline date input has been verified when shouldExpandTimline is true.
-                        p.Timeline = TimelineUtils.GeneratePersonnelTimeline(p.PositionInstances, p.Absence, request.TimelineStart!.Value, request.TimelineEnd!.Value).OrderBy(p => p.AppliesFrom)
-                            .Where(t => (t.AppliesTo - t.AppliesFrom).Days > 2) // We do not want 1 day intervals that occur due to from/to do not overlap
-                            .ToList();
+                        p.Timeline = new PersonnelTimelineBuilder(request.TimelineStart!.Value, request.TimelineEnd!.Value)
+                            .WithPositions(p.PositionInstances)
+                            .WithAbsences(p.Absence)
+                            .Build();
                     }
                 });
 

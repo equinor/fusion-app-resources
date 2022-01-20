@@ -1,6 +1,6 @@
 {
     "name": "resources",
-    "version": "2.1.3",
+    "version": "2.1.6",
     "description": "Manage resources in pro org chart contracts",
     "main": "src/index.tsx",
     "repository": {

@@ -7,8 +7,12 @@ namespace Fusion.Resources.Domain
     {
         public static DbAzureAccountStatus GetDbAccountStatus(this FusionPersonProfile profile)
         {
-            if (profile.AzureUniqueId.HasValue && profile.InvitationStatus == null)
+            if (profile.AzureUniqueId.HasValue && profile.InvitationStatus is null)
+            {
+                // As long as AzureUniqueId exists, we consider the account available.
                 return DbAzureAccountStatus.Available;
+            }
+
 
             return profile.InvitationStatus switch
             {

@@ -20,8 +20,11 @@ namespace Fusion.Resources.Domain
 
     }
 
-    public class QueryProjectRef 
+    public class QueryProjectRef
     {
+        public QueryProjectRef(QueryProject project)
+            : this(project.OrgProjectId, project.Name, project.DomainId ?? "", "") { }
+
         public QueryProjectRef(Guid orgId, string name, string domainId, string type)
         {
             OrgProjectId = orgId;

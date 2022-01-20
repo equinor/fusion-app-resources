@@ -107,6 +107,7 @@ namespace Fusion.Resources.Api.Controllers
             public ApiPersonAbsence.ApiAbsenceType Type { get; set; }
             public double? AbsencePercentage { get; set; }
         }
+
         public class ApiResourceAllocationRequestForAnalytics
         {
             private ApiResourceAllocationRequestForAnalytics(QueryResourceAllocationRequest query)

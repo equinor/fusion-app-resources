@@ -12,6 +12,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Fusion.Resources.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -145,13 +148,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
             {
                 var personA = await client.CreatePersonnelAsync(projectId, contractId, s => { s.Mail = testPersonnelA.Mail; });
                 var personB = await client.CreatePersonnelAsync(projectId, contractId, s => { s.Mail = testPersonnelB.Mail; });
-                
+
                 var resp = await client.TestClientPutAsync<ApiCollection<TestApiPersonnel>>($"/projects/{projectId}/contracts/{contractId}/resources/personnel/preferred-contact", new
                 {
-                    personnel = new []
+                    personnel = new[]
                     {
-                        new { personnelId = personA.PersonnelId, preferredContactMail = "some-a@other-company.com" }, 
-                        new { personnelId = personB.PersonnelId, preferredContactMail = "some-b@other-company.com" } 
+                        new { personnelId = personA.PersonnelId, preferredContactMail = "some-a@other-company.com" },
+                        new { personnelId = personB.PersonnelId, preferredContactMail = "some-b@other-company.com" }
                     }
                 });
                 resp.Should().BeSuccessfull();
@@ -194,21 +197,69 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
         public async Task RefreshProfile_UserUpdated_ShouldUpdate()
         {
             using var adminScope = fixture.ExternalAdminScope();
-            var profile = Testing.Mocks.ProfileService.PeopleServiceMock.AddTestProfile().SaveProfile();
-            var person = new PersonnelApiHelpers.TestCreatePersonnelRequest
-            {
-                Mail = profile.Mail,
-                FirstName = "xxx", LastName = "xxx", 
-                PhoneNumber = "12345"
-            };
-            var personnelRequest = await client.TestClientPostAsync<TestApiPersonnel>($"/projects/{projectId}/contracts/{contractId}/resources/personnel", person);
-            personnelRequest.Response.EnsureSuccessStatusCode();
+            var person = await AssignTestPersonToTestContractAsync();
 
             var resp = await client.TestClientPostAsync<TestApiPersonnel>($"resources/personnel/{person.Mail}/refresh", new { userRemoved = false });
             resp.Should().BeSuccessfull();
-            resp.Value.Name.Should().Be(profile.Name);
+            resp.Value.Name.Should().Be(person.Name);
         }
 
+        [Fact]
+        public async Task ContractPersonnel_Get_FilterByIsDeleted_ShouldOnlyReturnDeleted()
+        {
+            // Ensure we populate contract with some users
+            using var adminScope = fixture.ExternalAdminScope();
+            await AssignTestPersonToTestContractAsync();
+            await AssignTestPersonToTestContractAsync();
+            var profileToTest = await AssignTestPersonToTestContractAsync();
+
+            // Mark one user as deleted in database
+            await EnsureProfileMarkedAsDeletedInDatabaseAsync(profileToTest);
+
+            // Query contract personnel using filter
+            var getRequest = await client.TestClientGetAsync<ApiCollection<TestApiPersonnel>>($"/projects/{projectId}/contracts/{contractId}/resources/personnel?$filter=isDeleted eq 'true'");
+            getRequest.Response.EnsureSuccessStatusCode();
+
+            // Make sure we only get the deleted user back.
+            getRequest.Value.Value.Count().Should().Be(1);
+            var deletedUser = getRequest.Value.Value.First();
+            deletedUser.Mail.Should().Be(profileToTest.Mail);
+            deletedUser.IsDeleted.Should().BeTrue();
+            deletedUser.Deleted.Should().NotBeNull();
+        }
+
+        private async Task EnsureProfileMarkedAsDeletedInDatabaseAsync(ApiPersonProfileV3 profile)
+        {
+            using var scope = fixture.ApiFactory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+
+            var dbPerson = await db.ExternalPersonnel.FirstOrDefaultAsync(x => x.Mail == profile.Mail);
+            if (dbPerson is not null)
+            {
+                dbPerson.IsDeleted = true;
+                dbPerson.Deleted = DateTimeOffset.UtcNow;
+
+                await db.SaveChangesAsync();
+            }
+        }
+
+        private async Task<ApiPersonProfileV3> AssignTestPersonToTestContractAsync()
+        {
+            var profile = Testing.Mocks.ProfileService.PeopleServiceMock.AddTestProfile().SaveProfile();
+
+            var person = new PersonnelApiHelpers.TestCreatePersonnelRequest
+            {
+                Mail = profile.Mail,
+                FirstName = "xxx",
+                LastName = "xxx",
+                PhoneNumber = "12345"
+            };
+            var personnelRequest =
+                await client.TestClientPostAsync<TestApiPersonnel>(
+                    $"/projects/{projectId}/contracts/{contractId}/resources/personnel", person);
+            personnelRequest.Response.EnsureSuccessStatusCode();
+            return profile;
+        }
 
         public async Task InitializeAsync()
         {
@@ -249,7 +300,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests.ExternalPersonnel
 
         public Task DisposeAsync()
         {
-            return Task.CompletedTask;    
+            return Task.CompletedTask;
         }
     }
 }

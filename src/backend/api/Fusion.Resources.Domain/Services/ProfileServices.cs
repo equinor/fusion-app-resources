@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Newtonsoft.Json;
 
 #nullable enable
 namespace Fusion.Resources.Domain.Services
@@ -16,12 +19,14 @@ namespace Fusion.Resources.Domain.Services
     {
         private readonly IFusionProfileResolver profileResolver;
         private readonly ResourcesDbContext resourcesDb;
+        private readonly TelemetryClient telemetryClient;
         private static readonly SemaphoreSlim locker = new SemaphoreSlim(1);
 
-        public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb)
+        public ProfileServices(IFusionProfileResolver profileResolver, ResourcesDbContext resourcesDb, TelemetryClient telemetryClient)
         {
             this.profileResolver = profileResolver;
             this.resourcesDb = resourcesDb;
+            this.telemetryClient = telemetryClient;
         }
 
         public async Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId)
@@ -51,28 +56,44 @@ namespace Fusion.Resources.Domain.Services
             if (resolvedPerson == null)
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
+
             if (profile != null)
             {
                 resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
                 resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                resolvedPerson.UPN = profile.UPN;
                 resolvedPerson.JobTitle = profile.JobTitle;
                 resolvedPerson.Name = profile.Name;
                 resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
                 resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+                resolvedPerson.IsDeleted = false;
+                resolvedPerson.Deleted = null;
+
             }
             else
             {
                 // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
                 resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
-                resolvedPerson.IsDeleted = true;
+                if (considerRemovedProfile)
+                {
+                    resolvedPerson.IsDeleted = true;
+                    resolvedPerson.Deleted = DateTimeOffset.UtcNow;
+                }
             }
 
+            var changedProperties = resourcesDb.Entry(resolvedPerson).Properties
+                .Where(x => x.IsModified)
+                .ToList();
+
+            if (!changedProperties.Any()) return resolvedPerson;
+
+            telemetryClient.TrackTrace($"Updated properties for user {personId.OriginalIdentifier} : {JsonConvert.SerializeObject(changedProperties.Select(x => new { PropertyName = x.Metadata.Name, OriginalValue = x.OriginalValue, CurrentValue = x.CurrentValue }), Formatting.Indented)}");
             await resourcesDb.SaveChangesAsync();
 
             return resolvedPerson;
         }
 
-        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string mail, string firstName, string lastName)
+        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, string mail, string firstName, string lastName)
         {
             // Should refactor this to distributed lock.
 
@@ -87,10 +108,11 @@ namespace Fusion.Resources.Domain.Services
 
                 var profile = await ResolveProfileAsync(mail);
 
-                var newEntry = new DbExternalPersonnelPerson()
+                var newEntry = new DbExternalPersonnelPerson
                 {
                     AccountStatus = DbAzureAccountStatus.NoAccount,
                     Disciplines = new List<DbPersonnelDiscipline>(),
+                    UPN = upn,
                     Mail = mail,
                     Name = $"{firstName} {lastName}",
                     FirstName = firstName,
@@ -100,6 +122,7 @@ namespace Fusion.Resources.Domain.Services
 
                 if (profile != null)
                 {
+                    newEntry.UPN = profile.UPN;
                     newEntry.Mail = profile.Mail ?? string.Empty;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
