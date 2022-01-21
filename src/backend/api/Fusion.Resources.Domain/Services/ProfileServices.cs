@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 
 #nullable enable
@@ -36,8 +35,8 @@ namespace Fusion.Resources.Domain.Services
 
             var existingEntry = personId.Type switch
             {
-                PersonId.IdentifierType.UniqueId => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.AzureUniqueId == personId.UniqueId),
-                PersonId.IdentifierType.Mail => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.Mail == personId.Mail),
+                PersonId.IdentifierType.UniqueId => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.AzureUniqueId == personId.UniqueId && p.IsDeleted == false),
+                PersonId.IdentifierType.Mail => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.Mail == personId.Mail && p.IsDeleted == false),
                 _ => throw new InvalidOperationException("Unsupported person identifier type")
             };
 
@@ -57,17 +56,16 @@ namespace Fusion.Resources.Domain.Services
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
 
-            if (profile != null)
+            if (profile != null && resolvedPerson.AzureUniqueId == profile.AzureUniqueId)
             {
                 resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
                 resolvedPerson.UPN = profile.UPN;
                 resolvedPerson.JobTitle = profile.JobTitle;
                 resolvedPerson.Name = profile.Name;
                 resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
                 resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
-                resolvedPerson.IsDeleted = false;
-                resolvedPerson.Deleted = null;
+                resolvedPerson.IsDeleted = profile.IsExpired.GetValueOrDefault(false);
+                resolvedPerson.Deleted = profile.ExpiredDate;
 
             }
             else

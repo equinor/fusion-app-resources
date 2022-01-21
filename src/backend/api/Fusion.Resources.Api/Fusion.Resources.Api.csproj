@@ -1,66 +1,66 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <UserSecretsId>474454c7-2021-4f46-bfd4-02b221fc3fa0</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>..\..</DockerfileContext>
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<UserSecretsId>474454c7-2021-4f46-bfd4-02b221fc3fa0</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<DockerfileContext>..\..</DockerfileContext>
 
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Data\personnel-import-template.xlsx" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="Data\personnel-import-template.xlsx" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Data\personnel-import-template.xlsx" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="Data\personnel-import-template.xlsx" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Bogus" Version="33.0.2" />
-    <PackageReference Include="Fusion.Integration" Version="5.4.3" />
-    <PackageReference Include="Fusion.Events.Server" Version="2.0.2" />
-    <!-- No longer need this reference, but keeping for future ref. -->
-    <!--<PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />-->
-    <PackageReference Include="Fusion.Integration.Authorization" Version="5.1.2" />
+	<ItemGroup>
+		<PackageReference Include="Bogus" Version="33.0.2" />
+		<PackageReference Include="Fusion.Integration" Version="5.4.3" />
+		<PackageReference Include="Fusion.Events.Server" Version="2.0.2" />
+		<!-- No longer need this reference, but keeping for future ref. -->
+		<!--<PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="5.1.0" />-->
+		<PackageReference Include="Fusion.Integration.Authorization" Version="5.1.2" />
 
-    <PackageReference Include="Fusion.Integration.Org" Version="5.1.3" />
-    <PackageReference Include="Fusion.Integration.Roles" Version="5.1.0" />
-    <PackageReference Include="Fusion.Integration.Notification" Version="5.1.1" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
-    <PackageReference Include="Fusion.AspNetCore" Version="5.1.1" />
+		<PackageReference Include="Fusion.Integration.Org" Version="5.1.3" />
+		<PackageReference Include="Fusion.Integration.Roles" Version="5.1.0" />
+		<PackageReference Include="Fusion.Integration.Notification" Version="5.1.1" />
+		<PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
+		<PackageReference Include="Fusion.AspNetCore" Version="5.1.1" />
 
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />  
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="5.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.14" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.14" />
+		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="5.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.14" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.14" />
 
-    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.2" />
-    <PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.1.3" />
-    <PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.1.3" />
-    <PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.1.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.2" />
+		<PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.1.3" />
+		<PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.1.3" />
+		<PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.1.3" />
 
-    <PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="5.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="TimePeriodCore" Version="1.0.0" />
-  </ItemGroup>
+		<PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="5.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="TimePeriodCore" Version="1.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj" />
-    <ProjectReference Include="..\Fusion.Resources.Application\Fusion.Resources.Application.csproj" />
-    <ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
-    <ProjectReference Include="..\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
-    <ProjectReference Include="..\Fusion.Resources.Logic\Fusion.Resources.Logic.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj" />
+		<ProjectReference Include="..\Fusion.Resources.Application\Fusion.Resources.Application.csproj" />
+		<ProjectReference Include="..\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />
+		<ProjectReference Include="..\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
+		<ProjectReference Include="..\Fusion.Resources.Logic\Fusion.Resources.Logic.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="Data\personnel-import-template.xlsx" />
-  </ItemGroup>
+	<ItemGroup>
+		<Resource Include="Data\personnel-import-template.xlsx" />
+	</ItemGroup>
 
 
 </Project>
