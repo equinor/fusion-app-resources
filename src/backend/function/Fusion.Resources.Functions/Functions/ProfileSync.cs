@@ -67,44 +67,37 @@ namespace Fusion.Resources.Functions.Functions
         /// </summary>
         [Singleton]
         [FunctionName("profile-sync")]
-        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
+        public async Task SyncProfiles([TimerTrigger("0 0 5 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log, CancellationToken cancellationToken)
         {
             log.LogInformation("Synchronizing external person personnel in Resources API");
 
-            var personnel = await GetAllActiveExternalPersonnelAsync();
+            var externalPersonnelToEnsure = await GetAllActiveExternalPersonnelAsync();
 
-            var usersToEnsure = personnel!
-                .Where(p => !string.IsNullOrWhiteSpace(p.Mail))
-                .Select(usr => new ExternalPersonnelId(usr.AzureUniquePersonId, usr.Mail))
-                .Distinct()
-                .ToList();
-
-            if (usersToEnsure.Count == 0)
+            if (externalPersonnelToEnsure.Count == 0)
             {
                 log.LogInformation($"Found no profiles to ensure. Aborting...");
                 return;
             }
 
-            // OriginalIdentifier contains AzureUniqueId if found, or Mail.  
-            var ensureResult = await EnsurePersonsAsync(usersToEnsure.Select(x => x.OriginalIdentifier).ToList());
+            // Id contains AzureUniqueId if found, or Mail.  
+            var ensuredPeopleServiceResult = await EnsurePersonsAsync(externalPersonnelToEnsure.Select(x => x.PreferredIdentifier).ToList());
 
-            // log ensure results
-            var successCount = ensureResult.Count(x => x.Success);
-            var failureCount = ensureResult.Count(x => x.Success == false);
+            // log ensured results
+            var successCount = ensuredPeopleServiceResult.Count(x => x.Success);
+            var failureCount = ensuredPeopleServiceResult.Count(x => x.Success == false);
             if (successCount > 0) log.LogInformation($"Successfully ensured {successCount} profiles");
             if (failureCount > 0) log.LogWarning($"Failed to ensure {failureCount} profiles");
 
-            foreach (var person in ensureResult)
+            // For every person ensured, we can check if user should be refreshed or not.
+            foreach (var person in ensuredPeopleServiceResult)
             {
-                // person.Identifier contains AzureUniqueId if found, or Mail.   
-                var personIdentifier = new ExternalPersonnelId(person.Identifier!);
-                var resourcesPerson = personIdentifier.Type == ExternalPersonnelId.IdentifierType.UniqueId ? personnel.First(p => p.AzureUniquePersonId == personIdentifier.UniqueId) : personnel.First(p => p.Mail == personIdentifier.Mail);
+                var externalPerson = externalPersonnelToEnsure.First(x => x.PreferredIdentifier == person.Identifier);
 
                 // Person with no change in invitation status or azure unique id may be skipped for now.
                 // External personnel may receive a new account in azure. Check both for changes in invitation status and azure unique identifier.
-                if (InvitationStatusMatches(person.Person?.InvitationStatus, resourcesPerson.AzureAdStatus) && person.Person?.AzureUniqueId == resourcesPerson.AzureUniquePersonId) continue;
+                if (InvitationStatusMatches(person.Person?.InvitationStatus, externalPerson.AzureAdStatus) && person.Person?.AzureUniqueId == externalPerson.AzureUniquePersonId) continue;
 
-                var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{personIdentifier.OriginalIdentifier}/refresh", new
+                var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{externalPerson.PreferredIdentifier}/refresh", new
                 {
                     userRemoved = !person.Success
 
@@ -153,7 +146,8 @@ namespace Fusion.Resources.Functions.Functions
 
             } while (true);
 
-            return retList;
+            // External Personnel should always have email.
+            return retList.Where(p => !string.IsNullOrWhiteSpace(p.Mail)).ToList();
         }
 
         private async Task<List<PersonValidationResult>> EnsurePersonsAsync(List<string> personIdentifiers)
@@ -202,7 +196,8 @@ namespace Fusion.Resources.Functions.Functions
 
         public class ApiPersonnel
         {
-            public Guid Id { get; set; }
+            public string PreferredIdentifier => ExternalId.OriginalIdentifier;
+            private ExternalPersonnelId ExternalId => new ExternalPersonnelId(AzureUniquePersonId, Mail);
             public Guid? AzureUniquePersonId { get; set; }
             public string Mail { get; set; } = null!;
             public ApiAccountStatus AzureAdStatus { get; set; }
