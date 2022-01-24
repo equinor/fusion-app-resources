@@ -12,7 +12,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace Fusion.Resources.Functions.Functions
 {
@@ -39,7 +38,9 @@ namespace Fusion.Resources.Functions.Functions
             if (body.Type != PeopleSubscriptionEventType.ProfileUpdated && body.Type != PeopleSubscriptionEventType.UserRemoved)
                 return;
 
-            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{body.Person.Mail}/refresh", new
+            var personIdentifier = new ExternalPersonnelId(body.Person.AzureUniqueId, body.Person.Mail);
+
+            var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{personIdentifier.OriginalIdentifier}/refresh", new
             {
                 userRemoved = body.Type == PeopleSubscriptionEventType.UserRemoved
 
@@ -70,43 +71,33 @@ namespace Fusion.Resources.Functions.Functions
         {
             log.LogInformation("Synchronizing external person personnel in Resources API");
 
-            var personnel = await GetAllExternalPersonnelAsync();
+            var externalPersonnelToEnsure = await GetAllActiveExternalPersonnelAsync();
 
-            var mailsToEnsure = personnel!
-                .Where(p => !string.IsNullOrWhiteSpace(p.Mail))
-                .Select(p => p.Mail)
-                .Distinct()
-                .ToList();
-
-            var mailsToEnsureCount = mailsToEnsure.Count;
-            if (mailsToEnsureCount == 0)
+            if (externalPersonnelToEnsure.Count == 0)
             {
-                log.LogInformation($"Found {mailsToEnsureCount} profiles to ensure. Aborting...");
+                log.LogInformation($"Found no profiles to ensure. Aborting...");
                 return;
             }
 
-            var ensureResult = await EnsurePersonsAsync(mailsToEnsure);
+            // Id contains AzureUniqueId if found, or Mail.  
+            var ensuredPeopleServiceResult = await EnsurePersonsAsync(externalPersonnelToEnsure.Select(x => x.PreferredIdentifier).ToList());
 
-            var successCount = ensureResult.Count(x => x.Success);
-            var failureCount = ensureResult.Count(x => x.Success == false);
-            if (successCount > 0)
-            {
-                log.LogInformation($"Successfully ensured {successCount} profiles");
-            }
+            // log ensured results
+            var successCount = ensuredPeopleServiceResult.Count(x => x.Success);
+            var failureCount = ensuredPeopleServiceResult.Count(x => x.Success == false);
+            if (successCount > 0) log.LogInformation($"Successfully ensured {successCount} profiles");
+            if (failureCount > 0) log.LogWarning($"Failed to ensure {failureCount} profiles");
 
-            if (failureCount > 0)
+            // For every person ensured, we can check if user should be refreshed or not.
+            foreach (var person in ensuredPeopleServiceResult)
             {
-                log.LogWarning($"Failed to ensure {failureCount} profiles");
-            }
+                var externalPerson = externalPersonnelToEnsure.First(x => x.PreferredIdentifier == person.Identifier);
 
-            foreach (var person in ensureResult)
-            {
-                var resourcesPerson = personnel.First(p => p.Mail == person.Identifier);
                 // Person with no change in invitation status or azure unique id may be skipped for now.
                 // External personnel may receive a new account in azure. Check both for changes in invitation status and azure unique identifier.
-                if (InvitationStatusMatches(person.Person?.InvitationStatus, resourcesPerson.AzureAdStatus) && person.Person?.AzureUniqueId == resourcesPerson.AzureUniquePersonId) continue;
+                if (InvitationStatusMatches(person.Person?.InvitationStatus, externalPerson.AzureAdStatus) && person.Person?.AzureUniqueId == externalPerson.AzureUniquePersonId) continue;
 
-                var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{resourcesPerson.Mail}/refresh", new
+                var refreshResponse = await resourcesClient.PostAsJsonAsync($"resources/personnel/{externalPerson.PreferredIdentifier}/refresh", new
                 {
                     userRemoved = !person.Success
 
@@ -119,7 +110,7 @@ namespace Fusion.Resources.Functions.Functions
             }
         }
 
-        private async Task<List<ApiPersonnel>> GetAllExternalPersonnelAsync()
+        private async Task<List<ApiPersonnel>> GetAllActiveExternalPersonnelAsync()
         {
             var retList = new List<ApiPersonnel>();
             var errorCount = 0;
@@ -127,7 +118,7 @@ namespace Fusion.Resources.Functions.Functions
             const int page = 500;
             do
             {
-                var response = await resourcesClient.GetAsync($"resources/personnel?$skip={index * page}&$top={page}");
+                var response = await resourcesClient.GetAsync($"resources/personnel?$skip={index * page}&$top={page}&$filter=isDeleted neq 'true'"); // Shouldn't consider deleted persons.
                 var content = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
@@ -155,14 +146,15 @@ namespace Fusion.Resources.Functions.Functions
 
             } while (true);
 
-            return retList;
+            // External Personnel should always have email.
+            return retList.Where(p => !string.IsNullOrWhiteSpace(p.Mail)).ToList();
         }
 
-        private async Task<List<PersonValidationResult>> EnsurePersonsAsync(List<string> mailsToEnsure)
+        private async Task<List<PersonValidationResult>> EnsurePersonsAsync(List<string> personIdentifiers)
         {
             var peopleRequest = new HttpRequestMessage(HttpMethod.Post, $"persons/ensure");
             peopleRequest.Headers.Add("api-version", "3.0");
-            var bodyContent = JsonConvert.SerializeObject(new { PersonIdentifiers = mailsToEnsure });
+            var bodyContent = JsonConvert.SerializeObject(new { PersonIdentifiers = personIdentifiers });
             peopleRequest.Content = new StringContent(bodyContent, Encoding.UTF8, "application/json");
 
             var peopleResponse = await peopleClient.SendAsync(peopleRequest);
@@ -204,7 +196,8 @@ namespace Fusion.Resources.Functions.Functions
 
         public class ApiPersonnel
         {
-            public Guid Id { get; set; }
+            public string PreferredIdentifier => ExternalId.OriginalIdentifier;
+            private ExternalPersonnelId ExternalId => new ExternalPersonnelId(AzureUniquePersonId, Mail);
             public Guid? AzureUniquePersonId { get; set; }
             public string Mail { get; set; } = null!;
             public ApiAccountStatus AzureAdStatus { get; set; }
@@ -213,7 +206,54 @@ namespace Fusion.Resources.Functions.Functions
         public enum InvitationStatus { Accepted, Pending, NotSent }
         public enum ApiAccountStatus { Available, InviteSent, NoAccount }
 
+        public struct ExternalPersonnelId
+        {
+            public ExternalPersonnelId(Guid? azureUniqueId, string identifier)
+            {
+                if (azureUniqueId.HasValue)
+                    identifier = azureUniqueId.Value.ToString();
 
+                OriginalIdentifier = identifier;
 
+                if (Guid.TryParse(identifier, out var id))
+                {
+                    UniqueId = id;
+                    Mail = null;
+                    Type = IdentifierType.UniqueId;
+                }
+                else
+                {
+                    UniqueId = null;
+                    Mail = identifier;
+                    Type = IdentifierType.Mail;
+                }
+            }
+
+            public ExternalPersonnelId(string identifier)
+            {
+
+                OriginalIdentifier = identifier;
+
+                if (Guid.TryParse(identifier, out Guid id))
+                {
+                    UniqueId = id;
+                    Mail = null;
+                    Type = IdentifierType.UniqueId;
+                }
+                else
+                {
+                    UniqueId = null;
+                    Mail = identifier;
+                    Type = IdentifierType.Mail;
+                }
+            }
+
+            public Guid? UniqueId { get; set; }
+            public string OriginalIdentifier { get; set; }
+            public string? Mail { get; set; }
+            public IdentifierType Type { get; set; }
+
+            public enum IdentifierType { UniqueId, Mail }
+        }
     }
 }
