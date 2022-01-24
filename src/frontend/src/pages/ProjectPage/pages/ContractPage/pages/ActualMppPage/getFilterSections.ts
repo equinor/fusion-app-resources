@@ -1,9 +1,18 @@
 import { FilterSection, FilterTypes } from '@equinor/fusion-components';
-import { Position } from '@equinor/fusion';
+import PositionWithPersonnel from '../../../../../../models/PositionWithPersonnel';
 
-const getFilterSections = (positions: Position[]): FilterSection<Position>[] => {
+const getFilterSections = (
+    positions: PositionWithPersonnel[]
+): FilterSection<PositionWithPersonnel>[] => {
     const uniqueDisciplines = positions
         .map((position) => position.basePosition.discipline)
+        .filter((d, i, l) => l.indexOf(d) === i);
+    const uniqueAdStatus = positions
+        .map(
+            (position) =>
+                position.instances.find((i) => i.personnelDetails?.azureAdStatus)?.personnelDetails
+                    ?.azureAdStatus || ''
+        )
         .filter((d, i, l) => l.indexOf(d) === i);
 
     return [
@@ -32,6 +41,20 @@ const getFilterSections = (positions: Position[]): FilterSection<Position>[] => 
             title: 'Filters',
             isCollapsible: true,
             filters: [
+                {
+                    key: 'ad-status-filter',
+                    title: 'Person AD status',
+                    type: FilterTypes.Checkbox,
+                    getValue: (position) =>
+                        position.instances.find((i) => i.personnelDetails?.azureAdStatus)
+                            ?.personnelDetails?.azureAdStatus || '',
+                    isVisibleWhenPaneIsCollapsed: true,
+                    isCollapsible: true,
+                    options: uniqueAdStatus.map((adStatus) => ({
+                        key: adStatus,
+                        label: adStatus || 'No Account',
+                    })),
+                },
                 {
                     key: 'discipline-filter',
                     title: 'Disciplines',
