@@ -36,6 +36,7 @@ namespace Fusion.Resources.Domain
                     query = query.ApplyODataFilters(request.Query, mapper =>
                     {
                         mapper.MapField("azureAdStatus", p => p.AccountStatus);
+                        mapper.MapField("isDeleted", p => p.IsDeleted);
                         mapper.MapField("name", p => p.Name);
                         mapper.MapField("phoneNumber", p => p.Phone);
                     });

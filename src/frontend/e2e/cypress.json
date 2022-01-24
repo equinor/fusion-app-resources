@@ -4,5 +4,8 @@
     "downloadsFolder": "cypress/downloads",
     "fixturesFolder": "cypress/fixtures",
     "viewportWidth": 1920,
-    "viewportHeight": 1080
+    "viewportHeight": 1080,
+    "env": {
+        "backend": "https://resources-api.ci.fusion-dev.net"
+    }
 }

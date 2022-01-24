@@ -9,7 +9,7 @@ namespace Fusion.Resources.Domain
     {
         /// <summary>
         /// The person entity is a user that can sign in and perform actions. 
-        /// In this case using the mail can be ambigous, due to reuse with x-amount of years etc.
+        /// In this case using the mail can be ambiguous, due to reuse with x-amount of years etc.
         /// </summary>
         /// <param name="personId">The person identifier. Can be either mail or azure unique id. If mail, the profile will be resolved to an azure unique id.</param>
         /// <returns></returns>
@@ -17,7 +17,7 @@ namespace Fusion.Resources.Domain
 
         Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId);
 
-        Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string mail, string firstName, string lastName);
+        Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, string mail, string firstName, string lastName);
         Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId);
         /// <summary>
         /// Resolves the fusion profile. Returns null if not found.

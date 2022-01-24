@@ -16,6 +16,7 @@ namespace Fusion.Resources.Domain
             PersonnelId = item.PersonId;
 
             AzureUniqueId = item.Person.AzureUniqueId;
+            UPN = item.Person.UPN;
             Name = item.Person.Name;
             FirstName = item.Person.FirstName;
             LastName = item.Person.LastName;
@@ -26,7 +27,8 @@ namespace Fusion.Resources.Domain
             DawinciCode = item.Person.DawinciCode;
             LinkedInProfile = item.Person.LinkedInProfile;
             PreferredContactMail = item.Person.PreferredContractMail;
-
+            IsDeleted = item.Person.IsDeleted;
+            Deleted = item.Person.Deleted;
             Created = item.Created;
             Updated = item.Updated;
             CreatedBy = new QueryPerson(item.CreatedBy);
@@ -45,6 +47,7 @@ namespace Fusion.Resources.Domain
         /// </summary>
         public Guid PersonnelId { get; set; }
         public Guid? AzureUniqueId { get; set; }
+        public string? UPN { get; set; }
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -63,6 +66,8 @@ namespace Fusion.Resources.Domain
         public QueryPerson? UpdatedBy { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
 
         //public QueryProject Project { get; set; }
         //public QueryContract Contract { get; set; }

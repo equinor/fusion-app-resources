@@ -7,20 +7,11 @@
 import NavigationDrawer from "../../../POM/NavigationDrawer"
 const navigationDrawer = new NavigationDrawer()
 
-// import ContractPersonnelPage from "../../../POM/ContractPersonnelPage"
-// const contractPersonnelPage = new ContractPersonnelPage()
-
-import ActualMppPage from "../../../POM/ActualMppPage"
-const actualMppPage = new ActualMppPage()
-
 import CreateRequestSidesheet from "../../../POM/CreateRequestSidesheet"
 const createrequestSidesheet = new CreateRequestSidesheet()
 
 import ActiveRequestPage from "../../../POM/ActiveRequestPage"
 const activeRequestPage = new ActiveRequestPage()
-
-import RequestDetailsSidesheet from "../../../POM/RequestDetailsSidesheet"
-const requestDetailsSidesheet = new RequestDetailsSidesheet()
 
 /** prerequirsites: the added the person should exist in the contract personnel table, and have Azure access */
 
@@ -55,11 +46,10 @@ describe('Active Requests', () => {
         
         /** verify that the new request shows in the Active request table */
         activeRequestPage.ActiveRequestTable().should('contain', this.requestData.assignedPerson)
-
     });
 
 
-    it('TC 13084 - Edit the request for the selected position', () => {
+    it('TC 13084 - Active Requests - Edit the request for the selected position', () => {
         /** the new created request lists on the top in the table */
         cy.wait(1000)
         cy.get('#selection-cell').click()
@@ -77,17 +67,15 @@ describe('Active Requests', () => {
         /** verify data */ 
         cy.get('#custom-position-column').should('contain', 'tester')
         cy.get('#base-position-column').should('contain', 'Estimator')
-
     });
 
-    it('TC 23978 - Remove the request for the selected position', () => {
+    it('TC 23978 - Active Requests - Remove the request for the selected position', () => {
         /** remove the first request on the top */
         cy.wait(1000)
         cy.get('#selection-cell').click() 
         activeRequestPage.RemoveRequestButton().click()
 
         cy.removeRequest()
-   
     });
 
 })

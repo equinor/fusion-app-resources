@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 
 #nullable enable
@@ -36,8 +35,8 @@ namespace Fusion.Resources.Domain.Services
 
             var existingEntry = personId.Type switch
             {
-                PersonId.IdentifierType.UniqueId => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.AzureUniqueId == personId.UniqueId),
-                PersonId.IdentifierType.Mail => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.Mail == personId.Mail),
+                PersonId.IdentifierType.UniqueId => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.AzureUniqueId == personId.UniqueId && p.IsDeleted == false),
+                PersonId.IdentifierType.Mail => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.Mail == personId.Mail && p.IsDeleted == false),
                 _ => throw new InvalidOperationException("Unsupported person identifier type")
             };
 
@@ -57,15 +56,16 @@ namespace Fusion.Resources.Domain.Services
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
 
-            if (profile != null)
+            if (profile != null && resolvedPerson.AzureUniqueId == profile.AzureUniqueId)
             {
                 resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                resolvedPerson.UPN = profile.UPN;
                 resolvedPerson.JobTitle = profile.JobTitle;
                 resolvedPerson.Name = profile.Name;
                 resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
                 resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
-                resolvedPerson.IsDeleted = false;
+                resolvedPerson.IsDeleted = profile.IsExpired.GetValueOrDefault(false);
+                resolvedPerson.Deleted = profile.ExpiredDate;
 
             }
             else
@@ -73,9 +73,10 @@ namespace Fusion.Resources.Domain.Services
                 // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
                 resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
                 if (considerRemovedProfile)
+                {
                     resolvedPerson.IsDeleted = true;
-
-
+                    resolvedPerson.Deleted = DateTimeOffset.UtcNow;
+                }
             }
 
             var changedProperties = resourcesDb.Entry(resolvedPerson).Properties
@@ -90,7 +91,7 @@ namespace Fusion.Resources.Domain.Services
             return resolvedPerson;
         }
 
-        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string mail, string firstName, string lastName)
+        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, string mail, string firstName, string lastName)
         {
             // Should refactor this to distributed lock.
 
@@ -105,10 +106,11 @@ namespace Fusion.Resources.Domain.Services
 
                 var profile = await ResolveProfileAsync(mail);
 
-                var newEntry = new DbExternalPersonnelPerson()
+                var newEntry = new DbExternalPersonnelPerson
                 {
                     AccountStatus = DbAzureAccountStatus.NoAccount,
                     Disciplines = new List<DbPersonnelDiscipline>(),
+                    UPN = upn,
                     Mail = mail,
                     Name = $"{firstName} {lastName}",
                     FirstName = firstName,
@@ -118,6 +120,7 @@ namespace Fusion.Resources.Domain.Services
 
                 if (profile != null)
                 {
+                    newEntry.UPN = profile.UPN;
                     newEntry.Mail = profile.Mail ?? string.Empty;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;

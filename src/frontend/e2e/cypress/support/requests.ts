@@ -7,7 +7,7 @@ const createrequestSidesheet = new CreateRequestSidesheet()
 const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
 const contractId = '5ca8efa6-eb36-4a15-8f09-0d92194713d7'
 
-const token = Cypress.env('FUSION_TOKEN');  // only access token, without user info
+const token = Cypress.env('TOKEN')["FUSION_AUTH_CACHE:5a842df8-3238-415d-b168-9f16a6a6031b:TOKEN"]
 const authorization = `Bearer ${token}`
 
 /** create a request through GUI*/

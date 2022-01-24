@@ -1,6 +1,6 @@
 {
     "name": "resources",
-    "version": "2.1.6",
+    "version": "2.1.7",
     "description": "Manage resources in pro org chart contracts",
     "main": "src/index.tsx",
     "repository": {
@@ -23,7 +23,9 @@
         "@equinor/fusion": "^3.2.8",
         "@equinor/fusion-components": "^2.4.38",
         "@equinor/fusion-react-datepicker": "^0.7.2",
+        "@equinor/fusion-react-styles": "^0.5.0",
         "@equinor/fusion-react-table": "0.1.0-alpha.4",
+        "@equinor/fusion-react-tooltip": "^1.1.0",
         "@types/classnames": "^2.2.11",
         "@types/deep-equal": "^1.0.1",
         "check-code-coverage": "^1.10.0",
