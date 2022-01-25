@@ -52,6 +52,11 @@ namespace Fusion.Testing.Mocks.ProfileService
             profile.UPN = upn;
             return this;
         }
+        public FusionTestUserBuilder WithPreferredContactMail(string mail)
+        {
+            profile.PreferredContactMail = mail;
+            return this;
+        }
 
         public FusionTestUserBuilder WithAccountType(FusionAccountType type)
         {

@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +46,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Generate random test user
             testUserA1Expired = PeopleServiceMock.AddTestProfile()
-                .WithAccountType(FusionAccountType.External).SaveProfile();
+                .WithAccountType(FusionAccountType.External)
+                .WithPreferredContactMail("my.email@knownprovider.com")
+                .SaveProfile();
 
             testUserA1 = PeopleServiceMock.AddTestProfile()
                 .WithAccountType(FusionAccountType.External)
@@ -61,16 +64,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUserA1.UPN, testUserA1.AzureUniqueId.Value);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUserA1.UPN, testUserA1.AzureUniqueId!.Value);
             resp.Should().BeSuccessfull();
+            testUserA1Expired.UPN.Should().Be(testUserA1.UPN);
+
+            resp.Value.AzureUniquePersonId.Should().Be(testUserA1.AzureUniqueId);
+            resp.Value.UPN.Should().Be(testUserA1.UPN);
+            resp.Value.PreferredContactMail.Should().Be(testUserA1Expired.PreferredContactMail);
         }
+
         [Fact]
         public async Task ReplacePersonnel_ShouldUpdateSuccessfully_WhenUpnMisMatchAndForced()
         {
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUser.UPN, testUser.AzureUniqueId.Value, true);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUser.UPN, testUser.AzureUniqueId!.Value, true);
             resp.Should().BeSuccessfull();
         }
 
@@ -79,7 +88,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUser.UPN, testUser.AzureUniqueId.Value);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUser.UPN, testUser.AzureUniqueId!.Value);
             resp.Should().BeBadRequest();
         }
 
@@ -88,7 +97,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUser.UPN, Guid.Empty);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUser.UPN, Guid.Empty);
             resp.Should().BeBadRequest();
         }
 
@@ -97,7 +106,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, string.Empty, testUser.AzureUniqueId.Value);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, string.Empty, testUser.AzureUniqueId!.Value);
             resp.Should().BeBadRequest();
         }
 
@@ -139,9 +148,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var content = await response.Content.ReadAsStringAsync();
             response.EnsureSuccessStatusCode();
 
-            // To make sure all test users are available for contract personnel, and testUserA1 is marked as deleted
-            await EnsureContractPersonAsync(testUser);
-            await EnsureContractPersonAsync(testUserA1);
             await EnsureContractPersonAsync(testUserA1Expired);
             await EnsureProfileMarkedAsDeletedInDatabaseAsync(testUserA1Expired);
 

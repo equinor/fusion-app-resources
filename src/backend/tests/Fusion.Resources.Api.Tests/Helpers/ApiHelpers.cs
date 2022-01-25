@@ -42,9 +42,9 @@ namespace Fusion.Resources.Api.Tests
             resp.Should().BeSuccessfull();
         }
 
-        public static async Task<TestClientHttpResponse<dynamic>> ReplaceContractPersonnelAsync(this HttpClient client, Guid projectId, Guid contractId, Guid fromPersonId, string toUpn, Guid toPersonId, bool force = false)
+        public static async Task<TestClientHttpResponse<TestApiPersonnel>> ReplaceContractPersonnelAsync(this HttpClient client, Guid projectId, Guid contractId, Guid fromPersonId, string toUpn, Guid toPersonId, bool force = false)
         {
-            var resp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/{fromPersonId}/replace?force={force}", new
+            var resp = await client.TestClientPostAsync<TestApiPersonnel>($"/projects/{projectId}/contracts/{contractId}/resources/personnel/{fromPersonId}/replace?force={force}", new
             {
                 upn = toUpn,
                 azureUniquePersonId = toPersonId

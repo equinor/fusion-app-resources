@@ -91,7 +91,7 @@ namespace Fusion.Resources.Domain.Services
             return resolvedPerson;
         }
 
-        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, string mail, string firstName, string lastName)
+        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, PersonId personIdentifier, string firstName, string lastName)
         {
             // Should refactor this to distributed lock.
 
@@ -99,29 +99,39 @@ namespace Fusion.Resources.Domain.Services
 
             try
             {
-                var existingEntry = await ResolveExternalPersonnelAsync(mail);
+                var existingEntry = await ResolveExternalPersonnelAsync(personIdentifier);
 
                 if (existingEntry != null)
                     return existingEntry;
 
-                var profile = await ResolveProfileAsync(mail);
+                var profile = await ResolveProfileAsync(personIdentifier);
 
                 var newEntry = new DbExternalPersonnelPerson
                 {
                     AccountStatus = DbAzureAccountStatus.NoAccount,
                     Disciplines = new List<DbPersonnelDiscipline>(),
                     UPN = upn,
-                    Mail = mail,
+                    Mail = string.Empty,
                     Name = $"{firstName} {lastName}",
                     FirstName = firstName,
                     LastName = lastName,
                     Phone = string.Empty
                 };
 
+                switch (personIdentifier.Type)
+                {
+                    case PersonId.IdentifierType.UniqueId:
+                        newEntry.AzureUniqueId = personIdentifier.UniqueId;
+                        break;
+                    case PersonId.IdentifierType.Mail:
+                        newEntry.Mail = personIdentifier.Mail!;
+                        break;
+                }
+
                 if (profile != null)
                 {
                     newEntry.UPN = profile.UPN;
-                    newEntry.Mail = profile.Mail ?? string.Empty;
+                    newEntry.Mail = profile.Mail ?? newEntry.Mail;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
                     newEntry.JobTitle = profile.JobTitle;
