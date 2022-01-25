@@ -407,6 +407,67 @@ namespace Fusion.Resources.Api.Controllers
             return ApiErrors.InvalidOperation(new ValidationException(result.Errors));
         }
 
+        [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}/replace")]
+        public async Task<ActionResult<ApiContractPersonnel>> CheckReplaceContractPersonnelAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
+        {
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
+
+                    r.AnyOf(or =>
+                    {
+                        or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                        or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
+                    });
+            });
+
+            return authResult.Unauthorized ? authResult.CreateForbiddenResponse() : Ok();
+        }
+
+        [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}/replace")]
+        public async Task<ActionResult<ApiContractPersonnel>> ReplaceContractPersonnel([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier, [FromBody] ReplaceContractPersonnelRequest request, [FromQuery] bool force)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlExternal();
+
+                if (!force)
+                {
+                    r.AnyOf(or =>
+                    {
+                        or.ContractAccess(ContractRole.Any, projectIdentifier, contractIdentifier);
+                        or.DelegatedContractAccess(DelegatedContractRole.Any, projectIdentifier, contractIdentifier);
+                    });
+                }
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            try
+            {
+
+                var updateCommand = new ReplaceContractPersonnel(projectIdentifier.ProjectId, contractIdentifier,
+                        personIdentifier, request.UPN, request.AzureUniquePersonId)
+                    .WithForce(force);
+
+                await using var scope = await BeginTransactionAsync();
+                var updatedPersonnel = await DispatchAsync(updateCommand);
+                await scope.CommitAsync();
+
+                var item = new ApiContractPersonnel(updatedPersonnel);
+                return item;
+            }
+            catch (InvalidOperationException ioe)
+            {
+                return ApiErrors.InvalidOperation(ioe);
+            }
+        }
+
 
         private class ContractorMailValidator : AbstractValidator<string>
         {

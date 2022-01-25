@@ -47,6 +47,12 @@ namespace Fusion.Testing.Mocks.ProfileService
             profile = FusionTestProfiles.CreateTestUser(type, classification);
         }
 
+        public FusionTestUserBuilder WithUpn(string upn)
+        {
+            profile.UPN = upn;
+            return this;
+        }
+
         public FusionTestUserBuilder WithAccountType(FusionAccountType type)
         {
             profile.AccountType = type;

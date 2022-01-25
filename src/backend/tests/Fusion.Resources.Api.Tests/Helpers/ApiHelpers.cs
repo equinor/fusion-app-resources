@@ -42,6 +42,17 @@ namespace Fusion.Resources.Api.Tests
             resp.Should().BeSuccessfull();
         }
 
+        public static async Task<TestClientHttpResponse<dynamic>> ReplaceContractPersonnelAsync(this HttpClient client, Guid projectId, Guid contractId, Guid fromPersonId, string toUpn, Guid toPersonId, bool force = false)
+        {
+            var resp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/resources/personnel/{fromPersonId}/replace?force={force}", new
+            {
+                upn = toUpn,
+                azureUniquePersonId = toPersonId
+            });
+
+            return resp;
+        }
+
 
         public static async Task<TestApiInternalRequestModel> CreateRequestAsync(this HttpClient client, Guid projectId, Action<ApiCreateInternalRequestModel> setup)
         {
@@ -213,7 +224,7 @@ namespace Fusion.Resources.Api.Tests
             });
         }
 
-        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Dictionary<string, object> props = null )
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Dictionary<string, object> props = null)
         {
             var payload = new
             {
@@ -234,7 +245,7 @@ namespace Fusion.Resources.Api.Tests
             return result.Value;
         }
 
-        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestCreateRequestAction> setup,  Dictionary<string, object> props = null)
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Action<TestCreateRequestAction> setup, Dictionary<string, object> props = null)
         {
             var payload = new TestCreateRequestAction
             {
