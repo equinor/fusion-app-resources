@@ -118,6 +118,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUserA1Expired.UPN, testUserA1Expired.AzureUniqueId!.Value);
             resp.Should().BeBadRequest();
         }
+        [Fact]
+        public async Task ReplacePersonnel_ShouldFail_WhenSubjectNotExists()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, Guid.NewGuid(), testUser.UPN, testUser.AzureUniqueId!.Value);
+            resp.Should().BeBadRequest();
+        }
 
         public async Task InitializeAsync()
         {

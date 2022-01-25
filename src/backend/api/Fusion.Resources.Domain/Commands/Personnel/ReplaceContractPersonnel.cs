@@ -60,9 +60,10 @@ namespace Fusion.Resources.Domain.Commands
                     .Include(cp => cp.Person)
                     .FirstOrDefaultAsync();
 
-                var existingPersonPreferredContractMail = existingPerson.Person.PreferredContractMail;
+                var newPerson = await ValidateSubjectAndTargetPersonsAsync(request, existingPerson);
 
-                var newPerson = await ValidatePersonAsync(request, existingPerson);
+                var existingPersonPreferredContractMail = existingPerson.Person.PreferredContractMail;
+                var existingPersonUpn = existingPerson.Person.UPN;
 
                 existingPerson.Person = newPerson;
 
@@ -72,7 +73,7 @@ namespace Fusion.Resources.Domain.Commands
                 await resourcesDb.SaveChangesAsync();
 
 
-                if (string.Equals(existingPerson.Person.UPN, newPerson.UPN, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(existingPersonPreferredContractMail))
+                if (string.Equals(existingPersonUpn, newPerson.UPN, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(existingPersonPreferredContractMail))
                 {
                     // Update newPerson's preferred email in PPL service, since found on existing account matched by UPN
                     var mail = new List<(Guid personnelId, string? preferredMail)> { new(newPerson.Id, existingPersonPreferredContractMail) };
@@ -94,7 +95,7 @@ namespace Fusion.Resources.Domain.Commands
                 return returnItem;
             }
 
-            private async Task<DbExternalPersonnelPerson> ValidatePersonAsync(ReplaceContractPersonnel request, DbContractPersonnel? existingPerson)
+            private async Task<DbExternalPersonnelPerson> ValidateSubjectAndTargetPersonsAsync(ReplaceContractPersonnel request, DbContractPersonnel? existingPerson)
             {
                 try
                 {
