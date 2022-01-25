@@ -9,6 +9,9 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Resources.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,8 +24,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// <summary>
         /// Will be generated new for each test
         /// </summary>
+        private readonly ApiPersonProfileV3 testUserA1Expired;
         private readonly ApiPersonProfileV3 testUserA1;
-        private readonly ApiPersonProfileV3 testUserA2;
         private readonly ApiPersonProfileV3 testUser;
 
 
@@ -41,11 +44,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             loggingScope = new TestLoggingScope(output);
 
             // Generate random test user
-            testUserA1 = fixture.AddProfile(FusionAccountType.External);
-            var profileB = PeopleServiceMock.AddTestProfile()
+            testUserA1Expired = PeopleServiceMock.AddTestProfile()
+                .WithAccountType(FusionAccountType.External).SaveProfile();
+
+            testUserA1 = PeopleServiceMock.AddTestProfile()
                 .WithAccountType(FusionAccountType.External)
-                .WithUpn(testUserA1.UPN);
-            testUserA2 = profileB.SaveProfile();
+                .WithUpn(testUserA1Expired.UPN).SaveProfile();
 
             testUser = fixture.AddProfile(FusionAccountType.External);
 
@@ -57,7 +61,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1.AzureUniqueId.Value, testUserA2.UPN, testUserA2.AzureUniqueId.Value);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUserA1.UPN, testUserA1.AzureUniqueId.Value);
             resp.Should().BeSuccessfull();
         }
         [Fact]
@@ -66,7 +70,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1.AzureUniqueId.Value, testUser.UPN, testUser.AzureUniqueId.Value, true);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUser.UPN, testUser.AzureUniqueId.Value, true);
             resp.Should().BeSuccessfull();
         }
 
@@ -75,7 +79,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1.AzureUniqueId.Value, testUser.UPN, testUser.AzureUniqueId.Value);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUser.UPN, testUser.AzureUniqueId.Value);
             resp.Should().BeBadRequest();
         }
 
@@ -84,7 +88,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1.AzureUniqueId.Value, testUser.UPN, Guid.Empty);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, testUser.UPN, Guid.Empty);
             resp.Should().BeBadRequest();
         }
 
@@ -93,7 +97,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1.AzureUniqueId.Value, string.Empty, testUser.AzureUniqueId.Value);
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId.Value, string.Empty, testUser.AzureUniqueId.Value);
             resp.Should().BeBadRequest();
         }
 
@@ -135,10 +139,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var content = await response.Content.ReadAsStringAsync();
             response.EnsureSuccessStatusCode();
 
-            // To make sure all test users are available for contract personnel
+            // To make sure all test users are available for contract personnel, and testUserA1 is marked as deleted
             await EnsureContractPersonAsync(testUser);
-            await EnsureContractPersonAsync(testUserA2);
             await EnsureContractPersonAsync(testUserA1);
+            await EnsureContractPersonAsync(testUserA1Expired);
+            await EnsureProfileMarkedAsDeletedInDatabaseAsync(testUserA1Expired);
 
         }
         private async Task EnsureContractPersonAsync(ApiPersonProfileV3 profile)
@@ -153,6 +158,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     PhoneNumber = profile.MobilePhone
                 });
             createResp.Should().BeSuccessfull();
+        }
+
+        private async Task EnsureProfileMarkedAsDeletedInDatabaseAsync(ApiPersonProfileV3 profile)
+        {
+            using var scope = fixture.ApiFactory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+
+            var dbPerson = await db.ExternalPersonnel.FirstOrDefaultAsync(x => x.Mail == profile.Mail);
+            if (dbPerson is not null)
+            {
+                dbPerson.IsDeleted = true;
+                dbPerson.Deleted = DateTimeOffset.UtcNow;
+
+                await db.SaveChangesAsync();
+            }
         }
 
         public Task DisposeAsync()

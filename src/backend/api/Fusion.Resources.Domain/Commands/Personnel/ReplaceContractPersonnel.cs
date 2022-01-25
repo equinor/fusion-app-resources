@@ -50,6 +50,8 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (existingPerson is null)
                     throw new InvalidOperationException($"Cannot locate person using personnel identifier '{request.FromPerson.OriginalIdentifier}'");
+                if (existingPerson.Person.IsDeleted == false)
+                    throw new InvalidOperationException($"Cannot replace person using personnel identifier '{request.FromPerson.OriginalIdentifier}' when account is not expired");
 
                 var newPerson = await resourcesDb.ExternalPersonnel.GetById(request.ToPerson).FirstOrDefaultAsync();
 
