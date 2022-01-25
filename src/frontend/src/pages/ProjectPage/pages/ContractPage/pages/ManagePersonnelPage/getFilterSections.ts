@@ -32,7 +32,7 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                         p.mail +
                         p.phoneNumber +
                         (p.disciplines?.map((d) => d.name).join(' ') || '') +
-                        p.upn,
+                        (p.upn || ''),
                 },
             ],
         },
