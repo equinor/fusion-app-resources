@@ -98,6 +98,9 @@ namespace Fusion.Resources.Domain.Commands
             {
                 try
                 {
+                    if (string.Equals(request.FromPerson.OriginalIdentifier, request.ToPerson.OriginalIdentifier, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException($"Cannot replace person using personnel identifier '{request.ToPerson.OriginalIdentifier}'. Subject identifier same as target identifer");
+
                     if (existingPerson?.Person is null)
                         throw new InvalidOperationException($"Cannot locate person using personnel identifier '{request.FromPerson.OriginalIdentifier}'");
                     if (existingPerson.Person.IsDeleted == false)
