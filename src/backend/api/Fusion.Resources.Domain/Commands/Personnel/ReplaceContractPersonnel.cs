@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database.Entities;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -39,16 +41,20 @@ namespace Fusion.Resources.Domain.Commands
             private readonly ResourcesDbContext resourcesDb;
             private readonly IMediator mediator;
             private readonly IProfileService profileService;
+            private readonly TelemetryClient telemetryClient;
 
-            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProfileService profileService)
+            public Handler(ResourcesDbContext resourcesDb, IMediator mediator, IProfileService profileService, TelemetryClient telemetryClient)
             {
                 this.resourcesDb = resourcesDb;
                 this.mediator = mediator;
                 this.profileService = profileService;
+                this.telemetryClient = telemetryClient;
             }
 
             public async Task<QueryContractPersonnel> Handle(ReplaceContractPersonnel request, CancellationToken cancellationToken)
             {
+                var startTime = DateTimeOffset.UtcNow;
+
                 var existingPerson = await resourcesDb.ContractPersonnel
                     .GetById(request.OrgContractId, request.FromPerson)
                     .Include(cp => cp.Person)
@@ -62,7 +68,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 existingPerson.Updated = DateTimeOffset.UtcNow;
                 existingPerson.UpdatedBy = request.Editor.Person;
-                
+
                 await resourcesDb.SaveChangesAsync();
 
 
@@ -72,36 +78,50 @@ namespace Fusion.Resources.Domain.Commands
                     var mail = new List<(Guid personnelId, string? preferredMail)> { new(newPerson.Id, existingPersonPreferredContractMail) };
                     await mediator.Send(new UpdateContractPersonnelContactMail(request.OrgContractId, mail));
                 }
-                
+
                 var returnItem = await mediator.Send(new GetContractPersonnelItem(request.OrgContractId, request.ToPerson));
+
+                var props = new Dictionary<string, string>
+                {
+                    {"UPN", request.ToUpn },
+                    {"FromPerson", request.FromPerson.OriginalIdentifier },
+                    {"ToPerson", request.ToPerson.OriginalIdentifier },
+                    {"OperationDuration",$"{startTime-DateTimeOffset.UtcNow}"},
+                    {"Editor",request.Editor.Person.Name}
+                };
+                telemetryClient.TrackTrace($"Replaced contract personnel on contract {request.OrgContractId}", SeverityLevel.Information, props);
+
                 return returnItem;
             }
 
-            private async Task<DbExternalPersonnelPerson> ValidatePersonAsync(ReplaceContractPersonnel request, DbContractPersonnel existingPerson)
+            private async Task<DbExternalPersonnelPerson> ValidatePersonAsync(ReplaceContractPersonnel request, DbContractPersonnel? existingPerson)
             {
-                if (existingPerson is null)
-                    throw new InvalidOperationException(
-                        $"Cannot locate person using personnel identifier '{request.FromPerson.OriginalIdentifier}'");
-                if (existingPerson.Person.IsDeleted == false)
-                    throw new InvalidOperationException(
-                        $"Cannot replace person using personnel identifier '{request.FromPerson.OriginalIdentifier}' when account is not expired");
+                try
+                {
+                    if (existingPerson?.Person is null)
+                        throw new InvalidOperationException($"Cannot locate person using personnel identifier '{request.FromPerson.OriginalIdentifier}'");
+                    if (existingPerson.Person.IsDeleted == false)
+                        throw new InvalidOperationException($"Cannot replace person using personnel identifier '{request.FromPerson.OriginalIdentifier}' when account is not expired");
 
-                var newPerson = await profileService.EnsureExternalPersonnelAsync(request.ToUpn, request.ToPerson,
-                    existingPerson.Person.FirstName, existingPerson.Person.LastName);
-                if (existingPerson.Person.Id == newPerson.Id)
-                    throw new InvalidOperationException(
-                        $"Cannot replace person using personnel identifier '{request.FromPerson.OriginalIdentifier}'. New account identified as existing account");
+                    var newPerson = await profileService.EnsureExternalPersonnelAsync(request.ToUpn, request.ToPerson, existingPerson.Person.FirstName, existingPerson.Person.LastName);
 
-                if (newPerson is null)
-                    throw new InvalidOperationException(
-                        $"Cannot locate person using personnel identifier '{request.ToPerson.OriginalIdentifier}'");
+                    if (newPerson is null)
+                        throw new InvalidOperationException($"Cannot locate person using personnel identifier '{request.ToPerson.OriginalIdentifier}'");
 
-                if (!request.ForceUpdate)
-                    if (!string.Equals(existingPerson.Person.UPN, newPerson.UPN, StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidOperationException(
-                            $"Cannot update person having different UPN. Existing:{existingPerson.Person.UPN}, New:{newPerson.UPN}");
+                    if (existingPerson.Person.Id == newPerson.Id)
+                        throw new InvalidOperationException($"Cannot replace person using personnel identifier '{request.FromPerson.OriginalIdentifier}'. New account identified as existing account");
 
-                return newPerson!;
+                    if (!request.ForceUpdate)
+                        if (!string.Equals(existingPerson.Person.UPN, newPerson.UPN, StringComparison.OrdinalIgnoreCase))
+                            throw new InvalidOperationException($"Cannot update person having different UPN. Existing:{existingPerson.Person.UPN}, New:{newPerson.UPN}");
+
+                    return newPerson!;
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    telemetryClient.TrackTrace(ioe.Message, SeverityLevel.Error);
+                    throw;
+                }
             }
         }
     }

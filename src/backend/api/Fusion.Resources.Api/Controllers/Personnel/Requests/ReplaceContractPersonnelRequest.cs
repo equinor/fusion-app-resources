@@ -14,10 +14,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             public Validator()
             {
-                RuleFor(x => x.UPN).NotEmpty();
-                RuleFor(x => x.UPN).NotContainScriptTag();
-                RuleFor(x => x.UPN).MaximumLength(200);
-
+                RuleFor(x => x.UPN).NotEmpty().NotContainScriptTag().MaximumLength(200);
                 RuleFor(x => x.AzureUniquePersonId).NotEmpty();
             }
 
