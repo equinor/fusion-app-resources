@@ -82,7 +82,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         [MapToApiVersion("2.0")]
         [HttpGet("/projects/{projectId}/contracts/{contractId}/positions/{positionId}")]
         [HttpGet("/projects/{projectId}/drafts/{draftId}/contracts/{contractId}/positions/{positionId}")]
-        public ActionResult<ApiPositionV2> GetPosition([FromRoute] ProjectIdentifier projectIdentifier, [FromRoute] Guid draftId, Guid contractId, Guid positionId)
+        public ActionResult<ApiPositionV2> GetPosition([FromRoute] ProjectIdentifier projectIdentifier, [FromRoute] Guid? draftId, Guid contractId, Guid positionId)
         {
             OrgServiceMock.contractPositions.TryGetValue(positionId, out ApiPositionV2 position);
 
@@ -106,11 +106,13 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         [ApiVersion("2.0")]
         [HttpPatch("projects/{projectId}/positions/{positionId}/instances/{instanceId}")]
         [HttpPatch("projects/{projectId}/drafts/{draftId}/positions/{positionId}/instances/{instanceId}")]
-        public ActionResult<ApiPositionV2> PatchPositionInstance([FromRoute] ProjectIdentifier projectId, Guid? draftId, Guid positionId, Guid instanceId, [FromBody] PatchInstanceRequestV2 request)
+        public ActionResult<ApiPositionV2> PatchPositionInstance([FromRoute] ProjectIdentifier projectId, Guid? contractId, Guid? draftId, Guid positionId, Guid? instanceId, [FromBody] PatchInstanceRequestV2 request)
         {
-            var position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
-            if (position is null)
-                position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Value.ProjectId == projectId.ProjectId && p.Value.Id == positionId).Value;
+            ApiPositionV2 position;
+            if (contractId.HasValue)
+                position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Value.ProjectId == projectId.ProjectId && p.Value.ContractId == contractId && p.Value.Id == positionId).Value;
+            else
+                position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
 
             var instance = position?.Instances.FirstOrDefault(x => x.Id == instanceId);
 
@@ -126,9 +128,6 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
             if (request.Calendar.HasValue)
                 instance.Calendar = request.Calendar.Value;
-
-            if (request.ExternalId.HasValue)
-                instance.ExternalId = request.ExternalId.Value;
 
             if (request.ExternalId.HasValue)
                 instance.ExternalId = request.ExternalId.Value;
@@ -149,6 +148,46 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             }
 
 
+            return position;
+        }
+
+        [ApiVersion("2.0")]
+        [HttpPatch("projects/{projectId}/contracts/{contractId}/positions/{positionId}")]
+        [HttpPatch("projects/{projectId}/drafts/{draftId}/contracts/{contractId}/positions/{positionId}")]
+        public ActionResult<ApiPositionV2> PatchPosition([FromRoute] ProjectIdentifier projectId, Guid? contractId, Guid? draftId, Guid positionId, [FromBody] ApiPositionV2 request)
+        {
+            ApiPositionV2 position;
+            if (contractId.HasValue)
+                position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Value.ProjectId == projectId.ProjectId && p.Value.ContractId == contractId && p.Value.Id == positionId).Value;
+            else
+                position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
+
+
+            foreach (var pInstance in request.Instances)
+            {
+                var instance = position?.Instances.FirstOrDefault(x => x.Id == pInstance.Id);
+
+                if (instance == null)
+                    continue;
+
+                // Do some updates based on request if required.
+                instance.AppliesFrom = pInstance.AppliesFrom;
+                instance.AppliesTo = pInstance.AppliesTo;
+                instance.Calendar = pInstance.Calendar;
+                instance.ExternalId = pInstance.ExternalId;
+                if (pInstance.Location != null)
+                    instance.Location = new ApiPositionLocationV2()
+                    {
+                        Id = pInstance.Location.Id
+                    };
+
+                if (pInstance.AssignedPerson != null)
+                    instance.AssignedPerson = new ApiPersonV2
+                    {
+                        AzureUniqueId = pInstance.AssignedPerson.AzureUniqueId,
+                        Mail = pInstance.AssignedPerson.Mail
+                    };
+            }
             return position;
         }
 
