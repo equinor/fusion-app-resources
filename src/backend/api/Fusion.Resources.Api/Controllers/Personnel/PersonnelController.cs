@@ -421,7 +421,10 @@ namespace Fusion.Resources.Api.Controllers
                     });
             });
 
-            return authResult.Unauthorized ? authResult.CreateForbiddenResponse() : Ok();
+            if (authResult.Success)
+                Response.Headers.Add("Allow", "POST");
+
+            return NoContent();
         }
 
         [HttpPost("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}/replace")]

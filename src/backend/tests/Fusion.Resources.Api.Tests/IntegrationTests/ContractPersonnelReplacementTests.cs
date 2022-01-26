@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Fusion.ApiClients.Org;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private FusionTestProjectBuilder testProject = null;
         private Guid projectId => testProject.Project.ProjectId;
         private Guid contractId => testProject.ContractsWithPositions.First().Item1.Id;
+
+        private ApiPositionV2 position => testProject.ContractsWithPositions.First().Item2.First();
 
         private HttpClient client => fixture.ApiFactory.CreateClient();
 
@@ -61,7 +64,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task ReplacePersonnel_ShouldUpdateSuccessfully_WhenUpnMatch()
         {
-
             using var adminScope = fixture.AdminScope();
 
             var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUserA1.UPN, testUserA1.AzureUniqueId!.Value);
@@ -71,6 +73,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.AzureUniquePersonId.Should().Be(testUserA1.AzureUniqueId);
             resp.Value.UPN.Should().Be(testUserA1.UPN);
             resp.Value.PreferredContactMail.Should().Be(testUserA1Expired.PreferredContactMail);
+        }
+
+        [Fact]
+        public async Task ReplacePersonnel_OrgChartContractPositionInstanceAssignedPerson_ShouldUpdateSuccessfully()
+        {
+            // Ensure ORG instances for given position is populated with expired assigned user.
+          foreach (var instance in position.Instances)
+                instance.AssignedPerson = new ApiPersonV2 { AzureUniqueId = testUserA1Expired.AzureUniqueId!.Value };
+            
+            using var adminScope = fixture.AdminScope();
+            var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUserA1.UPN, testUserA1.AzureUniqueId!.Value);
+            resp.Should().BeSuccessfull();
+
+            // Verify that all position instances is assigned to new person.
+            foreach (var instance in position.Instances)
+                instance.AssignedPerson.AzureUniqueId.Should().Be(testUserA1.AzureUniqueId);
+
         }
 
         [Fact]

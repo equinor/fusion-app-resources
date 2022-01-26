@@ -70,6 +70,9 @@ namespace Fusion.Resources.Domain.Commands
                 existingPerson.Updated = DateTimeOffset.UtcNow;
                 existingPerson.UpdatedBy = request.Editor.Person;
 
+                await mediator.Send(new ReplaceProjectPositionInstancesAssignedPerson(request.OrgProjectId,
+                    request.OrgContractId, request.FromPerson, request.ToPerson));
+
                 await resourcesDb.SaveChangesAsync();
 
 
@@ -90,7 +93,7 @@ namespace Fusion.Resources.Domain.Commands
                     {"OperationDuration",$"{startTime-DateTimeOffset.UtcNow}"},
                     {"Editor",request.Editor.Person.Name}
                 };
-                telemetryClient.TrackTrace($"Replaced contract personnel on contract {request.OrgContractId}", SeverityLevel.Information, props);
+                telemetryClient.TrackTrace($"Replaced contract personnel on contract {request.OrgContractId} on project {request.OrgProjectId}", SeverityLevel.Information, props);
 
                 return returnItem;
             }
