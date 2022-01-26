@@ -35,13 +35,24 @@ namespace Fusion.Resources.Domain.Commands
 
             protected override async Task Handle(ReplaceProjectPositionInstancesAssignedPerson request, CancellationToken cancellationToken)
             {
-                var draft = await CreateProvisionDraftAsync(request);
+                ApiDraftV2? draft = null;
+                try
+                {
+                    draft = await CreateProvisionDraftAsync(request);
 
-                var positions = await client.GetContractPositionsV2Async(request.OrgProjectId, request.OrgContractId);
+                    var positions =
+                        await client.GetContractPositionsV2Async(request.OrgProjectId, request.OrgContractId);
 
-                await ReplaceAssignedPersonOnRelevantPositionInstancesInDraftAsync(request, draft, positions);
+                    await ReplaceAssignedPersonOnRelevantPositionInstancesInDraftAsync(request, draft, positions);
 
-                await client.PublishAndWaitAsync(draft);
+                    await client.PublishAndWaitAsync(draft);
+                }
+                catch (OrgApiError)
+                {
+                    if (draft is not null)
+                        await client.DeleteProjectDraftAsync(request.OrgProjectId, draft);
+                    throw;
+                }
             }
 
             private async Task<ApiDraftV2> CreateProvisionDraftAsync(ReplaceProjectPositionInstancesAssignedPerson request)
