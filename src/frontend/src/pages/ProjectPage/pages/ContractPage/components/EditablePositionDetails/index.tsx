@@ -143,8 +143,10 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edi
                             </div>
                             <div className={styles.row}>
                                 {createTextField('E-Mail', person.mail || '')}
-                                {createTextField('Preferred contact mail', person.preferredContactMail || '')}
-
+                                {createTextField(
+                                    'Preferred contact mail',
+                                    person.preferredContactMail || ''
+                                )}
                             </div>
                             <div className={styles.row}>
                                 {createTextField('Phone', person.phoneNumber || '')}
@@ -157,6 +159,12 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edi
                                     />,
                                     'AdStatus'
                                 )}
+                            </div>
+                            <div className={styles.row}>
+                                {createTextField('User Principal Name', person.upn || '')}
+                            </div>
+                            <div className={styles.row}>
+                                {createTextField('Azure unique id', person.azureUniquePersonId || '')}
                             </div>
                         </>
                     )}
