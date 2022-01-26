@@ -84,7 +84,7 @@ export type Requests = {
     project: RequestProject;
 };
 
-export type azureAdStatus = 'Available' | 'InviteSent' | 'NoAccount';
+export type azureAdStatus = 'Available' | 'InviteSent' | 'NoAccount' | "DeletedAccount";
 
 type Personnel = {
     personnelId: string;
@@ -105,6 +105,7 @@ type Personnel = {
     positions?: Position[] | null;
     requests?: Request[] | null;
     preferredContactMail?: string | null;
+    isDeleted?: boolean
 };
 
 export default Personnel;

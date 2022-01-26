@@ -35,12 +35,15 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         label: 'AD',
         priority: 2,
         component: ({ item }) => (
-            <AzureAdStatusIndicator status={item?.azureAdStatus || 'NoAccount'} />
+            <AzureAdStatusIndicator
+                status={item?.azureAdStatus || 'NoAccount'}
+                isDeleted={item.isDeleted}
+            />
         ),
         sortable: true,
         width: '20px',
     },
-     
+
     {
         key: 'Mail',
         accessor: 'mail',

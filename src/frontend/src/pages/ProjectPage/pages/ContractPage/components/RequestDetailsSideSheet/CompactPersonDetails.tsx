@@ -17,7 +17,10 @@ const CompactPersonDetails: FC<CompactPersonDetailsProps> = ({ personnel, origin
                 <div className={styles.textField}>
                     <span className={styles.title}>{'AD status'}</span>
                     <span className={styles.content}>
-                        <AzureAdStatusIndicator status={personnel.azureAdStatus || 'NoAccount'} />
+                        <AzureAdStatusIndicator
+                            status={personnel.azureAdStatus || 'NoAccount'}
+                            isDeleted={personnel.isDeleted}
+                        />
                     </span>
                 </div>
                 <div className={styles.textField}>
@@ -37,6 +40,7 @@ const CompactPersonDetails: FC<CompactPersonDetailsProps> = ({ personnel, origin
                         <span className={styles.content}>
                             <AzureAdStatusIndicator
                                 status={originalPersonnel.azureAdStatus || 'NoAccount'}
+                                isDeleted={originalPersonnel.isDeleted}
                             />
                         </span>
                     </div>

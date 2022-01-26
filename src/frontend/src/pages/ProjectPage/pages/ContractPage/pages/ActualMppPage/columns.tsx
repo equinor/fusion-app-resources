@@ -82,10 +82,16 @@ const ToDateComponent: FC<ToDateProp> = ({ appliesTo }) => {
 };
 
 const AzureAdColumn: FC<AzureAdColumnProps> = ({ item }) => {
-    const personAdStatus = item.instances.find((i) => i.personnelDetails?.azureAdStatus)
-        ?.personnelDetails?.azureAdStatus;
+    const personnelDetails = item.instances.find(
+        (i) => i.personnelDetails?.azureAdStatus
+    )?.personnelDetails;
 
-    return <AzureAdStatusIndicator status={personAdStatus || 'NoAccount'} />;
+    return (
+        <AzureAdStatusIndicator
+            status={personnelDetails?.azureAdStatus || 'NoAccount'}
+            isDeleted={personnelDetails?.isDeleted}
+        />
+    );
 };
 
 const columns: DataTableColumn<PositionWithPersonnel>[] = [
@@ -100,21 +106,22 @@ const columns: DataTableColumn<PositionWithPersonnel>[] = [
     },
     {
         accessor: (position) =>
+            position.instances.find((i) => i.personnelDetails?.azureAdStatus)?.personnelDetails
+                ?.azureAdStatus || '',
+        key: 'adStatus',
+        label: 'AD',
+        sortable: true,
+        component: AzureAdColumn,
+    },
+    {
+        accessor: (position) =>
             position.instances.find((i) => i.assignedPerson?.name)?.assignedPerson?.name || '',
         key: 'person',
         label: 'Person',
         sortable: true,
         component: AssignedPersonComponent,
     },
-    {
-        accessor: (position) =>
-            position.instances.find((i) => i.personnelDetails?.azureAdStatus)?.personnelDetails
-                ?.azureAdStatus || '',
-        key: 'adStatus',
-        label: 'Person AD Status',
-        sortable: true,
-        component: AzureAdColumn,
-    },
+   
     {
         accessor: (position) =>
             position.instances.find((i) => !isNaN(i.workload))?.workload.toString() + '%' || '',

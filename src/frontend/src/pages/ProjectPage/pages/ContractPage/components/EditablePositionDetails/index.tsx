@@ -129,6 +129,7 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edi
                                     'AD Status',
                                     <AzureAdStatusIndicator
                                         status={person.azureAdStatus || 'NoAccount'}
+                                        isDeleted={person.isDeleted}
                                     />,
                                     'AdStatus'
                                 )}
@@ -152,6 +153,7 @@ const EditablePositionDetails: FC<EditablePositionDetailsProps> = ({ person, edi
                                     'AD Status',
                                     <AzureAdStatusIndicator
                                         status={person.azureAdStatus || 'NoAccount'}
+                                        isDeleted={person.isDeleted}
                                     />,
                                     'AdStatus'
                                 )}
