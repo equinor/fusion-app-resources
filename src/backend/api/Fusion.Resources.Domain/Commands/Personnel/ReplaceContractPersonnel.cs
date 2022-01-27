@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Database.Entities;
@@ -65,13 +66,13 @@ namespace Fusion.Resources.Domain.Commands
                 var existingPersonPreferredContractMail = existingPerson.Person.PreferredContractMail;
                 var existingPersonUpn = existingPerson.Person.UPN;
 
-                existingPerson.Person = newPerson;
+                newPerson.PersonIdReplacements = ApplyPersonIdReplacement(newPerson, existingPerson);
 
+                existingPerson.Person = newPerson;
                 existingPerson.Updated = DateTimeOffset.UtcNow;
                 existingPerson.UpdatedBy = request.Editor.Person;
 
-                await mediator.Send(new ReplaceProjectPositionInstancesAssignedPerson(request.OrgProjectId,
-                    request.OrgContractId, request.FromPerson, request.ToPerson));
+                await mediator.Send(new ReplaceProjectPositionInstancesAssignedPerson(request.OrgProjectId, request.OrgContractId, request.FromPerson, request.ToPerson));
 
                 await resourcesDb.SaveChangesAsync();
 
@@ -83,21 +84,62 @@ namespace Fusion.Resources.Domain.Commands
                     await mediator.Send(new UpdateContractPersonnelContactMail(request.OrgContractId, mail));
                 }
 
+                await LogReplacementOperationAsync(request, startTime);
+
                 var returnItem = await mediator.Send(new GetContractPersonnelItem(request.OrgContractId, request.ToPerson));
-
-                var props = new Dictionary<string, string>
-                {
-                    {"UPN", request.ToUpn },
-                    {"FromPerson", request.FromPerson.OriginalIdentifier },
-                    {"ToPerson", request.ToPerson.OriginalIdentifier },
-                    {"OperationDuration",$"{startTime-DateTimeOffset.UtcNow}"},
-                    {"Editor",request.Editor.Person.Name}
-                };
-                telemetryClient.TrackTrace($"Replaced contract personnel on contract {request.OrgContractId} on project {request.OrgProjectId}", SeverityLevel.Information, props);
-
                 return returnItem;
             }
 
+            /// <summary>
+            /// Ensure we log the replacement operation
+            /// </summary>
+            /// <param name="request">Metadata about the replacement</param>
+            /// <param name="startTime">When the replacement operation started</param>
+            /// <returns></returns>
+            private async Task LogReplacementOperationAsync(ReplaceContractPersonnel request, DateTimeOffset startTime)
+            {
+                var props = new Dictionary<string, string>
+                {
+                    { "UPN", request.ToUpn },
+                    { "FromPerson", request.FromPerson.OriginalIdentifier },
+                    { "ToPerson", request.ToPerson.OriginalIdentifier },
+                    { "OperationDuration", $"{startTime - DateTimeOffset.UtcNow}" },
+                    { "Editor", request.Editor.Person.Name }
+                };
+                var message = $"Replaced contract personnel in contract {request.OrgContractId} on project {request.OrgProjectId}";
+                telemetryClient.TrackTrace(message, SeverityLevel.Information, props);
+
+                await mediator.Send(new CreateContractPersonnelReplacementAudit(request.OrgProjectId, request.OrgContractId,
+                    message, request.Editor.Person.Name)
+                {
+                    ChangeType = "Replacement",
+                    UPN = request.ToUpn,
+                    FromPerson = request.FromPerson.OriginalIdentifier,
+                    ToPerson = request.ToPerson.OriginalIdentifier
+                });
+            }
+
+            /// <summary>
+            /// Create history string for replacement operation.
+            /// Person may have been replaced before.
+            /// </summary>
+            /// <param name="newPerson">Replacing person</param>
+            /// <param name="existingPerson">Current expired person</param>
+            /// <returns></returns>
+            private static string? ApplyPersonIdReplacement(DbExternalPersonnelPerson newPerson, DbContractPersonnel existingPerson)
+            {
+                var existingReplacements = newPerson.PersonIdReplacements?.Split(",").ToList() ?? new List<string>();
+                existingReplacements.Add($"{existingPerson.Person.Id}");
+                var replacementString = string.Join(",", existingReplacements.Distinct());
+                return replacementString;
+            }
+
+            /// <summary>
+            /// Validate the replacement request. Ensure valid arguments
+            /// </summary>
+            /// <param name="request">Replacement request</param>
+            /// <param name="existingPerson">Expired person to be replaced</param>
+            /// <returns></returns>
             private async Task<DbExternalPersonnelPerson> ValidateSubjectAndTargetPersonsAsync(ReplaceContractPersonnel request, DbContractPersonnel? existingPerson)
             {
                 try

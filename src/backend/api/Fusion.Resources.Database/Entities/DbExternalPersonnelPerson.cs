@@ -44,6 +44,8 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset? Deleted { get; set; }
         public ICollection<DbPersonnelDiscipline> Disciplines { get; set; } = null!;
 
+        public string? PersonIdReplacements { get; set; }
+
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbExternalPersonnelPerson>(entity =>
