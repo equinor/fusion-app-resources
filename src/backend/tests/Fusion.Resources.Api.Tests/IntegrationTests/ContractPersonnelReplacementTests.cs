@@ -79,9 +79,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task ReplacePersonnel_OrgChartContractPositionInstanceAssignedPerson_ShouldUpdateSuccessfully()
         {
             // Ensure ORG instances for given position is populated with expired assigned user.
-          foreach (var instance in position.Instances)
+            foreach (var instance in position.Instances)
                 instance.AssignedPerson = new ApiPersonV2 { AzureUniqueId = testUserA1Expired.AzureUniqueId!.Value };
-            
+
             using var adminScope = fixture.AdminScope();
             var resp = await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUserA1.UPN, testUserA1.AzureUniqueId!.Value);
             resp.Should().BeSuccessfull();
@@ -90,6 +90,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             foreach (var instance in position.Instances)
                 instance.AssignedPerson.AzureUniqueId.Should().Be(testUserA1.AzureUniqueId);
 
+        }
+
+        [Fact]
+        public async Task ReplacePersonnel_ShouldAuditLog_WhenSuccessfulReplacement()
+        {
+
+            using var adminScope = fixture.AdminScope();
+            await client.ReplaceContractPersonnelAsync(projectId, contractId, testUserA1Expired.AzureUniqueId!.Value, testUserA1.UPN, testUserA1.AzureUniqueId!.Value);
+
+            using var scope = fixture.ApiFactory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+            var logEntry = await db.ContractPersonnelReplacementChanges.FirstOrDefaultAsync(
+                x => x.ProjectId == projectId &&
+                x.ContractId == contractId &&
+                x.FromPerson == testUserA1Expired.AzureUniqueId.ToString() &&
+                x.ToPerson == testUserA1.AzureUniqueId.ToString());
+            logEntry.Should().NotBeNull();
         }
 
         [Fact]
