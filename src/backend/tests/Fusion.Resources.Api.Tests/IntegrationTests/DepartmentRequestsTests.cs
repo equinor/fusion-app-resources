@@ -703,7 +703,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var position = testProject.AddPosition()
-                .WithEnsuredFutureInstances()
+                .WithInstances(x => x.AddInstance(new DateTime(2023,01,01), TimeSpan.FromDays(365)))
                 .WithAssignedPerson(user);
 
             var instance = position.Instances.First();
@@ -841,7 +841,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             request = await Client.CreateDefaultRequestAsync(testProject, positionSetup: pos => pos.WithInstances(x =>
             {
-                x.AddInstance(new DateTime(2020, 03, 02), TimeSpan.FromDays(15));
+                x.AddInstance(new DateTime(2000, 01, 02), TimeSpan.FromDays(15));
             }));
             await Client.AssignDepartmentAsync(request.Id, user.FullDepartment);
             await Client.ProposePersonAsync(request.Id, user);
