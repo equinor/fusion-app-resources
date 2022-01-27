@@ -703,7 +703,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var position = testProject.AddPosition()
-                .WithEnsuredFutureInstances()
+                .WithInstances(x => x.AddInstance(new DateTime(2000, 01, 01), TimeSpan.FromDays(365)))
                 .WithAssignedPerson(user);
 
             var instance = position.Instances.First();
