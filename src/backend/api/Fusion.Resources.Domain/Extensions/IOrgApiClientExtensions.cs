@@ -80,7 +80,7 @@ namespace Fusion.Resources
 
             return reportsTo.Value.ReportPositions != null && reportsTo.Value.Path != null
                 ? reportsTo.Value.ReportPositions
-                    .OrderBy(pos => Array.IndexOf((Array) reportsTo.Value.Path, pos.Id))
+                    .OrderBy(pos => Array.IndexOf((Array)reportsTo.Value.Path, pos.Id))
                     .ToList()
                 : new List<ApiPositionV2>();
         }
@@ -144,6 +144,15 @@ namespace Fusion.Resources
                 throw new OrgApiError(resp.Response, resp.Content);
 
             return resp.Value;
+        }
+
+        public static async Task DeleteProjectDraftAsync(this IOrgApiClient client, Guid projectId, ApiDraftV2 draft)
+        {
+            var resp = await client.DeleteAsync($"/projects/{projectId}/drafts/{draft.Id}?api-version=2.0");
+            var content = await resp.Content.ReadAsStringAsync();
+
+            if (!resp.IsSuccessStatusCode)
+                throw new OrgApiError(resp, content);
         }
 
         public static async Task<ApiDraftV2> PublishAndWaitAsync(this IOrgApiClient client, ApiDraftV2 draft)

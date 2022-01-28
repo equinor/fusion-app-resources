@@ -44,6 +44,12 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset? Deleted { get; set; }
         public ICollection<DbPersonnelDiscipline> Disciplines { get; set; } = null!;
 
+        /// <summary>
+        /// This property is used for historic person identifiers.
+        /// Persons may be replaced multiple times, and can contain multiple personIds separated by comma
+        /// </summary>
+        public string? PersonIdReplacements { get; set; }
+
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbExternalPersonnelPerson>(entity =>

@@ -78,6 +78,11 @@ namespace Fusion.Testing.Mocks.OrgService
             taskOwnerMapping.TryAdd(position, taskOwnerPosition);
         }
 
+        public static List<ApiPositionV2> GetContractPositions()
+        {
+            return contractPositions.Select(contractPosition => contractPosition.Value).ToList();
+        }
+
         public static ApiPositionV2 GetPosition(Guid id)
         {
             return positions.FirstOrDefault(p => p.Id == id);
@@ -86,9 +91,5 @@ namespace Fusion.Testing.Mocks.OrgService
         {
             return projects.FirstOrDefault(p => p.ProjectId == id);
         }
-        //public static ApiPositionV2 ResolveContractPosition(Guid position)
-        //{
-
-        //}
     }
 }
