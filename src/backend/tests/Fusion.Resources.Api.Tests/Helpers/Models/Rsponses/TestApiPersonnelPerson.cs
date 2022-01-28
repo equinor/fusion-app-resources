@@ -23,9 +23,19 @@ namespace Fusion.Resources.Api.Tests
 
     public class TestPersonPosition
     {
+        public Guid PositionId { get; set; }
+
         public DateTime AppliesFrom { get; set; }
         public DateTime AppliesTo { get; set; }
+        public bool HasChangeRequest { get; set; }
+        public TestRequestStatus ChangeRequestStatus { get; set; }
+    }
 
+    public class TestRequestStatus
+    {
+        public Guid Id { get; set; }
+        public string State { get; set; }
+        public bool IsDraft { get; set; }
     }
 
     public class Employmentstatus

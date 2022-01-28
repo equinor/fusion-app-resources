@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fusion.Resources.Domain.Models;
+using System;
 
 namespace Fusion.Resources.Domain
 {
@@ -25,5 +26,6 @@ namespace Fusion.Resources.Domain
         public DateTime? AllocationUpdated { get; set; }
 
         public bool HasChangeRequest { get; set; }
+        public QueryRequestStatus? ChangeRequestStatus { get; internal set; }
     }
 }
