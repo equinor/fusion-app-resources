@@ -408,7 +408,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpOptions("/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{personIdentifier}/replace")]
-        public async Task<ActionResult<ApiContractPersonnel>> CheckReplaceContractPersonnelAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
+        public async Task<ActionResult> CheckReplaceContractPersonnelAccess([FromRoute] PathProjectIdentifier projectIdentifier, Guid contractIdentifier, string personIdentifier)
         {
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
