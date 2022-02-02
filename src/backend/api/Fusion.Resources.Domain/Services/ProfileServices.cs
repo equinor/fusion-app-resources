@@ -55,22 +55,31 @@ namespace Fusion.Resources.Domain.Services
             if (resolvedPerson == null)
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
-
-            if (profile != null && resolvedPerson.AzureUniqueId == profile.AzureUniqueId)
+            // Profile found in people service
+            if (profile != null)
             {
-                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                resolvedPerson.UPN = profile.UPN;
-                resolvedPerson.JobTitle = profile.JobTitle;
-                resolvedPerson.Name = profile.Name;
-                resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
-                resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
-                resolvedPerson.IsDeleted = profile.IsExpired.GetValueOrDefault(false);
-                resolvedPerson.Deleted = profile.ExpiredDate;
+                //New external personnel without azureUniqueId, should be provided azureUniqueId if found in people service
+                if (!resolvedPerson.AzureUniqueId.HasValue && profile.AzureUniqueId.HasValue)
+                {
+                    resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                }
 
+                //Existing external personnel should be matched by azureUniqueId
+                if (resolvedPerson.AzureUniqueId == profile.AzureUniqueId)
+                {
+                    resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
+                    resolvedPerson.UPN = profile.UPN;
+                    resolvedPerson.JobTitle = profile.JobTitle;
+                    resolvedPerson.Name = profile.Name;
+                    resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
+                    resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+                    resolvedPerson.IsDeleted = profile.IsExpired.GetValueOrDefault(false);
+                    resolvedPerson.Deleted = profile.ExpiredDate;
+                }
             }
             else
             {
-                // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
+                // Refreshed person exists in external personnel but not found as a valid profile in PEOPLE service
                 resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
                 if (considerRemovedProfile)
                 {
