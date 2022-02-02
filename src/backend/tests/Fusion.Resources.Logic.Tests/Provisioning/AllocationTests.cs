@@ -330,6 +330,43 @@ namespace Fusion.Resources.Logic.Tests
             rqComments.Should().BeEmpty();
         }
 
+        [Fact]
+        public async Task ShouldDeleteRequestActions()
+        {
+            #region setup
+            ApiPositionInstanceV2 testInstance = null!;
+
+            var testPerson = GenerateTestPerson();
+            var testPosition = GeneratePosition(p =>
+            {
+                p.WithInstances(s =>
+                {
+                    // Future instance
+                    testInstance = s.AddInstance(DateTime.UtcNow.AddDays(100), TimeSpan.FromDays(200))
+                        .SetExternalId("123");
+                });
+            });
+
+            var request = GenerateRequest(testInstance, r => r.WithProposedPerson(testPerson));
+            dbContext.RequestActions.Add(new DbRequestAction
+            {
+                Body = "<Insert resource owner gossip here>",
+                RequestId = request.Id,
+            });
+            await dbContext.SaveChangesAsync();
+            #endregion
+
+            var handler = new DeleteActionsHandler(dbContext);
+            await handler.Handle(new Events.RequestProvisioned(request.Id), CancellationToken.None);
+
+            var rqComments = await dbContext.RequestActions
+                .Where(c => c.RequestId == request.Id)
+                .ToListAsync();
+
+            rqComments.Should().BeEmpty();
+        }
+
+
         #region Helpers
 
         public void Dispose()
