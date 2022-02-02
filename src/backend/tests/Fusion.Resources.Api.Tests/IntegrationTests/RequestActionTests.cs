@@ -145,6 +145,33 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task CreateRequestAction_ShouldGiveBadRequest_WhenRequestIsProvisioned()
+        {
+            const string testDepartment = "TPD PRD FE MMS MAT1";
+            var adminClient = fixture.ApiFactory.CreateClient()
+                .WithTestUser(fixture.AdminUser)
+                .AddTestAuthToken();
+
+            fixture.EnsureDepartment(testDepartment);
+            var request = await adminClient.CreateDefaultRequestAsync(testProject, x => x.WithAssignedDepartment(testDepartment));
+            await adminClient.StartProjectRequestAsync(testProject, request.Id);
+            //await adminClient.ResourceOwnerApproveAsync(normalRequest.AssignedDepartment, request.Id);
+            await adminClient.TaskOwnerApproveAsync(testProject, request.Id);
+            await adminClient.ProvisionRequestAsync(request.Id);
+
+            var payload = new
+            {
+                title = "Test title",
+                category = "Test category",
+                type = "test"
+            };
+
+            var result = await adminClient.TestClientPostAsync<TestApiRequestAction>($"/requests/{request.Id}/actions", payload);
+
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task PatchRequestAction_ShouldBeOk()
         {
             var assignedPerson = fixture.AddProfile(FusionAccountType.Employee);

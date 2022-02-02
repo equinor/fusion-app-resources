@@ -24,6 +24,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
+            if (requestItem.IsCompleted)
+                return FusionApiError.InvalidOperation("ActionsDisabled", "Cannot add action on closed request");
+
             #region Authorization
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
