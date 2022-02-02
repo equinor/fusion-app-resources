@@ -155,7 +155,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.EnsureDepartment(testDepartment);
             var request = await adminClient.CreateDefaultRequestAsync(testProject, x => x.WithAssignedDepartment(testDepartment));
             await adminClient.StartProjectRequestAsync(testProject, request.Id);
-            //await adminClient.ResourceOwnerApproveAsync(normalRequest.AssignedDepartment, request.Id);
             await adminClient.TaskOwnerApproveAsync(testProject, request.Id);
             await adminClient.ProvisionRequestAsync(request.Id);
 
