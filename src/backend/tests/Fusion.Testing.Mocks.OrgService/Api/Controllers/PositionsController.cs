@@ -67,9 +67,22 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             return NotFound();
         }
 
+        [ApiVersion("2.0")]
+        [Produces("application/json")]
+        [HttpGet("/projects/{projectId}/contracts/{contractId}/positions")]
+        [HttpGet("/projects/{projectId}/drafts/{draftId}/contracts/{contractId}/positions")]
+        public ActionResult<List<ApiPositionV2>> GetContractPositions([FromRoute] ProjectIdentifier projectId, Guid contractId, [FromRoute] Guid? draftId)
+        {
+            return (from pos
+                in OrgServiceMock.contractPositions
+                    where pos.Value.ContractId == contractId && pos.Value.ProjectId == projectId.ProjectId
+                    select pos.Value).ToList();
+        }
+
         [MapToApiVersion("2.0")]
         [HttpGet("/projects/{projectId}/contracts/{contractId}/positions/{positionId}")]
-        public ActionResult<ApiPositionV2> GetPosition([FromRoute] ProjectIdentifier projectIdentifier, Guid contractId, Guid positionId)
+        [HttpGet("/projects/{projectId}/drafts/{draftId}/contracts/{contractId}/positions/{positionId}")]
+        public ActionResult<ApiPositionV2> GetPosition([FromRoute] ProjectIdentifier projectIdentifier, [FromRoute] Guid? draftId, Guid contractId, Guid positionId)
         {
             OrgServiceMock.contractPositions.TryGetValue(positionId, out ApiPositionV2 position);
 
@@ -93,9 +106,13 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         [ApiVersion("2.0")]
         [HttpPatch("projects/{projectId}/positions/{positionId}/instances/{instanceId}")]
         [HttpPatch("projects/{projectId}/drafts/{draftId}/positions/{positionId}/instances/{instanceId}")]
-        public ActionResult<ApiPositionV2> PatchPositionInstance([FromRoute] ProjectIdentifier projectId, Guid? draftId, Guid positionId, Guid instanceId, [FromBody] PatchInstanceRequestV2 request)
+        public ActionResult<ApiPositionV2> PatchPositionInstance([FromRoute] ProjectIdentifier projectId, Guid? contractId, Guid? draftId, Guid positionId, Guid? instanceId, [FromBody] PatchInstanceRequestV2 request)
         {
-            var position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
+            ApiPositionV2 position;
+            if (contractId.HasValue)
+                position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Value.ProjectId == projectId.ProjectId && p.Value.ContractId == contractId && p.Value.Id == positionId).Value;
+            else
+                position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
 
             var instance = position?.Instances.FirstOrDefault(x => x.Id == instanceId);
 
@@ -115,9 +132,6 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             if (request.ExternalId.HasValue)
                 instance.ExternalId = request.ExternalId.Value;
 
-            if (request.ExternalId.HasValue)
-                instance.ExternalId = request.ExternalId.Value;
-
             if (request.Location.HasValue)
                 instance.Location = new ApiPositionLocationV2()
                 {
@@ -126,7 +140,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 
             if (request.AssignedPerson.HasValue)
             {
-                var person = new ApiPersonV2()
+                instance.AssignedPerson = new ApiPersonV2
                 {
                     AzureUniqueId = request.AssignedPerson.Value.AzureUniqueId,
                     Mail = request.AssignedPerson.Value.Mail
@@ -134,6 +148,46 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
             }
 
 
+            return position;
+        }
+
+        [ApiVersion("2.0")]
+        [HttpPatch("projects/{projectId}/contracts/{contractId}/positions/{positionId}")]
+        [HttpPatch("projects/{projectId}/drafts/{draftId}/contracts/{contractId}/positions/{positionId}")]
+        public ActionResult<ApiPositionV2> PatchPosition([FromRoute] ProjectIdentifier projectId, Guid? contractId, Guid? draftId, Guid positionId, [FromBody] ApiPositionV2 request)
+        {
+            ApiPositionV2 position;
+            if (contractId.HasValue)
+                position = OrgServiceMock.contractPositions.FirstOrDefault(p => p.Value.ProjectId == projectId.ProjectId && p.Value.ContractId == contractId && p.Value.Id == positionId).Value;
+            else
+                position = OrgServiceMock.positions.FirstOrDefault(p => p.Project.ProjectId == projectId.ProjectId && p.Id == positionId);
+
+
+            foreach (var pInstance in request.Instances)
+            {
+                var instance = position?.Instances.FirstOrDefault(x => x.Id == pInstance.Id);
+
+                if (instance == null)
+                    continue;
+
+                // Do some updates based on request if required.
+                instance.AppliesFrom = pInstance.AppliesFrom;
+                instance.AppliesTo = pInstance.AppliesTo;
+                instance.Calendar = pInstance.Calendar;
+                instance.ExternalId = pInstance.ExternalId;
+                if (pInstance.Location != null)
+                    instance.Location = new ApiPositionLocationV2()
+                    {
+                        Id = pInstance.Location.Id
+                    };
+
+                if (pInstance.AssignedPerson != null)
+                    instance.AssignedPerson = new ApiPersonV2
+                    {
+                        AzureUniqueId = pInstance.AssignedPerson.AzureUniqueId,
+                        Mail = pInstance.AssignedPerson.Mail
+                    };
+            }
             return position;
         }
 
@@ -220,7 +274,7 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
                     return Ok(new
                     {
                         Path = new[] { taskOwner.Id, director.Id },
-                        ReportPositions = new[] { director, taskOwner  }
+                        ReportPositions = new[] { director, taskOwner }
                     });
                 }
             }

@@ -55,22 +55,31 @@ namespace Fusion.Resources.Domain.Services
             if (resolvedPerson == null)
                 throw new PersonNotFoundError(personId.OriginalIdentifier);
 
-
-            if (profile != null && resolvedPerson.AzureUniqueId == profile.AzureUniqueId)
+            // Profile found in people service
+            if (profile != null)
             {
-                resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
-                resolvedPerson.UPN = profile.UPN;
-                resolvedPerson.JobTitle = profile.JobTitle;
-                resolvedPerson.Name = profile.Name;
-                resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
-                resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
-                resolvedPerson.IsDeleted = profile.IsExpired.GetValueOrDefault(false);
-                resolvedPerson.Deleted = profile.ExpiredDate;
+                //New external personnel without azureUniqueId, should be provided azureUniqueId if found in people service
+                if (!resolvedPerson.AzureUniqueId.HasValue && profile.AzureUniqueId.HasValue)
+                {
+                    resolvedPerson.AzureUniqueId = profile.AzureUniqueId;
+                }
 
+                //Existing external personnel should be matched by azureUniqueId
+                if (resolvedPerson.AzureUniqueId == profile.AzureUniqueId)
+                {
+                    resolvedPerson.AccountStatus = profile.GetDbAccountStatus();
+                    resolvedPerson.UPN = profile.UPN;
+                    resolvedPerson.JobTitle = profile.JobTitle;
+                    resolvedPerson.Name = profile.Name;
+                    resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
+                    resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
+                    resolvedPerson.IsDeleted = profile.IsExpired.GetValueOrDefault(false);
+                    resolvedPerson.Deleted = profile.ExpiredDate;
+                }
             }
             else
             {
-                // Refreshed person exists in resources but not anymore as a valid profile in PEOPLE service
+                // Refreshed person exists in external personnel but not found as a valid profile in PEOPLE service
                 resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
                 if (considerRemovedProfile)
                 {
@@ -91,7 +100,7 @@ namespace Fusion.Resources.Domain.Services
             return resolvedPerson;
         }
 
-        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, string mail, string firstName, string lastName)
+        public async Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, PersonId personIdentifier, string firstName, string lastName)
         {
             // Should refactor this to distributed lock.
 
@@ -99,29 +108,39 @@ namespace Fusion.Resources.Domain.Services
 
             try
             {
-                var existingEntry = await ResolveExternalPersonnelAsync(mail);
+                var existingEntry = await ResolveExternalPersonnelAsync(personIdentifier);
 
                 if (existingEntry != null)
                     return existingEntry;
 
-                var profile = await ResolveProfileAsync(mail);
+                var profile = await ResolveProfileAsync(personIdentifier);
 
                 var newEntry = new DbExternalPersonnelPerson
                 {
                     AccountStatus = DbAzureAccountStatus.NoAccount,
                     Disciplines = new List<DbPersonnelDiscipline>(),
                     UPN = upn,
-                    Mail = mail,
+                    Mail = string.Empty,
                     Name = $"{firstName} {lastName}",
                     FirstName = firstName,
                     LastName = lastName,
                     Phone = string.Empty
                 };
 
+                switch (personIdentifier.Type)
+                {
+                    case PersonId.IdentifierType.UniqueId:
+                        newEntry.AzureUniqueId = personIdentifier.UniqueId;
+                        break;
+                    case PersonId.IdentifierType.Mail:
+                        newEntry.Mail = personIdentifier.Mail!;
+                        break;
+                }
+
                 if (profile != null)
                 {
                     newEntry.UPN = profile.UPN;
-                    newEntry.Mail = profile.Mail ?? string.Empty;
+                    newEntry.Mail = profile.Mail ?? newEntry.Mail;
                     newEntry.AccountStatus = profile.GetDbAccountStatus();
                     newEntry.AzureUniqueId = profile.AzureUniqueId;
                     newEntry.JobTitle = profile.JobTitle;

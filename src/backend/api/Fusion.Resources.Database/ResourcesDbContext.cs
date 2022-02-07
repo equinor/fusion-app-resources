@@ -46,6 +46,8 @@ namespace Fusion.Resources.Database
         public DbSet<DbRequestAction> RequestActions { get; set; }
         public DbSet<DbConversationMessage> RequestConversations { get; set; }
 
+        public DbSet<DbContractPersonnelReplacement> ContractPersonnelReplacementChanges { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbContractPersonnel.OnModelCreating(modelBuilder);
@@ -63,6 +65,7 @@ namespace Fusion.Resources.Database
             DbDepartmentResponsible.OnModelCreating(modelBuilder);
             DbRequestAction.OnModelCreating(modelBuilder);
             DbConversationMessage.OnModelCreating(modelBuilder);
+            DbContractPersonnelReplacement.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -1,4 +1,5 @@
 ﻿using Fusion.Integration.Profile;
+using Fusion.Resources.Api.Controllers.Requests.ApiModels;
 using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;
@@ -155,6 +156,7 @@ namespace Fusion.Resources.Api.Controllers
                 BasePosition = new ApiBasePosition(pos.BasePosition);
 
                 HasChangeRequest = pos.HasChangeRequest;
+                ChangeRequestStatus = pos.ChangeRequestStatus is not null ? new ApiRequestStatus(pos.ChangeRequestStatus) : null;
             }
 
             public Guid PositionId { get; set; }
@@ -173,6 +175,7 @@ namespace Fusion.Resources.Api.Controllers
             public ApiProjectReference Project { get; set; } = null!;
 
             public bool HasChangeRequest { get; set; }
+            public ApiRequestStatus? ChangeRequestStatus { get; }
         }
     }
 

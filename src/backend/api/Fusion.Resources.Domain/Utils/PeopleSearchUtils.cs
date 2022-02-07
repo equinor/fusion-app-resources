@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Fusion.Resources.Domain.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -104,41 +105,11 @@ namespace Fusion.Resources.Domain
                 totalCount = items.count ?? 0;
 
                 result.AddRange(
-                    items.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
-                    {
-                        PhoneNumber = i.document.mobilePhone,
-                        JobTitle = i.document.jobTitle,
-                        OfficeLocation = i.document.officeLocation,
-                        Department = i.document.department,
-                        IsResourceOwner = i.document.isResourceOwner,
-                        FullDepartment = i.document.fullDepartment,
-                        ManagerAzureId = i.document.managerAzureId,
-                        PositionInstances = i.document.positions.Select(p => new QueryPersonnelPosition
-                        {
-                            PositionId = p.id,
-                            InstanceId = p.instanceId,
-                            AppliesFrom = p.appliesFrom!.Value,
-                            AppliesTo = p.appliesTo!.Value,
-                            Name = p.name,
-                            Location = p.locationName,
-                            BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
-                            Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
-                            Workload = p.workload,
-                            AllocationState = p.allocationState,
-                            AllocationUpdated = p.allocationUpdated,
-                            HasChangeRequest = PositionHasChangeRequest(requests, p, i.document.azureUniqueId)
-                        }).OrderBy(p => p.AppliesFrom).ToList()
-                    })
+                    items.results.Select(i => i.document.ToQueryInternalPersonnelPerson(requests) )
                 );
             } while (skip < totalCount);
 
             return result;
-        }
-
-        private static bool PositionHasChangeRequest(List<QueryResourceAllocationRequest>? requests, SearchPositionDTO position, Guid azureUniqueId)
-        {
-            return requests != null
-                   && requests.Any(x => x.OrgPositionId == position.id && x.OrgPositionInstance?.AssignedPerson?.AzureUniqueId == azureUniqueId);
         }
 
         private static async Task<(List<QueryInternalPersonnelPerson> items, int totalCount)> SearchIndexAsync(HttpClient peopleClient, SearchParams query)
@@ -202,8 +173,6 @@ namespace Fusion.Resources.Domain
 
             return (resultItems, items.count ?? 0);
         }
-
-
         private class SearchProjectDTO
         {
             public string name { get; set; } = null!;
@@ -251,6 +220,40 @@ namespace Fusion.Resources.Domain
             public bool isResourceOwner { get; set; }
             public Guid? managerAzureId { get; set; }
             public List<SearchPositionDTO> positions { get; set; } = new();
+
+            public QueryInternalPersonnelPerson ToQueryInternalPersonnelPerson(List<QueryResourceAllocationRequest>? requests)
+            {
+                return new QueryInternalPersonnelPerson(azureUniqueId, mail, name, accountType)
+                {
+                    PhoneNumber = mobilePhone,
+                    JobTitle = jobTitle,
+                    OfficeLocation = officeLocation,
+                    Department = department,
+                    IsResourceOwner = isResourceOwner,
+                    FullDepartment = fullDepartment,
+                    ManagerAzureId = managerAzureId,
+                    PositionInstances = positions.Select(p => {
+                        var changeRequest = requests?.FirstOrDefault(x => x.OrgPositionId == p.id && x.OrgPositionInstance?.AssignedPerson?.AzureUniqueId == azureUniqueId);
+                        
+                        return new QueryPersonnelPosition
+                        {
+                            PositionId = p.id,
+                            InstanceId = p.instanceId,
+                            AppliesFrom = p.appliesFrom!.Value,
+                            AppliesTo = p.appliesTo!.Value,
+                            Name = p.name,
+                            Location = p.locationName,
+                            BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
+                            Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
+                            Workload = p.workload,
+                            AllocationState = p.allocationState,
+                            AllocationUpdated = p.allocationUpdated,
+                            HasChangeRequest = changeRequest is not null,
+                            ChangeRequestStatus = changeRequest != null ? new QueryRequestStatus(changeRequest) : null
+                        };
+                    }).OrderBy(p => p.AppliesFrom).ToList()
+                };
+            }
 
         }
 
