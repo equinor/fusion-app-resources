@@ -1,4 +1,3 @@
-
 import {
     ModalSideSheet,
     Tabs,
@@ -18,6 +17,7 @@ import styles from './styles.less';
 import EditablePositionDetails from '../../../components/EditablePositionDetails';
 import PersonPositionsDetails from '../../../components/PersonPositionsDetails';
 import { FC, useState, useCallback, useMemo } from 'react';
+import DeletedAccountInfo from './DeletedAccountInfo';
 
 type PersonnelInfoSideSheetProps = {
     isOpen: boolean;
@@ -25,11 +25,7 @@ type PersonnelInfoSideSheetProps = {
     setIsOpen: (state: boolean) => void;
 };
 
-const PersonnelInfoSideSheet: FC<PersonnelInfoSideSheetProps> = ({
-    isOpen,
-    person,
-    setIsOpen,
-}) => {
+const PersonnelInfoSideSheet: FC<PersonnelInfoSideSheetProps> = ({ isOpen, person, setIsOpen }) => {
     const [activeTabKey, setActiveTabKey] = useState<string>('general');
     const [editMode, setEditMode] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -91,8 +87,7 @@ const PersonnelInfoSideSheet: FC<PersonnelInfoSideSheetProps> = ({
             setIsSaving(false);
             notification({
                 level: 'high',
-                title:
-                    'Something went wrong while saving. Please try again or contact administrator',
+                title: 'Something went wrong while saving. Please try again or contact administrator',
             });
         }
     }, [formState, isFormValid, isFormDirty]);
@@ -131,22 +126,25 @@ const PersonnelInfoSideSheet: FC<PersonnelInfoSideSheetProps> = ({
                 setIsOpen(false);
             }}
         >
-            <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
-                <Tab tabKey="general" title="General">
-                    <div className={styles.tabContainer}>
-                        <EditablePositionDetails
-                            person={formState}
-                            edit={editMode}
-                            setField={formFieldSetter}
-                        />
-                    </div>
-                </Tab>
-                <Tab disabled={editMode} tabKey="positions" title="Positions">
-                    <div className={styles.tabContainer}>
-                        <PersonPositionsDetails person={person} />
-                    </div>
-                </Tab>
-            </Tabs>
+            <div className={styles.container}>
+                {person.isDeleted && <DeletedAccountInfo person={person} />}
+                <Tabs activeTabKey={activeTabKey} onChange={setActiveTabKey}>
+                    <Tab tabKey="general" title="General">
+                        <div className={styles.tabContainer}>
+                            <EditablePositionDetails
+                                person={formState}
+                                edit={editMode}
+                                setField={formFieldSetter}
+                            />
+                        </div>
+                    </Tab>
+                    <Tab disabled={editMode} tabKey="positions" title="Positions">
+                        <div className={styles.tabContainer}>
+                            <PersonPositionsDetails person={person} />
+                        </div>
+                    </Tab>
+                </Tabs>
+            </div>
         </ModalSideSheet>
     );
 };

@@ -12,7 +12,10 @@ const getColumns = (isFetching: boolean): FusionColumn<Personnel>[] => {
             Header: 'AD',
             accessor: 'azureAdStatus',
             Cell: ({ row }) => (
-                <AzureAdStatusIndicator status={row.original.azureAdStatus || 'NoAccount'} />
+                <AzureAdStatusIndicator
+                    status={row.original.azureAdStatus || 'NoAccount'}
+                    isDeleted={row.original.isDeleted}
+                />
             ),
             maxWidth: styling.numericalGrid(2),
             width: styling.numericalGrid(2),

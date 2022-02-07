@@ -1,5 +1,4 @@
-
-import { DataTable, DataTableColumn } from '@equinor/fusion-components';
+import { DataTable, DataTableColumn, RadioButton } from '@equinor/fusion-components';
 import { useSorting, useCurrentContext, useNotificationCenter } from '@equinor/fusion';
 import PersonnelColumns from './PersonnelColumns';
 import Personnel from '../../../../../../models/Personnel';
@@ -16,13 +15,15 @@ import useExcelImport from '../../../../../../hooks/useExcelImport';
 import personnelExcelImportSettings from './personnelExcelImportSettings';
 import ExcelImportSideSheet from './components/ExcelImportSideSheet';
 import { FC, useState, useEffect, useCallback, useMemo } from 'react';
+import RadioFilter from './components/RadioFilter';
+
+type MPPFilter = 'all' | 'show-mpp' | 'hide-mpp';
 
 const ManagePersonnelPage: FC = () => {
     const currentContext = useCurrentContext();
     const { apiClient } = useAppContext();
-    const { setSelectedFile, isProccessingFile, processedFile, processingError } = useExcelImport<
-        Personnel
-    >(personnelExcelImportSettings);
+    const { setSelectedFile, isProccessingFile, processedFile, processingError } =
+        useExcelImport<Personnel>(personnelExcelImportSettings);
 
     const { contract, contractState, dispatchContractAction } = useContractContext();
     const [filteredPersonnel, setFilteredPersonnel] = useState<Personnel[]>([]);
@@ -32,6 +33,8 @@ const ManagePersonnelPage: FC = () => {
     const notification = useNotificationCenter();
 
     const [isUploadFileOpen, setIsUploadFileOpen] = useState<boolean>(false);
+
+    const [selectedMppFilter, setSelectedMppFilter] = useState<MPPFilter>('all');
 
     useEffect(() => {
         if (!isAddPersonOpen) {
@@ -76,13 +79,35 @@ const ManagePersonnelPage: FC = () => {
         return result;
     }, [contract, currentContext]);
 
-    const { data: personnel, isFetching, error } = useReducerCollection(
+    const {
+        data: personnel,
+        isFetching,
+        error,
+    } = useReducerCollection(
         contractState,
         dispatchContractAction,
         'personnel',
         fetchPersonnelAsync,
         'set'
     );
+    const hiddenInMppPersonnel = useMemo(
+        () => personnel.filter((p) => !p.positions || p.positions.length === 0),
+        [personnel]
+    );
+    const shownInMppPersonnel = useMemo(
+        () => personnel.filter((p) => p.positions && p.positions.length > 0),
+        [personnel]
+    );
+
+    const mppFilteredPersonnel = useMemo(() => {
+        if (selectedMppFilter == 'hide-mpp') {
+            return hiddenInMppPersonnel;
+        }
+        if (selectedMppFilter == 'show-mpp') {
+            return shownInMppPersonnel;
+        }
+        return personnel;
+    }, [personnel, selectedMppFilter, hiddenInMppPersonnel, shownInMppPersonnel]);
 
     const { sortedData, setSortBy, sortBy, direction } = useSorting<Personnel>(
         filteredPersonnel,
@@ -140,8 +165,7 @@ const ManagePersonnelPage: FC = () => {
             } catch (e) {
                 notification({
                     level: 'high',
-                    title:
-                        'Something went wrong while saving. Please try again or contact administrator',
+                    title: 'Something went wrong while saving. Please try again or contact administrator',
                 });
             }
         },
@@ -198,6 +222,26 @@ const ManagePersonnelPage: FC = () => {
                             deleteButton={deleteButton}
                             excelImportButton={excelImportButton}
                         />
+                        <div className={styles.mppFilter}>
+                            <RadioFilter
+                                radioKey="all"
+                                selectedKey={selectedMppFilter}
+                                onClick={setSelectedMppFilter}
+                                title={`All (${personnel.length})`}
+                            />
+                            <RadioFilter
+                                radioKey="show-mpp"
+                                selectedKey={selectedMppFilter}
+                                onClick={setSelectedMppFilter}
+                                title={`Show people in MPP (${shownInMppPersonnel.length})`}
+                            />
+                            <RadioFilter
+                                radioKey="hide-mpp"
+                                selectedKey={selectedMppFilter}
+                                onClick={setSelectedMppFilter}
+                                title={`Hide people in MPP (${hiddenInMppPersonnel.length})`}
+                            />
+                        </div>
                     </div>
                     <div className={styles.table}>
                         <DataTable
@@ -228,7 +272,7 @@ const ManagePersonnelPage: FC = () => {
                     )}
                 </div>
                 <GenericFilter
-                    data={personnel}
+                    data={mppFilteredPersonnel}
                     filterSections={filterSections}
                     onFilter={setFilteredPersonnel}
                 />
