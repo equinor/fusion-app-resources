@@ -50,6 +50,7 @@ A guest account in the company Azure AD. This means the user can sign in to the 
 > ![#a6a6a6](https://via.placeholder.com/15/cacaca/000000?text=+) **Grey** indicates the user does not have an account.</br>
 > ![#f0b913](https://via.placeholder.com/15/f0b913/000000?text=+) **Yellow** means the user has **not** accepted the invitation yet. That results in the user not being able to sign in.</br>
 > ![#1fcf00](https://via.placeholder.com/15/1fcf00/000000?text=+) **Green** the user can sign in and use company services. 
+> ![#ff1243](https://via.placeholder.com/15/ff1243/000000?text=+) **Red** the user is using a deleted azure account
 
 > ### 3.1 Requests - create/submit
 > ![#d66dd3](https://via.placeholder.com/15/d66dd3/000000?text=+) CR/PR and any other users with a position in the contract can create requests to add personnel to the contract.

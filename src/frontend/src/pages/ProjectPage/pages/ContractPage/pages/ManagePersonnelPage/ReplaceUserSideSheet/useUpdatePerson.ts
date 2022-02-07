@@ -11,7 +11,6 @@ const useUpdatePerson = (
     onReplacementSuccess: () => void
 ) => {
     const [isUpdatingPerson, setIsUpdatingPerson] = useState<boolean>(false);
-    const [updateError, setUpdateError] = useState(null);
 
     const { apiClient } = useAppContext();
     const currentContext = useCurrentContext();
@@ -23,11 +22,12 @@ const useUpdatePerson = (
             projectId: string,
             contractId: string,
             currentPersonId: string,
+            currentPersonUpn: string | null,
             payload: ReplacePersonRequest
         ) => {
             setIsUpdatingPerson(true);
-            //Need the add force flag if a person is replaced
-            const tryForce = currentPersonId !== payload.azureUniquePersonId;
+            //Need the add force flag if a person upn is replaced
+            const tryForce = currentPersonUpn !== payload.upn;
             try {
                 const response = await apiClient.replacePersonAsync(
                     projectId,
@@ -76,11 +76,12 @@ const useUpdatePerson = (
         const azureUniquePersonId = updateToPerson?.azureUniqueId;
         const upn = updateToPerson?.upn;
         const currentPersonId = currentPersonnel.azureUniquePersonId;
+        const currentPersonUpn = currentPersonnel.upn || null;
 
         if (contractId && projectId && azureUniquePersonId && upn && currentPersonId) {
             const payload: ReplacePersonRequest = { azureUniquePersonId, upn };
 
-            updatePersonAsync(projectId, contractId, currentPersonId, payload);
+            updatePersonAsync(projectId, contractId, currentPersonId, currentPersonUpn, payload);
         }
     }, [contract, currentContext, updateToPerson, currentPersonnel, updatePersonAsync]);
 

@@ -91,12 +91,15 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         sortable: true,
     },
     {
-        key: 'Disciplines',
-        accessor: (p) => p.disciplines.map((d) => d.name)?.join('/') || '',
-        label: 'Discipline',
+        key: 'positions',
+        accessor: 'personnelId',
+        label: 'Nr Positions',
         priority: 5,
+        component: (p) => <span>{(p.item.positions?.length || 0).toString()}</span>,
         sortable: true,
+        width: '20px',
     },
+
     {
         key: 'Phone',
         accessor: 'phoneNumber',
@@ -120,13 +123,11 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         width: '20px',
     },
     {
-        key: 'positions',
-        accessor: 'personnelId',
-        label: 'Nr Positions',
+        key: 'Disciplines',
+        accessor: (p) => p.disciplines.map((d) => d.name)?.join('/') || '',
+        label: 'Discipline',
         priority: 9,
-        component: (p) => <span>{(p.item.positions?.length || 0).toString()}</span>,
         sortable: true,
-        width: '20px',
     },
     {
         key: 'equinorMail',
