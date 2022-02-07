@@ -20,6 +20,7 @@ const useCheckForUpdatedPerson = (expiredPerson: Personnel) => {
                 !!validResponse &&
                     sendNotification({ level: 'low', title: 'Updated person reference found based on UPN' });
             } catch (e) {
+                sendNotification({ level: 'low', title: 'Unable to get default person reference based on UPN' });
             } finally {
                 setIsCheckingForUpdatedPerson(false);
             }
