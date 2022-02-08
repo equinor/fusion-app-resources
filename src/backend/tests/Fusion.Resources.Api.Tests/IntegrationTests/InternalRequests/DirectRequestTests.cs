@@ -221,6 +221,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.ProposedPerson?.Person.Mail.Should().Be(proposedPerson.Mail);
         }
 
+        [Fact]
+        public async Task DirectRequest_Create_ShouldFailWhenProposedPersonNotInAssignedDepartment()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            fixture.EnsureDepartment("PDP PRD PCM QRI QRM2");
+            fixture.EnsureDepartment("PDP PRD PCM QIA QRM2");
+
+
+            proposedPerson.FullDepartment = "PDP PRD PCM QRI QRM2";
+            proposedPerson.Department = "PCM QRI QRM2";
+
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                subType = "direct",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId,
+                assignedDepartment = "PDP PRD PCM QIA QRM2"
+            }, new {});
+
+            response.Should().BeBadRequest();
+        }
+
         #endregion
 
         #region Request flow tests
@@ -368,7 +396,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await FastForward_ApprovalRequest();
 
-            fixture.ApiFactory.queueMock.Verify(q => q.SendMessageDelayedAsync(QueuePath.ProvisionPosition,  It.Is<ProvisionPositionMessageV1>(q => q.RequestId == directRequest.Id), It.IsAny<int>()), Times.Once);
+            fixture.ApiFactory.queueMock.Verify(q => q.SendMessageDelayedAsync(QueuePath.ProvisionPosition, It.Is<ProvisionPositionMessageV1>(q => q.RequestId == directRequest.Id), It.IsAny<int>()), Times.Once);
         }
 
         [Fact]

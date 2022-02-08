@@ -107,16 +107,27 @@ namespace Fusion.Resources.Api.Controllers
 
                     });
                 RuleFor(x => x.AssignedDepartment)
-                   .MustAsync(async (d, cancellationToken) =>
+                   .MustAsync(async (d, ct) =>
                    {
                        if (d is null)
                            return true;
 
-                       var department = await mediator.Send(new GetDepartment(d), cancellationToken);
+                       var department = await mediator.Send(new GetDepartment(d), ct);
                        return department is not null;
                    })
                    .WithMessage("Invalid department specified")
                    .When(x => !string.IsNullOrEmpty(x.AssignedDepartment));
+
+                RuleFor(x => x)
+                    .MustAsync(async (rq, ct) =>
+                    {
+                        var id = rq.ProposedPersonAzureUniqueId;
+                        var profile = await profileResolver.ResolvePersonBasicProfileAsync(id);
+
+                        return profile!.FullDepartment == rq.AssignedDepartment;
+                    })
+                    .WithMessage("Assigned department cannot be different from the proposed persons department. Either avoid assigning department or assign it to the proposed persons department.")
+                    .When(x => x.ProposedPersonAzureUniqueId.HasValue && !string.IsNullOrEmpty(x.AssignedDepartment));
             }
         }
 
