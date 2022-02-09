@@ -14,7 +14,7 @@ namespace Fusion.Resources.Domain
         private readonly string[] path;
         private readonly string fullDepartmentPath;
 
-        public DepartmentPath(string fullDepartmentPath)
+        public DepartmentPath(string? fullDepartmentPath)
         {
             var trimedPath = (fullDepartmentPath ?? "").Trim();
 
