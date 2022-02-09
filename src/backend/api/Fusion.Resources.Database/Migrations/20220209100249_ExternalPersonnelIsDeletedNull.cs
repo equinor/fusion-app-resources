@@ -15,6 +15,7 @@ namespace Fusion.Resources.Database.Migrations
                 oldType: "bit");
 
             migrationBuilder.Sql("update ExternalPersonnel set IsDeleted = null, Deleted = null where AzureUniqueId is null");
+            migrationBuilder.Sql("update ExternalPersonnel set IsDeleted = null where IsDeleted = 0");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
