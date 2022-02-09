@@ -15,7 +15,7 @@ namespace Fusion.Resources.Api.Tests
         public string PhoneNumber { get; set; }
         public string PreferredContactMail { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
         public DateTimeOffset? Deleted { get; set; }
     }
 }
