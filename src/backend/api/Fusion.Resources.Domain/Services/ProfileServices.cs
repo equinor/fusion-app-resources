@@ -35,8 +35,8 @@ namespace Fusion.Resources.Domain.Services
 
             var existingEntry = personId.Type switch
             {
-                PersonId.IdentifierType.UniqueId => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.AzureUniqueId == personId.UniqueId && p.IsDeleted == false),
-                PersonId.IdentifierType.Mail => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.Mail == personId.Mail && p.IsDeleted == false),
+                PersonId.IdentifierType.UniqueId => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.AzureUniqueId == personId.UniqueId),
+                PersonId.IdentifierType.Mail => await resourcesDb.ExternalPersonnel.FirstOrDefaultAsync(p => p.Mail == personId.Mail && p.IsDeleted != true),
                 _ => throw new InvalidOperationException("Unsupported person identifier type")
             };
 
@@ -73,7 +73,7 @@ namespace Fusion.Resources.Domain.Services
                     resolvedPerson.Name = profile.Name;
                     resolvedPerson.Phone = profile.MobilePhone ?? string.Empty;
                     resolvedPerson.PreferredContractMail = profile.PreferredContactMail;
-                    resolvedPerson.IsDeleted = profile.IsExpired.GetValueOrDefault(false);
+                    resolvedPerson.IsDeleted = profile.IsExpired;
                     resolvedPerson.Deleted = profile.ExpiredDate;
                 }
             }
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Domain.Services
             {
                 // Refreshed person exists in external personnel but not found as a valid profile in PEOPLE service
                 resolvedPerson.AccountStatus = DbAzureAccountStatus.NoAccount;
-                if (considerRemovedProfile)
+                if (considerRemovedProfile && resolvedPerson.AzureUniqueId.HasValue)
                 {
                     resolvedPerson.IsDeleted = true;
                     resolvedPerson.Deleted = DateTimeOffset.UtcNow;

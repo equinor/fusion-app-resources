@@ -51,7 +51,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiAccountStatus AzureAdStatus { get; set; }
 
         public bool HasCV { get; set; }
-        public bool IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
         public DateTimeOffset? Deleted { get; set; }
 
         public List<ApiPersonnelDiscipline> Disciplines { get; set; }
