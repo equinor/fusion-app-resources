@@ -40,7 +40,7 @@ namespace Fusion.Resources.Database.Entities
         [MaxLength(100)]
         public string? LinkedInProfile { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
         public DateTimeOffset? Deleted { get; set; }
         public ICollection<DbPersonnelDiscipline> Disciplines { get; set; } = null!;
 
