@@ -121,12 +121,16 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x)
                     .MustAsync(async (rq, ct) =>
                     {
-                        var id = rq.ProposedPersonAzureUniqueId;
+                        var id = rq.ProposedPersonAzureUniqueId!;
                         var profile = await profileResolver.ResolvePersonBasicProfileAsync(id);
 
-                        return profile!.FullDepartment == rq.AssignedDepartment;
+
+                        bool isAssignedDepartmentLegal = rq.AssignedDepartment == profile!.FullDepartment
+                            || new DepartmentPath(rq.AssignedDepartment).IsParent(profile!.FullDepartment);
+
+                        return isAssignedDepartmentLegal;
                     })
-                    .WithMessage("Assigned department cannot be different from the proposed persons department. Either avoid assigning department or assign it to the proposed persons department.")
+                    .WithMessage("Assigned department cannot be different from the proposed persons department. Either avoid assigning department or assign it to the proposed persons sector or department.")
                     .When(x => x.ProposedPersonAzureUniqueId.HasValue && !string.IsNullOrEmpty(x.AssignedDepartment));
             }
         }

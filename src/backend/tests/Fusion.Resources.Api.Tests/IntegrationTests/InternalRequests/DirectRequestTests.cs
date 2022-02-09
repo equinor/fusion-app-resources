@@ -249,6 +249,36 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeBadRequest();
         }
 
+
+        [Fact]
+        public async Task DirectRequest_Create_ShouldBeAllowedWhenProposedPersonIsInSector()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            fixture.EnsureDepartment("PDP PRD PCM QRI");
+            fixture.EnsureDepartment("PDP PRD PCM QRI QRM2");
+
+
+            proposedPerson.FullDepartment = "PDP PRD PCM QRI QRM2";
+            proposedPerson.Department = "PCM QRI QRM2";
+
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                subType = "direct",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+                proposedPersonAzureUniqueId = proposedPerson.AzureUniqueId,
+                assignedDepartment = "PDP PRD PCM QRI"
+            }, new { assignedDepartment = "" });
+
+            response.Should().BeSuccessfull();
+            response.Value.assignedDepartment.Should().Be("PDP PRD PCM QRI");
+        }
+
         #endregion
 
         #region Request flow tests
