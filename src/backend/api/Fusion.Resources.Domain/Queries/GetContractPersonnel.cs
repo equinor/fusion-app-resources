@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 
 namespace Fusion.Resources.Domain
 {
@@ -61,12 +62,14 @@ namespace Fusion.Resources.Domain
             private readonly ResourcesDbContext db;
             private readonly IFusionProfileResolver profileResolver;
             private readonly IProjectOrgResolver orgResolver;
+            private readonly TelemetryClient telemetryClient;
 
-            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver, IProjectOrgResolver orgResolver)
+            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver, IProjectOrgResolver orgResolver, TelemetryClient telemetryClient)
             {
                 this.db = db;
                 this.profileResolver = profileResolver;
                 this.orgResolver = orgResolver;
+                this.telemetryClient = telemetryClient;
             }
 
             public async Task<IEnumerable<QueryContractPersonnel>> Handle(GetContractPersonnel request, CancellationToken cancellationToken)
@@ -137,8 +140,10 @@ namespace Fusion.Resources.Domain
 
                     var profile = profiles.FirstOrDefault(p => p.AzureUniqueId == item.AzureUniqueId);
                     if (profile is null)
-                        throw new InvalidOperationException($"Could locate profile for person with azure id {item.AzureUniqueId}. The profile should have been loaded...");
-
+                    {
+                        telemetryClient.TrackFusionCriticalEvent($"Could locate profile for person with azure id {item.AzureUniqueId}. The profile should have been loaded...");
+                        continue;
+                    }
 
                     item.Positions = profile.Contracts?.SelectMany(c => c.Positions.Select(p => new QueryOrgPositionInstance(c, p))).ToList();
                 }
