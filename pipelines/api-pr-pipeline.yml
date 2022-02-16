@@ -21,7 +21,7 @@ stages:
     displayName: 'Build docker image'
     jobs:
     - job: BuildImage
-      pool: Private Docker
+      pool: Private Docker VMSS
       steps:
       - task: Docker@1
         displayName: 'Build an image'
@@ -70,7 +70,7 @@ stages:
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      pool: Private Docker
+      pool: Private Docker VMSS
       environment: fusion-resources-pr.fusion-resources-app-pr
       strategy:
         runOnce:
