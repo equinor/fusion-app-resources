@@ -23,7 +23,7 @@ stages:
     displayName: 'Build docker image'
     jobs:
     - job: BuildImage
-      pool: Private Docker VMSS
+      pool: Private Docker
       steps:
       - task: Docker@1
         displayName: 'Build an image'
@@ -76,7 +76,7 @@ stages:
   
     jobs:
     - deployment: DeployCI
-      pool: Private Docker VMSS
+      pool: Private Docker
       environment: fusion-ci.fusion-resources-app-ci
       strategy:
         runOnce:
@@ -130,7 +130,7 @@ stages:
               
     jobs:
       - deployment: DeployFQA
-        pool: Private Docker VMSS
+        pool: Private Docker
         environment: fusion-resources-fqa.fusion-resources-app-fqa
         strategy:
           runOnce:
@@ -183,7 +183,7 @@ stages:
               
     jobs:
       - deployment: DeployFPRD
-        pool: Private Docker VMSS
+        pool: Private Docker
         environment: fusion-prod.fusion-resources-app-fprd
         strategy:
           runOnce:

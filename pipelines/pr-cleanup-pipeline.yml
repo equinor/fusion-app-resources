@@ -13,7 +13,7 @@ schedules:
 jobs:
   - deployment: DeployPR
     displayName: 'Remove pull request environment artifacts'
-    pool: Private Docker VMSS
+    pool: Private Docker
     environment: fusion-resources-pr.fusion-resources-app-pr
     strategy:
       runOnce:

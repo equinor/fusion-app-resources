@@ -11,7 +11,7 @@ pr: none
 stages:
 - stage: DeployCI
   displayName: CI Azure Infra
-  pool: Private Docker VMSS
+  pool: Private Docker
   jobs:
   - deployment: DeployInfra
     environment: fusion-ci
@@ -29,7 +29,7 @@ stages:
 
 - stage: DeployPR
   displayName: PR Azure Infra
-  pool: Private Docker VMSS  
+  pool: Private Docker  
   dependsOn: DeployCI
   condition: succeeded()
   jobs:
@@ -63,7 +63,7 @@ stages:
 
 - stage: DeployQA
   displayName: QA Azure Infra
-  pool: Private Docker VMSS  
+  pool: Private Docker  
   dependsOn: DeployCI
   condition: succeeded()
   jobs:
@@ -83,7 +83,7 @@ stages:
 
 - stage: DeployPROD
   displayName: PROD Azure Infra
-  pool: Private Docker VMSS  
+  pool: Private Docker  
   dependsOn: DeployQA
   condition: succeeded()
   jobs:

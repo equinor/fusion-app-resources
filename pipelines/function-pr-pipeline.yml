@@ -32,7 +32,7 @@ stages:
     
       jobs:
       - deployment: Deploy
-        pool: Private Docker VMSS
+        pool: Private Docker
     
         displayName: 'Deploy function app'
         environment: fusion-pr
