@@ -21,7 +21,7 @@ stages:
     displayName: 'Build docker image'
     jobs:
     - job: BuildImage
-      pool: Private Docker
+      pool: Private Docker VMSS
       steps:
       - task: Docker@1
         displayName: 'Build an image'
@@ -70,7 +70,7 @@ stages:
     jobs:
     - deployment: DeployPR
       displayName: 'Deploy API to PR'
-      pool: Private Docker
+      pool: Private Docker VMSS
       environment: fusion-resources-pr.fusion-resources-app-pr
       strategy:
         runOnce:
@@ -86,8 +86,8 @@ stages:
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
                 Inline: |
-                    $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name AzureAd--ClientSecret
-                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-pr -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
 
             - task: AzurePowerShell@4
               displayName: 'Provision database'

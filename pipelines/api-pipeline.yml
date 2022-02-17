@@ -23,7 +23,7 @@ stages:
     displayName: 'Build docker image'
     jobs:
     - job: BuildImage
-      pool: Private Docker
+      pool: Private Docker VMSS
       steps:
       - task: Docker@1
         displayName: 'Build an image'
@@ -76,7 +76,7 @@ stages:
   
     jobs:
     - deployment: DeployCI
-      pool: Private Docker
+      pool: Private Docker VMSS
       environment: fusion-ci.fusion-resources-app-ci
       strategy:
         runOnce:
@@ -90,8 +90,8 @@ stages:
                 FailOnStandardError: true
                 azurePowerShellVersion: 'LatestVersion'
                 Inline: |
-                    $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-ci -Name AzureAd--ClientSecret
-                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-ci -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
 
             - template: templates/get-appinsights-key.yml
               parameters:
@@ -130,7 +130,7 @@ stages:
               
     jobs:
       - deployment: DeployFQA
-        pool: Private Docker
+        pool: Private Docker VMSS
         environment: fusion-resources-fqa.fusion-resources-app-fqa
         strategy:
           runOnce:
@@ -144,8 +144,8 @@ stages:
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
                   Inline: |
-                      $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fqa -Name AzureAd--ClientSecret
-                      Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fqa -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
   
               - template: templates/get-appinsights-key.yml
                 parameters:
@@ -183,7 +183,7 @@ stages:
               
     jobs:
       - deployment: DeployFPRD
-        pool: Private Docker
+        pool: Private Docker VMSS
         environment: fusion-prod.fusion-resources-app-fprd
         strategy:
           runOnce:
@@ -197,8 +197,8 @@ stages:
                   FailOnStandardError: true
                   azurePowerShellVersion: 'LatestVersion'
                   Inline: |
-                      $secret = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fprd -Name AzureAd--ClientSecret
-                      Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secret.SecretValueText)"
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-fprd -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
   
               - template: templates/get-appinsights-key.yml
                 parameters:

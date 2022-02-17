@@ -9,8 +9,8 @@ namespace Fusion.Resources.Domain
         {
             if (profile.AzureUniqueId.HasValue && profile.InvitationStatus is null)
             {
-                // As long as AzureUniqueId exists, we consider the account available.
-                return DbAzureAccountStatus.Available;
+                // As long as AzureUniqueId exists, we consider the account available as long as IsExpired flag is false.
+                return profile.IsExpired == true ? DbAzureAccountStatus.NoAccount : DbAzureAccountStatus.Available;
             }
 
 
