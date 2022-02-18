@@ -44,7 +44,7 @@ $hostingPlan = New-HostingResource
 Write-Host "Using resource group $resourceGroup"
 
 $adClientSecret = Get-AzKeyVaultSecret -VaultName $envKeyVault -Name "AzureAd--ClientSecret"
-$acrPullToken = Get-AzKeyVaultSecret -VaultName $envKeyVault -Name "ACR-PullToken"
+$acrPullToken = Get-AzKeyVaultSecret -VaultName $envKeyVault -Name "ACR-PullToken" -AsPlainText
 
 ## 
 ## ACR Pull secret
@@ -52,7 +52,7 @@ $acrPullToken = Get-AzKeyVaultSecret -VaultName $envKeyVault -Name "ACR-PullToke
 ## The ACR password must be generated on the fusioncr resource and added to the env key vault. 
 ## No automatic generation of this for now.
 
-$dockerCredentials = @{ username="Resources-fprd-pull"; password=$acrPullToken.SecretValueText }
+$dockerCredentials = @{ username="Resources-fprd-pull"; password=$acrPullToken }
 $dockerInfo = @{
     url = "https://fusioncr.azurecr.io"
     image = $imageName

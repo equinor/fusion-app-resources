@@ -32,7 +32,7 @@ function ConvertTo-Sid {
     return "0x" + $byteGuid
 }
 
-$sqlpasswordSecret = Get-AzKeyVaultSecret -VaultName $sqlPasswordKeyVault -Name fusion-sql-password
+$sqlpasswordSecret = Get-AzKeyVaultSecret -VaultName $sqlPasswordKeyVault -Name fusion-sql-password -AsPlainText
 
 $sqlServer = Get-SqlServer 
 $sp = Get-AzADApplication -ApplicationId $clientId
@@ -48,6 +48,6 @@ END
 Invoke-Sqlcmd -ServerInstance $sqlServer.FullyQualifiedDomainName `
         -Database $sqlDatabaseName `
         -Username $sqlServer.SqlAdministratorLogin `
-        -Password $sqlpasswordSecret.SecretValueText `
+        -Password $sqlpasswordSecret `
         -Query $sql `
         -ConnectionTimeout 120
