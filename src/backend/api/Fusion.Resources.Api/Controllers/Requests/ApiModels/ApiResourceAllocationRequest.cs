@@ -67,6 +67,7 @@ namespace Fusion.Resources.Api.Controllers
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
 
             CorrelationId = query.CorrelationId;
+            IsOrgInstanceDeleted = query.IsOrgInstanceDeleted;
         }
 
         public Guid Id { get; set; }
@@ -108,6 +109,8 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? CorrelationId { get; }
         public List<ApiRequestAction>? Actions { get; }
         public List<ApiRequestConversationMessage>? Conversation { get; }
+
+        public bool IsOrgInstanceDeleted { get; }
 
         internal bool ShouldHideProposalsForProject
         {

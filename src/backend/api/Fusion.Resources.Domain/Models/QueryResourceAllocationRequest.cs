@@ -135,6 +135,8 @@ namespace Fusion.Resources.Domain
         public List<QueryRequestAction>? Actions { get; set; }
         public List<QueryConversationMessage>? Conversation { get; set; }
 
+        public bool IsOrgInstanceDeleted => OrgPositionInstanceId.HasValue && OrgPositionInstance == null;
+
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {
             OrgPosition = position;

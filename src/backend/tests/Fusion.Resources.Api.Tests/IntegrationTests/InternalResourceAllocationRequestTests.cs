@@ -257,6 +257,28 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task GetRequest_ShouldFlagDeletedInstances()
+        {
+            using var adminScope = fixture.AdminScope();
+            var fakeResourceOwner = fixture.AddResourceOwner("TPD PRD TST QWE");
+
+            var requestPosition = testProject.AddPosition().WithEnsuredFutureInstances();
+            var request = await Client.CreateRequestAsync(projectId, r => r.AsTypeNormal().WithPosition(requestPosition));
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            OrgServiceMock.RemoveInstance(request.OrgPositionId!.Value, request.OrgPositionInstanceId);
+
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}", new
+            {
+                isOrgInstanceDeleted = false
+            });
+
+
+            result.Should().BeSuccessfull();
+            result.Value.isOrgInstanceDeleted.Should().BeTrue();
+        }
+
+        [Fact]
         public async Task GetRequest_ShouldUseInstanceStartDate_WhenExpandTaskOwner()
         {
             using var adminScope = fixture.AdminScope();

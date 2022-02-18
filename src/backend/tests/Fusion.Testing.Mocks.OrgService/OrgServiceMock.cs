@@ -91,5 +91,11 @@ namespace Fusion.Testing.Mocks.OrgService
         {
             return projects.FirstOrDefault(p => p.ProjectId == id);
         }
+
+        public static void RemoveInstance(Guid orgPositionId,  Guid? orgPositionInstanceId)
+        {
+            var position = positions.FirstOrDefault(x => x.Id == orgPositionId);
+            position.Instances.RemoveAll(x => x.Id == orgPositionInstanceId);
+        }
     }
 }
