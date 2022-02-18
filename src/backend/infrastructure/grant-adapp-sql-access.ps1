@@ -4,6 +4,8 @@ param(
     [string]$sqlDatabaseName
 )
 
+Write-Host "Installing SQLServer module for CurrentUser"
+Install-Module -Name SqlServer -RequiredVersion 21.1.18256  -Force -Scope CurrentUser
 Import-Module SqlServer
 
 if ($sqlServerName -eq "fusion-prod-sqlserver")  {  $sqlPasswordKeyVault = "fusion-env-prod-kv" }
