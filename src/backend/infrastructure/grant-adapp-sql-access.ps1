@@ -6,7 +6,7 @@ param(
 
 $module = Get-Module -Name SqlServer -ListAvailable | Select-Object -First 1
 if (!$module) {
-  Write-Host "SqlServer not found. Installing..."
+  Write-Host "SqlServer module not found. Installing..."
   Install-Module -Name SqlServer -Force -Scope CurrentUser
 }
 Import-Module SqlServer
