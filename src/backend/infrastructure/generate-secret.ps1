@@ -36,17 +36,22 @@ if (-not $generateNew) {
 }
 
 ## Generate secret on aad app
-$passwordString = -join ((48..57) + (65..90) + (97..122) + (33,35) + (36..38) | Get-Random -Count 64 | foreach {[char]$_})
-$passwordString = [System.Convert]::ToBase64String([System.Text.UTF8Encoding]::UTF8.GetBytes($passwordString)) 
-
-$password = ConvertTo-SecureString -String $passwordString -AsPlainText -Force
 $startDate = Get-Date
 $endDate = $startDate.AddMonths(6)
-$newSecret = New-AzADAppCredential -Password $password -ApplicationId $AAD_APP_ID -StartDate $startDate -EndDate $endDate
 
-Write-Host "New secret [$($newSecret.KeyId)] generated with expiration date $endDate"
+$credential = New-Object -TypeName "Microsoft.Azure.PowerShell.Cmdlets.Resources.MSGraph.Models.ApiV10.MicrosoftGraphPasswordCredential" `
+                                 -Property @{ `
+                                 'DisplayName' = "Resources - $keyVaultName"; `
+                                 'StartDateTime' = $startDate; `
+                                 'EndDateTime' = $endDate `
+                                 }
 
+$newSecret = New-AzADAppCredential -PasswordCredentials $credential -ApplicationId $AAD_APP_ID
+
+Write-Host "New secret [$($newSecret.Hint)************] generated with expiration date $endDate, key id [$($newSecret.KeyId)]"
+
+$secretValue = ConvertTo-SecureString -String $newSecret.SecretText -AsPlainText -Force
 ## Add to key vault
-Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $password -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId }
+Set-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME -SecretValue $secretValue -Expires $endDate -Tag @{ "auto-generated" = "true"; "keyId" = $newSecret.KeyId; "hint" = $newSecret.Hint }
 
 
