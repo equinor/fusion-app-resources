@@ -39,12 +39,11 @@ if (-not $generateNew) {
 $startDate = Get-Date
 $endDate = $startDate.AddMonths(6)
 
-$credential = New-Object -TypeName "Microsoft.Azure.PowerShell.Cmdlets.Resources.MSGraph.Models.ApiV10.MicrosoftGraphPasswordCredential" `
-                                 -Property @{ `
-                                 'DisplayName' = "Resources - $keyVaultName"; `
-                                 'StartDateTime' = $startDate; `
-                                 'EndDateTime' = $endDate `
-                                 }
+$credential = @{
+    DisplayName = "Resources - $keyVaultName"
+    StartDateTime = $startDate
+    EndDateTime = $endDate
+}
 
 $newSecret = New-AzADAppCredential -PasswordCredentials $credential -ApplicationId $AAD_APP_ID
 
