@@ -7,6 +7,8 @@ $SECRET_NAME = "AzureAd--ClientSecret"
 $AAD_APP_ID = $applicationId
 $SECRETVAULTNAME = $keyVaultName
 
+Write-Host "Application ID: $AAD_APP_ID"
+Write-Host "Key vault: $SECRETVAULTNAME"
 
 $secret = Get-AzKeyVaultSecret -VaultName $SECRETVAULTNAME -Name $SECRET_NAME
 
@@ -45,7 +47,7 @@ $credential = @{
     EndDateTime = $endDate
 }
 
-$newSecret = New-AzADAppCredential -PasswordCredentials $credential -ApplicationId $AAD_APP_ID
+$newSecret = New-AzADAppCredential -ApplicationId $AAD_APP_ID -PasswordCredentials $credential
 
 Write-Host "New secret [$($newSecret.Hint)************] generated with expiration date $endDate, key id [$($newSecret.KeyId)]"
 
