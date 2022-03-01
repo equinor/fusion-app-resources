@@ -48,7 +48,16 @@ $credential = @{
 }
 
 $app = Get-AzADApplication -ApplicationId $AAD_APP_ID
-$newSecret = New-AzADAppCredential -ObjectId $app.Id -PasswordCredentials $credential
+
+$name = "Resources - $keyVaultName"
+$creds = New-Object `
+             -TypeName "Microsoft.Azure.PowerShell.Cmdlets.Resources.MSGraph.Models.ApiV10.MicrosoftGraphPasswordCredential" `
+             -Property @{ 'DisplayName' = $name; 'StartDateTime' = $startDate; 'EndDateTime' = $endDate }
+
+$newSecret = New-AzADAppCredential -ObjectId $app.Id -PasswordCredentials $creds
+
+
+#$newSecret = New-AzADAppCredential -ObjectId $app.Id -PasswordCredentials $credential
 
 Write-Host "New secret [$($newSecret.Hint)************] generated with expiration date $endDate, key id [$($newSecret.KeyId)]"
 
