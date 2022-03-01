@@ -37,8 +37,6 @@ if (-not $generateNew) {
     Write-Host "Generating new secret..."
 }
 
-Get-Command -Name "New-AzADAppCredential"
-Get-Module -Name Az.Resources
 ## Generate secret on aad app
 $startDate = Get-Date
 $endDate = $startDate.AddMonths(6)
@@ -49,17 +47,7 @@ $credential = @{
     EndDateTime = $endDate
 }
 
-$app = Get-AzADApplication -ApplicationId $AAD_APP_ID
-
-$name = "Resources - $keyVaultName"
-$creds = New-Object `
-             -TypeName "Microsoft.Azure.PowerShell.Cmdlets.Resources.MSGraph.Models.ApiV10.MicrosoftGraphPasswordCredential" `
-             -Property @{ 'DisplayName' = $name; 'StartDateTime' = $startDate; 'EndDateTime' = $endDate }
-
-$newSecret = New-AzADAppCredential -ObjectId $app.Id -PasswordCredentials $creds
-
-
-#$newSecret = New-AzADAppCredential -ObjectId $app.Id -PasswordCredentials $credential
+$newSecret = New-AzADAppCredential -ApplicationId $AAD_APP_ID -PasswordCredentials $credential
 
 Write-Host "New secret [$($newSecret.Hint)************] generated with expiration date $endDate, key id [$($newSecret.KeyId)]"
 
