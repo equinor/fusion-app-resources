@@ -47,12 +47,8 @@ $credential = @{
     EndDateTime = $endDate
 }
 
-Get-Command -Name "New-AzADAppCredential"
-get-module -name Az.Resources
-
 $app = Get-AzADApplication -ApplicationId $AAD_APP_ID
-$app
-$newSecret = New-AzADAppCredential -ApplicationObject $app -PasswordCredentials $credential
+$newSecret = New-AzADAppCredential -ObjectId $app.Id -PasswordCredentials $credential
 
 Write-Host "New secret [$($newSecret.Hint)************] generated with expiration date $endDate, key id [$($newSecret.KeyId)]"
 
