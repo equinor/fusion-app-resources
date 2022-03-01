@@ -49,7 +49,7 @@ $credential = @{
 
 Get-Command -Name "New-AzADAppCredential"
 
-$app = Get-AzADAppCredential -ApplicationId $AAD_APP_ID
+$app = Get-AzADApplication -ApplicationId $AAD_APP_ID
 $app
 $newSecret = New-AzADAppCredential -ApplicationObject $app -PasswordCredentials $credential
 
