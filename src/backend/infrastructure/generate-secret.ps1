@@ -48,6 +48,7 @@ $credential = @{
 }
 
 Get-Command -Name "New-AzADAppCredential"
+get-module -name Az.Resources
 
 $app = Get-AzADApplication -ApplicationId $AAD_APP_ID
 $app
