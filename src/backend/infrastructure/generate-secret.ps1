@@ -37,6 +37,8 @@ if (-not $generateNew) {
     Write-Host "Generating new secret..."
 }
 
+Get-Command -Name "New-AzADAppCredential"
+Get-Module -Name Az.Resources
 ## Generate secret on aad app
 $startDate = Get-Date
 $endDate = $startDate.AddMonths(6)
