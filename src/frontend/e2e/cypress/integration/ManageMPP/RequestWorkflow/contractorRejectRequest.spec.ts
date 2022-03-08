@@ -39,6 +39,8 @@ describe('Active Requests - contractor reject a request', () => {
 
 
     it('TC 25345 - Request is rejected by a contractor at step 2', function () {
+        const person = 'Qi Jin'
+
         cy.feedRequest()
 
         /** verify that request is created and shown in active request table */
@@ -46,7 +48,7 @@ describe('Active Requests - contractor reject a request', () => {
 
         activeRequestPage.ActiveRequestTable().within(() => {
             /** selecte the newly created request, normally in the first row */
-            cy.get('#person-column').contains('Qi Jin')
+            cy.get('#person-column').contains(person.trim())
             cy.get('#request-status-column').within(() => {
                 cy.checkRequestStatus('Approved', 'Pending', 'Pending', 'Pending')
             })
@@ -61,13 +63,14 @@ describe('Active Requests - contractor reject a request', () => {
         rejectRequestSidesheet.RejectRequestSidesheet().should('be.visible')
         rejectRequestSidesheet.RejectReasonTextArea().type('testing')
         rejectRequestSidesheet.ConfrimRejectionButton().click()
+        cy.wait(1000)
 
         /** verify that the request get rejected and shown in completed talbe. */
         /** verify the status is 1 green, 1 red, and 2 grey */
         navigationDrawer.CompletedRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
         completedRequestPage.CompletedRequestTable().within(() => {
             /** check the newly rejected request, normally in the first row */
-            cy.get('#person-column').contains('Qi Jin')
+            cy.get('#person-column').contains(person.trim())
             cy.get('#request-status-column').within(() => {
                 cy.checkRequestStatus('Approved', 'Rejected', 'Skipped', 'Skipped')
             })
