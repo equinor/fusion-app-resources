@@ -64,6 +64,7 @@ declare namespace Cypress {
     createRequest(requestData: RequestData): Chainable<void>
     editRequest(column: string, data: string): Chainable<void>
     removeRequest(): Chainable<void>
+    checkRequestStatus(step1Status: string, step2Status: string, step3Status: string, step4Status: string): Chainable<void>
     feedRequest(): Chainable<void>
     clearRequest(): Chainable<void>
 

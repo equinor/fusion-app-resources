@@ -28,28 +28,26 @@ describe('Active Requests', () => {
     /** TODO make login persistent between tests */
     before(() => {
         const contractNo = '312312341'
-        
+
         cy.clearLocalStorage();
         cy.login();
         cy.visit('/');
 
         cy.loadProject('Query test project')
-        cy.openContract(contractNo)        
+        cy.openContract(contractNo)
     });
 
-    
-    it('TC 25345 - Request is rejected by a contractor at step 2', function () {
+
+    it('TC 25345 - Request is rejected by company at step 3', function () {
         cy.feedRequest()
 
         /** verify that request is created and shown in active request table */
         navigationDrawer.ActiveRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
 
-        activeRequestPage.ActiveRequestTable().within(()=> {
+        activeRequestPage.ActiveRequestTable().within(() => {
             /** selecte the newly created request, normally in the first row */
-            cy.get('#person-column').contains('Qi Jin') 
-            cy.get('#request-status-column').within(()=> {
-                cy.checkRequestStatus('Approved', 'Pending', 'Pending', 'Pending')
-            })
+            cy.get('#person-column').contains('Qi Jin')
+            requestWorkFlow.RequestStep2().should('have.attr', 'data-cy', 'Pending')
             cy.get('#selection-cell').click()
         })
 
@@ -61,18 +59,18 @@ describe('Active Requests', () => {
         rejectRequestSidesheet.RejectRequestSidesheet().should('be.visible')
         rejectRequestSidesheet.RejectReasonTextArea().type('testing')
         rejectRequestSidesheet.ConfrimRejectionButton().click()
-        
+
         /** verify that the request get rejected and shown in completed talbe. */
         /** verify the status is 1 green, 1 red, and 2 grey */
         navigationDrawer.CompletedRequestsTab().click().invoke('attr', 'class').should('contain', 'isActive')
-        completedRequestPage.CompletedRequestTable().within(()=> {
+        completedRequestPage.CompletedRequestTable().within(() => {
             /** check the newly rejected request, normally in the first row */
             cy.get('#person-column').contains('Qi Jin')
-            cy.get('#request-status-column').within(()=> {
-                cy.checkRequestStatus('Approved', 'Rejected', 'Skipped', 'Skipped')
-            })
+            requestWorkFlow.RequestStep2().should('have.attr', 'data-cy', 'Rejected')
+            requestWorkFlow.RequestStep3().should('have.attr', 'data-cy', 'Skipped')
+            requestWorkFlow.RequestStep4().should('have.attr', 'data-cy', 'Skipped')
         })
-        
+
         /** delete the request for clean up */
         cy.get('#base-position-column').find('div').click() // not work
 

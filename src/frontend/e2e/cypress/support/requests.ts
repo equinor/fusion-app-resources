@@ -4,6 +4,9 @@
 import CreateRequestSidesheet from "../POM/CreateRequestSidesheet"
 const createrequestSidesheet = new CreateRequestSidesheet()
 
+import RequestWorkFlow from "../POM/RequestWorkFlow"
+const requestWorkFlow = new RequestWorkFlow()
+
 const projectId = '29ddab36-e7a9-418b-a9e4-8cfbc9591274'
 const contractId = '5ca8efa6-eb36-4a15-8f09-0d92194713d7'
 
@@ -83,6 +86,17 @@ Cypress.Commands.add('removeRequest', () => {
         cy.get('button').contains('Ok').click()
         cy.wait(1000)
     });
+});
+
+/** check the 4 steps of request status
+ * the status for step 1, 2, 3, 4 can be:
+ * Approved, Pending, Rejected, Skipped
+*/
+Cypress.Commands.add('checkRequestStatus', (step1Status, step2Status, step3Status, step4Status) => {
+    requestWorkFlow.RequestStep2().should('have.attr', 'data-cy', step1Status)
+    requestWorkFlow.RequestStep2().should('have.attr', 'data-cy', step2Status)
+    requestWorkFlow.RequestStep3().should('have.attr', 'data-cy', step3Status)
+    requestWorkFlow.RequestStep4().should('have.attr', 'data-cy', step4Status)
 });
 
 /** approve a selected request 
