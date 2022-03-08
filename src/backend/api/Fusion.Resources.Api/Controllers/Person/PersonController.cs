@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
+using Fusion.Integration.Profile;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -241,6 +242,50 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Access: 
+        ///     The endpoint should be internal by default, as we are not returning any other than internal data.
+        ///     External accounts should 
+        /// </summary>
+        /// <param name="personId"></param>
+        /// <returns></returns>
+        [HttpGet("/persons/{personId}/resources/allocation-request-status")]
+        public async Task<ActionResult<ApiPersonAllocationRequestStatus>> GetPersonRequestAllocationStatus(string personId)
+        {
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error!;
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeAccountType(FusionAccountType.Employee, FusionAccountType.Consultant, FusionAccountType.Application);
+                });
+                r.LimitedAccessWhen(or => or.BeAccountType(FusionAccountType.External));
+            });
+
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            // Should check if the user has affiliate access to fusion here.
+            if (authResult.LimitedAuth)
+                return FusionApiError.Forbidden("External accounts does not have access");
+
+
+            var autoApproval = await DispatchAsync(new Domain.Queries.GetPersonAutoApprovalStatus(user.azureId));
+
+            return new ApiPersonAllocationRequestStatus
+            {
+                AutoApproval = autoApproval.GetValueOrDefault(false)
+            };
+        }
+
+
         private async Task<(Guid azureId, string fullDepartment, ActionResult? error)> EnsureUserAsync(string personId)
         {
             var user = await profileResolver.ResolvePersonBasicProfileAsync(personId);
@@ -251,5 +296,10 @@ namespace Fusion.Resources.Api.Controllers
 
             return (user.AzureUniqueId.Value, user.FullDepartment ?? string.Empty, null);
         }
+    }
+
+    public class ApiPersonAllocationRequestStatus
+    {
+        public bool AutoApproval { get; set; }
     }
 }
