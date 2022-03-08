@@ -39,7 +39,7 @@ Cypress.Commands.add('createRequest', (requestData) => {
     createrequestSidesheet.SubmitButton().click()
 
     createrequestSidesheet.RequestProgressSidesheet().should('contain', 'Successful')
-    createrequestSidesheet.RequestProgressSidesheet().find('#close-btn').click({force: true})
+    createrequestSidesheet.RequestProgressSidesheet().find('#close-btn').click({ force: true })
 });
 
 /** edit a selected request 
@@ -57,12 +57,12 @@ Cypress.Commands.add('editRequest', (column, data) => {
     switch (column) {
         case 'base-position':
         case 'assigned-person':
-        case 'task-owner': 
+        case 'task-owner':
             cy.get('[id="' + column + '-input"]').first().typeAndPick(data)
             break;
         case 'custom-position':
         case 'workload':
-        case 'obs': 
+        case 'obs':
         case 'request-description':
             cy.fillTextInput(0, column, data)
             break;
@@ -93,7 +93,7 @@ Cypress.Commands.add('removeRequest', () => {
  * Approved, Pending, Rejected, Skipped
 */
 Cypress.Commands.add('checkRequestStatus', (step1Status, step2Status, step3Status, step4Status) => {
-    requestWorkFlow.RequestStep2().should('have.attr', 'data-cy', step1Status)
+    requestWorkFlow.RequestStep1().should('have.attr', 'data-cy', step1Status)
     requestWorkFlow.RequestStep2().should('have.attr', 'data-cy', step2Status)
     requestWorkFlow.RequestStep3().should('have.attr', 'data-cy', step3Status)
     requestWorkFlow.RequestStep4().should('have.attr', 'data-cy', step4Status)
@@ -113,18 +113,18 @@ Cypress.Commands.add('feedRequest', () => {
 
     cy.fixture('RequestBody.json').then((requestBody) => {
         cy.request({
-            method: 'POST', 
-            url: url, 
+            method: 'POST',
+            url: url,
             headers: {
                 authorization,
             },
             body: requestBody
         })
-        .then((response)=> {
-            expect(response.status).to.eq(200)  
-            //expect(response.body).to.have.property('id')
-            //cy.log('request id is', response.body.id)
-        })
+            .then((response) => {
+                expect(response.status).to.eq(200)
+                //expect(response.body).to.have.property('id')
+                //cy.log('request id is', response.body.id)
+            })
     })
 });
 
@@ -147,9 +147,9 @@ Cypress.Commands.add('clearRequest', () => {
                 authorization,
             }
         })
-        .then((response) => {
-            expect(response.status).to.eq(204)
+            .then((response) => {
+                expect(response.status).to.eq(204)
 
-        })
+            })
     })
 });
