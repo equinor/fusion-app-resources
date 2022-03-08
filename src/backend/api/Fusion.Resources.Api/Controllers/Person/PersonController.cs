@@ -245,9 +245,9 @@ namespace Fusion.Resources.Api.Controllers
         /// <summary>
         /// Access: 
         ///     The endpoint should be internal by default, as we are not returning any other than internal data.
-        ///     External accounts should 
+        ///     External accounts should only have access when they have been assigned affiliate role in access it. This excludes accounts that have been added to the domain through ex. SharePoint file share.
         /// </summary>
-        /// <param name="personId"></param>
+        /// <param name="personId">Azure unique id or upn/mail</param>
         /// <returns></returns>
         [HttpGet("/persons/{personId}/resources/allocation-request-status")]
         public async Task<ActionResult<ApiPersonAllocationRequestStatus>> GetPersonRequestAllocationStatus(string personId)
@@ -296,10 +296,5 @@ namespace Fusion.Resources.Api.Controllers
 
             return (user.AzureUniqueId.Value, user.FullDepartment ?? string.Empty, null);
         }
-    }
-
-    public class ApiPersonAllocationRequestStatus
-    {
-        public bool AutoApproval { get; set; }
     }
 }
