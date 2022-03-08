@@ -96,6 +96,15 @@ namespace Fusion.Resources.Logic.Workflows
             }
         }
 
+        public WorkflowStep AutoComplete()
+        {
+            return Step(APPROVAL)
+                .SetName("Approved")
+                .SetDescription($"Specified resource resulted in auto approval of request.")
+                .Skip()
+                .StartNext().Current;
+        }
+
         public DbWorkflow CreateDatabaseEntity(Guid requestId, DbRequestType type)
         {
             dbWorkflow = new DbWorkflow()

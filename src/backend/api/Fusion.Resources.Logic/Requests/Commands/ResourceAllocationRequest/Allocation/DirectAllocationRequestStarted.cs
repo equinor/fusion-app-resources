@@ -28,13 +28,35 @@ namespace Fusion.Resources.Logic.Commands
 
                 public async Task Handle(AllocationRequestStarted notification, CancellationToken cancellationToken)
                 {
-                    if (notification.Workflow is not AllocationDirectWorkflowV1)
+                    if (notification.Workflow is not AllocationDirectWorkflowV1 workflow)
                         return;
 
                     var request = await dbContext.ResourceAllocationRequests
                         .FirstAsync(r => r.Id == notification.RequestId, cancellationToken);
                     
                     ValidateWorkflow(request);
+
+
+                    // Check for auto approval
+                    if (request.ProposedPerson.AzureUniqueId.HasValue)
+                    {
+
+
+                        var autoApprovalEnabledForResource = await mediator.Send(new Domain.Queries.GetPersonAutoApprovalStatus(request.ProposedPerson.AzureUniqueId!.Value));
+                        if (autoApprovalEnabledForResource == true)
+                        {
+                            workflow.AutoComplete();
+                            workflow.SaveChanges();
+
+                            // No more steps to do
+                            await mediator.Send(new QueueProvisioning(request.Id));
+                        }
+
+                        // Save changes for workflow definition.
+                        await dbContext.SaveChangesAsync();
+                    }
+
+
                 }
 
                 private static void ValidateWorkflow(DbResourceAllocationRequest request)

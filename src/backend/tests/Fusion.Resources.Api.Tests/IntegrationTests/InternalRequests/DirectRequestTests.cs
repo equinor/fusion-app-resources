@@ -46,18 +46,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             loggingScope = new TestLoggingScope(output);
 
             // Generate random test user
-            testUser = fixture.AddProfile(FusionAccountType.External);
+            // Specifying employee user here so to avoid default auto approval
+            testUser = PeopleServiceMock.AddTestProfile()
+                .WithAccountType(FusionAccountType.Employee)
+                .WithFullDepartment("PDP PRD FE TST XN ASD")
+                .SaveProfile();
         }
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
 
         public async Task InitializeAsync()
         {
-            // Mock profile
-            testUser = PeopleServiceMock.AddTestProfile()
-                .WithFullDepartment("PDP PRD FE TST XN ASD")
-                .SaveProfile();
-
             // Mock project
             testProject = new FusionTestProjectBuilder()
                 .WithPositions(200)
@@ -460,6 +459,42 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Should().BeBadRequest();
         }
         #endregion
+
+        #region Auto approval
+        [Theory]
+        [InlineData("Contractor")]
+        [InlineData("External")]
+        public async Task DirectRequest_ShouldBeAutoApproved_When(string testCase)
+        {
+            var position = testProject.AddPosition();
+
+            ApiPersonProfileV3? proposedPerson;
+
+            switch (testCase)
+            {
+                case "Contractor": proposedPerson = fixture.AddProfile(FusionAccountType.Consultant); break;
+                case "External": proposedPerson = fixture.AddProfile(FusionAccountType.External); break;
+                default: throw new NotSupportedException("Test case not supported");
+            }
+
+            using var adminScope = fixture.AdminScope();
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithProposedPerson(proposedPerson));
+            
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+
+            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
+            resp.Should().BeSuccessfull();
+
+            resp.Value.workflow.Should().NotBeNull();
+            resp.Value.workflow.State.Should().Be("Running");
+
+            resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "approval");
+            resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
+        }
+        #endregion
+
         #endregion
 
         #region Query requests

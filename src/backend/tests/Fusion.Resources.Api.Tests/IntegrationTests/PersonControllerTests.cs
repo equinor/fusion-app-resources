@@ -119,7 +119,40 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Should().BeNotFound();
         }
 
+        [Fact]
+        public async Task AllocationRequestStatus_ShouldBeAutoApproval_WhenAccountTypeIsContractor()
+        {
+            var testUser = fixture.AddProfile(FusionAccountType.Consultant);
 
+            using var userScope = fixture.AdminScope();
+            
+            var client = fixture.ApiFactory.CreateClient();
+            var resp = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/resources/allocation-request-status",
+                new
+                {
+                    autoApproval = false
+                }
+            );
+
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task AllocationRequestStatus_ShouldBeUnauthorized_WhenExternal()
+        {
+            var testUser = fixture.AddProfile(FusionAccountType.Consultant);
+            var externalUser = fixture.AddProfile(FusionAccountType.External);
+
+            using var userScope = fixture.UserScope(externalUser);
+
+            var client = fixture.ApiFactory.CreateClient();
+            var resp = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/resources/allocation-request-status",
+                new { autoApproval = false }
+            );
+
+            resp.Should().BeUnauthorized();
+        }
 
         public Task InitializeAsync() => Task.CompletedTask;
         public Task DisposeAsync()

@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
+using Fusion.Integration.Profile;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -240,6 +241,50 @@ namespace Fusion.Resources.Api.Controllers
             Response.Headers["Allow"] = string.Join(',', allowedVerbs);
             return NoContent();
         }
+
+        /// <summary>
+        /// Access: 
+        ///     The endpoint should be internal by default, as we are not returning any other than internal data.
+        ///     External accounts should only have access when they have been assigned affiliate role in access it. This excludes accounts that have been added to the domain through ex. SharePoint file share.
+        /// </summary>
+        /// <param name="personId">Azure unique id or upn/mail</param>
+        /// <returns></returns>
+        [HttpGet("/persons/{personId}/resources/allocation-request-status")]
+        public async Task<ActionResult<ApiPersonAllocationRequestStatus>> GetPersonRequestAllocationStatus(string personId)
+        {
+            var user = await EnsureUserAsync(personId);
+            if (user.error is not null)
+                return user.error!;
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.BeAccountType(FusionAccountType.Employee, FusionAccountType.Consultant, FusionAccountType.Application);
+                });
+                r.LimitedAccessWhen(or => or.BeAccountType(FusionAccountType.External));
+            });
+
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            // Should check if the user has affiliate access to fusion here.
+            if (authResult.LimitedAuth)
+                return FusionApiError.Forbidden("External accounts does not have access");
+
+
+            var autoApproval = await DispatchAsync(new Domain.Queries.GetPersonAutoApprovalStatus(user.azureId));
+
+            return new ApiPersonAllocationRequestStatus
+            {
+                AutoApproval = autoApproval.GetValueOrDefault(false)
+            };
+        }
+
 
         private async Task<(Guid azureId, string fullDepartment, ActionResult? error)> EnsureUserAsync(string personId)
         {
