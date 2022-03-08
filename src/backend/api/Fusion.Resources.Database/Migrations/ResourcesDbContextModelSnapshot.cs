@@ -96,6 +96,54 @@ namespace Fusion.Resources.Database.Migrations
                     b.ToTable("ContractPersonnel");
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractPersonnelReplacement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChangeType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FromPerson")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ToPerson")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UPN")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "ContractId")
+                        .IsClustered(false)
+                        .HasAnnotation("SqlServer:Include", new[] { "UPN", "FromPerson", "ToPerson", "ChangeType", "Created", "CreatedBy" });
+
+                    b.ToTable("ContractPersonnelReplacementChanges");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbContractorRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -320,7 +368,7 @@ namespace Fusion.Resources.Database.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("JobTitle")
@@ -345,6 +393,9 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PersonIdReplacements")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
                         .IsRequired()

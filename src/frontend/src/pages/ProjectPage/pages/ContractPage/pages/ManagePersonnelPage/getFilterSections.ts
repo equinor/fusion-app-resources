@@ -8,7 +8,7 @@ import {
 
 const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] => {
     const uniqueAdStatus = personnel
-        .map((p) => p?.azureAdStatus || 'NoAccount')
+        .map((p) => (p.isDeleted ? 'DeletedAccount' : p?.azureAdStatus || 'NoAccount'))
         .filter((d, i, l) => l.indexOf(d) === i);
 
     const uniqueDisciplines = personnel
@@ -33,7 +33,9 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                         (p.lastName || '') +
                         p.mail +
                         p.phoneNumber +
-                        (p.disciplines?.map((d) => d.name).join(' ') || ''),
+                        (p.disciplines?.map((d) => d.name).join(' ') || '') +
+                        (p.upn || '') +
+                        p.azureUniquePersonId,
                 },
             ],
         },
@@ -61,7 +63,8 @@ const getFilterSections = (personnel: Personnel[]): FilterSection<Personnel>[] =
                     key: 'azureAdStatus',
                     title: 'AD Status',
                     type: FilterTypes.Checkbox,
-                    getValue: (p) => p?.azureAdStatus || 'NoAccount',
+                    getValue: (p) =>
+                        p.isDeleted ? 'DeletedAccount' : p?.azureAdStatus || 'NoAccount',
                     isVisibleWhenPaneIsCollapsed: true,
                     isCollapsible: true,
 

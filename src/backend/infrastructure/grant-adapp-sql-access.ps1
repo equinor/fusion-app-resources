@@ -4,7 +4,13 @@ param(
     [string]$sqlDatabaseName
 )
 
+$module = Get-Module -Name SqlServer -ListAvailable | Select-Object -First 1
+if (!$module) {
+  Write-Host "SqlServer module not found. Installing..."
+  Install-Module -Name SqlServer -Force -Scope CurrentUser
+}
 Import-Module SqlServer
+Write-Host "SqlServer module imported"
 
 if ($sqlServerName -eq "fusion-prod-sqlserver")  {  $sqlPasswordKeyVault = "fusion-env-prod-kv" }
 elseif ($sqlServerName -eq "fusion-test-sqlserver") { $sqlPasswordKeyVault = "fusion-env-test-kv" }
@@ -32,7 +38,7 @@ function ConvertTo-Sid {
     return "0x" + $byteGuid
 }
 
-$sqlpasswordSecret = Get-AzKeyVaultSecret -VaultName $sqlPasswordKeyVault -Name fusion-sql-password
+$sqlpasswordSecret = Get-AzKeyVaultSecret -VaultName $sqlPasswordKeyVault -Name fusion-sql-password -AsPlainText
 
 $sqlServer = Get-SqlServer 
 $sp = Get-AzADApplication -ApplicationId $clientId
@@ -48,6 +54,6 @@ END
 Invoke-Sqlcmd -ServerInstance $sqlServer.FullyQualifiedDomainName `
         -Database $sqlDatabaseName `
         -Username $sqlServer.SqlAdministratorLogin `
-        -Password $sqlpasswordSecret.SecretValueText `
+        -Password $sqlpasswordSecret `
         -Query $sql `
         -ConnectionTimeout 120

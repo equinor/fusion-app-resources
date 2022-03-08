@@ -41,12 +41,12 @@ export default class ResourceCollection {
 
         return base;
     }
-    personnelPreferredContactMail(projectId: string, contractId: string, queryMail?: string ) {
-        const base =  combineUrls(this.personnel(projectId, contractId), "preferred-contact");
-        if(!queryMail){
-            return base
+    personnelPreferredContactMail(projectId: string, contractId: string, queryMail?: string) {
+        const base = combineUrls(this.personnel(projectId, contractId), 'preferred-contact');
+        if (!queryMail) {
+            return base;
         }
-        return `${base}?mail=${queryMail}`
+        return `${base}?mail=${queryMail}`;
     }
     personnelCollection(projectId: string, contractId: string): string {
         return combineUrls(
@@ -116,5 +116,13 @@ export default class ResourceCollection {
 
     mppPosition(projectId: string, contractId: string, positionId: string) {
         return combineUrls(this.mppPositions(projectId, contractId), positionId);
+    }
+    replacePerson(projectId: string, contractId: string, personId: string, force?: boolean) {
+        return combineUrls(
+            this.baseUrl,
+            `/projects/${projectId}/contracts/${contractId}/resources/personnel/${personId}/replace${
+                force ? '?force=true' : ''
+            }`
+        );
     }
 }

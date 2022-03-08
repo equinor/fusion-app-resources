@@ -28,23 +28,32 @@ const AdStatus: AdStatus = {
         color: styling.colors.blackAlt3,
         id: 'no-access',
     },
+    DeletedAccount: {
+        text: 'Azure account deleted',
+        color: styling.colors.secondary,
+        id: 'deleted-account',
+    },
 };
 
 type AzureAdStatusIndicatorProps = {
     status: azureAdStatus;
+    isDeleted?: boolean
 };
 
-const AzureAdStatusIndicator: FC<AzureAdStatusIndicatorProps> = ({ status }) => {
-    const { text, color, id } = AdStatus[status];
+const AzureAdStatusIndicator: FC<AzureAdStatusIndicatorProps> = ({ status, isDeleted }) => {
+    const adStatusKey = isDeleted ? "DeletedAccount" : status
+    const { text, color, id } = AdStatus[adStatusKey];
     return <div id={id} data-cy="ad-column" ref={useTooltipRef(text)}>{<AdStatusIcon color={color} />}</div>;
 };
 
-export const AzureAdStatusTextFormat = (status: azureAdStatus) => {
-    return AdStatus[status].text;
+export const AzureAdStatusTextFormat = (status: azureAdStatus, isDeleted?: boolean) => {
+    const adStatusKey = isDeleted ? "DeletedAccount" : status
+    return AdStatus[adStatusKey].text;
 };
 
-export const AzureAdStatusColor = (status: azureAdStatus) => {
-    return AdStatus[status].color;
+export const AzureAdStatusColor = (status: azureAdStatus, isDeleted?: boolean) => {
+    const adStatusKey = isDeleted ? "DeletedAccount" : status
+    return AdStatus[adStatusKey].color;
 };
 
 export const AzureAdStatusId = (status: azureAdStatus) => {

@@ -6,6 +6,7 @@ namespace Fusion.Resources.Api.Tests
     {
         public Guid PersonnelId { get; set; }
         public Guid? AzureUniquePersonId { get; set; }
+        public string UPN { get; set; }
 
         public string Mail { get; set; }
         public string FirstName { get; set; }
@@ -14,7 +15,7 @@ namespace Fusion.Resources.Api.Tests
         public string PhoneNumber { get; set; }
         public string PreferredContactMail { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
         public DateTimeOffset? Deleted { get; set; }
     }
 }

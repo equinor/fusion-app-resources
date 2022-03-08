@@ -9,6 +9,8 @@ import { formatDate, Position, useHistory } from '@equinor/fusion';
 import styles from './styles.less';
 import { FC, useCallback } from 'react';
 import classNames from 'classnames';
+import AzureAdStatusIndicator from '../../components/AzureAdStatusIndicator';
+import PositionWithPersonnel from '../../../../../../models/PositionWithPersonnel';
 
 type AssignedPersonProps = {
     item: Position;
@@ -16,6 +18,10 @@ type AssignedPersonProps = {
 
 type ToDateProp = {
     appliesTo: Date | undefined;
+};
+
+type AzureAdColumnProps = {
+    item: PositionWithPersonnel;
 };
 
 const AssignedPersonComponent: FC<AssignedPersonProps> = ({ item }) => {
@@ -75,7 +81,20 @@ const ToDateComponent: FC<ToDateProp> = ({ appliesTo }) => {
     );
 };
 
-const columns: DataTableColumn<Position>[] = [
+const AzureAdColumn: FC<AzureAdColumnProps> = ({ item }) => {
+    const personnelDetails = item.instances.find(
+        (i) => i.personnelDetails?.azureAdStatus
+    )?.personnelDetails;
+
+    return (
+        <AzureAdStatusIndicator
+            status={personnelDetails?.azureAdStatus || 'NoAccount'}
+            isDeleted={personnelDetails?.isDeleted}
+        />
+    );
+};
+
+const columns: DataTableColumn<PositionWithPersonnel>[] = [
     {
         id: 'position-column',
         accessor: (position) => position.name || 'TBN',
@@ -89,12 +108,22 @@ const columns: DataTableColumn<Position>[] = [
     {
         id: 'person-column',
         accessor: (position) =>
+            position.instances.find((i) => i.personnelDetails?.azureAdStatus)?.personnelDetails
+                ?.azureAdStatus || '',
+        key: 'adStatus',
+        label: 'AD',
+        sortable: true,
+        component: AzureAdColumn,
+    },
+    {
+        accessor: (position) =>
             position.instances.find((i) => i.assignedPerson?.name)?.assignedPerson?.name || '',
         key: 'person',
         label: 'Person',
         sortable: true,
         component: AssignedPersonComponent,
     },
+   
     {
         id: 'workload-column',
         accessor: (position) =>

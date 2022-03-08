@@ -66,7 +66,7 @@ namespace Fusion.Resources.Domain
         public QueryPerson? UpdatedBy { get; set; }
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
-        public bool IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
         public DateTimeOffset? Deleted { get; set; }
 
         //public QueryProject Project { get; set; }

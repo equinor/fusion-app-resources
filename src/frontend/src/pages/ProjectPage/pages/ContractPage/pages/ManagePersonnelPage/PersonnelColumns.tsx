@@ -47,7 +47,10 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         label: 'AD',
         priority: 2,
         component: ({ item }) => (
-            <AzureAdStatusIndicator status={item?.azureAdStatus || 'NoAccount'} />
+            <AzureAdStatusIndicator
+                status={item?.azureAdStatus || 'NoAccount'}
+                isDeleted={item.isDeleted}
+            />
         ),
         sortable: true,
         width: '20px',
@@ -93,13 +96,16 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         id: 'last-name-column',
     },
     {
-        key: 'Disciplines',
-        accessor: (p) => p.disciplines.map((d) => d.name)?.join('/') || '',
-        label: 'Discipline',
+        key: 'positions',
+        accessor: 'personnelId',
+        label: 'Nr Positions',
         priority: 5,
+        component: (p) => <span>{(p.item.positions?.length || 0).toString()}</span>,
         sortable: true,
-        id: 'disciplines-column',
+        width: '20px',
+        id: 'positions-column',
     },
+
     {
         key: 'Phone',
         accessor: 'phoneNumber',
@@ -125,14 +131,12 @@ const PersonnelColumns = (contractId?: string | null): DataTableColumn<Personnel
         id: 'workload-column',
     },
     {
-        key: 'positions',
-        accessor: 'personnelId',
-        label: 'Nr Positions',
+        key: 'Disciplines',
+        accessor: (p) => p.disciplines.map((d) => d.name)?.join('/') || '',
+        label: 'Discipline',
         priority: 9,
-        component: (p) => <span>{(p.item.positions?.length || 0).toString()}</span>,
         sortable: true,
-        width: '20px',
-        id: 'position-column',
+        id: 'disciplines-column',
     },
     {
         key: 'equinorMail',

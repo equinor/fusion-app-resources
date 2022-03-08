@@ -1,4 +1,3 @@
-
 import styles from './styles.less';
 import {
     IconButton,
@@ -27,11 +26,12 @@ import { useAppContext } from '../../../../../../appContext';
 import ResourceErrorMessage from '../../../../../../components/ResourceErrorMessage';
 import usePositionDeletion from '../../hooks/usePositionDeletion';
 import { FC, useState, useCallback, useMemo } from 'react';
+import PositionWithPersonnel from '../../../../../../models/PositionWithPersonnel';
 
 const ActualMppPage: FC = () => {
-    const [filteredContractPositions, setFilteredContractPositions] = useState<Position[]>(
-        []
-    );
+    const [filteredContractPositions, setFilteredContractPositions] = useState<
+        PositionWithPersonnel[]
+    >([]);
     const [selectedPositions, setSelectedPositions] = useState<Position[]>([]);
     const [editRequests, setEditRequests] = useState<PersonnelRequest[] | null>(null);
 
@@ -51,7 +51,11 @@ const ActualMppPage: FC = () => {
         return response.data;
     }, [contract, currentContext]);
 
-    const { data: contractPositions, isFetching, error } = useReducerCollection(
+    const {
+        data: contractPositions,
+        isFetching,
+        error,
+    } = useReducerCollection(
         contractState,
         dispatchContractAction,
         'actualMpp',
@@ -59,9 +63,8 @@ const ActualMppPage: FC = () => {
         'set'
     );
 
-    const { deletePositions, isDeleting, canDeletePosition } = usePositionDeletion(
-        selectedPositions
-    );
+    const { deletePositions, isDeleting, canDeletePosition } =
+        usePositionDeletion(selectedPositions);
 
     const getPersonnelWithPositionsAsync = async () => {
         const contractId = contract?.id;
@@ -99,9 +102,24 @@ const ActualMppPage: FC = () => {
         fetchPersonnelAsync
     );
 
+    const tableData: PositionWithPersonnel[] = useMemo(
+        () =>
+            contractPositions.map((position) => ({
+                ...position,
+                instances: position.instances.map((instance) => ({
+                    ...instance,
+                    personnelDetails: personnel.find(
+                        (person) =>
+                            person.azureUniquePersonId === instance.assignedPerson?.azureUniqueId
+                    ),
+                })),
+            })),
+        [personnel, contractPositions]
+    );
+
     const filterSections = useMemo(() => {
-        return getFilterSections(contractPositions || []);
-    }, [contractPositions]);
+        return getFilterSections(tableData || []);
+    }, [tableData]);
 
     const onRequestSidesheetClose = useCallback(() => {
         setEditRequests(null);
@@ -170,7 +188,7 @@ const ActualMppPage: FC = () => {
                     />
                 </div>
                 <GenericFilter
-                    data={contractPositions}
+                    data={tableData}
                     filterSections={filterSections}
                     onFilter={(filteredRequests) => setFilteredContractPositions(filteredRequests)}
                 />

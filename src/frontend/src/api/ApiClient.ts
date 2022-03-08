@@ -22,6 +22,7 @@ import { formatDateToYDMString } from './utils';
 import ExcelParseReponse from '../models/ExcelParseResponse';
 import ReadableStreamResponse from '../models/ReadableStreamResponse';
 import { ContactMail, CreateContactMail } from '../models/ContactMail';
+import { ReplacePersonRequest } from '../models/ReplacePersonRequest';
 
 export default class ApiClient {
     protected httpClient: IHttpClient;
@@ -483,5 +484,33 @@ export default class ApiClient {
         } catch (e) {
             return false;
         }
+    }
+    public async getReplacePersonHeadersAsync(
+        projectId: string,
+        contractId: string,
+        personId: string
+    ) {
+        const url = this.resourceCollection.replacePerson(projectId, contractId, personId);
+        const response = await this.httpClient.optionsAsync<void, FusionApiHttpErrorResponse>(
+            url,
+            {},
+            () => Promise.resolve()
+        );
+        return response.headers;
+    }
+    public async replacePersonAsync(
+        projectId: string,
+        contractId: string,
+        personId: string,
+        payload: ReplacePersonRequest,
+        force?: boolean
+    ) {
+        const url = this.resourceCollection.replacePerson(projectId, contractId, personId, force);
+        const response = await this.httpClient.postAsync<
+            ReplacePersonRequest,
+            Personnel,
+            FusionApiHttpErrorResponse
+        >(url, payload);
+        return response.data;
     }
 }

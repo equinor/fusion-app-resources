@@ -45,7 +45,7 @@ namespace Fusion.Resources.Domain
         public string? PreferredContactMail { get; set; }
 
         public DbAzureAccountStatus AzureAdStatus { get; set; }
-        public bool IsDeleted { get; set; }
+        public bool? IsDeleted { get; set; }
         public DateTimeOffset? Deleted { get; set; }
 
         public List<QueryPersonnelDiscipline> Disciplines { get; set; }
