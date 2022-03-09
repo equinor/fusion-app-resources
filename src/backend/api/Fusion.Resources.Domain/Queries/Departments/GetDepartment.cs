@@ -2,7 +2,6 @@
 using Fusion.Integration.LineOrg;
 using Fusion.Resources.Database;
 using MediatR;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
