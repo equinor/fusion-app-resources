@@ -466,8 +466,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [InlineData("External")]
         public async Task DirectRequest_ShouldBeAutoApproved_When(string testCase)
         {
-            var position = testProject.AddPosition();
-
             ApiPersonProfileV3? proposedPerson;
 
             switch (testCase)
@@ -493,6 +491,155 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "approval");
             resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
         }
+
+        [Theory]
+        [InlineData("DepartmentHasEnabled")]
+        [InlineData("ParentDepartmentHasEnabled_WithChildren")]
+        [InlineData("ParentsToggling_On_Off_On")]
+        [InlineData("ParentTogglingOff_WithoutChildren")]
+        [InlineData("DepartmentOverridingParents")]
+        public async Task DirectRequest_AutoApproval_ShouldBeAutoApproved_WhenEmployeeAnd_(string testCase)
+        {
+            var faker = new Bogus.Faker();
+            var rootUnit = $"{faker.Random.Int(0, int.MaxValue)}";
+
+            #region Arrange
+            var parentL1 = $"{rootUnit} L1";
+            var parentL2 = $"{rootUnit} L1 L2";
+            var parentL3 = $"{rootUnit} L1 L2 L3";
+            var testDepartment = $"{rootUnit} L1 L2 L3 DEP";
+
+            fixture.EnsureDepartment(parentL1);
+            fixture.EnsureDepartment(parentL2);
+            fixture.EnsureDepartment(parentL3);
+            fixture.EnsureDepartment(testDepartment);
+
+            var proposedPerson = PeopleServiceMock
+                .AddTestProfile()
+                .WithAccountType(FusionAccountType.Employee)
+                .WithFullDepartment(testDepartment)
+                .SaveProfile();
+
+            // Run test as admin
+            #endregion
+
+            using var adminScope = fixture.AdminScope();
+            
+            switch (testCase)
+            {
+                case "DepartmentHasEnabled":
+                    await Client.SetDepartmentAutoApproval(testDepartment, true);
+                    break;
+
+                case "ParentDepartmentHasEnabled_WithChildren":
+                    await Client.SetDepartmentAutoApproval(parentL2, true, "All");
+                    break;
+
+                case "ParentsToggling_On_Off_On":
+                    // Parents are enabling, disabling then enabling again
+                    await Client.SetDepartmentAutoApproval(parentL1, true, "All");
+                    await Client.SetDepartmentAutoApproval(parentL2, false, "All");
+                    await Client.SetDepartmentAutoApproval(parentL3, true, "All");
+                    break;
+
+                case "ParentTogglingOff_WithoutChildren":
+                    await Client.SetDepartmentAutoApproval(parentL1, true, "All");
+                    // This should not impact the test department
+                    await Client.SetDepartmentAutoApproval(parentL2, false, "Direct");
+                    break;
+
+                case "DepartmentOverridingParents":
+                    await Client.SetDepartmentAutoApproval(parentL1, false, "All");
+                    await Client.SetDepartmentAutoApproval(testDepartment, true, "Direct");
+                    break;
+
+                default: throw new NotSupportedException("Test case not supported");
+            }
+
+
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithProposedPerson(proposedPerson));
+
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+
+            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
+            resp.Should().BeSuccessfull();
+
+            #region Assert approval is performed
+            resp.Value.workflow.Should().NotBeNull();
+            resp.Value.workflow.State.Should().Be("Running");
+
+            resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "approval");
+            resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
+            #endregion
+        }
+
+        [Theory]
+        [InlineData("NoStatusSet")]
+        [InlineData("ParentsToggling_On_Off")]
+        [InlineData("DepartmentOverridingParents")]
+        public async Task DirectRequest_AutoApproval_ShouldNotBeAutoApproved_WhenEmployeeAnd_(string testCase)
+        {
+            var faker = new Bogus.Faker();
+            var rootUnit = $"{faker.Random.Int(0, int.MaxValue)}";
+
+            #region Arrange
+            var parentL1 = $"{rootUnit} L1";
+            var parentL2 = $"{rootUnit} L1 L2";
+            var parentL3 = $"{rootUnit} L1 L2 L3";
+            var testDepartment = $"{rootUnit} L1 L2 L3 DEP";
+
+            fixture.EnsureDepartment(parentL1);
+            fixture.EnsureDepartment(parentL2);
+            fixture.EnsureDepartment(parentL3);
+            fixture.EnsureDepartment(testDepartment);
+
+            var proposedPerson = PeopleServiceMock
+                .AddTestProfile()
+                .WithAccountType(FusionAccountType.Employee)
+                .WithFullDepartment(testDepartment)
+                .SaveProfile();
+
+            // Run test as admin
+            #endregion
+
+            using var adminScope = fixture.AdminScope();
+
+            switch (testCase)
+            {
+                case "NoStatusSet":
+                    break;
+
+                case "ParentsToggling_On_Off":
+                    await Client.SetDepartmentAutoApproval(parentL1, true, "All");
+                    await Client.SetDepartmentAutoApproval(parentL2, false, "All");
+                    break;
+
+                case "DepartmentOverridingParents":
+                    await Client.SetDepartmentAutoApproval(parentL1, true, "All");
+                    await Client.SetDepartmentAutoApproval(testDepartment, false, "Direct");
+                    break;
+
+                default: throw new NotSupportedException("Test case not supported");
+            }
+
+
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithProposedPerson(proposedPerson));
+
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+
+            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
+            resp.Should().BeSuccessfull();
+
+            #region Assert approval is performed
+            resp.Value.workflow.Should().NotBeNull();
+            resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted == false && s.Id == "approval");
+            #endregion
+        }
+
         #endregion
 
         #endregion

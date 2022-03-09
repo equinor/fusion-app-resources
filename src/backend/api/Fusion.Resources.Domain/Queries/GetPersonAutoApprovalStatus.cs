@@ -39,6 +39,18 @@ namespace Fusion.Resources.Domain.Queries
                 if (profile.AccountType != FusionAccountType.Employee)
                     return true;
 
+
+                // Check if the department has enabled for user. 
+                // This disables the ability to enable approval request for contractors.
+                if (!string.IsNullOrEmpty(profile.FullDepartment))
+                {
+                    var departmentAutoApproval = await mediator.Send(new GetDepartmentAutoApproval(profile.FullDepartment));
+                    if (departmentAutoApproval?.Enabled == true)
+                        return true;
+                }
+
+
+                // No rules affecting, return default.
                 return false;
             }
         }
