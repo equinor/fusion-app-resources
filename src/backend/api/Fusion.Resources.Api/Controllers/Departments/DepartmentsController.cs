@@ -43,6 +43,14 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(result.Select(x => new ApiDepartment(x)));
         }
 
+        /// <summary>
+        /// List all departments with custom auto approval config. 
+        /// This is mainly intended for admin utils.
+        /// 
+        /// Access:
+        ///     - Admins
+        /// </summary>
+        /// <exception cref="ODataException">Unknown value for the mode filter.</exception>
         [HttpGet("/departments/auto-approvals")]
         public async Task<ActionResult<List<ApiDepartmentAutoApproval>>> ListAutoApprovalEntries([FromQuery] ODataQueryParams query)
         {
@@ -67,6 +75,8 @@ namespace Fusion.Resources.Api.Controllers
             });
             
             #region Convert value 
+            // We need to convert this value, as the user relates to enum values, which is converted to a bool value internally.
+            // If 'in' is used here, it will throw an error, but do not see that as too much of a problem atm.
             foreach (ODataFilterExpression filter in query.Filter.GetFilters())
             {
                 if (string.Equals(filter.Field, "IncludeSubDepartments"))
