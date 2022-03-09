@@ -69,8 +69,10 @@ jobs:
           - task: Kubernetes@1
             displayName: Log in to aks namespace
             inputs:
-              connectionType: 'Kubernetes Service Connection'
-              kubernetesServiceEndpoint: 'fusion-resources-app-pr'
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+              azureResourceGroup: 'Fusion-Hosting-AKS'
+              kubernetesCluster: 'Fusion-AKS-Test'
               namespace: 'fusion-resources-app-pr'
               command: 'login'
 
