@@ -8,6 +8,7 @@
     {
         public QueryDepartmentAutoApprovalStatus(Database.Entities.DbDepartmentAutoApproval approval, bool inherited)
         {
+            FullDepartmentPath = approval.DepartmentFullPath;
             Inherited = inherited;
             Enabled = approval.Enabled;
             IncludeSubDepartments = approval.IncludeSubDepartments;
@@ -16,6 +17,7 @@
                 EffectiveDepartmentPath = approval.DepartmentFullPath;
         }
 
+        public string FullDepartmentPath { get; set; }
         public bool Enabled { get; set; }
         public bool IncludeSubDepartments { get; set; }
 

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Xunit;
 using Xunit.Abstractions;
+using System;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -19,6 +20,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
         private object testUser;
+        private Bogus.Faker faker = new Bogus.Faker();
 
         public DepartmentsController(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -347,6 +349,142 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Should().BeBadRequest();
 
             // { ... "errors":{"autoApproval.mode":["Invalid value, supported types: All, Direct"]}}
+        }
+
+        [Fact]
+        public async Task AutoApproval_List_ShouldListAllEntries()
+        {
+            var department1 = $"{faker.Random.Number()} DA";
+            var department1_2 = $"{faker.Random.Number()} DA DAA";
+            var department2_1 = $"{faker.Random.Number()} DB DBA";
+            var department3 = $"{faker.Random.Number()} DC SAA DBA ELD";
+
+            fixture.EnsureDepartment(department1);
+            fixture.EnsureDepartment(department1_2);
+            fixture.EnsureDepartment(department2_1);
+            fixture.EnsureDepartment(department3);
+
+
+            using var adminScope = fixture.AdminScope();
+
+            await Client.SetDepartmentAutoApproval(department1, true, "All");
+            await Client.SetDepartmentAutoApproval(department1_2, false, "Direct");
+            await Client.SetDepartmentAutoApproval(department2_1, true, "All");
+            await Client.SetDepartmentAutoApproval(department3, true, "Direct");
+
+
+            var resp = await Client.TestClientGetAsync($"/departments/auto-approvals", new []
+            {
+                new { 
+                    fullDepartmentPath = string.Empty, 
+                    enabled = false, 
+                    mode = "All" 
+                }
+            });
+
+            resp.Should().BeSuccessfull();
+            resp.Value.Should().HaveCountGreaterOrEqualTo(4);
+            resp.Value.Should().Contain(i => i.fullDepartmentPath == department1 && i.enabled == true && i.mode == "All");
+            resp.Value.Should().Contain(i => i.fullDepartmentPath == department1_2 && i.enabled == false && i.mode == "Direct");
+            resp.Value.Should().Contain(i => i.fullDepartmentPath == department2_1 && i.enabled == true && i.mode == "All");
+            resp.Value.Should().Contain(i => i.fullDepartmentPath == department3 && i.enabled == true && i.mode == "Direct");
+        }
+
+        [Fact]
+        public async Task AutoApproval_List_ShouldBeUnauthorized_WhenNormalUser()
+        {
+            var testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.UserScope(testUser);
+
+            var resp = await Client.TestClientGetAsync($"/departments/auto-approvals", Array.Empty<object>());
+
+            resp.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData("Enabled_True")]
+        [InlineData("Enabled_False")]
+        [InlineData("Mode_All")]
+        [InlineData("Mode_Direct")]
+        [InlineData("Department")]
+        //[InlineData("Department_StartsWith")] // Not supported in net5.0 entity framework it seems.
+        public async Task AutoApproval_List_ShouldSupportFilter_WhenQueryingFor(string caseName)
+        {
+            #region Arrange
+
+            var department1 = $"{faker.Random.Int(100, int.MaxValue)} DA";
+            var department1_2 = $"{department1} DAA";
+            var department2_1 = $"{faker.Random.Int(100, int.MaxValue)} DB DBA";
+            var department3 = $"{faker.Random.Int(100, int.MaxValue)} DC SAA DBA ELD";
+
+            fixture.EnsureDepartment(department1);
+            fixture.EnsureDepartment(department1_2);
+            fixture.EnsureDepartment(department2_1);
+            fixture.EnsureDepartment(department3);
+
+
+            using var adminScope = fixture.AdminScope();
+
+            await Client.SetDepartmentAutoApproval(department1, true, "All");
+            await Client.SetDepartmentAutoApproval(department1_2, false, "Direct");
+            await Client.SetDepartmentAutoApproval(department2_1, true, "All");
+            await Client.SetDepartmentAutoApproval(department3, true, "Direct");
+
+            var respModel = new[]
+            {
+                new {
+                    fullDepartmentPath = string.Empty,
+                    enabled = false,
+                    mode = "All"
+                }
+            };
+
+            #endregion
+
+            switch (caseName)
+            {
+                case "Enabled_True":
+                    var resp = await Client.TestClientGetAsync($"/departments/auto-approvals?$filter=enabled eq 'true'", respModel);
+                    resp.Should().BeSuccessfull();
+                    resp.Value.Should().OnlyContain(a => a.enabled == true);
+                    break;
+
+                case "Enabled_False":
+                    resp = await Client.TestClientGetAsync($"/departments/auto-approvals?$filter=enabled eq 'false'", respModel);
+                    resp.Should().BeSuccessfull();
+                    resp.Value.Should().OnlyContain(a => a.enabled == false);
+                    break;
+
+                case "Mode_All":
+                    resp = await Client.TestClientGetAsync($"/departments/auto-approvals?$filter=mode eq 'all'", respModel);
+                    resp.Should().BeSuccessfull();
+                    resp.Value.Should().OnlyContain(a => string.Equals(a.mode, "all", StringComparison.OrdinalIgnoreCase));
+                    break;
+
+                case "Mode_Direct":
+                    resp = await Client.TestClientGetAsync($"/departments/auto-approvals?$filter=mode eq 'direct'", respModel);
+                    resp.Should().BeSuccessfull();
+                    resp.Value.Should().OnlyContain(a => string.Equals(a.mode, "direct", StringComparison.OrdinalIgnoreCase));
+                    break;
+
+                case "Department":
+                    resp = await Client.TestClientGetAsync($"/departments/auto-approvals?$filter=fullDepartmentPath eq '{department1}'", respModel);
+                    resp.Should().BeSuccessfull();
+                    resp.Value.Should().OnlyContain(a => string.Equals(a.fullDepartmentPath, department1, StringComparison.OrdinalIgnoreCase));
+                    break;
+
+                // This is not 
+                case "Department_StartsWith":
+                    resp = await Client.TestClientGetAsync($"/departments/auto-approvals?$filter=fullDepartmentPath startswith '{department1}'", respModel);
+                    resp.Should().BeSuccessfull();
+                    resp.Value.Should().HaveCountGreaterOrEqualTo(2);
+                    resp.Value.Should().OnlyContain(a => a.fullDepartmentPath.StartsWith(department1, StringComparison.OrdinalIgnoreCase));
+                    break;
+
+
+                default: throw new NotSupportedException(caseName);
+            }
         }
 
         [Fact]

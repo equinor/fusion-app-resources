@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
+using Fusion.AspNetCore;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
 using Microsoft.AspNetCore.Authorization;
@@ -39,6 +41,53 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok(result.Select(x => new ApiDepartment(x)));
         }
+
+        [HttpGet("/departments/auto-approvals")]
+        public async Task<ActionResult<List<ApiDepartmentAutoApproval>>> ListAutoApprovalEntries([FromQuery] ODataQueryParams query)
+        {
+            #region Authorization
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen()
+                    .FullControl()
+                    .FullControlInternal();
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            query.MapFilterFields<ApiDepartmentAutoApproval>(m =>
+            {
+                m.MapToModel<QueryDepartmentAutoApprovalStatus>()
+                    .MapField(inModel => inModel.FullDepartmentPath, qModel => qModel.FullDepartmentPath)
+                    .MapField(inModel => inModel.Enabled, qModel => qModel.Enabled)
+                    .MapField(inModel => inModel.Mode, qModel => qModel.IncludeSubDepartments);                
+            });
+            
+            #region Convert value 
+            foreach (ODataFilterExpression filter in query.Filter.GetFilters())
+            {
+                if (string.Equals(filter.Field, "IncludeSubDepartments"))
+                {
+                    filter.Value = filter.Value?.ToLower() switch
+                    {
+                        "all" => "true",
+                        "direct" => "false",
+                        _ => throw new ODataException($"Invalid value for field 'mode': '{filter.Value}'")
+                    };
+                }
+            }
+            #endregion
+
+            // Must change the value for the mode
+
+            var result = await DispatchAsync(new ListDepartmentAutoApprovals().WithQuery(query));
+
+            return result.Select(x => new ApiDepartmentAutoApproval(x).IncludeFullDepartment()).ToList();
+        }
+
+
 
         [HttpGet("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
