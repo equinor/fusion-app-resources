@@ -12,6 +12,7 @@ using Fusion.Testing.Mocks.LineOrgService;
 using Xunit;
 using Xunit.Abstractions;
 using System;
+using Fusion.Testing.Mocks.ProfileService;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -691,6 +692,76 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.autoApproval.enabled.Should().BeFalse();
             resp.Value.autoApproval.inherited.Should().BeFalse();
             resp.Value.autoApproval.inheritedFrom.Should().BeNull();
+        }
+
+        #endregion
+
+        #region Access check
+
+        [Theory]
+        [InlineData("FullControl", true)]
+        [InlineData("FullControlInternal", true)]
+        [InlineData("ResourceOwner_OnDepartment", true)]
+        [InlineData("ResourceOwner_OnParent", true)]
+        [InlineData("ResourceOwner_OnTop", true)]
+        [InlineData("ResourceOwner_DifferentArea", false)]
+        [InlineData("Employee", false)]
+        public async Task UpdateDepartment_AccessTests_When(string caseName, bool shouldHaveAccess)
+        {
+            var topLevel = $"{faker.Random.Int(436543, 999999)}";
+            var topLevel_2 = $"{faker.Random.Int(1999999, 9999999)}";
+
+
+            var department_1 = $"{topLevel}";
+            var department_1_2 = $"{topLevel} A";
+            var department_1_3 = $"{topLevel} A B";
+            var department_2 = $"{topLevel_2}";
+
+            var testDepartment = department_1_3;
+            var testDepartmentResourceOwner = fixture.AddResourceOwner(testDepartment);
+
+            Fusion.Integration.Profile.ApiClient.ApiPersonProfileV3 testUser;
+
+            switch (caseName)
+            {
+                case "FullControl":
+                    testUser = PeopleServiceMock.AddTestProfile().WithRoles("Fusion.Resources.FullControl").SaveProfile();
+                    break;
+
+                case "FullControlInternal":
+                    testUser = PeopleServiceMock.AddTestProfile().WithRoles("Fusion.Resources.Internal.FullControl").SaveProfile();
+                    break;
+
+                case "ResourceOwner_OnDepartment":
+                    testUser = testDepartmentResourceOwner;
+                    break;
+
+                case "ResourceOwner_OnParent":
+                    testUser = fixture.AddResourceOwner(department_1_2);
+                    break;
+
+                case "ResourceOwner_OnTop":
+                    testUser = fixture.AddResourceOwner(department_1);
+                    break;
+
+                case "ResourceOwner_DifferentArea":
+                    testUser = fixture.AddResourceOwner(department_2);
+                    break;
+
+                case "Employee":
+                    testUser = fixture.AddProfile(FusionAccountType.Employee);
+                    break;
+
+                default: throw new NotSupportedException(caseName);
+            }
+
+            using var scope = fixture.UserScope(testUser);
+            var resp = await Client.TestClientPatchAsync<object>($"/departments/{testDepartment}", new { });
+
+            if (shouldHaveAccess)
+                resp.Should().BeSuccessfull();
+            else
+                resp.Should().BeUnauthorized();
         }
 
         #endregion
