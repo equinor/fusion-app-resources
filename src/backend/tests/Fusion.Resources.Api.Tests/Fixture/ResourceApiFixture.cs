@@ -80,6 +80,14 @@ namespace Fusion.Resources.Api.Tests.Fixture
             return account;
         }
 
+        internal ApiPersonProfileV3 AddProfile(Action<Testing.Mocks.ProfileService.FusionTestUserBuilder> setup)
+        {
+            var account = PeopleServiceMock.AddTestProfile();
+            setup(account);
+            var profile = account.SaveProfile();
+            return profile;
+        }
+
         internal ApiPersonProfileV3 AddResourceOwner(string department)
         {
             var resourceOwner = this.AddProfile(FusionAccountType.Employee);

@@ -65,6 +65,18 @@ namespace Fusion.Testing.Mocks.ProfileService
             return this;
         }
 
+
+        public FusionTestUserBuilder WithManager(Guid? azureUniqueId)
+        {
+            profile.ManagerAzureUniqueId = azureUniqueId;
+            return this;
+        }
+        public FusionTestUserBuilder WithManager(ApiPersonProfileV3 person)
+        {
+            profile.ManagerAzureUniqueId = person.AzureUniqueId;
+            return this;
+        }
+
         public FusionTestUserBuilder WithFullDepartment(string fullDepartment)
         {
             profile.FullDepartment = fullDepartment;

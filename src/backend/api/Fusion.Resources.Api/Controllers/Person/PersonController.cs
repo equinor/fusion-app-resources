@@ -278,10 +278,12 @@ namespace Fusion.Resources.Api.Controllers
 
 
             var autoApproval = await DispatchAsync(new Domain.Queries.GetPersonAutoApprovalStatus(user.azureId));
+            var manager = await DispatchAsync(new Domain.Queries.GetResourceOwner(user.azureId));
 
             return new ApiPersonAllocationRequestStatus
             {
-                AutoApproval = autoApproval.GetValueOrDefault(false)
+                AutoApproval = autoApproval.GetValueOrDefault(false),
+                Manager = manager is not null ? new ApiPerson(manager) : null
             };
         }
 
