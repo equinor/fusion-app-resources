@@ -224,6 +224,29 @@ namespace Fusion.Resources.Api.Tests
             });
         }
 
+        public static async Task SetDepartmentAutoApproval(this HttpClient client, string departmentPath, bool enabled, string mode = "All")
+        {
+            var updateResp = await client.TestClientPatchAsync($"/departments/{departmentPath}", new
+            {
+                autoApproval = new 
+                { 
+                    enabled = enabled, 
+                    mode = mode 
+                }
+            }, new { });
+
+            updateResp.Should().BeSuccessfull();
+        }
+        public static async Task RemoveDepartmentAutoApproval(this HttpClient client, string departmentPath)
+        {
+            var updateResp = await client.TestClientPatchAsync($"/departments/{departmentPath}", new
+            {
+                autoApproval = (object)null
+            }, new { });
+
+            updateResp.Should().BeSuccessfull();
+        }
+
         public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Dictionary<string, object> props = null)
         {
             var payload = new

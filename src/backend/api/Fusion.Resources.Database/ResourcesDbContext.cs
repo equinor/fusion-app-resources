@@ -42,6 +42,7 @@ namespace Fusion.Resources.Database
         public DbSet<DbPersonNote> PersonNotes { get; set; }
 
         public DbSet<DbDepartmentResponsible> DepartmentResponsibles { get; set; }
+        public DbSet<DbDepartmentAutoApproval> DepartmentAutoApprovals { get; set; }
 
         public DbSet<DbRequestAction> RequestActions { get; set; }
         public DbSet<DbConversationMessage> RequestConversations { get; set; }
@@ -66,6 +67,7 @@ namespace Fusion.Resources.Database
             DbRequestAction.OnModelCreating(modelBuilder);
             DbConversationMessage.OnModelCreating(modelBuilder);
             DbContractPersonnelReplacement.OnModelCreating(modelBuilder);
+            DbDepartmentAutoApproval.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -333,6 +333,230 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.department.Should().BeNull();
         }
 
+        #region Auto approval
+
+        [Fact]
+        public async Task UpdateAutoApproval_ShouldBeBadRequest_WhenInvalidMode()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+            var resp = await Client.TestClientPatchAsync("/departments/NOT HERE", new
+            {
+                autoApproval = new { enabled = true, mode = "Invalid" }
+            }, new { });
+            resp.Should().BeBadRequest();
+
+            // { ... "errors":{"autoApproval.mode":["Invalid value, supported types: All, Direct"]}}
+        }
+
+        [Fact]
+        public async Task AutoApproval_Update_ShouldSetEnableAutoApproval()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+            
+            var testDepartmentString = "1 TEST AUTO APPROVAL";
+            fixture.EnsureDepartment(testDepartmentString);
+
+            var resp = await Client.TestClientPatchAsync($"/departments/{testDepartmentString}", new
+            {
+                autoApproval = new { enabled = true, mode = "All" }
+            }, new {
+                autoApproval = new { enabled = false, mode = string.Empty }
+            });
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().NotBeNull();
+            resp.Value.autoApproval.enabled.Should().BeTrue();
+            resp.Value.autoApproval.mode.Should().BeEquivalentTo("All");
+        }
+
+        [Fact]
+        public async Task AutoApproval_Update_ShouldDeleteAutoApproval_WhenSettingNull()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+
+            var testDepartmentString = "2 TEST AUTO APPROVAL";
+            fixture.EnsureDepartment(testDepartmentString);
+
+            await Client.SetDepartmentAutoApproval(testDepartmentString, true);
+
+            var resp = await Client.TestClientPatchAsync($"/departments/{testDepartmentString}", new
+            {
+                autoApproval = (object)null
+            }, new
+            {
+                autoApproval = new { enabled = false, mode = string.Empty }
+            });
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task AutoApproval_Update_ShouldNotDoAnything_WhenSettingNullAndExistingIsNull()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+
+            var testDepartmentString = "3 TEST AUTO APPROVAL";
+            fixture.EnsureDepartment(testDepartmentString);
+
+            var resp = await Client.TestClientPatchAsync($"/departments/{testDepartmentString}", new
+            {
+                autoApproval = (object)null
+            }, new
+            {
+                autoApproval = new { enabled = false, mode = string.Empty }
+            });
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task AutoApproval_ShouldInheritFromParent_WhenModeIsAll()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+
+            #region Arrange
+            var parentDepartment = "1 AP INH";
+            var testDepartmentString = "1 AP INH DEP";
+
+            fixture.EnsureDepartment(parentDepartment);
+            fixture.EnsureDepartment(testDepartmentString);
+
+            await Client.SetDepartmentAutoApproval(parentDepartment, true, "All");
+            #endregion
+
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testDepartmentString}", new
+            {
+                autoApproval = new 
+                { 
+                    enabled = true, 
+                    mode = string.Empty, 
+                    inherited = false, 
+                    inheritedFrom = string.Empty 
+                }
+            });
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().NotBeNull();
+            resp.Value.autoApproval.enabled.Should().BeTrue();
+            resp.Value.autoApproval.inherited.Should().BeTrue();
+            resp.Value.autoApproval.inheritedFrom.Should().BeEquivalentTo(parentDepartment);
+        }
+
+        [Fact]
+        public async Task AutoApproval_ShouldBreakInheritence_WhenTwoParentsIncludeChildren()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+
+            #region Arrange
+            var parentDepartment = "2 AP INH";
+            var parentInheritenceBreaker = "2 AP INH BRK";
+            var testDepartmentString = "2 AP INH BRK DEP";
+
+            fixture.EnsureDepartment(parentDepartment);
+            fixture.EnsureDepartment(parentInheritenceBreaker);
+            fixture.EnsureDepartment(testDepartmentString);
+
+            await Client.SetDepartmentAutoApproval(parentDepartment, true, "All");
+            await Client.SetDepartmentAutoApproval(parentInheritenceBreaker, false, "All");
+
+            #endregion
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testDepartmentString}", new
+            {
+                autoApproval = new
+                {
+                    enabled = true,
+                    mode = string.Empty,
+                    inherited = false,
+                    inheritedFrom = string.Empty
+                }
+            });
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().NotBeNull();
+            resp.Value.autoApproval.enabled.Should().BeFalse();
+            resp.Value.autoApproval.inherited.Should().BeTrue();
+            resp.Value.autoApproval.inheritedFrom.Should().BeEquivalentTo(parentInheritenceBreaker);
+        }
+
+        [Fact]
+        public async Task AutoApproval_ShouldNotBreakInheritence_WhenParentDoesNotIncludeChildren()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+
+            #region Arrange
+            var parentDepartment = "3 AP INH";
+            var parentInheritenceBreaker = "3 AP INH BRK";
+            var testDepartmentString = "3 AP INH BRK DEP";
+
+            fixture.EnsureDepartment(parentDepartment);
+            fixture.EnsureDepartment(parentInheritenceBreaker);
+            fixture.EnsureDepartment(testDepartmentString);
+
+            await Client.SetDepartmentAutoApproval(parentDepartment, true, "All");
+            await Client.SetDepartmentAutoApproval(parentInheritenceBreaker, false, "Direct");
+
+            #endregion
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testDepartmentString}", new
+            {
+                autoApproval = new
+                {
+                    enabled = true,
+                    mode = string.Empty,
+                    inherited = false,
+                    inheritedFrom = string.Empty
+                }
+            });
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().NotBeNull();
+            resp.Value.autoApproval.enabled.Should().BeTrue();
+            resp.Value.autoApproval.inherited.Should().BeTrue();
+            resp.Value.autoApproval.inheritedFrom.Should().BeEquivalentTo(parentDepartment);
+        }
+
+        [Fact]
+        public async Task AutoApproval_ShouldOverrideInheritence_WhenUpdatingOnDepartment()
+        {
+            // Department does not need to exist, the payload is invalid so should result in bad request before checking if dep exists.
+            using var adminScope = fixture.AdminScope();
+
+            #region Arrange
+            var parentDepartment = "4 AP INH";
+            var testDepartmentString = "4 AP INH BRK DEP";
+
+            fixture.EnsureDepartment(parentDepartment);
+            fixture.EnsureDepartment(testDepartmentString);
+
+            await Client.SetDepartmentAutoApproval(parentDepartment, true, "All");
+            await Client.SetDepartmentAutoApproval(testDepartmentString, false, "Direct");
+
+            #endregion
+
+            var resp = await Client.TestClientGetAsync($"/departments/{testDepartmentString}", new
+            {
+                autoApproval = new
+                {
+                    enabled = true,
+                    mode = string.Empty,
+                    inherited = false,
+                    inheritedFrom = string.Empty
+                }
+            });
+            resp.Should().BeSuccessfull();
+            resp.Value.autoApproval.Should().NotBeNull();
+            resp.Value.autoApproval.enabled.Should().BeFalse();
+            resp.Value.autoApproval.inherited.Should().BeFalse();
+            resp.Value.autoApproval.inheritedFrom.Should().BeNull();
+        }
+
+        #endregion
+
         private class TestApiRelevantDepartments
         {
             public List<TestDepartment> Children { get; set; }

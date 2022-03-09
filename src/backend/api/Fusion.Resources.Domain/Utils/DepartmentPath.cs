@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using static System.Math;
 
@@ -61,5 +62,10 @@ namespace Fusion.Resources.Domain
         }
 
         public string GetShortName() => string.Join(' ', path.TakeLast(3));
+
+        public override string ToString()
+        {
+            return fullDepartmentPath;
+        }
     }
 }
