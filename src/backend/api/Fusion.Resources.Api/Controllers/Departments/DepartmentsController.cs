@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using Fusion.AspNetCore;
-using Fusion.AspNetCore.Api;
+﻿using Fusion.AspNetCore;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
@@ -11,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -248,48 +245,5 @@ namespace Fusion.Resources.Api.Controllers
             return result;
         }
     
-    }
-
-
-    public class PatchDepartmentRequest : PatchRequest
-    {
-        public PatchProperty<DepartmentAutoApprovalRequest> AutoApproval { get; set; } = new();
-    
-
-        public class Validator : AbstractValidator<PatchDepartmentRequest>
-        {
-            public Validator()
-            {
-                RuleFor(x => x.AutoApproval.Value)
-                    .SetValidator(new DepartmentAutoApprovalRequest.Validator())
-                    .OverridePropertyName("autoApproval")
-                    .When(x => x.AutoApproval.HasValue);
-            }
-        }
-            
-        public class DepartmentAutoApprovalRequest
-        {
-            public bool Enabled { get; set; }
-            public string? Mode { get; set; }
-
-            public class Validator : AbstractValidator<DepartmentAutoApprovalRequest>
-            {
-                public Validator()
-                {
-                    RuleFor(x => x.Mode)
-                        .NotEmpty()
-                        .IsEnumName(typeof(ApiDepartmentAutoApprovalMode), false)
-                        .WithMessage($"Invalid value, supported types: {string.Join(", ", Enum.GetNames<ApiDepartmentAutoApprovalMode>())}")
-                        .OverridePropertyName("mode");
-                }
-            }
-        }
-    }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ApiDepartmentAutoApprovalMode
-    {
-        All,
-        Direct
     }
 }
