@@ -3,6 +3,7 @@ using Fusion.AspNetCore;
 using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
+using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
 using Microsoft.AspNetCore.Authorization;
@@ -105,6 +106,21 @@ namespace Fusion.Resources.Api.Controllers
         {
             var department = await DispatchAsync(new GetDepartment(departmentString));
             if (department is null) return NotFound();
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(1), includeDescendants: true);
+                });
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
 
 
             using (var scope = await BeginTransactionAsync())
