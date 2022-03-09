@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// The approval status for the specified department.
-    /// Will be calculated from parents. If 
+    /// Will be calculated from parents. This is indicated by the 'Inherited' property. If this is set it should also indicate the department causing the customization.
     /// </summary>
     public class QueryDepartmentAutoApprovalStatus
     {
