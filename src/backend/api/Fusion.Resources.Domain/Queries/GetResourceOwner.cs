@@ -1,4 +1,5 @@
 ﻿using Fusion.Integration;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using MediatR;
 using Newtonsoft.Json;
@@ -9,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Queries
 {
+    /// <summary>
+    /// Resolve the manager for the person.
+    /// </summary>
     public class GetResourceOwner : IRequest<FusionPersonProfile?>
     {
         public GetResourceOwner(Guid personAzureUniqueId)
@@ -20,31 +24,21 @@ namespace Fusion.Resources.Domain.Queries
 
         public class Handler : IRequestHandler<GetResourceOwner, FusionPersonProfile?>
         {
-            private readonly HttpClient client;
             private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver)
+            public Handler(IFusionProfileResolver profileResolver)
             {
-                this.client = httpClientFactory.CreateClient("lineorg");
                 this.profileResolver = profileResolver;
             }
+
             public async Task<FusionPersonProfile?> Handle(GetResourceOwner request, CancellationToken cancellationToken)
             {
-                var resp = await client.GetAsync($"lineorg/persons/{request.AzureUniqueId}");
-                var content = await resp.Content.ReadAsStringAsync();
+                var profile = await profileResolver.ResolvePersonBasicProfileAsync(request.AzureUniqueId);
+                if (profile is null || profile.ManagerAzureUniqueId is null)
+                    return null;
 
-                if (resp.IsSuccessStatusCode)
-                {
-                    var profile = JsonConvert.DeserializeAnonymousType(content, new { ManagerId = (Guid?)null });
-                    if (profile.ManagerId.HasValue)
-                    {
-                        var fusionProfile = await profileResolver.ResolvePersonBasicProfileAsync(profile.ManagerId.Value);
-                        return fusionProfile;
-                    }
-
-                }
-
-                return null;
+                var manager = await profileResolver.ResolvePersonBasicProfileAsync(profile.ManagerAzureUniqueId.Value);
+                return manager;
             }
         }
     }

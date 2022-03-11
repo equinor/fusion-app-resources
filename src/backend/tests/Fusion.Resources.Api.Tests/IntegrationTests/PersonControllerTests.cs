@@ -139,6 +139,33 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task AllocationRequestStatus_ShouldIncludeManager()
+        {
+            var manager = fixture.AddProfile(FusionAccountType.Employee);
+            var testUser = fixture.AddProfile(s => s
+                .WithAccountType(FusionAccountType.Employee)
+                .WithManager(manager));
+
+            using var userScope = fixture.AdminScope();
+
+            var client = fixture.ApiFactory.CreateClient();
+            var resp = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/resources/allocation-request-status",
+                new
+                {
+                    manager = new
+                    {
+                        azureUniquePersonId = Guid.Empty
+                    }
+
+                }
+            );
+
+            resp.Should().BeSuccessfull();
+            resp.Value.manager.Should().NotBeNull();
+            resp.Value.manager.azureUniquePersonId.Should().Be(manager.AzureUniqueId.Value);
+        }
+
+        [Fact]
         public async Task AllocationRequestStatus_ShouldBeUnauthorized_WhenExternal()
         {
             var testUser = fixture.AddProfile(FusionAccountType.Consultant);
