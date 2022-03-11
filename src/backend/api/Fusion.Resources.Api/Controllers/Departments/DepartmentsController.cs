@@ -49,7 +49,7 @@ namespace Fusion.Resources.Api.Controllers
         /// </summary>
         /// <exception cref="ODataException">Unknown value for the mode filter.</exception>
         [HttpGet("/departments/auto-approvals")]
-        public async Task<ActionResult<List<ApiDepartmentAutoApproval>>> ListAutoApprovalEntries([FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<List<ApiDepartmentAutoApprovalStatus>>> ListAutoApprovalEntries([FromQuery] ODataQueryParams query)
         {
             #region Authorization
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -63,7 +63,7 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            query.MapFilterFields<ApiDepartmentAutoApproval>(m =>
+            query.MapFilterFields<ApiDepartmentAutoApprovalStatus>(m =>
             {
                 m.MapToModel<QueryDepartmentAutoApprovalStatus>()
                     .MapField(inModel => inModel.FullDepartmentPath, qModel => qModel.FullDepartmentPath)
@@ -92,7 +92,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var result = await DispatchAsync(new ListDepartmentAutoApprovals().WithQuery(query));
 
-            return result.Select(x => new ApiDepartmentAutoApproval(x).IncludeFullDepartment()).ToList();
+            return result.Select(x => new ApiDepartmentAutoApprovalStatus(x).IncludeFullDepartment()).ToList();
         }
 
 
@@ -103,7 +103,7 @@ namespace Fusion.Resources.Api.Controllers
             var department = await DispatchAsync(new GetDepartment(departmentString));
             if (department is null) return NotFound();
 
-            var approvalStatus = await DispatchAsync(new GetDepartmentAutoApproval(departmentString));
+            var approvalStatus = await DispatchAsync(new GetDepartmentAutoApprovalStatus(departmentString));
 
             return Ok(new ApiDepartment(department, approvalStatus));
         }
@@ -147,7 +147,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
 
-            var approvalStatus = await DispatchAsync(new GetDepartmentAutoApproval(departmentString));
+            var approvalStatus = await DispatchAsync(new GetDepartmentAutoApprovalStatus(departmentString));
             return Ok(new ApiDepartment(department, approvalStatus));
         }
 

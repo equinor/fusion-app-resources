@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class ApiDepartmentAutoApproval
+    public class ApiDepartmentAutoApprovalStatus
     {
         private readonly string fullDepartmentPath;
 
-        public ApiDepartmentAutoApproval(QueryDepartmentAutoApprovalStatus approvalStatus)
+        public ApiDepartmentAutoApprovalStatus(QueryDepartmentAutoApprovalStatus approvalStatus)
         {
             Enabled = approvalStatus.Enabled;
             Mode = approvalStatus.IncludeSubDepartments ? ApiDepartmentAutoApprovalMode.All : ApiDepartmentAutoApprovalMode.Direct;
@@ -26,7 +26,7 @@ namespace Fusion.Resources.Api.Controllers
         public bool Inherited { get; set; }
         public string? InheritedFrom { get; set; }
 
-        public ApiDepartmentAutoApproval IncludeFullDepartment()
+        public ApiDepartmentAutoApprovalStatus IncludeFullDepartment()
         {
             FullDepartmentPath = fullDepartmentPath;
             return this;

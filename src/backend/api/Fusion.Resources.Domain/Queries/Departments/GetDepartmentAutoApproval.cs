@@ -14,16 +14,16 @@ namespace Fusion.Resources.Domain
     /// 
     /// If no relevant status is located for specific or any parent department, null is returned.
     /// </summary>
-    public class GetDepartmentAutoApproval : IRequest<QueryDepartmentAutoApprovalStatus?>
+    public class GetDepartmentAutoApprovalStatus : IRequest<QueryDepartmentAutoApprovalStatus?>
     {
         public string DepartmentId { get; }
 
-        public GetDepartmentAutoApproval(string departmentId)
+        public GetDepartmentAutoApprovalStatus(string departmentId)
         {
             DepartmentId = departmentId;
         }
 
-        public class Handler : IRequestHandler<GetDepartmentAutoApproval, QueryDepartmentAutoApprovalStatus?>
+        public class Handler : IRequestHandler<GetDepartmentAutoApprovalStatus, QueryDepartmentAutoApprovalStatus?>
         {
             private readonly ResourcesDbContext dbContext;
 
@@ -32,7 +32,7 @@ namespace Fusion.Resources.Domain
                 this.dbContext = dbContext;
             }
 
-            public async Task<QueryDepartmentAutoApprovalStatus?> Handle(GetDepartmentAutoApproval request, CancellationToken cancellationToken)
+            public async Task<QueryDepartmentAutoApprovalStatus?> Handle(GetDepartmentAutoApprovalStatus request, CancellationToken cancellationToken)
             {
                 var path = new DepartmentPath(request.DepartmentId);
                 var allRelevantDepartments = path.GetAllParents().Union(new[] { request.DepartmentId });
@@ -49,7 +49,7 @@ namespace Fusion.Resources.Domain
                 }
 
 
-                // Fetch the neares parent that has children included.
+                // Fetch the nearest parent that has children included.
                 var nearestEffectiveItem = dbItems.Where(i => i.IncludeSubDepartments).OrderBy(i => i.DepartmentFullPath).LastOrDefault();
                 if (nearestEffectiveItem is not null)
                 {

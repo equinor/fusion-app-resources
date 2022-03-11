@@ -19,7 +19,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiDepartment(QueryDepartment department, QueryDepartmentAutoApprovalStatus? approvalStatus) : this(department)
         {
             if (approvalStatus is not null)
-                AutoApproval = new ApiDepartmentAutoApproval(approvalStatus);
+                AutoApproval = new ApiDepartmentAutoApprovalStatus(approvalStatus);
         }
 
         public string Name { get; set; }
@@ -27,6 +27,6 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPerson? LineOrgResponsible { get; set; }
         public List<ApiPerson>? DelegatedResponsibles { get; set; }
 
-        public ApiDepartmentAutoApproval? AutoApproval { get; set; }
+        public ApiDepartmentAutoApprovalStatus? AutoApproval { get; set; }
     }
 }

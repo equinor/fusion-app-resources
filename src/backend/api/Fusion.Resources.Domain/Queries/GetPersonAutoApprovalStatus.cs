@@ -44,7 +44,7 @@ namespace Fusion.Resources.Domain.Queries
                 // This disables the ability to enable approval request for contractors.
                 if (!string.IsNullOrEmpty(profile.FullDepartment))
                 {
-                    var departmentAutoApproval = await mediator.Send(new GetDepartmentAutoApproval(profile.FullDepartment));
+                    var departmentAutoApproval = await mediator.Send(new GetDepartmentAutoApprovalStatus(profile.FullDepartment));
                     if (departmentAutoApproval?.Enabled == true)
                         return true;
                 }
