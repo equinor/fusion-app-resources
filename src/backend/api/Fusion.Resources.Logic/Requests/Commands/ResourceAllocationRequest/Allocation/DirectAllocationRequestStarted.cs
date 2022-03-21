@@ -40,8 +40,6 @@ namespace Fusion.Resources.Logic.Commands
                     // Check for auto approval
                     if (request.ProposedPerson.AzureUniqueId.HasValue)
                     {
-
-
                         var autoApprovalEnabledForResource = await mediator.Send(new Domain.Queries.GetPersonAutoApprovalStatus(request.ProposedPerson.AzureUniqueId!.Value));
                         if (autoApprovalEnabledForResource == true)
                         {
@@ -62,11 +60,11 @@ namespace Fusion.Resources.Logic.Commands
                 private static void ValidateWorkflow(DbResourceAllocationRequest request)
                 {
                     if (request.AssignedDepartment is null)
-                        throw InvalidWorkflowError.ValidationError<AllocationJointVentureWorkflowV1>("Cannot start direct request without assigned department", s =>
+                        throw InvalidWorkflowError.ValidationError<AllocationDirectWorkflowV1>("Cannot start direct request without assigned department", s =>
                             s.AddFailure("assignedDepartment", "Must provide assigned department to the request"));
 
                     if (!request.ProposedPerson.HasBeenProposed)
-                        throw InvalidWorkflowError.ValidationError<AllocationJointVentureWorkflowV1>("Cannot start direct request without a person proposed", s =>
+                        throw InvalidWorkflowError.ValidationError<AllocationDirectWorkflowV1>("Cannot start direct request without a person proposed", s =>
                             s.AddFailure("proposedPerson", "Must provide a person to be assigned the position"));
                 }
             }

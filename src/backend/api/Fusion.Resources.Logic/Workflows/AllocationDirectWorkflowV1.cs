@@ -42,6 +42,19 @@ namespace Fusion.Resources.Logic.Workflows
         {
         }
 
+        public WorkflowStep AutoComplete()
+        {
+            return Step(PROPOSAL)
+                .SetName("Proposed")
+                .SetDescription("Specified resrouce resulted in auto approval of request")
+                .Skip()
+                .StartNext()
+                .SetName("Approved")
+                .SetDescription("Specified resrouce resulted in auto approval of request")
+                .Skip()
+                .StartNext().Current;
+        }
+
         public WorkflowStep Approved(DbPerson approver)
         {
             return Step(APPROVAL)
