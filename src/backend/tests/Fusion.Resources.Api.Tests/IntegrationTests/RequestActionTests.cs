@@ -152,9 +152,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithTestUser(fixture.AdminUser)
                 .AddTestAuthToken();
 
+            var person = fixture.AddProfile(FusionAccountType.Employee);
+
             fixture.EnsureDepartment(testDepartment);
             var request = await adminClient.CreateDefaultRequestAsync(testProject, x => x.WithAssignedDepartment(testDepartment));
             await adminClient.StartProjectRequestAsync(testProject, request.Id);
+            await adminClient.ProposePersonAsync(request.Id, person);
+            await adminClient.ResourceOwnerApproveAsync(testDepartment, request.Id);
             await adminClient.TaskOwnerApproveAsync(testProject, request.Id);
             await adminClient.ProvisionRequestAsync(request.Id);
 

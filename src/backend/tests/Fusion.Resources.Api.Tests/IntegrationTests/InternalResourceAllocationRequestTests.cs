@@ -903,6 +903,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var request = await Client.CreateDefaultRequestAsync(testProject);
             await Client.StartProjectRequestAsync(testProject, request.Id);
             await Client.ProposePersonAsync(request.Id, testUser);
+            await Client.ResourceOwnerApproveAsync(TestDepartmentId, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
 
             await Client.ProvisionRequestAsync(request.Id);

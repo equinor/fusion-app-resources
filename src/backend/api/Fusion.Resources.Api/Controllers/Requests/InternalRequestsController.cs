@@ -704,7 +704,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/resources/requests/internal/{requestId}/provision")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest(Guid requestId)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest(Guid requestId, [FromQuery]bool force = false)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -736,7 +736,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 await using var scope = await BeginTransactionAsync();
 
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Provision(requestId));
+                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Provision(requestId)
+                {
+                    ForceProvision = force
+                });
 
                 await scope.CommitAsync();
 

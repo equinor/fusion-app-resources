@@ -847,11 +847,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.ProposePersonAsync(request.Id, user);
             await Client.StartProjectRequestAsync(testProject, request.Id);
 
-            var approveResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{user.Department}/requests/{request.Id}/approve", null);
-            approveResponse.Should().BeSuccessfull();
-
-            var provisionResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{request.Id}/provision", null);
-            provisionResponse.Should().BeSuccessfull();
+            await Client.ResourceOwnerApproveAsync(user.Department, request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
 
             var timelineStart = new DateTime(2020, 03, 01);
             var timelineEnd = new DateTime(2020, 03, 31);

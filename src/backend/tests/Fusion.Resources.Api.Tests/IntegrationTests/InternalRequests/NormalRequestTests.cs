@@ -462,6 +462,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             OrgServiceMock.Invocations.Should().Contain(i => i.Method == HttpMethod.Patch && i.Path.Contains($"{normalRequest.OrgPositionInstanceId}"));
         }
 
+        [Fact]
+        public async Task NormalRequest_Provisioning_ShouldBeSuccessful_WhenInvalidAndForceFlagUsed()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            await FastForward_ProposedRequest();
+
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}/provision?force=true", null);
+            resp.Should().BeSuccessfull();
+
+            resp.Value.Workflow.Should().NotBeNull();            
+            // The provisioning step should be completed
+            resp.Value.Workflow!.Steps.Should().Contain(s => s.Id == "provisioning" && s.IsCompleted);
+            // There should be uncompleted steps
+            resp.Value.Workflow!.Steps.Should().Contain(s => s.IsCompleted == false);
+        }
+
         #endregion
 
         #region Completed state

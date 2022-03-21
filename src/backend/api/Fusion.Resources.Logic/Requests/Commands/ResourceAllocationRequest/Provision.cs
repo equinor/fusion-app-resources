@@ -28,16 +28,15 @@ namespace Fusion.Resources.Logic.Commands
 
             public Guid RequestId { get; }
 
+            /// <summary>
+            /// Force provisioning the request. This will skip validation and just execute the provision step.
+            /// </summary>
+            public bool ForceProvision { get; set; } = false;
+
             public class Validator : AbstractValidator<Provision>
             {
-                public Validator(ResourcesDbContext db, IProjectOrgResolver projectOrgResolver)
+                public Validator(ResourcesDbContext db, IProjectOrgResolver projectOrgResolver, IMediator mediator)
                 {
-                    //RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
-                    //{
-                    //    return await db.ResourceAllocationRequests.AnyAsync(y =>
-                    //        y.Id == id && y.Type == DbResourceAllocationRequest.DbAllocationRequestType.Direct);
-                    //}).WithMessage($"Request must exist.");
-
                     // Based on request, does the org position instance exist ?
                     RuleFor(x => x.RequestId).MustAsync(async (id, cancel) =>
                     {
@@ -51,6 +50,21 @@ namespace Fusion.Resources.Logic.Commands
                         return instance != null;
 
                     }).WithMessage($"Org position instance must exist.");
+
+                    RuleFor(x => x).MustAsync(async (field, req, ctx, cancel) =>
+                    {
+                        // Check that the next step is actually provision
+                        var dbWorkflow = await mediator.GetRequestWorkflowAsync(req.RequestId);
+                        var workflow = WorkflowDefinition.ResolveWorkflow(dbWorkflow);
+
+                        if (!req.ForceProvision && workflow.GetCurrent().Id != WorkflowDefinition.PROVISIONING)
+                        {
+                            return false;
+                        }
+
+                        return true;
+
+                    }).WithMessage("Current workflow step is not provisioning. Use force flag to override validation.");
                 }
             }
 
@@ -148,7 +162,12 @@ namespace Fusion.Resources.Logic.Commands
                     var workflow = WorkflowDefinition.ResolveWorkflow(dbWorkflow);
 
                     // Assumes the next step is provisioning.
-                    workflow.CompleteCurrentStep(DbWFStepState.Approved, request.Editor.Person);                    
+                    workflow
+                        .Step(WorkflowDefinition.PROVISIONING)
+                        .SetName("Provisioned")
+                        .SetDescription($"Changes has been published to the org chart.")
+                        .Complete(request.Editor.Person, true)
+                        .CompleteWorkflow();
                     workflow.SaveChanges();
                     await resourcesDb.SaveChangesAsync();
 

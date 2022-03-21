@@ -464,7 +464,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("Contractor")]
         [InlineData("External")]
-        public async Task DirectRequest_ShouldBeAutoApproved_When(string testCase)
+        public async Task DirectRequest_AuthApproval_ShouldBeAutoApproved_When(string testCase)
         {
             var position = testProject.AddPosition();
 
@@ -493,6 +493,76 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.workflow.Steps.Should().Contain(s => s.IsCompleted && s.Id == "approval");
             resp.Value.workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
         }
+
+        [Fact]
+        public async Task DirectRequest_AutoApproval_Flow()
+        {
+            var position = testProject.AddPosition();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Consultant);
+
+            using var adminScope = fixture.AdminScope();
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithProposedPerson(proposedPerson));
+
+            // Send the request
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+
+            var resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{testRequest.Id}");
+            resp.Should().BeSuccessfull();
+
+            #region Validate post start
+            resp.Value.Workflow.Should().NotBeNull();
+
+            if (resp.Value.Workflow != null)
+            {
+                resp.Value.Workflow.State.Should().Be("Running");
+                resp.Value.Workflow.Steps.Should().Contain(s => s.Id == "created" && s.IsCompleted && s.State == "Approved");
+                resp.Value.Workflow.Steps.Should().Contain(s => s.Id == "proposal" && s.IsCompleted && s.State == "Skipped");
+                resp.Value.Workflow.Steps.Should().Contain(s => s.Id == "approval" && s.IsCompleted && s.State == "Skipped");
+
+                resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Pending" && s.Id == "provisioning");
+            }
+            #endregion
+
+            // Provision
+            await Client.ProvisionRequestAsync(testRequest.Id);
+
+            resp = await Client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{testRequest.Id}");
+            resp.Should().BeSuccessfull();
+
+            
+            if (resp.Value.Workflow is not null)
+            {
+                resp.Value.Workflow.Steps.Should().Contain(s => s.State == "Approved" && s.Id == "provisioning");
+                resp.Value.Workflow.Steps.Should().OnlyContain(s => s.IsCompleted);
+                resp.Value.Workflow.Steps.Should().OnlyContain(s => s.State == "Approved" || s.State == "Skipped");
+            }
+
+
+        }
+
+        [Fact]
+        public async Task DirectRequest_AutoApproval_ShouldSkipProposalAndApproval_WhenAutoApprove()
+        {
+            var position = testProject.AddPosition();
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Consultant);
+
+            using var adminScope = fixture.AdminScope();
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithProposedPerson(proposedPerson));
+
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+
+            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
+            resp.Should().BeSuccessfull();
+
+            resp.Value.workflow.Should().NotBeNull();
+            resp.Value.workflow.Steps.Should().Contain(s => s.Id == "proposal" && s.IsCompleted && s.State == "Skipped");
+            resp.Value.workflow.Steps.Should().Contain(s => s.Id == "approval" && s.IsCompleted && s.State == "Skipped");
+        }
+
         #endregion
 
         #endregion
