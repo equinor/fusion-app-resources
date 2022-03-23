@@ -678,10 +678,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    or.BeRequestCreator(requestId);
+
                     if (result.Type == InternalRequestType.Allocation)
                     {
-                        or.BeRequestCreator(requestId);
-
                         if (result.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                     }
