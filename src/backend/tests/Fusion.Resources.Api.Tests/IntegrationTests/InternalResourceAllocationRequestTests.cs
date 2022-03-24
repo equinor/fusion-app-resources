@@ -115,6 +115,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task Delete_InternalRequest_ShouldBeUnauthorized_WhenNotRequestCreator()
+        {
+            using var adminScope = fixture.UserScope(testUser);
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
+            response.Should().BeUnauthorized();
+        }
+
+        [Fact]
         public async Task Delete_InternalRequest_NonExistingRequest_ShouldBeNotFound()
         {
             using var adminScope = fixture.AdminScope();
