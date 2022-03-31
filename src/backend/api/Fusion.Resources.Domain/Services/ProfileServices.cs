@@ -45,6 +45,8 @@ namespace Fusion.Resources.Domain.Services
 
         public async Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId, bool considerRemovedProfile = false)
         {
+            // Make sure we don't get fooled by cached profiles.
+            using var noCacheScope = new NoProfileCacheScope();
             var profile = await ResolveProfileAsync(personId);
 
             if (profile == null && !considerRemovedProfile) //early check for null to avoid hitting DB unnecessary
