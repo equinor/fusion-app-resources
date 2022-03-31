@@ -33,9 +33,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (requestItem.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
-
                     if (requestItem.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -48,8 +45,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -84,13 +79,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    or.BeRequestCreator(requestId);
-                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(requestItem.Project.OrgProjectId));
-                    or.OrgChartReadAccess(requestItem.Project.OrgProjectId);
-
-                    if (requestItem.OrgPositionId.HasValue)
-                        or.OrgChartPositionReadAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
-
                     if (requestItem.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -131,13 +119,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    or.BeRequestCreator(requestId);
-                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(requestItem.Project.OrgProjectId));
-                    or.OrgChartReadAccess(requestItem.Project.OrgProjectId);
-
-                    if (requestItem.OrgPositionId.HasValue)
-                        or.OrgChartPositionReadAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
-
                     if (requestItem.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -181,9 +162,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (requestItem.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
-
                     if (requestItem.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -196,8 +174,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 
