@@ -77,6 +77,13 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.LimitedAccessWhen(or =>
+                {
+                    if (requestItem.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
+                    or.BeRequestCreator(requestId);
+                });
+
                 r.AnyOf(or =>
                 {
                     if (requestItem.AssignedDepartment is not null)
@@ -99,7 +106,11 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             #endregion
 
-            var conversation = await DispatchAsync(new GetRequestConversation(requestId));
+            var recipient = QueryMessageRecipient.TaskOwner;
+            if(!authResult.LimitedAuth)
+                recipient = QueryMessageRecipient.ResourceOwner;    
+
+            var conversation = await DispatchAsync(new GetRequestConversation(requestId, recipient));
             return Ok(conversation.Select(x => new ApiRequestConversationMessage(x)));
         }
 
@@ -112,36 +123,42 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
+            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
+            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+          
             #region Authorization
-
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    if (requestItem.AssignedDepartment is not null)
+                    if (conversation.Recipient == QueryMessageRecipient.TaskOwner)
                     {
-                        or.BeResourceOwner(
-                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
-                            includeParents: false,
-                            includeDescendants: true
-                        );
+                        if (requestItem.OrgPositionId.HasValue)
+                            or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
+                        or.BeRequestCreator(requestId);
                     }
-                    else
+                    if (conversation.Recipient == QueryMessageRecipient.ResourceOwner)
                     {
-                        or.BeResourceOwner();
+                        if (requestItem.AssignedDepartment is not null)
+                        {
+                            or.BeResourceOwner(
+                                new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                                includeParents: false,
+                                includeDescendants: true
+                            );
+                        }
+                        else
+                        {
+                            or.BeResourceOwner();
+                        }
                     }
                 });
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-
             #endregion
-
-            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
-
-            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
 
             return Ok(new ApiRequestConversationMessage(conversation));
         }
@@ -155,6 +172,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
+            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
+            if(conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -162,18 +182,30 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (requestItem.AssignedDepartment is not null)
+                    r.AnyOf(or =>
                     {
-                        or.BeResourceOwner(
-                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
-                            includeParents: false,
-                            includeDescendants: true
-                        );
-                    }
-                    else
-                    {
-                        or.BeResourceOwner();
-                    }
+                        if (conversation.Recipient == QueryMessageRecipient.TaskOwner)
+                        {
+                            if (requestItem.OrgPositionId.HasValue)
+                                or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
+                            or.BeRequestCreator(requestId);
+                        }
+                        if (conversation.Recipient == QueryMessageRecipient.ResourceOwner)
+                        {
+                            if (requestItem.AssignedDepartment is not null)
+                            {
+                                or.BeResourceOwner(
+                                    new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                                    includeParents: false,
+                                    includeDescendants: true
+                                );
+                            }
+                            else
+                            {
+                                or.BeResourceOwner();
+                            }
+                        }
+                    });
                 });
             });
 
@@ -188,11 +220,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 Properties = request.Properties
             };
 
-            var conversation = await DispatchAsync(command);
+            var updated = await DispatchAsync(command);
 
-            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
-
-            return Ok(new ApiRequestConversationMessage(conversation));
+            return Ok(new ApiRequestConversationMessage(updated!));
         }
     }
 }

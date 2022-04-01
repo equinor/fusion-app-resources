@@ -94,6 +94,11 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.LimitedAccessWhen(or =>
+                {
+                    if (request.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
+                });
                 r.AnyOf(or =>
                 {
                     if (request.AssignedDepartment is not null)
@@ -115,7 +120,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new GetRequestActions(requestId).WithQuery(query);
+            var responsible = QueryTaskResponsible.TaskOwner;
+            if (!authResult.LimitedAuth)
+                responsible = QueryTaskResponsible.ResourceOwner;
+
+            var command = new GetRequestActions(requestId, responsible)
+                .WithQuery(query);
             var actions = await DispatchAsync(command);
 
             return Ok(actions.Select(t => new ApiRequestAction(t)));
@@ -126,6 +136,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+            
+            var action = await DispatchAsync(new GetRequestAction(requestId, actionId));
+            if (action is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
 
             #region Authorization
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -133,6 +146,13 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if(action.Responsible != QueryTaskResponsible.ResourceOwner)
+                    {
+                        if (request.OrgPositionId.HasValue)
+                            or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
+                        or.BeRequestCreator(requestId);
+                    }
+
                     if (request.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -152,10 +172,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
-            var command = new GetRequestAction(requestId, actionId);
-            var action = await DispatchAsync(command);
-            if (action is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
-
             return Ok(new ApiRequestAction(action));
         }
 
@@ -165,23 +181,35 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
+            var action = await DispatchAsync(new GetRequestAction(requestId, actionId));
+            if (action is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
+
             #region Authorization
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (request.AssignedDepartment is not null)
+                    if (action.Responsible.HasFlag(QueryTaskResponsible.TaskOwner))
                     {
-                        or.BeResourceOwner(
-                            new DepartmentPath(request.AssignedDepartment).GoToLevel(2),
-                            includeParents: false,
-                            includeDescendants: true
-                        );
+                        if (request.OrgPositionId.HasValue)
+                            or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
+                        or.BeRequestCreator(requestId);
                     }
-                    else
+                    if(action.Responsible.HasFlag(QueryTaskResponsible.ResourceOwner))
                     {
-                        or.BeResourceOwner();
+                        if (request.AssignedDepartment is not null)
+                        {
+                            or.BeResourceOwner(
+                                new DepartmentPath(request.AssignedDepartment).GoToLevel(2),
+                                includeParents: false,
+                                includeDescendants: true
+                            );
+                        }
+                        else
+                        {
+                            or.BeResourceOwner();
+                        }
                     }
                 });
             });
@@ -218,6 +246,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
         {
             var request = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (request is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+           
+            var action = await DispatchAsync(new GetRequestAction(requestId, actionId));
+            if (action is null) return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
 
             #region Authorization
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -225,18 +256,34 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (request.AssignedDepartment is not null)
+                    r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                    r.AnyOf(or =>
                     {
-                        or.BeResourceOwner(
-                            new DepartmentPath(request.AssignedDepartment).GoToLevel(2),
-                            includeParents: false,
-                            includeDescendants: true
-                        );
-                    }
-                    else
-                    {
-                        or.BeResourceOwner();
-                    }
+                        r.AnyOf(or =>
+                        {
+                            if (action.Responsible.HasFlag(QueryTaskResponsible.TaskOwner))
+                            {
+                                if (request.OrgPositionId.HasValue)
+                                    or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
+                                or.BeRequestCreator(requestId);
+                            }
+                            if (action.Responsible.HasFlag(QueryTaskResponsible.ResourceOwner))
+                            {
+                                if (request.AssignedDepartment is not null)
+                                {
+                                    or.BeResourceOwner(
+                                        new DepartmentPath(request.AssignedDepartment).GoToLevel(2),
+                                        includeParents: false,
+                                        includeDescendants: true
+                                    );
+                                }
+                                else
+                                {
+                                    or.BeResourceOwner();
+                                }
+                            }
+                        });
+                    });
                 });
             });
 
@@ -248,7 +295,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var wasDeleted = await DispatchAsync(command);
 
             if (wasDeleted) return NoContent();
-            else return FusionApiError.NotFound(actionId, $"A task with id '{actionId}' was not found on request with id '{requestId}'.");
+            else return Conflict(ProblemDetailsFactory.CreateProblemDetails(HttpContext, title: "Could not delete action, it might already be deleted."));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,10 +13,12 @@ namespace Fusion.Resources.Domain.Commands.Conversations
     public class GetRequestConversation : IRequest<List<QueryConversationMessage>>
     {
         private Guid requestId;
+        private readonly DbMessageRecipient recipient;
 
-        public GetRequestConversation(Guid requestId)
+        public GetRequestConversation(Guid requestId, QueryMessageRecipient recipient)
         {
             this.requestId = requestId;
+            this.recipient = recipient.MapToDatabase();
         }
 
         public class Handler : IRequestHandler<GetRequestConversation, List<QueryConversationMessage>>
@@ -31,7 +34,7 @@ namespace Fusion.Resources.Domain.Commands.Conversations
             {
                 var conversation = await db.RequestConversations
                     .Include(m => m.Sender)
-                    .Where(m => m.RequestId == request.requestId)
+                    .Where(m => m.RequestId == request.requestId && m.Recpient == request.recipient)
                     .ToListAsync(cancellationToken);
 
                 return conversation.Select(m => new QueryConversationMessage(m)).ToList();

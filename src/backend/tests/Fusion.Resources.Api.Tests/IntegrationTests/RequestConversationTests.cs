@@ -20,7 +20,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
-        private ApiPersonProfileV3 testUser;
+        private ApiPersonProfileV3 resourceOwner;
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel normalRequest;
 
@@ -53,15 +53,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
             // Generate random test user
-            testUser = fixture.AddProfile(FusionAccountType.Employee);
-            testUser.IsResourceOwner = true;
-            testUser.FullDepartment = normalRequest.AssignedDepartment ?? "PDP TST DPT";
+            resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            resourceOwner.IsResourceOwner = true;
+            resourceOwner.FullDepartment = normalRequest.AssignedDepartment ?? "PDP TST DPT";
         }
 
         [Fact]
         public async Task AddMessage_Should_SetSenderMeta()
         {
-            using var scope = fixture.UserScope(testUser);
+            using var scope = fixture.UserScope(resourceOwner);
             var client = fixture.ApiFactory.CreateClient();
 
             var payload = new
@@ -84,7 +84,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Body.Should().Be(payload.body);
             result.Recipient.Should().Be(payload.recipient);
 
-            result.Sender.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId.GetValueOrDefault());
+            result.Sender.AzureUniquePersonId.Should().Be(resourceOwner.AzureUniqueId.GetValueOrDefault());
             result.Sent.Should().BeCloseTo(DateTimeOffset.UtcNow, 5000);
 
             result.Properties["customProp1"].Should().Be(payload.properties.customProp1);
@@ -94,7 +94,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task AddMessage_ShouldGiveNotFound_WhenRequestDoesNotExist()
         {
-            using var scope = fixture.UserScope(testUser);
+            using var scope = fixture.UserScope(resourceOwner);
             var client = fixture.ApiFactory.CreateClient();
 
             var payload = new
@@ -117,7 +117,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task UpdateMessage_Should_NotChangeSenderMeta()
         {
-            using var scope = fixture.UserScope(testUser);
+            using var scope = fixture.UserScope(resourceOwner);
             var client = fixture.ApiFactory.CreateClient();
             var message = await client.AddRequestMessage(normalRequest.Id, new Dictionary<string, object>
             {
@@ -146,7 +146,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.Body.Should().Be(payload.body);
             result.Value.Recipient.Should().Be(payload.recipient);
 
-            result.Value.Sender.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId.GetValueOrDefault());
+            result.Value.Sender.AzureUniquePersonId.Should().Be(resourceOwner.AzureUniqueId.GetValueOrDefault());
             result.Value.Sent.Should().Be(message.Sent);
 
             result.Value.Properties["customProp1"].Should().Be(payload.properties.customProp1);
