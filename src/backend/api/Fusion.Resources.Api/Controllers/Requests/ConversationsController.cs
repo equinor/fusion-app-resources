@@ -33,6 +33,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
+                    if (requestItem.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
+
                     if (requestItem.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -45,6 +48,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
+
+                    or.BeRequestCreator(requestId);
                 });
             });
 
