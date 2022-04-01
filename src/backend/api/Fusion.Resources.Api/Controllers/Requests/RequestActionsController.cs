@@ -96,9 +96,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (request.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
-
                     if (request.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -111,8 +108,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -138,9 +133,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (request.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
-
                     if (request.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -153,8 +145,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -181,9 +171,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (request.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
-
                     if (request.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -196,8 +183,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -240,9 +225,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    if (request.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(request.Project.OrgProjectId, request.OrgPositionId.Value);
-
                     if (request.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -255,8 +237,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 

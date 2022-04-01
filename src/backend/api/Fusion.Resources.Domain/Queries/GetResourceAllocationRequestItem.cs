@@ -35,14 +35,14 @@ namespace Fusion.Resources.Domain.Queries
             {
                 Expands |= ExpandProperties.DepartmentDetails;
             }
-            if(query.ShouldExpand("actions"))
-            {
-                Expands |= ExpandProperties.Actions;
-            }
-            if(query.ShouldExpand("conversation"))
-            {
-                Expands |= ExpandProperties.Conversation;
-            }
+            //if(query.ShouldExpand("actions"))
+            //{
+            //    Expands |= ExpandProperties.Actions;
+            //}
+            //if(query.ShouldExpand("conversation"))
+            //{
+            //    Expands |= ExpandProperties.Conversation;
+            //}
 
 
             return this;
