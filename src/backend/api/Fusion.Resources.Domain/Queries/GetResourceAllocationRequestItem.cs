@@ -11,6 +11,7 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Domain.Commands.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Fusion.Resources.Domain.Commands.Conversations;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -35,15 +36,6 @@ namespace Fusion.Resources.Domain.Queries
             {
                 Expands |= ExpandProperties.DepartmentDetails;
             }
-            //if(query.ShouldExpand("actions"))
-            //{
-            //    Expands |= ExpandProperties.Actions;
-            //}
-            //if(query.ShouldExpand("conversation"))
-            //{
-            //    Expands |= ExpandProperties.Conversation;
-            //}
-
 
             return this;
         }
@@ -62,7 +54,6 @@ namespace Fusion.Resources.Domain.Queries
             Expands |= ExpandProperties.TaskOwner;
             return this;
         }
-
 
         [Flags]
         public enum ExpandProperties
@@ -136,21 +127,6 @@ namespace Fusion.Resources.Domain.Queries
       
                 return requestItem;
             }
-
-            private async Task ExpandConversation(QueryResourceAllocationRequest requestItem)
-            {
-                requestItem.Conversation = await db.RequestConversations
-                                                   .Include(x => x.Sender)
-                                                   .Where(x => x.RequestId == requestItem.RequestId)
-                                                   .Select(x => new QueryConversationMessage(x))
-                                                   .ToListAsync();
-            }
-
-            //private async Task ExpandActions(QueryResourceAllocationRequest request)
-            //{
-            //    var actions = await mediator.Send(new GetActionsForRequests(new[] { request.RequestId }));
-            //    request.Actions = actions[request.RequestId].ToList();
-            //}
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
             {

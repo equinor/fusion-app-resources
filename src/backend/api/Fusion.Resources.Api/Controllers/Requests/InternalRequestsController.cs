@@ -483,9 +483,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, PathProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
 
-            if (result == null)
+            if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
             #region Authorization
@@ -496,16 +496,16 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeRequestCreator(requestId);
-                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(result.Project.OrgProjectId));
-                    or.OrgChartReadAccess(result.Project.OrgProjectId);
+                    or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(requestItem.Project.OrgProjectId));
+                    or.OrgChartReadAccess(requestItem.Project.OrgProjectId);
 
-                    if (result.OrgPositionId.HasValue)
-                        or.OrgChartPositionReadAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
+                    if (requestItem.OrgPositionId.HasValue)
+                        or.OrgChartPositionReadAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
 
-                    if (result.AssignedDepartment is not null)
+                    if (requestItem.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
-                            new DepartmentPath(result.AssignedDepartment).GoToLevel(2),
+                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
                         );
@@ -522,7 +522,9 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var apiModel = new ApiResourceAllocationRequest(result);
+            requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
+
+            var apiModel = new ApiResourceAllocationRequest(requestItem);
 
             if (projectIdentifier is null)
                 return apiModel;

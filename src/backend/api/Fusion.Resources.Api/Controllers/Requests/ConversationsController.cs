@@ -77,13 +77,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
-                r.LimitedAccessWhen(or =>
-                {
-                    if (requestItem.OrgPositionId.HasValue)
-                        or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
-                    or.BeRequestCreator(requestId);
-                });
-
+                
                 r.AnyOf(or =>
                 {
                     if (requestItem.AssignedDepartment is not null)
@@ -94,10 +88,13 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeDescendants: true
                         );
                     }
-                    else
-                    {
-                        or.BeResourceOwner();
-                    }
+                    or.BeResourceOwner();
+                });
+
+                r.LimitedAccessWhen(or =>
+                {
+                    if (requestItem.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
                 });
             });
 
@@ -107,8 +104,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var recipient = QueryMessageRecipient.TaskOwner;
-            if(!authResult.LimitedAuth)
-                recipient = QueryMessageRecipient.ResourceOwner;    
+            if (!authResult.LimitedAuth)
+                recipient = QueryMessageRecipient.ResourceOwner;
 
             var conversation = await DispatchAsync(new GetRequestConversation(requestId, recipient));
             return Ok(conversation.Select(x => new ApiRequestConversationMessage(x)));
@@ -125,7 +122,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
             if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
-          
+
             #region Authorization
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -136,7 +133,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         if (requestItem.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
-                        or.BeRequestCreator(requestId);
                     }
                     if (conversation.Recipient == QueryMessageRecipient.ResourceOwner)
                     {
@@ -173,7 +169,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
             var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
-            if(conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
 
             #region Authorization
 
@@ -188,7 +184,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                         {
                             if (requestItem.OrgPositionId.HasValue)
                                 or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
-                            or.BeRequestCreator(requestId);
                         }
                         if (conversation.Recipient == QueryMessageRecipient.ResourceOwner)
                         {

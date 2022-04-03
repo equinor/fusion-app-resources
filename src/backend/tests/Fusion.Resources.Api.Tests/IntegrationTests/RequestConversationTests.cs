@@ -9,6 +9,8 @@ using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -23,6 +25,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         private ApiPersonProfileV3 resourceOwner;
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel normalRequest;
+        private ApiPersonProfileV3 taskOwner;
+        private ApiClients.Org.ApiPositionV2 taskOwnerPosition;
+        private OrgRequestInterceptor orgInterceptor;
+        private ApiClients.Org.ApiPositionV2 testPosition;
 
         public RequestConversationTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -56,6 +62,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             resourceOwner.IsResourceOwner = true;
             resourceOwner.FullDepartment = normalRequest.AssignedDepartment ?? "PDP TST DPT";
+
+            taskOwner = fixture.AddProfile(FusionAccountType.Employee);
+            taskOwner.IsResourceOwner = false;
+            taskOwner = fixture.AddProfile(FusionAccountType.Employee);
+            taskOwnerPosition = testProject.AddPosition()
+                .WithAssignedPerson(taskOwner);
+
+            fixture.ContextResolver
+               .AddContext(testProject.Project);
+
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = "PDP TST DPT");
+            testPosition = testProject.AddPosition()
+                .WithBasePosition(bp)
+                .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                .WithEnsuredFutureInstances()
+                .WithTaskOwner(taskOwnerPosition.Id);
+
+            OrgServiceMock.SetTaskOwner(testPosition.Id, taskOwnerPosition.Id);
         }
 
         [Fact]
@@ -119,7 +143,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var scope = fixture.UserScope(resourceOwner);
             var client = fixture.ApiFactory.CreateClient();
-            var message = await client.AddRequestMessage(normalRequest.Id, new Dictionary<string, object>
+            var message = await client.AddRequestMessage(normalRequest.Id, recipient: "ResourceOwner", new Dictionary<string, object>
             {
                 ["customProp1"] = 123,
                 ["customProp2"] = new DateTime(2021, 07, 07)
@@ -198,20 +222,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeBadRequest();
         }
 
-        [Fact]
-        public async Task GetConversation_ShouldReturnAllMessages()
+        [Theory]
+        [InlineData("ResourceOwner")]
+        [InlineData("TaskOwner")]
+        public async Task GetConversation_ShouldOnlyIncludeTasksForRecipient(string role)
         {
-            using var scope = fixture.AdminScope();
-            var client = fixture.ApiFactory.CreateClient();
+            var adminClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(fixture.AdminUser)
+               .AddTestAuthToken();
 
-            var first = await client.AddRequestMessage(normalRequest.Id);
-            var second = await client.AddRequestMessage(normalRequest.Id);
+            var first = await adminClient.AddRequestMessage(normalRequest.Id, recipient: "TaskOwner");
+            var second = await adminClient.AddRequestMessage(normalRequest.Id, recipient: "ResourceOwner");
 
-            var result = await client.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{normalRequest.Id}/conversation");
-            result.Should().BeSuccessfull();
-
-            result.Value.Should().Contain(x => x.Id == first.Id);
-            result.Value.Should().Contain(x => x.Id == second.Id);
+            await ExecuteAsRole(role, async http =>
+            {
+                var result = await http.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{normalRequest.Id}/conversation");
+                result.Should().BeSuccessfull();
+                result.Value.Should().NotBeEmpty();
+                result.Value.Should().OnlyContain(x => x.Recipient == role);
+            });
         }
 
         [Fact]
@@ -222,6 +251,64 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var result = await client.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{Guid.NewGuid()}/conversation");
             result.Should().BeNotFound();
+        }
+
+
+        [Theory]
+        [InlineData("ResourceOwner", "TaskOwner", false)]
+        [InlineData("ResourceOwner", "ResourceOwner", true)]
+        [InlineData("TaskOwner", "TaskOwner", true)]
+        [InlineData("TaskOwner", "ResourceOwner", false)]
+
+        public async Task UserShouldOnlyBeAbleToUpdateConversationsWhenTheyAreRecepient(string userRole, string recipient, bool shouldAllow)
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var message = await adminClient.AddRequestMessage(normalRequest.Id, recipient: recipient);
+
+            await ExecuteAsRole(userRole, async http =>
+            {
+                var payload = new
+                {
+                    title = "Hello, updated world!",
+                    body = "Goodbye, updated world!",
+                    category = "worldupdate",
+                    recipient = recipient,
+                };
+
+                var result = await http.TestClientPutAsync<TestApiRequestMessage>($"/requests/internal/{normalRequest.Id}/conversation/{message.Id}", payload);
+
+                if (shouldAllow)
+                    result.Should().BeSuccessfull();
+                else
+                    result.Should().BeUnauthorized();
+            });
+        }
+
+        private async Task ExecuteAsRole(string role, Func<HttpClient, Task> action)
+        {
+            var user = role switch
+            {
+                "ResourceOwner" => resourceOwner,
+                "TaskOwner" => taskOwner,
+                _ => throw new NotImplementedException()
+            };
+
+            var userClient = fixture.ApiFactory.CreateClient()
+                     .WithTestUser(user)
+                     .AddTestAuthToken();
+
+            if (role == "TaskOwner")
+            {
+                using var i = orgInterceptor = OrgRequestMocker
+                        .InterceptOption($"/{normalRequest.OrgPositionId}")
+                        .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
+                await action(userClient);
+                return;
+            }
+            await action(userClient);
         }
 
         public Task DisposeAsync() => Task.CompletedTask;
