@@ -243,6 +243,30 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
         }
 
+        [Theory]
+        [InlineData("ResourceOwner", "ResourceOwner", true)]
+        [InlineData("ResourceOwner", "TaskOwner", false)]
+        [InlineData("TaskOwner", "TaskOwner", true)]
+        [InlineData("TaskOwner", "ResourceOwner", false)]
+
+        public async Task GetConversationMessage_ShouldOnlyBeAllowed_WhenRecipient(string role, string recipient, bool shouldAllow)
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(fixture.AdminUser)
+               .AddTestAuthToken();
+
+            var message = await adminClient.AddRequestMessage(normalRequest.Id, recipient);
+
+            await ExecuteAsRole(role, async http =>
+            {
+                var result = await http.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{normalRequest.Id}/conversation/{message.Id}");
+                if (shouldAllow)
+                    result.Should().BeSuccessfull();
+                else
+                    result.Should().BeUnauthorized();
+            });
+        }
+
         [Fact]
         public async Task GetConversation_ShouldGiveNotFound_WhenRequestDoesNotExist()
         {

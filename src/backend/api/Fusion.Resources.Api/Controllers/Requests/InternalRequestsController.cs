@@ -7,6 +7,7 @@ using Fusion.Integration;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Domain.Commands.Tasks;
 using Fusion.Resources.Domain.Queries;
 using Fusion.Resources.Logic;
 using Fusion.Resources.Logic.Requests;
@@ -583,7 +584,7 @@ namespace Fusion.Resources.Api.Controllers
             if (result.Project.OrgProjectId != projectIdentifier.ProjectId)
                 return ApiErrors.NotFound("Could not locate request in project", $"{requestId}");
 
-            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));
+            var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.TaskOwner));
             if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
@@ -628,8 +629,8 @@ namespace Fusion.Resources.Api.Controllers
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));
-            if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
+            var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.ResourceOwner));
+            if (actions.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
             #region Authorization
@@ -766,7 +767,7 @@ namespace Fusion.Resources.Api.Controllers
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));
+            var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.TaskOwner));
             if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
@@ -799,10 +800,11 @@ namespace Fusion.Resources.Api.Controllers
             //if (result.AssignedDepartment != departmentPath)
             //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
 
-            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));  
-            if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
-                return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
+            var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.ResourceOwner));
+            if (actions.Any(x => x.IsRequired && !x.IsResolved) == true)
+                return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
+            
             await using var scope = await BeginTransactionAsync();
 
             try
@@ -817,6 +819,7 @@ namespace Fusion.Resources.Api.Controllers
             }
 
             result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
             return new ApiResourceAllocationRequest(result!);
         }
 

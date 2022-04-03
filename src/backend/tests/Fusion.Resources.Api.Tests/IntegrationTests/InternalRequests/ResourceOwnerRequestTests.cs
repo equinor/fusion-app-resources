@@ -80,8 +80,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var assignedPerson = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();
             // Create adjustment request on a position instance currently active
             adjustmentRequest = await adminClient.CreateDefaultResourceOwnerRequestAsync(
-                testDepartment, testProject, 
-                r => r.AsTypeResourceOwner(SUBTYPE_ADJUST), 
+                testDepartment, testProject,
+                r => r.AsTypeResourceOwner(SUBTYPE_ADJUST),
                 p => p.WithAssignedPerson(assignedPerson)
             );
         }
@@ -113,7 +113,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var position = testProject.AddPosition();
 
-            var response = await Client.TestClientPostAsync($"/departments/{testDepartment}/resources/requests", new 
+            var response = await Client.TestClientPostAsync($"/departments/{testDepartment}/resources/requests", new
             {
                 type = type,
                 orgPositionId = position.Id,
@@ -212,7 +212,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await Client.ProposeChangesAsync(adjustmentRequest.Id, new { workload = 50 });
             await Client.SetChangeParamsAsync(adjustmentRequest.Id, DateTime.Today.AddDays(1));
-            await Client.AddRequestActionAsync(adjustmentRequest.Id, x => x.isRequired = true);
+            await Client.AddRequestActionAsync(adjustmentRequest.Id, x =>
+            {
+                x.isRequired = true;
+                x.responsible = "ResourceOwner";
+            });
 
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{adjustmentRequest.Id}/start", null);
             response.Should().BeBadRequest();
@@ -258,9 +262,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task ChangeResourceRequest_Start_ShouldBeBadRequest_WhenMissingProposedPerson()
         {
             using var adminScope = fixture.AdminScope();
-            
-            var oldUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
-            var newUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
+
+            var oldUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile(); ;
+            var newUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile(); ;
 
             var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_CHANGE), p => p.WithAssignedPerson(oldUser));
 
@@ -277,8 +281,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
 
-            var oldUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
-            var newUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile();;
+            var oldUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile(); ;
+            var newUser = PeopleServiceMock.AddTestProfile().WithAccountType(FusionAccountType.Employee).WithFullDepartment(testDepartment).WithDepartment(testDepartment).SaveProfile(); ;
 
             var request = await Client.CreateDefaultResourceOwnerRequestAsync(testDepartment, testProject, r => r.AsTypeResourceOwner(SUBTYPE_CHANGE), p => p.WithAssignedPerson(oldUser));
 
@@ -302,7 +306,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests/{request.Id}/start", null);
             response.Should().BeSuccessfull();
         }
-        
+
         [Fact]
         public async Task CreatRequestForUnassignedPositionInstance_ShouldGiveBadRequest()
         {
@@ -321,7 +325,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var newRequestResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{testDepartment}/resources/requests", requestModel);
             newRequestResponse.Should().BeBadRequest();
         }
-        
+
         // Is this still relevant? i.e could a position instance become unassigned between change 
         // request is created and when it is started?
         //[Fact]
@@ -421,7 +425,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             var response = await Client.TestClientOptionsAsync($"/projects/{position.ProjectId}/positions/{position.Id}/instances/{instance.Id}/resources/requests?requestType=resourceOwnerChange");
-            
+
             response.Should().BeSuccessfull();
             response.Should().HaveAllowHeaders(HttpMethod.Post);
         }
