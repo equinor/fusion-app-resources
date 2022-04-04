@@ -255,7 +255,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                .WithTestUser(fixture.AdminUser)
                .AddTestAuthToken();
 
-            var message = await adminClient.AddRequestMessage(normalRequest.Id, recipient);
+            var message = await adminClient.AddRequestMessage(normalRequest.Id, recipient: recipient);
 
             await ExecuteAsRole(role, async http =>
             {
