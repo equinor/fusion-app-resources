@@ -525,7 +525,7 @@ namespace Fusion.Resources.Api.Controllers
 
             requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
 
-            var apiModel = new ApiResourceAllocationRequest(requestItem);
+            var apiModel = new ApiResourceAllocationRequest(requestItem!);
 
             if (projectIdentifier is null)
                 return apiModel;
