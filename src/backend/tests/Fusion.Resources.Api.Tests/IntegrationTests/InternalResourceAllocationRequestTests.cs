@@ -710,7 +710,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             payload.Add(property, JToken.FromObject(value));
 
 
-            var response = await Client.TestClientPatchAsync<JObject>($"/resources/requests/internal/{request.Id}", payload);
+            var response = await Client.TestClientPatchAsync<JObject>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}", payload);
             response.Should().BeSuccessfull();
 
             var updatedProp = response.Value.Property(property)?.ToObject(value.GetType());

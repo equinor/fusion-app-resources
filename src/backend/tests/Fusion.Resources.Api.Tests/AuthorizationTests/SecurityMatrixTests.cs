@@ -128,7 +128,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using var userScope = fixture.UserScope(Users[role]);
 
             var client = fixture.ApiFactory.CreateClient();
-            var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}");
+            var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}");
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
@@ -149,7 +149,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}",
                 new
                 {
                     proposedChanges = new
@@ -205,7 +205,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             {
                 var client = fixture.ApiFactory.CreateClient();
                 var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}",
                     new { assignedDepartment = TestDepartment }
                 );
                 result.Should().BeSuccessfull();
@@ -215,7 +215,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             {
                 var client = fixture.ApiFactory.CreateClient();
                 var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}",
                     new { assignedDepartment = changedDepartment }
                 );
 
@@ -249,7 +249,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                $"/resources/requests/internal/{request.Id}",
                 new { assignedDepartment = changedDepartment }
             );
 

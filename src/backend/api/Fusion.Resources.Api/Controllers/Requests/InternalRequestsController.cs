@@ -266,15 +266,10 @@ namespace Fusion.Resources.Api.Controllers
 
         }
 
-        [HttpPatch("/resources/requests/internal/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpPatch("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
-            [FromRoute] PathProjectIdentifier? projectIdentifier,
-            string? departmentString,
-            Guid requestId,
-            [FromBody] PatchInternalRequestRequest request)
+            [FromRoute] PathProjectIdentifier? projectIdentifier, Guid requestId, [FromBody] PatchInternalRequestRequest request)
         {
             var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -293,20 +288,82 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-                    if (!HasChanged(request.AdditionalNote, item.AdditionalNote))
+                    or.BeRequestCreator(requestId);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            try
+            {
+                var updateCommand = new UpdateInternalRequest(requestId);
+
+                if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
+                if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
+                if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
+
+                if (request.ProposedPersonAzureUniqueId.HasValue)
+                {
+                    if (!request.ProposedPersonAzureUniqueId.Value.HasValue && !CanUnsetProposedPerson(item))
+                        return BadRequest("Cannot remove proposed person when request is not draft.");
+                    updateCommand.ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId.Value;
+                }
+                if (request.ProposalParameters.HasValue)
+                {
+                    var @params = request.ProposalParameters.Value;
+
+                    updateCommand.ProposalChangeFrom = @params.ChangeDateFrom;
+                    updateCommand.ProposalChangeTo = @params.ChangeDateTo;
+                    updateCommand.ProposalScope = @params.ResolveScope();
+                    updateCommand.ProposalChangeType = @params.Type;
+                }
+
+                await using var scope = await BeginTransactionAsync();
+                await DispatchAsync(updateCommand);
+                await scope.CommitAsync();
+
+                var updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandAll());
+                return new ApiResourceAllocationRequest(updatedRequest!);
+            }
+            catch (ValidationException ve)
+            {
+                return ApiErrors.InvalidOperation(ve);
+            }
+        }
+
+        [HttpPatch("/resources/requests/internal/{requestId}")]
+        [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> PatchInternalRequest(
+            string? departmentString, Guid requestId, [FromBody] PatchInternalRequestRequest request)
+        {
+            var item = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (item == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+            if (item.IsCompleted)
+                return ApiErrors.InvalidOperation("request-completed", "Cannot change a completed request.");
+            if (HasChanged(request.AdditionalNote, item.AdditionalNote))
+                return ApiErrors.InvalidInput("Only task owners can modify additional notes.");
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (item.AssignedDepartment is not null)
                     {
-                        if (item.AssignedDepartment is not null)
-                        {
-                            or.BeResourceOwner(
+                        or.BeResourceOwner(
                                 new DepartmentPath(item.AssignedDepartment).GoToLevel(2),
                                 includeParents: false,
                                 includeDescendants: true
                             );
-                        }
-                        else
-                        {
-                            or.BeResourceOwner();
-                        }
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
                     }
 
                     or.BeRequestCreator(requestId);
@@ -477,17 +534,17 @@ namespace Fusion.Resources.Api.Controllers
                 TotalCount = countEnabled ? result.TotalCount : null
             };
         }
-
-        [HttpGet("/resources/requests/internal/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
-        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, PathProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
 
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            if (requestItem.Project.OrgProjectId != projectIdentifier.ProjectId)
+                return ApiErrors.NotFound($"Request with id '{requestId}' was not found on project {projectIdentifier}");
 
             #region Authorization
 
@@ -502,7 +559,35 @@ namespace Fusion.Resources.Api.Controllers
 
                     if (requestItem.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
+                });
+            });
 
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var apiModel = new ApiResourceAllocationRequest(requestItem);
+
+            return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
+        }
+
+        [HttpGet("/resources/requests/internal/{requestId}")]
+        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
+        public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
+
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
                     if (requestItem.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -523,14 +608,9 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
-
             var apiModel = new ApiResourceAllocationRequest(requestItem!);
 
-            if (projectIdentifier is null)
-                return apiModel;
-
-            return apiModel.ShouldHideProposalsForProject ? apiModel.HideProposals() : apiModel;
+            return apiModel;
         }
 
         /// <summary>
@@ -709,7 +789,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/resources/requests/internal/{requestId}/provision")]
-        public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest(Guid requestId, [FromQuery]bool force = false)
+        public async Task<ActionResult<ApiResourceAllocationRequest>> ProvisionProjectAllocationRequest(Guid requestId, [FromQuery] bool force = false)
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
