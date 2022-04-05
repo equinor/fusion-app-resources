@@ -287,8 +287,6 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 
@@ -365,8 +363,6 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         or.BeResourceOwner();
                     }
-
-                    or.BeRequestCreator(requestId);
                 });
             });
 
