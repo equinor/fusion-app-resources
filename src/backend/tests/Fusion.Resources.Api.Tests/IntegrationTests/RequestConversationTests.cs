@@ -223,9 +223,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Theory]
-        [InlineData("ResourceOwner")]
-        [InlineData("TaskOwner")]
-        public async Task GetConversation_ShouldOnlyIncludeTasksForRecipient(string role)
+        [InlineData("ResourceOwner", "/requests/internal/{0}/conversation")]
+        [InlineData("TaskOwner", "/projects/{1}/requests/{0}/conversation")]
+        public async Task ConversationEndpoint_ShouldOnlyIncludeForCorrectRecipient(string role, string endpoint)
         {
             var adminClient = fixture.ApiFactory.CreateClient()
                .WithTestUser(fixture.AdminUser)
@@ -236,7 +236,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await ExecuteAsRole(role, async http =>
             {
-                var result = await http.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{normalRequest.Id}/conversation");
+                var result = await http.TestClientGetAsync<List<TestApiRequestMessage>>(string.Format(endpoint, normalRequest.Id, testProject.Project.ProjectId));
                 result.Should().BeSuccessfull();
                 result.Value.Should().NotBeEmpty();
                 result.Value.Should().OnlyContain(x => x.Recipient == role);
@@ -246,10 +246,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("ResourceOwner", "ResourceOwner", true)]
         [InlineData("ResourceOwner", "TaskOwner", false)]
-        [InlineData("TaskOwner", "TaskOwner", true)]
-        [InlineData("TaskOwner", "ResourceOwner", false)]
-
-        public async Task GetConversationMessage_ShouldOnlyBeAllowed_WhenRecipient(string role, string recipient, bool shouldAllow)
+        public async Task GetResourceOwnerConversationMessage_ShouldOnlyBeAllowed_WhenRecipient(string role, string recipient, bool shouldAllow)
         {
             var adminClient = fixture.ApiFactory.CreateClient()
                .WithTestUser(fixture.AdminUser)
@@ -260,6 +257,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await ExecuteAsRole(role, async http =>
             {
                 var result = await http.TestClientGetAsync<List<TestApiRequestMessage>>($"/requests/internal/{normalRequest.Id}/conversation/{message.Id}");
+                if (shouldAllow)
+                    result.Should().BeSuccessfull();
+                else
+                    result.Should().BeUnauthorized();
+            });
+        }
+
+        [Theory]
+        [InlineData("TaskOwner", "TaskOwner", true)]
+        [InlineData("TaskOwner", "ResourceOwner", false)]
+        public async Task GetTaskOwnerConversationMessage_ShouldOnlyBeAllowed_WhenRecipient(string role, string recipient, bool shouldAllow)
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+               .WithTestUser(fixture.AdminUser)
+               .AddTestAuthToken();
+
+            var message = await adminClient.AddRequestMessage(normalRequest.Id, recipient: recipient);
+
+            await ExecuteAsRole(role, async http =>
+            {
+                var result = await http.TestClientGetAsync<List<TestApiRequestMessage>>($"/projects/{testProject.Project.ProjectId}/requests/{normalRequest.Id}/conversation/{message.Id}");
                 if (shouldAllow)
                     result.Should().BeSuccessfull();
                 else
@@ -281,10 +299,37 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("ResourceOwner", "TaskOwner", false)]
         [InlineData("ResourceOwner", "ResourceOwner", true)]
+        public async Task ResourceOwnerShouldOnlyBeAbleToUpdateConversationsWhenTheyAreRecipient(string userRole, string recipient, bool shouldAllow)
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var message = await adminClient.AddRequestMessage(normalRequest.Id, recipient: recipient);
+
+            await ExecuteAsRole(userRole, async http =>
+            {
+                var payload = new
+                {
+                    title = "Hello, updated world!",
+                    body = "Goodbye, updated world!",
+                    category = "worldupdate",
+                    recipient = recipient,
+                };
+                
+                var result = await http.TestClientPutAsync<TestApiRequestMessage>($"/requests/internal/{normalRequest.Id}/conversation/{message.Id}", payload);
+
+                if (shouldAllow)
+                    result.Should().BeSuccessfull();
+                else
+                    result.Should().BeUnauthorized();
+            });
+        }
+
+        [Theory]
         [InlineData("TaskOwner", "TaskOwner", true)]
         [InlineData("TaskOwner", "ResourceOwner", false)]
-
-        public async Task UserShouldOnlyBeAbleToUpdateConversationsWhenTheyAreRecepient(string userRole, string recipient, bool shouldAllow)
+        public async Task TaskOwnerShouldOnlyBeAbleToUpdateConversationsWhenTheyAreRecipient(string userRole, string recipient, bool shouldAllow)
         {
             var adminClient = fixture.ApiFactory.CreateClient()
                    .WithTestUser(fixture.AdminUser)
@@ -302,7 +347,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     recipient = recipient,
                 };
 
-                var result = await http.TestClientPutAsync<TestApiRequestMessage>($"/requests/internal/{normalRequest.Id}/conversation/{message.Id}", payload);
+                var result = await http.TestClientPutAsync<TestApiRequestMessage>($"/projects/{testProject.Project.ProjectId}/resources/requests/{normalRequest.Id}/conversation/{message.Id}", payload);
 
                 if (shouldAllow)
                     result.Should().BeSuccessfull();

@@ -163,7 +163,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanEditAdditionalCommentOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
