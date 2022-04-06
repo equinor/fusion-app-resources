@@ -573,7 +573,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/start")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> StartProjectRequestWorkflow([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandActions());
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -581,7 +581,8 @@ namespace Fusion.Resources.Api.Controllers
             if (result.Project.OrgProjectId != projectIdentifier.ProjectId)
                 return ApiErrors.NotFound("Could not locate request in project", $"{requestId}");
 
-            if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
+            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));
+            if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
             #region Authorization
@@ -620,12 +621,13 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/start")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> StartResourceOwnerRequestWorkflow([FromRoute] string departmentPath, Guid requestId)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandActions());
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
+            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));
+            if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
             #region Authorization
@@ -757,12 +759,13 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] PathProjectIdentifier projectIdentifier, Guid requestId)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandActions());
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
+            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));
+            if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
             await using var scope = await BeginTransactionAsync();
@@ -787,14 +790,15 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/departments/{departmentPath}/resources/requests/{requestId}/approve")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> ApproveProjectAllocationRequest([FromRoute] string departmentPath, Guid requestId)
         {
-            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandActions());
+            var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (result == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
             //if (result.AssignedDepartment != departmentPath)
             //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
 
-            if (result.Actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
+            var actions = await DispatchAsync(new Domain.Commands.Tasks.GetRequestActions(requestId));  
+            if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
             await using var scope = await BeginTransactionAsync();

@@ -28,8 +28,6 @@ namespace Fusion.Resources.Domain.Queries
                 Expands |= ExpandFields.OrgPositionInstance;
             if (Query.ShouldExpand("DepartmentDetails"))
                 Expands |= ExpandFields.DepartmentDetails;
-            if (Query.ShouldExpand("Actions"))
-                Expands |= ExpandFields.Actions;
         }
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
@@ -140,7 +138,6 @@ namespace Fusion.Resources.Domain.Queries
             OrgPosition = 1 << 0,
             OrgPositionInstance = 1 << 1,
             DepartmentDetails = 1 << 2,
-            Actions = 1 << 3
         }
 
         public class Validator : AbstractValidator<GetResourceAllocationRequests>
@@ -239,7 +236,6 @@ namespace Fusion.Resources.Domain.Queries
                     await AddProposedPersons(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
                     await AddDepartmentDetails(pagedQuery, request.Expands);
-                    await AddActions(pagedQuery, request.Expands);
                 }
 
                 return pagedQuery;
@@ -267,21 +263,6 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 return query.OrderBy(r => r.Id);
-            }
-
-            private async Task AddActions(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
-            {
-                if (!expands.HasFlag(ExpandFields.Actions)) return;
-
-                var actions = await mediator.Send(new GetActionsForRequests(pagedQuery.Select(x => x.RequestId)));
-
-                foreach (var request in pagedQuery)
-                {
-                    if(actions.Contains(request.RequestId))
-                    {
-                        request.Actions = actions[request.RequestId].ToList();
-                    }
-                }
             }
 
             private async Task AddDepartmentDetails(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, ExpandFields expands)
