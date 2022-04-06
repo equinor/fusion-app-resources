@@ -1,6 +1,7 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,30 +17,31 @@ namespace Fusion.Resources.Domain.Commands.Tasks
     /// </summary>
     public class CountActionsForRequests : IRequest<IDictionary<Guid, int>>
     {
-        private IEnumerable<Guid> requestId;
+        private readonly Guid[] requestId;
+        private readonly DbTaskResponsible responsible;
 
-        public CountActionsForRequests(IEnumerable<Guid> requestId)
+        public CountActionsForRequests(IEnumerable<Guid> requestId, QueryTaskResponsible responsible)
         {
-            this.requestId = requestId;
+            this.requestId = requestId.ToArray();
+            this.responsible = responsible.MapToDatabase();
         }
 
         public class Handler : IRequestHandler<CountActionsForRequests, IDictionary<Guid, int>>
         {
             private readonly ResourcesDbContext db;
-            private readonly IFusionProfileResolver profileResolver;
 
-            public Handler(ResourcesDbContext db, IFusionProfileResolver profileResolver)
+            public Handler(ResourcesDbContext db)
             {
                 this.db = db;
-                this.profileResolver = profileResolver;
             }
 
             public async Task<IDictionary<Guid, int>> Handle(CountActionsForRequests request, CancellationToken cancellationToken)
             {
                 return await db.RequestActions
-                    .Where(t => request.requestId.Contains(t.RequestId))
+                    .Where(t => request.requestId.Contains(t.RequestId) && t.Responsible == request.responsible || t.Responsible == DbTaskResponsible.Both)
                     .GroupBy(t => t.RequestId)
-                    .ToDictionaryAsync(g => g.Key, g => g.Count(), cancellationToken);
+                    .Select(g => new { g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
             }
         }
     }

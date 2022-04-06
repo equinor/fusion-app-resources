@@ -511,7 +511,8 @@ namespace Fusion.Resources.Api.Controllers
 
             var requestCommand = new GetResourceAllocationRequests(query)
                 .ForTaskOwners()
-                .WithProjectId(projectIdentifier.ProjectId);
+                .WithProjectId(projectIdentifier.ProjectId)
+                .WithActionCount();
 
             var result = await DispatchAsync(requestCommand);
 

@@ -78,7 +78,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
-            
+
             //fixture.GetNotificationMessages< Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent >("resources-sub")
             //    .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
             //var commentResponse = await adminClient.TestClientPostAsync($"/resources/requests/internal/{normalRequest.Request.Id}/comments", new { Content = "Normal test request comment" }, new { Id = Guid.Empty });
@@ -479,32 +479,33 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.conversation.Should().BeEmpty();
         }
 
-        //[Fact]
-        //public async Task GetProjectsRequests_ShouldExpandActions()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Fact]
+        public async Task GetProjectsRequests_ShouldExpandActions()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var requestA = await Client.CreateDefaultRequestAsync(testProject);
-        //    var requestB = await Client.CreateDefaultRequestAsync(testProject);
-        //    var taskA = await Client.AddRequestActionAsync(requestA.Id);
-        //    var taskB = await Client.AddRequestActionAsync(requestB.Id);
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var requestB = await Client.CreateDefaultRequestAsync(testProject);
 
-        //    var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
-        //        new
-        //        {
-        //            value = new[] {
-        //                new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, sentBy = new { } } } }
-        //            }
-        //        });
+            var taskA1 = await Client.AddRequestActionAsync(requestA.Id);
+            var taskA2 = await Client.AddRequestActionAsync(requestA.Id, responsible: "Both");
+
+            var taskB = await Client.AddRequestActionAsync(requestB.Id);
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests",
+                new
+                {
+                    value = new[] {
+                        new { id = Guid.Empty, actionCount = 0 }
+                    }
+                });
 
 
-        //    result.Should().BeSuccessfull();
+            result.Should().BeSuccessfull();
 
-
-        //    result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
-        //    result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
-        //    result.Value.value.First(x => x.id == requestB.Id).actions[0].sentBy.Should().NotBeNull();
-        //}
+            result.Value.value.First(x => x.id == requestA.Id).actionCount.Should().Be(2);
+            result.Value.value.First(x => x.id == requestB.Id).actionCount.Should().Be(1);
+        }
 
         //[Fact]
         //public async Task GetResourcesRequests_ShouldExpandActions_SentByShouldNotBeNull()
@@ -532,11 +533,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             // To ensure we do not get correct order due to coincidence, we will sort both asc and desc to verify test.
-            
+
 
             var requestA = await Client.CreateDefaultRequestAsync(testProject);
             var requestB = await Client.CreateDefaultRequestAsync(testProject);
-            
+
             var respModel = new
             {
                 value = new[] { new { number = default(long) } }
@@ -892,7 +893,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsTypeNormal()
                 .WithPosition(position);
 
-            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests/$batch", payload, 
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests/$batch", payload,
                 new[] { new { CorrelationId = Guid.Empty } });
 
             response.Should().BeSuccessfull();

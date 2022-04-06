@@ -28,7 +28,6 @@ namespace Fusion.Resources.Domain
 
     public class QueryResourceAllocationRequest
     {
-
         public QueryResourceAllocationRequest(DbResourceAllocationRequest entity, QueryWorkflow? workflow = null)
         {
             RequestId = entity.Id;
@@ -134,6 +133,20 @@ namespace Fusion.Resources.Domain
         public QueryTaskOwner? TaskOwner { get; set; }
         public List<QueryRequestAction>? Actions { get; set; }
         public List<QueryConversationMessage>? Conversation { get; set; }
+
+        private int actionCount = 0;
+        public int ActionCount { 
+            get 
+            { 
+                if(Actions is not null) return Actions.Count;
+
+                return actionCount;
+            } 
+            set 
+            { 
+                actionCount = value;
+            }
+        }
 
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {
