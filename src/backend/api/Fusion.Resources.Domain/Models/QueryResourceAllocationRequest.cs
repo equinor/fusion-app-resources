@@ -135,12 +135,13 @@ namespace Fusion.Resources.Domain
         public List<QueryConversationMessage>? Conversation { get; set; }
 
         private int actionCount = 0;
-        public int ActionCount { 
+        public int ActionCount 
+        { 
             get 
-            { 
-                if(Actions is not null) return Actions.Count;
-
-                return actionCount;
+            {
+                if (Actions is null) return actionCount;
+                
+                return Actions.Count;
             } 
             set 
             { 

@@ -122,7 +122,6 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.ProposedPerson)
                     .FirstOrDefaultAsync(c => c.Id == request.RequestId);
 
-
                 if (row is null)
                     return null;
 
@@ -162,7 +161,6 @@ namespace Fusion.Resources.Domain.Queries
                 }
                 return requestItem;
             }
-
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
             {
@@ -233,7 +231,5 @@ namespace Fusion.Resources.Domain.Queries
                 request.Actions = actions.ToList();
             }
         }
-
-
     }
 }

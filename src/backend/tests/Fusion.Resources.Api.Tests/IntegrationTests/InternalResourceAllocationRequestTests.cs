@@ -486,6 +486,63 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var requestA = await Client.CreateDefaultRequestAsync(testProject);
             var requestB = await Client.CreateDefaultRequestAsync(testProject);
+            var taskA = await Client.AddRequestActionAsync(requestA.Id);
+            var taskB = await Client.AddRequestActionAsync(requestB.Id);
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
+                new
+                {
+                    value = new[] {
+                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, sentBy = new { } } } }
+                    }
+                });
+
+
+            result.Should().BeSuccessfull();
+
+
+            result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
+            result.Value.value.First(x => x.id == requestB.Id).actions[0].sentBy.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetProjectsRequests_ShouldNotIncludeResourceOwnerRequests()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var taskOwnerAction = await Client.AddRequestActionAsync(request.Id);
+            var bothResponsibleAction = await Client.AddRequestActionAsync(request.Id, responsible: "Both");
+            var resourceOwnerAction = await Client.AddRequestActionAsync(request.Id, responsible: "ResourceOwner");
+
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
+                new
+                {
+                    value = new[] {
+                        new { 
+                            id = Guid.Empty, 
+                            actionCount = 0,
+                            actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, responsible = "", sentBy = new { } } } 
+                        }
+                    }
+                });
+
+            result.Should().BeSuccessfull();
+
+            var resultingRequest = result.Value.value.First(x => x.id == request.Id);
+            
+            resultingRequest.actions.Should().OnlyContain(x => x.responsible == "Both" || x.responsible == "TaskOwner");
+            resultingRequest.actionCount.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task GetProjectsRequests_ShouldCountActions()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var requestB = await Client.CreateDefaultRequestAsync(testProject);
 
             var taskA1 = await Client.AddRequestActionAsync(requestA.Id);
             var taskA2 = await Client.AddRequestActionAsync(requestA.Id, responsible: "Both");
@@ -507,25 +564,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.value.First(x => x.id == requestB.Id).actionCount.Should().Be(1);
         }
 
-        //[Fact]
-        //public async Task GetResourcesRequests_ShouldExpandActions_SentByShouldNotBeNull()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Fact]
+        public async Task GetResourcesRequests_ShouldExpandActions_SentByShouldNotBeNull()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var requestA = await Client.CreateDefaultRequestAsync(testProject);
-        //    var taskA = await Client.AddRequestActionAsync(requestA.Id);
+            var requestA = await Client.CreateDefaultRequestAsync(testProject);
+            var taskA = await Client.AddRequestActionAsync(requestA.Id);
 
-        //    var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/resources/requests/{requestA.Id}/?$expand=actions",
-        //                                                 new
-        //                                                 {
-        //                                                     id = Guid.Empty,
-        //                                                     actions = new[] { new { requestId = Guid.Empty, id = Guid.Empty, sentBy = new { } } }
-        //                                                 });
+            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/resources/requests/{requestA.Id}/?$expand=actions",
+                                                         new
+                                                         {
+                                                             id = Guid.Empty,
+                                                             actions = new[] { new { requestId = Guid.Empty, id = Guid.Empty, sentBy = new { } } }
+                                                         });
 
-        //    result.Should().BeSuccessfull();
-        //    result.Value.actions[0].id.Should().Be(taskA.id);
-        //    result.Value.actions[0].sentBy.Should().NotBeNull();
-        //}
+            result.Should().BeSuccessfull();
+            result.Value.actions[0].id.Should().Be(taskA.id);
+            result.Value.actions[0].sentBy.Should().NotBeNull();
+        }
 
         [Fact]
         public async Task ListRequests_ShouldOrderRequests_WhenNumberSpecified()

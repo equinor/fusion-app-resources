@@ -28,6 +28,8 @@ namespace Fusion.Resources.Domain.Queries
                 Expands |= ExpandFields.OrgPositionInstance;
             if (Query.ShouldExpand("DepartmentDetails"))
                 Expands |= ExpandFields.DepartmentDetails;
+            if (Query.ShouldExpand("Actions"))
+                Expands |= ExpandFields.Actions;
         }
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
@@ -126,8 +128,8 @@ namespace Fusion.Resources.Domain.Queries
         public bool? ExcludeCompleted { get; private set; }
 
         private DbInternalRequestOwner? Owner { get; set; }
-        public QueryMessageRecipient Recipient { get; private set; }
-        public QueryTaskResponsible Responsible { get; private set; }
+        private QueryMessageRecipient Recipient { get; set; }
+        private QueryTaskResponsible Responsible { get; set; }
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
 
@@ -145,11 +147,12 @@ namespace Fusion.Resources.Domain.Queries
         [Flags]
         private enum ExpandFields
         {
-            None = 0,
-            OrgPosition = 1 << 0,
+            None                =      0,
+            OrgPosition         = 1 << 0,
             OrgPositionInstance = 1 << 1,
-            DepartmentDetails = 1 << 2,
-            ActionCount = 1 << 3
+            DepartmentDetails   = 1 << 2,
+            Actions             = 1 << 3,
+            ActionCount         = 1 << 4
         }
 
         public class Validator : AbstractValidator<GetResourceAllocationRequests>
@@ -248,10 +251,23 @@ namespace Fusion.Resources.Domain.Queries
                     await AddProposedPersons(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
                     await AddDepartmentDetails(pagedQuery, request.Expands);
+                    await AddActions(pagedQuery, request);
                     await AddActionCount(pagedQuery, request);
                 }
 
                 return pagedQuery;
+            }
+
+            private async Task AddActions(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, GetResourceAllocationRequests request)
+            {
+                if (!request.Expands.HasFlag(ExpandFields.Actions)) return;
+
+                var requestActions = await mediator.Send(new GetActionsForRequests(pagedQuery.Select(x => x.RequestId), request.Responsible));
+                foreach(var rq in pagedQuery)
+                {
+                    if (requestActions.Contains(rq.RequestId))
+                        rq.Actions = requestActions[rq.RequestId].ToList();
+                }
             }
 
             private async Task AddActionCount(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, GetResourceAllocationRequests request)
@@ -376,6 +392,5 @@ namespace Fusion.Resources.Domain.Queries
                 }
             }
         }
-
     }
 }
