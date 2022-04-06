@@ -413,71 +413,71 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             updated.Value.Workflow.Should().BeNull();
         }
 
-        //[Fact]
-        //public async Task GetRequest_ShouldIncludeTasks_WhenExpanded()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Fact]
+        public async Task GetRequest_ShouldIncludeTasks_WhenExpanded()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var request = await Client.CreateDefaultRequestAsync(testProject);
-        //    var task = await Client.AddRequestActionAsync(request.Id);
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var task = await Client.AddRequestActionAsync(request.Id, responsible: "ResourceOwner");
 
-        //    var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
-        //    {
-        //        actions = new[] { new { id = Guid.Empty } }
-        //    });
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
+            {
+                actions = new[] { new { id = Guid.Empty } }
+            });
 
-        //    result.Should().BeSuccessfull();
-        //    result.Value.actions.Should().Contain(t => t.id == task.id);
-        //}
+            result.Should().BeSuccessfull();
+            result.Value.actions.Should().Contain(t => t.id == task.id);
+        }
 
-        //[Fact]
-        //public async Task GetRequest_ShouldNotFailToExpandTasks_WhenNoTasksExist()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Fact]
+        public async Task GetRequest_ShouldNotFailToExpandTasks_WhenNoTasksExist()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var request = await Client.CreateDefaultRequestAsync(testProject);
+            var request = await Client.CreateDefaultRequestAsync(testProject);
 
-        //    var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
-        //    {
-        //        actions = new[] { new { id = Guid.Empty } }
-        //    });
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=actions", new
+            {
+                actions = new[] { new { id = Guid.Empty } }
+            });
 
-        //    result.Should().BeSuccessfull();
-        //    result.Value.actions.Should().BeEmpty();
-        //}
+            result.Should().BeSuccessfull();
+            result.Value.actions.Should().BeEmpty();
+        }
 
-        //[Fact]
-        //public async Task GetRequest_ShouldIncludeConversation_WhenExpanded()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Fact]
+        public async Task GetRequest_ShouldIncludeConversation_WhenExpanded()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var request = await Client.CreateDefaultRequestAsync(testProject);
-        //    var message = await Client.AddRequestMessage(request.Id);
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var message = await Client.AddRequestMessage(request.Id, recipient: "ResourceOwner");
 
-        //    var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
-        //    {
-        //        conversation = new[] { new { id = Guid.Empty } }
-        //    });
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
+            {
+                conversation = new[] { new { id = Guid.Empty } }
+            });
 
-        //    result.Should().BeSuccessfull();
-        //    result.Value.conversation.Should().Contain(m => m.id == message.Id);
-        //}
+            result.Should().BeSuccessfull();
+            result.Value.conversation.Should().Contain(m => m.id == message.Id);
+        }
 
-        //[Fact]
-        //public async Task GetRequest_ShouldNotFailToExpandConversation_WhenNoMessagesExist()
-        //{
-        //    using var adminScope = fixture.AdminScope();
+        [Fact]
+        public async Task GetRequest_ShouldNotFailToExpandConversation_WhenNoMessagesExist()
+        {
+            using var adminScope = fixture.AdminScope();
 
-        //    var request = await Client.CreateDefaultRequestAsync(testProject);
+            var request = await Client.CreateDefaultRequestAsync(testProject);
 
-        //    var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
-        //    {
-        //        conversation = new[] { new { id = Guid.Empty } }
-        //    });
+            var result = await Client.TestClientGetAsync($"/resources/requests/internal/{request.Id}?$expand=conversation", new
+            {
+                conversation = new[] { new { id = Guid.Empty } }
+            });
 
-        //    result.Should().BeSuccessfull();
-        //    result.Value.conversation.Should().BeEmpty();
-        //}
+            result.Should().BeSuccessfull();
+            result.Value.conversation.Should().BeEmpty();
+        }
 
         //[Fact]
         //public async Task GetProjectsRequests_ShouldExpandActions()

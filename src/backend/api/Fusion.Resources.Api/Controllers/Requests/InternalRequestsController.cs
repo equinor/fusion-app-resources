@@ -92,7 +92,14 @@ namespace Fusion.Resources.Api.Controllers
 
                 await transaction.CommitAsync();
 
-                newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+                var query = new GetResourceAllocationRequestItem(newRequest.RequestId)
+                    .ExpandDepartmentDetails()
+                    .ExpandResourceOwner()
+                    .ExpandTaskOwner()
+                    .ExpandActions(QueryTaskResponsible.TaskOwner)
+                    .ExpandConversation(QueryMessageRecipient.TaskOwner);
+
+                newRequest = await DispatchAsync(query);
 
                 return Created($"/projects/{projectIdentifier}/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
@@ -164,8 +171,15 @@ namespace Fusion.Resources.Api.Controllers
                             ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId
                         });
                     }
+                    
+                    var newRequestQuery = new GetResourceAllocationRequestItem(newRequest.RequestId)
+                        .ExpandDepartmentDetails()
+                        .ExpandResourceOwner()
+                        .ExpandTaskOwner()
+                        .ExpandActions(QueryTaskResponsible.TaskOwner)
+                        .ExpandConversation(QueryMessageRecipient.TaskOwner);
 
-                    newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
+                    newRequest = await DispatchAsync(newRequestQuery);
                     requests.Add(newRequest!);
                 }
                 await transaction.CommitAsync();
@@ -255,8 +269,14 @@ namespace Fusion.Resources.Api.Controllers
                 }
 
                 await transaction.CommitAsync();
+                var query = new GetResourceAllocationRequestItem(newRequest.RequestId)
+                    .ExpandDepartmentDetails()
+                    .ExpandResourceOwner()
+                    .ExpandTaskOwner()
+                    .ExpandActions(QueryTaskResponsible.ResourceOwner)
+                    .ExpandConversation(QueryMessageRecipient.ResourceOwner);
+                newRequest = await DispatchAsync(query);
 
-                newRequest = await DispatchAsync(new GetResourceAllocationRequestItem(newRequest.RequestId).ExpandAll());
                 return Created($"/departments/{departmentPath}/resources/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
             catch (ValidationException ex)
@@ -322,7 +342,15 @@ namespace Fusion.Resources.Api.Controllers
                 await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
 
-                var updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandAll());
+                var query = new GetResourceAllocationRequestItem(requestId)
+                   .ExpandDepartmentDetails()
+                   .ExpandResourceOwner()
+                   .ExpandTaskOwner()
+                   .ExpandActions(QueryTaskResponsible.TaskOwner)
+                   .ExpandConversation(QueryMessageRecipient.TaskOwner);
+
+                var updatedRequest = await DispatchAsync(query);
+
                 return new ApiResourceAllocationRequest(updatedRequest!);
             }
             catch (ValidationException ve)
@@ -398,7 +426,14 @@ namespace Fusion.Resources.Api.Controllers
                 await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
 
-                var updatedRequest = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).ExpandAll());
+                var query = new GetResourceAllocationRequestItem(requestId)
+                  .ExpandDepartmentDetails()
+                  .ExpandResourceOwner()
+                  .ExpandTaskOwner()
+                  .ExpandActions(QueryTaskResponsible.ResourceOwner)
+                  .ExpandConversation(QueryMessageRecipient.ResourceOwner);
+
+                var updatedRequest = await DispatchAsync(query);
                 return new ApiResourceAllocationRequest(updatedRequest!);
             }
             catch (ValidationException ve)
@@ -534,7 +569,9 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
         {
-            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
+            var getRequestQuery = new GetResourceAllocationRequestItem(requestId).WithQueryForTaskOwner(query);
+
+            var requestItem = await DispatchAsync(getRequestQuery);
 
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -572,7 +609,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
-            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQuery(query));
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQueryForResourceOwner(query));
 
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");

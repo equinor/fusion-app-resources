@@ -22,47 +22,75 @@ namespace Fusion.Resources.Domain.Queries
             RequestId = requestId;
         }
 
-        public GetResourceAllocationRequestItem WithQuery(ODataQueryParams query)
-        {
-            if (query.ShouldExpand("taskOwner"))
-            {
-                Expands |= ExpandProperties.TaskOwner;
-            }
-            if (query.ShouldExpand("proposedPerson.resourceOwner"))
-            {
-                Expands |= ExpandProperties.ResourceOwner;
-            }
-            if (query.ShouldExpand("departmentDetails"))
-            {
-                Expands |= ExpandProperties.DepartmentDetails;
-            }
-
-            return this;
-        }
         public Guid RequestId { get; }
 
-
         public ExpandProperties Expands { get; set; }
+        public QueryMessageRecipient MessageRecipient { get; private set; }
+        public QueryTaskResponsible ActionResponsible { get; private set; }
 
-        public GetResourceAllocationRequestItem ExpandAll()
+        public GetResourceAllocationRequestItem WithQueryForTaskOwner(ODataQueryParams query)
         {
-            Expands = ExpandProperties.All;
+            if (query.ShouldExpand("taskOwner")) ExpandTaskOwner();
+            if (query.ShouldExpand("proposedPerson.resourceOwner")) ExpandResourceOwner();
+            if (query.ShouldExpand("departmentDetails")) ExpandDepartmentDetails();
+            if (query.ShouldExpand("actions")) ExpandActions(QueryTaskResponsible.TaskOwner);
+            if (query.ShouldExpand("conversation")) ExpandConversation(QueryMessageRecipient.TaskOwner);
+
             return this;
         }
+
+        public GetResourceAllocationRequestItem WithQueryForResourceOwner(ODataQueryParams query)
+        {
+            if (query.ShouldExpand("taskOwner")) ExpandTaskOwner();
+            if (query.ShouldExpand("proposedPerson.resourceOwner")) ExpandResourceOwner();
+            if (query.ShouldExpand("departmentDetails")) ExpandDepartmentDetails();
+            if (query.ShouldExpand("actions")) ExpandActions(QueryTaskResponsible.ResourceOwner);
+            if (query.ShouldExpand("conversation")) ExpandConversation(QueryMessageRecipient.ResourceOwner);
+
+            return this;
+        }
+
         public GetResourceAllocationRequestItem ExpandTaskOwner()
         {
             Expands |= ExpandProperties.TaskOwner;
             return this;
         }
 
+        public GetResourceAllocationRequestItem ExpandResourceOwner()
+        {
+            Expands |= ExpandProperties.ResourceOwner;
+            return this;
+        }
+
+        public GetResourceAllocationRequestItem ExpandDepartmentDetails()
+        {
+            Expands |= ExpandProperties.DepartmentDetails;
+            return this;
+        }
+
+        public GetResourceAllocationRequestItem ExpandConversation(QueryMessageRecipient recipient)
+        {
+            Expands |= ExpandProperties.Conversation;
+            MessageRecipient = recipient;
+            return this;
+        }
+
+        public GetResourceAllocationRequestItem ExpandActions(QueryTaskResponsible responsible)
+        {
+            Expands |= ExpandProperties.Actions;
+            ActionResponsible = responsible;
+            return this;
+        }
+
         [Flags]
         public enum ExpandProperties
         {
-            None                = 0,
-            TaskOwner           = 1 << 0,
-            ResourceOwner       = 1 << 1,
-            DepartmentDetails   = 1 << 2,
-            All = TaskOwner | ResourceOwner | DepartmentDetails,
+            None = 0,
+            TaskOwner = 1 << 0,
+            ResourceOwner = 1 << 1,
+            DepartmentDetails = 1 << 2,
+            Actions = 1 << 3,
+            Conversation = 1 << 4,
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -124,9 +152,17 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await ExpandDepartmentDetails(requestItem);
                 }
-      
+                if (request.Expands.HasFlag(ExpandProperties.Actions))
+                {
+                    await ExpandActions(requestItem, request.ActionResponsible);
+                }
+                if (request.Expands.HasFlag(ExpandProperties.Conversation))
+                {
+                    await ExpandConversation(requestItem, request.MessageRecipient);
+                }
                 return requestItem;
             }
+
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
             {
@@ -186,6 +222,18 @@ namespace Fusion.Resources.Domain.Queries
                     logger.LogError(ex, "Could not expand resource owner: {Message}", ex.Message);
                 }
             }
+            private async Task ExpandConversation(QueryResourceAllocationRequest requestItem, QueryMessageRecipient recipient)
+            {
+                requestItem.Conversation = await mediator.Send(new GetRequestConversation(requestItem.RequestId, recipient));
+            }
+
+            private async Task ExpandActions(QueryResourceAllocationRequest request, QueryTaskResponsible responsible)
+            {
+                var actions = await mediator.Send(new GetRequestActions(request.RequestId, responsible));
+                request.Actions = actions.ToList();
+            }
         }
+
+
     }
 }
