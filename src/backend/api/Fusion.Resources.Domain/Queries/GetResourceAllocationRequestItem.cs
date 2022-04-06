@@ -63,11 +63,6 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
-        public GetResourceAllocationRequestItem ExpandActions()
-        {
-            Expands |= ExpandProperties.Actions;
-            return this;
-        }
 
         [Flags]
         public enum ExpandProperties
@@ -76,9 +71,7 @@ namespace Fusion.Resources.Domain.Queries
             TaskOwner           = 1 << 0,
             ResourceOwner       = 1 << 1,
             DepartmentDetails   = 1 << 2,
-            Actions               = 1 << 3,
-            Conversation        = 1 << 4,
-            All = TaskOwner | ResourceOwner | DepartmentDetails | Actions | Conversation,
+            All = TaskOwner | ResourceOwner | DepartmentDetails,
         }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequestItem, QueryResourceAllocationRequest?>
@@ -140,15 +133,7 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await ExpandDepartmentDetails(requestItem);
                 }
-                if(request.Expands.HasFlag(ExpandProperties.Actions))
-                {
-                    await ExpandActions(requestItem);
-                }
-                if(request.Expands.HasFlag(ExpandProperties.Conversation))
-                {
-                    await ExpandConversation(requestItem);
-                }
-
+      
                 return requestItem;
             }
 
@@ -161,11 +146,11 @@ namespace Fusion.Resources.Domain.Queries
                                                    .ToListAsync();
             }
 
-            private async Task ExpandActions(QueryResourceAllocationRequest request)
-            {
-                var actions = await mediator.Send(new GetActionsForRequests(new[] { request.RequestId }));
-                request.Actions = actions[request.RequestId].ToList();
-            }
+            //private async Task ExpandActions(QueryResourceAllocationRequest request)
+            //{
+            //    var actions = await mediator.Send(new GetActionsForRequests(new[] { request.RequestId }));
+            //    request.Actions = actions[request.RequestId].ToList();
+            //}
 
             private async Task ExpandDepartmentDetails(QueryResourceAllocationRequest requestItem)
             {

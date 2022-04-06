@@ -479,32 +479,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    result.Value.conversation.Should().BeEmpty();
         //}
 
-        [Fact]
-        public async Task GetProjectsRequests_ShouldExpandActions()
-        {
-            using var adminScope = fixture.AdminScope();
+        //[Fact]
+        //public async Task GetProjectsRequests_ShouldExpandActions()
+        //{
+        //    using var adminScope = fixture.AdminScope();
 
-            var requestA = await Client.CreateDefaultRequestAsync(testProject);
-            var requestB = await Client.CreateDefaultRequestAsync(testProject);
-            var taskA = await Client.AddRequestActionAsync(requestA.Id);
-            var taskB = await Client.AddRequestActionAsync(requestB.Id);
+        //    var requestA = await Client.CreateDefaultRequestAsync(testProject);
+        //    var requestB = await Client.CreateDefaultRequestAsync(testProject);
+        //    var taskA = await Client.AddRequestActionAsync(requestA.Id);
+        //    var taskB = await Client.AddRequestActionAsync(requestB.Id);
 
-            var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
-                new
-                {
-                    value = new[] {
-                        new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, sentBy = new { } } } }
-                    }
-                });
-
-
-            result.Should().BeSuccessfull();
+        //    var result = await Client.TestClientGetAsync($"/projects/{testProject.Project.ProjectId}/requests?$expand=actions",
+        //        new
+        //        {
+        //            value = new[] {
+        //                new { id = Guid.Empty, actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, sentBy = new { } } } }
+        //            }
+        //        });
 
 
-            result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
-            result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
-            result.Value.value.First(x => x.id == requestB.Id).actions[0].sentBy.Should().NotBeNull();
-        }
+        //    result.Should().BeSuccessfull();
+
+
+        //    result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
+        //    result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
+        //    result.Value.value.First(x => x.id == requestB.Id).actions[0].sentBy.Should().NotBeNull();
+        //}
 
         //[Fact]
         //public async Task GetResourcesRequests_ShouldExpandActions_SentByShouldNotBeNull()
