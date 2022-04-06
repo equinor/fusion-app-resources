@@ -10,12 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fusion.Resources.Domain.Commands.Tasks
+namespace Fusion.Resources.Domain
 {
     /// <summary>
     /// Get all tasks for multiple requests, specified with request ids.
     /// </summary>
-    public class CountActionsForRequests : IRequest<IDictionary<Guid, int>>
+    public class CountActionsForRequests : IRequest<IDictionary<Guid, QueryActionCounts>>
     {
         private readonly Guid[] requestId;
         private readonly DbTaskResponsible responsible;
@@ -26,7 +26,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
             this.responsible = responsible.MapToDatabase();
         }
 
-        public class Handler : IRequestHandler<CountActionsForRequests, IDictionary<Guid, int>>
+        public class Handler : IRequestHandler<CountActionsForRequests, IDictionary<Guid, QueryActionCounts>>
         {
             private readonly ResourcesDbContext db;
 
@@ -35,14 +35,23 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                 this.db = db;
             }
 
-            public async Task<IDictionary<Guid, int>> Handle(CountActionsForRequests request, CancellationToken cancellationToken)
+            public async Task<IDictionary<Guid, QueryActionCounts>> Handle(CountActionsForRequests request, CancellationToken cancellationToken)
             {
                 return await db.RequestActions
                     .Where(t => request.requestId.Contains(t.RequestId) && t.Responsible == request.responsible || t.Responsible == DbTaskResponsible.Both)
                     .GroupBy(t => t.RequestId)
-                    .Select(g => new { g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(g => g.Key, g => g.Count, cancellationToken);
+                    .Select(g => new { 
+                        g.Key, 
+                        ResolvedCount = g.Count(x => x.IsResolved), 
+                        UnresolvedCount = g.Count(x => !x.IsResolved) 
+                    })
+                    .ToDictionaryAsync(g => g.Key, g => new QueryActionCounts(g.ResolvedCount, g.UnresolvedCount), cancellationToken);
             }
         }
+    }
+
+    public record QueryActionCounts(int ResolvedCount, int UnresolvedCount)
+    {
+        public int TotalCount => ResolvedCount + UnresolvedCount;
     }
 }

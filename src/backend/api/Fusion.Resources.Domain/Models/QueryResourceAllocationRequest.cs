@@ -134,14 +134,14 @@ namespace Fusion.Resources.Domain
         public List<QueryRequestAction>? Actions { get; set; }
         public List<QueryConversationMessage>? Conversation { get; set; }
 
-        private int actionCount = 0;
-        public int ActionCount 
+        private QueryActionCounts? actionCount;
+        public QueryActionCounts? ActionCount 
         { 
             get 
             {
                 if (Actions is null) return actionCount;
                 
-                return Actions.Count;
+                return new QueryActionCounts(Actions.Count(x => x.IsResolved), Actions.Count(x => !x.IsResolved));
             } 
             set 
             { 

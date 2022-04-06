@@ -521,8 +521,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 {
                     value = new[] {
                         new { 
-                            id = Guid.Empty, 
-                            actionCount = 0,
+                            id = Guid.Empty,
+                            actionCount = new { total = 0, resolved = 0, unresolved = 0 },
                             actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, responsible = "", sentBy = new { } } } 
                         }
                     }
@@ -533,7 +533,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resultingRequest = result.Value.value.First(x => x.id == request.Id);
             
             resultingRequest.actions.Should().OnlyContain(x => x.responsible == "Both" || x.responsible == "TaskOwner");
-            resultingRequest.actionCount.Should().Be(2);
+            resultingRequest.actionCount.total.Should().Be(2);
         }
 
         [Fact]
@@ -546,6 +546,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var taskA1 = await Client.AddRequestActionAsync(requestA.Id);
             var taskA2 = await Client.AddRequestActionAsync(requestA.Id, responsible: "Both");
+            var taskA3 = await Client.AddRequestActionAsync(requestA.Id);
+            
+            var patchResult = await Client.TestClientPatchAsync<object>($"/requests/{requestA.Id}/actions/{taskA3.id}", new { IsResolved = true });
+            patchResult.Should().BeSuccessfull();
 
             var taskB = await Client.AddRequestActionAsync(requestB.Id);
 
@@ -553,15 +557,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 new
                 {
                     value = new[] {
-                        new { id = Guid.Empty, actionCount = 0 }
+                        new { id = Guid.Empty, actionCount = new { total = 0, resolved = 0, unresolved = 0 } }
                     }
                 });
 
 
             result.Should().BeSuccessfull();
 
-            result.Value.value.First(x => x.id == requestA.Id).actionCount.Should().Be(2);
-            result.Value.value.First(x => x.id == requestB.Id).actionCount.Should().Be(1);
+            var resultingRequestA = result.Value.value.First(x => x.id == requestA.Id);
+            resultingRequestA.actionCount.resolved.Should().Be(1);
+            resultingRequestA.actionCount.unresolved.Should().Be(2);
+            resultingRequestA.actionCount.total.Should().Be(3);
+
+            var resultingRequestB = result.Value.value.First(x => x.id == requestB.Id);
+            resultingRequestB.actionCount.unresolved.Should().Be(1);
+            resultingRequestB.actionCount.total.Should().Be(1);
         }
 
         [Fact]
