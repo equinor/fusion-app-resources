@@ -5,6 +5,7 @@ using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Api.Authorization.Requirements;
 using Fusion.Resources.Domain;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using System;
 using System.Linq;
 
@@ -58,6 +59,15 @@ namespace Fusion.Resources.Api.Controllers
         public static IAuthorizationRequirementRule OrgChartWriteAccess(this IAuthorizationRequirementRule builder, Guid orgProjectId)
         {
             return builder.AddRule(OrgProjectAccessRequirement.OrgWrite(orgProjectId));
+        }
+
+        public static IAuthorizationRequirementRule RequireConversationForTaskOwner(this IAuthorizationRequirementRule builder, QueryMessageRecipient recipient)
+        {
+            return builder.AddRule(new AssertionRequirement(_ => recipient == QueryMessageRecipient.TaskOwner));
+        }
+        public static IAuthorizationRequirementRule RequireConversationForResourceOwner(this IAuthorizationRequirementRule builder, QueryMessageRecipient recipient)
+        {
+            return builder.AddRule(new AssertionRequirement(_ => recipient == QueryMessageRecipient.ResourceOwner));
         }
 
         /// <summary>

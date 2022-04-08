@@ -185,7 +185,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.Must(and =>
                 {
-                    and.AddRule(new AssertionRequirement(_ => conversation.Recipient == QueryMessageRecipient.TaskOwner));
+                    and.RequireConversationForTaskOwner(conversation.Recipient);
                     if (requestItem.OrgPositionId.HasValue)
                         and.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
                 });
@@ -214,7 +214,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.Must(and =>
                 {
-                    and.AddRule(new AssertionRequirement(_ => conversation.Recipient == QueryMessageRecipient.ResourceOwner));
+                    and.RequireConversationForResourceOwner(conversation.Recipient);
                     if (requestItem.AssignedDepartment is not null)
                     {
                         and.BeResourceOwner(
@@ -253,7 +253,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.Must(and =>
                 {
-                    and.AddRule(new AssertionRequirement(_ => conversation.Recipient == QueryMessageRecipient.TaskOwner));
+                    and.RequireConversationForTaskOwner(conversation.Recipient);
                     if (requestItem.OrgPositionId.HasValue)
                         and.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
                 });
@@ -292,7 +292,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.Must(and =>
                 {
-                    and.AddRule(new AssertionRequirement(_ => conversation.Recipient == QueryMessageRecipient.ResourceOwner));
+                    and.RequireConversationForResourceOwner(conversation.Recipient);
                     if (requestItem.AssignedDepartment is not null)
                     {
                         and.BeResourceOwner(
