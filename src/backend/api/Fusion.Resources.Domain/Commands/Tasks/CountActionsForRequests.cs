@@ -13,7 +13,8 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Domain
 {
     /// <summary>
-    /// Get all tasks for multiple requests, specified with request ids.
+    /// Count resolved, unresolved, and total tasks per recipient for given request ids without 
+    /// retrieving all actions from the database.
     /// </summary>
     public class CountActionsForRequests : IRequest<IDictionary<Guid, QueryActionCounts>>
     {

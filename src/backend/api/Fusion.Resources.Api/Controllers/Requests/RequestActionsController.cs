@@ -120,6 +120,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
             #endregion
 
+            // Actions have to be filtered based on who is responsible. In the list endpoint
+            // we use limited auth to flag that the current user is a task owner and filter
+            // actions accordingly.
             var responsible = QueryTaskResponsible.TaskOwner;
             if (!authResult.LimitedAuth)
                 responsible = QueryTaskResponsible.ResourceOwner;
