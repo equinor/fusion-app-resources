@@ -100,7 +100,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanDeleteRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -119,8 +118,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
-
         public async Task CanReadRequestsAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -128,7 +125,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using var userScope = fixture.UserScope(Users[role]);
 
             var client = fixture.ApiFactory.CreateClient();
-            var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}");
+            var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}");
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
@@ -139,8 +136,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
-
         public async Task CanEditGeneralOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -149,7 +144,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}",
                 new
                 {
                     proposedChanges = new
@@ -168,7 +163,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanEditAdditionalCommentOnRequestAssignedToDepartment(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateAndStartRequest();
@@ -193,7 +187,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanReassignDepartmentOnRequest(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TPD UPD ASD";
@@ -205,7 +198,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             {
                 var client = fixture.ApiFactory.CreateClient();
                 var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}",
                     new { assignedDepartment = TestDepartment }
                 );
                 result.Should().BeSuccessfull();
@@ -215,7 +208,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             {
                 var client = fixture.ApiFactory.CreateClient();
                 var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                    $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                    $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}",
                     new { assignedDepartment = changedDepartment }
                 );
 
@@ -230,7 +223,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("resourceOwner", "PDP PRD FE ANE ANE5", true)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanAssignDepartmentOnUnassignedRequest(string role, string department, bool shouldBeAllowed)
         {
             const string changedDepartment = "TDI UPD QWE RTY1";
@@ -249,7 +241,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
 
             var client = fixture.ApiFactory.CreateClient();
             var result = await client.TestClientPatchAsync<TestApiInternalRequestModel>(
-                $"/projects/{testProject.Project.ProjectId}/requests/{request.Id}",
+                $"/resources/requests/internal/{request.Id}",
                 new { assignedDepartment = changedDepartment }
             );
 
@@ -302,7 +294,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
         public async Task CanStartNormalRequest(string role, string department, bool shouldBeAllowed)
         {
             var request = await CreateRequest();
@@ -347,7 +338,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("creator", "TPD RND WQE FQE", false)]
         [InlineData("taskOwner", TestDepartment, false)]
 
         public async Task CanProposeNormalRequest(string role, string department, bool shouldBeAllowed)
@@ -383,7 +373,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, false)]
         [InlineData("resourceOwner", ParentDepartment, false)]
         [InlineData("resourceOwner", SameL2Department, false)]
-        [InlineData("creator", "TPD RND WQE FQE", true)]
         [InlineData("taskOwner", TestDepartment, true)]
         public async Task CanAcceptNormalRequest(string role, string department, bool shouldBeAllowed)
         {

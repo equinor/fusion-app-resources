@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                     .Include(t => t.SentBy)
                     .SingleOrDefaultAsync(t => t.RequestId == request.requestId && t.Id == request.taskId, cancellationToken);
 
-                return await action.AsQueryRequestActionAsync(profileResolver);
+                return action is not null ? await action.AsQueryRequestActionAsync(profileResolver) : null;
             }
         }
     }

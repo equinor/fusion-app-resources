@@ -28,6 +28,8 @@ namespace Fusion.Resources.Domain.Queries
                 Expands |= ExpandFields.OrgPositionInstance;
             if (Query.ShouldExpand("DepartmentDetails"))
                 Expands |= ExpandFields.DepartmentDetails;
+            if (Query.ShouldExpand("Actions"))
+                Expands |= ExpandFields.Actions;
         }
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
@@ -89,11 +91,15 @@ namespace Fusion.Resources.Domain.Queries
         public GetResourceAllocationRequests ForResourceOwners()
         {
             Owner = DbInternalRequestOwner.ResourceOwner;
+            Recipient = QueryMessageRecipient.ResourceOwner;
+            Responsible = QueryTaskResponsible.ResourceOwner;
             return this;
         }
         public GetResourceAllocationRequests ForTaskOwners()
         {
             Owner = DbInternalRequestOwner.Project;
+            Recipient = QueryMessageRecipient.TaskOwner;
+            Responsible = QueryTaskResponsible.TaskOwner;
             return this;
         }
 
@@ -107,7 +113,13 @@ namespace Fusion.Resources.Domain.Queries
         {
             ExcludeWithoutProposedPerson = true;
             return this;
-    }
+        }
+
+        public GetResourceAllocationRequests WithActionCount()
+        {
+            Expands |= ExpandFields.ActionCount;
+            return this;
+        }
 
         public Guid? ProjectId { get; private set; }
         public string? DepartmentString { get; private set; }
@@ -116,7 +128,8 @@ namespace Fusion.Resources.Domain.Queries
         public bool? ExcludeCompleted { get; private set; }
 
         private DbInternalRequestOwner? Owner { get; set; }
-
+        private QueryMessageRecipient Recipient { get; set; }
+        private QueryTaskResponsible Responsible { get; set; }
         private ODataQueryParams Query { get; set; }
         private ExpandFields Expands { get; set; }
 
@@ -125,7 +138,7 @@ namespace Fusion.Resources.Domain.Queries
         /// </summary>
         public bool? ShouldIncludeAllRequests { get; private set; }
         public bool ExcludeWithoutProposedPerson { get; private set; }
-        
+
         /// <summary>
         /// Use <see cref="WithPositionId(Guid)"/>
         /// </summary>
@@ -134,10 +147,12 @@ namespace Fusion.Resources.Domain.Queries
         [Flags]
         private enum ExpandFields
         {
-            None = 0,
-            OrgPosition = 1 << 0,
+            None                =      0,
+            OrgPosition         = 1 << 0,
             OrgPositionInstance = 1 << 1,
-            DepartmentDetails = 1 << 2,
+            DepartmentDetails   = 1 << 2,
+            Actions             = 1 << 3,
+            ActionCount         = 1 << 4
         }
 
         public class Validator : AbstractValidator<GetResourceAllocationRequests>
@@ -147,12 +162,12 @@ namespace Fusion.Resources.Domain.Queries
                 RuleFor(x => x.Owner)
                     .Must(o => o.HasValue).When(x => !x.ShouldIncludeAllRequests.HasValue)
                     .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
-                
+
                 RuleFor(x => x.ShouldIncludeAllRequests)
                     .Must(o => o.HasValue).When(x => !x.Owner.HasValue)
                     .WithMessage("GetResourceAllocationRequests must be scoped with either `ForAll()`, `ForResourceOwner`, or `ForTaskOwner()`");
             }
-        }      
+        }
 
         public class Handler : IRequestHandler<GetResourceAllocationRequests, QueryRangedList<QueryResourceAllocationRequest>>
         {
@@ -182,7 +197,7 @@ namespace Fusion.Resources.Domain.Queries
                     .AsQueryable();
 
                 query = ApplySorting(query, request.Query);
-                
+
                 if (request.Owner is not null)
                     query = query.Where(r => r.IsDraft == false || r.RequestOwner == request.Owner);
 
@@ -228,7 +243,7 @@ namespace Fusion.Resources.Domain.Queries
                 var countOnly = request.OnlyCount;
 
                 var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take, countOnly);
-                
+
 
                 if (!countOnly)
                 {
@@ -236,9 +251,35 @@ namespace Fusion.Resources.Domain.Queries
                     await AddProposedPersons(pagedQuery);
                     await AddOrgPositions(pagedQuery, request.Expands);
                     await AddDepartmentDetails(pagedQuery, request.Expands);
+                    await AddActions(pagedQuery, request);
+                    await AddActionCount(pagedQuery, request);
                 }
 
                 return pagedQuery;
+            }
+
+            private async Task AddActions(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, GetResourceAllocationRequests request)
+            {
+                if (!request.Expands.HasFlag(ExpandFields.Actions)) return;
+
+                var requestActions = await mediator.Send(new GetActionsForRequests(pagedQuery.Select(x => x.RequestId), request.Responsible));
+                foreach(var rq in pagedQuery)
+                {
+                    if (requestActions.Contains(rq.RequestId))
+                        rq.Actions = requestActions[rq.RequestId].ToList();
+                }
+            }
+
+            private async Task AddActionCount(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, GetResourceAllocationRequests request)
+            {
+                if (!request.Expands.HasFlag(ExpandFields.ActionCount)) return;
+
+                var actionCounts = await mediator.Send(new CountActionsForRequests(pagedQuery.Select(x => x.RequestId), request.Responsible));
+                foreach (var rq in pagedQuery)
+                {
+                    if (actionCounts.TryGetValue(rq.RequestId, out var count))
+                        rq.ActionCount = count;
+                }
             }
 
             private IQueryable<DbResourceAllocationRequest> ApplySorting(IQueryable<DbResourceAllocationRequest> query, ODataQueryParams odataQuery)
@@ -343,13 +384,13 @@ namespace Fusion.Resources.Domain.Queries
 
                 var profiles = await mediator.Send(new GetPersonProfiles(ids));
 
-                foreach(var request in requestItems)
+                foreach (var request in requestItems)
                 {
                     var id = request.ProposedPerson?.AzureUniqueId;
                     if (id is not null && profiles.ContainsKey(id.Value))
                         request.ProposedPerson!.Person = profiles[id.Value];
                 }
             }
-        }       
+        }
     }
 }

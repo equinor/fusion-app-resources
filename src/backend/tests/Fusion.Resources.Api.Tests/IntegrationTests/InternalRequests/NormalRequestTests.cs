@@ -259,7 +259,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
             var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
-            await Client.AddRequestActionAsync(normalRequest.Id, x => x.isRequired = true);
+            await Client.AddRequestActionAsync(normalRequest.Id, x => {
+                x.isRequired = true;
+                x.responsible = "ResourceOwner";
+            });
 
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{assignedRequest.AssignedDepartment}/requests/{normalRequest.Id}/approve", null);
             resp.Should().BeBadRequest();
