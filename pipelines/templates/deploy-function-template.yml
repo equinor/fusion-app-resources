@@ -29,7 +29,7 @@ steps:
 
       function Get-SecretsId($secret) {
           $value = (Get-AzKeyVaultSecret -VaultName $envVaultName -Name $secret).Id
-          if ($value -eq $null) { return "" } else { return $value }
+          if ($value -eq $null) { return "" } else { return $value.replace($value.Version,'') }
       }
 
       #
