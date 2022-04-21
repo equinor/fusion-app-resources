@@ -29,7 +29,7 @@ foreach ($s in $secretWithVersions) {
             $newTags["deleted"] = (Get-Date).ToString()
             Update-AzKeyVaultSecret $s -Version $s.Version -Tag $newTags
 
-            Remove-AzADAppCredential -ApplicationId $AAD_APP_ID -KeyId $keyId -Force
+            Remove-AzADAppCredential -ApplicationId $AAD_APP_ID -KeyId $keyId
         }
     } else {
         Write-Host "Non auto generated key, skipping"
