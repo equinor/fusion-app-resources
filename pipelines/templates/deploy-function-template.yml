@@ -28,8 +28,8 @@ steps:
       Write-Host "Using resource group $resourceGroup"
 
       function Get-SecretsId($secret) {
-          $value = (Get-AzKeyVaultSecret -VaultName $envVaultName -Name $secret).Id
-          if ($value -eq $null) { return "" } else { return $value.replace($value.Version,'') }
+          $value = (Get-AzKeyVaultSecret -VaultName $envVaultName -Name $secret)
+          if ($value.Id -eq $null) { return "" } else { return $value.Id.replace($value.Version,'') }
       }
 
       #
