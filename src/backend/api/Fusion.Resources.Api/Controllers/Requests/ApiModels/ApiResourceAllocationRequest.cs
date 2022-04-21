@@ -67,6 +67,7 @@ namespace Fusion.Resources.Api.Controllers
             ProvisioningStatus = new ApiProvisioningStatus(query.ProvisioningStatus);
 
             CorrelationId = query.CorrelationId;
+            ActionCount = query.ActionCount is not null ? new ApiActionCount(query.ActionCount) : null;
         }
 
         public Guid Id { get; set; }
@@ -106,6 +107,7 @@ namespace Fusion.Resources.Api.Controllers
         public bool IsDraft { get; set; }
         public ApiProvisioningStatus ProvisioningStatus { get; set; }
         public Guid? CorrelationId { get; }
+        public ApiActionCount? ActionCount { get; }
         public List<ApiRequestAction>? Actions { get; }
         public List<ApiRequestConversationMessage>? Conversation { get; }
 
