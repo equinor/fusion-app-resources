@@ -1,6 +1,7 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -15,10 +16,12 @@ namespace Fusion.Resources.Domain.Commands.Tasks
     {
         private Guid requestId;
         private ODataQueryParams? query;
+        private DbTaskResponsible responsible;
 
-        public GetRequestActions(Guid requestId)
+        public GetRequestActions(Guid requestId, QueryTaskResponsible responsible)
         {
             this.requestId = requestId;
+            this.responsible = responsible.MapToDatabase();
         }
 
         public GetRequestActions WithQuery(ODataQueryParams query)
@@ -54,6 +57,9 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                         opts.MapField("responsible", x => x.Responsible);
                     });
                 }
+
+                // Filter 
+                query = query.Where(t => t.Responsible == request.responsible || t.Responsible == DbTaskResponsible.Both);
 
                 var result = await query.ToListAsync(cancellationToken);
 

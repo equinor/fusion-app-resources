@@ -1,6 +1,7 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Integration;
 using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,11 +17,13 @@ namespace Fusion.Resources.Domain.Commands.Tasks
     /// </summary>
     public class GetActionsForRequests : IRequest<ILookup<Guid, QueryRequestAction>>
     {
-        private IEnumerable<Guid> requestId;
+        private readonly DbTaskResponsible responsible;
+        private readonly Guid[] requestId;
 
-        public GetActionsForRequests(IEnumerable<Guid> requestId)
+        public GetActionsForRequests(IEnumerable<Guid> requestId, QueryTaskResponsible responsible)
         {
-            this.requestId = requestId;
+            this.requestId = requestId.ToArray();
+            this.responsible = responsible.MapToDatabase();
         }
 
         public class Handler : IRequestHandler<GetActionsForRequests, ILookup<Guid, QueryRequestAction>>
@@ -41,6 +44,7 @@ namespace Fusion.Resources.Domain.Commands.Tasks
                     .Include(t => t.AssignedTo)
                     .Include(t => t.SentBy)
                     .Where(t => request.requestId.Contains(t.RequestId))
+                    .Where(t => t.Responsible == request.responsible || t.Responsible == DbTaskResponsible.Both)
                     .ToListAsync(cancellationToken);
 
                 var actions = await result.AsQueryRequestActionsAsync(profileResolver);

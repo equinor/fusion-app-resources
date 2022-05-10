@@ -224,7 +224,7 @@ namespace Fusion.Resources.Api.Tests
             });
         }
 
-        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, Dictionary<string, object> props = null)
+        public static async Task<TestApiRequestAction> AddRequestActionAsync(this HttpClient client, Guid requestId, string responsible = "TaskOwner", Dictionary<string, object> props = null)
         {
             var payload = new
             {
@@ -233,7 +233,7 @@ namespace Fusion.Resources.Api.Tests
                 type = "test",
                 subType = "Test Test",
                 source = "ResourceOwner",
-                responsible = "TaskOwner",
+                responsible = responsible,
                 Properties = props
             };
 
@@ -267,7 +267,7 @@ namespace Fusion.Resources.Api.Tests
             return result.Value;
         }
 
-        public static Task<TestApiRequestMessage> AddRequestMessage(this HttpClient client, Guid requestId, Dictionary<string, object> props = null)
+        public static Task<TestApiRequestMessage> AddRequestMessage(this HttpClient client, Guid requestId, string recipient = "TaskOwner", Dictionary<string, object> props = null)
         {
             return AddRequestMessage(client, requestId,
                 new
@@ -275,7 +275,7 @@ namespace Fusion.Resources.Api.Tests
                     title = "Hello, world!",
                     body = "Goodbye, world!",
                     category = "world",
-                    recipient = "TaskOwner",
+                    recipient = recipient,
                     properties = props
                 }
             );

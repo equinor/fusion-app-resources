@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
@@ -9,6 +10,8 @@ using Fusion.Testing.Mocks.OrgService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,9 +22,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
-        private ApiPersonProfileV3 testUser;
+        private ApiPersonProfileV3 resourceOwner;
         private FusionTestProjectBuilder testProject;
         private TestApiInternalRequestModel normalRequest;
+        private ApiPersonProfileV3 taskOwner;
+        private ApiClients.Org.ApiPositionV2 taskOwnerPosition;
+        private ApiClients.Org.ApiPositionV2 testPosition;
+        private OrgRequestInterceptor orgInterceptor;
 
         public RequestActionTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -52,9 +59,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
             // Generate random test user
-            testUser = fixture.AddProfile(FusionAccountType.Employee);
-            testUser.IsResourceOwner = true;
-            testUser.FullDepartment = normalRequest.AssignedDepartment ?? "PDP TST DPT";
+            resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            resourceOwner.IsResourceOwner = true;
+            resourceOwner.FullDepartment = normalRequest.AssignedDepartment ?? "PDP TST DPT";
+
+            taskOwner = fixture.AddProfile(FusionAccountType.Employee);
+            taskOwnerPosition = testProject.AddPosition()
+                .WithAssignedPerson(taskOwner);
+
+            fixture.ContextResolver
+               .AddContext(testProject.Project);
+
+            var bp = testProject.AddBasePosition($"{Guid.NewGuid()}", s => s.Department = "PDP TST DPT");
+            testPosition = testProject.AddPosition()
+                .WithBasePosition(bp)
+                .WithAssignedPerson(fixture.AddProfile(FusionAccountType.Employee))
+                .WithEnsuredFutureInstances()
+                .WithTaskOwner(taskOwnerPosition.Id);
+
+            OrgServiceMock.SetTaskOwner(testPosition.Id, taskOwnerPosition.Id);
         }
 
 
@@ -288,10 +311,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var adminClient = fixture.ApiFactory.CreateClient()
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
-            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, responsible: "ResourceOwner");
 
             var userClient = fixture.ApiFactory.CreateClient()
-                .WithTestUser(testUser)
+                .WithTestUser(resourceOwner)
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
@@ -300,7 +323,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeTrue();
             result.Value.resolvedAt.Should().BeCloseTo(DateTimeOffset.Now, precision: 2000);
-            result.Value.resolvedBy.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId.Value);
+            result.Value.resolvedBy.AzureUniquePersonId.Should().Be(resourceOwner.AzureUniqueId.Value);
         }
 
         [Fact]
@@ -309,10 +332,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var adminClient = fixture.ApiFactory.CreateClient()
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
-            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, responsible: "ResourceOwner");
 
             var userClient = fixture.ApiFactory.CreateClient()
-                .WithTestUser(testUser)
+                .WithTestUser(resourceOwner)
                 .AddTestAuthToken();
 
             var payload = new { isResolved = true };
@@ -335,14 +358,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
 
-            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, new Dictionary<string, object>
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, responsible: "ResourceOwner", new Dictionary<string, object>
             {
                 ["customProp1"] = 123,
                 ["customProp2"] = new DateTime(2021, 05, 05)
             });
 
             var userClient = fixture.ApiFactory.CreateClient()
-               .WithTestUser(testUser)
+               .WithTestUser(resourceOwner)
                .AddTestAuthToken();
 
             var payload = new
@@ -370,7 +393,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var otherRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
             var userClient = fixture.ApiFactory.CreateClient()
-               .WithTestUser(testUser)
+               .WithTestUser(resourceOwner)
                .AddTestAuthToken();
 
             var payload = new { title = "Updated Test title" };
@@ -385,9 +408,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                    .WithTestUser(fixture.AdminUser)
                    .AddTestAuthToken();
 
-            var action = await adminClient.AddRequestActionAsync(normalRequest.Id);
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, responsible: "ResourceOwner");
             var userClient = fixture.ApiFactory.CreateClient()
-               .WithTestUser(testUser)
+               .WithTestUser(resourceOwner)
                .AddTestAuthToken();
 
             var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}");
@@ -405,7 +428,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var otherRequest = await adminClient.CreateDefaultRequestAsync(testProject);
 
             var userClient = fixture.ApiFactory.CreateClient()
-               .WithTestUser(testUser)
+               .WithTestUser(resourceOwner)
                .AddTestAuthToken();
 
             var result = await userClient.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{otherRequest.Id}/actions/{action.id}");
@@ -423,12 +446,97 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.source = "TaskOwner");
 
             var userClient = fixture.ApiFactory.CreateClient()
-               .WithTestUser(testUser)
+               .WithTestUser(resourceOwner)
                .AddTestAuthToken();
 
             var result = await userClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions?$filter=Source eq 'ResourceOwner'");
             result.Should().BeSuccessfull();
             result.Value.All(x => x.source == "ResourceOwner");
+        }
+
+        [Theory]
+        [InlineData("ResourceOwner")]
+        [InlineData("TaskOwner")]
+        public async Task UserShouldOnlySeeActionsTheyAreResponsibleFor(string userRole)
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var resourceOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = "ResourceOwner");
+            var taskOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = "TaskOwner");
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = "Both");
+
+            await ExecuteAsRole(userRole, async http =>
+            {
+                var result = await http.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions");
+                result.Should().BeSuccessfull();
+                result.Value.Should().NotBeEmpty();
+                result.Value.Should().OnlyContain(x => x.responsible == userRole || x.responsible == "Both");
+            });
+        }
+
+
+        [Theory]
+        [InlineData("ResourceOwner", "TaskOwner", false)]
+        [InlineData("ResourceOwner", "ResourceOwner", true)]
+        [InlineData("TaskOwner", "TaskOwner", true)]
+        [InlineData("TaskOwner", "ResourceOwner", false)]
+        [InlineData("ResourceOwner", "Both", true)]
+        [InlineData("TaskOwner", "Both", true)]
+
+        public async Task UserShouldOnlyBeAbleToUpdateActionsTheyAreResponsibleFor(string userRole, string responsible, bool shouldAllow)
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = responsible);
+
+            await ExecuteAsRole(userRole, async http =>
+            {
+                var payload = new
+                {
+                    title = "Updated Test title",
+                    body = "Updated Test body",
+                    category = "Updated Test category",
+                    type = "Updated test",
+                    subType = (string)null,
+                    isRequired = true,
+                    dueDate = "2021-10-02"
+                };
+                var result = await http.TestClientPatchAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}", payload);
+                if (shouldAllow)
+                    result.Should().BeSuccessfull();
+                else
+                    result.Should().BeUnauthorized();
+            });
+        }
+
+        [Theory]
+        [InlineData("ResourceOwner", "TaskOwner", false)]
+        [InlineData("ResourceOwner", "ResourceOwner", true)]
+        [InlineData("TaskOwner", "TaskOwner", true)]
+        [InlineData("TaskOwner", "ResourceOwner", false)]
+        [InlineData("ResourceOwner", "Both", true)]
+        [InlineData("TaskOwner", "Both", true)]
+
+        public async Task UserShouldOnlyBeAbleToDeleteActionsTheyAreResponsibleFor(string userRole, string responsible, bool shouldAllow)
+        {
+            var adminClient = fixture.ApiFactory.CreateClient()
+                   .WithTestUser(fixture.AdminUser)
+                   .AddTestAuthToken();
+
+            var action = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = responsible);
+
+            await ExecuteAsRole(userRole, async http =>
+            {
+                var result = await http.TestClientDeleteAsync<TestApiRequestAction>($"/requests/{normalRequest.Id}/actions/{action.id}");
+                if (shouldAllow)
+                    result.Should().BeSuccessfull();
+                else
+                    result.Should().BeUnauthorized();
+            });
         }
 
         [Fact]
@@ -442,7 +550,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.responsible = "TaskOwner");
 
             var userClient = fixture.ApiFactory.CreateClient()
-               .WithTestUser(testUser)
+               .WithTestUser(resourceOwner)
                .AddTestAuthToken();
 
             var result = await userClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions?$filter=Responsible eq 'ResourceOwner'");
@@ -461,7 +569,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskOwnerAction = await adminClient.AddRequestActionAsync(normalRequest.Id, x => x.type = "AnotherType");
 
             var userClient = fixture.ApiFactory.CreateClient()
-               .WithTestUser(testUser)
+               .WithTestUser(resourceOwner)
                .AddTestAuthToken();
 
             var result = await userClient.TestClientGetAsync<List<TestApiRequestAction>>($"/requests/{normalRequest.Id}/actions?$filter=Type eq 'TestType'");
@@ -483,7 +591,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             result.Value.All(x => x.assignedTo is not null).Should().BeTrue();
         }
-        
+
         [Fact]
         public async Task GetActions_ShouldIncludeAssignedToWithFullDepartment()
         {
@@ -498,6 +606,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             result.Value.All(x => x.assignedTo?.FullDepartment is not null).Should().BeTrue();
         }
+
+        private async Task ExecuteAsRole(string role, Func<HttpClient, Task> action)
+        {
+            var user = role switch
+            {
+                "ResourceOwner" => resourceOwner,
+                "TaskOwner" => taskOwner,
+                _ => throw new NotImplementedException()
+            };
+
+            var userClient = fixture.ApiFactory.CreateClient()
+                     .WithTestUser(user)
+                     .AddTestAuthToken();
+
+            if(role == "TaskOwner")
+            {
+                using var i = orgInterceptor = OrgRequestMocker
+                        .InterceptOption($"/{normalRequest.OrgPositionId}")
+                        .RespondWithHeaders(HttpStatusCode.NoContent, h => h.Add("Allow", "PUT"));
+                await action(userClient);
+                return;
+            }
+            await action(userClient);
+        }
+
 
         public Task DisposeAsync() => Task.CompletedTask;
     }

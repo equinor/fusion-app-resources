@@ -5,6 +5,7 @@ using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Conversations;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
@@ -17,9 +18,51 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [ApiVersion("1.0")]
     public class ConversationsController : ResourceControllerBase
     {
-        [HttpPost("/requests/internal/{requestId}/conversation")]
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/conversation")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation")]
+        public async Task<ActionResult> AddConversationMessage([FromRoute] Guid requestId, string? departmentString, [FromBody] AddRequestConversationMessageRequest request)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    if (requestItem.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
+                    }
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            var recipientType = request.Recipient.ToDomain();
+
+            var command = new AddRequestConversationMessage(requestId, request.Title, request.Body, request.Category, recipientType)
+            {
+                Properties = request.Properties
+            };
+
+            var created = await DispatchAsync(command);
+            return CreatedAtAction(nameof(GetRequestConversation), new { requestId, messageId = created.Id }, new ApiRequestConversationMessage(created));
+        }
+
+        [HttpPost("/requests/internal/{requestId}/conversation")]
         [HttpPost("/departments/{departmentString}/resources/requests/{requestId}/conversation")]
         public async Task<ActionResult> AddConversationMessage([FromRoute] Guid requestId, Guid? projectIdentifier, string? departmentString, [FromBody] AddRequestConversationMessageRequest request)
         {
@@ -63,11 +106,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return CreatedAtAction(nameof(GetRequestConversation), new { requestId, messageId = created.Id }, new ApiRequestConversationMessage(created));
         }
 
-        [HttpGet("/requests/internal/{requestId}/conversation")]
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}/conversation")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation")]
-        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/conversation")]
-        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid? projectIdentifier, string? departmentString)
+        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid? projectIdentifier)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -79,18 +120,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    if (requestItem.AssignedDepartment is not null)
-                    {
-                        or.BeResourceOwner(
-                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
-                            includeParents: false,
-                            includeDescendants: true
-                        );
-                    }
-                    else
-                    {
-                        or.BeResourceOwner();
-                    }
+                    if (requestItem.OrgPositionId.HasValue)
+                        or.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
                 });
             });
 
@@ -99,15 +130,13 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             #endregion
 
-            var conversation = await DispatchAsync(new GetRequestConversation(requestId));
+            var conversation = await DispatchAsync(new GetRequestConversation(requestId, QueryMessageRecipient.TaskOwner));
             return Ok(conversation.Select(x => new ApiRequestConversationMessage(x)));
         }
 
-        [HttpGet("/requests/internal/{requestId}/conversation/{messageId}")]
-        [HttpGet("/projects/{projectIdentifier}/requests/{requestId}/conversation/{messageId}")]
-        [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation/{messageId}")]
-        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/conversation/{messageId}")]
-        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid messageId, Guid? projectIdentifier, string? departmentString)
+        [HttpGet("/requests/internal/{requestId}/conversation")]
+        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/conversation")]
+        public async Task<ActionResult> GetRequestConversation(Guid requestId, string? departmentString)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
@@ -117,6 +146,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+
                 r.AnyOf(or =>
                 {
                     if (requestItem.AssignedDepartment is not null)
@@ -127,10 +157,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeDescendants: true
                         );
                     }
-                    else
-                    {
-                        or.BeResourceOwner();
-                    }
+                    or.BeResourceOwner();
                 });
             });
 
@@ -139,32 +166,136 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             #endregion
 
-            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
+            var conversation = await DispatchAsync(new GetRequestConversation(requestId, QueryMessageRecipient.ResourceOwner));
+            return Ok(conversation.Select(x => new ApiRequestConversationMessage(x)));
+        }
+        [HttpGet("/projects/{projectIdentifier}/requests/{requestId}/conversation/{messageId}")]
+        [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation/{messageId}")]
+        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid messageId, Guid? projectIdentifier)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
+            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
             if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+
+            #region Authorization
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.Must(and =>
+                {
+                    and.RequireConversationForTaskOwner(conversation.Recipient);
+                    if (requestItem.OrgPositionId.HasValue)
+                        and.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
 
             return Ok(new ApiRequestConversationMessage(conversation));
         }
 
-        [HttpPut("/requests/internal/{requestId}/conversation/{messageId}")]
+        [HttpGet("/requests/internal/{requestId}/conversation/{messageId}")]
+        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/conversation/{messageId}")]
+        public async Task<ActionResult> GetRequestConversation(Guid requestId, Guid messageId, string? departmentString)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+
+            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
+            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+
+            #region Authorization
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.Must(and =>
+                {
+                    and.RequireConversationForResourceOwner(conversation.Recipient);
+                    if (requestItem.AssignedDepartment is not null)
+                    {
+                        and.BeResourceOwner(
+                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    else
+                    {
+                        and.BeResourceOwner();
+                    }
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            return Ok(new ApiRequestConversationMessage(conversation));
+        }
         [HttpPut("/projects/{projectIdentifier}/requests/{requestId}/conversation/{messageId}")]
         [HttpPut("/projects/{projectIdentifier}/resources/requests/{requestId}/conversation/{messageId}")]
-        [HttpPut("/departments/{departmentString}/resources/requests/{requestId}/conversation/{messageId}")]
         public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, Guid? projectIdentifier, string? departmentString, [FromBody] UpdateRequestConversationMessageRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
             if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
+            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
+            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-                r.AnyOf(or =>
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.Must(and =>
                 {
+                    and.RequireConversationForTaskOwner(conversation.Recipient);
+                    if (requestItem.OrgPositionId.HasValue)
+                        and.OrgChartPositionWriteAccess(requestItem.Project.OrgProjectId, requestItem.OrgPositionId.Value);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+            #endregion
+
+            var recipientType = request.Recipient.ToDomain();
+
+            var command = new UpdateRequestConversationMessage(requestId, messageId, request.Title, request.Body, request.Category, recipientType)
+            {
+                Properties = request.Properties
+            };
+
+            var updated = await DispatchAsync(command);
+
+            return Ok(new ApiRequestConversationMessage(updated!));
+        }
+
+        [HttpPut("/requests/internal/{requestId}/conversation/{messageId}")]
+        [HttpPut("/departments/{departmentString}/resources/requests/{requestId}/conversation/{messageId}")]
+        public async Task<ActionResult> UpdateRequestConversation(Guid requestId, Guid messageId, string? departmentString, [FromBody] UpdateRequestConversationMessageRequest request)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
+
+            var conversation = await DispatchAsync(new GetRequestConversationMessage(requestId, messageId));
+            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.Must(and =>
+                {
+                    and.RequireConversationForResourceOwner(conversation.Recipient);
                     if (requestItem.AssignedDepartment is not null)
                     {
-                        or.BeResourceOwner(
+                        and.BeResourceOwner(
                             new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
                             includeParents: false,
                             includeDescendants: true
@@ -172,7 +303,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     }
                     else
                     {
-                        or.BeResourceOwner();
+                        and.BeResourceOwner();
                     }
                 });
             });
@@ -188,11 +319,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 Properties = request.Properties
             };
 
-            var conversation = await DispatchAsync(command);
+            var updated = await DispatchAsync(command);
 
-            if (conversation is null) return FusionApiError.NotFound(messageId, $"Message with id '{messageId}' was not found.");
-
-            return Ok(new ApiRequestConversationMessage(conversation));
+            return Ok(new ApiRequestConversationMessage(updated!));
         }
     }
 }
