@@ -49,17 +49,24 @@ namespace Fusion.Resources.Logic.Commands
 
                     await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, dbRequest.SubType, request.Editor.Person));
 
-                    if (ShouldDispatchNotification(dbRequest))
+                    if (await ShouldDispatchNotificationAsync(dbRequest))
                     {
                         await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(dbRequest.Id));
                     }
                 }
 
-                private static bool ShouldDispatchNotification(DbResourceAllocationRequest dbRequest)
+                private async Task<bool> ShouldDispatchNotificationAsync(DbResourceAllocationRequest dbRequest)
                 {
                     // Should not notify for enterprise requests
                     if (string.Equals(dbRequest.SubType, AllocationEnterpriseWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
                         return false;
+
+                    // Should not notify for auto approved direct requests
+                    if (string.Equals(dbRequest.SubType, AllocationDirectWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var autoApprovalEnabledForResource = await mediator.Send(new Domain.Queries.GetPersonAutoApprovalStatus(dbRequest.ProposedPerson.AzureUniqueId!.Value));
+                        return !autoApprovalEnabledForResource.HasValue;
+                    }
 
                     return true;
                 }

@@ -6,6 +6,7 @@ using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Resources.Integration.Models.Queue;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
@@ -561,6 +562,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.workflow.Should().NotBeNull();
             resp.Value.workflow.Steps.Should().Contain(s => s.Id == "proposal" && s.IsCompleted && s.State == "Skipped");
             resp.Value.workflow.Steps.Should().Contain(s => s.Id == "approval" && s.IsCompleted && s.State == "Skipped");
+        }
+        
+        [Fact]
+        public async Task DirectRequest_AutoApproval_ShouldNotSendNotification_WhenAutoApprove()
+        {
+            var proposedPerson = PeopleServiceMock
+                .AddTestProfile()
+                .WithAccountType(FusionAccountType.Consultant)
+                .WithFullDepartment("PDP PRD FE TST XN ASD")
+                .SaveProfile();
+
+            using var adminScope = fixture.AdminScope();
+
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithAssignedDepartment("PDP PRD FE TST XN ASD")
+                .WithProposedPerson(proposedPerson));
+            
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+
+            NotificationClientMock.SentMessages.Clear();
+
+            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
+            resp.Should().BeSuccessfull();
+
+            NotificationClientMock.SentMessages.Count.Should().Be(0);
         }
 
         #endregion
