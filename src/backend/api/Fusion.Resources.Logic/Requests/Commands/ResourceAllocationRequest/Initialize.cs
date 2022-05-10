@@ -61,7 +61,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (string.Equals(dbRequest.SubType, AllocationEnterpriseWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
                         return false;
 
-                    //Should not notify for direct requests if the request may be to auto approved
+                    //Should not notify for direct requests if the request may be auto approved
                     if (string.Equals(dbRequest.SubType, AllocationDirectWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
                     {
                         var autoApprovalEnabledForResource = await mediator.Send(new Domain.Queries.GetPersonAutoApprovalStatus(dbRequest.ProposedPerson.AzureUniqueId!.Value));
