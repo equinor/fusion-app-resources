@@ -563,8 +563,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.workflow.Steps.Should().Contain(s => s.Id == "proposal" && s.IsCompleted && s.State == "Skipped");
             resp.Value.workflow.Steps.Should().Contain(s => s.Id == "approval" && s.IsCompleted && s.State == "Skipped");
         }
-
-
+        
         [Fact]
         public async Task DirectRequest_AutoApproval_ShouldNotSendNotification_WhenAutoApprove()
         {
