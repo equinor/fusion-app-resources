@@ -49,13 +49,13 @@ namespace Fusion.Resources.Logic.Commands
 
                     await mediator.Publish(new RequestInitialized(dbRequest.Id, dbRequest.Type, dbRequest.SubType, request.Editor.Person));
 
-                    if (await ShouldDispatchNotification(dbRequest))
+                    if (await ShouldDispatchNotificationAsync(dbRequest))
                     {
                         await mediator.Publish(new InternalRequestNotifications.AssignedDepartment(dbRequest.Id));
                     }
                 }
 
-                private async Task<bool> ShouldDispatchNotification(DbResourceAllocationRequest dbRequest)
+                private async Task<bool> ShouldDispatchNotificationAsync(DbResourceAllocationRequest dbRequest)
                 {
                     // Should not notify for enterprise requests
                     if (string.Equals(dbRequest.SubType, AllocationEnterpriseWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
