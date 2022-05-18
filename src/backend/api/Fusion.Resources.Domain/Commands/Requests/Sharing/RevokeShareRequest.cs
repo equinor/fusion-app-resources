@@ -10,7 +10,7 @@ namespace Fusion.Resources.Domain.Commands.Requests.Sharing
 {
     public class RevokeShareRequest : IRequest<QuerySharedRequest?>
     {
-        public RevokeShareRequest(Guid requestId, QueryPerson person, string source)
+        public RevokeShareRequest(Guid requestId, PersonId person, string source)
         {
             RequestId = requestId;
             Person = person;
@@ -18,7 +18,7 @@ namespace Fusion.Resources.Domain.Commands.Requests.Sharing
         }
 
         public Guid RequestId { get; }
-        public QueryPerson Person { get; }
+        public PersonId Person { get; }
         public string Source { get; }
 
         public class Handler : IRequestHandler<RevokeShareRequest, QuerySharedRequest?>
@@ -34,7 +34,7 @@ namespace Fusion.Resources.Domain.Commands.Requests.Sharing
             {
                 var sharedRequest = await db.SharedRequests.FirstOrDefaultAsync(x => 
                     x.RequestId == request.RequestId
-                    && x.SharedWithId == request.Person.Id
+                    && x.SharedWith.AzureUniqueId == request.Person.UniqueId
                     && x.Source == request.Source, cancellationToken
                 );
                 if (sharedRequest is null) return null;

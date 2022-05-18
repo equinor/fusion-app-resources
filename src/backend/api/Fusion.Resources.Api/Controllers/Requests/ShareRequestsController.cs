@@ -22,8 +22,37 @@ namespace Fusion.Resources.Api.Controllers.Requests
         public async Task<IActionResult> ShareRequest(Guid requestId, ShareRequestRequest request)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
-            if (requestItem is null) return FusionApiError.NotFound(requestId, $"Request with id '{requestId}' was not found.");
 
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    if (requestItem.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
+                    }
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+            
             var isSuccess = await DispatchAsync(request.ToCommand(requestId));
 
             return isSuccess ? Ok() : Conflict();
@@ -32,12 +61,17 @@ namespace Fusion.Resources.Api.Controllers.Requests
         [HttpGet("/persons/{personId}/shared-requests")]
         public async Task<ActionResult<IEnumerable<ApiResourceAllocationRequest>>> GetSharedRequests(string personId)
         {
-            Guid azureId;
+            PersonIdentifier? azureId;
             if (personId == "me")
             {
                 azureId = User.GetAzureUniqueIdOrThrow();
             }
-            else if (!Guid.TryParse(personId, out azureId))
+            else
+            {
+                azureId = PersonIdentifier.ParseOrDefault(personId);
+            }
+
+            if (azureId == null)
             {
                 return FusionApiError.InvalidOperation("InvalidUserId", $"The supplied value '{personId}' is not a valid user id.");
             }
@@ -51,7 +85,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     .FullControlInternal()
                     .BeTrustedApplication();
 
-                r.AnyOf(or => or.CurrentUserIs(new PersonIdentifier(azureId)));
+                r.AnyOf(or => or.CurrentUserIs(azureId));
             });
 
             if (authResult.Unauthorized)
@@ -60,10 +94,50 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var requests = await DispatchAsync(
-                new GetResourceAllocationRequests().ForAll().SharedWith(azureId)
+                new GetResourceAllocationRequests().ForAll().SharedWith(azureId.AzureUniquePersonId)
             );
 
             return Ok(new ApiCollection<ApiResourceAllocationRequest>(requests.Select(x => new ApiResourceAllocationRequest(x))));
+        }
+
+        [HttpDelete("/resources/requests/internal/{requestId}/share/{sharedToAzureId}")]
+        public async Task<IActionResult> DeleteSharedRequests(Guid requestId, string sharedToAzureId)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    if (requestItem.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
+                    }
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var wasDeleted = await DispatchAsync(new RevokeShareRequest(requestId, new PersonId(sharedToAzureId), "User"));
+
+            return wasDeleted != null ? Ok() : NotFound();
         }
     }
 }

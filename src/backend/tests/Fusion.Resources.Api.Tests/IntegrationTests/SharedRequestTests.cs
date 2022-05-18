@@ -83,7 +83,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetRequest_ShouldBeOk_WhenSharedWithUser()
+        public async Task SharingRequest_Should_GrantAccess()
         {
             using var beforeSharing = fixture.UserScope(testUser);
             var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
@@ -95,6 +95,24 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var userScope = fixture.UserScope(testUser);
             result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
             result.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task RevokingSharingRequest_Should_RevokeAccess()
+        {
+            using var adminScope = fixture.AdminScope();
+            await client.ShareRequest(normalRequest.Id, testUser);
+
+            using var beforeRevoke = fixture.UserScope(testUser);
+            var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
+            result.Should().BeSuccessfull();
+
+            using var adminDeleteScope = fixture.AdminScope();
+            await client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}/share/{testUser.AzureUniqueId}");
+
+            using var userScope = fixture.UserScope(testUser);
+            result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
+            result.Should().BeUnauthorized();
         }
 
         [Fact]
