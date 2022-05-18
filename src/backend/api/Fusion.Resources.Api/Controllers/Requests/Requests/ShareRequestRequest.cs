@@ -19,7 +19,7 @@ namespace Fusion.Resources.Api.Controllers.Requests.Requests
         {
             if (string.IsNullOrEmpty(Scope)) Scope = SharedRequestScopes.BasicRead;
 
-            var command = new ShareRequest(requestId, Scope, "User", Reason);
+            var command = new ShareRequest(requestId, Scope, SharedRequestSource.User, Reason);
             command.SharedWith.AddRange(SharedWith.Select(x => (PersonId)x));
 
             return command;

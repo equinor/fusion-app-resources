@@ -4,9 +4,7 @@ using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Controllers.Requests.Requests;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Requests.Sharing;
-using Fusion.Resources.Domain.Models;
 using Fusion.Resources.Domain.Queries;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -135,7 +133,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             #endregion
 
-            var wasDeleted = await DispatchAsync(new RevokeShareRequest(requestId, new PersonId(sharedToAzureId), "User"));
+            var wasDeleted = await DispatchAsync(new RevokeShareRequest(requestId, new PersonId(sharedToAzureId), SharedRequestSource.User));
 
             return wasDeleted != null ? Ok() : NotFound();
         }
