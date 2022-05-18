@@ -17,7 +17,7 @@ namespace Fusion.Testing.Mocks
         public string? FullDepartment { get; set; }
         public string? Name { get; set; }
     }
-     public class ApiLineOrgUser
+    public class ApiLineOrgUser
     {
         public Guid AzureUniqueId { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -71,8 +71,9 @@ namespace Fusion.Testing.Mocks
             public string? FullName { get; set; }
         }
     }
-      public class ApiPagedCollection<T>
+    public class ApiPagedCollection<T>
     {
+        public ApiPagedCollection() { }
         public ApiPagedCollection(IEnumerable<T> items, int totalCount)
         {
             Value = items;

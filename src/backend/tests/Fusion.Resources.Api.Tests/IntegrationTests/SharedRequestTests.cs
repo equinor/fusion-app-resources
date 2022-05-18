@@ -97,6 +97,19 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
         }
 
+        [Fact]
+        public async Task GetSharedRequests_Should_ReturnAllSharedRequests()
+        {
+            using var adminScope = fixture.AdminScope();
+            await client.ShareRequest(normalRequest.Id, testUser);
+
+            using var userScope = fixture.UserScope(testUser);
+            var result = await client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"/persons/me/shared-requests");
+            result.Should().BeSuccessfull();
+            result.Value.Value.Should().HaveCount(1);
+            result.Value.Value.Should().Contain(x => x.Id == normalRequest.Id);
+        }
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();

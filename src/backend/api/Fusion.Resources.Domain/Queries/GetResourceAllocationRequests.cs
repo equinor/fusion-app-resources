@@ -67,6 +67,12 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequests SharedWith(Guid azureUniqueId)
+        {
+            SharedWithAzureId = azureUniqueId;
+            return this;
+        }
+
         /// <summary>
         /// Only include unassigned requests in the result
         /// </summary>
@@ -143,6 +149,7 @@ namespace Fusion.Resources.Domain.Queries
         /// Use <see cref="WithPositionId(Guid)"/>
         /// </summary>
         public Guid? PositionId { get; private set; }
+        public Guid? SharedWithAzureId { get; private set; }
 
         [Flags]
         private enum ExpandFields
@@ -235,6 +242,9 @@ namespace Fusion.Resources.Domain.Queries
                     query = query.Where(x => x.ProposedPerson.HasBeenProposed);
                 if (request.PositionId.HasValue)
                     query = query.Where(r => r.OrgPositionId == request.PositionId.Value);
+                if (request.SharedWithAzureId.HasValue)
+                    query = query.Where(r => db.SharedRequests.Any(x => x.RequestId == r.Id && x.SharedWith.AzureUniqueId == request.SharedWithAzureId));
+
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(DefaultPageSize);
