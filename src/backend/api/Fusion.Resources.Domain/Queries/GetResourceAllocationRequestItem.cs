@@ -50,6 +50,15 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
+        public GetResourceAllocationRequestItem WithQueryForBasicRead(ODataQueryParams query)
+        {
+            if (query.ShouldExpand("taskOwner")) ExpandTaskOwner();
+            if (query.ShouldExpand("proposedPerson.resourceOwner")) ExpandResourceOwner();
+            if (query.ShouldExpand("departmentDetails")) ExpandDepartmentDetails();
+
+            return this;
+        }
+
         public GetResourceAllocationRequestItem ExpandTaskOwner()
         {
             Expands |= ExpandProperties.TaskOwner;

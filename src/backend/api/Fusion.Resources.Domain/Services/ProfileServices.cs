@@ -266,6 +266,23 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
+        public Task<IEnumerable<ResolvedPersonProfile>?> ResolveProfilesAsync(IEnumerable<PersonId> personIds)
+        {
+            return ResolveProfilesAsync(personIds.Select(x => (PersonIdentifier)x));
+        }
+
+        public async Task<IEnumerable<ResolvedPersonProfile>?> ResolveProfilesAsync(IEnumerable<PersonIdentifier> personIds)
+        {
+            try
+            {
+                return await profileResolver.ResolvePersonsAsync(personIds);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public async Task<FusionApplicationProfile?> ResolveApplicationAsync(Guid servicePrincipalUniqueId)
         {
             try

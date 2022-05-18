@@ -1,6 +1,7 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Resources.Database.Entities;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
@@ -19,6 +20,9 @@ namespace Fusion.Resources.Domain
 
         Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, PersonId personIdentifier, string firstName, string lastName);
         Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId);
+        Task<IEnumerable<ResolvedPersonProfile>?> ResolveProfilesAsync(IEnumerable<PersonId> personIds);
+        Task<IEnumerable<ResolvedPersonProfile>?> ResolveProfilesAsync(IEnumerable<PersonIdentifier> personIds);
+
         /// <summary>
         /// Resolves the fusion profile. Returns null if not found.
         /// </summary>

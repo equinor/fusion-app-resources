@@ -329,5 +329,21 @@ namespace Fusion.Resources.Api.Tests
                 payload
             );
         }
+
+        public static async Task<TestClientHttpResponse<dynamic>> ShareRequest(this HttpClient client, Guid requestId, ApiPersonProfileV3 user)
+        {
+            var endpoint = $"/resources/requests/internal/{requestId}/share";
+
+            var share = new
+            {
+                scope = "Basic.Read",
+                reason = "Test request sharing",
+                sharedWith = new[]
+                {
+                    new { mail = user.Mail }
+                }
+            };
+            return await client.TestClientPostAsync(endpoint, share);
+        }
     }
 }

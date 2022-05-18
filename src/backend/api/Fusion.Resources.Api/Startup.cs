@@ -87,6 +87,8 @@ namespace Fusion.Resources.Api
             });
             // Add custom claims provider, to sort delegated responsibilities
             services.AddScoped<ILocalClaimsTransformation, DelegatedResourceOwnerClaimsTransformer>();
+            services.AddScoped<ILocalClaimsTransformation, SharedRequestClaimsTransformation>();
+
             services.AddScoped<IRequestRouter, RequestRouter>();
 
             services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);

@@ -610,7 +610,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/departments/{departmentString}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, [FromQuery] ODataQueryParams query)
         {
-            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQueryForResourceOwner(query));
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQueryForBasicRead(query));
 
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
@@ -635,12 +635,17 @@ namespace Fusion.Resources.Api.Controllers
                         or.BeResourceOwner();
                     }
                 });
+                r.LimitedAccessWhen(or => or.HaveBasicRead(requestId));
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
+            if(!authResult.LimitedAuth)
+                requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQueryForResourceOwner(query));
+
 
             var apiModel = new ApiResourceAllocationRequest(requestItem!);
 

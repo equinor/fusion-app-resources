@@ -8,7 +8,6 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? AzureUniquePersonId { get; set; }
         public string? Mail { get; set; }
 
-
         public static implicit operator PersonId?(PersonReference? personReference)
         {
             if (personReference == null)
