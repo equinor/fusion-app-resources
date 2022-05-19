@@ -5,50 +5,48 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fusion.Resources.Domain.Queries;
 
 namespace Fusion.Resources.Logic.Commands
 {
     public class UpdateOrgPositionInstanceHaveRequest : IRequest
     {
-        public UpdateOrgPositionInstanceHaveRequest(Guid requestId, bool haveRequest)
+        public UpdateOrgPositionInstanceHaveRequest(Guid orgProjectId, Guid orgPositionId, Guid orgPositionInstanceId, bool haveRequest)
         {
-            RequestId = requestId;
+            OrgProjectId = orgProjectId;
+            OrgPositionId = orgPositionId;
+            OrgPositionInstanceId = orgPositionInstanceId;
             HaveRequest = haveRequest;
         }
 
-        public Guid RequestId { get; }
+        public Guid OrgProjectId { get; }
+        public Guid OrgPositionId { get; }
+        public Guid OrgPositionInstanceId { get; }
         public bool HaveRequest { get; }
 
         public class Handler : AsyncRequestHandler<UpdateOrgPositionInstanceHaveRequest>
         {
-            private readonly IMediator mediator;
             private readonly IOrgApiClient client;
 
-            public Handler(IOrgApiClientFactory orgApiClientFactory, IMediator mediator)
+            public Handler(IOrgApiClientFactory orgApiClientFactory)
             {
-                this.mediator = mediator;
                 this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             }
 
             protected override async Task Handle(UpdateOrgPositionInstanceHaveRequest request, CancellationToken cancellationToken)
             {
 
-                var item = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
-                if (item is null)
-                    throw new InvalidOperationException($"Request with id{request.RequestId} not found");
 
-                var position = await client.GetPositionV2Async(item.Project.OrgProjectId, item.OrgPosition!.Id);
+                var position = await client.GetPositionV2Async(request.OrgProjectId, request.OrgPositionId);
 
-                var instance = position?.Instances.FirstOrDefault(i => i.Id == item.OrgPositionInstance!.Id);
+                var instance = position?.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
                 if (instance is null)
-                    throw new InvalidOperationException($"Could not locate instance {item.OrgPositionInstance!.Id} on the position {item.OrgPosition!.Id} for project {item.Project.OrgProjectId}.");
+                    throw new InvalidOperationException($"Could not locate instance {request.OrgPositionInstanceId} on the position {request.OrgPositionId} for project {request.OrgProjectId}.");
 
                 var instancePatchRequest = new JObject();
                 instance.Properties = EnsureHasRequestProperty(instance.Properties, request.HaveRequest);
                 instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Properties, instance.Properties);
 
-                var url = $"/projects/{item.Project.OrgProjectId}/positions/{item.OrgPosition!.Id}/instances/{item.OrgPositionInstance!.Id}?api-version=2.0";
+                var url = $"/projects/{request.OrgProjectId}/positions/{request.OrgPositionId}/instances/{request.OrgPositionInstanceId}?api-version=2.0";
                 var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
 
                 if (!updateResp.IsSuccessStatusCode)
