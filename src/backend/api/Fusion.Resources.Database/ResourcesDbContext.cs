@@ -48,6 +48,8 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbContractPersonnelReplacement> ContractPersonnelReplacementChanges { get; set; }
 
+        public DbSet<DbSharedRequest> SharedRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbContractPersonnel.OnModelCreating(modelBuilder);
@@ -66,6 +68,7 @@ namespace Fusion.Resources.Database
             DbRequestAction.OnModelCreating(modelBuilder);
             DbConversationMessage.OnModelCreating(modelBuilder);
             DbContractPersonnelReplacement.OnModelCreating(modelBuilder);
+            DbSharedRequest.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -78,7 +81,5 @@ namespace Fusion.Resources.Database
 
             optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
         }
-
-
     }
 }

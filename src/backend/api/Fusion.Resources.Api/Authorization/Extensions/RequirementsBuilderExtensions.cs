@@ -125,7 +125,11 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
-
+        public static IAuthorizationRequirementRule HaveBasicRead(this IAuthorizationRequirementRule builder, Guid requestId)
+        {
+            builder.AddRule(new ClaimsAuthorizationRequirement(ResourcesClaimTypes.BasicRead, new[] { requestId.ToString() }));
+            return builder;
+        }
     }
     public static class RequirementsBuilderExtensions
     {
