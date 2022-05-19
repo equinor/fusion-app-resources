@@ -67,9 +67,9 @@ namespace Fusion.Resources.Domain.Queries
             return this;
         }
 
-        public GetResourceAllocationRequests SharedWith(Guid azureUniqueId)
+        public GetResourceAllocationRequests SharedWith(PersonId azureUniqueId)
         {
-            SharedWithAzureId = azureUniqueId;
+            PersonId = azureUniqueId;
             return this;
         }
 
@@ -149,7 +149,7 @@ namespace Fusion.Resources.Domain.Queries
         /// Use <see cref="WithPositionId(Guid)"/>
         /// </summary>
         public Guid? PositionId { get; private set; }
-        public Guid? SharedWithAzureId { get; private set; }
+        public PersonId? PersonId { get; private set; }
 
         [Flags]
         private enum ExpandFields
@@ -242,8 +242,13 @@ namespace Fusion.Resources.Domain.Queries
                     query = query.Where(x => x.ProposedPerson.HasBeenProposed);
                 if (request.PositionId.HasValue)
                     query = query.Where(r => r.OrgPositionId == request.PositionId.Value);
-                if (request.SharedWithAzureId.HasValue)
-                    query = query.Where(r => db.SharedRequests.Any(x => x.RequestId == r.Id && x.SharedWith.AzureUniqueId == request.SharedWithAzureId));
+                if (request.PersonId.HasValue)
+                {
+                    if(request.PersonId.Value.Type == Domain.PersonId.IdentifierType.Mail)
+                        query = query.Where(r => db.SharedRequests.Any(x => x.RequestId == r.Id && x.SharedWith.Mail == request.PersonId.Value.Mail));
+                    else
+                        query = query.Where(r => db.SharedRequests.Any(x => x.RequestId == r.Id && x.SharedWith.AzureUniqueId == request.PersonId.Value.UniqueId));
+                }
 
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);

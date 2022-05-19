@@ -56,24 +56,18 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return isSuccess ? Ok() : Conflict();
         }
 
-        [HttpGet("/persons/{personId}/shared-requests")]
+        [HttpGet("resources/persons/{personId}/requests/shared")]
         public async Task<ActionResult<IEnumerable<ApiResourceAllocationRequest>>> GetSharedRequests(string personId)
         {
-            PersonIdentifier? azureId;
+            PersonId azureId;
             if (personId == "me")
             {
                 azureId = User.GetAzureUniqueIdOrThrow();
             }
             else
             {
-                azureId = PersonIdentifier.ParseOrDefault(personId);
+                azureId = new PersonId(personId);
             }
-
-            if (azureId == null)
-            {
-                return FusionApiError.InvalidOperation("InvalidUserId", $"The supplied value '{personId}' is not a valid user id.");
-            }
-
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -92,7 +86,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var requests = await DispatchAsync(
-                new GetResourceAllocationRequests().ForAll().SharedWith(azureId.AzureUniquePersonId)
+                new GetResourceAllocationRequests().ForAll().SharedWith(azureId)
             );
 
             return Ok(new ApiCollection<ApiResourceAllocationRequest>(requests.Select(x => new ApiResourceAllocationRequest(x))));

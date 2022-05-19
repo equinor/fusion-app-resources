@@ -122,7 +122,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await client.ShareRequest(normalRequest.Id, testUser);
 
             using var userScope = fixture.UserScope(testUser);
-            var result = await client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"/persons/me/shared-requests");
+            var result = await client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"resources/persons/me/requests/shared");
+            result.Should().BeSuccessfull();
+            result.Value.Value.Should().HaveCount(1);
+            result.Value.Value.Should().Contain(x => x.Id == normalRequest.Id);
+        }
+
+        [Fact]
+        public async Task GetSharedRequests_Should_ReturnAllSharedRequests_WhenMailIsId()
+        {
+            using var adminScope = fixture.AdminScope();
+            await client.ShareRequest(normalRequest.Id, testUser);
+
+            using var userScope = fixture.UserScope(testUser);
+            var result = await client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"resources/persons/{testUser.Mail}/requests/shared");
             result.Should().BeSuccessfull();
             result.Value.Value.Should().HaveCount(1);
             result.Value.Value.Should().Contain(x => x.Id == normalRequest.Id);
