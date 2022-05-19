@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 #nullable enable
 namespace Fusion.Resources.Domain.Services
@@ -275,7 +276,15 @@ namespace Fusion.Resources.Domain.Services
         {
             try
             {
-                return await profileResolver.ResolvePersonsAsync(personIds);
+                var resolved = new List<ResolvedPersonProfile>();
+                var chunked = Partitioner.Create(0, personIds.Count(), 500);
+                foreach ((int low, int high) in chunked.GetDynamicPartitions())
+                {
+                    resolved.AddRange(
+                        await profileResolver.ResolvePersonsAsync(personIds.Skip(low).Take(high))
+                    );
+                }
+                return resolved;
             }
             catch (Exception)
             {

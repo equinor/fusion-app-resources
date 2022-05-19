@@ -1,5 +1,6 @@
 ﻿using Fusion.Integration.Authentication;
 using Fusion.Integration.Profile;
+using Fusion.Resources.Api.Authorization;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -34,7 +35,7 @@ namespace Fusion.Resources.Api.Authentication
 
             foreach(var sharedRequest in sharedRequests)
             {
-                var claimType = $"Fusion.Resources.Request.{sharedRequest.Scope}";
+                var claimType = $"{ResourcesClaimTypes.Prefix}{sharedRequest.Scope}";
                 claims.Add(new Claim(claimType, sharedRequest.RequestId.ToString()));
             }
 

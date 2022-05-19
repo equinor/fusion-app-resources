@@ -48,8 +48,12 @@ namespace Fusion.Resources.Api.Controllers
                 return authResult.CreateForbiddenResponse();
 
             #endregion
-            
-            var isSuccess = await DispatchAsync(request.ToCommand(requestId));
+
+
+            var command = new ShareRequest(requestId, request.Scope, SharedRequestSource.User, request.Reason);
+            command.SharedWith.AddRange(request.SharedWith.Select(x => (PersonId)x));
+
+            var isSuccess = await DispatchAsync(command);
 
             return isSuccess ? Ok() : Conflict();
         }
@@ -90,8 +94,8 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(new ApiCollection<ApiResourceAllocationRequest>(requests.Select(x => new ApiResourceAllocationRequest(x))));
         }
 
-        [HttpDelete("/resources/requests/internal/{requestId}/share/{sharedToAzureId}")]
-        public async Task<IActionResult> DeleteSharedRequests(Guid requestId, string sharedToAzureId)
+        [HttpDelete("/resources/requests/internal/{requestId}/share/{sharedWithAzureId}")]
+        public async Task<IActionResult> DeleteSharedRequests(Guid requestId, string sharedWithAzureId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -125,7 +129,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var wasDeleted = await DispatchAsync(new RevokeShareRequest(requestId, new PersonId(sharedToAzureId), SharedRequestSource.User));
+            var wasDeleted = await DispatchAsync(new RevokeShareRequest(requestId, new PersonId(sharedWithAzureId), SharedRequestSource.User));
 
             return wasDeleted != null ? Ok() : NotFound();
         }

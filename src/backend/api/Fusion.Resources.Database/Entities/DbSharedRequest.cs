@@ -37,6 +37,13 @@ namespace Fusion.Resources.Database.Entities
             {
                 map.HasKey(x => x.Id);
 
+                map.Property(x => x.IsRevoked).HasDefaultValue(false);
+                map.HasIndex(x => new
+                {
+                    x.SharedWithId,
+                    x.RequestId,
+                    x.IsRevoked
+                });
                 map.HasQueryFilter(x => !x.IsRevoked);
 
                 map.HasOne(x => x.Request).WithMany().HasForeignKey(x => x.RequestId);

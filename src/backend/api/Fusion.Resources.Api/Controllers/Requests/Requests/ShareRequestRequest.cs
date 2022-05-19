@@ -11,19 +11,9 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ShareRequestRequest
     {
-        public string? Scope { get; set; }
+        public string Scope { get; set; } = SharedRequestScopes.BasicRead;
         public string? Reason { get; set; }
         public List<PersonReference> SharedWith { get; set; } = null!;
-
-        public ShareRequest ToCommand(Guid requestId)
-        {
-            if (string.IsNullOrEmpty(Scope)) Scope = SharedRequestScopes.BasicRead;
-
-            var command = new ShareRequest(requestId, Scope, SharedRequestSource.User, Reason);
-            command.SharedWith.AddRange(SharedWith.Select(x => (PersonId)x));
-
-            return command;
-        }
 
         public class Validator : AbstractValidator<ShareRequestRequest>
         {
