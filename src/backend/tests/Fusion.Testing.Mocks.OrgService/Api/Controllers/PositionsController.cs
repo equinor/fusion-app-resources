@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion.ApiClients.Org;
-using System.Threading.Tasks;
-using System.Net.Http;
 
 namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
 {
@@ -145,6 +143,30 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
                     AzureUniqueId = request.AssignedPerson.Value.AzureUniqueId,
                     Mail = request.AssignedPerson.Value.Mail
                 };
+            }
+
+            if (request.Properties.HasValue)
+            {
+                if (request.Properties.Value is null)
+                {
+                    instance.Properties = null;
+                }
+                else
+                {
+                    instance.Properties ??= new ApiPropertiesCollectionV2();
+                    foreach (var (key, value) in request.Properties.Value)
+                    {
+                        var existingProp = instance.Properties.FirstOrDefault(x => x.Key == key);
+                        if (existingProp.Key is null)
+                        {
+                            instance.Properties.Add(key, value);
+                        }
+                        else
+                        {
+                            instance.Properties[key] = value;
+                        }
+                    }
+                }
             }
 
 

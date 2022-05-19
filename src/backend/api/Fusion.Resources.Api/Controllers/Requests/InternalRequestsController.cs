@@ -89,6 +89,7 @@ namespace Fusion.Resources.Api.Controllers
                         ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId
                     });
                 }
+                await DispatchAsync(new Logic.Commands.UpdateOrgPositionInstanceHaveRequest(newRequest.RequestId, true));
 
                 await transaction.CommitAsync();
 
@@ -171,7 +172,8 @@ namespace Fusion.Resources.Api.Controllers
                             ProposedPersonAzureUniqueId = request.ProposedPersonAzureUniqueId
                         });
                     }
-                    
+                    await DispatchAsync(new Logic.Commands.UpdateOrgPositionInstanceHaveRequest(newRequest.RequestId, true));
+
                     var newRequestQuery = new GetResourceAllocationRequestItem(newRequest.RequestId)
                         .ExpandDepartmentDetails()
                         .ExpandResourceOwner()
@@ -267,6 +269,7 @@ namespace Fusion.Resources.Api.Controllers
                         ProposalChangeType = request.ProposalParameters?.Type
                     });
                 }
+                await DispatchAsync(new Logic.Commands.UpdateOrgPositionInstanceHaveRequest(newRequest.RequestId, true));
 
                 await transaction.CommitAsync();
                 var query = new GetResourceAllocationRequestItem(newRequest.RequestId)
@@ -815,6 +818,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
             await using var transaction = await BeginTransactionAsync();
+            await DispatchAsync(new Logic.Commands.UpdateOrgPositionInstanceHaveRequest(requestId, false));
             await DispatchAsync(new DeleteInternalRequest(requestId));
 
             await transaction.CommitAsync();
