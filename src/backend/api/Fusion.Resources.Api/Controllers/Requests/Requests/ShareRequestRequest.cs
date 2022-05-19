@@ -7,13 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Fusion.Resources.Api.Controllers.Requests.Requests
+namespace Fusion.Resources.Api.Controllers
 {
     public class ShareRequestRequest
     {
         public string? Scope { get; set; }
         public string? Reason { get; set; }
-        public List<PersonReference> SharedWith { get; set; }
+        public List<PersonReference> SharedWith { get; set; } = null!;
 
         public ShareRequest ToCommand(Guid requestId)
         {

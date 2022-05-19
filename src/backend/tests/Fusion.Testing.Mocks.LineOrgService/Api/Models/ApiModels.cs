@@ -73,7 +73,12 @@ namespace Fusion.Testing.Mocks
     }
     public class ApiPagedCollection<T>
     {
-        public ApiPagedCollection() { }
+        public ApiPagedCollection()
+        {
+            Value = Array.Empty<T>();
+            TotalCount = 0;
+            Count = 0;
+        }
         public ApiPagedCollection(IEnumerable<T> items, int totalCount)
         {
             Value = items;

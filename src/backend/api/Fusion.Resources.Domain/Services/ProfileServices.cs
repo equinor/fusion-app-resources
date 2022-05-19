@@ -277,7 +277,7 @@ namespace Fusion.Resources.Domain.Services
             {
                 return await profileResolver.ResolvePersonsAsync(personIds);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

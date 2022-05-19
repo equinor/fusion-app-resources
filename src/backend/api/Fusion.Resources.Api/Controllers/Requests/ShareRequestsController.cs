@@ -1,7 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
-using Fusion.Integration.Profile;
-using Fusion.Resources.Api.Controllers.Requests.Requests;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Requests.Sharing;
 using Fusion.Resources.Domain.Queries;
@@ -11,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Fusion.Resources.Api.Controllers.Requests
+namespace Fusion.Resources.Api.Controllers
 {
     [ApiController]
     public class ShareRequestsController : ResourceControllerBase
