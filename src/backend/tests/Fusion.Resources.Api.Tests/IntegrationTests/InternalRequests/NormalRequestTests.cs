@@ -119,6 +119,30 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task NormalRequest_Create_ShouldUpdateOrgPositionInstanceHasRequest()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var position = testProject.AddPosition();
+            var response = await Client.TestClientPostAsync($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id
+            }, new
+            {
+                number = 0
+            });
+
+            response.Should().BeSuccessfull();
+
+            // Ensure OrgPositionInstance have property hasRequest=true
+            var instance = OrgServiceMock.GetPosition(position.Id).Instances.Single(x => x.Id == position.Instances.Last().Id);
+            instance.Properties.Single(x => x.Key == "hasRequest").Value.Should().Be(true);
+        }
+
+
+        [Fact]
         public async Task NormalRequest_Create_ShouldBeSuccessfull_WhenProjectDomainIdNull()
         {
             // Mock project
@@ -259,7 +283,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
             var assignedRequest = await Client.AssignRandomDepartmentAsync(normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testPerson);
-            await Client.AddRequestActionAsync(normalRequest.Id, x => {
+            await Client.AddRequestActionAsync(normalRequest.Id, x =>
+            {
                 x.isRequired = true;
                 x.responsible = "ResourceOwner";
             });
@@ -475,7 +500,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}/provision?force=true", null);
             resp.Should().BeSuccessfull();
 
-            resp.Value.Workflow.Should().NotBeNull();            
+            resp.Value.Workflow.Should().NotBeNull();
             // The provisioning step should be completed
             resp.Value.Workflow!.Steps.Should().Contain(s => s.Id == "provisioning" && s.IsCompleted);
             // There should be uncompleted steps
