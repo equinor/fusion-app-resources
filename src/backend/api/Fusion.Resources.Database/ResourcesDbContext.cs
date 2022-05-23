@@ -50,6 +50,8 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbSharedRequest> SharedRequests { get; set; }
 
+        public DbSet<DbSecondOpinionPrompt> SecondOpinions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             DbContractPersonnel.OnModelCreating(modelBuilder);
@@ -69,6 +71,8 @@ namespace Fusion.Resources.Database
             DbConversationMessage.OnModelCreating(modelBuilder);
             DbContractPersonnelReplacement.OnModelCreating(modelBuilder);
             DbSharedRequest.OnModelCreating(modelBuilder);
+            DbSecondOpinionPrompt.OnModelCreating(modelBuilder);
+            DbSecondOpinionResponse.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
