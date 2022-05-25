@@ -15,10 +15,10 @@ namespace Fusion.Resources.Database.Entities
         public DbPerson AssignedTo { get; set; } = null!;
 
 
-        public DateTimeOffset AnsweredAt { get; set; }
+        public DateTimeOffset? AnsweredAt { get; set; }
 
         [MaxLength(2000)]
-        public string Comment { get; set; } = null!;
+        public string? Comment { get; set; }
         public DbSecondOpinionResponseStates State { get; set; }
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)

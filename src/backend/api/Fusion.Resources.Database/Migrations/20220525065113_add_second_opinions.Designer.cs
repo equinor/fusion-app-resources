@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20220523113249_add_second_opinions")]
+    [Migration("20220525065113_add_second_opinions")]
     partial class add_second_opinions
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -831,12 +831,22 @@ namespace Fusion.Resources.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("RequestId");
 
                     b.ToTable("SecondOpinions");
                 });
@@ -847,14 +857,13 @@ namespace Fusion.Resources.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("AnsweredAt")
+                    b.Property<DateTimeOffset?>("AnsweredAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<Guid>("AssignedToId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
@@ -1610,6 +1619,25 @@ namespace Fusion.Resources.Database.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("Fusion.Resources.Database.Entities.DbSecondOpinionPrompt", b =>
+                {
+                    b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", "Request")
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Request");
+                });
+
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbSecondOpinionResponse", b =>
                 {
                     b.HasOne("Fusion.Resources.Database.Entities.DbPerson", "AssignedTo")
@@ -1621,7 +1649,7 @@ namespace Fusion.Resources.Database.Migrations
                     b.HasOne("Fusion.Resources.Database.Entities.DbSecondOpinionPrompt", null)
                         .WithMany("Responses")
                         .HasForeignKey("PromptId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("AssignedTo");

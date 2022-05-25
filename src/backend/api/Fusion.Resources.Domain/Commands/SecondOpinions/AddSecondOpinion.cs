@@ -42,7 +42,9 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var secondOpinion = new DbSecondOpinionPrompt
                 {
-                    Description = request.description
+                    Description = request.description,
+                    RequestId = request.requestId,
+                    CreatedById = request.Editor.Person.Id
                 };
 
                 foreach (var personId in request.assignedToIds)
@@ -52,7 +54,7 @@ namespace Fusion.Resources.Domain.Commands
 
                     secondOpinion.Responses.Add(new DbSecondOpinionResponse
                     {
-                        AssignedTo = person,
+                        AssignedToId = person.Id,
                         State = DbSecondOpinionResponseStates.Open
                     });
                 }
