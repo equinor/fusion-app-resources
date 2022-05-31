@@ -20,7 +20,7 @@ namespace Fusion.Resources.Domain
                 DbSecondOpinionResponseStates.Open => QuerySecondOpinionResponseStates.Open,
                 DbSecondOpinionResponseStates.Draft => QuerySecondOpinionResponseStates.Draft,
                 DbSecondOpinionResponseStates.Published => QuerySecondOpinionResponseStates.Published,
-                _ => throw new NotImplementedException();
+                _ => throw new NotImplementedException()
             };
         }
 
