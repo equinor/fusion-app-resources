@@ -3,9 +3,9 @@ using System;
 
 namespace Fusion.Resources.Domain
 {
+    public enum QuerySecondOpinionResponseStates { Open, Draft, Published }
     public class QuerySecondOpinionResponse
     {
-
         public QuerySecondOpinionResponse(DbSecondOpinionResponse response)
         {
             Id = response.Id;
@@ -15,7 +15,13 @@ namespace Fusion.Resources.Domain
 
             AnsweredAt = response.AnsweredAt;
             Comment = response.Comment;
-            State = response.State.ToString();
+            State = response.State switch
+            {
+                DbSecondOpinionResponseStates.Open => QuerySecondOpinionResponseStates.Open,
+                DbSecondOpinionResponseStates.Draft => QuerySecondOpinionResponseStates.Draft,
+                DbSecondOpinionResponseStates.Published => QuerySecondOpinionResponseStates.Published,
+                _ => throw new NotImplementedException();
+            };
         }
 
 
@@ -29,6 +35,6 @@ namespace Fusion.Resources.Domain
         public DateTimeOffset? AnsweredAt { get; set; }
 
         public string? Comment { get; set; }
-        public string State { get; set; }
+        public QuerySecondOpinionResponseStates State { get; set; }
     }
 }
