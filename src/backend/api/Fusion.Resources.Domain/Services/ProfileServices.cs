@@ -219,6 +219,44 @@ namespace Fusion.Resources.Domain.Services
             }
         }
 
+        public async Task<List<DbPerson>> EnsurePersonsAsync(IEnumerable<PersonId> personIds)
+        {
+            var resolved = await ResolveProfilesAsync(personIds);
+            PersonsNotFoundError.ThrowWhenAnyFailed(resolved);
+
+            await locker.WaitAsync();
+            try
+            {
+                var ensuredPersons = new List<DbPerson>();
+                foreach (var profile in resolved!.Select(x => x.Profile))
+                {
+                    if (profile?.AzureUniqueId == null)
+                        throw new InvalidOperationException("Cannot ensure a person without an azure unique id");
+
+                    var dbPerson = await resourcesDb.Persons.FirstOrDefaultAsync(x => x.AzureUniqueId == profile.AzureUniqueId);
+                    if (dbPerson is null) dbPerson = new DbPerson();
+
+                    dbPerson.AccountType = profile.AccountType.ToString();
+                    dbPerson.AzureUniqueId = profile.AzureUniqueId.Value;
+                    dbPerson.JobTitle = profile.JobTitle;
+                    dbPerson.Mail = profile.Mail;
+                    dbPerson.Name = profile.Name;
+                    dbPerson.Phone = profile.MobilePhone;
+
+                    ensuredPersons.Add(dbPerson);
+                }
+
+                resourcesDb.Persons.AddRange(ensuredPersons);
+                await resourcesDb.SaveChangesAsync();
+
+                return ensuredPersons;
+            }
+            finally
+            {
+                locker.Release();
+            }
+        }
+
         public async Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId)
         {
             await locker.WaitAsync();

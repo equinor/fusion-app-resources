@@ -13,7 +13,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [ApiController]
     public class SecondOpinionController : ResourceControllerBase
     {
-        [HttpPost("/departments/{departmentString}/resources/requests/{requestId}/second-opinions")]
+        [HttpPost("/resources/requests/internal/{requestId}/second-opinions")]
         public async Task<IActionResult> RequestSecondOpinion(string? departmentString, Guid requestId, [FromBody] AddSecondOpinionRequest payload)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -56,7 +56,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return CreatedAtAction(nameof(GetSecondOpinions), new { departmentString = requestItem.AssignedDepartment, requestItem.RequestId }, secondOpinion);
         }
 
-        [HttpGet("/departments/{departmentString}/resources/requests/{requestId}/second-opinions")]
+        [HttpGet("/resources/requests/internal/{requestId}/second-opinions")]
         public async Task<IActionResult> GetSecondOpinions(string? departmentString, Guid requestId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -98,14 +98,62 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return Ok(result);
         }
 
-        [HttpPatch("/departments/{departmentString}/resources/requests/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
-        public async Task<IActionResult> PatchSecondOpinion()
+        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
+        public async Task<IActionResult> PatchSecondOpinion(Guid requestId, Guid secondOpinionId, [FromBody] PatchSecondOpinionRequest payload)
         {
-            throw new NotImplementedException();
+
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    if (requestItem.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
+                    }
+                    or.HaveBasicRead(requestId);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var command = new UpdateSecondOpinion(secondOpinionId);
+
+            if(payload.Description.HasValue)
+            {
+                command.Description = payload.Description.Value;
+            }
+
+            if (payload.AssignedTo.HasValue)
+            {
+                command.AssignedTo = payload.AssignedTo.Value.Select(x => (PersonId)x).ToList();
+            }
+
+            var secondOpinion = await DispatchAsync(command);
+
+            return Ok(secondOpinion);
         }
 
-        [HttpDelete("/departments/{departmentString}/resources/requests/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
-        public async Task<IActionResult> UnassignSecondOpinion()
+        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
+        public async Task<IActionResult> PatchSecondOpinionResponse(Guid requestId, Guid secondOpinionId, Guid responseId)
         {
             throw new NotImplementedException();
         }
