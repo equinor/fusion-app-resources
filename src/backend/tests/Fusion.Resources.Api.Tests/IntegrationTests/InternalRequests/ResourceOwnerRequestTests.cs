@@ -86,7 +86,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 p => p.WithAssignedPerson(assignedPerson)
             );
 
-            
             NotificationClientMock.SentMessages.Clear();
         }
 
