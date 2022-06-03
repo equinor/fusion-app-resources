@@ -7,6 +7,7 @@ using Fusion.ApiClients.Org;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -70,6 +71,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeNormal());
+
+            NotificationClientMock.SentMessages.Clear();
         }
 
         [Theory]

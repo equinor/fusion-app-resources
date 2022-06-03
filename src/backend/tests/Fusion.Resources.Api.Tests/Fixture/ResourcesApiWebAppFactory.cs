@@ -116,7 +116,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
                 services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
                 services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
-                services.AddSingleton<IFusionNotificationClient, NotificationClientMock>();
+                services.AddScoped<IFusionNotificationClient, NotificationClientMock>();
                 services.AddTransient<IQueueSender>(sp => queueMock.Object);
                 services.AddSingleton<IEventNotificationClient>(sp => new EventNotificationClientMock(new TestMessageBus(), "resources-sub"));
                 services.AddSingleton<IPeopleIntegration, PeopleIntegrationMock>();

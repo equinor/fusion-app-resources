@@ -78,6 +78,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsTypeDirect()
                 .WithProposedPerson(testUser)
                 .WithAssignedDepartment(testUser.FullDepartment!));
+
+            NotificationClientMock.SentMessages.Clear();
         }
 
         public Task DisposeAsync()
@@ -575,19 +577,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            NotificationClientMock.SentMessages.Clear();
-
             var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
                 .AsTypeDirect()
                 .WithAssignedDepartment("PDP PRD FE TST XN ASD")
                 .WithProposedPerson(proposedPerson));
             
             await Client.StartProjectRequestAsync(testProject, testRequest.Id);
-
-
-
-            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
-            resp.Should().BeSuccessfull();
 
             NotificationClientMock.SentMessages.Count.Should().Be(0);
         }
@@ -603,19 +598,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            NotificationClientMock.SentMessages.Clear();
-
             var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
                 .AsTypeDirect()
                 .WithAssignedDepartment("PDP PRD FE TST XN ASD")
                 .WithProposedPerson(proposedPerson));
-            
-            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
 
-            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
-            resp.Should().BeSuccessfull();
-
-            NotificationClientMock.SentMessages.Count.Should().Be(1);
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);NotificationClientMock.SentMessages.Count.Should().Be(1);
         }
 
         #endregion
