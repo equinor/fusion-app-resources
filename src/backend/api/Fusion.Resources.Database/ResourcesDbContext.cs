@@ -51,6 +51,8 @@ namespace Fusion.Resources.Database
         public DbSet<DbSharedRequest> SharedRequests { get; set; }
 
         public DbSet<DbSecondOpinionPrompt> SecondOpinions { get; set; }
+        public DbSet<DbSecondOpinionResponse> SecondOpinionResponses { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

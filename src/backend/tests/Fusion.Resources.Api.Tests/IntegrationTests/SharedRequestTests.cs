@@ -115,6 +115,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeUnauthorized();
         }
 
+
+        [Fact]
+        public async Task GetUsersSharedRequests_ShouldNotContainRevoked()
+        {
+            using var adminScope = fixture.AdminScope();
+            await client.ShareRequest(normalRequest.Id, testUser);
+
+            using var beforeRevoke = fixture.UserScope(testUser);
+            var result = await client.TestClientGetAsync<TestApiInternalRequestModel>($"/resources/requests/internal/{normalRequest.Id}");
+            result.Should().BeSuccessfull();
+
+            using var adminDeleteScope = fixture.AdminScope();
+            await client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}/share/{testUser.AzureUniqueId}");
+
+            using var userScope = fixture.UserScope(testUser);
+            var sharedReqResult = await client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"/resources/persons/me/requests/shared");
+            sharedReqResult.Value.Value.Should().NotContain(x => x.Id == normalRequest.Id);
+        }
+
         [Fact]
         public async Task GetSharedRequests_Should_ReturnAllSharedRequests()
         {

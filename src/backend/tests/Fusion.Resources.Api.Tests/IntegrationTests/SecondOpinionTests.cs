@@ -1,0 +1,203 @@
+﻿using FluentAssertions;
+using Fusion.Integration.Profile;
+using Fusion.Integration.Profile.ApiClient;
+using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Testing;
+using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.OrgService;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Fusion.Resources.Api.Tests.IntegrationTests
+{
+    public class SecondOpinionTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
+    {
+        record TestAddSecondOpinion
+        {
+            public string Description { get; set; } = "Test Second Opinion";
+            public List<TestApiPerson> AssignedTo { get; init; } = new();
+        }
+
+        record TestSecondOpinionPrompt
+        {
+            public Guid Id { get; set; }
+            public string Description { get; set; }
+            public TestApiPerson CreatedBy { get; set; }
+            public List<TestSecondOpinionResponse> Responses { get; set; } = new();
+        }
+
+        record TestSecondOpinionResponse
+        {
+            public TestApiPerson AssignedTo { get; set; } = null!;
+            public DateTimeOffset? AnsweredAt { get; set; }
+            
+            public string Comment { get; set; }
+            public string State { get; set; }
+        }
+
+        private ResourceApiFixture fixture;
+        private TestLoggingScope loggingScope;
+        private FusionTestProjectBuilder testProject;
+        private ApiPersonProfileV3 testUser;
+
+        public SecondOpinionTests(ResourceApiFixture fixture, ITestOutputHelper output)
+        {
+            this.fixture = fixture;
+
+            // Make the output channel available for TestLogger.TryLog and the TestClient* calls.
+            loggingScope = new TestLoggingScope(output);
+        }
+
+        private HttpClient Client => fixture.ApiFactory.CreateClient();
+
+        public Task DisposeAsync() => Task.CompletedTask;
+
+        public Task InitializeAsync()
+        {
+            testProject = new FusionTestProjectBuilder()
+                .WithPositions(200)
+                .AddToMockService();
+            fixture.ContextResolver.AddContext(testProject.Project);
+
+            testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            return Task.CompletedTask;
+        }
+
+        [Fact]
+        public async Task CreateSecondOpinion_ShouldBeSuccessful()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                Description = "Please add your second opinion for this req.",
+                AssignedTo = new() { new TestApiPerson { Mail = testUser.Mail } }
+            };
+
+            var result = await Client.TestClientPostAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions", payload);
+            result.Should().BeSuccessfull();
+
+            result.Value.Description.Should().Be(payload.Description);
+            result.Value.CreatedBy.Mail.Should().Be(fixture.AdminUser.Mail);
+            result.Value.Responses.Should().HaveCount(1);
+            result.Value.Responses.Should().Contain(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
+        }
+
+        [Fact]
+        public async Task CreateSecondOpinion_ShouldBeBadRequest_WhenNotAssignedToAnyone()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var payload = new TestAddSecondOpinion();
+
+            var result = await Client.TestClientPostAsync<TestAddSecondOpinion>($"/resources/requests/internal/{request.Id}/second-opinions", payload);
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task RequestSecondOpinion_ShouldShareRequest()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var userSharedRequests = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"resources/persons/{testUser.AzureUniqueId}/requests/shared");
+            userSharedRequests.Value.Value.Should().Contain(x => x.Id == request.Id);
+        }
+
+        [Fact]
+        public async Task AssignSecondOpinion_ShouldShareRequest()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+
+            var userToAdd = fixture.AddProfile(FusionAccountType.Employee);
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new() { 
+                    new TestApiPerson { Mail = testUser.Mail },
+                    new TestApiPerson { Mail = userToAdd.Mail }
+                }
+            };
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}";
+            var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
+            result.Should().BeSuccessfull();
+
+            using var userScope = fixture.UserScope(userToAdd);
+            var userSharedRequests = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"resources/persons/me/requests/shared");
+            userSharedRequests.Value.Value.Should().Contain(x => x.Id == request.Id);
+        }
+
+
+        [Fact]
+        public async Task UnassignSecondOpinion_ShouldRemoveResponse()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var userToRemove = fixture.AddProfile(FusionAccountType.Employee);
+            var secondOpinion = await CreateSecondOpinion(request, testUser, userToRemove);
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new() { new TestApiPerson { Mail = testUser.Mail } }
+            };
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}";
+            var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
+
+            result.Should().BeSuccessfull();
+            result.Value.Responses.Should().NotContain(x => x.AssignedTo.AzureUniquePersonId == userToRemove.AzureUniqueId);
+        }
+
+        [Fact]
+        public async Task UnassignSecondOpinion_ShouldRevokeShare()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var userToRemove = fixture.AddProfile(FusionAccountType.Employee);
+            var secondOpinion = await CreateSecondOpinion(request, testUser, userToRemove);
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new() { new TestApiPerson { Mail = testUser.Mail } }
+            };
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}";
+            var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
+            result.Should().BeSuccessfull();
+
+            using var userScope = fixture.UserScope(userToRemove);
+            var userSharedRequests = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"resources/persons/me/requests/shared");
+            userSharedRequests.Value.Value.Should().NotContain(x => x.Id == request.Id);
+        }
+
+        private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
+        {
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = assignedTo.Select(x => new TestApiPerson { Mail = x.Mail }).ToList()
+            };
+
+            var result = await Client.TestClientPostAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions", payload);
+            result.Should().BeSuccessfull();
+
+            return result.Value;
+        }
+    }
+}

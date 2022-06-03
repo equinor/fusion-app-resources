@@ -28,7 +28,7 @@ namespace Fusion.Resources.Api.Controllers
                 throw new ArgumentNullException("person", "Person cannot be null");
 
 
-            if (personReference.AzureUniquePersonId.HasValue)
+            if (personReference.AzureUniquePersonId.HasValue && personReference.AzureUniquePersonId != Guid.Empty)
                 return new PersonId(personReference.AzureUniquePersonId.Value);
 
             if (string.IsNullOrEmpty(personReference.Mail))

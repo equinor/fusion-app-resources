@@ -234,7 +234,11 @@ namespace Fusion.Resources.Domain.Services
                         throw new InvalidOperationException("Cannot ensure a person without an azure unique id");
 
                     var dbPerson = await resourcesDb.Persons.FirstOrDefaultAsync(x => x.AzureUniqueId == profile.AzureUniqueId);
-                    if (dbPerson is null) dbPerson = new DbPerson();
+                    if (dbPerson is null)
+                    {
+                        dbPerson = new DbPerson();
+                        resourcesDb.Persons.Add(dbPerson);
+                    }
 
                     dbPerson.AccountType = profile.AccountType.ToString();
                     dbPerson.AzureUniqueId = profile.AzureUniqueId.Value;
@@ -245,8 +249,7 @@ namespace Fusion.Resources.Domain.Services
 
                     ensuredPersons.Add(dbPerson);
                 }
-
-                resourcesDb.Persons.AddRange(ensuredPersons);
+                
                 await resourcesDb.SaveChangesAsync();
 
                 return ensuredPersons;
