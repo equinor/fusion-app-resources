@@ -65,7 +65,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (string.Equals(dbRequest.SubType, AllocationDirectWorkflowV1.SUBTYPE, StringComparison.OrdinalIgnoreCase))
                     {
                         var autoApprovalEnabledForResource = await mediator.Send(new Domain.Queries.GetPersonAutoApprovalStatus(dbRequest.ProposedPerson.AzureUniqueId!.Value));
-                        return !autoApprovalEnabledForResource.HasValue;
+                        return autoApprovalEnabledForResource != true;
                     }
 
                     return true;

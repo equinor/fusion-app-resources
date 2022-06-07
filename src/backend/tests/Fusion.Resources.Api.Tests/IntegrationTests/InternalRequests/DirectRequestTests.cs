@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AdaptiveCards;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
@@ -582,12 +584,42 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             
             await Client.StartProjectRequestAsync(testProject, testRequest.Id);
 
-            NotificationClientMock.SentMessages.Clear();
+            var facts = NotificationClientMock.SentMessages
+                .Select(x => x.Card)
+                .SelectMany(x => x.Body)
+                .OfType<AdaptiveFactSet>()
+                .SelectMany(x => x.Facts)
+                .Select(x => x.Value);
 
-            var resp = await Client.TestClientGetAsync($"/projects/{projectId}/requests/{testRequest.Id}", new { workflow = new TestApiWorkflow() });
-            resp.Should().BeSuccessfull();
+            facts.Should().NotContain(testRequest.Number.ToString());
+        }
 
-            NotificationClientMock.SentMessages.Count.Should().Be(0);
+        [Fact]
+        public async Task DirectRequest_ShouldSendNotification_WhenProposedPersonIsEmployee()
+        {
+            var proposedPerson = PeopleServiceMock
+                .AddTestProfile()
+                .WithAccountType(FusionAccountType.Employee)
+                .WithFullDepartment("PDP PRD FE TST XN ASD")
+                .SaveProfile();
+
+            using var adminScope = fixture.AdminScope();
+
+            var testRequest = await Client.CreateDefaultRequestAsync(testProject, r => r
+                .AsTypeDirect()
+                .WithAssignedDepartment("PDP PRD FE TST XN ASD")
+                .WithProposedPerson(proposedPerson));
+
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+            
+            var facts = NotificationClientMock.SentMessages
+                .Select(x => x.Card)
+                .SelectMany(x => x.Body)
+                .OfType<AdaptiveFactSet>()
+                .SelectMany(x => x.Facts)
+                .Select(x => x.Value);
+
+            facts.Should().Contain(testRequest.Number.ToString());
         }
 
         #endregion
