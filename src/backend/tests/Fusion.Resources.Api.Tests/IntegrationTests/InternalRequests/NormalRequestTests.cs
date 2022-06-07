@@ -75,8 +75,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Create a default request we can work with
             normalRequest = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeNormal());
-
-            NotificationClientMock.SentMessages.Clear();
         }
 
         public Task DisposeAsync()

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AdaptiveCards;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
@@ -584,7 +586,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             
             await Client.StartProjectRequestAsync(testProject, testRequest.Id);
 
-            NotificationClientMock.SentMessages.Count.Should().Be(0);
+            var facts = NotificationClientMock.SentMessages
+                .Select(x => x.Card)
+                .SelectMany(x => x.Body)
+                .OfType<AdaptiveFactSet>()
+                .SelectMany(x => x.Facts)
+                .Select(x => x.Value);
+
+            facts.Should().NotContain(testRequest.Number.ToString());
         }
 
         [Fact]
@@ -603,7 +612,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithAssignedDepartment("PDP PRD FE TST XN ASD")
                 .WithProposedPerson(proposedPerson));
 
-            await Client.StartProjectRequestAsync(testProject, testRequest.Id);NotificationClientMock.SentMessages.Count.Should().Be(1);
+            await Client.StartProjectRequestAsync(testProject, testRequest.Id);
+            
+            var facts = NotificationClientMock.SentMessages
+                .Select(x => x.Card)
+                .SelectMany(x => x.Body)
+                .OfType<AdaptiveFactSet>()
+                .SelectMany(x => x.Facts)
+                .Select(x => x.Value);
+
+            facts.Should().Contain(testRequest.Number.ToString());
         }
 
         #endregion

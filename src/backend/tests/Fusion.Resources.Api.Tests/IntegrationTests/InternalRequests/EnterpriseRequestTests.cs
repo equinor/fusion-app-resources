@@ -6,7 +6,6 @@ using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
@@ -71,8 +70,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // Create a default request we can work with
             request = await adminClient.CreateDefaultRequestAsync(testProject, r => r.AsTypeEnterprise());
-
-            NotificationClientMock.SentMessages.Clear();
         }
 
         public Task DisposeAsync()
