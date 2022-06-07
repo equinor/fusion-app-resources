@@ -80,8 +80,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsTypeDirect()
                 .WithProposedPerson(testUser)
                 .WithAssignedDepartment(testUser.FullDepartment!));
-
-            NotificationClientMock.SentMessages.Clear();
         }
 
         public Task DisposeAsync()
