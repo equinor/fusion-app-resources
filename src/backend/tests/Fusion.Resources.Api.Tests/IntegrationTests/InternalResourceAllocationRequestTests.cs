@@ -109,10 +109,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
+            // Ensure removal of request was successful and OrgPositionInstance is missing.
             response.Should().BeSuccessfull();
-            // Ensure OrgPositionInstance have property hasRequest=false
             var instance = OrgServiceMock.GetPosition(normalRequest.OrgPositionId!.Value).Instances.Single(x => x.Id == normalRequest.OrgPositionInstanceId);
             instance.Properties.Single(x => x.Key == "hasRequest").Value.Should().Be(false);
+        }
+
+        [Fact]
+        public async Task Delete_InternalRequest_ShouldNotUpdateOrgPositionInstanceWhenDeleted()
+        {
+            using var adminScope = fixture.AdminScope();
+            OrgServiceMock.RemoveInstance(normalRequest.OrgPositionInstanceId!.Value);
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
+            response.Should().BeSuccessfull();
+            var instance = OrgServiceMock.GetPosition(normalRequest.OrgPositionId!.Value).Instances.SingleOrDefault(x => x.Id == normalRequest.OrgPositionInstanceId);
+            instance.Should().BeNull();
         }
 
         [Fact]
