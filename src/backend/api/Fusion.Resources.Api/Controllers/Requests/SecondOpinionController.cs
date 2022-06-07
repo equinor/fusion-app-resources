@@ -14,7 +14,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
     public class SecondOpinionController : ResourceControllerBase
     {
         [HttpPost("/resources/requests/internal/{requestId}/second-opinions")]
-        public async Task<IActionResult> RequestSecondOpinion(string? departmentString, Guid requestId, [FromBody] AddSecondOpinionRequest payload)
+        public async Task<IActionResult> RequestSecondOpinion(Guid requestId, [FromBody] AddSecondOpinionRequest payload)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -53,11 +53,11 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new AddSecondOpinion(requestItem.RequestId, payload.Description, assignedToIds);
             var secondOpinion = await DispatchAsync(command);
 
-            return CreatedAtAction(nameof(GetSecondOpinions), new { departmentString = requestItem.AssignedDepartment, requestItem.RequestId }, new ApiSecondOpinion(secondOpinion));
+            return CreatedAtAction(nameof(GetSecondOpinions), new { requestItem.RequestId }, new ApiSecondOpinion(secondOpinion));
         }
 
         [HttpGet("/resources/requests/internal/{requestId}/second-opinions")]
-        public async Task<IActionResult> GetSecondOpinions(string? departmentString, Guid requestId)
+        public async Task<IActionResult> GetSecondOpinions(Guid requestId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -211,7 +211,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithAssignee(assigneeId);
             var result = await DispatchAsync(command);
 
-            return Ok(result);
+            return Ok(result.Select(x => new ApiSecondOpinion(x)));
         }
 
         [HttpGet("/persons/{personId}/second-opinions/")]
@@ -226,7 +226,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithCreator(creatorId);
             var result = await DispatchAsync(command);
 
-            return Ok(result);
+            return Ok(result.Select(x => new ApiSecondOpinion(x)));
         }
     }
 }
