@@ -27,7 +27,7 @@ namespace Fusion.Resources.Database.Entities
                 map.HasKey(x => x.Id);
                 map.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById);
                 map.HasOne(x => x.Request).WithMany().HasForeignKey(x => x.RequestId);
-                map.HasMany(x => x.Responses).WithOne().HasForeignKey(x => x.PromptId).OnDelete(DeleteBehavior.NoAction);
+                map.HasMany(x => x.Responses).WithOne(x => x.SecondOpinion).HasForeignKey(x => x.PromptId).OnDelete(DeleteBehavior.NoAction);
             });
         }
     }

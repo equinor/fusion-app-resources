@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20220525065113_add_second_opinions")]
+    [Migration("20220608071344_add_second_opinions")]
     partial class add_second_opinions
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -881,7 +881,7 @@ namespace Fusion.Resources.Database.Migrations
 
                     b.HasIndex("PromptId");
 
-                    b.ToTable("DbSecondOpinionResponse");
+                    b.ToTable("SecondOpinionResponses");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbSharedRequest", b =>
@@ -1646,13 +1646,15 @@ namespace Fusion.Resources.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Fusion.Resources.Database.Entities.DbSecondOpinionPrompt", null)
+                    b.HasOne("Fusion.Resources.Database.Entities.DbSecondOpinionPrompt", "SecondOpinion")
                         .WithMany("Responses")
                         .HasForeignKey("PromptId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("AssignedTo");
+
+                    b.Navigation("SecondOpinion");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbSharedRequest", b =>

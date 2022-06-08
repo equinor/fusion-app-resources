@@ -34,7 +34,7 @@ namespace Fusion.Resources.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DbSecondOpinionResponse",
+                name: "SecondOpinionResponses",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -46,28 +46,28 @@ namespace Fusion.Resources.Database.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DbSecondOpinionResponse", x => x.Id);
+                    table.PrimaryKey("PK_SecondOpinionResponses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DbSecondOpinionResponse_Persons_AssignedToId",
+                        name: "FK_SecondOpinionResponses_Persons_AssignedToId",
                         column: x => x.AssignedToId,
                         principalTable: "Persons",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DbSecondOpinionResponse_SecondOpinions_PromptId",
+                        name: "FK_SecondOpinionResponses_SecondOpinions_PromptId",
                         column: x => x.PromptId,
                         principalTable: "SecondOpinions",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_DbSecondOpinionResponse_AssignedToId",
-                table: "DbSecondOpinionResponse",
+                name: "IX_SecondOpinionResponses_AssignedToId",
+                table: "SecondOpinionResponses",
                 column: "AssignedToId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DbSecondOpinionResponse_PromptId",
-                table: "DbSecondOpinionResponse",
+                name: "IX_SecondOpinionResponses_PromptId",
+                table: "SecondOpinionResponses",
                 column: "PromptId");
 
             migrationBuilder.CreateIndex(
@@ -84,7 +84,7 @@ namespace Fusion.Resources.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DbSecondOpinionResponse");
+                name: "SecondOpinionResponses");
 
             migrationBuilder.DropTable(
                 name: "SecondOpinions");

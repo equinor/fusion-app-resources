@@ -191,6 +191,19 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var command = new UpdateSecondOpinionResponse(secondOpinionId, responseId);
+
+            if (payload.Comment.HasValue) command.Comment = payload.Comment.Value;
+            if (payload.State.HasValue)
+            {
+                command.State = payload.State.Value switch
+                {
+                    ApiSecondOpinionResponseStates.Open => QuerySecondOpinionResponseStates.Open,
+                    ApiSecondOpinionResponseStates.Draft => QuerySecondOpinionResponseStates.Draft,
+                    ApiSecondOpinionResponseStates.Published => QuerySecondOpinionResponseStates.Published,
+                    _ => throw new NotImplementedException()
+                };
+            }
+
             var response = await DispatchAsync(command);
 
             if (response is null)
@@ -210,8 +223,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var command = new GetSecondOpinions().WithAssignee(assigneeId);
             var result = await DispatchAsync(command);
+            
+            var responses = result
+                .SelectMany(x => x.Responses)
+                .Select(x => new ApiSecondOpinionResponse(x, includeParent: true));
 
-            return Ok(result.Select(x => new ApiSecondOpinion(x)));
+            return Ok(responses);
         }
 
         [HttpGet("/persons/{personId}/second-opinions/")]

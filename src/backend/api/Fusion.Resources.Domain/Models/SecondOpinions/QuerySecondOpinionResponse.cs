@@ -22,6 +22,7 @@ namespace Fusion.Resources.Domain
                 DbSecondOpinionResponseStates.Published => QuerySecondOpinionResponseStates.Published,
                 _ => throw new NotImplementedException()
             };
+            SecondOpinion = new QuerySecondOpinion(response.SecondOpinion);
         }
 
 
@@ -36,5 +37,6 @@ namespace Fusion.Resources.Domain
 
         public string? Comment { get; set; }
         public QuerySecondOpinionResponseStates State { get; set; }
+        public QuerySecondOpinion SecondOpinion { get; }
     }
 }

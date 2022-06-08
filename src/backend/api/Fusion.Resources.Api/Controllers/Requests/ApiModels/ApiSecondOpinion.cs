@@ -3,20 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Fusion.Resources.Api.Controllers.Requests
+namespace Fusion.Resources.Api.Controllers
 {
     public class ApiSecondOpinion
     {
-        public ApiSecondOpinion(QuerySecondOpinion query)
+        public ApiSecondOpinion(QuerySecondOpinion query, bool includeChildren = true)
         {
             Id = query.Id;
             Description = query.Description;
             CreatedById = query.CreatedById;
             CreatedBy = new ApiPerson(query.CreatedBy);
 
-            if (query.Responses is not null)
+            if (query.Responses is not null && includeChildren)
             {
-                Responses = query.Responses.Select(x => new ApiSecondOpinionResponse(x)).ToList();
+                Responses = query.Responses.Select(x => new ApiSecondOpinionResponse(x, includeParent: !includeChildren)).ToList();
             }
         }
 

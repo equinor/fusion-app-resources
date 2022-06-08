@@ -58,8 +58,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         private HttpClient Client => fixture.ApiFactory.CreateClient();
 
-        public Task DisposeAsync() => Task.CompletedTask;
-
         public Task InitializeAsync()
         {
             testProject = new FusionTestProjectBuilder()
@@ -187,6 +185,23 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             userSharedRequests.Value.Value.Should().NotContain(x => x.Id == request.Id);
         }
 
+        [Fact]
+        public async Task GetSecondOpinionResponses_ShouldOnlyReturnAssigneesResponses()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var anotherUser = fixture.AddProfile(FusionAccountType.Employee);
+            var secondOpinion = await CreateSecondOpinion(request, testUser, anotherUser);
+
+
+            using var userScope = fixture.UserScope(testUser);
+            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionResponse>>("/persons/me/second-opinions/responses");
+
+            var allResponses = userSharedOpinions.Value;
+            allResponses.Should().OnlyContain(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
@@ -199,5 +214,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             return result.Value;
         }
+
+        public Task DisposeAsync() => Task.CompletedTask;
     }
 }

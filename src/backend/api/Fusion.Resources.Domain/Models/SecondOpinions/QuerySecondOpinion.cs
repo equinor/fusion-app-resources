@@ -16,7 +16,7 @@ namespace Fusion.Resources.Domain
 
             if(secondOpinion.Responses is not null)
             {
-                Responses = secondOpinion.Responses.Select(x => new QuerySecondOpinionResponse(x)).ToList();
+                Responses = secondOpinion.Responses.Select(x => new QuerySecondOpinionResponse(x));
             }
         }
 
@@ -27,6 +27,6 @@ namespace Fusion.Resources.Domain
         public Guid CreatedById { get;  }
         public QueryPerson CreatedBy { get; }
 
-        public List<QuerySecondOpinionResponse> Responses { get; } = new();
+        public IEnumerable<QuerySecondOpinionResponse> Responses { get; } = Array.Empty<QuerySecondOpinionResponse>();
     }
 }

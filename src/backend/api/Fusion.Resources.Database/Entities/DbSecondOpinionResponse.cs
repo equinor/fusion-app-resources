@@ -10,6 +10,7 @@ namespace Fusion.Resources.Database.Entities
     {
         public Guid Id { get; set; }
         public Guid PromptId { get; set; }
+        public DbSecondOpinionPrompt SecondOpinion { get; set; } = null!;
 
         public Guid AssignedToId { get; set; }
         public DbPerson AssignedTo { get; set; } = null!;
@@ -25,6 +26,7 @@ namespace Fusion.Resources.Database.Entities
         {
             modelBuilder.Entity<DbSecondOpinionResponse>(map =>
             {
+                map.ToTable("SecondOpinionResponses");
                 map.HasKey(x => x.Id);
                 map.HasOne(x => x.AssignedTo).WithMany().HasForeignKey(x => x.AssignedToId);
                 
