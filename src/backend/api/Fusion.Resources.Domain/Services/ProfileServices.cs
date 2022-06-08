@@ -221,15 +221,17 @@ namespace Fusion.Resources.Domain.Services
 
         public async Task<List<DbPerson>> EnsurePersonsAsync(IEnumerable<PersonId> personIds)
         {
-            var resolved = await ResolveProfilesAsync(personIds);
-            PersonsNotFoundError.ThrowWhenAnyFailed(resolved);
+            var resolvedProfiles = await ResolveProfilesAsync(personIds);
+            PersonsNotFoundError.ThrowWhenAnyFailed(resolvedProfiles);
 
             await locker.WaitAsync();
             try
             {
                 var ensuredPersons = new List<DbPerson>();
-                foreach (var profile in resolved!.Select(x => x.Profile))
+                foreach (var resolved in resolvedProfiles!.Select(x => x.Profile).ToLookup(x => x.AzureUniqueId))
                 {
+                    // avoid adding duplicate persons.
+                    var profile = resolved.FirstOrDefault();
                     if (profile?.AzureUniqueId == null)
                         throw new InvalidOperationException("Cannot ensure a person without an azure unique id");
 

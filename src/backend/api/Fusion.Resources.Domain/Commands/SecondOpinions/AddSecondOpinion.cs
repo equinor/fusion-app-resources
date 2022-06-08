@@ -47,9 +47,9 @@ namespace Fusion.Resources.Domain.Commands
                     CreatedById = request.Editor.Person.Id
                 };
 
-                foreach (var personId in request.assignedToIds)
+                var persons = await profileService.EnsurePersonsAsync(request.assignedToIds);
+                foreach (var person in persons)
                 {
-                    var person = await profileService.EnsurePersonAsync(personId);
                     if (person is null) continue;
 
                     secondOpinion.Responses.Add(new DbSecondOpinionResponse

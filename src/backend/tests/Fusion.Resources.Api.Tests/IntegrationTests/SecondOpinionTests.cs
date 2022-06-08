@@ -202,6 +202,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             allResponses.Should().OnlyContain(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
         }
 
+        [Fact]
+        public async Task CreateSecondOpionion_ShouldNotCreateDuplicates()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser, testUser, testUser);
+            secondOpinion.Responses.Should().HaveCount(1);
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
