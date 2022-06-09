@@ -7,7 +7,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiSecondOpinion
     {
-        public ApiSecondOpinion(QuerySecondOpinion query, bool includeChildren = true)
+        public ApiSecondOpinion(QuerySecondOpinion query, Guid viewerAzureUniqueId, bool includeChildren = true)
         {
             Id = query.Id;
             Description = query.Description;
@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (query.Responses is not null && includeChildren)
             {
-                Responses = query.Responses.Select(x => new ApiSecondOpinionResponse(x, includeParent: !includeChildren)).ToList();
+                Responses = query.Responses.Select(x => new ApiSecondOpinionResponse(x, viewerAzureUniqueId, includeParent: !includeChildren)).ToList();
             }
         }
 

@@ -13,6 +13,13 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [ApiController]
     public class SecondOpinionController : ResourceControllerBase
     {
+        private readonly IProfileService profileService;
+
+        public SecondOpinionController(IProfileService profileService)
+        {
+            this.profileService = profileService;
+        }
+
         [HttpPost("/resources/requests/internal/{requestId}/second-opinions")]
         public async Task<IActionResult> RequestSecondOpinion(Guid requestId, [FromBody] AddSecondOpinionRequest payload)
         {
@@ -53,7 +60,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new AddSecondOpinion(requestItem.RequestId, payload.Description, assignedToIds);
             var secondOpinion = await DispatchAsync(command);
 
-            return CreatedAtAction(nameof(GetSecondOpinions), new { requestItem.RequestId }, new ApiSecondOpinion(secondOpinion));
+            return CreatedAtAction(nameof(GetSecondOpinions), new { requestItem.RequestId }, new ApiSecondOpinion(secondOpinion, User.GetAzureUniqueIdOrThrow()));
         }
 
         [HttpGet("/resources/requests/internal/{requestId}/second-opinions")]
@@ -95,7 +102,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithRequest(requestId);
             var result = await DispatchAsync(command);
 
-            return Ok(result.Select(x => new ApiSecondOpinion(x)));
+            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())));
         }
 
         [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
@@ -151,7 +158,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return ApiErrors.NotFound("Could not locate second opinon");
 
 
-            return Ok(new ApiSecondOpinion(secondOpinion));
+            return Ok(new ApiSecondOpinion(secondOpinion, User.GetAzureUniqueIdOrThrow()));
         }
 
         [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
@@ -209,7 +216,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (response is null)
                 return ApiErrors.NotFound("Could not locate second opinion");
 
-            return Ok(new ApiSecondOpinionResponse(response));
+            return Ok(new ApiSecondOpinionResponse(response, User.GetAzureUniqueIdOrThrow()));
         }
 
         [HttpGet("/persons/{personId}/second-opinions/responses")]
@@ -226,7 +233,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             
             var responses = result
                 .SelectMany(x => x.Responses)
-                .Select(x => new ApiSecondOpinionResponse(x, includeParent: true));
+                .Select(x => new ApiSecondOpinionResponse(x, User.GetAzureUniqueIdOrThrow(), includeParent: true));
 
             return Ok(responses);
         }
@@ -243,7 +250,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithCreator(creatorId);
             var result = await DispatchAsync(command);
 
-            return Ok(result.Select(x => new ApiSecondOpinion(x)));
+            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())));
         }
     }
 }

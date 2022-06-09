@@ -1,12 +1,17 @@
 ﻿using Fusion.Resources.Domain;
 using System;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ApiSecondOpinionResponseStates { Open, Draft, Published }
     public class ApiSecondOpinionResponse
     {
-        public ApiSecondOpinionResponse(QuerySecondOpinionResponse response, bool includeParent = true)
+        private readonly Guid viewerAzureUniqueId;
+        private string? comment;
+
+        public ApiSecondOpinionResponse(QuerySecondOpinionResponse response, Guid viewerAzureUniqueId, bool includeParent = true)
         {
             Id = response.Id;
             PromptId = response.PromptId;
@@ -23,10 +28,12 @@ namespace Fusion.Resources.Api.Controllers
                 _ => throw new NotImplementedException()
             };
 
-            if(response.SecondOpinion is not null && includeParent)
+            if (response.SecondOpinion is not null && includeParent)
             {
-                SecondOpinion = new ApiSecondOpinion(response.SecondOpinion, includeChildren: false);
+                SecondOpinion = new ApiSecondOpinion(response.SecondOpinion, viewerAzureUniqueId, includeChildren: false);
             }
+
+            this.viewerAzureUniqueId = viewerAzureUniqueId;
         }
 
 
@@ -39,8 +46,24 @@ namespace Fusion.Resources.Api.Controllers
 
         public DateTimeOffset? AnsweredAt { get; set; }
 
-        public string? Comment { get; set; }
+        
+        public string? Comment 
+        {
+            get
+            {
+                if(viewerAzureUniqueId == AssignedTo.AzureUniquePersonId || State == ApiSecondOpinionResponseStates.Published)
+                {
+                    return comment;
+                }
+                return "";
+            }
+            set
+            {
+                comment = value;
+            }
+        }
         public ApiSecondOpinionResponseStates State { get; set; }
         public ApiSecondOpinion? SecondOpinion { get; }
+
     }
 }

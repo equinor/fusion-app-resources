@@ -36,9 +36,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         record TestSecondOpinionResponse
         {
+            public Guid Id { get; set; }
             public TestApiPerson AssignedTo { get; set; } = null!;
             public DateTimeOffset? AnsweredAt { get; set; }
-            
+
             public string Comment { get; set; }
             public string State { get; set; }
         }
@@ -106,7 +107,36 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task RequestSecondOpinion_ShouldShareRequest()
+        public async Task CreateSecondOpionion_ShouldNotCreateDuplicates()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser, testUser, testUser);
+            secondOpinion.Responses.Should().HaveCount(1);
+        }
+
+
+        [Fact]
+        public async Task CreateSecondOpinion_ShouldFail_WhenUserDoesNotExist()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new()
+                {
+                    new TestApiPerson { Mail = "gjhkasdasd@equinor.com" },
+                }
+            };
+
+            var result = await Client.TestClientPostAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions", payload);
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task CreateSecondOpinion_ShouldShareRequest()
         {
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject);
@@ -128,7 +158,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var userToAdd = fixture.AddProfile(FusionAccountType.Employee);
             var payload = new TestAddSecondOpinion() with
             {
-                AssignedTo = new() { 
+                AssignedTo = new()
+                {
                     new TestApiPerson { Mail = testUser.Mail },
                     new TestApiPerson { Mail = userToAdd.Mail }
                 }
@@ -141,7 +172,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var userSharedRequests = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"resources/persons/me/requests/shared");
             userSharedRequests.Value.Value.Should().Contain(x => x.Id == request.Id);
         }
-
 
         [Fact]
         public async Task UnassignSecondOpinion_ShouldRemoveResponse()
@@ -186,33 +216,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetSecondOpinionResponses_ShouldOnlyReturnAssigneesResponses()
-        {
-            using var adminScope = fixture.AdminScope();
-            var request = await Client.CreateDefaultRequestAsync(testProject);
-
-            var anotherUser = fixture.AddProfile(FusionAccountType.Employee);
-            var secondOpinion = await CreateSecondOpinion(request, testUser, anotherUser);
-
-
-            using var userScope = fixture.UserScope(testUser);
-            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionResponse>>("/persons/me/second-opinions/responses");
-
-            var allResponses = userSharedOpinions.Value;
-            allResponses.Should().OnlyContain(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
-        }
-
-        [Fact]
-        public async Task CreateSecondOpionion_ShouldNotCreateDuplicates()
-        {
-            using var adminScope = fixture.AdminScope();
-            var request = await Client.CreateDefaultRequestAsync(testProject);
-
-            var secondOpinion = await CreateSecondOpinion(request, testUser, testUser, testUser);
-            secondOpinion.Responses.Should().HaveCount(1);
-        }
-
-        [Fact]
         public async Task PatchSecondOpionion_ShouldNotCreateDuplicates()
         {
             using var adminScope = fixture.AdminScope();
@@ -222,7 +225,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var payload = new TestAddSecondOpinion() with
             {
-                AssignedTo = new() { 
+                AssignedTo = new()
+                {
                     new TestApiPerson { Mail = testUser.Mail },
                     new TestApiPerson { Mail = testUser.Mail },
                     new TestApiPerson { Mail = testUser.Mail }
@@ -231,24 +235,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}";
             var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
             result.Value.Responses.Should().HaveCount(1);
-        }
-
-        [Fact]
-        public async Task CreateSecondOpinion_ShouldFail_WhenUserDoesNotExist()
-        {
-            using var adminScope = fixture.AdminScope();
-            var request = await Client.CreateDefaultRequestAsync(testProject);
-
-            var payload = new TestAddSecondOpinion() with
-            {
-                AssignedTo = new()
-                {
-                    new TestApiPerson { Mail = "gjhkasdasd@equinor.com" },
-                }
-            };
-
-            var result = await Client.TestClientPostAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions", payload);
-            result.Should().BeBadRequest();
         }
 
         [Fact]
@@ -272,6 +258,45 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
             result.Should().BeBadRequest();
             result.Content.Should().Contain(payload.AssignedTo.First().Mail);
+        }
+
+        [Fact]
+        public async Task GetSecondOpinionResponses_ShouldOnlyReturnAssigneesResponses()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var anotherUser = fixture.AddProfile(FusionAccountType.Employee);
+            var secondOpinion = await CreateSecondOpinion(request, testUser, anotherUser);
+
+
+            using var userScope = fixture.UserScope(testUser);
+            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionResponse>>("/persons/me/second-opinions/responses");
+
+            var allResponses = userSharedOpinions.Value;
+            allResponses.Should().OnlyContain(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
+        }
+
+        [Fact]
+        public async Task GetSecondOpinion_ShouldNotShowDraftsForOtherUsers()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var payload = new
+            {
+                Comment = "This is my comment",
+                State = "Draft"
+            };
+
+            using var userScope = fixture.UserScope(testUser);
+            var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}/responses/{secondOpinion.Responses.First().Id}", payload);
+
+            using var adminScope2 = fixture.AdminScope();
+            var secondOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions");
+            secondOpinions.Value.First().Responses.First().Comment.Should().BeEmpty();
         }
 
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
