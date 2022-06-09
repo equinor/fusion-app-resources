@@ -22,7 +22,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         record TestAddSecondOpinion
         {
-            public string Description { get; set; } = "Test Second Opinion";
+            public string Title { get; set; } = "Test Second Opinion";
+            public string Description { get; set; } = "Test Second Opinion Description";
             public List<TestApiPerson> AssignedTo { get; init; } = new();
         }
 

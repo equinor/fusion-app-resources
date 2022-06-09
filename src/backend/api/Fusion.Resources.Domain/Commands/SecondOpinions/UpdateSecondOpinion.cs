@@ -21,6 +21,7 @@ namespace Fusion.Resources.Domain.Commands
 
         public Guid SecondOpinionId { get; }
 
+        public MonitorableProperty<string> Title { get; set; } = new();
         public MonitorableProperty<string> Description { get; set; } = new();
         public MonitorableProperty<List<PersonId>> AssignedTo { get; set; } = new();
 
@@ -46,6 +47,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (entity == null) return null;
 
+                request.Title.IfSet(x => entity.Title = x);
                 request.Description.IfSet(x => entity.Description = x);
 
                 if (request.AssignedTo.HasBeenSet)

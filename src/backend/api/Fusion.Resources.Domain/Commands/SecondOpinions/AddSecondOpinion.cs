@@ -14,12 +14,14 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class AddSecondOpinion : TrackableRequest<QuerySecondOpinion>
     {
+        private string title;
         private Guid requestId;
         private string description;
         private List<PersonId> assignedToIds;
 
-        public AddSecondOpinion(Guid requestId, string description, IEnumerable<PersonId> assignedToIds)
+        public AddSecondOpinion(Guid requestId, string title, string description, IEnumerable<PersonId> assignedToIds)
         {
+            this.title = title;
             this.requestId = requestId;
             this.description = description;
             this.assignedToIds = assignedToIds.ToList();
@@ -42,6 +44,7 @@ namespace Fusion.Resources.Domain.Commands
             {
                 var secondOpinion = new DbSecondOpinionPrompt
                 {
+                    Title = request.title,
                     Description = request.description,
                     RequestId = request.requestId,
                     CreatedById = request.Editor.Person.Id
@@ -60,9 +63,9 @@ namespace Fusion.Resources.Domain.Commands
                 }
 
                 var shareCommand = new ShareRequest(
-                    request.requestId, 
-                    SharedRequestScopes.BasicRead, 
-                    SharedRequestSource.SecondOpinion, 
+                    request.requestId,
+                    SharedRequestScopes.BasicRead,
+                    SharedRequestSource.SecondOpinion,
                     $"Request shared by {request.Editor.Person.Name} for second opinion."
                 );
                 shareCommand.SharedWith.AddRange(request.assignedToIds);

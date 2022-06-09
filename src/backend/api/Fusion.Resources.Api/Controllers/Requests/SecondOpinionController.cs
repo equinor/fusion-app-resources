@@ -5,6 +5,7 @@ using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpPost("/resources/requests/internal/{requestId}/second-opinions")]
-        public async Task<IActionResult> RequestSecondOpinion(Guid requestId, [FromBody] AddSecondOpinionRequest payload)
+        public async Task<ActionResult<ApiSecondOpinion>> RequestSecondOpinion(Guid requestId, [FromBody] AddSecondOpinionRequest payload)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -57,14 +58,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var assignedToIds = payload.AssignedTo.Select(x => (PersonId)x);
-            var command = new AddSecondOpinion(requestItem.RequestId, payload.Description, assignedToIds);
+            var command = new AddSecondOpinion(requestItem.RequestId, payload.Title, payload.Description, assignedToIds);
             var secondOpinion = await DispatchAsync(command);
 
             return CreatedAtAction(nameof(GetSecondOpinions), new { requestItem.RequestId }, new ApiSecondOpinion(secondOpinion, User.GetAzureUniqueIdOrThrow()));
         }
 
         [HttpGet("/resources/requests/internal/{requestId}/second-opinions")]
-        public async Task<IActionResult> GetSecondOpinions(Guid requestId)
+        public async Task<ActionResult<List<ApiSecondOpinion>>> GetSecondOpinions(Guid requestId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -102,11 +103,11 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithRequest(requestId);
             var result = await DispatchAsync(command);
 
-            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())));
+            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())).ToList());
         }
 
         [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
-        public async Task<IActionResult> PatchSecondOpinion(Guid requestId, Guid secondOpinionId, [FromBody] PatchSecondOpinionRequest payload)
+        public async Task<ActionResult<ApiSecondOpinion>> PatchSecondOpinion(Guid requestId, Guid secondOpinionId, [FromBody] PatchSecondOpinionRequest payload)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -162,7 +163,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
-        public async Task<IActionResult> PatchSecondOpinionResponse(Guid requestId, Guid secondOpinionId, Guid responseId, PatchSecondOpinionResponseRequest payload)
+        public async Task<ActionResult<ApiSecondOpinionResponse>> PatchSecondOpinionResponse(Guid requestId, Guid secondOpinionId, Guid responseId, PatchSecondOpinionResponseRequest payload)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
@@ -220,7 +221,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("/persons/{personId}/second-opinions/responses")]
-        public async Task<IActionResult> GetPersonalResponses(string personId)
+        public async Task<ActionResult<List<ApiSecondOpinionResponse>>> GetPersonalResponses(string personId)
         {
             PersonId assigneeId = personId switch
             {
@@ -239,7 +240,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("/persons/{personId}/second-opinions/")]
-        public async Task<IActionResult> GetPersonalSecondOpinions(string personId)
+        public async Task<ActionResult<List<ApiSecondOpinion>>> GetPersonalSecondOpinions(string personId)
         {
             PersonId creatorId = personId switch
             {
@@ -250,7 +251,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithCreator(creatorId);
             var result = await DispatchAsync(command);
 
-            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())));
+            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())).ToList());
         }
     }
 }

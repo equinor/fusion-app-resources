@@ -8,6 +8,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class AddSecondOpinionRequest
     {
+        public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
         public List<PersonReference> AssignedTo { get; set; } = null!;
 
@@ -15,6 +16,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             public Validator()
             {
+                RuleFor(x => x.Title).NotEmpty();
                 RuleFor(x => x.Description).NotEmpty();
                 RuleFor(x => x.AssignedTo).NotEmpty();
 

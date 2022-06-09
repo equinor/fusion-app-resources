@@ -8,6 +8,10 @@ namespace Fusion.Resources.Database.Entities
     public class DbSecondOpinionPrompt
     {
         public Guid Id { get; set; }
+
+        [MaxLength(250)]
+        public string Title { get; set; } = null!;
+
         [MaxLength(2000)]
         public string Description { get; set; } = null!;
 

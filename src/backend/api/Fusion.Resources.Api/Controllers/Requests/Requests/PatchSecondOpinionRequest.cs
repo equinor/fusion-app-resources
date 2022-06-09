@@ -9,6 +9,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class PatchSecondOpinionRequest : PatchRequest
     {
+        public PatchProperty<string> Title { get; set; } = new();
         public PatchProperty<string> Description { get; set; } = new();
         public PatchProperty<List<PersonReference>> AssignedTo { get; set; } = new();
 
@@ -16,8 +17,8 @@ namespace Fusion.Resources.Api.Controllers
         {
             public Validator()
             {
-
-                RuleFor(x => x.AssignedTo).NotEmpty();
+                RuleFor(x => x.Title.Value).NotEmpty().When(x => x.Title.HasValue);
+                RuleFor(x => x.Description.Value).NotEmpty().When(x => x.Description.HasValue);
                 RuleFor(x => x.AssignedTo)
                     .MustAsync(async (req, assignedToIds, context, cancel) =>
                     {
