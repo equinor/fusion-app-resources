@@ -212,6 +212,68 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             secondOpinion.Responses.Should().HaveCount(1);
         }
 
+        [Fact]
+        public async Task PatchSecondOpionion_ShouldNotCreateDuplicates()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new() { 
+                    new TestApiPerson { Mail = testUser.Mail },
+                    new TestApiPerson { Mail = testUser.Mail },
+                    new TestApiPerson { Mail = testUser.Mail }
+                }
+            };
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}";
+            var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
+            result.Value.Responses.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task CreateSecondOpinion_ShouldFail_WhenUserDoesNotExist()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new()
+                {
+                    new TestApiPerson { Mail = "gjhkasdasd@equinor.com" },
+                }
+            };
+
+            var result = await Client.TestClientPostAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions", payload);
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task PatchSecondOpinion_ShouldFail_WhenUserDoesNotExist()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new()
+                {
+                    new TestApiPerson { Mail = "gjhkasdasd@equinor.com" },
+                }
+            };
+
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}";
+            var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
+            result.Should().BeBadRequest();
+            result.Content.Should().Contain(payload.AssignedTo.First().Mail);
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with

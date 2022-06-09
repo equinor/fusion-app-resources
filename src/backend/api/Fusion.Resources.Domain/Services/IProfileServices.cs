@@ -15,7 +15,6 @@ namespace Fusion.Resources.Domain
         /// <param name="personId">The person identifier. Can be either mail or azure unique id. If mail, the profile will be resolved to an azure unique id.</param>
         /// <returns></returns>
         Task<DbPerson?> EnsurePersonAsync(PersonId personId);
-
         /// <summary>
         /// Looks up all the person identifiers in the Fusion People service and adds or updates the local database person entities.
         /// </summary>
