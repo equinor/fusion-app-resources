@@ -11,6 +11,7 @@ namespace Fusion.Resources.Domain
         {
             Id = secondOpinion.Id;
             Description = secondOpinion.Description;
+            Title = secondOpinion.Title;
             CreatedById = secondOpinion.CreatedById;
             CreatedBy = new QueryPerson(secondOpinion.CreatedBy);
 
@@ -21,8 +22,8 @@ namespace Fusion.Resources.Domain
         }
 
         public Guid Id { get; }
+        public string Title { get; }
         public string Description { get;  }
-
 
         public Guid CreatedById { get;  }
         public QueryPerson CreatedBy { get; }

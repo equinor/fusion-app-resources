@@ -10,6 +10,7 @@ namespace Fusion.Resources.Api.Controllers
         public ApiSecondOpinion(QuerySecondOpinion query, Guid viewerAzureUniqueId, bool includeChildren = true)
         {
             Id = query.Id;
+            Title = query.Title;
             Description = query.Description;
             CreatedById = query.CreatedById;
             CreatedBy = new ApiPerson(query.CreatedBy);
@@ -21,6 +22,8 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         public Guid Id { get; }
+
+        public string Title { get; }
         public string Description { get; }
 
 

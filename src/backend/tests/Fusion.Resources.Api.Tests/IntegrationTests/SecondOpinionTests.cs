@@ -30,6 +30,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         record TestSecondOpinionPrompt
         {
             public Guid Id { get; set; }
+            public string Title { get; set; }
             public string Description { get; set; }
             public TestApiPerson CreatedBy { get; set; }
             public List<TestSecondOpinionResponse> Responses { get; set; } = new();
@@ -214,6 +215,28 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var userScope = fixture.UserScope(userToRemove);
             var userSharedRequests = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"resources/persons/me/requests/shared");
             userSharedRequests.Value.Value.Should().NotContain(x => x.Id == request.Id);
+        }
+
+        [Fact]
+        public async Task PatchSecondOpinion_ShouldSetAllFields()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+            var payload = new
+            {
+                title = "Updated title",
+                description = "Updated description",
+            };
+
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}";
+            var patchResult = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
+            patchResult.Should().BeSuccessfull();
+
+            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions/");
+            result.Value.First().Title.Should().Be(payload.title);
+            result.Value.First().Description.Should().Be(payload.description);
         }
 
         [Fact]
