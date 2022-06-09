@@ -144,6 +144,11 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var command = new UpdateSecondOpinion(secondOpinionId);
 
+            if(payload.Title.HasValue)
+            {
+                command.Title = payload.Title.Value;
+            }
+
             if (payload.Description.HasValue)
             {
                 command.Description = payload.Description.Value;
