@@ -15,6 +15,7 @@ namespace Fusion.Resources.Domain
         public PersonId? CreatedById { get; private set; }
         public PersonId? AssigneeId { get; private set; }
         public Guid? RequestId { get; private set; }
+        public Guid? Id { get; private set; }
 
         public GetSecondOpinions WithCreator(PersonId creator)
         {
@@ -31,6 +32,13 @@ namespace Fusion.Resources.Domain
         public GetSecondOpinions WithAssignee(PersonId assigneeId)
         {
             AssigneeId = assigneeId;
+            return this;
+        }
+
+
+        public GetSecondOpinions WithId(Guid secondOpinionId)
+        {
+            Id = secondOpinionId;
             return this;
         }
 
@@ -68,6 +76,11 @@ namespace Fusion.Resources.Domain
                     .Include(x => x.CreatedBy)
                     .AsQueryable();
 
+                if (request.Id.HasValue)
+                {
+                    query = query.Where(r => r.Id == request.Id);
+                }
+
                 if (creatorId.HasValue)
                 {
                     query = query.Where(x => x.CreatedById == creatorId);
@@ -87,6 +100,6 @@ namespace Fusion.Resources.Domain
 
                 return secondOpinions.Select(x => new QuerySecondOpinion(x)).ToList();
             }
-        }       
+        }
     }
 }

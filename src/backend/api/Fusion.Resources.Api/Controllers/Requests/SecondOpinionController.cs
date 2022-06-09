@@ -14,11 +14,46 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [ApiController]
     public class SecondOpinionController : ResourceControllerBase
     {
-        private readonly IProfileService profileService;
-
-        public SecondOpinionController(IProfileService profileService)
+        [HttpOptions("/resources/requests/internal/{requestId}/second-opinions")]
+        public async Task<IActionResult> CheckSecondOpinionAccess(Guid requestId)
         {
-            this.profileService = profileService;
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or =>
+                {
+                    if (requestItem.AssignedDepartment is not null)
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                    }
+                    else
+                    {
+                        or.BeResourceOwner();
+                    }
+                });
+
+                r.LimitedAccessWhen(or => or.HaveBasicRead(requestId));
+            });
+
+            var allowed = new List<string>();
+
+            if (authResult.Success)
+            {
+                allowed.Add("GET");
+                if (!authResult.LimitedAuth) allowed.Add("POST");
+            }
+
+            Response.Headers.Add("Allow", string.Join(',', allowed));
+            return NoContent();
         }
 
         [HttpPost("/resources/requests/internal/{requestId}/second-opinions")]
@@ -48,7 +83,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-                    or.HaveBasicRead(requestId);
                 });
             });
 
@@ -106,15 +140,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())).ToList());
         }
 
-        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
-        public async Task<ActionResult<ApiSecondOpinion>> PatchSecondOpinion(Guid requestId, Guid secondOpinionId, [FromBody] PatchSecondOpinionRequest payload)
+
+        [HttpOptions("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
+        public async Task<IActionResult> CheckSecondOpinionAccess(Guid requestId, Guid secondOpinionId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
-
-            #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -133,8 +166,42 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     {
                         or.BeResourceOwner();
                     }
-                    or.HaveBasicRead(requestId);
                 });
+            });
+
+            var allowed = new List<string>();
+
+            if (authResult.Success)
+            {
+                allowed.Add("PATCH");
+            }
+
+            Response.Headers.Add("Allow", string.Join(',', allowed));
+            return NoContent();
+        }
+
+        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
+        public async Task<ActionResult<ApiSecondOpinion>> PatchSecondOpinion(Guid requestId, Guid secondOpinionId, [FromBody] PatchSecondOpinionRequest payload)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
+
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            var secondOpinion = (await DispatchAsync(new GetSecondOpinions()
+                .WithRequest(requestId)
+                .WithId(secondOpinionId)
+            )).SingleOrDefault();
+
+            if (secondOpinion is null)
+                return ApiErrors.NotFound("Could not locate second opinion for request", $"{secondOpinionId}");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or => or.CurrentUserIs(secondOpinion.CreatedBy.AzureUniqueId));
             });
 
             if (authResult.Unauthorized)
@@ -144,7 +211,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var command = new UpdateSecondOpinion(secondOpinionId);
 
-            if(payload.Title.HasValue)
+            if (payload.Title.HasValue)
             {
                 command.Title = payload.Title.Value;
             }
@@ -159,12 +226,36 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 command.AssignedTo = payload.AssignedTo.Value.Select(x => (PersonId)x).ToList();
             }
 
-            var secondOpinion = await DispatchAsync(command);
-            if (secondOpinion is null)
-                return ApiErrors.NotFound("Could not locate second opinon");
+            secondOpinion = await DispatchAsync(command);
+            return Ok(new ApiSecondOpinion(secondOpinion!, User.GetAzureUniqueIdOrThrow()));
+        }
 
+        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
+        public async Task<ActionResult<ApiSecondOpinionResponse>> CheckPatchSecondOpinionResponse(Guid requestId, Guid secondOpinionId, Guid responseId)
+        {
+            var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
-            return Ok(new ApiSecondOpinion(secondOpinion, User.GetAzureUniqueIdOrThrow()));
+            if (requestItem == null)
+                return ApiErrors.NotFound("Could not locate request", $"{requestId}");
+
+            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).SingleOrDefault();
+            if (secondOpinion == null)
+                return ApiErrors.NotFound("Could not locate second opinion");
+
+            var response = secondOpinion.Responses.FirstOrDefault(x => x.Id == responseId);
+            if (response == null)
+                return ApiErrors.NotFound("Could not locate response on second opinion");
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or => or.CurrentUserIs(response.AssignedTo.AzureUniqueId));
+            });
+
+            if (authResult.Success)
+                Response.Headers["Allow"] = "PATCH";
+
+            return NoContent();
         }
 
         [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
@@ -175,27 +266,20 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
+            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).SingleOrDefault();
+            if (secondOpinion == null)
+                return ApiErrors.NotFound("Could not locate second opinion");
+
+            var response = secondOpinion.Responses.FirstOrDefault(x => x.Id == responseId);
+            if (response == null)
+                return ApiErrors.NotFound("Could not locate response on second opinion");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
-                r.AnyOf(or =>
-                {
-                    if (requestItem.AssignedDepartment is not null)
-                    {
-                        or.BeResourceOwner(
-                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
-                            includeParents: false,
-                            includeDescendants: true
-                        );
-                    }
-                    else
-                    {
-                        or.BeResourceOwner();
-                    }
-                    or.HaveBasicRead(requestId);
-                });
+                r.AnyOf(or => or.CurrentUserIs(response.AssignedTo.AzureUniqueId));
             });
 
             if (authResult.Unauthorized)
@@ -217,12 +301,30 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 };
             }
 
-            var response = await DispatchAsync(command);
+            response = await DispatchAsync(command);
 
-            if (response is null)
-                return ApiErrors.NotFound("Could not locate second opinion");
+            return Ok(new ApiSecondOpinionResponse(response!, User.GetAzureUniqueIdOrThrow()));
+        }
 
-            return Ok(new ApiSecondOpinionResponse(response, User.GetAzureUniqueIdOrThrow()));
+
+        [HttpOptions("/persons/{personId}/second-opinions/")]
+        [HttpOptions("/persons/{personId}/second-opinions/responses")]
+        public async Task<IActionResult> CheckPersonalAccess(string personId)
+        {
+            PersonId assigneeId = personId switch
+            {
+                "me" => User.GetAzureUniqueIdOrThrow(),
+                _ => new PersonId(personId)
+            };
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or => or.CurrentUserIs(assigneeId));
+            });
+
+            if (authResult.Success) Response.Headers["Allow"] = "GET";
+            return NoContent();
         }
 
         [HttpGet("/persons/{personId}/second-opinions/responses")]
@@ -234,9 +336,18 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 _ => new PersonId(personId)
             };
 
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or => or.CurrentUserIs(assigneeId));
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
             var command = new GetSecondOpinions().WithAssignee(assigneeId);
             var result = await DispatchAsync(command);
-            
+
             var responses = result
                 .SelectMany(x => x.Responses)
                 .Select(x => new ApiSecondOpinionResponse(x, User.GetAzureUniqueIdOrThrow(), includeParent: true));
@@ -252,6 +363,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 "me" => User.GetAzureUniqueIdOrThrow(),
                 _ => new PersonId(personId)
             };
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
+                r.AnyOf(or => or.CurrentUserIs(creatorId));
+            });
 
             var command = new GetSecondOpinions().WithCreator(creatorId);
             var result = await DispatchAsync(command);
