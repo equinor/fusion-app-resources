@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
-    public enum DbSecondOpinionResponseStates { Open, Draft, Published }
+    public enum DbSecondOpinionResponseStates { Open, Draft, Published, Closed }
     public class DbSecondOpinionResponse
     {
         public Guid Id { get; set; }
@@ -29,7 +29,7 @@ namespace Fusion.Resources.Database.Entities
                 map.ToTable("SecondOpinionResponses");
                 map.HasKey(x => x.Id);
                 map.HasOne(x => x.AssignedTo).WithMany().HasForeignKey(x => x.AssignedToId);
-                
+
                 map.Property(x => x.State)
                     .HasConversion(new EnumToStringConverter<DbSecondOpinionResponseStates>())
                     .HasMaxLength(64);

@@ -323,6 +323,53 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             secondOpinions.Value.First().Responses.First().Comment.Should().BeEmpty();
         }
 
+
+        [Fact]
+        public async Task ClosingRequest_ShouldHidePublishedSecondOpinions()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            foreach (var response in secondOpinion.Responses)
+            {
+                await AddResponse(request.Id, secondOpinion.Id, response.Id);
+            }
+
+            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions/");
+            var prompt = result.Value.First();
+
+            prompt.Responses
+                .All(x => x.Comment == "Comments are hidden when request is closed.")
+                .Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ClosingRequest_ShouldCloseUnpublishedSecondOpinions()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions/");
+            var prompt = result.Value.First();
+
+            prompt.Responses.All(x => x.State == "Closed")
+                .Should().BeTrue();
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
@@ -334,6 +381,19 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
 
             return result.Value;
+        }
+
+        private async Task AddResponse(Guid requestId, Guid secondOpinionId, Guid responseId, string state = "Published", string comment = "This is my comment")
+        {
+            var payload = new
+            {
+                Comment = comment,
+                State = state
+            };
+
+            using var userScope = fixture.UserScope(testUser);
+            var patchResult = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}", payload);
+            patchResult.Should().BeSuccessfull();
         }
 
         public Task DisposeAsync() => Task.CompletedTask;

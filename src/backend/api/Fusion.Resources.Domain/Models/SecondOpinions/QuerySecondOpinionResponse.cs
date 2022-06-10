@@ -3,7 +3,7 @@ using System;
 
 namespace Fusion.Resources.Domain
 {
-    public enum QuerySecondOpinionResponseStates { Open, Draft, Published }
+    public enum QuerySecondOpinionResponseStates { Open, Draft, Published, Closed }
     public class QuerySecondOpinionResponse
     {
         public QuerySecondOpinionResponse(DbSecondOpinionResponse response)
@@ -20,6 +20,7 @@ namespace Fusion.Resources.Domain
                 DbSecondOpinionResponseStates.Open => QuerySecondOpinionResponseStates.Open,
                 DbSecondOpinionResponseStates.Draft => QuerySecondOpinionResponseStates.Draft,
                 DbSecondOpinionResponseStates.Published => QuerySecondOpinionResponseStates.Published,
+                DbSecondOpinionResponseStates.Closed => QuerySecondOpinionResponseStates.Closed,
                 _ => throw new NotImplementedException()
             };
             SecondOpinion = new QuerySecondOpinion(response.SecondOpinion);

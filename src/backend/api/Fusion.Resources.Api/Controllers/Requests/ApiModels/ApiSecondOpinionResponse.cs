@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Fusion.Resources.Api.Controllers
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ApiSecondOpinionResponseStates { Open, Draft, Published }
+    public enum ApiSecondOpinionResponseStates { Open, Draft, Published, Closed }
     public class ApiSecondOpinionResponse
     {
         private readonly Guid viewerAzureUniqueId;
@@ -25,6 +25,7 @@ namespace Fusion.Resources.Api.Controllers
                 QuerySecondOpinionResponseStates.Open => ApiSecondOpinionResponseStates.Open,
                 QuerySecondOpinionResponseStates.Draft => ApiSecondOpinionResponseStates.Draft,
                 QuerySecondOpinionResponseStates.Published => ApiSecondOpinionResponseStates.Published,
+                QuerySecondOpinionResponseStates.Closed => ApiSecondOpinionResponseStates.Closed,
                 _ => throw new NotImplementedException()
             };
 
@@ -46,12 +47,12 @@ namespace Fusion.Resources.Api.Controllers
 
         public DateTimeOffset? AnsweredAt { get; set; }
 
-        
-        public string? Comment 
+
+        public string? Comment
         {
             get
             {
-                if(viewerAzureUniqueId == AssignedTo.AzureUniquePersonId || State == ApiSecondOpinionResponseStates.Published)
+                if (viewerAzureUniqueId == AssignedTo.AzureUniquePersonId || State == ApiSecondOpinionResponseStates.Published)
                 {
                     return comment;
                 }

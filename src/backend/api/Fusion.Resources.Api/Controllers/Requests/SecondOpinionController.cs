@@ -230,7 +230,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return Ok(new ApiSecondOpinion(secondOpinion!, User.GetAzureUniqueIdOrThrow()));
         }
 
-        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
+        [HttpOptions("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}")]
         public async Task<ActionResult<ApiSecondOpinionResponse>> CheckPatchSecondOpinionResponse(Guid requestId, Guid secondOpinionId, Guid responseId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
