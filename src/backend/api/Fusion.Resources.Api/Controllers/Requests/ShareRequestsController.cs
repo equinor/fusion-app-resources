@@ -103,7 +103,6 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
             #region Authorization
-
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
@@ -126,7 +125,6 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-
             #endregion
 
             var wasDeleted = await DispatchAsync(new RevokeShareRequest(requestId, new PersonId(sharedWithAzureId), SharedRequestSource.User));
