@@ -228,7 +228,7 @@ namespace Fusion.Resources.Domain.Services
             try
             {
                 var ensuredPersons = new List<DbPerson>();
-                foreach (var resolved in resolvedProfiles!.Select(x => x.Profile).ToLookup(x => x.AzureUniqueId))
+                foreach (var resolved in resolvedProfiles!.Select(x => x.Profile).ToLookup(x => x!.AzureUniqueId))
                 {
                     // avoid adding duplicate persons.
                     var profile = resolved.FirstOrDefault();
