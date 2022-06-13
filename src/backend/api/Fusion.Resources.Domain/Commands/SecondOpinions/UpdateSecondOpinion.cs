@@ -2,6 +2,7 @@
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands.Requests.Sharing;
 using Fusion.Resources.Domain.Models;
+using Fusion.Resources.Domain.Queries;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -47,6 +48,10 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (entity == null) return null;
 
+
+                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(entity.RequestId), ct);
+                if (requestItem == null) return null;
+
                 request.Title.IfSet(x => entity.Title = x);
                 request.Description.IfSet(x => entity.Description = x);
 
@@ -64,15 +69,19 @@ namespace Fusion.Resources.Domain.Commands
                         await mediator.Send(new RevokeShareRequest(entity.RequestId, new PersonId(response.AssignedTo.AzureUniqueId), SharedRequestSource.SecondOpinion), ct);
                     }
 
-                    var addedAssignees = assigneeIds.Except(entity.Responses.Select(x => x.AssignedToId)).ToList();
-                    foreach (var assigneeId in addedAssignees)
+                    var addedAssigneeIds = assigneeIds.Except(entity.Responses.Select(x => x.AssignedToId));
+                    var addedAssignees = assignees
+                        .Where(x => addedAssigneeIds.Contains(x.Id))
+                        .ToList();
+                    foreach (var assignee in addedAssignees)
                     {
                         entity.Responses.Add(new DbSecondOpinionResponse
                         {
                             PromptId = request.SecondOpinionId,
-                            AssignedToId = assigneeId,
+                            AssignedToId = assignee.Id,
                             State = DbSecondOpinionResponseStates.Open
                         });
+                        await mediator.Publish(new SecondOpinionRequested(requestItem, new QueryPerson(assignee)), ct);
                     }
 
                     var shareCommand = new ShareRequest(
@@ -82,9 +91,7 @@ namespace Fusion.Resources.Domain.Commands
                         $"Request shared by {request.Editor.Person.Name} for second opinion."
                     );
 
-                    //TODO: Filter once
-                    var addedAzureIds = assignees.Where(x => assigneeIds.Contains(x.Id)).Select(x => x.AzureUniqueId).ToArray();
-                    shareCommand.SharedWith.AddRange(addedAzureIds.Select(x => new PersonId(x)));
+                    shareCommand.SharedWith.AddRange(addedAssignees.Select(x => new PersonId(x.AzureUniqueId)));
                     await mediator.Send(shareCommand, ct);
                 }
 

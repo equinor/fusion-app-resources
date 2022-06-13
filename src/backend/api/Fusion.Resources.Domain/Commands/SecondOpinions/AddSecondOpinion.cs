@@ -2,6 +2,7 @@
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain.Commands.Requests.Sharing;
 using Fusion.Resources.Domain.Models;
+using Fusion.Resources.Domain.Queries;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -42,6 +43,9 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QuerySecondOpinion> Handle(AddSecondOpinion request, CancellationToken cancellationToken)
             {
+                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.requestId), cancellationToken);
+                if (requestItem is null) throw new InvalidOperationException("Cannot request second opinion on request. Request does not exist");
+
                 var secondOpinion = new DbSecondOpinionPrompt
                 {
                     Title = request.title,
@@ -60,6 +64,7 @@ namespace Fusion.Resources.Domain.Commands
                         AssignedToId = person.Id,
                         State = DbSecondOpinionResponseStates.Open
                     });
+                    await mediator.Publish(new SecondOpinionRequested(requestItem, new QueryPerson(person)), cancellationToken);
                 }
 
                 var shareCommand = new ShareRequest(
