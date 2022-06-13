@@ -26,11 +26,11 @@ namespace Fusion.Resources.Api.Notifications
                 .AddTitle("Your opinion has been requested on a personnel request.")
                 .TryAddProfileCard(notification.Request.OrgPositionInstance?.AssignedPerson?.AzureUniqueId)
                 .AddFacts(x => x
-                    .AddFactIf("Proposed Person", notification.Request.ProposedPerson!.Person!.Name, notification.Request.ProposedPerson?.Person is not null)
-                    .AddFactIf("Request number", $"{notification.Request!.RequestNumber}", notification.Request?.RequestNumber is not null)
-                    .AddFactIf("Project", notification.Request!.Project.Name, notification.Request?.Project is not null)
-                    .AddFactIf("Position id", notification.Request!.OrgPosition!.ExternalId, notification.Request?.OrgPosition?.ExternalId is not null)
-                    .AddFactIf("Position", notification.Request!.OrgPosition!.Name ?? "", notification.Request?.OrgPosition?.Name is not null)
+                    .AddFactIf("Proposed Person", $"{notification.Request?.ProposedPerson?.Person?.Name}", notification.Request?.ProposedPerson?.Person is not null)
+                    .AddFactIf("Request number", $"{notification.Request?.RequestNumber}", notification.Request?.RequestNumber is not null)
+                    .AddFactIf("Project", $"{notification.Request?.Project?.Name}", notification.Request?.Project is not null)
+                    .AddFactIf("Position id", $"{notification.Request?.OrgPosition?.ExternalId}", notification.Request?.OrgPosition?.ExternalId is not null)
+                    .AddFactIf("Position", $"{notification.Request?.OrgPosition?.Name}", notification.Request?.OrgPosition?.Name is not null)
                 )
                 .AddTextBlock($"Created by: {notification.Request.CreatedBy.Name}")
                 //.TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgPortalUrl}");
