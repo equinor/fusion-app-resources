@@ -19,6 +19,10 @@ namespace Fusion.Resources.Api.Controllers
             {
                 Responses = query.Responses.Select(x => new ApiSecondOpinionResponse(x, viewerAzureUniqueId, includeParent: !includeChildren)).ToList();
             }
+            if(query.Request is not null)
+            {
+                Request = new ApiResourceAllocationRequest(query.Request);
+            }
         }
 
         public Guid Id { get; }
@@ -31,5 +35,6 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPerson CreatedBy { get; }
 
         public List<ApiSecondOpinionResponse> Responses { get; } = new();
+        public ApiResourceAllocationRequest? Request { get; }
     }
 }

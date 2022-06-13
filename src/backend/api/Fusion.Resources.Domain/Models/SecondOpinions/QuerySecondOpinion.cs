@@ -19,6 +19,11 @@ namespace Fusion.Resources.Domain
             {
                 Responses = secondOpinion.Responses.Select(x => new QuerySecondOpinionResponse(x));
             }
+
+            if(secondOpinion.Request is not null)
+            {
+                Request = new QueryResourceAllocationRequest(secondOpinion.Request);
+            }
         }
 
         public Guid Id { get; }
@@ -29,5 +34,6 @@ namespace Fusion.Resources.Domain
         public QueryPerson CreatedBy { get; }
 
         public IEnumerable<QuerySecondOpinionResponse> Responses { get; } = Array.Empty<QuerySecondOpinionResponse>();
+        public QueryResourceAllocationRequest? Request { get; }
     }
 }

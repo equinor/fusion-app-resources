@@ -74,6 +74,7 @@ namespace Fusion.Resources.Domain
                     .Include(x => x.Responses.Where(r => r.AssignedToId == assigneeId || assigneeId == null))
                         .ThenInclude(x => x.AssignedTo)
                     .Include(x => x.CreatedBy)
+                    .Include(x => x.Request).ThenInclude(x => x.Project)
                     .AsQueryable();
 
                 if (request.Id.HasValue)
