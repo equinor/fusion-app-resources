@@ -14,6 +14,7 @@ namespace Fusion.Resources.Api.Controllers
             Description = query.Description;
             CreatedById = query.CreatedById;
             CreatedBy = new ApiPerson(query.CreatedBy);
+            CreatedDate = query.CreatedDate;
 
             if (query.Responses is not null && includeChildren)
             {
@@ -33,7 +34,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public Guid CreatedById { get; }
         public ApiPerson CreatedBy { get; }
-
+        public DateTimeOffset CreatedDate { get; }
         public List<ApiSecondOpinionResponse> Responses { get; } = new();
         public ApiResourceAllocationRequest? Request { get; }
     }

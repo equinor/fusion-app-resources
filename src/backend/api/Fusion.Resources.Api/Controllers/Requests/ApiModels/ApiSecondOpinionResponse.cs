@@ -17,7 +17,7 @@ namespace Fusion.Resources.Api.Controllers
             PromptId = response.PromptId;
             AssignedToId = response.AssignedToId;
             AssignedTo = new ApiPerson(response.AssignedTo);
-
+            CreatedDate = response.CreatedDate;
             AnsweredAt = response.AnsweredAt;
             Comment = response.Comment;
             State = response.State switch
@@ -43,7 +43,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public Guid AssignedToId { get; set; }
         public ApiPerson AssignedTo { get; set; } = null!;
-
+        public DateTimeOffset CreatedDate { get; }
 
         public DateTimeOffset? AnsweredAt { get; set; }
 

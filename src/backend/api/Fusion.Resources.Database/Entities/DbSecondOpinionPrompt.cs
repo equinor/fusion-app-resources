@@ -19,6 +19,8 @@ namespace Fusion.Resources.Database.Entities
         public Guid CreatedById { get; set; }
         public DbPerson CreatedBy { get; set; } = null!;
 
+        public DateTimeOffset CreatedDate { get; set; } = DateTimeOffset.Now;
+
         public Guid RequestId { get; set; }
         public DbResourceAllocationRequest Request { get; set; } = null!;
 

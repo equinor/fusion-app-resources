@@ -12,7 +12,7 @@ namespace Fusion.Resources.Domain
             PromptId = response.PromptId;
             AssignedToId = response.AssignedToId;
             AssignedTo = new QueryPerson(response.AssignedTo);
-
+            CreatedDate = response.CreatedDate;
             AnsweredAt = response.AnsweredAt;
             Comment = response.Comment;
             State = response.State switch
@@ -32,7 +32,7 @@ namespace Fusion.Resources.Domain
 
         public Guid AssignedToId { get; set; }
         public QueryPerson AssignedTo { get; set; } = null!;
-
+        public DateTimeOffset CreatedDate { get; }
 
         public DateTimeOffset? AnsweredAt { get; set; }
 

@@ -15,7 +15,7 @@ namespace Fusion.Resources.Database.Entities
         public Guid AssignedToId { get; set; }
         public DbPerson AssignedTo { get; set; } = null!;
 
-
+        public DateTimeOffset CreatedDate { get; set; } = DateTimeOffset.Now;
         public DateTimeOffset? AnsweredAt { get; set; }
 
         [MaxLength(2000)]

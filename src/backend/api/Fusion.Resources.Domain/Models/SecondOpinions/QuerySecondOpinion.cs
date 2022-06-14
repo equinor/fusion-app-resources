@@ -14,6 +14,7 @@ namespace Fusion.Resources.Domain
             Title = secondOpinion.Title;
             CreatedById = secondOpinion.CreatedById;
             CreatedBy = new QueryPerson(secondOpinion.CreatedBy);
+            CreatedDate = secondOpinion.CreatedDate;
 
             if(secondOpinion.Responses is not null)
             {
@@ -32,7 +33,7 @@ namespace Fusion.Resources.Domain
 
         public Guid CreatedById { get;  }
         public QueryPerson CreatedBy { get; }
-
+        public DateTimeOffset CreatedDate { get; }
         public IEnumerable<QuerySecondOpinionResponse> Responses { get; } = Array.Empty<QuerySecondOpinionResponse>();
         public QueryResourceAllocationRequest? Request { get; }
     }
