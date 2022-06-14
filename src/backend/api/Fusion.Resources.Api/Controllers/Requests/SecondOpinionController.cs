@@ -1,4 +1,5 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -356,7 +357,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("/persons/{personId}/second-opinions/")]
-        public async Task<ActionResult<List<ApiSecondOpinion>>> GetPersonalSecondOpinions(string personId)
+        public async Task<ActionResult<List<ApiSecondOpinion>>> GetPersonalSecondOpinions(string personId, [FromQuery] ODataQueryParams query)
         {
             PersonId creatorId = personId switch
             {
@@ -370,7 +371,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or => or.CurrentUserIs(creatorId));
             });
 
-            var command = new GetSecondOpinions().WithCreator(creatorId);
+            var command = new GetSecondOpinions().WithCreator(creatorId).WithQuery(query);
             var result = await DispatchAsync(command);
 
             return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())).ToList());

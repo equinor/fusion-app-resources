@@ -1,4 +1,5 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.AspNetCore.OData;
+using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ namespace Fusion.Resources.Domain
         public PersonId? AssigneeId { get; private set; }
         public Guid? RequestId { get; private set; }
         public Guid? Id { get; private set; }
+        public ODataQueryParams Query { get; private set; } = new ODataQueryParams();
 
         public GetSecondOpinions WithCreator(PersonId creator)
         {
@@ -39,6 +41,13 @@ namespace Fusion.Resources.Domain
         public GetSecondOpinions WithId(Guid secondOpinionId)
         {
             Id = secondOpinionId;
+            return this;
+        }
+
+
+        public GetSecondOpinions WithQuery(ODataQueryParams query)
+        {
+            Query = query;
             return this;
         }
 
@@ -95,6 +104,19 @@ namespace Fusion.Resources.Domain
                 if (request.RequestId.HasValue)
                 {
                     query = query.Where(x => x.RequestId == request.RequestId);
+                }
+
+                if(request.Query.HasFilter)
+                {
+                    var filter = request.Query.Filter.GetFilterForField("request.state");
+                    if (filter.Value == "Active")
+                    {
+                        query = query.Where(x => x.Request.State.State != "completed");
+                    }
+                    else if(filter.Value == "Completed")
+                    {
+                        query = query.Where(x => x.Request.State.State == "completed");
+                    }
                 }
 
                 var secondOpinions = await query.ToListAsync(cancellationToken);

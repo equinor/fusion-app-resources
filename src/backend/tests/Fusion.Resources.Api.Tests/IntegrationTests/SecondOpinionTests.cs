@@ -370,6 +370,44 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .Should().BeTrue();
         }
 
+
+
+        [Fact]
+        public async Task GetPersonalSecondOpinions_ShouldSupportNotFiltering()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var endpoint = $"/persons/me/second-opinions";
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);
+            result.Value.Should().Contain(x => x.Id == secondOpinion.Id);
+        }
+
+        [Fact]
+        public async Task GetPersonalSecondOpinions_ShouldFilterByRequestState()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var endpoint = $"/persons/me/second-opinions/?$filter=request.state eq 'Active'";
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);
+            result.Value.Should().Contain(x => x.Id == secondOpinion.Id);
+
+
+            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);
+            result.Value.Should().NotContain(x => x.Id == secondOpinion.Id);
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
