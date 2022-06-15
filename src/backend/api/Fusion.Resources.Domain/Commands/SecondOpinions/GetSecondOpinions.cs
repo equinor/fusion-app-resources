@@ -84,6 +84,7 @@ namespace Fusion.Resources.Domain
                         .ThenInclude(x => x.AssignedTo)
                     .Include(x => x.CreatedBy)
                     .Include(x => x.Request).ThenInclude(x => x.Project)
+                    .Include(x => x.Request).ThenInclude(x => x.CreatedBy)
                     .AsQueryable();
 
                 if (request.Id.HasValue)
