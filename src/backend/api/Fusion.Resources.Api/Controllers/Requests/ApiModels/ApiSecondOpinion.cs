@@ -23,6 +23,14 @@ namespace Fusion.Resources.Api.Controllers
             if(query.Request is not null)
             {
                 Request = new ApiResourceAllocationRequest(query.Request);
+                if(query.Request.State?.Equals("Completed", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    State = "Completed";
+                }
+                else
+                {
+                    State = "Active";
+                }
             }
         }
 
@@ -37,6 +45,6 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset CreatedDate { get; }
         public List<ApiSecondOpinionResponse> Responses { get; } = new();
         public ApiResourceAllocationRequest? Request { get; }
-        public string State => Request?.State?.Equals("Completed", StringComparison.OrdinalIgnoreCase) == true ? "Completed" : "Active";
+        public string? State { get; } 
     }
 }
