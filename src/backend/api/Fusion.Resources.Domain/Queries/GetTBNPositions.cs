@@ -51,9 +51,8 @@ namespace Fusion.Resources.Domain.Queries
                     foreach (var instance in pos.Instances)
                     {
                         if (instance.AssignedPerson is not null) continue;
-
                         // This should be some sort of configuration in the future
-                        if (sourceDepartment.IsRelevant(pos.BasePosition.Department))
+                        if (sourceDepartment.IsParent(pos.BasePosition.Department))
                         {
                             tbnPositions.Add(new QueryTbnPosition(pos, instance));
                         }
