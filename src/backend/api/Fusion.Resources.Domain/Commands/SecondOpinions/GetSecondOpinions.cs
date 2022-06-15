@@ -108,12 +108,12 @@ namespace Fusion.Resources.Domain
 
                 if(request.Query.HasFilter)
                 {
-                    var filter = request.Query.Filter.GetFilterForField("request.state");
-                    if (filter.Value == "Active")
+                    var filter = request.Query.Filter.GetFilterForField("state");
+                    if (filter.Value.Equals("Active", StringComparison.OrdinalIgnoreCase))
                     {
                         query = query.Where(x => x.Request.State.State != "completed");
                     }
-                    else if(filter.Value == "Completed")
+                    else if(filter.Value.Equals("Completed", StringComparison.OrdinalIgnoreCase))
                     {
                         query = query.Where(x => x.Request.State.State == "completed");
                     }

@@ -393,7 +393,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var request = await Client.CreateDefaultRequestAsync(testProject);
             await Client.StartProjectRequestAsync(testProject, request.Id);
 
-            var endpoint = $"/persons/me/second-opinions/?$filter=request.state eq 'Active'";
+            var endpoint = $"/persons/me/second-opinions/?$filter=state eq 'Active'";
             var secondOpinion = await CreateSecondOpinion(request, testUser);
 
             var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);

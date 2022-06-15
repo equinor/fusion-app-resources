@@ -37,5 +37,6 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset CreatedDate { get; }
         public List<ApiSecondOpinionResponse> Responses { get; } = new();
         public ApiResourceAllocationRequest? Request { get; }
+        public string State => Request?.State?.Equals("Completed", StringComparison.OrdinalIgnoreCase) == true ? "Completed" : "Active";
     }
 }
