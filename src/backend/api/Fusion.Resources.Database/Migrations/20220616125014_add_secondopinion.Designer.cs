@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fusion.Resources.Database.Migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20220614081624_add_secondopinion")]
+    [Migration("20220616125014_add_secondopinion")]
     partial class add_secondopinion
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -841,6 +841,11 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("Number")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uniqueidentifier");

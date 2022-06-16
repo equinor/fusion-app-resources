@@ -10,6 +10,7 @@ namespace Fusion.Resources.Domain
         public QuerySecondOpinion(DbSecondOpinionPrompt secondOpinion)
         {
             Id = secondOpinion.Id;
+            Number = secondOpinion.Number;
             Description = secondOpinion.Description;
             Title = secondOpinion.Title;
             CreatedById = secondOpinion.CreatedById;
@@ -28,6 +29,7 @@ namespace Fusion.Resources.Domain
         }
 
         public Guid Id { get; }
+        public int Number { get; }
         public string Title { get; }
         public string Description { get;  }
 

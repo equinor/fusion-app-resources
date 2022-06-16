@@ -9,6 +9,8 @@ namespace Fusion.Resources.Database.Entities
     {
         public Guid Id { get; set; }
 
+        public int Number { get; set; }
+
         [MaxLength(250)]
         public string Title { get; set; } = null!;
 
@@ -31,6 +33,7 @@ namespace Fusion.Resources.Database.Entities
             modelBuilder.Entity<DbSecondOpinionPrompt>(map =>
             {
                 map.HasKey(x => x.Id);
+                map.Property(x => x.Number).ValueGeneratedOnAdd();
                 map.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById);
                 map.HasOne(x => x.Request).WithMany().HasForeignKey(x => x.RequestId);
                 map.HasMany(x => x.Responses).WithOne(x => x.SecondOpinion).HasForeignKey(x => x.PromptId).OnDelete(DeleteBehavior.NoAction);
