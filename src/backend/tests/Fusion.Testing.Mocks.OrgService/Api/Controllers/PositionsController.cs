@@ -265,6 +265,14 @@ namespace Fusion.Testing.Mocks.OrgService.Api.Controllers
         }
 
         [MapToApiVersion("2.0")]
+        [HttpGet("/admin/positions/tbn")]
+        public ActionResult<List<ApiPositionV2>> GetTbnPositions()
+        {
+            var tbns = OrgServiceMock.positions.Where(x => x.Instances.All(x => x.AssignedPerson is null)).ToList();
+            return Ok(tbns);
+        }
+
+        [MapToApiVersion("2.0")]
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/reports-to")]
         public ActionResult GetPositionReportsTo([FromRoute] ProjectIdentifier projectId, Guid positionId, Guid instanceId)
         {
