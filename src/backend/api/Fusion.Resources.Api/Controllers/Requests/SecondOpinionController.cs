@@ -329,7 +329,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("/persons/{personId}/second-opinions/responses")]
-        public async Task<ActionResult<List<ApiSecondOpinionResponse>>> GetPersonalResponses(string personId)
+        public async Task<ActionResult<List<ApiSecondOpinionResponse>>> GetPersonalResponses(string personId, [FromQuery] ODataQueryParams query)
         {
             PersonId assigneeId = personId switch
             {
@@ -346,7 +346,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            var command = new GetSecondOpinions().WithAssignee(assigneeId);
+            var command = new GetSecondOpinions().WithAssignee(assigneeId).WithQuery(query);
             var result = await DispatchAsync(command);
 
             var responses = result
