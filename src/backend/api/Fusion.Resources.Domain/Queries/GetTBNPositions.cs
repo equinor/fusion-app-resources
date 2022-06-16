@@ -44,20 +44,20 @@ namespace Fusion.Resources.Domain.Queries
 
                 var tbnPositions = new List<QueryTbnPosition>();
 
-                var sourceDepartment = new DepartmentPath(request.Department);
+                var resourceOwnerDepartment = new DepartmentPath(request.Department);
 
                 foreach (var pos in positions)
                 {
                     foreach (var instance in pos.Instances)
                     {
                         if (instance.AssignedPerson is not null) continue;
-                        // This should be some sort of configuration in the future
-                        if (sourceDepartment.IsParent(pos.BasePosition.Department))
+                        if (instance.AppliesTo < DateTime.UtcNow) continue;
+
+                        if (resourceOwnerDepartment.IsParent(pos.BasePosition.Department))
                         {
                             tbnPositions.Add(new QueryTbnPosition(pos, instance));
                         }
                     }
-
                 }
 
                 return tbnPositions;
