@@ -1,6 +1,7 @@
 ﻿using Fusion.ApiClients.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -66,29 +67,29 @@ namespace Fusion.Resources.Logic.Commands
                             throw new InvalidOperationException("Could not locate instance request targets on the position.");
 
 
-                        var instancePatchRequest = new JObject();
+                        var instancePatchRequest = new JObjectProxy<ApiPositionInstanceV2>();
                         var proposedChanges = new JObject();
                         if (!string.IsNullOrEmpty(dbRequest.ProposedChanges))
                             proposedChanges = JObject.Parse(dbRequest.ProposedChanges);
 
                         if (dbRequest.ProposedPerson.AzureUniqueId != null)
-                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
+                            instancePatchRequest.SetPropertyValue(i => i.AssignedPerson, new ApiPersonV2() { AzureUniqueId = dbRequest.ProposedPerson.AzureUniqueId });
 
 
                         if (proposedChanges.TryGetValue("workload", StringComparison.InvariantCultureIgnoreCase, out var workload))
-                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Workload!, workload);
+                            instancePatchRequest.SetPropertyValue(i => i.Workload!, workload);
 
                         if (proposedChanges.TryGetValue("appliesFrom", StringComparison.InvariantCultureIgnoreCase, out var appliesFrom))
-                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AppliesFrom, appliesFrom);
+                            instancePatchRequest.SetPropertyValue(i => i.AppliesFrom, appliesFrom);
 
                         if (proposedChanges.TryGetValue("appliesTo", StringComparison.InvariantCultureIgnoreCase, out var appliesTo))
-                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.AppliesTo, appliesTo);
+                            instancePatchRequest.SetPropertyValue(i => i.AppliesTo, appliesTo);
 
                         if (proposedChanges.TryGetValue("location", StringComparison.InvariantCultureIgnoreCase, out var location))
-                            instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
+                            instancePatchRequest.SetPropertyValue(i => i.Location, location.ToObject<ApiPositionLocationV2>()!);
 
                         var url = $"/projects/{dbRequest.Project.OrgProjectId}/drafts/{draft.Id}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";
-                        var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
+                        var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest.JsonObject);
 
                         if (!updateResp.IsSuccessStatusCode)
                             throw new OrgApiError(updateResp.Response, updateResp.Content);

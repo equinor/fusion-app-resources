@@ -60,6 +60,7 @@ namespace Fusion.Resources.Domain.Commands
 
         public class Handler : IRequestHandler<CreateInternalRequest, QueryResourceAllocationRequest>
         {
+            private static TimeSpan MinimumAllocationTime = TimeSpan.FromDays(14);
             private readonly ResourcesDbContext dbContext;
             private readonly IProjectOrgResolver orgResolver;
             private readonly IProfileService profileService;
@@ -91,6 +92,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 var resolvedProject = await EnsureProjectAsync(request);
                 var position = await ResolveOrgPositionAsync(request);
+                position = await EnsureFuturePositionAsync(position);
                 var proposedPerson = await ResolveProposedPersonAsync(request);
 
                 var instance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
@@ -149,6 +151,35 @@ namespace Fusion.Resources.Domain.Commands
 
 
                 return item;
+            }
+
+            private async Task<ApiPositionV2> EnsureFuturePositionAsync(ApiPositionV2 position)
+            {
+                var firstLegalStartDate = DateTime.Today.Add(MinimumAllocationTime);
+
+                var illegalInstances = position.Instances
+                    .OrderBy(x => x.AppliesFrom)
+                    .Where(x => x.AppliesFrom < firstLegalStartDate)
+                    .ToList();
+
+                if (!illegalInstances.Any()) return position;
+
+
+                if (illegalInstances.Count() == 1)
+                {
+                    var instance = illegalInstances.First();
+                    instance.AppliesFrom = firstLegalStartDate;
+
+                    //TODO: update org.
+                }
+                else
+                {
+                    //TODO: Split
+                    //TODO: Update org
+                }
+
+                return position;
+
             }
 
             private async Task<DbPerson?> ResolveProposedPersonAsync(CreateInternalRequest request)

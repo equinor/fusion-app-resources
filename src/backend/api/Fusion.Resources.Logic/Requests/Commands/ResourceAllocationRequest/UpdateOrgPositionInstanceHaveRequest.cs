@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Fusion.Resources.Domain;
 
 namespace Fusion.Resources.Logic.Commands
 {
@@ -49,12 +50,12 @@ namespace Fusion.Resources.Logic.Commands
                     return;
                 }
 
-                var instancePatchRequest = new JObject();
+                var instancePatchRequest = new JObjectProxy<ApiPositionInstanceV2>();
                 instance.Properties = EnsureHasRequestProperty(instance.Properties, request.HaveRequest);
-                instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Properties, instance.Properties);
+                instancePatchRequest.SetPropertyValue(i => i.Properties, instance.Properties);
 
                 var url = $"/projects/{request.OrgProjectId}/positions/{request.OrgPositionId}/instances/{request.OrgPositionInstanceId}?api-version=2.0";
-                var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
+                var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest.JsonObject);
 
                 if (!updateResp.IsSuccessStatusCode)
                 {
