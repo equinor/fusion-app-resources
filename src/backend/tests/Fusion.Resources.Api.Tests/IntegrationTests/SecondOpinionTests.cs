@@ -138,6 +138,26 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task CreateSecondOpinion_ShouldFail_WhenRequestIsCompleted()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var payload = new TestAddSecondOpinion() with
+            {
+                AssignedTo = new() { new TestApiPerson { Mail = testUser.Mail } }
+            };
+
+            var result = await Client.TestClientPostAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions", payload);
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
         public async Task CreateSecondOpinion_ShouldShareRequest()
         {
             using var adminScope = fixture.AdminScope();

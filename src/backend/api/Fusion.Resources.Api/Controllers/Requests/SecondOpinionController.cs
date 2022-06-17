@@ -65,6 +65,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
+            if (requestItem.IsCompleted)
+                return ApiErrors.InvalidOperation("SecondOpinionForClosedRequest", "Cannot request second opinions for completed requests");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
