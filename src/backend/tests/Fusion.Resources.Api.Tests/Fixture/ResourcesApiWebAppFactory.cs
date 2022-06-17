@@ -83,7 +83,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
         }
 
         private static object locker = new object();
-        public bool isMemorycacheDisabled = false;
+        public bool IsMemorycacheDisabled { get; set; } = false;
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -105,7 +105,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("ContextEventReceiver");
                 services.TryRemoveImplementationService<ICompanyResolver>();
 
-                if (isMemorycacheDisabled)
+                if (IsMemorycacheDisabled)
                 {
                     services.TryRemoveImplementationService<IMemoryCache>();
                     services.AddScoped<IMemoryCache, AlwaysEmptyCache>();

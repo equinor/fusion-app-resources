@@ -49,7 +49,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             return delegatedAdmin;
         }
 
-        internal void DisableMemoryCache() => ApiFactory.isMemorycacheDisabled = true;
+        internal void DisableMemoryCache() => ApiFactory.IsMemorycacheDisabled = true;
 
         public ResourceApiFixture()
         {
