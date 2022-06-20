@@ -125,7 +125,7 @@ namespace Fusion.Resources.Logic.Commands
 
                         var url = $"/projects/{dbRequest.Project.OrgProjectId}/positions/{dbRequest.OrgPositionId}?api-version=2.0";
 
-                        var resp = await client.PutAsync(url, rawPosition);
+                        var resp = await client.PutAsync(url, rawPosition.JsonObject);
 
                         if (!resp.IsSuccessStatusCode)
                             throw new OrgApiError(resp.Response, resp.Content);
@@ -184,8 +184,8 @@ namespace Fusion.Resources.Logic.Commands
                         ApplyProposedChanges(dbRequest, newInstance);
 
                         // Add the new instance with the changes to the position
-                        instances.Add(newInstance);
-
+                        instances.Add(newInstance.JsonObject);
+                        //rawPosition.SetPropertyValue(p => p.Instances, instances);
                     }
 
                     private void UpdateCenter(DbResourceAllocationRequest dbRequest, JObjectProxy<ApiPositionV2> rawPosition, DateTime changeFrom, DateTime changeTo)
@@ -212,8 +212,8 @@ namespace Fusion.Resources.Logic.Commands
                         var instanceToUpdate = instances.Cast<JObject>()
                             .Select(x => new JObjectProxy<ApiPositionInstanceV2>(x))
                             .First(i => i.GetPropertyValue(p => p.Id) == dbRequest.OrgPositionInstance.Id);
-                        var newCenterInstance = new JObjectProxy<ApiPositionInstanceV2>(instanceToUpdate.JsonObject);
-                        var newTrailingInstance = new JObjectProxy<ApiPositionInstanceV2>(instanceToUpdate.JsonObject);
+                        var newCenterInstance = instanceToUpdate.Clone();
+                        var newTrailingInstance = instanceToUpdate.Clone();
 
                         // Stop the current instance at the applicable date
                         instanceToUpdate.SetPropertyValue(i => i.AppliesTo, existingInstanceEndDate);
@@ -231,8 +231,9 @@ namespace Fusion.Resources.Logic.Commands
                         ApplyProposedChanges(dbRequest, newCenterInstance);
 
                         // Add the new instance with the changes to the position
-                        instances.Add(newCenterInstance);
-                        instances.Add(newTrailingInstance);
+                        instances.Add(newCenterInstance.JsonObject);
+                        instances.Add(newTrailingInstance.JsonObject);
+                        //rawPosition.SetPropertyValue(p => p.Instances, instances);
                     }
 
                     private void ApplyProposedChanges(DbResourceAllocationRequest dbRequest, JObjectProxy<ApiPositionInstanceV2> instance)

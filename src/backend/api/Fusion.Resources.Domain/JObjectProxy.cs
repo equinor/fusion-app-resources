@@ -28,40 +28,38 @@ namespace Fusion.Resources.Domain
 
         public void SetPropertyValue(Expression<Func<T, object>> propertySelector, JToken propertyValue)
         {
-            var prop = GetPropertyName(propertySelector);
+            var pocoProperty = GetPropertyName(propertySelector);
+            var jsonProperty = JsonObject.Property(pocoProperty.Name, StringComparison.OrdinalIgnoreCase);
 
-            var property = JsonObject.Property(prop.Name, StringComparison.OrdinalIgnoreCase);
-
-            if (property == null)
+            if (jsonProperty == null)
             {
-                var camelCasedPropertyName = CamelCaseProperty(prop.Name);
+                var camelCasedPropertyName = CamelCaseProperty(pocoProperty.Name);
                 JsonObject.Add(camelCasedPropertyName, propertyValue);
             }
             else
             {
-                JsonObject[property.Name] = propertyValue;
+                JsonObject[jsonProperty.Name] = propertyValue;
             }
         }
 
         public void SetPropertyValue(Expression<Func<T, object>> propertySelector, object propertyValue)
         {
-            var prop = GetPropertyName(propertySelector);
-
-            var property = JsonObject.Property(prop.Name, StringComparison.OrdinalIgnoreCase);
+            var pocoProperty = GetPropertyName(propertySelector);
+            var jsonProperty = JsonObject.Property(pocoProperty.Name, StringComparison.OrdinalIgnoreCase);
 
             var tempObject = JsonConvert.DeserializeObject<JObject>(JsonConvert.SerializeObject(new { prop = propertyValue }));
 
             if (tempObject is null)
                 return;
 
-            if (property == null)
+            if (jsonProperty == null)
             {
-                var camelCasedPropertyName = CamelCaseProperty(prop.Name);
+                var camelCasedPropertyName = CamelCaseProperty(pocoProperty.Name);
                 JsonObject.Add(camelCasedPropertyName, tempObject.Property("prop")!.Value);
             }
             else
             {
-                JsonObject[property.Name] = tempObject.Property("prop")!.Value;
+                JsonObject[jsonProperty.Name] = tempObject.Property("prop")!.Value;
             }
         }
 
@@ -130,7 +128,7 @@ namespace Fusion.Resources.Domain
 
         public JObjectProxy<T> Clone()
         {
-            return new JObjectProxy<T>(new JObject(JsonObject));
+            return new JObjectProxy<T>((JObject)JsonObject.DeepClone());
         }
     }
 }
