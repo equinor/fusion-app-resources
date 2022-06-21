@@ -92,13 +92,16 @@ namespace Fusion.Resources.Domain.Commands
 
                 var resolvedProject = await EnsureProjectAsync(request);
                 var position = await ResolveOrgPositionAsync(request);
-                position = await EnsureFuturePositionAsync(position);
                 var proposedPerson = await ResolveProposedPersonAsync(request);
 
                 var instance = position.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
                 if (instance is null)
                     throw new InvalidOperationException($"Could not locate instance with id {request.OrgPositionInstanceId} on position {request.OrgPositionId}");
 
+                if(request.Type != InternalRequestType.ResourceOwnerChange)
+                {
+                    position = await EnsureFutureInstanceAsync(position, instance);
+                }
 
                 var item = new DbResourceAllocationRequest
                 {
@@ -153,21 +156,20 @@ namespace Fusion.Resources.Domain.Commands
                 return item;
             }
 
-            private async Task<ApiPositionV2> EnsureFuturePositionAsync(ApiPositionV2 position)
+            private async Task<ApiPositionV2> EnsureFutureInstanceAsync(ApiPositionV2 position, ApiPositionInstanceV2 instance)
             {
                 var firstLegalStartDate = DateTime.Today.Add(MinimumAllocationTime);
 
-                var illegalInstances = position.Instances
+                if (instance.AppliesFrom >= firstLegalStartDate) return position;
+
+                var previousInstance = position.Instances
                     .OrderBy(x => x.AppliesFrom)
-                    .Where(x => x.AppliesFrom < firstLegalStartDate)
-                    .ToList();
+                    .Where(x => x.AppliesFrom < instance.AppliesFrom)
+                    .LastOrDefault();
 
-                if (!illegalInstances.Any()) return position;
-
-
-                if (illegalInstances.Count() == 1)
+                //var url = $"/projects/{position.Project.ProjectId}/positions/{position.Id}?api-version=2.0";
+                if (previousInstance is null)
                 {
-                    var instance = illegalInstances.First();
                     instance.AppliesFrom = firstLegalStartDate;
 
                     //TODO: update org.
@@ -177,6 +179,13 @@ namespace Fusion.Resources.Domain.Commands
                     //TODO: Split
                     //TODO: Update org
                 }
+
+
+
+                //var resp = await client.PutAsync(url, rawPosition.JsonObject);
+
+                //if (!resp.IsSuccessStatusCode)
+                //    throw new OrgApiError(resp.Response, resp.Content);
 
                 return position;
 
