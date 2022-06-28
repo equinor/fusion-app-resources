@@ -6,7 +6,7 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Bogus" Version="33.0.2" />
+		<PackageReference Include="Bogus" Version="34.0.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
