@@ -245,6 +245,7 @@ namespace Fusion.Resources.Api.Tests
                 .RuleFor(p => p.Id, f => Guid.NewGuid())
                 .RuleFor(p => p.Mail, f => f.Person.Email)
                 .RuleFor(p => p.AzureUniqueId, f => userAzureUniqueId)
+                .RuleFor(p => p.AccountType, _ => "Employee")
                 .Generate();
 
             testProject = new Faker<DbProject>()
@@ -258,6 +259,7 @@ namespace Fusion.Resources.Api.Tests
                 .RuleFor(p => p.Name, f => f.Lorem.Sentence())
                 .RuleFor(p => p.OrgContractId, f => contractId)
                 .RuleFor(p => p.ProjectId, f => testProject.Id)
+                .RuleFor(x => x.ContractNumber, f => f.Random.Number().ToString("000000"))
                 .Generate();
 
             dbContext.AddRange(testPerson, testProject, testContract);
