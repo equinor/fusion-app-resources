@@ -89,3 +89,4 @@ namespace Fusion.Resources.Database
         }
     }
 }
+#nullable enable
