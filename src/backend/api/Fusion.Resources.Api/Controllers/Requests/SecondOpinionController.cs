@@ -332,7 +332,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
         [HttpGet("/persons/{personId}/second-opinions/responses")]
-        public async Task<ActionResult<List<ApiSecondOpinionResponse>>> GetPersonalResponses(string personId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<List<ApiSecondOpinion>>> GetPersonalResponses(string personId, [FromQuery] ODataQueryParams query)
         {
             PersonId assigneeId = personId switch
             {
@@ -353,8 +353,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var result = await DispatchAsync(command);
 
             var responses = result
-                .SelectMany(x => x.Responses)
-                .Select(x => new ApiSecondOpinionResponse(x, User.GetAzureUniqueIdOrThrow(), includeParent: true));
+                .Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow(), includeChildren: true));
 
             return Ok(responses);
         }

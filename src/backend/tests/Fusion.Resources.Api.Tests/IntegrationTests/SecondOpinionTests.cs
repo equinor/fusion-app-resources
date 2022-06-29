@@ -142,7 +142,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject);
-            
+
             await Client.StartProjectRequestAsync(testProject, request.Id);
             await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
@@ -305,7 +305,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetSecondOpinionResponses_ShouldOnlyReturnAssigneesResponses()
+        public async Task GetSecondOpinionResponses_ShouldOnlyReturnAssigneesUnpublishedResponses()
         {
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject);
@@ -315,10 +315,40 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             using var userScope = fixture.UserScope(testUser);
-            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionResponse>>("/persons/me/second-opinions/responses");
+            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>("/persons/me/second-opinions/responses");
 
-            var allResponses = userSharedOpinions.Value;
+            var allResponses = userSharedOpinions.Value
+                .SelectMany(x => x.Responses)
+                .Where(x => x.State != "Published");
             allResponses.Should().OnlyContain(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
+        }
+
+        [Fact]
+        public async Task GetSecondOpinionResponses_ShouldOnlyReturnPublishedResponsesFromOtherAssignees()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+
+            var anotherUser = fixture.AddProfile(FusionAccountType.Employee);
+            var publishingUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser, anotherUser, publishingUser);
+
+            foreach (var response in secondOpinion.Responses)
+            {
+                if (response.AssignedTo.AzureUniquePersonId == publishingUser.AzureUniqueId)
+                    await AddResponse(request.Id, secondOpinion.Id, response.Id, publishingUser);
+            }
+
+            using var userScope = fixture.UserScope(testUser);
+            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>("/persons/me/second-opinions/responses");
+
+            var otherResponses = userSharedOpinions.Value
+                .SelectMany(x => x.Responses)
+                .Where(x => x.AssignedTo.AzureUniquePersonId != testUser.AzureUniqueId);
+
+            otherResponses.Should().NotBeEmpty();
+            otherResponses.Should().OnlyContain(x => x.State == "Published");
         }
 
         [Fact]
@@ -441,7 +471,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             return result.Value;
         }
 
-        private async Task AddResponse(Guid requestId, Guid secondOpinionId, Guid responseId, string state = "Published", string comment = "This is my comment")
+        private async Task AddResponse(Guid requestId, Guid secondOpinionId, Guid responseId, ApiPersonProfileV3? user = null, string state = "Published", string comment = "This is my comment")
         {
             var payload = new
             {
@@ -449,7 +479,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 State = state
             };
 
-            using var userScope = fixture.UserScope(testUser);
+            using var userScope = fixture.UserScope(user ?? testUser);
             var patchResult = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/responses/{responseId}", payload);
             patchResult.Should().BeSuccessfull();
         }
