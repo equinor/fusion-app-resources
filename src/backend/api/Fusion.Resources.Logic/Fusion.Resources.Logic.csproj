@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Authorization" Version="6.0.0-preview-1.0" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="6.0.0" />
   </ItemGroup>
   
   <ItemGroup>
