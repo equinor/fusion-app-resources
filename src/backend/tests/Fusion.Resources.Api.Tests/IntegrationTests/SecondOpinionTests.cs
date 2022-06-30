@@ -471,7 +471,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             return result.Value;
         }
 
-        private async Task AddResponse(Guid requestId, Guid secondOpinionId, Guid responseId, ApiPersonProfileV3? user = null, string state = "Published", string comment = "This is my comment")
+        private async Task AddResponse(Guid requestId, Guid secondOpinionId, Guid responseId, ApiPersonProfileV3 user = null, string state = "Published", string comment = "This is my comment")
         {
             var payload = new
             {
