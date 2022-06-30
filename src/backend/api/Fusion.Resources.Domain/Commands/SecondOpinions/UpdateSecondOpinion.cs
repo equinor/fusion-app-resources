@@ -62,26 +62,26 @@ namespace Fusion.Resources.Domain.Commands
                         .Select(x => x.Id)
                         .ToHashSet();
 
-                    var toRemove = entity.Responses.Where(x => !assigneeIds.Contains(x.AssignedToId)).ToArray();
+                    var toRemove = entity.Responses!.Where(x => !assigneeIds.Contains(x.AssignedToId)).ToArray();
                     foreach (var response in toRemove)
                     {
                         db.SecondOpinionResponses.Remove(response);
                         await mediator.Send(new RevokeShareRequest(entity.RequestId, new PersonId(response.AssignedTo.AzureUniqueId), SharedRequestSource.SecondOpinion), ct);
                     }
 
-                    var addedAssigneeIds = assigneeIds.Except(entity.Responses.Select(x => x.AssignedToId));
+                    var addedAssigneeIds = assigneeIds.Except(entity.Responses!.Select(x => x.AssignedToId));
                     var addedAssignees = assignees
                         .Where(x => addedAssigneeIds.Contains(x.Id))
                         .ToList();
                     foreach (var assignee in addedAssignees)
                     {
-                        entity.Responses.Add(new DbSecondOpinionResponse
+                        entity.Responses!.Add(new DbSecondOpinionResponse
                         {
                             PromptId = request.SecondOpinionId,
                             AssignedToId = assignee.Id,
                             State = DbSecondOpinionResponseStates.Open
                         });
-                        await mediator.Publish(new SecondOpinionRequested(requestItem, new QueryPerson(assignee)), ct);
+                        await mediator.Publish(new SecondOpinionRequested(new QuerySecondOpinion(entity), requestItem, new QueryPerson(assignee)), ct);
                     }
 
                     var shareCommand = new ShareRequest(

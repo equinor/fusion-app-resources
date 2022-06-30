@@ -21,10 +21,13 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.AssignedTo).NotEmpty();
 
                 RuleFor(x => x.AssignedTo)
-                    .MustAsync(async (req, assignedToIds, context, cancel) =>
+                    .Must((req, assignedToIds, context) =>
                     {
                         var profileResolver = context.GetServiceProvider().GetRequiredService<IProfileService>();
-                        var resolved = await profileResolver.ResolveProfilesAsync(assignedToIds.Select(x => (PersonId)x));
+
+                        // Need to wait here, because aspnet validation pipeline is not async. 
+                        // Ref: https://docs.fluentvalidation.net/en/latest/aspnet.html
+                        var resolved = profileResolver.ResolveProfilesAsync(assignedToIds.Select(x => (PersonId)x)).Result;
 
                         if (resolved is null) return false;
 

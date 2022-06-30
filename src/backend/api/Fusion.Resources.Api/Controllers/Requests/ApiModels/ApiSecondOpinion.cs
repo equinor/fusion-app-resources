@@ -2,11 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Fusion.Resources.Api.Controllers
 {
     public class ApiSecondOpinion
     {
+        [JsonConverter(typeof(JsonStringEnumConverter))] 
+        public enum ApiSecondOpinionStates { Active, Completed }
+
         public ApiSecondOpinion(QuerySecondOpinion query, Guid viewerAzureUniqueId, bool includeChildren = true)
         {
             Id = query.Id;
@@ -26,11 +30,11 @@ namespace Fusion.Resources.Api.Controllers
                 Request = new ApiResourceAllocationRequest(query.Request);
                 if(query.Request.State?.Equals("Completed", StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    State = "Completed";
+                    State = ApiSecondOpinionStates.Completed;
                 }
                 else
                 {
-                    State = "Active";
+                    State = ApiSecondOpinionStates.Active;
                 }
             }
         }
@@ -46,6 +50,6 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset CreatedDate { get; }
         public List<ApiSecondOpinionResponse> Responses { get; } = new();
         public ApiResourceAllocationRequest? Request { get; }
-        public string? State { get; } 
+        public ApiSecondOpinionStates? State { get; } 
     }
 }

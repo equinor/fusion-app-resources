@@ -65,9 +65,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            if (requestItem.IsCompleted)
-                return ApiErrors.InvalidOperation("SecondOpinionForClosedRequest", "Cannot request second opinions for completed requests");
-
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -94,6 +91,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 return authResult.CreateForbiddenResponse();
 
             #endregion
+
+            if (requestItem.IsCompleted)
+                return ApiErrors.InvalidOperation("SecondOpinionForClosedRequest", "Cannot request second opinions for completed requests");
 
             var assignedToIds = payload.AssignedTo.Select(x => (PersonId)x);
             var command = new AddSecondOpinion(requestItem.RequestId, payload.Title, payload.Description, assignedToIds);

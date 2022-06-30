@@ -80,7 +80,7 @@ namespace Fusion.Resources.Domain
                 }
 
                 var query = db.SecondOpinions
-                    .Include(x => x.Responses.Where(r => r.AssignedToId == assigneeId || assigneeId == null || r.State == DbSecondOpinionResponseStates.Published))
+                    .Include(x => x.Responses!.Where(r => r.AssignedToId == assigneeId || assigneeId == null || r.State == DbSecondOpinionResponseStates.Published))
                         .ThenInclude(x => x.AssignedTo)
                     .Include(x => x.CreatedBy)
                     .Include(x => x.Request).ThenInclude(x => x.Project)
@@ -99,7 +99,7 @@ namespace Fusion.Resources.Domain
 
                 if (assigneeId.HasValue)
                 { 
-                    query = query.Where(x => x.Responses.Any(x => x.AssignedToId == assigneeId));
+                    query = query.Where(x => x.Responses!.Any(x => x.AssignedToId == assigneeId));
                 }
 
                 if (request.RequestId.HasValue)

@@ -7,7 +7,6 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,10 +14,10 @@ namespace Fusion.Resources.Domain.Commands
 {
     public class AddSecondOpinion : TrackableRequest<QuerySecondOpinion>
     {
-        private string title;
-        private Guid requestId;
-        private string description;
-        private List<PersonId> assignedToIds;
+        private readonly string title;
+        private readonly Guid requestId;
+        private readonly string description;
+        private readonly List<PersonId> assignedToIds;
 
         public AddSecondOpinion(Guid requestId, string title, string description, IEnumerable<PersonId> assignedToIds)
         {
@@ -51,6 +50,7 @@ namespace Fusion.Resources.Domain.Commands
                     Title = request.title,
                     Description = request.description,
                     RequestId = request.requestId,
+                    CreatedBy = request.Editor.Person,
                     CreatedById = request.Editor.Person.Id
                 };
 
@@ -59,12 +59,12 @@ namespace Fusion.Resources.Domain.Commands
                 {
                     if (person is null) continue;
 
-                    secondOpinion.Responses.Add(new DbSecondOpinionResponse
+                    secondOpinion.Responses!.Add(new DbSecondOpinionResponse
                     {
                         AssignedToId = person.Id,
                         State = DbSecondOpinionResponseStates.Open
                     });
-                    await mediator.Publish(new SecondOpinionRequested(requestItem, new QueryPerson(person)), cancellationToken);
+                    await mediator.Publish(new SecondOpinionRequested(new QuerySecondOpinion(secondOpinion), requestItem, new QueryPerson(person)), cancellationToken);
                 }
 
                 var shareCommand = new ShareRequest(

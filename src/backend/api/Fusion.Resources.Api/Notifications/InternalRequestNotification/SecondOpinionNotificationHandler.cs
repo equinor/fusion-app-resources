@@ -33,7 +33,7 @@ namespace Fusion.Resources.Api.Notifications
                     .AddFactIf("Position", $"{notification.Request?.OrgPosition?.Name}", notification.Request?.OrgPosition?.Name is not null)
                 )
                 .AddTextBlock($"Created by: {notification.Request.CreatedBy.Name}")
-                //.TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgPortalUrl}");
+                .TryAddOpenPortalUrlAction("Give your opinion in the Personnel Allocation App", $"aka/goto-second-opinion/{notification.SecondOpinion.Id}")
                 .BuildCardAsync();
 
             await notificationClient.CreateNotificationForUserAsync(notification.Person.AzureUniqueId, arguments, card);

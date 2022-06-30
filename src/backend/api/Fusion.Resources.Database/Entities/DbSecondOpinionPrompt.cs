@@ -26,7 +26,7 @@ namespace Fusion.Resources.Database.Entities
         public Guid RequestId { get; set; }
         public DbResourceAllocationRequest Request { get; set; } = null!;
 
-        public List<DbSecondOpinionResponse> Responses { get; set; } = new();
+        public List<DbSecondOpinionResponse>? Responses { get; set; } = new();
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
