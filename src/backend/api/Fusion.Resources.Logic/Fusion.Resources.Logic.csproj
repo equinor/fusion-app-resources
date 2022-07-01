@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Authorization" Version="5.1.2" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="6.0.0" />
   </ItemGroup>
   
   <ItemGroup>
