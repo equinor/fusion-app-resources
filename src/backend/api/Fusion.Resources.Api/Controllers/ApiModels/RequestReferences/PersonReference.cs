@@ -17,7 +17,7 @@ namespace Fusion.Resources.Api.Controllers
                 return new PersonId(personReference.AzureUniquePersonId.Value);
 
             if (string.IsNullOrEmpty(personReference.Mail))
-                throw new ArgumentException("Either azure uniwue id or mail has to contain value");
+                throw new ArgumentException("Either azure unique id or mail has to contain value");
 
             return new PersonId(personReference.Mail);
         }
@@ -28,11 +28,11 @@ namespace Fusion.Resources.Api.Controllers
                 throw new ArgumentNullException("person", "Person cannot be null");
 
 
-            if (personReference.AzureUniquePersonId.HasValue)
+            if (personReference.AzureUniquePersonId.HasValue && personReference.AzureUniquePersonId != Guid.Empty)
                 return new PersonId(personReference.AzureUniquePersonId.Value);
 
             if (string.IsNullOrEmpty(personReference.Mail))
-                throw new ArgumentException("Either azure uniwue id or mail has to contain value");
+                throw new ArgumentException("Either azure unique id or mail has to contain value");
 
             return new PersonId(personReference.Mail);
         }

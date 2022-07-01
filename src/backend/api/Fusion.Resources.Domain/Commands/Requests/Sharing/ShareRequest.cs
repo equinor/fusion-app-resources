@@ -45,17 +45,22 @@ namespace Fusion.Resources.Domain.Commands.Requests.Sharing
                     reason = $"Shared by {request.Editor.Person.Name}";
                 }
 
-                var existingRequests = await db.SharedRequests
-                    .Where(x => x.RequestId == request.RequestId && x.Source == request.Source)
-                    .ToDictionaryAsync(x => x.SharedWithId, cancellationToken);
+                var query = await db.SharedRequests
+                    .Where(x => x.RequestId == request.RequestId && x.Source == request.Source && !x.IsRevoked)
+                    .ToListAsync(cancellationToken);
+
+                var existingRequests = query.ToLookup(x => x.SharedWithId);
 
                 foreach (var sharedWith in request.SharedWith)
                 {
                     var person = await profileService.EnsurePersonAsync(sharedWith);
-                    if (existingRequests.TryGetValue(person!.Id, out var existingRequest))
+                    if (existingRequests.Contains(person!.Id))
                     {
-                        existingRequest.IsRevoked = true;
-                        existingRequest.RevokedAt = DateTimeOffset.Now;
+                        foreach (var existingRequest in existingRequests[person.Id])
+                        {
+                            existingRequest.IsRevoked = true;
+                            existingRequest.RevokedAt = DateTimeOffset.Now;
+                        }
                     }
 
                     var sharedRequest = new DbSharedRequest
