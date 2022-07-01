@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion.AspNetCore.OData;
@@ -14,7 +14,7 @@ namespace Fusion.Testing.Mocks.LineOrgService.Api
         {
             var query = LineOrgServiceMock.Departments.AsQueryable();
 
-            var result = query.FirstOrDefault(c => c.Name == department);
+            var result = query.FirstOrDefault(c => c.Name == department || c.FullName == department);
             if (result is null) return NotFound();
             else return Ok(result);
         }

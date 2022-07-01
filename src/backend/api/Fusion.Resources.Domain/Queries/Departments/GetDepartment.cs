@@ -1,4 +1,4 @@
-﻿using Fusion.Integration;
+using Fusion.Integration;
 using Fusion.Integration.LineOrg;
 using Fusion.Resources.Database;
 using MediatR;
@@ -31,7 +31,7 @@ namespace Fusion.Resources.Domain
 
             public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
             {
-                var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(request.DepartmentId);
+                var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(Integration.LineOrg.DepartmentId.FromFullPath(request.DepartmentId));
 
                 QueryDepartment? result;
                 if (lineOrgDpt is null) return null;

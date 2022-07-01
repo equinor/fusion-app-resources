@@ -1,4 +1,4 @@
-﻿using Fusion.Integration.LineOrg;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
@@ -114,7 +114,7 @@ namespace Fusion.Resources.Domain.Commands
 
             private async Task<DbPerson?> GetResourceOwner(string departmentId)
             {
-                var department = await lineOrgResolver.ResolveDepartmentAsync(departmentId);
+                var department = await lineOrgResolver.ResolveDepartmentAsync(DepartmentId.FromFullPath(departmentId));
                 if(department?.Manager?.AzureUniqueId is not null)
                 {
                     var azureUniqueId = department.Manager.AzureUniqueId;

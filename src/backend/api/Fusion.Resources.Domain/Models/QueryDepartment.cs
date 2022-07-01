@@ -1,12 +1,12 @@
-﻿using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
+using Fusion.Services.LineOrg.ApiModels;
 using System.Collections.Generic;
 
 namespace Fusion.Resources.Domain
 {
     public class QueryDepartment
     {
-        public QueryDepartment(LineOrgDepartment lineOrgDepartment, FusionPersonProfile? manager)
+        public QueryDepartment(ApiDepartment lineOrgDepartment, FusionPersonProfile? manager)
         {
             DepartmentId = lineOrgDepartment.FullName;
             LineOrgResponsible = manager;
