@@ -146,7 +146,7 @@ namespace Fusion.Resources.Domain
             });
 
 
-            var resultItems = items.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
+            var resultItems = items?.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
             {
                 PhoneNumber = i.document.mobilePhone,
                 JobTitle = i.document.jobTitle,
@@ -171,7 +171,7 @@ namespace Fusion.Resources.Domain
                 }).OrderBy(p => p.AppliesFrom).ToList()
             }).ToList();
 
-            return (resultItems, items.count ?? 0);
+            return (resultItems ?? new List<QueryInternalPersonnelPerson>(), items?.count ?? 0);
         }
         private class SearchProjectDTO
         {
