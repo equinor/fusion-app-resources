@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Functions
@@ -10,13 +14,13 @@ namespace Fusion.Resources.Functions
     public class QueueMessageProcessor
     {
         private readonly ILogger log;
-        private readonly MessageReceiver receiver;
-        private readonly MessageSender sender;
+        private readonly ServiceBusMessageActions receiver;
+        private readonly IAsyncCollector<ServiceBusMessage> sender;
 
-        private const int retryCount = 5;
+        private const int MaxRetryCount = 5;
 
 
-        public QueueMessageProcessor(ILogger log, MessageReceiver receiver, MessageSender sender)
+        public QueueMessageProcessor(ILogger log, ServiceBusMessageActions receiver, IAsyncCollector<ServiceBusMessage> sender)
         {
             this.log = log;
             this.receiver = receiver;
@@ -24,41 +28,46 @@ namespace Fusion.Resources.Functions
         }
 
 
-        public async Task ProcessWithRetriesAsync(Message message, Func<string, ILogger, Task> action)
+        public async Task ProcessWithRetriesAsync(ServiceBusReceivedMessage message, Func<string, ILogger, Task> action)
         {
             try
             {
                 var messageBody = Encoding.UTF8.GetString(message.Body);
                 log.LogInformation($"C# Queue trigger function processed: {messageBody}");
 
-                log.LogInformation($"C# ServiceBus queue trigger function processed message sequence #{message.SystemProperties.SequenceNumber}");
+                log.LogInformation($"C# ServiceBus queue trigger function processed message sequence #{message.SequenceNumber}");
                 await action(messageBody, log);
 
-                await receiver.CompleteAsync(message.SystemProperties.LockToken);
+                await receiver.CompleteMessageAsync(message);
             }
             catch (Exception ex)
             {
                 log.LogError(ex, ex.Message);
                 log.LogInformation("Calculating exponential retry");
+                
+
+                int retryCount = 0;
+                long originalSequence = message.SequenceNumber;
 
                 // If the message doesn't have a retry-count, set as 0
-                if (!message.UserProperties.ContainsKey("retry-count"))
+                if (message.ApplicationProperties.ContainsKey("retry-count"))
                 {
-                    message.UserProperties["retry-count"] = 0;
-                    message.UserProperties["original-SequenceNumber"] = message.SystemProperties.SequenceNumber;
+                    retryCount = (int)message.ApplicationProperties["retry-count"];
+                    originalSequence = (long)message.ApplicationProperties["original-SequenceNumber"];
                 }
 
                 // If there are more retries available
-                if ((int)message.UserProperties["retry-count"] < retryCount)
+                if (retryCount < MaxRetryCount)
                 {
-                    var retryMessage = message.Clone();
-                    var retryCount = (int)message.UserProperties["retry-count"] + 1;
+                    var retryMessage = new ServiceBusMessage(message);
+                    retryCount++;
                     var interval = 10 * retryCount;
                     var scheduledTime = DateTimeOffset.Now.AddSeconds(interval);
 
-                    retryMessage.UserProperties["retry-count"] = retryCount;
-                    await sender.ScheduleMessageAsync(retryMessage, scheduledTime);
-                    await receiver.CompleteAsync(message.SystemProperties.LockToken);                    
+                    retryMessage.ApplicationProperties["retry-count"] = retryCount;
+                    retryMessage.ApplicationProperties["original-SequenceNumber"] = originalSequence;
+                    await sender.AddAsync(retryMessage);
+                    await receiver.CompleteMessageAsync(message);                    
 
                     log.LogInformation($"Scheduling message retry {retryCount} to wait {interval} seconds and arrive at {scheduledTime.UtcDateTime}");
                     throw;
@@ -67,8 +76,8 @@ namespace Fusion.Resources.Functions
                 // If there are no more retries, deadletter the message (note the host.json config that enables this)
                 else
                 {
-                    log.LogCritical($"Exhausted all retries for message sequence # {message.UserProperties["original-SequenceNumber"]}");
-                    await receiver.DeadLetterAsync(message.SystemProperties.LockToken, "Exhausted all retries");
+                    log.LogCritical($"Exhausted all retries for message sequence # {message.ApplicationProperties["original-SequenceNumber"]}");
+                    await receiver.DeadLetterMessageAsync(message, "Exhausted all retries");
                     throw;
                 }
             }
