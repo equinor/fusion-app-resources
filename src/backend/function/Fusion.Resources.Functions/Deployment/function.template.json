@@ -2,43 +2,30 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "env-name": {
-      "type": "string"
-    },
+    "env-name": { "type": "string" },
     "settings": {
-      "type": "object",
-      "defaultValue": {
-        "clientId": "",
-        "secretIds": {
-          "clientSecret": "",
-          "serviceBus": ""
-        },
-        "endpoints": {
-          "org": "https://pro-s-org-ci.azurewebsites.net",
-          "people": "https://pro-s-people-ci.azurewebsites.net",
-          "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
-          "notifications": "https://pro-s-notification-ci.azurewebsites.net",
-          "context": "https://pro-s-context-ci.azurewebsites.net",
-          "portal": "https://pro-s-portal-ci.azurewebsites.net"
-        },
-        "resources": {
-          "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
-        },
-        "queues": {
-          "provisionPosition": "provision-position"
+        "type": "object",
+        "defaultValue": {
+            "clientId": "",
+            "secretIds": {
+                "clientSecret": "",
+                "serviceBus": ""
+            },
+            "endpoints": {
+                "org": "https://pro-s-org-ci.azurewebsites.net",
+                "people": "https://pro-s-people-ci.azurewebsites.net",
+                "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
+                "notifications": "https://pro-s-notification-ci.azurewebsites.net",
+                "context": "https://pro-s-context-ci.azurewebsites.net",
+                "portal": "https://pro-s-portal-ci.azurewebsites.net"
+            },
+            "resources": {
+                "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
+            },
+            "queues": {
+                "provisionPosition": "provision-position"
+            }
         }
-      }
-    },
-    "location": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().location]",
-      "metadata": {
-        "description": "Location for the resources."
-      }
-    },
-    "netFrameworkVersion": {
-      "type": "string",
-      "defaultValue": "v6.0"
     }
   },
   "variables": {
@@ -52,13 +39,13 @@
       "apiVersion": "2015-08-01",
       "type": "Microsoft.Web/sites",
       "name": "[variables('function-name')]",
-      "location": "[parameters('location')]",
+      "location": "[resourceGroup().location]",
       "tags": {
         "fusion-app": "resources",
         "fusion-app-env": "[toLower(parameters('env-name'))]",
         "fusion-app-component-type": "azFunc",
         "fusion-app-component-id": "[concat('resources-func-', parameters('env-name'))]",
-        "kv-msi-access": "true"
+        "kv-msi-access": "true"        
       },
       "kind": "functionapp",
       "identity": {
@@ -67,7 +54,6 @@
       "dependsOn": [],
       "properties": {
         "httpsOnly": true,
-        "netFrameworkVersion": "[parameters('netFrameworkVersion')]",
         "siteConfig": {
           "phpVersion": "off",
           "ftpsState": "FtpsOnly",
@@ -92,7 +78,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~4"
+              "value": "~3"
             },
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",

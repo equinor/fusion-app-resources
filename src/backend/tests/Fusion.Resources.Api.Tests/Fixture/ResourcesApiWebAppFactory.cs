@@ -1,4 +1,4 @@
-using Fusion.Events;
+﻿using Fusion.Events;
 using Fusion.Integration;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
@@ -125,7 +125,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     var clientFactoryMock = new Mock<IHttpClientFactory>();
                     var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
 
-                    clientFactoryMock.Setup(cfm => cfm.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg())).Returns(lineOrgServiceMock.CreateHttpClient());
+                    clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.LineOrg.HttpClientNames.LineOrgAppClient)).Returns(lineOrgServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.DelegatedPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Http.HttpClientNames.ApplicationPeople)).Returns(peopleServiceMock.CreateHttpClient());
                     clientFactoryMock.Setup(cfm => cfm.CreateClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application)).Returns(orgServiceMock.CreateHttpClient());
