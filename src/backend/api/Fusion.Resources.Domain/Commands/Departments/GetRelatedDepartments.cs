@@ -1,4 +1,4 @@
-using Fusion.Integration;
+﻿using Fusion.Integration;
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Application;
@@ -61,7 +61,7 @@ namespace Fusion.Resources.Domain
             private async Task<QueryRelatedDepartments?> ResolveRelevantDepartmentsAsync(string fullDepartmentPath)
             {
                 var relevantDepartments = new QueryRelatedDepartments();
-                var department = await lineOrgResolver.ResolveDepartmentAsync(DepartmentId.FromFullPath(fullDepartmentPath));
+                var department = await lineOrgResolver.ResolveDepartmentAsync(fullDepartmentPath);
                 if (department is null) return null;
 
                 var children = await lineOrgResolver.ResolveDepartmentChildrenAsync(department);

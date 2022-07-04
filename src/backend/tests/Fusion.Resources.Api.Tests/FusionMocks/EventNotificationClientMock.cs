@@ -1,4 +1,4 @@
-using Fusion.Events;
+﻿using Fusion.Events;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using System;
@@ -18,10 +18,6 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             this.bus = bus;
             this.entityPath = entityPath;
         }
-
-        public IEventNotificationTransaction CurrentTransaction => null;
-
-        public Task<IEventNotificationTransaction> BeginTransactionAsync() => Task.FromResult(default(IEventNotificationTransaction));
 
         public Task SendNotificationAsync<T>(FusionEventType type, T payload) => SendNotificationAsync(type, payload, $"{Guid.NewGuid()}");
         public Task SendNotificationAsync<T>(FusionEventType type, T payload, string eventId) => DispatchNotification(type, null, payload, null, eventId);

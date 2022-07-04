@@ -1,8 +1,7 @@
-using Fusion.Integration;
+﻿using Fusion.Integration;
 using Fusion.Integration.LineOrg;
 using Fusion.Resources.Application;
 using Fusion.Resources.Database;
-using Fusion.Services.LineOrg.ApiModels;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -65,7 +64,7 @@ namespace Fusion.Resources.Domain
             {
                 List<QueryDepartment> result;
 
-                IEnumerable<ApiLineOrgUser> lineOrgDepartments;
+                IEnumerable<LineOrgUser> lineOrgDepartments;
                 if (!string.IsNullOrEmpty(request.resourceOwnerSearch))
                     lineOrgDepartments = await lineOrgResolver.ResolveResourceOwnersAsync(request.resourceOwnerSearch);
                 else
