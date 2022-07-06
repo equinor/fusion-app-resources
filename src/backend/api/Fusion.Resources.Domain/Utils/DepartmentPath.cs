@@ -41,7 +41,7 @@ namespace Fusion.Resources.Domain
             var levelDelta = Abs(Level - other.Level);
 
             return (levelDelta <= 2 && fullDepartmentPath.StartsWith(other.fullDepartmentPath, StringComparison.OrdinalIgnoreCase))
-                || (other.fullDepartmentPath.StartsWith(fullDepartmentPath, StringComparison.OrdinalIgnoreCase));
+                || other.fullDepartmentPath.StartsWith(fullDepartmentPath, StringComparison.OrdinalIgnoreCase);
         }
 
         public bool IsParent(string? path)

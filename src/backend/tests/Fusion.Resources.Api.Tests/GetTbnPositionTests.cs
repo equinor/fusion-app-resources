@@ -1,14 +1,9 @@
 ﻿using FluentAssertions;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Domain.Queries;
 using Fusion.Testing;
 using Fusion.Testing.Mocks.OrgService;
-using MediatR;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -36,24 +31,25 @@ namespace Fusion.Resources.Domain.Tests
                 .WithPositions(10)
                 .AddToMockService();
 
-            resourceOwner = fixture.AddResourceOwner("PDP PRD FE SE");
+            resourceOwner = fixture.AddResourceOwner("PDP PRD PMC PCA PCA4");
         }
 
         [Fact]
-        public async Task GetTbn_ShouldIgnorePositionsAboveResourceOwner()
+        public async Task GetTbn_ShouldIgnorePositionsWithSupportBasePositions_When_PRD_ProjectType()
         {
             using var userScope = fixture.UserScope(resourceOwner);
 
-            var expectedTbnPosition = testProject.AddPosition()
+            var unExpectedTbnPosition = testProject.AddPosition()
                 .WithEnsuredFutureInstances()
-                .WithNoAssignedPerson();
-            expectedTbnPosition.BasePosition.Department = "PDP PRD FE SE L5";
+                .WithNoAssignedPerson()
+                .WithBasePosition("Support Facility");
 
-            var positionAboveLeader = testProject
+
+            var expectedTbnPosition = testProject
                 .AddPosition()
                 .WithEnsuredFutureInstances()
-                .WithNoAssignedPerson();
-            positionAboveLeader.BasePosition.Department = "PDP PRD";
+                .WithNoAssignedPerson()
+                .WithBasePosition("Project Control");
 
             var client = fixture.ApiFactory.CreateClient();
             var response = await client.TestClientGetAsync($"departments/{resourceOwner.FullDepartment}/resources/requests/tbn", new[]
@@ -62,9 +58,8 @@ namespace Fusion.Resources.Domain.Tests
             });
 
             var tbns = response.Value;
-            tbns.Should().NotContain(x => x.PositionId == positionAboveLeader.Id);
+            tbns.Should().NotContain(x => x.PositionId == unExpectedTbnPosition.Id);
             tbns.Should().Contain(x => x.PositionId == expectedTbnPosition.Id);
-            tbns.Should().OnlyContain(x => x.BasePosition.Department.StartsWith(resourceOwner.FullDepartment));
         }
 
         [Fact]
@@ -74,8 +69,8 @@ namespace Fusion.Resources.Domain.Tests
 
             var expectedTbnPosition = testProject.AddPosition()
                 .WithEnsuredFutureInstances()
-                .WithNoAssignedPerson();
-            expectedTbnPosition.BasePosition.Department = "PDP PRD FE SE L5";
+                .WithNoAssignedPerson()
+                .WithBasePosition("Project Control");
 
             var expiredPosition = testProject
                 .AddPosition()
@@ -85,9 +80,8 @@ namespace Fusion.Resources.Domain.Tests
                     expiredInstance.AppliesFrom = new DateTime(2020, 04, 01);
                     expiredInstance.AppliesTo = new DateTime(2021, 04, 01);
                     expiredInstance.AssignedPerson = null;
-                });
-                
-            expiredPosition.BasePosition.Department = "PDP PRD FE SE";
+                })
+                .WithBasePosition("Project Control");
 
             var client = fixture.ApiFactory.CreateClient();
             var response = await client.TestClientGetAsync($"departments/{resourceOwner.FullDepartment}/resources/requests/tbn", new[]
@@ -98,7 +92,6 @@ namespace Fusion.Resources.Domain.Tests
             var tbns = response.Value;
             tbns.Should().NotContain(x => x.PositionId == expiredPosition.Id);
             tbns.Should().Contain(x => x.PositionId == expectedTbnPosition.Id);
-            tbns.Should().OnlyContain(x => x.BasePosition.Department.StartsWith(resourceOwner.FullDepartment));
         }
     }
 }

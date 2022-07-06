@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Integration.Org;
+using Microsoft.Extensions.Options;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -44,25 +46,47 @@ namespace Fusion.Resources.Domain.Queries
 
                 var tbnPositions = new List<QueryTbnPosition>();
 
-                var resourceOwnerDepartment = new DepartmentPath(request.Department);
-
                 foreach (var pos in positions)
                 {
+                    if (!IsRelevantTbnPosition(request.Department.Trim(), pos)) continue;
+
                     foreach (var instance in pos.Instances)
                     {
                         if (instance.AssignedPerson is not null) continue;
                         if (instance.AppliesTo < DateTime.UtcNow) continue;
-
-                        if (resourceOwnerDepartment.IsParent(pos.BasePosition.Department))
-                        {
-                            tbnPositions.Add(new QueryTbnPosition(pos, instance));
-                        }
+                        tbnPositions.Add(new QueryTbnPosition(pos, instance));
                     }
                 }
 
                 return tbnPositions;
             }
 
+            /// <summary>
+            /// Observe that PRD project type is considered a little bit different than the rest.
+            /// Should be refactored to startup options, where PRD type is configured as requested.
+            /// </summary>
+            /// <param name="resourceOwnerDepartment"></param>
+            /// <param name="position"></param>
+            /// <returns></returns>
+            private static bool IsRelevantTbnPosition(string resourceOwnerDepartment, ApiPositionV2 position)
+            {
+                if (string.IsNullOrEmpty(position.BasePosition.Department)) return false;
+
+                var basePositionDepartmentPath = new DepartmentPath(position.BasePosition.Department);
+
+                // If project type is PRD and resourceOwner department is below L4 (L5/L6 if found), filter department as L4.
+                if (position.BasePosition.ProjectType == OrgProjectType.PRD)
+                {
+                    // PRD type has decided to skip support positions
+                    if (position.BasePosition.Name.Contains("support", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                    
+                }
+
+                return basePositionDepartmentPath.IsRelevant(resourceOwnerDepartment);
+            }
             private async Task<List<ApiPositionV2>> GetTbnPositionsAsync(CancellationToken cancellationToken)
             {
                 const string cacheKey = "tbn-positions";
