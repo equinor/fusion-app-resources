@@ -8,7 +8,6 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration.Org;
-using Microsoft.Extensions.Options;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -46,9 +45,11 @@ namespace Fusion.Resources.Domain.Queries
 
                 var tbnPositions = new List<QueryTbnPosition>();
 
+                var resourceOwnerDepartment = new DepartmentPath(request.Department);
+
                 foreach (var pos in positions)
                 {
-                    if (!IsRelevantTbnPosition(request.Department.Trim(), pos)) continue;
+                    if (!IsRelevantTbnPosition(resourceOwnerDepartment, pos)) continue;
 
                     foreach (var instance in pos.Instances)
                     {
@@ -68,7 +69,7 @@ namespace Fusion.Resources.Domain.Queries
             /// <param name="resourceOwnerDepartment"></param>
             /// <param name="position"></param>
             /// <returns></returns>
-            private static bool IsRelevantTbnPosition(string resourceOwnerDepartment, ApiPositionV2 position)
+            private static bool IsRelevantTbnPosition(DepartmentPath resourceOwnerDepartment, ApiPositionV2 position)
             {
                 if (string.IsNullOrEmpty(position.BasePosition.Department)) return false;
 
