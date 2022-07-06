@@ -75,7 +75,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var basePositionDepartmentPath = new DepartmentPath(position.BasePosition.Department);
 
-                // If project type is PRD and resourceOwner department is below L4 (L5/L6 if found), filter department as L4.
+                // If project type is PRD
                 if (position.BasePosition.ProjectType == OrgProjectType.PRD)
                 {
                     // PRD type has decided to skip support positions
@@ -86,6 +86,8 @@ namespace Fusion.Resources.Domain.Queries
                     
                 }
 
+                // IsRelevant evaluates to true if department path is less or equal to two levels apart from origin.
+                // For PRD most base position departments is on L4 level. This evaluation should cover PRD leaders on all known levels.
                 return basePositionDepartmentPath.IsRelevant(resourceOwnerDepartment);
             }
             private async Task<List<ApiPositionV2>> GetTbnPositionsAsync(CancellationToken cancellationToken)
