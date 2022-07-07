@@ -9,7 +9,7 @@ namespace Fusion.Testing.Mocks.OrgService
     {
         public static ApiPositionV2 WithBasePosition(this ApiPositionV2 position, string bpName)
         {
-            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, bpName));
+            var bp = PositionBuilder.AllBasePositions.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, bpName) && p.ProjectType == position.Project.ProjectType);
             if (bp == null)
                 throw new ArgumentException($"Unable to locate base position {bpName} when setting up test position");
 
@@ -102,8 +102,9 @@ namespace Fusion.Testing.Mocks.OrgService
         }
         public static ApiPositionV2 WithAssignedPerson(this ApiPositionV2 position, string personMail)
         {
-            position.Instances.ForEach(i => i.AssignedPerson = new ApiPersonV2 { 
-                Mail = personMail 
+            position.Instances.ForEach(i => i.AssignedPerson = new ApiPersonV2
+            {
+                Mail = personMail
             });
             return position;
         }

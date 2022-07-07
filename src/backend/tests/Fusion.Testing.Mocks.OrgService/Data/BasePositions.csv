@@ -1,390 +1,638 @@
-ID;Position Name;Discipline;Department;Inactive
-6972e5ec-51c5-4d32-aadf-406bf7713f16;Asset Owner Representative;Asset;Asset;FALSE
-a9f3dea2-5fca-450c-ba10-a506e5ba60cc;Authority Handling;Asset;Asset;FALSE
-00b7add9-ce4f-41c2-922a-4f3723946eb3;Crane/Store;Operation;DPN JOS;FALSE
-aaf1cb08-0c17-404c-908c-867dbc54044f;Support Operations;;DPN JOS;FALSE
-7217a939-0cd2-4b2a-b5cb-fe57c408155b;Operations resources DG1-DG2;Operation;DPN JOS CCO;FALSE
-d68a69d1-5a3d-4712-9183-37ca5e62f159;Operations resources DG2-DG3;Operation;DPN JOS CCO;FALSE
-eed136bc-a1cf-4958-bf15-1fe44140c6fb;Operations resources DG3-DG4;Operation;DPN JOS CCO;FALSE
-c9ebed23-60c2-48a2-b5e8-587116227caf;POB coordinator;Operation;DPN JOS CCO;TRUE
-d4a738fa-1fd9-41df-8e03-b6544e35b86d;Commercial manager;Asset;DPN OS AD;TRUE
-e6677214-e0c8-4390-b4be-58d59508ef83;LCI Engineer;LCI;DPN OTE OPA;FALSE
-54b59d16-3637-41de-b0db-5bdac0d8c4e9;LCI Lead;LCI;DPN OTE OPA;FALSE
-3cc8471c-f87a-49b7-8687-22210293c666;Operations Manager;Operation;DPN OTE OPA;FALSE
-2fb50d36-56ba-4f15-a285-b9de8a33890f;Petec leader;Petech;DPN OTE PETECH;FALSE
-4fb50506-b6ef-43f8-9a18-472346c09a7d;Petech resources DG1-DG2;Petech;DPN OTE PETECH;FALSE
-4c4dca98-a7ed-4189-a66c-e5e29fd63ee7;Petech Resources DG2-DG3;Petech;DPN OTE PETECH;FALSE
-891f164e-2439-45a0-af66-cd24bcd68505;Petech Resources DG3-DG4;Petech;DPN OTE PETECH;FALSE
-4fa55f5d-b4ba-44ab-89d0-e9e4e05991f7;Petro physicist;Petech;DPN OTE PETECH;FALSE
-4bc7968e-72a7-4cc8-b3b9-57d626af29ab;Support Petech;;DPN OTE PETECH;FALSE
-eb2d0128-f716-4862-b7ba-76ad7e7a3d9c;Financial Analyst;Asset;DPN OTE PPM;FALSE
-ac1b082c-704a-4f2a-9456-9b8063cfa3b6;Production enginer;Petech;DPN OTE PTC;FALSE
-865b6c61-74f2-43c2-ac8d-00c08d94dda1;3rd Party Coordinator;Drilling;Operations;TRUE
-5fc6cdc3-bdd0-4fd2-9e04-29221117b958;Project Manager Operation;Operation;Operations;FALSE
-9fc47047-aef7-444d-89be-ca37d48f3838;HR Consultant;X Exclude from reporting;Other;FALSE
-7c9af7c6-dae0-4e8b-a8b0-71f5efc1b11f;IM/IT Lead;X Exclude from reporting;Other;TRUE
-b00c598c-90d2-46e9-b144-b249f8275d6a;IT analyst;X Exclude from reporting;Other;TRUE
-440ef89f-b0f8-42c5-93d8-34d3d6fdfdfe;IT coordinator;X Exclude from reporting;Other;FALSE
-589a56c9-799d-4fb9-9a2d-dd59e866d06f;Leave;;Other;FALSE
-20870c5e-8488-4527-b461-275f758ed6fc;Logistic;Operation;Other;TRUE
-eba5938e-cbc5-4cd5-954d-e3da64d5311a;Main safety delegate;X Exclude from reporting;Other;FALSE
-cc9ef6ec-182d-4871-834e-f68ed9157766;Multi-discipline engineer ;;Other;FALSE
-b220cda1-fe12-49a6-a874-2262a8f82803;Structural Inspector;Structural;Other;FALSE
-6881a72e-2905-40c6-8efe-d850426551d4;Support outside PRD;;Other;FALSE
-572298cf-c601-4e5f-af19-74019cd2fb59;Geologist/Geophysicist;Petech;Petech (PTC);FALSE
-905f0eb5-4687-4954-8528-5470891848b9;Project Manager Petech;Petech;Petech (PTC);FALSE
-a96852b6-f4fa-4bd7-b5bc-854b3fc66a65;Reservoir Engineer;Petech;Petech (PTC);FALSE
-b3a27240-f64a-4b45-8659-65aad01c0402;D&W Economist;Drilling;TPD D&W;FALSE
-d8326525-8d65-4b62-8cab-6df0140fabd6;D&W Manager;Drilling;TPD D&W;FALSE
-dbef15a1-2a6c-4463-b884-3fc294de0b42;D&W resources DG1-DG2;Drilling;TPD D&W;FALSE
-8a8e5ad6-f58f-464a-84d7-2b88dceb7e54;D&W resources DG2-DG3;Drilling;TPD D&W;FALSE
-74f365d9-8cee-4c3b-90ec-c54dab31bd06;D&W resources DG3-DG4;Drilling;TPD D&W;FALSE
-acc20698-8e42-4c10-9e69-ecf618d21f86;Day Supervisor rig;Drilling;TPD D&W;FALSE
-bb1278ad-5be8-4959-81c4-aa5755534be7;Drilling Engineer;Drilling;TPD D&W;FALSE
-b6f614dd-c336-4ee9-90ec-f18396adab73;Drilling Superintendent;Drilling;TPD D&W;FALSE
-2b6d46b3-288d-4e9d-bf99-45de8e01c4db;Night Supervisor rig;Drilling;TPD D&W;FALSE
-482e09a6-9d8c-49a0-8479-c5e40ccb1e4a;Project Manager D&W;Drilling;TPD D&W;FALSE
-58153e38-5f02-4250-862a-deeb4f430a61;Subsea Vertical System Engineer;Drilling;TPD D&W;FALSE
-8fe3a775-7c6c-47e6-be38-acb7a3d24063;Support D&W;;TPD D&W;FALSE
-6e038786-abe4-4ad5-b5ff-76bf5487d1c4;Well Completion Engineer;Drilling;TPD D&W;FALSE
-7f0e4392-9bd7-430c-8bdd-61ce2378fa93;Well Engineer;Drilling;TPD D&W;FALSE
-77b84506-18e0-4333-9603-cf7aedf83cc5;Well Intervention Engineer;Drilling;TPD D&W;FALSE
-1cb8c0ad-a035-4aef-8444-734f54e35b8c;Wellhead System Engineer;Drilling;TPD D&W;FALSE
-90c32c02-488f-49d5-84e5-4bc3b4469937;Workover System Engineer;Drilling;TPD D&W;TRUE
-3ffed341-63c4-40d8-98af-3876fdaeb0a4;XT System Engineer;Drilling;TPD D&W;FALSE
-a6f87307-7e03-4904-aa5e-186dd6b44541;Economic Analyst;Finance & Economy;TPD FC;FALSE
-73ba3fea-2e07-4bc8-979a-2310ca7aeb79;Financial Controller;Finance & Economy;TPD FC;FALSE
-efea104a-5abf-4c2b-bd47-15facff194f4;HR Manager;P&L;TPD PL PD;FALSE
-23736fd2-1d2c-485e-a18e-9893bbc76dcf;Advisor;;TPD PRD;FALSE
-3eb2b3c1-96d5-4189-97b3-bae76e84ed49;Chief Engineer;X Exclude from reporting;TPD PRD;TRUE
-9bc6562e-da18-4d1c-a4d9-96f5cb145404;Company Representative;;TPD PRD;TRUE
-af5cb517-fe40-4c8b-85c0-05544b076d7f;Facilities resources DG1-DG2;Facility;TPD PRD;TRUE
-6dbff9d8-adb9-472b-bed1-2869aa4d50d7;Facilities resources DG2 -DG3;Facility;TPD PRD;TRUE
-af1015be-ab7b-4a5f-a9c8-c00b63c602b0;Facilities resources DG3 -DG4;Facility;TPD PRD;FALSE
-248fefd3-11c1-4032-a052-636f8586a2ba;Home Support;;TPD PRD;TRUE
-bb577fcb-e338-48bf-9874-354dc3dc65dc;Internal assignments;;TPD PRD;FALSE
-fc7b216f-49f7-4f66-af34-dc239ab284a8;Leading Advisor;;TPD PRD;TRUE
-22bf5cd7-2d95-4276-883a-8b899532ec32;Management;;TPD PRD;FALSE
-0dcc4c6e-cffb-4431-816a-162bbe35f5fd;Project Support;;TPD PRD;TRUE
-3cd60bc6-44b1-40e8-bb5f-8fd5174e6719;Resource Owner;;TPD PRD;FALSE
-bd8f02d8-97ca-404d-bb4a-f60f38fe6360;Specialist;;TPD PRD;TRUE
-2ab4a929-317a-4cc9-88bf-4a737c89e557;Support;;TPD PRD;TRUE
-8feb5ff4-7ac1-45ae-8128-bba2259838cc;Support Facility;;TPD PRD;FALSE
-23df8810-d321-41e7-ab82-030db21634c6;T&I Manager;;TPD PRD;FALSE
-58596b10-08df-491d-91dc-c74f5c5d0f35;Business Efficiency responsible;X Exclude from reporting;TPD PRD BE;TRUE
-79c30e7e-993c-4287-a398-735afc0b8f91;Cost Estimator;Estimation;TPD PRD EP EST;FALSE
-67664174-200a-4a65-93fc-35ffe73f110c;Lead Estimator;Estimation;TPD PRD EP EST;FALSE
-b2e0fe85-8a9d-49e8-abba-5f5467a1a5b6;Weight Control Engineer;Estimation;TPD PRD EP EST;FALSE
-752d67f8-65b0-4256-a5ff-d63920692af5;Weight Estimator ;Estimation;TPD PRD EP EST;FALSE
-124cf1b2-d885-4abf-b577-9a5b843f6cd9;Area Lead;;TPD PRD FE;FALSE
-3f9d1ad1-7938-4073-9aaf-d3a3faffa834;Field Engineer Preservation;Material;TPD PRD FE;TRUE
-c2977352-08d5-4030-a7c8-790e53cf8295;Production technology;Process and Flow;TPD PRD FE;TRUE
-dfe48713-b58c-4028-b04b-b2b0e0100bcc;Quality Surveillance Engineer;Material;TPD PRD FE;FALSE
-44fee613-e177-475f-83bb-9f22815f8e29;Automation;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-d2cc138e-7e32-4fb1-84cc-b011362ba5bb;Automation engineer;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-46716a55-ae95-4917-b21f-345cf0ede26f;Automation lead;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-6681f877-1431-4258-a0b6-4d0226c5b791;Automation operation rep;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-fc628d1e-1388-405e-9c4d-47c1739da2ce;Discipline Engineer Automation ;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-20023f92-c3e2-4e6a-ae8c-22b84e66b5d1;Discipline Engineer Electrical;Electro;TPD PRD FE EA;TRUE
-a63caab5-dceb-4011-bfaa-c9b8bde52473;Discipline Engineer Instrument ;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-32c3b661-f61d-4d9b-9314-0cfec94c14ec;Discipline Engineer Telecom ;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-a7852787-8f08-447e-81c9-81631f56c8e8;Discipline Lead Automation;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-acbb18f4-59d7-4f47-b48e-c1327e2f56bc;Discipline Lead Electrical;Electro;TPD PRD FE EA;TRUE
-5b0392ff-6e86-4f85-8600-66d695d08894;Discipline Lead Instrument;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-20805a11-d288-46ec-9f1b-2da3748476e7;Discipline Lead Telecom ;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-7cb500e1-6f50-47de-b2c3-f0b64d23006a;Electrical engineer;Electro;TPD PRD FE EA;FALSE
-0d1186b7-f437-4b25-a5d6-563fe407fcfe;Electrical lead;Electro;TPD PRD FE EA;FALSE
-4ee1f5a1-d5dd-4849-9658-51dfc562d232;Field Engineer Electrical;Electro;TPD PRD FE EA;TRUE
-624e355b-5e2c-49d7-a3cf-4bf8ef8250b0;Field Engineer Instrument;Aut/Inst/Tele;TPD PRD FE EA;TRUE
-bc19b8c8-6902-4ff7-9404-3d92dd014e1b;Instrument engineer;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-96d45de5-b2bb-4997-89bf-e26bf436c470;Instrument field engineer;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-15839050-d75f-498b-9aba-afd805b5eefb;Instrument lead;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-7b74fdd1-73fe-46a0-a136-64c315bf0098;SAS;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-d50e2b2c-d3f4-4123-b58c-b01afd167f25;Telecom engineer;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-3b3e6b83-f60c-4a7f-801c-0a63df901944;Telecom lead ;Aut/Inst/Tele;TPD PRD FE EA;FALSE
-b97703e6-cdc8-4a3f-a889-21a1d375422f;Area Manager ;;TPD PRD FE EM;FALSE
-c52c13d2-164e-4c5c-abe5-e5b52dc22787;Company Representative (FE);;TPD PRD FE EM;TRUE
-a9dd775d-fe9e-4d52-8505-84245eb7f3c7;Engineering Manager;Engineering Management;TPD PRD FE EM;FALSE
-21e73b7f-6540-4dc3-b45b-44efb266360c;Project engineer;;TPD PRD FE EM;FALSE
-28a22a4a-51ad-4b52-ab0f-59b8d9413aad;Site Manager (FE);Engineering Management;TPD PRD FE EM;FALSE
-95287af2-62e2-434c-9844-e4bfa6733278;Technical interface coordinator;Engineering Management;TPD PRD FE EM;FALSE
-13356141-5516-40f6-99e5-1c4301563682;Technical Manager;Engineering Management;TPD PRD FE EM;FALSE
-38f238c3-10da-4010-92c3-c6a7f70431e7;Discipline Engineer Material;Material;TPD PRD FE MMS MAT;TRUE
-a2609346-8e7f-4672-b830-417be336aabe;Discipline Lead Material;Material;TPD PRD FE MMS MAT;TRUE
-4bcdd9c5-63aa-41ba-923c-0f44b8e180ee;Field Engineer Insulation;Material;TPD PRD FE MMS MAT;TRUE
-b2a29170-39ce-45f6-9938-bcef74af04c0;Field Engineer Surface Protection;Material;TPD PRD FE MMS MAT;TRUE
-ac076cd7-5be5-4470-9594-6ee3cf003e09;Field Engineer Welding;Material;TPD PRD FE MMS MAT;TRUE
-05da84f9-bc58-4917-b043-850d289d6077;Field Engineer Welding and NDE;Material;TPD PRD FE MMS MAT;TRUE
-d9da42cc-7c3c-4591-9c9d-a3a7786099a4;Insulation Field Engineer ;Material;TPD PRD FE MMS MAT;FALSE
-99e2fa8c-501e-41a4-b1c9-d2188422e9c5;Insulation Lead;Material;TPD PRD FE MMS MAT;FALSE
-114811bd-9480-4d23-8765-130bf9f49c7c;Material Engineer;Material;TPD PRD FE MMS MAT;FALSE
-1d94bdf6-eb40-4686-9363-dbab98b15ccc;Material Lead;Material;TPD PRD FE MMS MAT;FALSE
-c80b1b6d-6533-46b9-bedb-bfbf071d720c;Structure and welding field engineer;Material;TPD PRD FE MMS MAT;FALSE
-24b2dc44-f78c-4879-8be9-73bbf8ed2381;Surface Protection Field Engineer ;Material;TPD PRD FE MMS MAT;FALSE
-a6887cc3-8266-40e9-9a98-1963b70e4f68;Welding and NDE Field Engineer ;Material;TPD PRD FE MMS MAT;TRUE
-a6439abb-e088-4a95-bec4-3ac3629ba086;Crane Lifting Field Engineer;Mechanical;TPD PRD FE MMS MEC;TRUE
-47aef703-86c7-4e69-ab26-e63da3c611d5;Discipline Engineer Architect ;Mechanical;TPD PRD FE MMS MEC;TRUE
-31077d22-ce49-4939-8a1d-2e3dafc49cec;Discipline Engineer Civil ;Mechanical;TPD PRD FE MMS MEC;TRUE
-3af88aaa-d72b-44ff-b2ae-b296686954f2;Discipline Engineer Civil and Structures;Mechanical;TPD PRD FE MMS MEC;TRUE
-d3f38e8c-90a1-4f64-8943-3558481c842a;Discipline Engineer HVAC;Mechanical;TPD PRD FE MMS MEC;TRUE
-ca2499cb-5c23-4c5c-93d3-0a99ecda8fea;Discipline Engineer Material Handling;Mechanical;TPD PRD FE MMS MEC;TRUE
-947a746a-24e9-4265-b185-40a46650deb2;Discipline Engineer Mechanical;Mechanical;TPD PRD FE MMS MEC;TRUE
-b9d040a0-a796-4964-91bf-f635d1f6bfbd;Discipline Engineer Piping and Layout ;Mechanical;TPD PRD FE MMS MEC;TRUE
-9ca93826-10dc-4dc8-a2bc-86c18987ce02;Discipline Lead Architect;Mechanical;TPD PRD FE MMS MEC;TRUE
-f1bff6f5-1cd9-4719-bf5a-ebb8c299bbfb;Discipline Lead Civil;Mechanical;TPD PRD FE MMS MEC;TRUE
-40ba2d2d-5e9e-46c8-9719-d705e1112231;Discipline lead Civil and Structures;Mechanical;TPD PRD FE MMS MEC;TRUE
-524d9e8d-99bb-4cda-b9a7-eabce3b1ce01;Discipline Lead HVAC;Mechanical;TPD PRD FE MMS MEC;TRUE
-3b69fca5-41a2-4755-919e-08df892a8aaf;Discipline Lead Mechanical ;Mechanical;TPD PRD FE MMS MEC;TRUE
-802289ba-f95b-41c3-a6d2-2cf0fd21b173;Discipline Lead Piping and Layout;Mechanical;TPD PRD FE MMS MEC;TRUE
-b0262594-0559-48bb-8a94-ad58bc3f3d86;Field Engineer Architect;Mechanical;TPD PRD FE MMS MEC;TRUE
-ef8e1924-e8cb-4c40-9fbb-6362605c0a2a;Field Engineer Crane Lifting;Mechanical;TPD PRD FE MMS MEC;TRUE
-04fa1176-108b-45be-8dbd-30de99bc7403;Field Engineer HVAC;Mechanical;TPD PRD FE MMS MEC;TRUE
-c6c61c99-d85c-49ac-9fb1-d81ccb6cdab2;Field Engineer Mechanical ;Mechanical;TPD PRD FE MMS MEC;TRUE
-475ddd06-d455-4edd-9f9e-fae4ad9634c2;Field Engineer Piping;Mechanical;TPD PRD FE MMS MEC;TRUE
-254d9ee5-46c9-45a6-94db-e857a9d4e1f3;Field Engineer Scaffolding;Mechanical;TPD PRD FE MMS MEC;TRUE
-afb4dced-27d7-4790-b723-5f7514169a4d;HVAC Engineer;Mechanical;TPD PRD FE MMS MEC;FALSE
-124475ae-d553-4eee-bfd6-94fc5ad561fe;HVAC Field Engineer;Mechanical;TPD PRD FE MMS MEC;FALSE
-c6c893e8-7620-4a0b-a8a4-0453f2a09bf2;HVAC Lead;Mechanical;TPD PRD FE MMS MEC;FALSE
-55d55034-fd40-4c23-9118-f934d024d76f;Manager Civil;Mechanical;TPD PRD FE MMS MEC;TRUE
-a51b7b75-9c0a-46b3-912d-315750487918;Mechanical  engineer;Mechanical;TPD PRD FE MMS MEC;TRUE
-58824092-274e-44f6-abdf-57161b8ec000;Mechanical Engineer;Mechanical;TPD PRD FE MMS MEC;FALSE
-55571084-33ec-4933-bdde-3f400c8b0181;Mechanical Field Engineer ;Mechanical;TPD PRD FE MMS MEC;FALSE
-e619d893-9cff-4c46-996a-f67bd148db9d;Mechanical Lead;Mechanical;TPD PRD FE MMS MEC;FALSE
-c513d654-408e-4974-9dba-e4699412be50;Offshore Architect ;Mechanical;TPD PRD FE MMS MEC;FALSE
-d0773997-a408-4973-8afe-7c68b0fe116d;Offshore Architect Field Engineer;Mechanical;TPD PRD FE MMS MEC;FALSE
-dedaa1c0-3368-4455-8cf2-cd04c7eb897c;Offshore Architect Lead;Mechanical;TPD PRD FE MMS MEC;FALSE
-7155fefe-fd3c-4e05-bc92-bd4ee024c6f3;Onshore Civil Engineer;Mechanical;TPD PRD FE MMS MEC;FALSE
-5ce029d2-91e8-4b7d-a5d4-9c551502f35a;Onshore Civil Lead;Mechanical;TPD PRD FE MMS MEC;FALSE
-0da454b6-6384-4627-8a88-5fe36fee7daf;Onshore Civil Manager;Mechanical;TPD PRD FE MMS MEC;TRUE
-47782a6a-57af-4abc-b3b3-ae86bd16653c;Piping and Layout Engineer;Mechanical;TPD PRD FE MMS MEC;FALSE
-67c07071-9e62-4aa4-8000-f9981f795d6d;Piping and Layout Lead;Mechanical;TPD PRD FE MMS MEC;FALSE
-1952d2ca-4e65-4d8d-b287-7ab6f165ce41;Piping Field Engineer;Mechanical;TPD PRD FE MMS MEC;FALSE
-648f6e15-c260-4882-a3a0-f5ea158f52af;Valve Engineer;;TPD PRD FE MMS MEC;FALSE
-9b3f98f4-119a-4239-99aa-96589cec58ee;Discipline Engineer Marine Structures ;Structural;TPD PRD FE MMS STR;TRUE
-bbd52c90-d592-4e60-bb78-660148db8aa2;Discipline Engineer Structure;Structural;TPD PRD FE MMS STR;TRUE
-1cc21844-b477-43a0-8d30-c1a3195afd81;Discipline Lead Marine Structures;Structural;TPD PRD FE MMS STR;TRUE
-539923d2-a978-4099-9b50-8b1ceaeeb03d;Discipline Lead Structural;Structural;TPD PRD FE MMS STR;TRUE
-367afa8c-fe66-42d4-a742-61bfd5767ce9;Floater Lead;Structural;TPD PRD FE MMS STR;TRUE
-4e7ee589-bddc-4828-b61c-11cadd4bd364;Jacket Lead;Structural;TPD PRD FE MMS STR;TRUE
-4630fbec-85d7-4332-aa70-520a94e4dd40;Structural Engineer;Structural;TPD PRD FE MMS STR;FALSE
-885a3144-1d60-43a7-a88f-b04121f6c401;Structural Lead;Structural;TPD PRD FE MMS STR;FALSE
-c5b6198e-8330-4335-b071-99f8b23c29da;Mooring;Marine;TPD PRD FE MO;TRUE
-77610d3f-e1eb-4a0a-94b4-e08a5b039eee;Platform Marine;Marine;TPD PRD FE MO;TRUE
-05994b76-291e-4923-ad98-9fd5218cd33f;Survey;Marine;TPD PRD FE MO;TRUE
-33561bc0-5e91-42f7-8ebd-e93b1fd791f9;Geotechnical/Survey;Marine;TPD PRD FE MO GMS;TRUE
-5182bf73-e490-4d3e-8f75-29d48e5b8ca1;Discipline Engineer Marine Systems;Marine;TPD PRD FE MO MAR;TRUE
-bf4c3325-7967-44db-bcb6-0df7cc357097;Discipline Engineer Platform Marine Operation ;Marine;TPD PRD FE MO MAR;TRUE
-e65f447d-6f1a-409f-93bc-875cea17fb62;Discipline Lead Marine Systems;Marine;TPD PRD FE MO MAR;TRUE
-854fada2-a756-4bce-bc1d-2f4f99e55622;Discipline Lead Platform Marine Operation;Marine;TPD PRD FE MO MAR;TRUE
-aa700c19-d27f-4fbf-a606-07aeda6449fa;Discipline Lead Subsea Marine Operations ;Marine;TPD PRD FE MO MAR;TRUE
-9bf1ec57-000a-4854-94a9-2d8a67c76122;Manager Pipeline and Subsea Marine Operations;Marine;TPD PRD FE MO MAR;TRUE
-e483f960-c199-4441-890d-d6c286c2149d;Manager Subsea Marine Operations ;Marine;TPD PRD FE MO MAR;TRUE
-ece1410e-b4ac-49f8-9503-34474db31336;Marine Systems Engineer;Marine;TPD PRD FE MO MAR;TRUE
-0294b109-7f6d-425f-aec1-2ac0f905901b;Marine Systems Lead;Marine;TPD PRD FE MO MAR;TRUE
-c082aabd-efd3-4267-97e2-18c267b06e9a;Platform Marine Operation Engineer;Marine;TPD PRD FE MO MAR;TRUE
-b3c1188a-d35c-47de-9582-1acc7b375406;Platform Marine Operation Lead;Marine;TPD PRD FE MO MAR;TRUE
-a701618b-d84c-4a57-b39a-3a3017cc2fad;Subsea Marine Operation Engineer;Marine;TPD PRD FE MO MAR;TRUE
-306cbb60-9b56-45eb-9624-ba450c2bc816;Subsea Marine Operation Lead;Marine;TPD PRD FE MO MAR;TRUE
-7bf4d146-b389-4c2d-8bbd-c13b54fab6c6;Vessel Rep;Marine;TPD PRD FE MO MAR;FALSE
-dab00ad7-42e7-4e5d-a2a8-b14882de8996;System Lead;Process and Flow;TPD PRD FE SE;FALSE
-6ce0e8c9-8c45-471c-86ed-b1566fad93fb;Systems Lead;Process and Flow;TPD PRD FE SE;TRUE
-5e35b0cd-d16a-4d39-b5d1-fc5c76cf3bc8;Flow Assurance Engineer ;Process and Flow;TPD PRD FE SE FA;FALSE
-968c22be-3f3e-43c4-b6c8-0761410d052a;Flow Assurance Lead;Process and Flow;TPD PRD FE SE FA;FALSE
-659c10b5-6be6-49a4-89c5-4622f89f159c;Discipline Engineer Flow assurance;Process and Flow;TPD PRD FE SE PF;TRUE
-0623edff-ae07-4fc3-91cf-065cdc8d618a;Discipline Engineer Process;Process and Flow;TPD PRD FE SE PF;TRUE
-6d654ac8-a6d6-4021-85d6-4309202e221b;Discipline Lead Process;Process and Flow;TPD PRD FE SE PF;TRUE
-d2e00c0a-9be0-4a6e-9230-a6fa7b14ab45;Process Engineer;Process and Flow;TPD PRD FE SE PR;FALSE
-3c72c8a1-c23e-4614-a2c1-ec573472e10f;Process Lead ;Process and Flow;TPD PRD FE SE PR;FALSE
-f2be28d7-7fdb-4f12-8055-4b991f0d0b82;Discipline Engineer Environment Technology;Sustainability;TPD PRD FE SE SUS;TRUE
-9f5e518a-9138-41eb-85d0-b249ef2ad83c;Discipline Engineer Impact Assessment;Sustainability;TPD PRD FE SE SUS;TRUE
-eed50489-dda8-459d-b222-7fa3c0a0cc10;Discipline Lead Environment Technology;Sustainability;TPD PRD FE SE SUS;TRUE
-b61c7459-38ed-4e26-8ede-8d6cc51a4062;Discipline Lead Impact Assessment;Sustainability;TPD PRD FE SE SUS;TRUE
-e600750e-b72e-4e92-b5fc-09d6292ba056;Environment Technology Lead;Sustainability;TPD PRD FE SE SUS;FALSE
-cc03fc34-a468-4a1b-8af0-ca1eb2b5c4c3;External environment Engineer;Sustainability;TPD PRD FE SE SUS;TRUE
-17c8ce95-cf50-4091-adbc-4dee74cde0a3;Impact Assessment Lead;Sustainability;TPD PRD FE SE SUS;FALSE
-41b64ae8-e5b8-4689-beb0-0ba474250fed;Sustainability Lead;Sustainability;TPD PRD FE SE SUS;FALSE
-3d946829-2034-4d25-850e-9646a62d5846;Discipline engineer Technical Safety;Technical Safety and Working Environment;TPD PRD FE SE TS;TRUE
-9d312b75-4242-4555-a5d9-aeeac548499d;Discipline lead Technical Safety;Technical Safety and Working Environment;TPD PRD FE SE TS;TRUE
-0d8cdd60-12f6-42ce-8589-52569c1d1a9e;Technical Safety Engineer;Technical Safety and Working Environment;TPD PRD FE SE TS;FALSE
-16069856-03a2-48f7-aa23-284778038ae3;Technical Safety Lead;Technical Safety and Working Environment;TPD PRD FE SE TS;FALSE
-04178a76-0ccf-41f6-b125-0d7d8c2a1f2c;Discipline engineer Working environment;Technical Safety and Working Environment;TPD PRD FE SE TWEE;TRUE
-a69956cf-f3f7-4302-98eb-3d9d57822686;Discipline lead Working environment;Technical Safety and Working Environment;TPD PRD FE SE TWEE;TRUE
-c7e74505-4b06-4e16-a52f-d8798195b767;Working Environment Engineer;Technical Safety and Working Environment;TPD PRD FE SE TWEE;FALSE
-df7ca0fd-0e51-45b1-8488-0042f2817b9b;Working Environment Lead;Technical Safety and Working Environment;TPD PRD FE SE TWEE;FALSE
-3edc7ca2-3fec-45e8-918f-784c7a1691c2;Discilpine engineer SURF;SURF;TPD PRD FE SP;TRUE
-b80bc938-9be3-434c-85da-34d29e97be45;Discipline engineer  Pipeline System;SURF;TPD PRD FE SP;TRUE
-c202f160-0f18-4b9d-a8f3-3119696d62e1;Discipline engineer Dynamic Risers;SURF;TPD PRD FE SP;TRUE
-f8f9c068-c925-4714-b7a7-270597c4e357;Discipline engineer Pipeline Commissioning (RFO);SURF;TPD PRD FE SP;TRUE
-ee358152-44ce-42e6-a8c7-fa95817cd65c;Discipline engineer Pipeline Construction;SURF;TPD PRD FE SP;TRUE
-c85721da-d336-467b-aec1-f6476c8feda8;Discipline engineer Pipeline Design;SURF;TPD PRD FE SP;TRUE
-2e70c7c8-9a66-4e18-8726-923b4bb7de49;Discipline engineer Pipeline System ;SURF;TPD PRD FE SP;TRUE
-2e06319b-6e67-4d8f-9a2d-329b2ace3541;Discipline engineer Pipeline Tie-in and repair;SURF;TPD PRD FE SP;TRUE
-1b44b6cc-811b-48c1-ab1b-60db871089ae;Discipline engineer Subsea Control System;SURF;TPD PRD FE SP;TRUE
-acfcbaca-8c15-41c7-8037-002f47ca991c;Discipline engineer Subsea Electrical Technology;SURF;TPD PRD FE SP;TRUE
-810ef4c0-fe05-4148-8d63-aa2a54be5cca;Discipline engineer Subsea Intervention System ;SURF;TPD PRD FE SP;TRUE
-4afdceac-0ed2-4085-a0ba-79727a714081;Discipline engineer Subsea Marine Operations;SURF;TPD PRD FE SP;TRUE
-ec2b50d5-78d5-4a16-91c1-1b2959e17d0c;Discipline engineer Subsea Processing;SURF;TPD PRD FE SP;TRUE
-e944515d-c2f9-47d5-9c43-2310c2378b6a;Discipline engineer Subsea Production System;SURF;TPD PRD FE SP;TRUE
-52cf1fe9-bf92-486b-9ab3-5e73ba844bf7;Discipline engineer Subsea Structure & Valves;SURF;TPD PRD FE SP;TRUE
-f2098bc4-5684-4af7-ba96-949d8dfef90b;Discipline engineer Subsea Umbilical and Power Cab;SURF;TPD PRD FE SP;TRUE
-9e6e36ce-ebca-4d9a-88d6-304259dc293a;Discipline Lead Dynamic Risers ;SURF;TPD PRD FE SP;TRUE
-20870bbd-8d7a-4c80-ab57-24e7d5891327;Discipline Lead Pipeline System ;SURF;TPD PRD FE SP;TRUE
-5117aa15-f2c5-44b7-8a32-7bf83d2e8f89;Discipline Lead Subsea Production System;SURF;TPD PRD FE SP;TRUE
-96455514-5717-4ef1-ab84-adfc1cb96a80;Discipline Lead SURF;SURF;TPD PRD FE SP;TRUE
-70d1968c-ab21-49b8-86f4-5b9a0315059f;Discipline Lead Umbilical and Cables ;SURF;TPD PRD FE SP;TRUE
-69172557-60bc-48b1-8d10-96e0600e1bf1;Dynamic Riser;SURF;TPD PRD FE SP;FALSE
-f41366d5-89b1-4a6b-b628-bc78148cf1b6;Dynamic Riser lead;SURF;TPD PRD FE SP;TRUE
-07119c0b-4a1f-41fc-ace6-d431d943962e;Dynamic Riser manager;SURF;TPD PRD FE SP;TRUE
-caef351b-1188-4751-aadd-d691d8ce2db3;Manager Pipeline System ;SURF;TPD PRD FE SP;TRUE
-2ae9da05-b33a-44f6-95ae-c98e3b83f0e6;Manager Subsea Production System;SURF;TPD PRD FE SP;TRUE
-e3330feb-0259-4c1c-99a9-1f36a7182570;Manager SURF ;SURF;TPD PRD FE SP;TRUE
-abe329ae-2c53-4915-b42c-718b2c0684cb;Pipeline & Marine manager;SURF;TPD PRD FE SP;TRUE
-08c46178-0595-497f-b538-0cbbbb947304;Pipeline and Marine Operations;SURF;TPD PRD FE SP;FALSE
-74d98fb5-d5fb-4d54-9b09-6e3abcbb48e4;Pipeline Commissioning (PCO);SURF;TPD PRD FE SP;FALSE
-1826f025-19b6-451b-990d-fcbde4688d4c;Pipeline Commissioning (PCO) lead;SURF;TPD PRD FE SP;TRUE
-f35ac7ea-6378-4f32-ac21-f7289eae9e37;Pipeline Commissioning (RFO) lead;SURF;TPD PRD FE SP;TRUE
-d29bdfb7-e92c-4cf0-9ead-0e75f878f003;Pipeline Construction and Installation;SURF;TPD PRD FE SP;FALSE
-0d337443-85c5-418d-9629-55acc063ce49;Pipeline Construction and Installation manager;SURF;TPD PRD FE SP;TRUE
-f4212256-0d15-4ac9-8fc2-017c7da6ccab;Pipeline Design engineer;SURF;TPD PRD FE SP;FALSE
-27c75f95-a3f7-48b6-972d-2e172046f42f;Pipeline Installation engineer;SURF;TPD PRD FE SP;TRUE
-8203e407-014c-45db-9c2f-36c517b021c6;Pipeline manager;SURF;TPD PRD FE SP;FALSE
-5e63e699-09d8-4c44-9e9a-5e8635b50272;Pipeline Structures;SURF;TPD PRD FE SP;FALSE
-80421947-082f-448e-a640-39f8e0f38568;Pipeline System engineer;SURF;TPD PRD FE SP;FALSE
-eed42c55-725b-48cd-a4cd-5c1aeee00d25;Pipeline System lead;SURF;TPD PRD FE SP;FALSE
-3b52b8c5-0c19-47bc-a7fb-c961579fc17e;Pipeline System manager;SURF;TPD PRD FE SP;TRUE
-bd446f90-aaee-4b50-9469-66983e803b7c;Pipeline Tie-in engineer ;SURF;TPD PRD FE SP;TRUE
-42d60bae-7455-47ba-81d2-a03dbfd2189a;RFO Engineer;SURF;TPD PRD FE SP;TRUE
-e6f7685e-7d91-47a1-94a5-bf01c8f862e2;Subsea & Flowlines manager;SURF;TPD PRD FE SP;TRUE
-376c7799-d737-462c-8789-8cccc9ceddf3;Subsea Installation;SURF;TPD PRD FE SP;FALSE
-21c19d94-c8d4-4046-b378-95b5611027ab;Subsea and Marine Operations lead;SURF;TPD PRD FE SP;TRUE
-c333e556-e0c2-43ab-ac86-f487e6649267;Subsea and Marine Operations manager;SURF;TPD PRD FE SP;TRUE
-fa29d558-3af7-4c30-a47d-7827cbdc359e;Subsea Control System;SURF;TPD PRD FE SP;FALSE
-2939aa85-5e17-440d-91e9-e174e9c132fb;Subsea Control System lead;SURF;TPD PRD FE SP;TRUE
-f3ae77e1-50b4-4e65-a4b0-edac38a9fdfc;Subsea Electrical engineer;;TPD PRD FE SP;TRUE
-16616966-fc30-4823-8ec4-a6e5c181ffe2;Subsea Facilities lead;SURF;TPD PRD FE SP;TRUE
-9349a7c5-c56f-4d03-a09c-406b6b15bb08;Subsea Processing;SURF;TPD PRD FE SP;FALSE
-e76753f5-2dd9-44e0-8568-c771f28d405c;Subsea Production System;SURF;TPD PRD FE SP;FALSE
-be7e4f91-c2d4-4a2c-8c63-3716a510e016;Subsea Production System lead;SURF;TPD PRD FE SP;TRUE
-4a33e6c0-fff1-4f3c-8058-88b5a3f7fbfc;Subsea Production System manager;SURF;TPD PRD FE SP;TRUE
-1b0b78cd-d695-4806-984c-6c96ae364207;Subsea Template and Manifold engineer;SURF;TPD PRD FE SP;TRUE
-79012267-d4af-41da-b333-85e649fbe453;Subsea Template, Manifold and Intervention enginee;SURF;TPD PRD FE SP;FALSE
-14f48163-476f-41d1-9033-5387b5937ba8;Subsea Umbilical and Cable;SURF;TPD PRD FE SP;FALSE
-5b75469a-c1bc-4a5b-9ef7-d0ca15e5cabe;Subsea Umbilical and Cable lead;SURF;TPD PRD FE SP;TRUE
-03d6f4a7-b9db-4a2c-a473-d6bda397a5b0;Subsea Umbilical and Cable manager;SURF;TPD PRD FE SP;TRUE
-60caed44-9108-4fe4-9453-c369abf8df86;Subsea Umbilical and Cables engineer;SURF;TPD PRD FE SP;TRUE
-eb733802-3403-4a9e-9ea7-98a67961f035;Subsea umbilical and cables manager;SURF;TPD PRD FE SP;TRUE
-34348486-9227-4e37-bd92-353f042de218;Subsea Valves;SURF;TPD PRD FE SP;FALSE
-0e8c724a-f066-4d7d-a000-33b6debe7f0b;Subsea, Commissioning & Interface;SURF;TPD PRD FE SP;TRUE
-8d84650c-1b45-4ac6-b8d5-22139b18b919;SURF System;SURF;TPD PRD FE SP;FALSE
-886da503-27ac-41a2-a003-b24507d6c08b;SURF manager;SURF;TPD PRD FE SP;FALSE
-b3ff131f-5c32-41af-b0d2-664a08575ab6;Technical Manager Subsea;SURF;TPD PRD FE SP;TRUE
-1d23234d-9f50-4037-b76f-f32e30733299;Tie-in and Repair engineer ;SURF;TPD PRD FE SP;TRUE
-8dd27140-19ba-4d77-a28f-f2624608b2ef;Umbilical and Cables lead;SURF;TPD PRD FE SP;TRUE
-7930538b-1462-4566-994d-1bd695609959;Cessation Lead;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-ba8254fb-be8a-4f3a-b344-3d0c5c109197;Cessation Manager;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-b29b5bf5-6539-49dc-b7b8-64467b8ab44c;Construction and Commissioning (CC) Lead;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-334367ed-c522-499e-951c-1792a8a681f8;Construction and Commissioning (CC) Manager;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-a8eacdf6-32ad-431b-b6a6-6769bdc8c347;Construction Coordinator ;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-111ab5ed-4fbc-4eb0-b569-d9a70b9c4f9d;Construction Lead;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-2492ebf1-b5f8-4697-b8c6-908893fc53e0;Construction Manager;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-dc4c0a58-5a58-48d5-8f76-220c01ef8aaf;Hook-Up Coordinator ;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-f86bad25-ab25-4fff-8fc7-588833156ab6;Hook-up Lead;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-f6ba1557-72ae-45b4-b3c1-21d0212563f0;Hook-Up Manager ;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-06852ca9-07f3-40ce-b78f-be8d1867358f;ICC Manager;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-6997e31a-fd38-4c2f-9535-24bf1907e4e2;ICC Supervisor;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-a10e9f99-d7d6-4e05-a301-96b5f72d6665;Mechanical Complete Coordinator;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-cdb98a2e-5e0c-42ac-a1e7-965ec05bfa4a;Preservation Engineer;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-927e0d12-94d5-4c1d-8e44-5e2031e18cef;Preservation Lead;Construction & Hook up;TPD PRD PMC CCH CHU;FALSE
-2cea793d-bf18-4812-94c3-1d50421a4dc7;Site manager;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-35c0a2f3-5d40-4940-b6d9-83d91ed352ad;Work Preparation Coordinator;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-70be51b7-065a-4046-8c36-4d17ea8a68e5;Work Preparation Manager;Construction & Hook up;TPD PRD PMC CCH CHU;TRUE
-85b6ae16-4980-43d5-bf6d-ea5e0354b9b0;Commissioning Engineer;Commissioning;TPD PRD PMC CCH CM;FALSE
-6075516c-2c6e-4399-8bf0-1909461d2ad9;Commissioning Engineer Electrical;Commissioning;TPD PRD PMC CCH CM;FALSE
-009d7a39-db6f-4242-96cb-cf2c7c9ca904;Commissioning Engineer HVAC;Commissioning;TPD PRD PMC CCH CM;FALSE
-6d0f85ba-f8da-4f22-846e-96196d492fb1;Commissioning Engineer Instrument/SAS;Commissioning;TPD PRD PMC CCH CM;FALSE
-de4193b2-392a-4ec1-9f92-d6c9ef080e33;Commissioning Handover Coordinator;Commissioning;TPD PRD PMC CCH CM;FALSE
-25562cbf-5c02-47d6-97d1-d860f435df0f;Commissioning Engineer Process/Mechanical;Commissioning;TPD PRD PMC CCH CM;FALSE
-74b6ba96-df2c-439c-8c1c-010f274efcdc;Commissioning Lead;Commissioning;TPD PRD PMC CCH CM;FALSE
-9f458ae8-ebed-44c6-8031-7e7412e871e0;Commissioning Manager;Commissioning;TPD PRD PMC CCH CM;FALSE
-ed984d64-f0bb-4010-9fe8-1a1e456b3cfb;Commissioning Supervisor;Commissioning;TPD PRD PMC CCH CM;FALSE
-5bf33690-fb5d-4077-bccd-246b89c3cd5b;Completion Engineer;Completion Prep;TPD PRD PMC CCH CM;TRUE
-a982605f-027a-4540-838d-689e3a949c3c;Completion Manager;Completion Prep;TPD PRD PMC CCH CM;TRUE
-4f40b5f9-abab-4c25-9720-89c925b3586f;Completion preparation Engineer;Completion Prep;TPD PRD PMC CCH CM;FALSE
-451a8465-20c8-475e-80df-d34fd570dde1;Completion preparation Lead;Completion Prep;TPD PRD PMC CCH CM;FALSE
-3fc851f1-ccc5-4de5-bf2d-ea06b068d59b;Completion preparation Manager;Completion Prep;TPD PRD PMC CCH CM;FALSE
-e20b5f5c-08f4-400b-af64-5adeacbb19b1;Completion Supervisor (byggeleder);Completion Prep;TPD PRD PMC CCH CM;TRUE
-9dc94028-626f-446f-91e2-d6ec1fae1d17;MC Subsea;SURF;TPD PRD PMC CCH CM;TRUE
-07c98c3d-3771-4e3d-b218-61f6542adcb7;Cost Controller;Project Control;TPD PRD PMC PCA;FALSE
-44727df8-39e7-4cf5-815d-c438e0398602;Cost Control Lead;Project Control;TPD PRD PMC PCA;FALSE
-73e334ff-40f6-410a-a137-1b80d71dd712;Lead Planner;Project Control;TPD PRD PMC PCA;TRUE
-300b3314-a095-4f9e-9826-34010d6475e1;Planner;Project Control;TPD PRD PMC PCA;FALSE
-2b1b98cb-204a-4a54-8333-deda2195f049;Planner Lead;Project Control;TPD PRD PMC PCA;FALSE
-76afdfa1-b67a-4b73-a896-7c7228bde4f2;Project Accountant;Project Control;TPD PRD PMC PCA;TRUE
-4cb8aa85-80c1-4050-a8cc-940969f3649f;Project Control;Project Control;TPD PRD PMC PCA;FALSE
-8cfad8c0-3a68-4d72-9188-c8d812d71d3b;Project Control Lead topside;Project Control;TPD PRD PMC PCA;TRUE
-ba97663e-79b2-49e5-b126-214b0143aa07;Project Control Manager;Project Control;TPD PRD PMC PCA;FALSE
-8c30e0b1-fc58-4d9f-9fb5-94a8f27de0a2;Project Control Manager Subsea;Project Control;TPD PRD PMC PCA;TRUE
-044aa7ec-0949-4d08-9fe1-46ccf5ed77fc;Project Economist;Project Control;TPD PRD PMC PCA;TRUE
-1476d2ab-6e30-483a-a088-10520b09d696;Quantity Surveyor;Project Control;TPD PRD PMC PCA;FALSE
-f942a973-9cac-4a96-8bc7-a9e41141f021;Project Director;Project Management;TPD PRD PMC PM;FALSE
-8eb8f366-65bd-4f67-880f-4bcbc8065e73;Project Manager;Project Management;TPD PRD PMC PM;TRUE
-df244e4e-bf9c-46a4-ad35-d14c62855f47;Project Manager Facilities;Project Management;TPD PRD PMC PM;FALSE
-c8007f66-3028-491e-bee9-ab8319f16573;Project Manager Modifications;Project Management;TPD PRD PMC PM;TRUE
-a05c3454-79a2-4e01-8152-c061167d6575;Study Manager;;TPD PRD PMC PM;TRUE
-84f7a3a2-70c9-4201-a18c-72c69883a17b;Topside Manager;Project Management;TPD PRD PMC PM;TRUE
-db83be0e-62c2-4d13-9390-4bd499427663;Administrative Consultant;Quality and Administration;TPD PRD PMC QA ADM;TRUE
-128c140f-df11-4130-890c-4a73b30414c6;Administrative Lead;Quality and Administration;TPD PRD PMC QA ADM;TRUE
-ac1331cc-3219-4e8f-97ad-e2a10678107d;Consultancy Invoicing Coordinator;Quality and Administration;TPD PRD PMC QA ADM;FALSE
-09005aea-0861-45b5-8893-fc2c5592160c;Document Controller;Quality and Administration;TPD PRD PMC QA DM;TRUE
-b83dfcc2-805d-4205-8d85-704fc1399125;Document Management Coordinator;Quality and Administration;TPD PRD PMC QA DM;TRUE
-79992189-ae0a-4a7e-bc5f-347560c515d2;Document Manager;Quality and Administration;TPD PRD PMC QA DM;TRUE
-a0c588f7-b150-4a7d-9fdf-a3ef34d238b6;QRM Coordinator;Quality and Administration;TPD PRD PMC QA QRM;TRUE
-b7b2981c-c0ea-4866-aad3-4c0a41e44c2c;QRM Engineer;Quality and Administration;TPD PRD PMC QA QRM;TRUE
-fc07f01a-b260-4761-a772-2d73d266ab75;QRM Lead;Quality and Administration;TPD PRD PMC QA QRM;FALSE
-1b0be017-bc0c-4372-a1c4-a82f284c0ff0;QRM Subsea;Quality and Administration;TPD PRD PMC QA QRM;TRUE
-c5dc58a9-8cd6-4a8a-8964-840de7c7921c;Quality & Risk Manager;Quality and Administration;TPD PRD PMC QA QRM;FALSE
-5653dd58-4a2e-4646-821c-29b1ce4d5deb;Stakeholder Management;Quality and Administration;TPD PRD PMC QA QRM;TRUE
-cf07d3e2-3c2e-4ab0-9a13-92f59fa3ac3f;External Resource Coordinator;Procurement;TPD PRD PMC QA RES;FALSE
-654b07f5-8631-4801-9ee7-fa72f81afaa0;Business Manager;;TPD PRO PMC Multidiscipline;TRUE
-9aadbc06-efa6-4013-927f-f7b5597d3a41;Project Control & Procurement;Project Control;TPD PRO PMC Multidiscipline;TRUE
-6e2acb95-47a8-4aa8-81f3-4e835102b81f;Quality, risk & HSE ;;TPD PRO PMC QM Multidiscipline;TRUE
-da02e761-13f4-4911-ae5f-8b9814ab13e1;Change and Interface Coordinator;;TPD PRO PMC QM PCI;TRUE
-2f534126-ca02-4e81-a556-c043d0061648;Change and Interface Manager;;TPD PRO PMC QM PCI;TRUE
-60946d0d-ee1e-4ac1-b92b-ec6de59c7087;Contract Coordinator;Procurement;TPD PSR PCP;TRUE
-d1348d29-22cf-4bc9-82cd-80ecf28775f6;Contract Manager;Procurement;TPD PSR PCP;FALSE
-db6f4aed-9a1a-4aa9-a580-2a95ddb968d4;Field Procurement Manager;Procurement;TPD PSR PCP;TRUE
-365579f4-5aa5-4c72-a626-5879d7698a1e;Portfolio Procurement Manager;Procurement;TPD PSR PCP;TRUE
-1cd2c4bd-848f-412a-b0f8-266115cced62;Procurement Flowline and Marine;Procurement;TPD PSR PCP;TRUE
-2e0e176b-c143-4fde-8e0e-6b5020ad9480;Procurement Manager;Procurement;TPD PSR PCP;TRUE
-be2ff936-fa90-46d3-bb84-b0f6eb7e2a5c;Procurement Marine/Heavylift;Procurement;TPD PSR PCP;TRUE
-76e1096a-0d40-4ffe-98b8-2e546276942c;Purchaser;Procurement;TPD PSR PCP;FALSE
-9a1603d6-e3b9-4fdd-aa90-7fd4f432766a;Purchasing Manager;Procurement;TPD PSR PCP;FALSE
-0bad4959-d0cf-4964-b52e-4b03e947fc86;Purchasing Studies;Procurement;TPD PSR PCP;TRUE
-318105e4-a6b1-4ce3-8ef5-1bf7d4a08f4b;Senior Contract Coordinator;Procurement;TPD PSR PCP;TRUE
-9c4affad-d224-48b0-9097-40fc5d5d93eb;Senior Purchaser ;Procurement;TPD PSR PCP;TRUE
-9bedc80a-7d65-49e6-87c2-9e0ed89f97ed;Support procurement;;TPD PSR PCP;TRUE
-4e5ed72f-147f-4eec-bd9f-76443d2bf34a;Topside Purchasing;Procurement;TPD PSR PCP;TRUE
-7e765f64-ce8e-4453-a19f-b7f88bde29de;HSE Engineer;Safety;TPD SSU;TRUE
-4619ade2-ebe7-4f19-a2f8-e95b9f79f494;HSE Manager Subsea;Safety;TPD SSU;TRUE
-66164e41-4864-44b5-9b3d-a0a978838808;HSE ooordinator;Safety;TPD SSU;TRUE
-ddd7b3ca-59f4-44c1-ac0e-96c1e40f95fe;Discipline engineer External environment;Sustainability;TPD SSU PRD;TRUE
-ae0ff980-2914-4e8b-b5f6-21f501299999;Discipline lead External Environment;Sustainability;TPD SSU PRD;TRUE
-17ce6e22-310b-494e-83cb-e9839ba9918b;SSU Inspector;SSU;TPD SSU PRD;FALSE
-dede1265-fef0-4110-8a19-f0d42b71362f;SSU Site Leader;SSU;TPD SSU PRD;FALSE
-b217f0ca-b6b7-4bde-82eb-f6664e70c183;SSU and Authority Manager;SSU;TPD SSU PRD;FALSE
-2b06ca34-d828-43e3-af2e-f68564f7e253;Procurement Responsible;Procurement;TPD PSR SEC;FALSE
-e9609ea2-a312-455d-8deb-dc046cc09780;Project Procurement Manager (PPM);Procurement;TPD PSR SEC;FALSE
-5b042f51-02ab-45e5-b272-4cf1b596aa80;Quality & Risk Engineer;Quality and Administration;TPD PRD PMC QA QRM;FALSE
-ec78b510-fccc-4fb6-874e-97bc2383124a;Document Manon Management;Quality and Administration;TPD PRD PMC QA DM;FALSE
-7b0eb805-74b3-4e12-9ba2-f0ef994247f0;Document Conon Management;Quality and Administration;TPD PRD PMC QA DM;FALSE
-3f743b4b-a1e1-414c-8dc9-a3652dab8eb1;Administration Management;Quality and Administration;TPD PRD PMC QA ADM;FALSE
-ec1ff733-321f-4758-b8b2-a65c43aba233;Quantity Surveyor;;TPD PRD PMC PCA;FALSE
-8a5886bb-7739-4d75-b49f-8cfeb9c4c532;Subsea TMI engineer;SURF;TPD PRD FE SP;FALSE
-c6a07905-e49e-41e1-9f91-a153a27ba426;Subsea Marine Operation ;SURF;TPD PRD FE MO MAR;FALSE
-67c8f74c-e5ef-4084-a62b-fb7cdf0d59c6;Marine Systems and Naval Architect;Marine;TPD PRD FE MO MAR;FALSE
-9ea6d5d5-d84f-4265-8db9-67b5766337a3;Platform Marine Operation;Marine;TPD PRD FE MO MAR;FALSE
-d6423442-a98f-4fb5-83e4-4a4c8557ff65;Map services and geographical information;;TPD PRD FE MO MAP;FALSE
-05b288f0-cef9-47bf-9f9d-cee6eedd9e84;Geotechnics;;TPD PRD FE MO GMS;FALSE
-4f497e6b-2086-4e4f-bc1a-67883af72d6d;Seabed intervention;;TPD PRD FE MO GMS;FALSE
-3bfd2e64-aa6d-4f2e-84b9-ef291daa9e32;Survey Lead;Marine;TPD PRD FE MO GMS;FALSE
-8ac1e0ba-cc8d-441a-b80a-9159419aeb11;Seabed Survey;;TPD PRD FE MO GMS;FALSE
+ID;Position Name;ProjectType,Discipline;Department;Inactive
+F6DD37F6-61A8-4713-B048-C6271A0C061C;DW Ass Supervisor Drilling;DW;Drilling;PDP DW DWCC OS;FALSE
+3667882C-3D47-4860-B5CE-48C802970F3A;DW Ass Supervisor INV;DW;Intervention;PDP DW DWCC OS;FALSE
+87DAC42C-E812-487F-A79F-93DCC49690CF;DW BE CAR Assurance;DW;;PDP DW DWCC MPL;FALSE
+F01D99CE-03CF-4B03-9342-3C44AF1234BC;DW BE CAR Governance;DW;;PDP DW DWCC EN DW3;FALSE
+A5796865-2893-48F8-89AD-E1D6AE724DD8;DW BE CAR Risk Management;DW;;PDP DW DWCC EN DW3;FALSE
+EEB21ABC-876D-443F-8409-46B8185FF079;DW BE Company Representative;DW;Contractor Management;PDP DW DWCC MPL PL3;FALSE
+97EA4922-DDB4-4C1B-99EF-BE06D486C3B5;DW BE Consultant Digital Well Delivery;DW;;PDP DW DWCC EN DW3;FALSE
+7F0BEA16-D3AD-4151-861E-4581881F2D8A;DW BE Discipline Engineer Contractor Management;DW;Contractor Management;PDP DW DWCC MPL PL3;FALSE
+ED32FE45-F81C-4FF3-BFC2-52F9B46747AB;DW BE Discipline Engineer Rig Management;DW;;PDP DW DWCC MPL;FALSE
+4BB1AA7B-A88D-42DE-8952-A698B0C88F71;DW BE DWD Task Leader;DW;Management;PDP DW DWCC MPL PL3;FALSE
+7E053AA1-9593-46D7-9FFF-B847025AB094;DW BE Engineer Analytics and Performance;DW;;PDP DW DWCC EN DW3;FALSE
+B6E0FCA3-4847-4A6C-955A-24C38DD22119;DW BE Engineer Digital Well Delivery;DW;;PDP DW DWCC EN DW3;FALSE
+994D8413-7876-4805-B2A1-540A177C3909;DW BE EXC Discipline Engineer;DW;;PDP DW DWCC EN DW3;FALSE
+AB262766-317E-4929-B6F0-F3BD35D4CE5D;DW BE EXC SME Completion;DW;Completion;PDP DW DWCC EN DW3;FALSE
+D88F619B-6CF6-4A24-9D58-CA1F5EF07C5B;DW BE EXC SME Drilling;DW;Drilling;PDP DW DWCC EN DW3;FALSE
+B0168840-D368-47EA-8686-70E814E1F880;DW BE EXC SME Realtime;DW;;PDP DW DWCC EN DW3;FALSE
+21A0979F-F246-46E6-B012-F1BE2CE2E8B2;DW BE EXC SME Well Technology Intervention;DW;Intervention;PDP DW DWCC EN DW3;FALSE
+58EF7C43-80C7-48DD-8993-402B7BB87D1E;DW BE EXC Task Leader;DW;Management;PDP DW DWCC MPL;FALSE
+9B63BBCE-60EC-4A6C-854A-368DF5F6AF73;DW BE LC Task Leader;DW;Management;PDP DW DWCC MPL;FALSE
+6C10F9DA-B89D-4F51-9B7A-B537828571FC;DW BE Leading Advisor D&W Estimation;DW;Leading Advisor;PDP DW DWCC EN DW3;FALSE
+33987A8B-1F8E-4B66-A5FE-86C4C5217CEE;DW BE Leading Advisor Digital;DW;Leading Advisor;PDP DW DWCC EN DW3;FALSE
+1B989822-3E14-4237-A044-114930F8212D;DW BE Product Owner;DW;;PDP DW DWCC EN DW3;FALSE
+0C9A064C-162E-4E10-8195-F19BA2260CAE;DW BE RMS Task Leader;DW;Management;PDP DW DWCC MPL;FALSE
+137E49BD-87B0-4DD5-9599-26BBB34DE892;DW BE SME Rig Management;DW;;PDP DW DWCC MPL;FALSE
+562A89C1-08D6-4537-A95A-BC0461BB76C9;DW BE Technical Lead Rig Procurement;DW;;PDP DW DWCC FS;FALSE
+139FAF6A-E6AE-4C28-9026-6AF25927D933;DW Chief Engineer Drilling Technology;DW;;PDP DW DWCC DIE;FALSE
+03D552F4-9C87-437D-8D01-777270DFE21E;DW Chief Engineer Well Technology;DW;;PDP DW DWCC DIE;FALSE
+863AF531-1445-4F2A-881A-6860503B1F27;DW Completion Engineer Field Development;DW;Completion;PDP DW DWCC EN1;TRUE
+AB7BBC14-8714-4171-B66B-F535C2F9F4E5;DW DIE Discipline Engineer;DW;;PDP DW DWCC DIE;FALSE
+8A81C40B-AC78-44EA-8A7E-6F241BE395F5;DW DIE Discipline Engineer Automated Monitoring and Mud Logging;DW;Drilling;PDP DW DWCC DIE;FALSE
+F59E8E85-45C0-453E-8C9F-FA40546DFC11;DW DIE Discipline Engineer Completion Equipment;DW;Completion;PDP DW DWCC DIE;FALSE
+00E267D8-D0F4-47E5-9009-3C96018B0484;DW DIE Discipline Engineer Completion Liner hanger;DW;Completion;PDP DW DWCC DIE;FALSE
+F7B58D30-275D-46DA-BEB2-01BA7D9ED2CB;DW DIE Discipline Engineer Completion Monitoring;DW;Completion;PDP DW DWCC DIE;FALSE
+21DF1FD8-4B89-459F-B987-80D2189654B4;DW DIE Discipline Engineer Downhole Mechanical Isolation;DW;Intervention;PDP DW DWCC DIE;FALSE
+F0AE70CE-9ADF-4B72-A1F2-FF6385822423;DW DIE Discipline Engineer Drilling Automation Systems;DW;Drilling;PDP DW DWCC DIE;FALSE
+E9D8513F-F2E7-420D-90C3-5A9925D69FA1;DW DIE Discipline Engineer Drilling Fluids;DW;Drilling;PDP DW DWCC DIE;FALSE
+B09398D4-C545-4156-ABE4-39DB58E7C34A;DW DIE Discipline Engineer Drilling Waste;DW;Drilling;PDP DW DWCC DIE;FALSE
+60FE5814-80C3-4692-935A-6A18232BF854;DW DIE Discipline Engineer Intervention;DW;Intervention;PDP DW DWCC DIE;FALSE
+8782E04D-95DB-4515-90EF-1AFADB5C6B51;DW DIE Discipline Engineer Material Technology;DW;;PDP DW DWCC DIE;FALSE
+60C8603C-A5D0-4087-8055-BD8FDD8262D3;DW DIE Discipline Engineer Plug and Abandonment;DW;Plug and Abandonment;PDP DW DWCC DIE;FALSE
+9F54402F-1484-4452-83C3-8095B4E68F32;DW DIE Discipline Engineer Tubular Technology;DW;Completion;PDP DW DWCC DIE;FALSE
+C1537494-8F93-4881-86AC-07FE74CC8A23;DW DIE Discipline Engineer Well Testing and Flowback Operations;DW;Intervention;PDP DW DWCC DIE;FALSE
+F1EF4537-8B00-4120-8A8F-A35FE338D243;DW DIE Leading Advisor Cementing;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+2276C378-A574-4B0A-BE27-358C1BE0CB5A;DW DIE Leading Advisor Completion fluids;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+4006368A-83A9-4280-A66F-957107F7BADE;DW DIE Leading Advisor Directional drilling and measurement;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+EE28E9D2-644B-41AB-82A9-656EE29B5837;DW DIE Leading Advisor Drilling Fluids;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+5815E989-5666-4DA3-B1F8-02595AF460B4;DW DIE Leading Advisor Drilling Practice;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+DE021AB5-C4F4-430A-96C4-8CEE5C5269A1;DW DIE Leading Advisor Lower Completion;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+CCFF8BF4-467A-4DD9-B80E-0BB179C8397C;DW DIE Leading Advisor Manage Pressure Drilling;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+ACB44F53-8873-47F1-9B2F-626CCEFF8107;DW DIE Leading Advisor Plug and abandonment;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+07386280-6A4C-4B89-A9EB-0B73D2A1F4CF;DW DIE Leading Advisor Upper & Middle Completion;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+34213CD9-D13B-4316-900E-77910BD8EF6A;DW DIE Leading Advisor Well construction;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+9158EFF8-0C17-4546-8125-16CEBD71E3DE;DW DIE Leading Advisor Well Technology Heavy Intervention;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+DB0A8C26-AB73-43EA-82A3-B6E59CEF6FC0;DW DIE Leading Advisor Well Technology Wireline Intervention;DW;Leading Advisor;PDP DW DWCC DIE;FALSE
+124B4996-CEE6-4941-A4B7-9E705057B071;DW DIE SME Artificial Lift;DW;Completion;PDP DW DWCC DIE;FALSE
+03C4C318-D133-4149-A3D5-1B110BA89CA6;DW DIE SME Automation Systems;DW;Drilling;PDP DW DWCC DIE;FALSE
+21E65F12-D19A-4FFF-B749-5DB9E4EC90B5;DW DIE SME Cementing;DW;Drilling;PDP DW DWCC DIE;FALSE
+DBFD2F30-DE5B-4CAF-9049-3FB995BB881F;DW DIE SME Completion;DW;Completion;PDP DW DWCC DIE;FALSE
+2D827F22-9542-45C1-ACFA-1DE7A2B31D52;DW DIE SME Completion Fluids;DW;Completion;PDP DW DWCC DIE;FALSE
+6F884268-D9C5-44A8-8A63-990555E1317D;DW DIE SME Completion Hydraulic fracturing and stimulation;DW;Completion;PDP DW DWCC DIE;FALSE
+FDC78836-3FC5-4FFE-B064-2869D9DBBC9C;DW DIE SME Completion MLT and expandables;DW;Completion;PDP DW DWCC DIE;FALSE
+604840EE-5D5D-4EA7-8ECA-F5C060A6BD2D;DW DIE SME Completion Monitoring;DW;Completion;PDP DW DWCC DIE;FALSE
+887CF141-7C4B-4B58-8ED8-8EBB0FE685A0;DW DIE SME Completion Monitoring and QAQC/verifications;DW;Completion;PDP DW DWCC DIE;FALSE
+32D53F88-180E-4899-9F7C-236AD6896E19;DW DIE SME Completion Sand control;DW;Completion;PDP DW DWCC DIE;FALSE
+A8C9E116-F51B-428D-873B-71FB6A0A136A;DW DIE SME Deepwater and HPHT;DW;Drilling;PDP DW DWCC DIE;FALSE
+D55EAE69-817F-44AF-BD40-F1DAF748C4B4;DW DIE SME Downhole Mechanical Isolation;DW;Intervention;PDP DW DWCC DIE;FALSE
+F836CB2E-CAE6-44FA-A53F-5C94CED4C1F7;DW DIE SME Drilling;DW;Drilling;PDP DW DWCC DIE;FALSE
+90459BC0-FF5F-40F2-A72A-2823A687B71B;DW DIE SME Drilling and Well Technology;DW;;PDP DW DWCC DIE;FALSE
+8DAB406F-0A1B-4710-923D-D1E776BFCE24;DW DIE SME Drilling Automation Systems;DW;Drilling;PDP DW DWCC DIE;FALSE
+DEF03DEB-590A-4D28-BD9D-9E406E934888;DW DIE SME Drilling Fluids;DW;Drilling;PDP DW DWCC DIE;FALSE
+09776A98-6B66-4A3A-A344-64941CFDF07A;DW DIE SME Intervention based P&A;DW;Plug and Abandonment;PDP DW DWCC DIE;FALSE
+09C903ED-0000-4F8D-AA74-0512E2DF2024;DW DIE SME Material Technology;DW;Completion;PDP DW DWCC DIE;FALSE
+5B057818-CBBD-4E98-B8B4-4B6A32FDD595;DW DIE SME Perforation and Well Explosives;DW;Completion;PDP DW DWCC DIE;FALSE
+E43C036A-2F88-41A4-8537-157CA2A563ED;DW DIE SME Plug and Abandonment;DW;Plug and Abandonment;PDP DW DWCC DIE;FALSE
+5C365BB9-517C-43C7-B009-EAA29BFD5401;DW DIE SME QAA;DW;;PDP DW DWCC DIE;FALSE
+E8937D2A-397B-4997-B971-D7D5FA9F3CF2;DW DIE SME Realtime;DW;Drilling;PDP DW DWCC DIE;FALSE
+02C36382-FC17-4DC7-85F1-102F7F7F2139;DW DIE SME Subsea Intervention;DW;Intervention;PDP DW DWCC DIE;FALSE
+8EAB414F-4AB2-475D-9ECE-282665F626D1;DW DIE SME Testing and Flowback Operations;DW;Intervention;PDP DW DWCC DIE;FALSE
+63B937F0-E3BA-4D04-87CC-06D7B26C0875;DW DIE SME Through Tubing Drilling and Completion;DW;Completion;PDP DW DWCC DIE;FALSE
+72D346C1-DAD7-4111-B0B2-E45E3E39C0EB;DW DIE SME Tubular Technology;DW;Completion;PDP DW DWCC DIE;FALSE
+5F6E7028-8723-43AE-B1FF-8CD0115AD741;DW DIE SME Well Technology Intervention;DW;Intervention;PDP DW DWCC DIE;FALSE
+451FAE99-AAAF-4A12-B436-4272717433A3;DW DIE SME Wellbore Surveying;DW;Drilling;PDP DW DWCC DIE;FALSE
+9DDBAAF7-1875-4D93-B1A2-1FA734FD7DCE;DW DIE Task Leader;DW;Management;PDP DW DWCC DIE;FALSE
+F6C7ED1D-D5CF-4D87-A4BC-F0BE836404A4;DW Drilling Engineer Field Development;DW;Drilling;PDP DW DWCC EN1;TRUE
+AD637DAB-45D5-47B6-A1D0-670935EC0D29;DW DWOC Head of OC Cluster;DW;Management;PDP DW DWCC MPL;FALSE
+8527A78A-086D-4FCB-95AC-7734533B2E9E;DW DWOC OC Leader;DW;Management;PDP DW DWCC OS OS2;FALSE
+D8F3D666-3552-46BE-B259-678D46F2BE91;DW DWOC Ops Follow-up;DW;;PDP DW DWCC EN;FALSE
+4029A569-6A02-4BED-B988-7A2F38314F7F;DW DWOC Performance Engineer;DW;;PDP DW DWCC EN;FALSE
+1FBF51CE-2148-419F-9A19-4122A0D4F2B4;DW DWOC Realtime Engineer;DW;;PDP DW DWCC EN;FALSE
+BED148D2-2485-4D0E-8ED4-EC075F9A80CC;DW DWOC Safety and Integrity Engineer;DW;;PDP DW DWCC EN;FALSE
+7161348A-108E-4109-B98F-6535F37CF72F;DW DWPC Completion Engineer;DW;Completion;PDP DW DWCC EN;FALSE
+47C79BFA-BA5F-4056-8E4C-85BC6D9B6889;DW DWPC Drilling Engineer;DW;Drilling;PDP DW DWCC EN;FALSE
+FBB886FB-234C-4138-8D53-C14CC4B48C84;DW DWPC Head of Planning Cluster;DW;Management;PDP DW DWCC MPL;FALSE
+766379A4-11DB-4986-8DD6-51B76EE583BA;DW DWPC Intervention Engineer;DW;Intervention;PDP DW DWCC EN;FALSE
+8BD0D64F-7B93-4B4B-8FDC-47F869FE1A72;DW DWPC Lead Completion Engineer;DW;Completion;PDP DW DWCC EN;FALSE
+394F89AF-3930-47ED-A102-4C316AEC25DB;DW DWPC Lead Drilling Engineer;DW;Drilling;PDP DW DWCC EN;FALSE
+6ADCD589-C5B5-4992-9E7F-78F76FFD1CC6;DW DWPC Lead Intervention Engineer;DW;Intervention;PDP DW DWCC EN;FALSE
+1A502831-7A5B-4474-8B58-A35EBDCF1D8B;Dw DWPC Lead Plug and Abandonment Engineer;DW;Plug and Abandonment;PDP DW DWCC EN;FALSE
+D7F8495C-2D6C-4783-AAF2-E97DBE39D320;DW DWPC Lead Subsea Engineer;DW;Subsea;PDP DW DWCC EN DW2;FALSE
+A72F8B38-9968-4E1F-B47B-E75D2A99C3B4;DW DWPC Performance Engineer;DW;;PDP DW DWCC EN;FALSE
+0BF19C84-2710-44C8-877F-9596B5A39391;DW DWPC Plug and Abandonment Engineer;DW;Plug and Abandonment;PDP DW DWCC EN;FALSE
+34401BB5-2487-47B4-9557-00D57721DA7B;DW DWPC Pre-execution Engineer;DW;;PDP DW DWCC EN;FALSE
+1110F889-BA30-4FFC-BF91-7ABF8C5F0124;DW DWPC Subsea Engineer;DW;Subsea;PDP DW DWCC EN DW2;FALSE
+E8D347A2-75A4-4213-A686-DDDCF04C84CE;DW DWPC Task Leader;DW;Management;PDP DW DWCC MPL PL2;FALSE
+6B902CF5-0F4A-449A-8A56-513856D507C7;DW FS Discipline Engineer BOP;DW;Subsea;PDP DW DWCC FS;TRUE
+76F60CD4-2265-4661-9778-6A5F3FBBECCA;DW FS Discipline Engineer Energy optimalization;DW;;PDP DW DWCC FS;FALSE
+D3A76F91-8205-44BE-B9D0-1EC3E284D217;DW FS Discipline Engineer Facilities;DW;;PDP DW DWCC FS;FALSE
+E43E5DE7-3D97-47AB-ABBD-C3558C371C22;DW FS Discipline Engineer Facilities Verification;DW;;PDP DW DWCC FS;TRUE
+5A328A31-A2B4-4FF1-A2CB-C6B814EF2D7D;DW FS Discipline Engineer Subsea;DW;Subsea;PDP DW DWCC FS SWHX;TRUE
+0B19CECA-4247-49AE-AC15-8FE4BC88D56B;DW FS Discipline Engineer Subsea WH/XT/WOS;DW;Subsea;PDP DW DWCC FS;FALSE
+41B8C86C-161E-4138-BD1F-6C366330F98F;DW FS Discipline Engineer Subsea WOS;DW;Subsea;PDP DW DWCC FS;TRUE
+A935D46D-FF46-48A8-B337-72E0C409FC3D;DW FS Discipline Engineer Surface;DW;;PDP DW DWCC FS;TRUE
+046BAAF8-11B1-48FB-8FEE-972AD17E6050;DW FS FAK Subsea;DW;Subsea;PDP DW DWCC FS;FALSE
+80A08A51-A55B-492E-850A-A529D7CCB6D0;DW FS FAK Surface;DW;;PDP DW DWCC FS;FALSE
+98DEF572-F1A5-4A7E-AC15-B699BFB82AD5;DW FS Leading Advisor BOP;DW;Leading Advisor;PDP DW DWCC FS;TRUE
+8327C222-8B7A-4EE1-A46E-095E2B850877;DW FS Leading Advisor Subsea WOS;DW;Leading Advisor;PDP DW DWCC FS;TRUE
+1C1D9436-7F4D-48BC-AFD2-C737AE10F383;DW FS Leading Advisor Surface WH;DW;Leading Advisor;PDP DW DWCC FS;TRUE
+5F40F2DF-EF8A-4E7C-BE4A-03A24F25C1F0;DW FS Leading Advisor WH/XT;DW;Leading Advisor;PDP DW DWCC FS;TRUE
+3F1127B3-D7A6-4809-9480-C50D759731B7;DW FS Rig Engineer Facilities;DW;;PDP DW DWCC FS;FALSE
+8E26E791-3572-4367-8EB5-1DA12F94A78B;DW FS SME BOP;DW;Subsea;PDP DW DWCC FS;FALSE
+E3908A8D-D610-4460-8ACE-B54056E000AA;DW FS SME Facilities;DW;;PDP DW DWCC FS;FALSE
+D6AA829E-274F-4DEC-B1E8-169C2B3D99AC;DW FS SME Facilities Electrical;DW;;PDP DW DWCC FS;FALSE
+A95F12CA-69EB-4D2F-9CBB-B84B609A6152;DW FS SME Marine System;DW;Subsea;PDP DW DWCC FS;FALSE
+04E06E2E-1919-4144-839F-25ADC29AD45F;DW FS SME Subsea WH/XT/WOS;DW;Subsea;PDP DW DWCC FS;FALSE
+90ECA30C-B014-42AD-9D1F-6A7C5386FAB4;DW FS SME Surface XT/WH;DW;;PDP DW DWCC FS;FALSE
+7017C3E6-A04A-4E51-9763-AB758AB302BE;DW FS SME Verification;DW;;PDP DW DWCC FS;FALSE
+A156E429-AE33-4B54-83F4-0A964E90161D;DW FS SME WH/XT/WOS;DW;;PDP DW DWCC FS;TRUE
+019096B0-F6AD-4924-81E7-64C6339D34DB;DW FS Task Leader;DW;Management;PDP DW DWCC FS;TRUE
+63CAA5E2-B949-4A80-A2CC-F6598D5AB3F7;DW Graduates;DW;;PDP DW DWCC EN;FALSE
+3E6C09F5-2752-483C-8C43-C7819EF5C191;DW Head of Analytics and Performance;DW;Management;PDP DW DWCC MPL;FALSE
+216646E7-1A9D-45D1-BD25-FA249B078641;DW Head of Compliance, Assurance and Risk;DW;Management;PDP DW DWCC MPL;FALSE
+E321657E-C3CD-4868-A701-F083F83813CB;DW Head of Digital Well Delivery;DW;Management;PDP DW DWCC MPL;FALSE
+52A1546B-8672-4BAF-BF5B-522E95858AFA;DW Head of Discipline Engineering;DW;Management;PDP DW DWCC;TRUE
+EB914CB2-C1DF-4319-B11D-419FD5B8176D;DW Head of DWPOC;DW;Management;PDP DW DWCC MPL;FALSE
+DDC1D9C3-E7E5-4D57-86D9-4C1D94091B18;DW Head of Expert Centre;DW;Management;PDP DW DWCC MPL;FALSE
+2C8338B8-2270-4BB9-B62F-44DE5EA2D2DF;DW Head of Facilities and Subsea;DW;Management;PDP DW DWCC;TRUE
+DC321B12-E69A-4D3D-9600-E09004E376BB;DW Head of Low Carbon Solutions;DW;Management;PDP DW DWCC MPL;FALSE
+A7953FC9-98C3-4AC7-9B84-011A6DCC5BF3;DW Head of Rig Management and Services;DW;Management;PDP DW DWCC MPL;FALSE
+60A52A07-A9AF-4223-BDBD-F05F38FB7D1F;DW Head of Well Control & Well Integrity;DW;Management;PDP DW DWCC;TRUE
+76A44612-5832-45CC-9347-AA8A1D186A42;DW Leading Operational Contract Responsible (LOKA);DW;Contractor Management;PDP DW DWCC MPL;FALSE
+1BCD3980-AF9B-4C9F-BF16-B87C7DB4F311;DW Project Leader;DW;;PDP DW DWCC MPL;FALSE
+90690A5B-FD13-458C-8A44-7E5190E83148;DW SME Time and Cost Estimation Field Development;DW;;PDP DW DWCC EN2;TRUE
+AF917B9C-D6EB-4470-94C2-709FB14910E5;DW Supervisor Drilling Fixed Installation;DW;Drilling;PDP DW DWCC OS;FALSE
+79E9A56A-2DB3-4EC2-AC3A-DF030CD57625;DW Supervisor Drilling MODU;DW;Drilling;PDP DW DWCC OS;FALSE
+0F858998-D4D1-492F-BF78-26CA634F574F;DW Supervisor INV LWI;DW;Intervention;PDP DW DWCC OS;FALSE
+9665617A-087A-47CF-9078-DB7AED359250;DW Supervisor INV Platform;DW;Intervention;PDP DW DWCC OS;FALSE
+451EFC95-46F0-4B1B-AC3B-0244FAF5D055;DW WCWI Discipline Engineer Well Control;DW;;PDP DW DWCC WCWI;TRUE
+2D6B23DB-8DF5-474B-A768-A02D3F276458;DW WCWI Discipline Engineer Well Integrity Construction;DW;;PDP DW DWCC WCWI;TRUE
+79B39394-E7E2-4A3D-A3BE-4713BBE3380E;DW WCWI Discipline Engineer Well Integrity Wells in Operations;DW;;PDP DW DWCC WCWI;TRUE
+E2AFF376-D4F6-4B82-A6E5-90824D21B5A8;DW WCWI Leading Advisor Well Control;DW;Leading Advisor;PDP DW DWCC WCWI;TRUE
+887A2116-4660-46D6-8ED4-B7FBD2A64541;DW WCWI Leading Advisor Well Integrity Construction;DW;Leading Advisor;PDP DW DWCC WCWI;TRUE
+66E36DF3-7587-4F72-AE15-F04678BDB35C;DW WCWI Leading Advisor Well Integrity Wells in Operations;DW;Leading Advisor;PDP DW DWCC WCWI;TRUE
+538F769D-BDDD-4E4C-B86E-CE9C1B494A54;DW WCWI SME Integrity Construction;DW;;PDP DW DWCC WCWI;TRUE
+E7B064CF-A5B9-41E7-A7B8-B227A9770243;DW WCWI SME Well Control and Emergency preparedness;DW;;PDP DW DWCC WCWI;TRUE
+F7334182-EBB6-4477-ADD0-E235C4C011E3;DW WCWI SME Well Control and Integrity;DW;;PDP DW DWCC WCWI;TRUE
+127A138F-F858-4611-B77A-66B82E4BD0F1;DW WCWI SME Well Integrity Wells in Operation;DW;;PDP DW DWCC WCWI;TRUE
+410B331A-0606-4823-8818-9ABEA3943A12;DW WCWI Task Leader;DW;Management;PDP DW DWCC WCWI;TRUE
+9DE0E585-C510-489D-935B-0D17B6E605D8;Head of Business Excellence;DW;;PDP DW DWCC MPL;FALSE
+03B6CD0D-6909-46CA-B72B-377FC97CC247;Head of Business Exellence;DW;;PDP DW DWCC MPL;TRUE
+919BAA5F-2B23-40E7-A257-9CC85D08ACBC;Head of Operation Centre;DW;;PDP DW DWCC MPL;FALSE
+E2D06945-4107-4EE4-A93F-F038AA850C20;Head of Planning Centre;DW;;PDP DW DWCC MPL;FALSE
+382D219D-20A1-4AE4-A541-21F6C81770B2;Project Manager D&W;DW;;PDP DW DWCC MPL PL3;TRUE
+03B49E58-1DCA-43B4-B66F-2A7DA61A7089;Advanced Process Control;OTE;Automation;EPN OTE POC AUT2;FALSE
+4240DDEC-8B0A-4D5F-816D-6D0803DC36BD;Allocation;OTE;Metering;EPN OTE POC AOS;FALSE
+ECABDAA8-3145-4A4C-A887-3EC14BD373AC;Automation (OTE);OTE;Automation;EPN OTE POC AUT3;FALSE
+79968EB4-17CA-403B-A4B9-2080C61D29F0;CC Sector Leader;OTE;Management;EPN OTE PMC;FALSE
+7660C9E5-F596-407C-80BB-EA58C29C6D1C;Company Representative (OTE);OTE;Contract Management;EPN OTE PMC CM;FALSE
+0F09AAF7-C83F-4B68-BFDE-C6A3CBD0857A;Continuous improvement (BRA);OTE;Continuous improvement;EPN OTE TFC BRA2;FALSE
+60FB3AE7-EC86-49B2-BB84-33A178CBC0AA;Crane & Lift;OTE;Lifting Equipment;EPN OTE TFC REC;FALSE
+75FE44A8-2E49-4BFE-9DF4-9D172C53946A;Data management;OTE;Digital & Information mngmt;EPN OTE TFC BRA2;FALSE
+C4BFFA8D-D0D8-4900-90C3-D227A00BFF16;DE Department Leader;OTE;Management;EPN OTE TFC;FALSE
+7690BC9D-CB37-4E64-89BC-FAEFD2F706C3;DE Sector Leader;OTE;Management;EPN OTE POC;FALSE
+A4EA5BE1-0194-4D43-836E-9A54438442DF;Document Control;OTE;Digital & Information mngmt;EPN OTE TFC BRA2;FALSE
+51A8DB87-2149-42E7-91A6-D8D5C61AD638;Electro;OTE;Electro;EPN OTE POC EL;FALSE
+DF6D44CB-8E09-4F07-ADA6-ADF17E8FB724;Estimation;OTE;Estimation;EPN OTE PMC PM2;FALSE
+67DA4339-D6D2-4463-8B89-07DFA41829CD;Field Instrumentation;OTE;Automation;EPN OTE POC Aut2;FALSE
+8AF172EC-A3F1-4F87-BC86-5F2CC86C4CB1;Fiscal metering;OTE;Metering;EPN OTE POC FSC;FALSE
+3EF0A5A9-627F-49A8-85AB-29A78EBF4CF0;Flow Assurance;OTE;Process;EPN OTE POC PRO2;FALSE
+A3C78831-1885-43DE-B252-6E74C86F732B;HVAC, Portable water;OTE;HVAC;EPN OTE POC PRO1;FALSE
+DF54FC05-75EE-4D5F-BF58-58B1F27A2C11;IACS Cyber Security and Infrastructure;OTE;Automation;EPN OTE POC AUT1;FALSE
+F047B0D4-F368-4BC3-AB69-22530476E78A;ICP Verification (UK/US/CAN);OTE;Technical Integrity;EPN OTE TFC UUC;TRUE
+98F3595E-B4EC-4949-B8D9-922645693A52;Improvement Professional;OTE;Improvement;EPN OTE PMC ID;FALSE
+8D9454DD-EF0C-496A-B4E8-E1FEA16C3F1A;Inspection;OTE;Inspection;EPN OTE TFC IISM;FALSE
+88256F36-B7E9-47CC-9227-E3F528A609C3;Installation Responsible - TPA;OTE;Technical Integrity;EPN OTE PMC IM;FALSE
+2EC61CA0-D78B-41B5-AE9F-4D40CDDC6F38;LCI - corporate solutions;OTE;LCI;EPN OTE PMC LCI1;FALSE
+9F036B59-1801-4B36-8E00-A4731E2011DB;LCI - FR05;OTE;LCI;EPN OTE PMC LCI2;FALSE
+7E5725C2-35D4-4D64-9D7B-F8979624C7B3;LCI - OPS/PD03;OTE;LCI;EPN OTE PMC LCI1;FALSE
+BAFD5312-91B8-4C55-8914-8EB893CFD89E;Logistics;OTE;Support;EPN OTE TFC BRA1;FALSE
+30C29E7B-7F4F-4312-AE40-40FB6FB7C49D;Maintenance Engineering;OTE;Maintenance;EPN OTE PMC MC;FALSE
+FAFEFCB3-595E-4DF1-85F5-6522A827F346;Management system (BRA);OTE;OM excellence;EPN OTE TFC BRA2;FALSE
+BFAE7E4E-8522-4076-9A4A-B47ECD2A0E8E;Marine system;OTE;Marine Technology;EPN OTE TFC MART;FALSE
+2E08E6F5-610C-4890-A3A0-B8A515342FB5;Mechanical;OTE;Mechanical;EPN OTE TFC MEC1;FALSE
+782F6EEB-ABC2-4339-8224-18D844D33BC4;Mooring (OTE);OTE;Marine Technology;EPN OTE TFC MART;FALSE
+E2C66B32-1AF6-41FE-A605-81B012155E11;NR13 inspection engineer (BRA);OTE;Inspection;EPN OTE TFC BRA1;FALSE
+D5DCD760-4D05-47AE-A7F4-47C359B04ACA;Offshore Communication System / Telecom;OTE;Telecom;EPN OTE POC OCS;FALSE
+E798CFEA-49C3-4287-9904-B2D3C7509C51;Operational Safety;OTE;Safety;EPN OTE POC TS;FALSE
+ECF1D3CB-F5BD-436D-BD42-D51A989E0EFC;OTE Task Owner;OTE;Management;EPN OTE;FALSE
+80B5AFE1-2F08-4FAE-862B-98430D8A5227;Planner (OTE);OTE;Project Control;EPN OTE PMC PM2;FALSE
+B2DF9418-5395-4E83-936A-AA316BFFE75A;Planning support;OTE;Project Control;EPN OTE PMC PM2;FALSE
+1110E29E-A98E-4D8D-A418-65CC277122B7;Plant Integrity Project manager;OTE;Technical Integrity;EPN OTE PMC IM;FALSE
+20A75ADE-A77D-4576-918B-6DC487ABC722;Portfolio management;OTE;Management;EPN OTE PMC PM2;FALSE
+CD8A55EA-91B8-45C9-9EB4-342FB12EA7A4;Process;OTE;Process;EPN OTE POC PRO1;FALSE
+6A983EE8-5C54-410A-AC51-7791DC8A3649;Process safety;OTE;Safety;EPN OTE POC PRO1;FALSE
+A985D7AD-6DC4-4578-9651-D8412E9352BC;Production Assurance - PE analysis;OTE;Maintenance;EPN OTE PMC MC;FALSE
+78782FEB-F8B6-45A2-8DD9-25E7C432C434;Production Chemicals;OTE;Process;EPN OTE POC PRO2;FALSE
+9AC2D29E-6229-4C9F-ABB9-41F12DC3B01D;Production Optimisation (BRA);OTE;IOCT;EPN OTE TFC BRA2;FALSE
+4EE124E2-4F20-40F4-A759-75218EE6B19F;Project Control (OTE);OTE;Project Control;EPN OTE PMC PM2;FALSE
+99C07601-747E-4723-921F-AFB824313CAA;Project Engineer (BRA);OTE;Project Management;EPN OTE TFC BRA2;FALSE
+0B8FDE2B-3DDF-4B5C-8FF3-A323876DA7DE;Project Leader;OTE;Project Management;EPN OTE PMC PM4;FALSE
+C5683E24-2ECC-4103-9D2E-CA0A9CFD2047;Project Leader/ Product Owner Improvement & Digitalisation;OTE;Project Management;EPN OTE PMC ID;FALSE
+DFDFE091-9009-4CA3-8597-64A6866CB7E9;Project Manager (OTE);OTE;Project Management;EPN OTE PMC PM1;FALSE
+33F9B2BC-3387-4B23-967C-4005D7036A62;Project Manager Operations (PMO);OTE;Project Management;EPN OTE PMC PM1;FALSE
+FC6936A7-1100-46D0-BDAB-F1164963643A;Rotating equipment;OTE;Rotating Equipment;EPN OTE TFC RE;FALSE
+C8ECB1F7-53AB-4FA1-B174-F952EB3AD16F;Rotating equipment - Maintenance Planning and Execution;OTE;Rotating Equipment;EPN OTE TFC REC;FALSE
+4CB756A6-C523-42CC-AF8A-C6B96201743D;SAS Engineering;OTE;Automation;EPN OTE POC OOS;FALSE
+2AC196B0-7457-4C23-83FD-F6C1964880E0;Scaffolding;OTE;Scaffolding;EPN OTE TFC IISM;FALSE
+4BAA8551-7A38-4451-B8C5-AA50F1BF9F24;Shipment Planning;OTE;Metering;EPN OTE POC AOS;FALSE
+42C68991-FCA3-4D6C-AF68-77C1FF60F514;Structure;OTE;Marine Technology;EPN OTE TFC MART;FALSE
+0981EE72-97BD-4669-AFFB-9AD526B3EFE5;Subsea - Controls & Umbilicals;OTE;Subsea;EPN OTE TFC STIM;FALSE
+0821E24F-0D55-40BC-989E-7F6C47EA05DD;Subsea - Flowline and Risers;OTE;Subsea;EPN OTE TFC MART;FALSE
+7F0DA4BE-D235-424E-8BDF-C91C00A6699A;Subsea - Inspection, Maintenance and Repair;OTE;Subsea;EPN OTE TFC SUB1;FALSE
+0EF576F7-7B60-4C19-BC53-DCC1BB149491;Subsea - Intervensions;OTE;Subsea;EPN OTE TFC SUB1;FALSE
+0DD443C5-AF2B-4A40-8632-49A6533A3D7D;Subsea - Maintenance Management;OTE;Subsea;EPN OTE TFC SUB2;FALSE
+D2AB1E5E-B9EF-4B1E-8C73-ACB0C8697A00;Subsea - Material Management;OTE;Subsea;EPN OTE TFC SUB2;FALSE
+E519C2C5-5BC5-4699-8BC7-266FE5079D46;Subsea - Processing;OTE;Subsea;EPN OTE TFC STIM;FALSE
+F74A04B5-51F1-439B-BFBB-8663581B6A8A;Subsea - SPS;OTE;Subsea;EPN OTE TFC MART;FALSE
+9378DBCC-8CF9-47BF-821C-90E1178349B6;Subsea - Structure, Manifold and Valves;OTE;Subsea;EPN OTE TFC STIM;FALSE
+4C707471-DD8D-4CCD-A605-07A730451886;Subsea Oper;OTE;Subsea;EPN OTE TFC STIM;FALSE
+3D2C5B4F-0176-49D0-80BD-A4607054FACE;Subsea Project Leader;OTE;Project Management;EPN OTE PMC PM3;FALSE
+1832929B-F353-4B11-85B5-C4AE9171D239;Supplier Quality Management;OTE;Contract Management;EPN OTE PMC CM;FALSE
+CF4B60F8-9FA6-4E17-85E8-1479BE44B898;Surface;OTE;Surface;EPN OTE TFC IISM;FALSE
+69F19A01-839E-4D85-8DE9-D0B3FB3A6D38;Technical Integrity Engineer;OTE;;EPN OTE TFC UUC;FALSE
+A49979F7-7AB4-4406-9112-A5D156FBA026;Technical Safety;OTE;Safety;EPN OTE POC TS;FALSE
+3D182B06-17DD-4D33-A655-04329465A06C;Turnaround management;OTE;Project Management;EPN OTE PMC PM2;FALSE
+8260DCBE-4E19-4A68-BC5C-785160D3560F;Turnaround planning;OTE;Project Control;EPN OTE PMC PM2;FALSE
+2D1EC86D-7D33-4A6C-B78F-77873F1AECCB;Well Integrity;OTE;Technical Integrity;EPN OTE TFC UUC;TRUE
+3F743B4B-A1E1-414C-8DC9-A3652DAB8EB1;Administration Management;PRD;Management and Administrative Support;CFO FCOE MSA BOS BOS1;FALSE
+23736FD2-1D2C-485E-A18E-9893BBC76DCF;Advisor;PRD;;TPD PRD;FALSE
+90AE270B-0BB7-424F-8100-230C03863BE7;Architect Lead;PRD;Mechanical;PDP PRD FE AE;FALSE
+124CF1B2-D885-4ABF-B577-9A5B843F6CD9;Area Lead;PRD;;PDP PRD FE TEM;FALSE
+B97703E6-CDC8-4A3F-A889-21A1D375422F;Area Manager;PRD;;TPD PRD FE EM;TRUE
+6972E5EC-51C5-4D32-AADF-406BF7713F16;Asset Owner Representative;PRD;Asset;Asset;TRUE
+A9F3DEA2-5FCA-450C-BA10-A506E5BA60CC;Authority Handling;PRD;Asset;Asset;TRUE
+D2CC138E-7E32-4FB1-84CC-B011362BA5BB;Automation engineer;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+46716A55-AE95-4917-B21F-345CF0EDE26F;Automation lead;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+3D58AD24-2752-4F05-91C7-0BD8A352D894;Business Effon Management;PRD;X Exclude from reporting;TPD PRD BE;TRUE
+65CC6BAD-4590-4526-843B-4E1B406532E4;CC Preparation Engineer;PRD;Completion Prep;PDP PRD FE CC;FALSE
+6B70F991-B6AD-4274-8B40-371EFE288C1E;CC Preparation Lead;PRD;Completion Prep;PDP PRD FE CC;FALSE
+3A8BCA5D-3CA2-417C-8779-CE69D1B90AA1;CC Preparation Manager;PRD;Completion Prep;TPD PRD PMC CCH CM;TRUE
+55F93569-523E-4110-BFD6-9090C9ABDB3A;Civil Lead;PRD;Mechanical;PDP PRD FE AE;FALSE
+5B027A2B-4B76-44CC-9A73-4388EADA76BF;Commercial manager;PRD;Asset;Asset;FALSE
+85B6AE16-4980-43D5-BF6D-EA5E0354B9B0;Commissioning Engineer;PRD;Commissioning;PDP PRD FE CC;FALSE
+6075516C-2C6E-4399-8BF0-1909461D2AD9;Commissioning Engineer Electrical;PRD;Commissioning;TPD PRD PMC CCH CM;TRUE
+009D7A39-DB6F-4242-96CB-CF2C7C9CA904;Commissioning Engineer HVAC;PRD;Commissioning;TPD PRD PMC CCH CM;TRUE
+6D0F85BA-F8DA-4F22-846E-96196D492FB1;Commissioning Engineer Instrument/SAS;PRD;Commissioning;TPD PRD PMC CCH CM;TRUE
+25562CBF-5C02-47D6-97D1-D860F435DF0F;Commissioning Engineer Process/Mechanical;PRD;Commissioning;TPD PRD PMC CCH CM;TRUE
+DE4193B2-392A-4EC1-9F92-D6C9EF080E33;Commissioning Handover Coordinator;PRD;Commissioning;TPD PRD PMC CCH CM;TRUE
+74B6BA96-DF2C-439C-8C1C-010F274EFCDC;Commissioning Lead;PRD;Commissioning;PDP PRD FE CC;FALSE
+9F458AE8-EBED-44C6-8031-7E7412E871E0;Commissioning Manager;PRD;Commissioning;PDP PRD FE CC;FALSE
+ED984D64-F0BB-4010-9FE8-1A1E456B3CFB;Commissioning Supervisor;PRD;Commissioning;TPD PRD PMC CCH CM;TRUE
+EF82CD89-63BE-47E6-8003-94CFF027CAB8;Construction and Commissioning (CC) Engineer;PRD;Construction and Hook up;PDP PRD FE CC;FALSE
+B29B5BF5-6539-49DC-B7B8-64467B8AB44C;Construction and Commissioning (CC) Lead;PRD;Construction and Hook up;PDP PRD FE CC;FALSE
+334367ED-C522-499E-951C-1792A8A681F8;Construction and Commissioning (CC) Manager;PRD;Construction and Hook up;PDP PRD FE CC;FALSE
+A8EACDF6-32AD-431B-B6A6-6769BDC8C347;Construction Coordinator;PRD;Construction and Hook up;TPD PRD PMC CCH CHU;TRUE
+63CC3B52-5E98-43F1-9D6E-6E2B4998F9FE;Construction Engineer;PRD;Construction and Hook up;PDP PRD FE CC;FALSE
+111AB5ED-4FBC-4EB0-B569-D9A70B9C4F9D;Construction Lead;PRD;Construction and Hook up;PDP PRD FE CC;FALSE
+2492EBF1-B5F8-4697-B8C6-908893FC53E0;Construction Manager;PRD;Construction and Hook up;PDP PRD FE CC;FALSE
+D1348D29-22CF-4BC9-82CD-80ECF28775F6;Contract Manager;PRD;Procurement;PDP PSR SCMC CM1;FALSE
+44727DF8-39E7-4CF5-815D-C438E0398602;Cost Control Lead;PRD;Project Control;PDP PRD PMC PCA;FALSE
+07C98C3D-3771-4E3D-B218-61F6542ADCB7;Cost Controller;PRD;Project Control;PDP PRD PMC PCA;FALSE
+79C30E7E-993C-4287-A398-735AFC0B8F91;Cost Estimator;PRD;Estimation;PDP PRD PMC ESA;FALSE
+00B7ADD9-CE4F-41C2-922A-4F3723946EB3;Crane/Store;PRD;Operation;DPN JOS;TRUE
+B3A27240-F64A-4B45-8659-65AAD01C0402;D&W Economist;PRD;Drilling;CFO FCOE FC BAV CPM3;FALSE
+E85670C1-0E49-44F9-A32A-C4A3A6AE3A04;D&W Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+D8326525-8D65-4B62-8CAB-6DF0140FABD6;D&W Manager;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+C68DCB75-174B-4782-BBC0-7CD0AD85EB6A;D&W resource;PRD;D&W resource;PDP DW DWCC MGR MPL;TRUE
+DBEF15A1-2A6C-4463-B884-3FC294DE0B42;D&W resources DG1-DG2;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+8A8E5AD6-F58F-464A-84D7-2B88DCEB7E54;D&W resources DG2-DG3;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+74F365D9-8CEE-4C3B-90EC-C54DAB31BD06;D&W resources DG3-DG4;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+ACC20698-8E42-4C10-9E69-ECF618D21F86;Day Supervisor rig;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+37B39F83-3C9B-4382-9D10-8A568B202D45;Document Management Coordinator;PRD;Quality and Administration;TPD PRD PMC QRI;TRUE
+D4CB9C05-DD3C-4A92-81E1-D3339EAC494D;Document Manager;PRD;Quality and Administration;TPD PRD PMC QRI;TRUE
+BB1278AD-5BE8-4959-81C4-AA5755534BE7;Drilling Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+B6F614DD-C336-4EE9-90EC-F18396ADAB73;Drilling Superintendent;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+2852F040-5A65-4351-A407-5A0DAA8C7D07;Drilling Supervisor;PRD;;PDP DW DWCC MGR MPL;TRUE
+69172557-60BC-48B1-8D10-96E0600E1BF1;Dynamic Riser;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+A6F87307-7E03-4904-AA5E-186DD6B44541;Economic Analyst;PRD;Finance & Economy;TPD FC;FALSE
+7CB500E1-6F50-47DE-B2C3-F0B64D23006A;Electrical engineer;PRD;Electrical;PDP PRD FE ANE;FALSE
+0D1186B7-F437-4B25-A5D6-563FE407FCFE;Electrical lead;PRD;Electrical;PDP PRD FE ANE;FALSE
+B07BFA97-1CD1-4295-89B6-FA6EE3114B9E;Engineer Architect;PRD;Mechanical;PDP PRD FE AE;FALSE
+A9DD775D-FE9E-4D52-8505-84245EB7F3C7;Engineering Manager;PRD;Engineering Management;PDP PRD FE TEM;FALSE
+ABA32A98-4E55-4B9B-A19E-A1BFE59CAFD4;Engineering Manager O&G projects;PRD;Engineering Managment;PDP PRD FE TEM;FALSE
+E600750E-B72E-4E92-B5FC-09D6292BA056;Environment Technology Lead;PRD;Sustainability;PDP PRD FE SE;FALSE
+CF07D3E2-3C2E-4AB0-9A13-92F59FA3AC3F;External Resource Coordinator;PRD;Quality and Administration;PDP PRD PMC QRI;FALSE
+AF1015BE-AB7B-4A5F-A9C8-C00B63C602B0;Facilities resources DG3 -DG4;PRD;Facility;TPD PRD;TRUE
+EB2D0128-F716-4862-B7BA-76AD7E7A3D9C;Financial Analyst;PRD;Asset;CFO FCOE FC BAV VP2;FALSE
+73BA3FEA-2E07-4BC8-979A-2310CA7AEB79;Financial Controller;PRD;Finance & Economy;TPD FC;FALSE
+5E35B0CD-D16A-4D39-B5D1-FC5C76CF3BC8;Flow Assurance Engineer;PRD;Process and Flow;PDP PRD FE SE;FALSE
+968C22BE-3F3E-43C4-B6C8-0761410D052A;Flow Assurance Lead;PRD;Process and Flow;PDP PRD FE SE;FALSE
+572298CF-C601-4E5F-AF19-74019CD2FB59;Geologist/Geophysicist;PRD;Petech;Petech (PTC);TRUE
+05B288F0-CEF9-47BF-9F9D-CEE6EEDD9E84;Geotechnics;PRD;Marine;PDP PRD FE MO GEO;FALSE
+FF0D006E-4F51-40ED-A203-95D523C0427A;Head of Investment Arena;PRD;Multidiscipline;;FALSE
+DC4C0A58-5A58-48D5-8F76-220C01EF8AAF;Hook-Up Coordinator;PRD;Construction and Hook up;TPD PRD PMC CCH CHU;TRUE
+F86BAD25-AB25-4FFF-8FC7-588833156AB6;Hook-up Lead;PRD;Construction and Hook up;TPD PRD PMC CCH CHU;TRUE
+F6BA1557-72AE-45B4-B3C1-21D0212563F0;Hook-Up Manager;PRD;Construction and Hook up;TPD PRD PMC CCH CHU;TRUE
+9FC47047-AEF7-444D-89BE-CA37D48F3838;HR Consultant;PRD;X Exclude from reporting;Other;TRUE
+EFEA104A-5ABF-4C2B-BD47-15FACFF194F4;HR Manager;PRD;P&L;TPD PL PD;FALSE
+AFB4DCED-27D7-4790-B723-5F7514169A4D;HVAC Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+124475AE-D553-4EEE-BFD6-94FC5AD561FE;HVAC Field Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+C6C893E8-7620-4A0B-A8A4-0453F2A09BF2;HVAC Lead;PRD;Mechanical;PDP PRD FE AE;FALSE
+17C8CE95-CF50-4091-ADBC-4DEE74CDE0A3;Impact Assessment Lead;PRD;Sustainability;PDP PRD FE SE;FALSE
+31F053BD-10D8-43AF-A24D-9BE289603C6C;Information and Data Management coordinator;PRD;Quality and Administration;PDP PRD PMC QRI;FALSE
+E14954C5-516A-4578-8978-A2D56EFE38AE;Information and Data Manager;PRD;Quality and Administration;PDP PRD PMC QRI;FALSE
+BC19B8C8-6902-4FF7-9404-3D92DD014E1B;Instrument engineer;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+96D45DE5-B2BB-4997-89BF-E26BF436C470;Instrument field engineer;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+15839050-D75F-498B-9ABA-AFD805B5EEFB;Instrument lead;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+D9DA42CC-7C3C-4591-9C9D-A3A7786099A4;Insulation Field Engineer;PRD;Material;PDP PRD FE AE;FALSE
+99E2FA8C-501E-41A4-B1C9-D2188422E9C5;Insulation Lead;PRD;Material;PDP PRD FE AE;FALSE
+BB577FCB-E338-48BF-9874-354DC3DC65DC;Internal assignments;PRD;;TPD PRD;FALSE
+40A52875-2791-46C2-A58F-86B7985A3925;Investment Arena;PRD;Multidiscipline;;FALSE
+440EF89F-B0F8-42C5-93D8-34D3D6FDFDFE;IT coordinator;PRD;X Exclude from reporting;Other;TRUE
+E6677214-E0C8-4390-B4BE-58D59508EF83;LCI Engineer;PRD;LCI;DPN OTE OPA;TRUE
+54B59D16-3637-41DE-B0DB-5BDAC0D8C4E9;LCI Lead;PRD;LCI;DPN OTE OPA;TRUE
+67664174-200A-4A65-93FC-35FFE73F110C;Lead Estimator;PRD;Estimation;PDP PRD PMC ESA;FALSE
+8E4C2211-F4A3-473B-B009-D67F87836C68;Lead Subsea Engineer;PRD;;PDP DW DWCC MGR MPL;TRUE
+6B5FEADF-6A5D-4A07-B0E3-9D1F08C9545C;Leader D&W Engineering;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+1DC5AB83-6F82-49FF-A8A7-A61374B59E28;Leading Advisor;PRD;;TPD PRD;FALSE
+589A56C9-799D-4FB9-9A2D-DD59E866D06F;Leave;PRD;;Other;FALSE
+EBA5938E-CBC5-4CD5-954D-E3DA64D5311A;Main safety delegate;PRD;X Exclude from reporting;Other;TRUE
+22BF5CD7-2D95-4276-883A-8B899532EC32;Management;PRD;;TPD PRD;TRUE
+D6423442-A98F-4FB5-83E4-4A4C8557FF65;Map services and geographical information;PRD;Marine;PDP PRD FE MO MGS;FALSE
+0A6AD4D4-FC50-46CB-8918-F22BDB83507E;Marine Operation;PRD;Marine;PDP PRD FE MO;FALSE
+AD538EC2-AFBC-4AD6-9B62-127F12C9342A;Marine Operations;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+67C8F74C-E5EF-4084-A62B-FB7CDF0D59C6;Marine Systems and Naval Architect;PRD;Marine;PDP PRD FE MO;FALSE
+DE087509-9D47-4FC6-BA50-6639D15B7290;Marine Systems Lead;PRD;Marine;PDP PRD FE MO;FALSE
+114811BD-9480-4D23-8765-130BF9F49C7C;Material Engineer;PRD;Material;PDP PRD FE AE;FALSE
+1D94BDF6-EB40-4686-9363-DBAB98B15CCC;Material Lead;PRD;Material;PDP PRD FE AE;FALSE
+58824092-274E-44F6-ABDF-57161B8EC000;Mechanical Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+55571084-33EC-4933-BDDE-3F400C8B0181;Mechanical Field Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+E619D893-9CFF-4C46-996A-F67BD148DB9D;Mechanical Lead;PRD;Mechanical;PDP PRD FE AE;FALSE
+0B12C696-1FDB-4331-90E3-B5F5DF930D4A;Metocean Operations;PRD;Marine;PDP PRD FE MO SSI;FALSE
+D9C9194A-6F34-46D7-83DC-AFC0D0FB4E10;Mooring;PRD;Marine;PDP PRD FE MO;FALSE
+2B6D46B3-288D-4E9D-BF99-45DE8E01C4DB;Night Supervisor rig;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+C513D654-408E-4974-9DBA-E4699412BE50;Offshore Architect;PRD;Mechanical;PDP PRD FE AE;FALSE
+D0773997-A408-4973-8AFE-7C68B0FE116D;Offshore Architect Field Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+DEDAA1C0-3368-4455-8CF2-CD04C7EB897C;Offshore Architect Lead;PRD;Mechanical;PDP PRD FE AE;FALSE
+7155FEFE-FD3C-4E05-BC92-BD4EE024C6F3;Onshore Civil Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+5CE029D2-91E8-4B7D-A5D4-9C551502F35A;Onshore Civil Lead;PRD;Mechanical;PDP PRD FE AE;FALSE
+DBFCAF93-091F-45CA-A53C-9B88846CAB13;Operation Geologist;PRD;Petech;DPN OTE PNF;TRUE
+3CC8471C-F87A-49B7-8687-22210293C666;Operations Manager;PRD;Operation;DPN OTE OPA;TRUE
+1D3BCE30-3790-49A2-8160-A0AF5415C1AB;Operations resource;PRD;Operations resource;DPN JOS CCO;TRUE
+7217A939-0CD2-4B2A-B5CB-FE57C408155B;Operations resources DG1-DG2;PRD;Operation;DPN JOS CCO;TRUE
+D68A69D1-5A3D-4712-9183-37CA5E62F159;Operations resources DG2-DG3;PRD;Operation;DPN JOS CCO;TRUE
+EED136BC-A1CF-4958-BF15-1FE44140C6FB;Operations resources DG3-DG4;PRD;Operation;DPN JOS CCO;TRUE
+C3CA4F22-DD2D-4945-A4C2-88F33A3AF2A8;PDC Support;PRD;;TPD;FALSE
+2FB50D36-56BA-4F15-A285-B9DE8A33890F;Petec leader;PRD;Petech;DPN OTE PETECH;TRUE
+7DF6AE2D-D98A-4711-9B51-8B5E04A1F59F;Petech resource;PRD;Petech resource;DPN OTE PETECH;TRUE
+4FB50506-B6EF-43F8-9A18-472346C09A7D;Petech resources DG1-DG2;PRD;Petech;DPN OTE PETECH;TRUE
+4C4DCA98-A7ED-4189-A66C-E5E29FD63EE7;Petech Resources DG2-DG3;PRD;Petech;DPN OTE PETECH;TRUE
+891F164E-2439-45A0-AF66-CD24BCD68505;Petech Resources DG3-DG4;PRD;Petech;DPN OTE PETECH;TRUE
+4FA55F5D-B4BA-44AB-89D0-E9E4E05991F7;Petro physicist;PRD;Petech;DPN OTE PNF;TRUE
+41390DDE-1C77-40CE-8C07-D70A25DA5369;Pipeline and Marine Operations;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+74D98FB5-D5FB-4D54-9B09-6E3ABCBB48E4;Pipeline Commissioning (PCO);PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+D29BDFB7-E92C-4CF0-9EAD-0E75F878F003;Pipeline Construction and Installation;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+F4212256-0D15-4AC9-8FC2-017C7DA6CCAB;Pipeline Design engineer;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+8203E407-014C-45DB-9C2F-36C517B021C6;Pipeline manager;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+5E63E699-09D8-4C44-9E9A-5E8635B50272;Pipeline Structures;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+80421947-082F-448E-A640-39F8E0F38568;Pipeline System engineer;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+EED42C55-725B-48CD-A4CD-5C1AEEE00D25;Pipeline System lead;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+D14C03B7-061D-4A46-9E02-2A1E374DA17E;Pipeline Systems;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+47782A6A-57AF-4ABC-B3B3-AE86BD16653C;Piping and Layout Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+67C07071-9E62-4AA4-8000-F9981F795D6D;Piping and Layout Lead;PRD;Mechanical;PDP PRD FE AE;FALSE
+1952D2CA-4E65-4D8D-B287-7AB6F165CE41;Piping Field Engineer;PRD;Mechanical;PDP PRD FE AE;FALSE
+300B3314-A095-4F9E-9826-34010D6475E1;Planner;PRD;Project Control;PDP PRD PMC PCA;FALSE
+2B1B98CB-204A-4A54-8333-DEDA2195F049;Planner Lead;PRD;Project Control;PDP PRD PMC PCA;FALSE
+9EA6D5D5-D84F-4265-8DB9-67B5766337A3;Platform Marine Operation;PRD;Marine;PDP PRD FE MO;FALSE
+705D876C-9D95-4E3E-9FCB-C9A672BB1C6F;Platform Marine Operation Lead;PRD;Marine;PDP PRD FE MO;FALSE
+927E0D12-94D5-4C1D-8E44-5E2031E18CEF;Preservation Lead;PRD;Construction and Hook up;TPD PRD PMC CCH CHU;TRUE
+D2E00C0A-9BE0-4A6E-9230-A6FA7B14AB45;Process Engineer;PRD;Process and Flow;PDP PRD FE SE;FALSE
+3C72C8A1-C23E-4614-A2C1-EC573472E10F;Process Lead;PRD;Process and Flow;PDP PRD FE SE;FALSE
+2B06CA34-D828-43E3-AF2E-F68564F7E253;Procurement Responsible;PRD;Procurement;PDP PSR SCMC CM1;FALSE
+9AE2D3AF-D7EE-44F0-AEE0-658322D4221E;Product Lead;PRD;X Exclude from reporting;TPD PRD IMP;FALSE
+050CB885-8E20-480D-87B1-428066DA8BC1;Product Owner;PRD;X Exclude from reporting;TPD PRD IMP;FALSE
+CF6B4F8F-0E32-45FA-9315-212D4073CF2F;Product Support;PRD;X Exclude from reporting;TPD PRD IMP;FALSE
+AC1B082C-704A-4F2A-9456-9B8063CFA3B6;Production engineer;PRD;Petech;DPN OTE PNF;TRUE
+4CB8AA85-80C1-4050-A8CC-940969F3649F;Project Control;PRD;Project Control;PDP PRD PMC PCA;FALSE
+BA97663E-79B2-49E5-B126-214B0143AA07;Project Control Manager;PRD;Project Control;PDP PRD PMC PCA;FALSE
+F942A973-9CAC-4A96-8BC7-A9E41141F021;Project Director;PRD;Project Management;PDP PRD PMC PM;FALSE
+1C70A153-729D-4DFB-AE84-DF6171EB3865;Project Director offshore wind;PRD;Project Management;PDP PRD PMC PM REN;FALSE
+21E73B7F-6540-4DC3-B45B-44EFB266360C;Project engineer;PRD;Engineering Management;PDP PRD FE TEM;FALSE
+AAE1C4C8-F79E-4D51-AF23-FA60D67A2DAD;Project IT responsible;PRD;IT responsible;Other;FALSE
+482E09A6-9D8C-49A0-8479-C5E40CCB1E4A;Project Manager D&W;PRD;Drilling;PDP DW DWCC MPL PL3;FALSE
+DF244E4E-BF9C-46A4-AD35-D14C62855F47;Project Manager Facilities;PRD;Project Management;PDP PRD PMC PM;FALSE
+03BC1381-1452-4868-B092-8FEF5A4CAEA7;Project Manager Facilities offshore wind;PRD;Project Management;PDP PRD PMC PM REN;FALSE
+5FC6CDC3-BDD0-4FD2-9E04-29221117B958;Project Manager Operation;PRD;Operation;DPN OTE OPA;TRUE
+F1413E1C-8274-4E7D-8F27-27A90C82E1AC;Project Manager PDC;PRD;X Exclude from reporting;TPD PRD IMP;FALSE
+905F0EB5-4687-4954-8528-5470891848B9;Project Manager Petech;PRD;Petech;DPN OTE PNF;TRUE
+E9609EA2-A312-455D-8DEB-DC046CC09780;Project Procurement Manager (PPM);PRD;Procurement;PDP PSR SCMC CM1;FALSE
+76E1096A-0D40-4FFE-98B8-2E546276942C;Purchaser;PRD;Procurement;PDP PSR SCMC CM1;FALSE
+9A1603D6-E3B9-4FDD-AA90-7FD4F432766A;Purchasing Manager;PRD;Procurement;PDP PSR SCMC CM1;FALSE
+61DAFBDB-D022-44EF-AD76-9A00044F4FA8;Purchasing Manager (EPC/EPma);PRD;Procurement;PDP PSR SCMC CM1;FALSE
+5B042F51-02AB-45E5-B272-4CF1B596AA80;Quality & Risk Engineer;PRD;Quality and Administration;PDP PRD PMC QRI;FALSE
+C5DC58A9-8CD6-4A8A-8964-840DE7C7921C;Quality & Risk Manager;PRD;Quality and Administration;PDP PRD PMC QRI;FALSE
+DFE48713-B58C-4028-B04B-B2B0E0100BCC;Quality Surveillance Engineer;PRD;Material;TPD PRD FE;TRUE
+1476D2AB-6E30-483A-A088-10520B09D696;Quantity Surveyor;PRD;Project Control;PDP PRD PMC PCA;FALSE
+A96852B6-F4FA-4BD7-B5BC-854B3FC66A65;Reservoir Engineer;PRD;Petech;DPN OTE PNF;TRUE
+10BC5605-13A3-43AC-92AC-6D9696916992;Reservoir Geologist;PRD;Petech;DPN OTE PNF;TRUE
+762CC01C-7F3F-47F9-B6F0-CC84300C122F;Reservoir Geophysicist;PRD;Petech;DPN OTE PNF;TRUE
+3CD60BC6-44B1-40E8-BB5F-8FD5174E6719;Resource Owner;PRD;X Exclude from reporting;TPD PRD;FALSE
+5D20052A-8C10-41E4-A760-D552B3E06091;Risers and Flexible Pipes;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+7B74FDD1-73FE-46A0-A136-64C315BF0098;SAS;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+CF7130BC-F6FB-4510-80E8-487FDFD28F57;Seabed Geoscience;PRD;Marine;PDP PRD FE MO SSI;FALSE
+4F497E6B-2086-4E4F-BC1A-67883AF72D6D;Seabed intervention;PRD;Marine;PDP PRD FE MO SSI;FALSE
+8AC1E0BA-CC8D-441A-B80A-9159419AEB11;Seabed Survey;PRD;Marine;PDP PRD FE MO SSI;FALSE
+28A22A4A-51AD-4B52-AB0F-59B8D9413AAD;Site Manager (FE);PRD;Engineering Management;PDP PRD FE TEM;FALSE
+B217F0CA-B6B7-4BDE-82EB-F6664E70C183;SSU and Authority Manager;PRD;SSU;CFO FCOE SSU PRO PA2;FALSE
+720E5C07-90BE-4141-8240-C9A799E2A060;SSU Engineer;PRD;Safety;CFO FCOE SSU PRO DW;FALSE
+17CE6E22-310B-494E-83CB-E9839BA9918B;SSU Inspector;PRD;SSU;CFO FCOE SSU PRO OS1;FALSE
+6EF707F7-1D70-4034-ACA0-D86D880A9B1F;SSU site leader;PRD;SSU;CFO FCOE SSU PRO PA2;FALSE
+4630FBEC-85D7-4332-AA70-520A94E4DD40;Structural Engineer;PRD;Structural;PDP PRD FE AE;FALSE
+B220CDA1-FE12-49A6-A874-2262A8F82803;Structural Inspector;PRD;Structural;Other;TRUE
+885A3144-1D60-43A7-A88F-B04121F6C401;Structural Lead;PRD;Structural;PDP PRD FE AE;FALSE
+C80B1B6D-6533-46B9-BEDB-BFBF071D720C;Structure and welding field engineer;PRD;Material;PDP PRD FE AE;FALSE
+C9F36457-333D-4332-AAD7-B59163BB9BFE;Study Manager;PRD;Project Management;TPD PRD PMC PM;TRUE
+FA29D558-3AF7-4C30-A47D-7827CBDC359E;Subsea Control System;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+7F97E2FD-D6A9-43DF-BEBB-0140804B1054;Subsea Facilities Structures and Manifolds;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+376C7799-D737-462C-8789-8CCCC9CEDDF3;Subsea Installation;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+C6A07905-E49E-41E1-9F91-A153A27BA426;Subsea Marine Operation;PRD;Marine;PDP PRD FE MO;FALSE
+3E4B7273-5499-4013-8EFD-36ABF332E395;Subsea Power Cable;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+9349A7C5-C56F-4D03-A09C-406B6B15BB08;Subsea Processing;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+E76753F5-2DD9-44E0-8568-C771F28D405C;Subsea Production System;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+8A5886BB-7739-4D75-B49F-8CFEB9C4C532;Subsea TMI engineer;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+14F48163-476F-41D1-9033-5387B5937BA8;Subsea Umbilical and Cable;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+63D9685B-1C9B-4C7B-9577-75A3078D4159;Subsea Umbilical and Cable engineer;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+34348486-9227-4E37-BD92-353F042DE218;Subsea Valves;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+58153E38-5F02-4250-862A-DEEB4F430A61;Subsea Vertical System Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+8FE3A775-7C6C-47E6-BE38-ACB7A3D24063;Support D&W;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+8FEB5FF4-7AC1-45AE-8128-BBA2259838CC;Support Facility;PRD;;PDP PRD;FALSE
+AAF1CB08-0C17-404C-908C-867DBC54044F;Support Operations;PRD;Operation;DPN JOS;TRUE
+6881A72E-2905-40C6-8EFE-D850426551D4;Support outside PRD;PRD;;Other;FALSE
+4BC7968E-72A7-4CC8-B3B9-57D626AF29AB;Support Petech;PRD;Petech;DPN OTE PNF;FALSE
+6589DC3F-66B9-4ADA-8153-8095F2DAFBD9;SURF Architect;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+886DA503-27AC-41A2-A003-B24507D6C08B;SURF Manager;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+8D84650C-1B45-4AC6-B8D5-22139B18B919;SURF System;PRD;Subsea and Pipelines;PDP PRD FE SF;FALSE
+24B2DC44-F78C-4879-8BE9-73BBF8ED2381;Surface Protection Field Engineer;PRD;Material;PDP PRD FE AE;FALSE
+3BFD2E64-AA6D-4F2E-84B9-EF291DAA9E32;Survey Lead;PRD;Marine;PDP PRD FE MO SSI;FALSE
+41B64AE8-E5B8-4689-BEB0-0BA474250FED;Sustainability Lead;PRD;Sustainability;PDP PRD FE SE;FALSE
+DAB00AD7-42E7-4E5D-A2A8-B14882DE8996;System Lead;PRD;Process and Flow;PDP PRD FE SE;FALSE
+23DF8810-D321-41E7-AB82-030DB21634C6;T&I Manager;PRD;;TPD PRD;FALSE
+95287AF2-62E2-434C-9844-E4BFA6733278;Technical interface coordinator;PRD;Engineering Management;PDP PRD FE TEM;FALSE
+13356141-5516-40F6-99E5-1C4301563682;Technical Manager O&G projects;PRD;Engineering Management;PDP PRD FE TEM;FALSE
+C85DF7A8-8062-4A0F-9D90-3692BF9053FE;Technical Manager Wind projects;PRD;;PDP PRD FE TEM;FALSE
+0D8CDD60-12F6-42CE-8589-52569C1D1A9E;Technical Safety Engineer;PRD;Technical Safety and Working Environment;PDP PRD FE SE;FALSE
+16069856-03A2-48F7-AA23-284778038AE3;Technical Safety Lead;PRD;Technical Safety and Working Environment;PDP PRD FE SE;FALSE
+D50E2B2C-D3F4-4123-B58C-B01AFD167F25;Telecom engineer;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+3B3E6B83-F60C-4A7F-801C-0A63DF901944;Telecom lead;PRD;Aut/Inst/Tele;PDP PRD FE ANE;FALSE
+69662F2D-13BD-48C6-B5AF-5D105592D44B;Tie-in and Repair engineer;PRD;Subsea and Pipelines;TPD PRD FE SP;TRUE
+648F6E15-C260-4882-A3A0-F5EA158F52AF;Valve Engineer;PRD;;PDP PRD FE AE;FALSE
+7BF4D146-B389-4C2D-8BBD-C13B54FAB6C6;Vessel Rep;PRD;Marine;PDP PRD FE MO;FALSE
+B2E0FE85-8A9D-49E8-ABBA-5F5467A1A5B6;Weight Control Engineer;PRD;Estimation;PDP PRD PMC ESA;FALSE
+752D67F8-65B0-4256-A5FF-D63920692AF5;Weight Estimator;PRD;Estimation;PDP PRD PMC ESA;FALSE
+6E038786-ABE4-4AD5-B5FF-76BF5487D1C4;Well Completion Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+7F0E4392-9BD7-430C-8BDD-61CE2378FA93;Well Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+77B84506-18E0-4333-9603-CF7AEDF83CC5;Well Intervention Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+B04B07C2-794E-4B7F-992A-B83CA21CF216;Well Superintendent;PRD;;PDP DW DWCC MGR MPL;TRUE
+4A49B89E-B01C-441E-BB1D-C19470D711EB;Well Supervisor;PRD;;PDP DW DWCC MGR MPL;TRUE
+1CB8C0AD-A035-4AEF-8444-734F54E35B8C;Wellhead System Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+70D63817-166A-45D9-A831-B2E4C15BB54B;Wind Commercial;PRD;Asset;REN RES;FALSE
+F2AA9CA7-6682-4E15-A833-782EC5808956;Wind Consent and Permitting;PRD;Asset;REN RES CPD;FALSE
+529C1874-EE72-4376-A8FE-D929AD550D17;Wind Operations;PRD;Operation;REN RES OTE;FALSE
+E0FB25DB-9126-45BC-9957-1675C9C239CD;Wind SSU Management;PRD;SSU;REN RES CPD;FALSE
+BD4CF25B-9ADF-4E47-A034-AAA351CA3771;Wind Stakeholder Management;PRD;Asset;REN RES CPD;FALSE
+36D3E919-F6AA-4C1C-83E2-D78F3603AA8F;Wind Technical Expert;PRD;Asset;REN RES CPD;FALSE
+C7E74505-4B06-4E16-A52F-D8798195B767;Working Environment Engineer;PRD;Technical Safety and Working Environment;PDP PRD FE SE;FALSE
+DF7CA0FD-0E51-45B1-8488-0042F2817B9B;Working Environment Lead;PRD;Technical Safety and Working Environment;PDP PRD FE SE;FALSE
+3FFED341-63C4-40D8-98AF-3876FDAEB0A4;XT System Engineer;PRD;Drilling;PDP DW DWCC MGR MPL;TRUE
+0D42D726-85FE-41A6-8666-2CD4D8C6B2F0;Administrative Consultant;PRD-Contracts;Quality and Administration;;FALSE
+91AF1C94-33AA-43E7-AAF6-AB3D9ABD5777;Administrative Coordinator;PRD-Contracts;Quality and Administration;;FALSE
+B6584D88-62C9-4F52-8B20-C8E170988778;Administrative Lead;PRD-Contracts;Quality and Administration;;FALSE
+8BACFC01-7EAF-4983-973B-E164CF05CC44;Area Manager;PRD-Contracts;Engineering Management;;FALSE
+A5ABE417-D880-4E47-A3C2-3FBCD9CCE25C;Automation Designer;PRD-Contracts;Aut/Inst/Tele;;FALSE
+C21EA8BD-A6F4-4FE0-93CC-6FC404B2CEF3;Automation Discipline Lead;PRD-Contracts;Aut/Inst/Tele;;FALSE
+81DAD0F4-1D2E-4C0B-9AF5-0587CD3BA39F;Automation Engineer;PRD-Contracts;Aut/Inst/Tele;;FALSE
+8FF2AD91-D597-4F78-B730-88048D64E8A3;Automation Engineer (DRE);PRD-Contracts;Aut/Inst/Tele;;FALSE
+2B79250B-2115-45A6-AFA6-4DBBEF7EF993;Change and Interface Coordinator;PRD-Contracts;Engineering Management;;FALSE
+97DB164F-78D5-47F8-B6C1-8413EC3F3B24;Change and Interface Manager;PRD-Contracts;Engineering Management;;FALSE
+966A4FC4-6073-4949-87CE-27DF90CDF296;Comissioning Engineer;PRD-Contracts;Commissioning;;FALSE
+1A8CB291-2FCA-4839-A694-30F654B2041F;Comissioning Lead;PRD-Contracts;Commissioning;;FALSE
+5F6C2993-0543-4E94-A754-0AC819BAF52D;Comissioning Manager;PRD-Contracts;Commissioning;;FALSE
+411BED65-E40E-404B-B677-9736424C4FE3;Completion Engineer;PRD-Contracts;Completion Prep;;FALSE
+1BFB0084-A3A5-4ECF-A0D9-593C1DB7AE0D;Completion Lead;PRD-Contracts;Completion Prep;;FALSE
+6EED33B5-FCE7-47A0-9EBE-9CB275174B13;Completion Manager;PRD-Contracts;Completion Prep;;FALSE
+73945504-1CCD-410D-A91F-E1462BDC0717;Conctruction Discipline Lead;PRD-Contracts;Construction & Hook up;;FALSE
+652131E4-3EAE-4FC7-B579-1630503D1999;Construction Lead;PRD-Contracts;Construction & Hook up;;FALSE
+020BF4E5-DF3F-4663-9A11-38A2127A23D6;Construction Manager;PRD-Contracts;Construction & Hook up;;FALSE
+901AEED1-EDE5-4B73-8EE3-AE0DEF65DE4F;Cost Control;PRD-Contracts;Project Control;;FALSE
+5C772582-9EA3-45BA-86ED-2AD9DC2CAF52;Document Control;PRD-Contracts;Quality and Administration;;FALSE
+6B0BE3F5-3A18-4593-B341-CAC2BA8CB589;Electro Designer;PRD-Contracts;Electro;;FALSE
+57554F25-E615-4036-927C-27F2A0D1EEB6;Electro Discipline Lead;PRD-Contracts;Electro;;FALSE
+98E591B5-D805-4FCB-82CC-7F6890A24BFB;Electro Engineer;PRD-Contracts;Electro;;FALSE
+2B95AE9D-B065-438E-ABF2-732F2029033A;Electro Engineer (DRE);PRD-Contracts;Electro;;FALSE
+6F9BE29C-ECF1-4EBD-9A95-C915AE53A490;Engineer;PRD-Contracts;;;FALSE
+6D3E3FAB-336E-4864-B064-4A474D184E83;Engineering Manager;PRD-Contracts;Engineering Management;;FALSE
+9F68A74E-5765-4951-BC73-379688592A06;Engineering Support;PRD-Contracts;;;FALSE
+553FD98F-B7A3-4872-93D5-63AA67CBAF11;Estimator;PRD-Contracts;Estimation;;FALSE
+6765C77D-6209-4F59-9108-EC51E8786AC4;External Environment Engineer;PRD-Contracts;Technical Safety and Working Environment;;FALSE
+2CEC5F2B-F922-4D13-99BB-57B3C57313E3;Functional Safety Engineer;PRD-Contracts;Technical Safety and Working Environment;;FALSE
+DD00559D-2A78-492B-9DD9-D099F2FAC2F4;HAZID Lead;PRD-Contracts;Construction & Hook up;;FALSE
+3338FB94-F9F4-459D-9827-E352117DF7CD;HAZOP Lead;PRD-Contracts;Process and Flow;;FALSE
+A77BEF55-C502-4C2F-B1B6-A290D489CEA1;HMS Discipline Lead;PRD-Contracts;Safety;;FALSE
+E19A31A2-FB9D-480C-B56F-8FA9D796235C;HSE Engineer;PRD-Contracts;Safety;;FALSE
+8C7AEA8C-DE17-42AB-BE17-BEAB7D1655AD;HSSE Manager;PRD-Contracts;Safety;;FALSE
+23205E81-9E42-4028-9BF6-F6E03A2B877C;HVAC Discipline lead;PRD-Contracts;Mechanical;;FALSE
+679F9557-BFAE-451D-9D8A-31CE8BFDCE22;HVAC Engineer;PRD-Contracts;Mechanical;;FALSE
+3FB3F843-0B9F-49E1-B09B-8915C5F5B491;Installation Engineer;PRD-Contracts;Construction & Hook up;;FALSE
+358C12CA-48ED-4CDB-B35C-9CF94EFC2D0E;Installation Lead;PRD-Contracts;Construction & Hook up;;FALSE
+E49CEFF4-BBC9-4EC9-BCA5-9C7DEF8C68B4;Installation Manager;PRD-Contracts;Construction & Hook up;;FALSE
+60F7849A-14FE-4D16-81ED-F5DA27C04A89;Instrument Designer;PRD-Contracts;Aut/Inst/Tele;;FALSE
+51EA01DD-04D6-4F97-8ADB-EB9B466A5C05;Instrument Discipline lead;PRD-Contracts;Aut/Inst/Tele;;FALSE
+F9D4AA9E-DF3C-4203-AA8C-B61822457592;Instrument Engineer;PRD-Contracts;Aut/Inst/Tele;;FALSE
+0CC7B1FE-78D3-42EB-A2D5-C402E43BA7CF;Instrument Engineer (DRE);PRD-Contracts;Aut/Inst/Tele;;FALSE
+C6F77B80-E5CC-43FC-BC6A-2446DA039227;Interface Coordinator;PRD-Contracts;Project Management;;FALSE
+3491B202-001A-4A33-813A-E1EC0C5D5C73;IT Manager;PRD-Contracts;IT;;FALSE
+418FC06F-83A6-48E6-89E6-187220845051;IT Method;PRD-Contracts;IT;;FALSE
+9638ED5A-6DA9-49AD-BB33-EC10DED0977E;IT Verification lead;PRD-Contracts;IT;;FALSE
+5A9EB6DD-5AAA-4628-91AA-1D4E75235D31;LCI Discipline Lead;PRD-Contracts;LCI;;FALSE
+DF33422C-08F1-484F-8A8C-9C447F85243A;LCI Engineer;PRD-Contracts;LCI;;FALSE
+29221221-770D-4010-A37D-5912A68F78F0;Maintenance Engineer;PRD-Contracts;Operation;;FALSE
+FAD91D24-1F08-4EAB-ADAC-E841C54983D5;Marine Discipline Lead;PRD-Contracts;Structural;;FALSE
+7B5AEEE6-F0EA-404D-A731-A22597111453;Marine Engineer;PRD-Contracts;Structural;;FALSE
+D44F9E0A-4D04-4AB8-B783-204DBF8A7835;Material Discipline lead;PRD-Contracts;Material;;FALSE
+F406BFF7-1D4A-49CA-A7EF-C41C993AACA4;Material Engineer;PRD-Contracts;Material;;FALSE
+4760E221-081A-44C5-8F3E-228ADBD5372E;Material Handling Engineer;PRD-Contracts;Mechanical;;FALSE
+F9361E29-E627-49AF-BF6A-93CBB21B7835;Mechanical Discipline Lead;PRD-Contracts;Mechanical;;FALSE
+FB0B977D-F793-4A23-8CB2-519F852A0C5A;Mechanical Engineer;PRD-Contracts;Mechanical;;FALSE
+D56CAA93-5BC7-4E3D-A5FA-FAAEA6DCAD95;Mechanical Engineer (DRE);PRD-Contracts;Mechanical;;FALSE
+91A24874-A626-42C1-9516-39191F6B7872;Mechanical Methode Engieer;PRD-Contracts;Mechanical;;FALSE
+1A916C6D-BC45-41CA-A0F5-9CA34F018A54;Methode Engineer Construction;PRD-Contracts;Construction & Hook up;;FALSE
+4F28B040-6F12-4B04-9AA1-234198F6A548;Methode Engineer Mechanical;PRD-Contracts;Mechanical;;FALSE
+0BD12D18-AED1-4707-A40A-9D42FDAB75D0;Methode Engineer Piping;PRD-Contracts;Mechanical;;FALSE
+39E61C05-4F55-4D09-BA07-41F1336FA6C4;MTO Coordinator;PRD-Contracts;Construction & Hook up;;FALSE
+0D7D9C01-747B-47C9-977C-44F9FB8557B5;Operation & Maintenance Discipline Lead;PRD-Contracts;Operation;;FALSE
+718837F9-BAE8-4DA4-8289-F88BF0AAD3CB;PDMS Administrator;PRD-Contracts;Mechanical;;FALSE
+0D065986-0BA9-47BC-AC25-C92E04A2079D;Piping Cats & Specs;PRD-Contracts;Mechanical;;FALSE
+953E0467-1D48-4E89-84E2-6A64F9BD967D;Piping Checker;PRD-Contracts;Mechanical;;FALSE
+B7C0D730-6707-4E52-9A62-8B857662DED7;Piping Designer;PRD-Contracts;Mechanical;;FALSE
+77D1E688-C583-41B7-AB4C-811F11B32FD6;Piping Discipline Lead;PRD-Contracts;Mechanical;;FALSE
+51F53B42-E0F4-4FBD-A9EB-DC5185791564;Piping Engineer;PRD-Contracts;Mechanical;;FALSE
+F8D1C236-AF7D-4DED-85E6-2D78787D0DE8;Piping Engineer (DRE);PRD-Contracts;Mechanical;;FALSE
+DEC6B61F-AA75-47EE-895D-7430BA7084F4;Planner;PRD-Contracts;Project Control;;FALSE
+A187F5D3-2873-4AB4-AC5C-9BC1F2298AAC;Planning Manager;PRD-Contracts;Project Control;;FALSE
+A3AAE3FD-CB56-4BED-B1C0-55E0D8E42A1D;Prefab Coordinator;PRD-Contracts;Construction & Hook up;;FALSE
+D0FD2004-7D84-4C08-B063-151C4F633140;Process Checker;PRD-Contracts;Process and Flow;;FALSE
+2F7F0CDB-35B6-417B-B0BC-AAD3FB3ABAD0;Process Designer;PRD-Contracts;Process and Flow;;FALSE
+91C91498-65E2-45B4-AF40-9EB7094A7BAA;Process Discipline Lead;PRD-Contracts;Process and Flow;;FALSE
+A73AC3E2-F1C9-4BA9-8ABC-CE346D3906FD;Process Engineer;PRD-Contracts;Process and Flow;;FALSE
+3F436CF9-3D20-4B8A-8811-CAF2D7895A59;Process Engineer (DRE);PRD-Contracts;Process and Flow;;FALSE
+B5C6030C-3371-4EF2-AF79-27A3BF8CE707;Procurement Manager;PRD-Contracts;Procurement;;FALSE
+3A116248-3886-42AE-AC43-044803FE1592;Project Control Engineer;PRD-Contracts;Project Control;;FALSE
+EB647041-8AAC-4E19-8131-C443CF0579D9;Project Control Manager;PRD-Contracts;Project Control;;FALSE
+62D5B69F-9150-467A-9949-A77D4A8BF0A9;Project Manager;PRD-Contracts;Project Management;;FALSE
+80095B02-1C5E-4653-BA7D-56489C80CD1C;Purchaser;PRD-Contracts;Procurement;;FALSE
+1568D7B1-0B53-466F-A9B6-BA3E147029F2;QRM Engineer;PRD-Contracts;Quality and Administration;;FALSE
+963BBE42-B759-427A-83BC-30C4907A1C21;QRM Manager;PRD-Contracts;Quality and Administration;;FALSE
+262BB831-F90F-47B3-95DC-DB5CE3A424BE;Quality and Risk Manager;PRD-Contracts;Quality and Administration;;FALSE
+CD818A1D-115C-443C-A4F0-6767F9AC8BA3;Rotation Coordinator;PRD-Contracts;Quality and Administration;;FALSE
+F6DDCF21-0EB9-4478-9E2F-DA8DFC31B7A9;Structural Architect;PRD-Contracts;Structural;;FALSE
+AA96B133-AAC4-4550-A8C1-6E656E0CA86F;Structural Cats & specs;PRD-Contracts;Structural;;FALSE
+39D16642-A314-4697-A07E-4B771B87DEAB;Structural Designer;PRD-Contracts;Structural;;FALSE
+4F2378E5-7CBB-4FB8-A31A-8331DA45FD60;Structural Discipline lead;PRD-Contracts;Structural;;FALSE
+F9C72A4C-6732-4A59-9548-4FC92A99C2EC;Structural Engineer;PRD-Contracts;Structural;;FALSE
+5C58ECBD-28F3-42E5-B3D8-54F1C3384C40;Structural Engineer (DRE);PRD-Contracts;Structural;;FALSE
+42F8AFD8-3B24-4D55-B0FB-FC77A623D187;Study Manager;PRD-Contracts;Project Management;;FALSE
+21903F4C-C602-4C56-8347-04ED9B5C03EF;System Manager;PRD-Contracts;Engineering Management;;FALSE
+2F73DB5F-BF0E-451A-B022-5B6A1D9B2209;Team Lead;PRD-Contracts;;;FALSE
+4DF24E61-C006-45F6-97CB-29BECEC489D2;Technical Safety Discipline Lead;PRD-Contracts;Technical Safety and Working Environment;;FALSE
+33CDC034-06FE-490E-B410-D31444B5BC75;Technical Safety Engineer;PRD-Contracts;Technical Safety and Working Environment;;FALSE
+BE8C49EE-18D1-4B73-8A6E-7B687D82AD0B;Technical Safety Engineer (DRE);PRD-Contracts;Technical Safety and Working Environment;;FALSE
+376BBF0C-4786-4107-BF73-293705D0D044;Telecom Discipline Lead;PRD-Contracts;Aut/Inst/Tele;;FALSE
+7D007557-857C-4C1C-BCD6-2BC9B7C7B004;Telecom Engineer;PRD-Contracts;Aut/Inst/Tele;;FALSE
+58E69B44-5B02-4520-B9F8-0699E9CB98F1;Telecom Engineer (DRE);PRD-Contracts;Aut/Inst/Tele;;FALSE
+601AC33E-24FD-4AD2-A584-F8850CC98CBB;Weight Control Engineer;PRD-Contracts;Estimation;;FALSE
+A2F3BCC2-2D36-44D7-9E3A-BCA9070BB578;Working Environment Engineer;PRD-Contracts;Technical Safety and Working Environment;;FALSE
+93CA4DDF-2532-4E94-A746-A2A910F5D23E;Task Member;REN;General;;TRUE
+B40BC39C-AB33-42CD-8169-FD7C007327BA;Task Owner;REN;General;;TRUE
+9E94644B-DA97-4CE9-9869-78EA18449945;Task Responsible;REN;General;;TRUE
+0B45C5D6-60E7-4F99-88F9-16B950E32E2D;Business Developer;SUB;Subsurface;EPN SUB CCN CPE;FALSE
+723E773E-4352-40D6-AC9C-1050D580656C;Delivery Department Leader;SUB;Subsurface;EPN SUB CCN;FALSE
+C8959336-DF30-4810-90E8-E75C79F4D297;Delivery Entity Leader;SUB;Subsurface;EPN SUB CCN;FALSE
+AD95B37F-E5B4-4BD6-B526-8B47E6A869E2;Delivery Sector Leader;SUB;Subsurface;EPI SUB CCI DDI;FALSE
+B7D0FE98-FD27-4273-80F0-0D586D332252;Geologist;SUB;Subsurface;EPN SUB CCN GGP;FALSE
+CF341B4E-8CEB-423B-B1E5-BE57F48E043E;Geophysicist;SUB;Subsurface;EPN SUB CCN GGP;FALSE
+B6681E9B-CEE0-4F1F-BC46-F8D5A99C35F2;Petrophysicist;SUB;Subsurface;EPN SUB CCN GGP;FALSE
+74211927-A481-4D35-B7D6-E9F97371A916;Production Engineer (EPI);SUB;Subsurface;EPI SUB CCN RPT;FALSE
+0B5B6B01-7A45-4BAB-B137-AA4B3DF5D09B;Project Data Manager;SUB;Subsurface;EPN SUB CCN DDI;FALSE
+805E44FD-581E-4292-8B89-1A31F6A10A40;Reservoir Engineer (EPN);SUB;Subsurface;EPN SUB CCN RPT;FALSE
+63D51DF3-457E-4326-88CD-CF9E89892BC8;Subsurface;SUB;Subsurface;EPN SUB CCN;FALSE
+C71FF3C5-6D7B-4974-B98E-CA72701E2707;Subsurface Project Leader;SUB;Subsurface;EPI SUB CCN RPT;FALSE
+F0216650-7FA5-4B63-B72F-385FD0894737;IT Analyst;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+C314A6B0-61A7-4AAC-9868-49840E8EB36A;IT Application Responsible;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+B74A4E3F-1339-4719-BCDD-1783EDE49384;IT Architect;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+6421388B-E847-4EFB-90F6-04D828CE09E2;IT Compliance Analyst;TDI;Information Technology;TDI ETD ISC;FALSE
+911281BC-545C-4040-8786-A8D61B92C60F;IT Cyber Defence - Detection Analyst;TDI;Information Technology;TDI EDT ISC;FALSE
+03D5CE46-F52F-4F12-9D9A-C1C7692AE956;IT Cyber Defence - Detection Engineer;TDI;Information Technology;TDI EDT ISC;FALSE
+194BD157-C934-4857-8AFC-9D3E70E974B1;IT Cyber Defence - Incident Analyst;TDI;Information Technology;TDI EDT ISC;FALSE
+3E710FBE-4F17-4B01-92D6-38141FCA962F;IT Cyber Defence - Incident Manager;TDI;Information Technology;TDI EDT ISC;FALSE
+1F766367-E0E7-4D57-BEFE-617D5E654385;IT Cyber Risk Analyst;TDI;Information Technology;TDI EDI ISC ISC;FALSE
+8C096F97-AB0C-45BA-BCC1-0FE83BB2F69E;IT Data Analyst;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+B7376AB7-2091-48D1-9A2E-A682B846D6D3;IT Data Architect;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+24DE5EED-467E-4268-B1C9-45B0C23A845D;IT Engineer - Identity and Access Management;TDI;Information Technology;TDI EDT ISC ISC;FALSE
+805E7407-8C95-4212-A13C-3393E37CB1A9;IT Infrastructure Architect;TDI;Information Technology;TDI;FALSE
+FB30E751-EF9A-429F-92FC-75F5D1BE217E;IT Infrastructure Engineer;TDI;Information Technology;TDI;FALSE
+746EF5B6-E10E-4701-AD4E-E4308080E8C3;IT Infrastructure Responsible;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+B4A45376-5051-4FCD-9AAA-E91FF51ED9A3;IT Infrastructure Security Engineer;TDI;Information Technology;TDI EDT ISC;FALSE
+BCE5CFEE-E233-4ABA-B4F4-43860B196D80;IT Network Security Engineer;TDI;Information Technology;TDI EDI ISC;FALSE
+C6D83425-7E73-4560-A9D3-6B24B890E43C;IT Security responsible;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+F4D8D4F3-7BA1-4291-87FE-2D73ECBEE65F;IT Service Manager;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+A9CEDEF8-02E5-428D-8702-E05EEE06D626;IT Software designer;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+0E0EE396-7EE8-4D08-9AA1-9BDA8019A2BB;IT Software developer back end;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+411BD5D9-3B8A-4CD3-9F4E-D3D8B4AF7570;IT Software developer front end;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+4DE9584F-9339-42E6-97EE-77D81C5EA64B;IT Software developer full stack;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+E3B8AB56-F179-443F-B8AD-A67AADFDD09A;IT Software developer power platform;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+B33EB208-B6E0-453C-8470-2F2EFFA5E48F;IT Software developer team lead;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+E80CB8C4-5548-4854-AE95-0E6EC3DA1FE9;IT Software developer tech lead;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+F7BFBD5D-8C06-4F7E-91FC-423309A7364E;IT Software quality assurance;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+9DB59DCA-FD5A-484F-9E99-F88AE6B6A2C4;IT Task Leader;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+3FF09EF7-933E-4DC0-BB4B-2A438277995A;IT Team Leader;TDI;Information Technology;TDI OG FOS FOIT;FALSE
+35C8E278-4976-4531-93FA-86E1A07BF1B3;TDI Flow Assurance Engineer;TDI;Process and Flow;TDI OG FOS SMT SFAT;FALSE
+B927AACE-20DB-47C0-8B49-EA70DE1F70A6;TDI Materials Engineer;TDI;Material;TDI OG FOS SMT MCT;FALSE
+0C85DF89-742F-4D81-A972-3E5565A77B5C;TDI Pipeline and Tie-in Engineer;TDI;Subsea and Pipelines;TDI OG FOS SMT PTRT;FALSE
+6C277B60-BACF-4DFE-8CD6-6FA967183282;TDI Pipeline Engineer;TDI;Subsea and Pipelines;TDI OG FOS SMT RPT;FALSE
+899E1EB1-F75C-4C78-845A-FFB347F87B46;TDI Polymer Engineer;TDI;Material;TDI OG FOS SMT RPT;FALSE
+F6576BE6-07DE-4A99-925D-99E247A31DDA;TDI Riser Engineer;TDI;Subsea and Pipelines;Subsea and Pipelines;FALSE
+49BAC088-FD15-43A5-AE74-90E028DEA894;TDI Subsea Engineer;TDI;Subsea and Pipelines;TDI OG FOS SMT SFAT;FALSE
+06306BCF-6BBB-4BFA-9CEA-3A5F368B585D;TDI Task Leader;TDI;Project Management;TDI;FALSE
+C02D0FAF-9B9F-4385-B6CB-73C29169D2E4;TDI Task Manager;TDI;Project Management;TDI;FALSE
+3424D857-BA9D-4566-BB03-31D3F1D18877;TDI Team Leader;TDI;Project Management;TDI;FALSE
