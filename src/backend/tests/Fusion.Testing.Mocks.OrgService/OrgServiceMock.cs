@@ -2,14 +2,11 @@
 using Fusion.Testing.Mocks.OrgService.Api;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Threading;
 
 namespace Fusion.Testing.Mocks.OrgService
 {
@@ -92,10 +89,15 @@ namespace Fusion.Testing.Mocks.OrgService
             return projects.FirstOrDefault(p => p.ProjectId == id);
         }
 
+        public static void RemovePosition(Guid id)
+        {
+            var newPositions = positions.Where(x => x.Id != id);
+            positions = new ConcurrentBag<ApiPositionV2>(newPositions);
+        }
         public static void RemoveInstance(Guid id)
         {
             var instance = positions.SelectMany(x => x.Instances).FirstOrDefault(x => x.Id == id);
-            if(instance is null) return;
+            if (instance is null) return;
             positions.FirstOrDefault(x => x.Id == instance.PositionId)?.Instances.Remove(instance);
         }
     }
