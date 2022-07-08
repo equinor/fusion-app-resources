@@ -3,6 +3,7 @@ using MediatR;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -39,29 +40,43 @@ namespace Fusion.Resources.Logic.Commands
             {
                 // This command tries to update an existing position instance. If instance is not found, it may have been deleted in ORG service.
                 // If unable to update instance, log error and proceed.
-
-                var position = await client.GetPositionV2Async(request.OrgProjectId, request.OrgPositionId);
-
-                var instance = position?.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
-                if (instance is null)
+                try
                 {
-                    logger.LogWarning($"Could not locate instance {request.OrgPositionInstanceId} on the position {request.OrgPositionId} for project {request.OrgProjectId}.");
-                    return;
+                    // If position is deleted, exception will be thrown.
+                    var position = await client.GetPositionV2Async(request.OrgProjectId, request.OrgPositionId);
+
+                    var instance = position?.Instances.FirstOrDefault(i => i.Id == request.OrgPositionInstanceId);
+                    if (instance is null)
+                    {
+                        logger.LogWarning(
+                            $"Could not locate instance {request.OrgPositionInstanceId} on the position {request.OrgPositionId} for project {request.OrgProjectId}.");
+                        return;
+                    }
+
+                    var instancePatchRequest = new JObject();
+                    instance.Properties = EnsureHasRequestProperty(instance.Properties, request.HaveRequest);
+                    instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Properties,
+                        instance.Properties);
+
+                    var url =
+                        $"/projects/{request.OrgProjectId}/positions/{request.OrgPositionId}/instances/{request.OrgPositionInstanceId}?api-version=2.0";
+                    var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
+
+                    if (!updateResp.IsSuccessStatusCode)
+                    {
+                        logger.LogError(updateResp.Content);
+                    }
                 }
-
-                var instancePatchRequest = new JObject();
-                instance.Properties = EnsureHasRequestProperty(instance.Properties, request.HaveRequest);
-                instancePatchRequest.SetPropertyValue<ApiPositionInstanceV2>(i => i.Properties, instance.Properties);
-
-                var url = $"/projects/{request.OrgProjectId}/positions/{request.OrgPositionId}/instances/{request.OrgPositionInstanceId}?api-version=2.0";
-                var updateResp = await client.PatchAsync<ApiPositionInstanceV2>(url, instancePatchRequest);
-
-                if (!updateResp.IsSuccessStatusCode)
+                catch (OrgApiError ex)
                 {
-                    logger.LogError(updateResp.Content);
+                    // A removed position is a valid error, but catch the others. 
+                    if (ex.HttpStatusCode != HttpStatusCode.NotFound)
+                    {
+                        logger.LogError(ex.Message);
+                        throw;
+                    }
                 }
             }
-
             private static ApiPropertiesCollectionV2 EnsureHasRequestProperty(ApiPropertiesCollectionV2? properties, bool value)
             {
                 properties ??= new ApiPropertiesCollectionV2();
