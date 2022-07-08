@@ -95,13 +95,31 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         #region delete tests
         [Fact]
-        public async Task Delete_InternalRequest_ShouldBeSuccessfull()
+        public async Task Delete_InternalRequest_ShouldBeSuccessful()
         {
             using var adminScope = fixture.AdminScope();
 
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}");
             response.Should().BeSuccessfull();
         }
+
+        [Fact]
+        public async Task Delete_InternalRequest_OrgPositionMissing_ShouldBeSuccessful()
+        {
+            using var adminScope = fixture.AdminScope();
+            var adminClient = fixture.ApiFactory.CreateClient()
+                .WithTestUser(fixture.AdminUser)
+                .AddTestAuthToken();
+
+            var requestWithoutPosition = await adminClient.CreateDefaultRequestAsync(testProject);
+
+            OrgServiceMock.RemovePosition(requestWithoutPosition.OrgPositionId!.Value);
+
+            var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{requestWithoutPosition.Id}");
+            // Ensure removal of request was successful even if Org Position is missing.
+            response.Should().BeSuccessfull();
+        }
+
 
         [Fact]
         public async Task Delete_InternalRequest_ShouldUpdateOrgPositionInstanceHasRequest()
