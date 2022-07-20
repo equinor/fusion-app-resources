@@ -85,9 +85,10 @@ namespace Fusion.Testing.Mocks.OrgService
             {
                 Id = new Guid(tokens[0]),
                 Name = tokens[1].Trim(),
-                Discipline = (tokens[2] ?? "").Trim(),
-                Department = (tokens[3] ?? "").Trim(),
-                Inactive = bool.Parse(tokens[4])
+                ProjectType = tokens[2].Trim(),
+                Discipline = (tokens[3] ?? "").Trim(),
+                Department = (tokens[4] ?? "").Trim(),
+                Inactive = bool.Parse(tokens[5])
             };
 
             return p;

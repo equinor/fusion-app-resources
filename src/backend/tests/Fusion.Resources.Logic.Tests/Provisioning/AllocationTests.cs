@@ -352,8 +352,6 @@ namespace Fusion.Resources.Logic.Tests
             {
                 Body = "<Insert resource owner gossip here>",
                 RequestId = request.Id,
-                Title = "Test title",
-                Type = "TestAction"
             });
             await dbContext.SaveChangesAsync();
             #endregion

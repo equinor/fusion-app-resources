@@ -1,4 +1,4 @@
-using Fusion.ApiClients.Org;
+﻿using Fusion.ApiClients.Org;
 using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using System;
@@ -30,10 +30,6 @@ namespace Fusion.Testing.Mocks.ContextService
         }
 
         public Task<IEnumerable<FusionRelatedContext>> QueryContextRelationssAsync(FusionContext context, Action<ContextApiQuery> query = null)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<IEnumerable<FusionRelatedContext>> QueryContextRelationsAsync(FusionContext context, Action<ContextApiQuery> query = null)
         {
             throw new NotImplementedException();
         }

@@ -1,13 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fusion.AspNetCore" Version="6.0.2" />
-    <PackageReference Include="Fusion.Integration.Context" Version="6.0.0" />
-    <PackageReference Include="Fusion.Integration.Context.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Fusion.AspNetCore" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Context" Version="5.1.0" />
+    <PackageReference Include="Fusion.Integration.Context.Abstractions" Version="5.1.0" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
 
   </ItemGroup>
