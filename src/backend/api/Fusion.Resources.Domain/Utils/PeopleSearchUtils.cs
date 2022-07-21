@@ -101,11 +101,13 @@ namespace Fusion.Resources.Domain
                     count = (int?)0
                 });
 
+                if (items is null) return result;
+
                 skip += items.results.Length;
                 totalCount = items.count ?? 0;
 
                 result.AddRange(
-                    items.results.Select(i => i.document.ToQueryInternalPersonnelPerson(requests) )
+                    items.results.Select(i => i.document.ToQueryInternalPersonnelPerson(requests))
                 );
             } while (skip < totalCount);
 
