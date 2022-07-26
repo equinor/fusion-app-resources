@@ -135,7 +135,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 departmentsWithResponsibility.AddRange(roleAssignedDepartments
                     .Where(x => x.Scope != null)
-                    .Select(x => x.Scope!.Value)
+                    .SelectMany(x => x.Scope!.Values)
                 );
 
                 return departmentsWithResponsibility;
