@@ -1,5 +1,6 @@
 ﻿using Fusion.Integration;
 using Fusion.Integration.Profile;
+using Fusion.Integration.Roles;
 using Fusion.Resources.Domain.Errors;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -31,12 +32,14 @@ namespace Fusion.Resources.Domain.Queries
         {
             private readonly ILogger<Handler> logger;
             private readonly IFusionProfileResolver profileResolver;
+            private readonly IFusionRolesClient rolesClient;
             private readonly IMediator mediator;
 
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IMediator mediator)
+            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator)
             {
                 this.logger = logger;
                 this.profileResolver = profileResolver;
+                this.rolesClient = rolesClient;
                 this.mediator = mediator;
             }
 
@@ -123,8 +126,17 @@ namespace Fusion.Resources.Domain.Queries
 
                 // Add all departments the user has been delegated responsibility for.
                 var delegatedResponsibilities = await mediator.Send(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
-
                 departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
+
+                var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
+                    .WherePersonAzureId(user.AzureUniqueId!.Value)
+                    .WhereRoleName(Roles.ResourceOwner)
+                );
+
+                departmentsWithResponsibility.AddRange(roleAssignedDepartments
+                    .Where(x => x.Scope != null)
+                    .Select(x => x.Scope!.Value)
+                );
 
                 return departmentsWithResponsibility;
             }

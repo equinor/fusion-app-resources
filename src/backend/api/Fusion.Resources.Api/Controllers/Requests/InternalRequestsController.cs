@@ -4,6 +4,7 @@ using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Integration;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -205,6 +206,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), Roles.ResourceOwner);
                 });
             });
 

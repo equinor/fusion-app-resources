@@ -46,6 +46,11 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             throw new NotImplementedException();
         }
 
+        public Task<IEnumerable<FusionPersonRole>> GetUserRolesAsync(PersonIdentifier person)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<FusionRoleAssignment> UpdateRoleAsync(Guid roleId, Action<RoleUpdateBuilder> updateRole)
         {
             throw new NotImplementedException();

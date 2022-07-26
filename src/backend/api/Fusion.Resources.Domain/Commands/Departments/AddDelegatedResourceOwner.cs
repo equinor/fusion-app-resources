@@ -1,10 +1,6 @@
-﻿using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
+﻿using Fusion.Integration.Roles;
 using MediatR;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,25 +20,24 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
         public class Handler : IRequestHandler<AddDelegatedResourceOwner>
         {
-            private readonly ResourcesDbContext db;
+            const string ResourceOwnerRole = "Fusion.Resources.ResourceOwner";
+            private readonly IFusionRolesClient rolesClient;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(IFusionRolesClient rolesClient)
             {
-                this.db = db;
+                this.rolesClient = rolesClient;
             }
+
             public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
-                var delegatedResourceOwner = new DbDepartmentResponsible
+                var roleAssignment = await rolesClient.AssignRoleAsync(request.ResponsibleAzureUniqueId, new RoleAssignment
                 {
-                    DateCreated = DateTime.UtcNow,
-                    DateFrom = request.DateFrom,
-                    DateTo = request.DateTo,
-                    DepartmentId = request.DepartmentId,
-                    ResponsibleAzureObjectId = request.ResponsibleAzureUniqueId,
-                };
-
-                db.DepartmentResponsibles.Add(delegatedResourceOwner);
-                await db.SaveChangesAsync(cancellationToken);
+                    Identifier = Guid.NewGuid().ToString(),
+                    RoleName = Roles.ResourceOwner,
+                    Scope = new RoleAssignment.RoleScope("OrgUnit", request.DepartmentId),
+                    Source = "DelegatedResourceOwner",
+                    ValidTo = request.DateTo
+                });
 
                 return Unit.Value;
             }
