@@ -39,43 +39,43 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddContext(testProject.Project);
         }
 
-        [Fact]
-        public async Task ShouldIgnoreNonCurrentDepartmentDelegations()
-        {
-            var actualDept = "TPD PRD TST ABC";
-            var currentDelegatedDept = "TPD PRD TST ASD QWE";
-            var futureDelegatedDept = "TPD PRD TST FUT WFD";
-            var previousDelegatedDept = "TPD PRD TST PRV WFD";
+        //[Fact]
+        //public async Task ShouldIgnoreNonCurrentDepartmentDelegations()
+        //{
+        //    var actualDept = "TPD PRD TST ABC";
+        //    var currentDelegatedDept = "TPD PRD TST ASD QWE";
+        //    var futureDelegatedDept = "TPD PRD TST FUT WFD";
+        //    var previousDelegatedDept = "TPD PRD TST PRV WFD";
 
-            fixture.EnsureDepartment(actualDept);
-            fixture.EnsureDepartment(currentDelegatedDept);
-            fixture.EnsureDepartment(futureDelegatedDept);
-            fixture.EnsureDepartment(previousDelegatedDept);
+        //    fixture.EnsureDepartment(actualDept);
+        //    fixture.EnsureDepartment(currentDelegatedDept);
+        //    fixture.EnsureDepartment(futureDelegatedDept);
+        //    fixture.EnsureDepartment(previousDelegatedDept);
 
 
-            using (var adminScope = fixture.AdminScope())
-            {
-                var client = fixture.ApiFactory.CreateClient();
-                await client.AddDelegatedDepartmentOwner(testUser, currentDelegatedDept, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
-                await client.AddDelegatedDepartmentOwner(testUser, futureDelegatedDept, DateTime.Now.AddDays(7), DateTime.Now.AddDays(14));
-                await client.AddDelegatedDepartmentOwner(testUser, previousDelegatedDept, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
-            }
+        //    using (var adminScope = fixture.AdminScope())
+        //    {
+        //        var client = fixture.ApiFactory.CreateClient();
+        //        await client.AddDelegatedDepartmentOwner(testUser, currentDelegatedDept, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+        //        await client.AddDelegatedDepartmentOwner(testUser, futureDelegatedDept, DateTime.Now.AddDays(7), DateTime.Now.AddDays(14));
+        //        await client.AddDelegatedDepartmentOwner(testUser, previousDelegatedDept, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+        //    }
 
-            using (var userScope = fixture.UserScope(testUser))
-            {
-                testUser.FullDepartment = actualDept;
-                var client = fixture.ApiFactory.CreateClient();
-                var resp = await client.TestClientGetAsync(
-                    $"/persons/me/resources/profile",
-                    new { responsibilityInDepartments = Array.Empty<string>() }
-                );
+        //    using (var userScope = fixture.UserScope(testUser))
+        //    {
+        //        testUser.FullDepartment = actualDept;
+        //        var client = fixture.ApiFactory.CreateClient();
+        //        var resp = await client.TestClientGetAsync(
+        //            $"/persons/me/resources/profile",
+        //            new { responsibilityInDepartments = Array.Empty<string>() }
+        //        );
 
-                resp.Should().BeSuccessfull();
-                resp.Value.responsibilityInDepartments.Should().Contain(currentDelegatedDept);
-                resp.Value.responsibilityInDepartments.Should().NotContain(futureDelegatedDept);
-                resp.Value.responsibilityInDepartments.Should().NotContain(previousDelegatedDept);
-            }
-        }
+        //        resp.Should().BeSuccessfull();
+        //        resp.Value.responsibilityInDepartments.Should().Contain(currentDelegatedDept);
+        //        resp.Value.responsibilityInDepartments.Should().NotContain(futureDelegatedDept);
+        //        resp.Value.responsibilityInDepartments.Should().NotContain(previousDelegatedDept);
+        //    }
+        //}
 
         [Fact]
         public async Task GetProfile_ShouldBeEmpty_WhenUserHasNoDepartment()

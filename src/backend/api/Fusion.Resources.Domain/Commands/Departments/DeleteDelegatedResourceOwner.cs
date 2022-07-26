@@ -1,4 +1,6 @@
-﻿using Fusion.Resources.Database;
+﻿using Fusion.Integration.Profile;
+using Fusion.Integration.Roles;
+using Fusion.Resources.Database;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -22,21 +24,21 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
         public class Handler : IRequestHandler<DeleteDelegatedResourceOwner, bool>
         {
-            private readonly ResourcesDbContext db;
+            private readonly IFusionRolesClient rolesClient;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(IFusionRolesClient rolesClient)
             {
-                this.db = db;
+                this.rolesClient = rolesClient;
             }
 
             public async Task<bool> Handle(DeleteDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
-                var query = db.DepartmentResponsibles
-                    .Where(x => x.DepartmentId == request.departmentId
-                        && x.ResponsibleAzureObjectId == request.delegatedOwnerAzureUniqueId);
-                db.DepartmentResponsibles.RemoveRange(query);
+                var deleted = await rolesClient.DeleteRolesAsync(
+                    new PersonIdentifier(request.delegatedOwnerAzureUniqueId),
+                    q => q.WhereRoleName(Roles.ResourceOwner).WhereScopeValue(request.departmentId)
+                );
 
-                return await db.SaveChangesAsync(cancellationToken) > 0;
+                return deleted.Count() > 0;
             }
         }
     }

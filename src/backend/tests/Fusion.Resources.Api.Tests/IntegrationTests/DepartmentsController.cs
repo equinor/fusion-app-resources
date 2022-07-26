@@ -131,20 +131,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
-        [Fact]
-        public async Task DeleteDepartmentResponsible_ShouldGive404_WhenNotExisting()
-        {
-            var testDepartment = "TPD LIN ORG TST";
-            fixture.EnsureDepartment(testDepartment);
-            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+        //[Fact]
+        //public async Task DeleteDepartmentResponsible_ShouldGive404_WhenNotExisting()
+        //{
+        //    var testDepartment = "TPD LIN ORG TST";
+        //    fixture.EnsureDepartment(testDepartment);
+        //    var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            using var adminScope = fixture.AdminScope();
+        //    using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientDeleteAsync<dynamic>(
-                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
-            );
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
+        //    var resp = await Client.TestClientDeleteAsync<dynamic>(
+        //        $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
+        //    );
+        //    resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        //}
 
         [Fact]
         public async Task RelevantDepartments_ShouldGetDataFromLineOrg()

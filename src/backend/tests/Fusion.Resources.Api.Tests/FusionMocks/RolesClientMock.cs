@@ -1,15 +1,29 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Tests.FusionMocks
 {
     internal class RolesClientMock : IFusionRolesClient
     {
+        private ConcurrentDictionary<Guid, ImmutableList<FusionRoleAssignment>> roleAssignments = new();
+
         public Task<FusionRoleAssignment> AssignRoleAsync(Guid personAzureUniqueId, RoleAssignment role)
         {
+            var roleAssignment = new FusionRoleAssignment(Guid.NewGuid(), role.RoleName, role.Identifier, null)
+            {
+                Person = new RolePerson(personAzureUniqueId, "test@mail.com", "John Doe"),
+                Scope = new Fusion.Integration.Roles.RoleScope(role.Scope.Type, role.Scope.Value)
+            };
+
+            roleAssignments.AddOrUpdate(personAzureUniqueId,
+                ImmutableList.Create(roleAssignment),
+                (_, existing) => existing.Add(roleAssignment)
+            );
             return Task.FromResult(default(FusionRoleAssignment));
         }
 
@@ -18,7 +32,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             var builder = new RoleAssignment();
             roleBuilder(builder);
 
-            return Task.FromResult(default(FusionRoleAssignment));
+            return this.AssignRoleAsync(personAzureUniqueId, builder);
         }
 
         public Task<IEnumerable<FusionRoleAssignment>> DeleteRoleByIdentifierAsync(string externalIdentifier)
@@ -33,7 +47,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
         public Task<IEnumerable<FusionRoleAssignment>> DeleteRolesAsync(PersonIdentifier person, Action<RolesApiODataQuery> query)
         {
-            throw new NotImplementedException();
+            return Task.FromResult<IEnumerable<FusionRoleAssignment>>(new List<FusionRoleAssignment> { new FusionRoleAssignment(Guid.NewGuid(), "deleted-role", "deleted-role", null) });
         }
 
         public Task<FusionRoleAssignment> GetRoleByIdentifierAsync(string externalIdentifier)
@@ -43,12 +57,23 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
         public Task<IEnumerable<FusionRoleAssignment>> GetRolesAsync(Action<RolesApiODataQuery> query)
         {
-            throw new NotImplementedException();
+            return Task.FromResult<IEnumerable<FusionRoleAssignment>>(Array.Empty<FusionRoleAssignment>());
         }
 
         public Task<IEnumerable<FusionPersonRole>> GetUserRolesAsync(PersonIdentifier person)
         {
-            throw new NotImplementedException();
+            roleAssignments.TryGetValue(person.AzureUniquePersonId, out var userRoles);
+            var userPersonRoles = new List<FusionPersonRole>();
+            foreach (var roleAssignment in userRoles)
+            {
+                userPersonRoles.Add(new FusionPersonRole(roleAssignment.Identifier, roleAssignment.RoleName)
+                {
+                    Person = roleAssignment.Person,
+                    Scope = roleAssignment.Scope
+                });
+            }
+
+            return Task.FromResult<IEnumerable<FusionPersonRole>>(userPersonRoles);
         }
 
         public Task<FusionRoleAssignment> UpdateRoleAsync(Guid roleId, Action<RoleUpdateBuilder> updateRole)
