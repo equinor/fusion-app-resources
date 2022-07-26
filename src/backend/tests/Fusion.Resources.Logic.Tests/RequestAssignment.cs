@@ -31,15 +31,15 @@ namespace Fusion.Resources.Logic.Tests
                .UseInMemoryDatabase($"unit-test-db-{Guid.NewGuid()}")
                .Options
             );
-
-            proposed = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Robert C. Martin" };
-            initiator = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Wobert D. Martin" };
+            proposed = CreateTestPerson("Robert C. Martin");
+            initiator = CreateTestPerson("Wobert D. Martin");
             var locationId = Guid.NewGuid();
             var project = new DbProject
             {
                 Id = Guid.NewGuid(),
                 OrgProjectId = Guid.NewGuid(),
-                DomainId = "Project"
+                DomainId = "Project",
+                Name = $"Test project {Guid.NewGuid()}"
             };
 
             requestPosition = new ApiPositionV2
@@ -65,12 +65,22 @@ namespace Fusion.Resources.Logic.Tests
                 },
                 ProposedPerson = new DbResourceAllocationRequest.DbOpProposedPerson
                 {
-                    AzureUniqueId = proposed.AzureUniqueId
+                    AzureUniqueId = proposed.AzureUniqueId,
                 },
             };
 
             db.Add(request);
-            await db.SaveChangesAsync();
+
+            try
+            {
+                await db.SaveChangesAsync();
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         [Fact]
@@ -78,7 +88,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var handler = CreateHandler();
 
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+            var responsible = CreateTestPerson("Reidun Resource Owner");
 
             var matrix = new DbResponsibilityMatrix
             {
@@ -106,7 +116,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var handler = CreateHandler();
 
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+            var responsible = CreateTestPerson("Reidun Resource Owner");
 
             var matrix = new DbResponsibilityMatrix
             {
@@ -134,7 +144,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var handler = CreateHandler();
 
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+            var responsible = CreateTestPerson("Reidun Resource Owner");
 
             var exact = new DbResponsibilityMatrix
             {
@@ -172,7 +182,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var handler = CreateHandler();
 
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+            var responsible = CreateTestPerson("Reidun Resource Owner");
 
             var exact = new DbResponsibilityMatrix
             {
@@ -265,7 +275,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var handler = CreateHandler();
 
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+            var responsible = CreateTestPerson("Reidun Resource Owner");
 
             var matrix = new DbResponsibilityMatrix
             {
@@ -291,7 +301,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var handler = CreateHandler();
 
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+            var responsible = CreateTestPerson("Reidun Resource Owner");
 
             var matrix = new DbResponsibilityMatrix
             {
@@ -321,7 +331,7 @@ namespace Fusion.Resources.Logic.Tests
              * Regel 1:     "prosjekt2"     "null"                  "project control manager"
              * Regel 2:     "null"          "null"                  "project control manager" 
              */
-            var responsible = new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = "Reidun Resource Owner" };
+            var responsible = CreateTestPerson("Reidun Resource Owner");
 
             var position = new ApiPositionV2
             {
@@ -343,7 +353,8 @@ namespace Fusion.Resources.Logic.Tests
                 {
                     Id = Guid.NewGuid(),
                     OrgProjectId = Guid.NewGuid(),
-                    DomainId = "Project2"
+                    DomainId = "Project2",
+                    Name = "Test Project 2"
                 },
                 Responsible = responsible,
                 BasePositionId = position.BasePosition.Id
@@ -457,6 +468,11 @@ namespace Fusion.Resources.Logic.Tests
         {
             await this.db.Database.EnsureDeletedAsync();
             await this.db.DisposeAsync();
+        }
+
+        private DbPerson CreateTestPerson(string name)
+        {
+            return new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = name, AccountType = "Employee" };
         }
     }
 }

@@ -101,11 +101,13 @@ namespace Fusion.Resources.Domain
                     count = (int?)0
                 });
 
+                if (items is null) return result;
+
                 skip += items.results.Length;
                 totalCount = items.count ?? 0;
 
                 result.AddRange(
-                    items.results.Select(i => i.document.ToQueryInternalPersonnelPerson(requests) )
+                    items.results.Select(i => i.document.ToQueryInternalPersonnelPerson(requests))
                 );
             } while (skip < totalCount);
 
@@ -146,7 +148,7 @@ namespace Fusion.Resources.Domain
             });
 
 
-            var resultItems = items.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
+            var resultItems = items?.results.Select(i => new QueryInternalPersonnelPerson(i.document.azureUniqueId, i.document.mail, i.document.name, i.document.accountType)
             {
                 PhoneNumber = i.document.mobilePhone,
                 JobTitle = i.document.jobTitle,
@@ -171,7 +173,7 @@ namespace Fusion.Resources.Domain
                 }).OrderBy(p => p.AppliesFrom).ToList()
             }).ToList();
 
-            return (resultItems, items.count ?? 0);
+            return (resultItems ?? new List<QueryInternalPersonnelPerson>(), items?.count ?? 0);
         }
         private class SearchProjectDTO
         {

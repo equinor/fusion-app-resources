@@ -45,13 +45,14 @@ namespace Fusion.Resources.Logic.Tests
             {
                 Id = Guid.NewGuid(),
                 ContractId = contractId,
-                Contract = new DbContract { OrgContractId = contractId },
+                Contract = new DbContract { OrgContractId = contractId, ContractNumber = "1234", Name = "Test Contract" },
                 Created = DateTime.Now,
                 CreatedById = userAzureUniqueId,
-                Project = new DbProject { OrgProjectId = projectId },
+                Project = new DbProject { OrgProjectId = projectId, Name = "Test project" },
                 ProjectId = projectId,
                 State = DbRequestState.Created,
                 Category = DbRequestCategory.NewRequest,
+                Position = new DbContractorRequest.RequestPosition { Name = "Test position" }
             };
 
             dbContext.Add(request);
@@ -63,7 +64,7 @@ namespace Fusion.Resources.Logic.Tests
                 Contract = request.Contract,
                 Created = DateTimeOffset.UtcNow,
                 CreatedById = userAzureUniqueId,
-                Person = new DbPerson { AzureUniqueId = userAzureUniqueId },
+                Person = new DbPerson { AzureUniqueId = userAzureUniqueId, Name = "Testas Testesen", AccountType = "Employee" },
                 ValidTo = DateTimeOffset.UtcNow.AddDays(30)
             };
 

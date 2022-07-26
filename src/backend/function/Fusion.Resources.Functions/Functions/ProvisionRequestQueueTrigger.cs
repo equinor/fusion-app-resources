@@ -2,10 +2,12 @@ using System;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Integration.Models.Queue;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Functions
@@ -22,10 +24,10 @@ namespace Fusion.Resources.Functions
 
         [FunctionName("provision-position-request")]
         public async Task RunAsync(
-            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] Message message,
+            [ServiceBusTrigger("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] ServiceBusReceivedMessage message,
             ILogger log,
-            MessageReceiver messageReceiver,
-            [ServiceBus("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] MessageSender sender)
+            ServiceBusMessageActions messageReceiver,
+            [ServiceBus("%provision_position_queue%", Connection = "AzureWebJobsServiceBus")] IAsyncCollector<ServiceBusMessage> sender)
         {
             var processor = new QueueMessageProcessor(log, messageReceiver, sender);
             await processor.ProcessWithRetriesAsync(message, ProcessMessageAsync);
