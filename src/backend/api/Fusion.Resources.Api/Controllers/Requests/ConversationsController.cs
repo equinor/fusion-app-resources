@@ -1,11 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
-using Fusion.Integration.Org;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Conversations;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
@@ -39,6 +38,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
                     }
                     else
                     {
@@ -83,6 +83,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
                     }
                     else
                     {
@@ -156,6 +157,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
                     }
                     or.BeResourceOwner();
                 });
@@ -222,6 +224,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        and.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
                     }
                     else
                     {
@@ -300,6 +303,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        and.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
                     }
                     else
                     {
