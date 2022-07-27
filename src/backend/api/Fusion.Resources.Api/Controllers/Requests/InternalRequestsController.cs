@@ -463,6 +463,25 @@ namespace Fusion.Resources.Api.Controllers
                     .FullControl()
                     .FullControlInternal()
                     .BeTrustedApplication();
+
+                r.AnyOf(or =>
+                {
+                    if (!query.HasFilter) return;
+                    
+                    var filter = query.Filter.GetFilterForField("assignedDepartment");
+                    if (filter is null || filter.Operation != FilterOperation.Eq) return;
+
+                    var departmentString = filter.Value;
+                    if (!string.IsNullOrEmpty(departmentString))
+                    {
+                        or.BeResourceOwner(
+                            new DepartmentPath(departmentString).GoToLevel(2),
+                            includeParents: false,
+                            includeDescendants: true
+                        );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), Roles.ResourceOwner);
+                    }
+                });
             });
 
             if (authResult.Unauthorized)
@@ -1071,7 +1090,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
-            if (requiredDepartment is null)
+            if (string.IsNullOrEmpty(requiredDepartment))
                 return Forbid("Cannot determine required department");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>

@@ -681,7 +681,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             Users[role].FullDepartment = department;
             var client = fixture.ApiFactory.CreateClient();
 
-            var result = await client.TestClientGetAsync<dynamic>($"/resources/requests/internal");
+            var result = await client.TestClientGetAsync<dynamic>($"/resources/requests/internal?$filter=assignedDepartment eq {department}");
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();
