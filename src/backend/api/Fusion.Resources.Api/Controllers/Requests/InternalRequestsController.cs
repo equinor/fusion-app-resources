@@ -393,6 +393,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveRole(Roles.ResourceOwner);
                     }
                 });
             });

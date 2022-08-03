@@ -10,9 +10,14 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 {
     internal class RolesClientMock : IFusionRolesClient
     {
-        private ConcurrentDictionary<Guid, ImmutableList<FusionRoleAssignment>> roleAssignments = new();
+        private static ConcurrentDictionary<Guid, ImmutableList<FusionRoleAssignment>> roleAssignments = new();
 
         public Task<FusionRoleAssignment> AssignRoleAsync(Guid personAzureUniqueId, RoleAssignment role)
+        {
+            return AddPersonRole(personAzureUniqueId, role);
+        }
+
+        public static Task<FusionRoleAssignment> AddPersonRole(Guid personAzureUniqueId, RoleAssignment role)
         {
             var roleAssignment = new FusionRoleAssignment(Guid.NewGuid(), role.RoleName, role.Identifier, null)
             {
@@ -24,7 +29,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
                 ImmutableList.Create(roleAssignment),
                 (_, existing) => existing.Add(roleAssignment)
             );
-            return Task.FromResult(default(FusionRoleAssignment));
+            return Task.FromResult(roleAssignment);
         }
 
         public Task<FusionRoleAssignment> AssignRoleAsync(Guid personAzureUniqueId, Action<RoleAssignment> roleBuilder)
