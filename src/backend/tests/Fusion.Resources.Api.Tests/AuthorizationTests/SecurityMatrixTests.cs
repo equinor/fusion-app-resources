@@ -483,7 +483,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using var userScope = fixture.UserScope(user);
 
             var result = await client.TestClientPostAsync<TestApiInternalRequestModel>(
-                $"/departments/{department}/resources/requests/{request.Id}/start",
+                $"/departments/{request.AssignedDepartment}/resources/requests/{request.Id}/start",
                 null
             );
 
@@ -737,10 +737,10 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SiblingDepartment, true)]
         [InlineData("resourceOwner", ParentDepartment, true)]
         [InlineData("resourceOwner", SameL2Department, true)]
-        [InlineData("resourceOwner", "PDP PRS XXX YYY", true)]
-        [InlineData("resourceOwner", "CFO GBS XXX YYY", true)]
-        [InlineData("resourceOwner", "TDI XXX YYY", true)]
-        [InlineData("resourceOwner", "CFO SBG YYY", true)]
+        [InlineData("resourceOwner", "PDP PRS XXX YYY", false)]
+        [InlineData("resourceOwner", "CFO GBS XXX YYY", false)]
+        [InlineData("resourceOwner", "TDI XXX YYY", false)]
+        [InlineData("resourceOwner", "CFO SBG YYY", false)]
         [InlineData("resourceOwnerRole", ExactScope, true)]
         [InlineData("resourceOwnerRole", WildcardScope, true)]
         [InlineData("resourceOwnerRole", UnrelatedScope, false)]
@@ -752,7 +752,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             using var userScope = fixture.UserScope(user);
             var client = fixture.ApiFactory.CreateClient();
 
-            var result = await client.TestClientGetAsync<dynamic>($"/resources/requests/internal?$filter=assignedDepartment eq {department}");
+            var result = await client.TestClientGetAsync<dynamic>($"/resources/requests/internal?$filter=assignedDepartment eq {TestDepartment}");
 
             if (shouldBeAllowed) result.Should().BeSuccessfull();
             else result.Should().BeUnauthorized();

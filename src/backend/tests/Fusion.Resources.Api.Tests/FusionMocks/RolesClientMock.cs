@@ -67,7 +67,11 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
         public Task<IEnumerable<FusionPersonRole>> GetUserRolesAsync(PersonIdentifier person)
         {
-            roleAssignments.TryGetValue(person.AzureUniquePersonId, out var userRoles);
+            if(!roleAssignments.TryGetValue(person.AzureUniquePersonId, out var userRoles))
+            {
+                userRoles = ImmutableList<FusionRoleAssignment>.Empty;
+            }
+
             var userPersonRoles = new List<FusionPersonRole>();
             foreach (var roleAssignment in userRoles)
             {

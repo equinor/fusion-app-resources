@@ -763,7 +763,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             var result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
 
-            if (result == null)
+            if (result == null || result.AssignedDepartment != departmentPath)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
             var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.ResourceOwner));
@@ -777,8 +777,8 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(departmentPath).Parent(), includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), Roles.ResourceOwner);
+                    or.BeResourceOwner(new DepartmentPath(result.AssignedDepartment).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(result.AssignedDepartment), Roles.ResourceOwner);
                     or.BeRequestCreator(requestId);
                 });
             });
