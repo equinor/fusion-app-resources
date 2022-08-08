@@ -19,6 +19,7 @@ namespace Fusion.Testing.Mocks.ProfileService.Api
     public class PersonsController : ControllerBase
     {
         [MapToApiVersion("3.0")]
+        [MapToApiVersion("4.0")]
         [HttpGet("/persons/{identifier}")]
         public ActionResult<ApiPersonProfileV3> ResolveProfileV3(string identifier, ODataExpandParams expandParams)
         {

@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="AdaptiveCards" Version="2.7.3" />
-    <PackageReference Include="Fusion.Integration.LineOrg.Abstractions" Version="6.0.2-preview.1" />
+    <PackageReference Include="Fusion.Integration.LineOrg.Abstractions" Version="6.0.3-preview.1" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.1" />
@@ -15,9 +15,9 @@
     <PackageReference Include="Fusion.AspNetCore" Version="6.0.2" />
     <PackageReference Include="Fusion.Threading" Version="3.1.5" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.6" />
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.1-preview.1" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.2" />
     <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="6.0.1-preview.1" />
+    <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="6.1.3-preview.1" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.20.0" />
 
     <PackageReference Include="TimePeriodCore" Version="1.0.0" />

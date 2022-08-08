@@ -393,7 +393,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
-                        or.HaveRole(Roles.ResourceOwner);
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
@@ -563,6 +563,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner();
+                    or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                 });
             });
 
@@ -651,6 +652,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
                 r.LimitedAccessWhen(or => or.HaveBasicRead(requestId));
@@ -985,6 +987,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
@@ -1250,7 +1253,7 @@ namespace Fusion.Resources.Api.Controllers
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
-                return Forbid("Cannot determine required department");
+                return FusionApiError.Forbidden("Cannot determine required department.");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -1329,6 +1332,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
 
                     or.BeRequestCreator(requestId);
@@ -1377,6 +1381,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
@@ -1460,6 +1465,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
@@ -1501,6 +1507,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                     or.BeRequestCreator(requestId);
                 });
