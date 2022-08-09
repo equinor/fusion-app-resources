@@ -286,6 +286,7 @@ namespace Fusion.Resources.Api.Controllers
                         or.OrgChartReadAccess(projectIdentifier.ProjectId);
 
                     or.BeResourceOwner();
+                    or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                 });
             });
 

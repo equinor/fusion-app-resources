@@ -73,6 +73,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner();
+                    or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                 });
             });
 

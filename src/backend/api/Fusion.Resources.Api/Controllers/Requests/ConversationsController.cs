@@ -43,6 +43,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
@@ -88,6 +89,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
@@ -160,6 +162,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
                     }
                     or.BeResourceOwner();
+                    or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                 });
             });
 

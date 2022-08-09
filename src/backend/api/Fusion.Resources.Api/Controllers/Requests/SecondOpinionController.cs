@@ -39,6 +39,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
 
@@ -83,6 +84,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
@@ -128,6 +130,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                     or.HaveBasicRead(requestId);
                 });
@@ -169,6 +172,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
                     }
                 });
             });
