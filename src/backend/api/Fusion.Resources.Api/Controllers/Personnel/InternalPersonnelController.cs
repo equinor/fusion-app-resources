@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
                     or.BeResourceOwner(sector, includeParents: false, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(sector), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), Roles.ResourceOwner);
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
                 });
                 r.LimitedAccessWhen(x =>
