@@ -1,7 +1,6 @@
 using FluentValidation.AspNetCore;
 using Fusion.Events;
 using Fusion.Integration.Authentication;
-using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.Authentication;
 using Fusion.Resources.Api.Middleware;
@@ -91,7 +90,7 @@ namespace Fusion.Resources.Api
 
             services.AddScoped<IRequestRouter, RequestRouter>();
 
-            services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
+            services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
 
             services.AddControllers()
                 .AddFluentValidation(c =>
@@ -124,9 +123,6 @@ namespace Fusion.Resources.Api
 
             services.AddCommonLibHttpClient();
             services.AddLineOrgHttpClient();
-
-            services.AddLineOrgIntegration();
-
             services.AddMemoryCache();
         }
 
