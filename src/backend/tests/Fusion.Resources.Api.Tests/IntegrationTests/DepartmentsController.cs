@@ -131,20 +131,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
-        //[Fact]
-        //public async Task DeleteDepartmentResponsible_ShouldGive404_WhenNotExisting()
-        //{
-        //    var testDepartment = "TPD LIN ORG TST";
-        //    fixture.EnsureDepartment(testDepartment);
-        //    var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+        [Fact]
+        public async Task DeleteDepartmentResponsible_ShouldBeIdempotent()
+        {
+            var testDepartment = "TPD LIN ORG TST";
+            fixture.EnsureDepartment(testDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-        //    using var adminScope = fixture.AdminScope();
+            using var adminScope = fixture.AdminScope();
 
-        //    var resp = await Client.TestClientDeleteAsync<dynamic>(
-        //        $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
-        //    );
-        //    resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        //}
+
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            {
+                DateFrom = "2021-02-02",
+                DateTo = "2022-02-05",
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+
+            resp = await Client.TestClientDeleteAsync<dynamic>(
+                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
+            );
+
+            resp = await Client.TestClientDeleteAsync<dynamic>(
+                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
+            );
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
 
         [Fact]
         public async Task RelevantDepartments_ShouldGetDataFromLineOrg()

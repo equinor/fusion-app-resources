@@ -1,10 +1,12 @@
-﻿using Fusion.Integration.Profile;
+﻿using Fusion.AspNetCore.OData;
+using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Fusion.Resources.Api.Tests.FusionMocks
 {
@@ -22,7 +24,8 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             var roleAssignment = new FusionRoleAssignment(Guid.NewGuid(), role.RoleName, role.Identifier, null)
             {
                 Person = new RolePerson(personAzureUniqueId, "test@mail.com", "John Doe"),
-                Scope = new Fusion.Integration.Roles.RoleScope(role.Scope.Type, role.Scope.Value)
+                Scope = new Fusion.Integration.Roles.RoleScope(role.Scope.Type, role.Scope.Value),
+                ValidTo = role.ValidTo
             };
 
             roleAssignments.AddOrUpdate(personAzureUniqueId,
@@ -60,8 +63,28 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             return Task.FromResult(default(FusionRoleAssignment));
         }
 
-        public Task<IEnumerable<FusionRoleAssignment>> GetRolesAsync(Action<RolesApiODataQuery> query)
+        public Task<IEnumerable<FusionRoleAssignment>> GetRolesAsync(Action<RolesApiODataQuery> querySetup)
         {
+            var query = new RolesApiODataQuery();
+            querySetup(query);
+
+            var queryString = HttpUtility.ParseQueryString(query.QueryString);
+            var filterString = queryString["$filter"];
+            if(!string.IsNullOrEmpty(filterString))
+            {
+                var odataFilter = ODataParser.Parse(filterString);
+                var personFilter = odataFilter.GetFilterForField("person.id");
+                if(personFilter != null && personFilter.Operation == FilterOperation.Eq)
+                {
+                    if (!roleAssignments.TryGetValue(new Guid(personFilter.Value), out var userRoles))
+                    {
+                        userRoles = ImmutableList<FusionRoleAssignment>.Empty;
+                    }
+                    return Task.FromResult<IEnumerable<FusionRoleAssignment>>(userRoles);
+                }
+                throw new NotSupportedException();
+            }
+
             return Task.FromResult<IEnumerable<FusionRoleAssignment>>(Array.Empty<FusionRoleAssignment>());
         }
 

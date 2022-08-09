@@ -134,7 +134,7 @@ namespace Fusion.Resources.Domain.Queries
                 );
 
                 departmentsWithResponsibility.AddRange(roleAssignedDepartments
-                    .Where(x => x.Scope != null)
+                    .Where(x => x.Scope != null && x.ValidTo >= DateTimeOffset.Now)
                     .SelectMany(x => x.Scope!.Values)
                 );
 
