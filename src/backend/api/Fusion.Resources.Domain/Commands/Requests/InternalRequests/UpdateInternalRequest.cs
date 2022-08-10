@@ -62,13 +62,12 @@ namespace Fusion.Resources.Domain.Commands
                     if (personId is not null)
                     {
                         var resolvedPerson = await profileService.EnsurePersonAsync(new PersonId(personId.Value));
-                        dbRequest.ProposedPerson.AzureUniqueId = resolvedPerson?.AzureUniqueId;
-                        dbRequest.ProposedPerson.Mail = resolvedPerson?.Mail;
-                        dbRequest.ProposedPerson.HasBeenProposed = true;
-                        dbRequest.ProposedPerson.ProposedAt = DateTimeOffset.Now;
+                        dbRequest.ProposePerson(resolvedPerson!);
                     }
                     else
+                    {
                         dbRequest.ProposedPerson.Clear();
+                    }
                 });
                 modified |= await request.Candidates.IfSetAsync(async candidates =>
                 {
@@ -79,6 +78,11 @@ namespace Fusion.Resources.Domain.Commands
                         if (resolvedPerson is null) throw new Exception();
 
                         dbRequest.Candidates.Add(resolvedPerson);
+                    }
+
+                    if(dbRequest.Candidates.Count == 1 && !dbRequest.ProposedPerson.HasBeenProposed)
+                    {
+                        dbRequest.ProposePerson(dbRequest.Candidates.Single());
                     }
                 });
                 modified |= request.ProposalChangeFrom.IfSet(dt => dbRequest.ProposalParameters.ChangeFrom = dt);

@@ -940,8 +940,25 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
             response.Value.Candidates.Should().NotBeEmpty();
             response.Value.Candidates.Should().Contain(x => x.Mail == testUser.Mail);
-
         }
+
+        [Fact]
+        public async Task UpdateRequestWithSingleCandidate_ShouldSetProposedPerson()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { candidates = new[] { new { testUser.Mail } } }
+            );
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPerson!.Person.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId!.Value);
+        }
+
+
         #endregion
 
         #region Create request tests

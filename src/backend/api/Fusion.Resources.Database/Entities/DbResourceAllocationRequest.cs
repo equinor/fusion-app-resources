@@ -57,7 +57,16 @@ namespace Fusion.Resources.Database.Entities
         public DbOpProposedPerson ProposedPerson { get; set; } = DbOpProposedPerson.Empty;
         public DbOpProposalParameters ProposalParameters { get; set; } = new DbOpProposalParameters();
 
+        public void ProposePerson(DbPerson person, DbOpProposalParameters? parameters = null)
+        {
+            ProposedPerson.AzureUniqueId = person?.AzureUniqueId;
+            ProposedPerson.Mail = person?.Mail;
+            ProposedPerson.HasBeenProposed = true;
+            ProposedPerson.ProposedAt = DateTimeOffset.Now;
 
+            if(parameters is not null)
+                ProposalParameters = parameters;
+        }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
@@ -138,6 +147,7 @@ namespace Fusion.Resources.Database.Entities
             public bool WasNotified { get; set; }
 
             public static DbOpProposedPerson Empty => new DbOpProposedPerson() { HasBeenProposed = false };
+
             public void Clear()
             {
                 HasBeenProposed = false;
