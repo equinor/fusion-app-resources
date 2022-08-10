@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain.Commands
         // Placeholder, not used currently
         public MonitorableProperty<string?> ProposalChangeType { get; set; } = new();
 
-
+        public MonitorableProperty<List<PersonId>> Candidates { get; set; } = new();
 
         public class Handler : IRequestHandler<UpdateInternalRequest, QueryResourceAllocationRequest>
         {
@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryResourceAllocationRequest> Handle(UpdateInternalRequest request, CancellationToken cancellationToken)
             {
-                var dbRequest = await db.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId);
+                var dbRequest = await db.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId, cancellationToken);
 
                 bool modified = false;
 
@@ -70,6 +70,17 @@ namespace Fusion.Resources.Domain.Commands
                     else
                         dbRequest.ProposedPerson.Clear();
                 });
+                modified |= await request.Candidates.IfSetAsync(async candidates =>
+                {
+                    dbRequest.Candidates.Clear();
+                    foreach (var personId in candidates)
+                    {
+                        var resolvedPerson = await profileService.EnsurePersonAsync(personId);
+                        if (resolvedPerson is null) throw new Exception();
+
+                        dbRequest.Candidates.Add(resolvedPerson);
+                    }
+                });
                 modified |= request.ProposalChangeFrom.IfSet(dt => dbRequest.ProposalParameters.ChangeFrom = dt);
                 modified |= request.ProposalChangeTo.IfSet(dt => dbRequest.ProposalParameters.ChangeTo = dt);
                 modified |= request.ProposalChangeType.IfSet(dt => dbRequest.ProposalParameters.ChangeType = dt);
@@ -83,13 +94,13 @@ namespace Fusion.Resources.Domain.Commands
 
                     var modifiedProperties = db.Entry(dbRequest).Properties.Where(x => x.IsModified).ToList();
 
-                    await db.SaveChangesAsync();
+                    await db.SaveChangesAsync(cancellationToken);
 
-                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties));
+                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties), cancellationToken);
                 }
 
 
-                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
+                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId), cancellationToken);
                 return requestItem!;
             }
         }

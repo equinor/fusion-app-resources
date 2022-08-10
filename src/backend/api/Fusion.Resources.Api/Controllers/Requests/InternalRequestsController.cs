@@ -421,6 +421,11 @@ namespace Fusion.Resources.Api.Controllers
                     updateCommand.ProposalScope = @params.ResolveScope();
                     updateCommand.ProposalChangeType = @params.Type;
                 }
+                
+                if (request.Candidates.HasValue)
+                {
+                    updateCommand.Candidates = request.Candidates.Value.Select(x => (PersonId)x).ToList();
+                }
 
                 await using var scope = await BeginTransactionAsync();
                 await DispatchAsync(updateCommand);

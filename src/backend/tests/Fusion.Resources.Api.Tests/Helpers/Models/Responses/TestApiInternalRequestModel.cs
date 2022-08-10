@@ -45,5 +45,7 @@ namespace Fusion.Testing.Mocks
         public TestApiTaskOwner? TaskOwner { get; set; }
 
         public TestApiWorkflow? Workflow { get; set; }
+
+        public List<TestApiPerson> Candidates { get; set; }
     }
 }
