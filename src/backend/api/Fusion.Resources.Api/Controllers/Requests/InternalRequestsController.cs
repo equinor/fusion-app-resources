@@ -924,8 +924,9 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result.ProposedPerson is null)
                 return ApiErrors.InvalidOperation("InvalidStateTransition", "Cannot move request to state proposed when no person is proposed. If the request has more than one candidate, please propose only one of them.");
-            //if (result.AssignedDepartment != departmentPath)
-            //    return ApiErrors.InvalidInput($"The request with id '{requestId}' is not assigned to '{departmentPath}'");
+
+            if (result.AssignedDepartment != departmentPath)
+                return ApiErrors.InvalidInput($"the request with id '{requestId}' is not assigned to '{departmentPath}'");
 
 
             var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.ResourceOwner));

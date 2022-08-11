@@ -916,6 +916,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testUser);
+            await Client.AssignDepartmentAsync(normalRequest.Id, TestDepartmentId);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
 
             var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
@@ -1077,6 +1078,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = await Client.CreateDefaultRequestAsync(testProject);
             await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
             await Client.ProposePersonAsync(request.Id, testUser);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);

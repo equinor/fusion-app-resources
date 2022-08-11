@@ -20,6 +20,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class SecondOpinionTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
+        const string TestDepartmentId = "PDP PRD FE ANE";
         record TestAddSecondOpinion
         {
             public string Title { get; set; } = "Test Second Opinion";
@@ -69,6 +70,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.ContextResolver.AddContext(testProject.Project);
 
             testUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            fixture.EnsureDepartment(TestDepartmentId);
 
             return Task.CompletedTask;
         }
@@ -144,8 +147,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var request = await Client.CreateDefaultRequestAsync(testProject);
 
             await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
             await Client.ProposePersonAsync(request.Id, fixture.AddProfile(FusionAccountType.Employee));
-            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.ResourceOwnerApproveAsync(TestDepartmentId, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
@@ -388,9 +392,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 await AddResponse(request.Id, secondOpinion.Id, response.Id);
             }
-
+            await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
             await Client.ProposePersonAsync(request.Id, fixture.AddProfile(FusionAccountType.Employee));
-            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.ResourceOwnerApproveAsync(TestDepartmentId, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
@@ -411,8 +415,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var secondOpinion = await CreateSecondOpinion(request, testUser);
 
+            await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
             await Client.ProposePersonAsync(request.Id, fixture.AddProfile(FusionAccountType.Employee));
-            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.ResourceOwnerApproveAsync(TestDepartmentId, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
@@ -452,8 +457,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);
             result.Value.Should().Contain(x => x.Id == secondOpinion.Id);
 
+            await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
             await Client.ProposePersonAsync(request.Id, fixture.AddProfile(FusionAccountType.Employee));
-            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.ResourceOwnerApproveAsync(TestDepartmentId, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
