@@ -47,6 +47,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 var secondOpinion = new DbSecondOpinionPrompt
                 {
+                    Id = Guid.NewGuid(),
                     Title = request.title,
                     Description = request.description,
                     RequestId = request.requestId,

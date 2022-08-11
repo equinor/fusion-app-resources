@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\api\Fusion.Resources.Domain\Fusion.Resources.Domain.csproj" />
+    <ProjectReference Include="..\Fusion.Resources.Test.Core\Fusion.Resources.Test.Core.csproj" />
   </ItemGroup>
 
 </Project>

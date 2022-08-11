@@ -4,8 +4,10 @@ using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Test.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -16,71 +18,39 @@ using Xunit;
 
 namespace Fusion.Resources.Logic.Tests
 {
-    public class RequestAssignment : IAsyncLifetime
+    public class RequestAssignment : DbTestFixture, IAsyncLifetime
     {
         private ResourcesDbContext db;
         private DbPerson proposed;
-        private DbPerson initiator;
         private ApiPositionV2 requestPosition;
         private DbResourceAllocationRequest request;
 
         public async Task InitializeAsync()
         {
-            this.db = new ResourcesDbContext(
-               new DbContextOptionsBuilder<ResourcesDbContext>()
-               .UseInMemoryDatabase($"unit-test-db-{Guid.NewGuid()}")
-               .Options
-            );
+            db = serviceProvider.GetRequiredService<ResourcesDbContext>();
             proposed = CreateTestPerson("Robert C. Martin");
-            initiator = CreateTestPerson("Wobert D. Martin");
-            var locationId = Guid.NewGuid();
-            var project = new DbProject
-            {
-                Id = Guid.NewGuid(),
-                OrgProjectId = Guid.NewGuid(),
-                DomainId = "Project",
-                Name = $"Test project {Guid.NewGuid()}"
-            };
 
-            requestPosition = new ApiPositionV2
-            {
-                Id = Guid.NewGuid(),
-                BasePosition = new ApiPositionBasePositionV2 { Id = Guid.NewGuid(), Department = "TPD PRD", Discipline = "IT" },
-                Project = new ApiProjectReferenceV2 { ProjectId = project.OrgProjectId, DomainId = project.DomainId },
-                Instances = new List<ApiPositionInstanceV2> { new ApiPositionInstanceV2 { Location = new ApiPositionLocationV2 { Id = locationId } } }
-            };
-
-            request = new DbResourceAllocationRequest
-            {
-                Id = Guid.NewGuid(),
-                Discipline = "IT",
-                Project = project,
-                OrgPositionId = requestPosition.Id,
-                OrgPositionInstance = new DbResourceAllocationRequest.DbOpPositionInstance
+            request = await AddRequest(
+                pos =>
                 {
-                    LocationId = locationId,
-                    AppliesFrom = new DateTime(2021, 01, 01),
-                    AppliesTo = new DateTime(2021, 12, 31),
-                    Workload = 50
+                    pos.Id = Guid.NewGuid();
+                    pos.BasePosition = new ApiPositionBasePositionV2 { Id = Guid.NewGuid(), Department = "TPD PRD", Discipline = "IT" };
+                    pos.Instances = new List<ApiPositionInstanceV2> {
+                        new ApiPositionInstanceV2 
+                        {
+                            Location = new ApiPositionLocationV2 { Id = Guid.NewGuid() },
+                            AppliesFrom = new DateTime(2021, 01, 01),
+                            AppliesTo = new DateTime(2021, 12, 31),
+                            Workload = 50
+                        }
+                    };
+
+                    requestPosition = pos;
                 },
-                ProposedPerson = new DbResourceAllocationRequest.DbOpProposedPerson
+                rq =>
                 {
-                    AzureUniqueId = proposed.AzureUniqueId,
-                },
-            };
-
-            db.Add(request);
-
-            try
-            {
-                await db.SaveChangesAsync();
-
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
+                    rq.ProposedPerson = new DbResourceAllocationRequest.DbOpProposedPerson { AzureUniqueId = proposed.AzureUniqueId };
+                });
         }
 
         [Fact]
@@ -105,7 +75,7 @@ namespace Fusion.Resources.Logic.Tests
 
             var resolvedDepartment = await handler.Handle(
                 new Queries.ResolveResponsibleDepartment(request.Id),
-                new System.Threading.CancellationToken()
+                CancellationToken.None
             );
 
             resolvedDepartment.Should().Be(matrix.Unit);
@@ -275,7 +245,7 @@ namespace Fusion.Resources.Logic.Tests
         {
             var handler = CreateHandler();
 
-            var responsible = CreateTestPerson("Reidun Resource Owner");
+            var responsible = DbTestFixture.CreateTestPerson("Reidun Resource Owner");
 
             var matrix = new DbResponsibilityMatrix
             {
@@ -408,7 +378,7 @@ namespace Fusion.Resources.Logic.Tests
 
             resolvedDepartment.Should().Be(expected.Unit);
         }
-        
+
         [Fact]
         public async Task Should_NotMatchIrrelevantPosition()
         {
@@ -468,11 +438,6 @@ namespace Fusion.Resources.Logic.Tests
         {
             await this.db.Database.EnsureDeletedAsync();
             await this.db.DisposeAsync();
-        }
-
-        private DbPerson CreateTestPerson(string name)
-        {
-            return new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = name, AccountType = "Employee" };
         }
     }
 }
