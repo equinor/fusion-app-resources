@@ -958,6 +958,29 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.ProposedPerson!.Person.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId!.Value);
         }
 
+        [Fact]
+        public async Task ProposingRequest_ShouldExplainWhyFail_WhenManyCandidatesAndNotProposedPersonSet()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            request = await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
+
+            var candidate = fixture.AddProfile(FusionAccountType.Employee);
+
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{request.Id}",
+                new { candidates = new[] { new { testUser.Mail }, new { candidate.Mail } } }
+            );
+            response.Should().BeSuccessfull();
+
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{TestDepartmentId}/resources/requests/{normalRequest.Id}/approve", null);
+            resp.Should().BeBadRequest();
+            resp.Content.ToLowerInvariant().Should().Contain("candidate");
+        }
+
 
         #endregion
 
