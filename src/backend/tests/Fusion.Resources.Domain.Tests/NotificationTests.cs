@@ -12,7 +12,7 @@ namespace Fusion.Resources.Domain.Tests
 {
     public class NotificationTests : DbTestFixture
     {
-        public class TestHandler : INotificationHandler<SecondOpinionRequested>
+        public class SecondOpinionNotificationTestHandler : INotificationHandler<SecondOpinionRequested>
         {
             public bool WasReceived { get; set; } = false;
             public Guid? SecondOpinionId { get; set; } = null;
@@ -28,14 +28,14 @@ namespace Fusion.Resources.Domain.Tests
         public override void ConfigureServices(ServiceCollection services)
         {
             base.ConfigureServices(services);
-            services.AddSingleton<INotificationHandler<SecondOpinionRequested>, TestHandler>();
+            services.AddSingleton<INotificationHandler<SecondOpinionRequested>, SecondOpinionNotificationTestHandler>();
         }
 
         [Fact]
         public async Task SecondOpinionRequested_ShouldHaveIdSet()
         {
             var mediator = serviceProvider.GetRequiredService<IMediator>();
-            var testHandler = serviceProvider.GetRequiredService<INotificationHandler<SecondOpinionRequested>>() as TestHandler;
+            var testHandler = serviceProvider.GetRequiredService<INotificationHandler<SecondOpinionRequested>>() as SecondOpinionNotificationTestHandler;
 
             var request = await AddRequest();
             var command = new AddSecondOpinion(request.Id, "Please provide your input", "description", new[] { new PersonId("lorv@equinor.com") });
