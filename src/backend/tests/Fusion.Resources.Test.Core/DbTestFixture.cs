@@ -56,7 +56,7 @@ namespace Fusion.Resources.Test.Core
             services.AddLogging();
         }
 
-        public async Task<DbResourceAllocationRequest> AddRequest(Action<ApiPositionV2>? positionSetup = null, Action<DbResourceAllocationRequest> requestSetup = null)
+        public async Task<DbResourceAllocationRequest> AddRequest(Action<ApiPositionV2> positionSetup = null, Action<DbResourceAllocationRequest> requestSetup = null)
         {
             var db = serviceProvider.GetRequiredService<ResourcesDbContext>();
             var proposed = CreateTestPerson("Robert C. Martin");
