@@ -65,9 +65,10 @@ namespace Fusion.Resources.Api.Controllers
         public ApiTaskDetails? TaskDetails { get; set; }
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApiAbsenceType Type { get; set; }
         public double? AbsencePercentage { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum ApiAbsenceType { Absence, Vacation, OtherTasks }
     }
 }

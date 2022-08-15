@@ -54,7 +54,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.GlobalRoleAccess("Fusion.Analytics.Requests");
+                    or.GlobalRoleAccess("Fusion.Analytics.Absence");
                 });
 
             });
@@ -70,11 +70,75 @@ namespace Fusion.Resources.Api.Controllers
             return collection;
         }
 
+        [MapToApiVersion("2.0")]
+        [HttpGet("/analytics/absence/internal")]
+        public async Task<ActionResult<ApiCollection<ApiPersonAbsenceForAnalyticsV2>>> GetPersonsAbsenceV2([FromQuery] ODataQueryParams query)
+        {
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.GlobalRoleAccess("Fusion.Analytics.Absence");
+                });
+
+            });
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var allAbsenceQuery = await DispatchAsync(new GetPersonsAbsenceForAnalytics(query));
+            var apiModel = allAbsenceQuery.Select(ApiPersonAbsenceForAnalyticsV2.CreateWithoutConfidentialTaskInfoForAnalytics);
+
+            var collection = new ApiCollection<ApiPersonAbsenceForAnalyticsV2>(apiModel) { TotalCount = allAbsenceQuery.TotalCount };
+            return collection;
+        }
+
         #region Analytics Api Models
         public class ApiPersonAbsenceForAnalytics
         {
 
             private ApiPersonAbsenceForAnalytics(QueryPersonAbsenceBasic absence)
+            {
+                Id = absence.Id;
+                AppliesFrom = absence.AppliesFrom;
+                AppliesTo = absence.AppliesTo;
+                Type = (int)Enum.Parse<ApiPersonAbsence.ApiAbsenceType>($"{absence.Type}", true);
+                AbsencePercentage = absence.AbsencePercentage;
+
+                IsPrivate = absence.IsPrivate;
+                Comment = absence.Comment;
+                TaskDetails = (absence.TaskDetails != null) ? new ApiTaskDetails(absence.TaskDetails) : null;
+
+                if (absence.Person is not null) Person = new ApiPerson(absence.Person);
+
+                if (absence.IsPrivate || absence.Type == QueryAbsenceType.Absence)
+                {
+                    Comment = "Not disclosed.";
+                    TaskDetails = (absence.TaskDetails != null) ? ApiTaskDetails.Hidden : null;
+                }
+            }
+
+            public static ApiPersonAbsenceForAnalytics CreateWithoutConfidentialTaskInfoForAnalytics(QueryPersonAbsenceBasic absence) => new(absence);
+
+            public Guid Id { get; set; }
+            public bool IsPrivate { get; set; }
+            public string? Comment { get; set; }
+            public ApiPerson? Person { get; set; }
+            public ApiTaskDetails? TaskDetails { get; set; }
+            public DateTimeOffset AppliesFrom { get; set; }
+            public DateTimeOffset? AppliesTo { get; set; }
+            public int Type { get; set; }
+            public double? AbsencePercentage { get; set; }
+        }
+
+        public class ApiPersonAbsenceForAnalyticsV2
+        {
+
+            private ApiPersonAbsenceForAnalyticsV2(QueryPersonAbsenceBasic absence)
             {
                 Id = absence.Id;
                 AppliesFrom = absence.AppliesFrom;
@@ -95,7 +159,7 @@ namespace Fusion.Resources.Api.Controllers
                 }
             }
 
-            public static ApiPersonAbsenceForAnalytics CreateWithoutConfidentialTaskInfoForAnalytics(QueryPersonAbsenceBasic absence) => new(absence);
+            public static ApiPersonAbsenceForAnalyticsV2 CreateWithoutConfidentialTaskInfoForAnalytics(QueryPersonAbsenceBasic absence) => new(absence);
 
             public Guid Id { get; set; }
             public bool IsPrivate { get; set; }
