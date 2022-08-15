@@ -54,7 +54,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.GlobalRoleAccess("Fusion.Analytics.Requests");
+                    or.GlobalRoleAccess("Fusion.Analytics.Absence");
                 });
 
             });
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.GlobalRoleAccess("Fusion.Analytics.Requests");
+                    or.GlobalRoleAccess("Fusion.Analytics.Absence");
                 });
 
             });
