@@ -106,7 +106,7 @@ namespace Fusion.Resources.Api.Controllers
                 Id = absence.Id;
                 AppliesFrom = absence.AppliesFrom;
                 AppliesTo = absence.AppliesTo;
-                Type = Enum.Parse<ApiPersonAbsence.ApiAbsenceType>($"{absence.Type}", true);
+                Type = (int)Enum.Parse<ApiPersonAbsence.ApiAbsenceType>($"{absence.Type}", true);
                 AbsencePercentage = absence.AbsencePercentage;
 
                 IsPrivate = absence.IsPrivate;
@@ -131,7 +131,7 @@ namespace Fusion.Resources.Api.Controllers
             public ApiTaskDetails? TaskDetails { get; set; }
             public DateTimeOffset AppliesFrom { get; set; }
             public DateTimeOffset? AppliesTo { get; set; }
-            public ApiPersonAbsence.ApiAbsenceType Type { get; set; }
+            public int Type { get; set; }
             public double? AbsencePercentage { get; set; }
         }
 
@@ -168,7 +168,6 @@ namespace Fusion.Resources.Api.Controllers
             public ApiTaskDetails? TaskDetails { get; set; }
             public DateTimeOffset AppliesFrom { get; set; }
             public DateTimeOffset? AppliesTo { get; set; }
-            [JsonConverter(typeof(JsonStringEnumConverter))]
             public ApiPersonAbsence.ApiAbsenceType Type { get; set; }
             public double? AbsencePercentage { get; set; }
         }

@@ -209,10 +209,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var absentee = fixture.AddProfile(FusionAccountType.Employee);
-            await Client.AddAbsence(absentee, x => x.Type = "OtherTasks");
-            var response = await Client.TestClientGetAsync($"/analytics/absence/internal", new { value = new[] { new { type = default(int) } } });
+            var absence = await Client.AddAbsence(absentee, x => x.Type = "OtherTasks");
+            var response = await Client.TestClientGetAsync($"/analytics/absence/internal", new { value = new[] { new { id=Guid.Empty,  type = default(int) } } });
             response.Should().BeSuccessfull();
-            response.Value.value.Single().type.Should().Be(2);
+            response.Value.value.Single(x => x.id == absence.Value.Id).type.Should().Be(2);
         }
 
         [Fact]
@@ -220,10 +220,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             using var adminScope = fixture.AdminScope();
             var absentee = fixture.AddProfile(FusionAccountType.Employee);
-            await Client.AddAbsence(absentee, x => x.Type = "OtherTasks");
-            var response = await Client.TestClientGetAsync($"/analytics/absence/internal?api-version=2.0", new { value = new[] { new { type = default(string) } } });
+            var absence = await Client.AddAbsence(absentee, x => x.Type = "OtherTasks");
+            var response = await Client.TestClientGetAsync($"/analytics/absence/internal?api-version=2.0", new { value = new[] { new { id = Guid.Empty, type = default(string) } } });
             response.Should().BeSuccessfull();
-            response.Value.value.Single().type.Should().Be("OtherTasks");
+            response.Value.value.Single(x => x.id == absence.Value.Id).type.Should().Be("OtherTasks");
         }
 
         [Fact]
