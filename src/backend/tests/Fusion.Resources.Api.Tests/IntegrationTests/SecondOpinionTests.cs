@@ -458,6 +458,39 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Value.Should().NotContain(x => x.Id == secondOpinion.Id);
         }
 
+        [Fact]
+        public async Task OptionsOnSecondOpinion_Should_AllowGetAndPost()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var optionsResult = await Client.TestClientOptionsAsync($"/resources/requests/internal/{request.Id}/second-opinions/");
+            var allowed = optionsResult.Response.Content.Headers.Allow;
+            allowed.Should().Contain("POST");
+            allowed.Should().Contain("GET");
+        }
+
+        [Fact]
+        public async Task OptionsOnSecondOpinion_ShouldNot_AllowPost_WhenRequestIsCompleted()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var optionsResult = await Client.TestClientOptionsAsync($"/resources/requests/internal/{request.Id}/second-opinions/");
+            var allowed = optionsResult.Response.Content.Headers.Allow;
+            allowed.Should().NotContain("POST");
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
