@@ -28,8 +28,6 @@ namespace Fusion.Resources.Logic
             {
                 if(response.State != DbSecondOpinionResponseStates.Published)
                     response.State = DbSecondOpinionResponseStates.Closed;
-                
-                response.Comment = "Comments are hidden when request is closed.";
             }
 
             await db.SaveChangesAsync(ct);
