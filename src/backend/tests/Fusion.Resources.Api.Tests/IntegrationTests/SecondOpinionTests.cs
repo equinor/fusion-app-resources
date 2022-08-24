@@ -375,7 +375,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
         [Fact]
-        public async Task ClosingRequest_ShouldHidePublishedSecondOpinions()
+        public async Task ClosingRequest_ShouldNotHidePublishedSecondOpinions()
         {
             using var adminScope = fixture.AdminScope();
             var request = await Client.CreateDefaultRequestAsync(testProject);
@@ -396,8 +396,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var prompt = result.Value.First();
 
             prompt.Responses
-                .All(x => x.Comment == "Comments are hidden when request is closed.")
-                .Should().BeTrue();
+                .Should()
+                .NotContain(x => x.Comment == "Comments are hidden when request is closed.");
         }
 
         [Fact]
