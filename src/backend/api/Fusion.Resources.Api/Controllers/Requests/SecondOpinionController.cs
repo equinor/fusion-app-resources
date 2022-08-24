@@ -50,7 +50,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (authResult.Success)
             {
                 allowed.Add("GET");
-                if (!authResult.LimitedAuth) allowed.Add("POST");
+                if (!authResult.LimitedAuth && !requestItem.IsCompleted) allowed.Add("POST");
             }
 
             Response.Headers.Add("Allow", string.Join(',', allowed));
