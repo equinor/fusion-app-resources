@@ -491,6 +491,56 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             allowed.Should().NotContain("POST");
         }
 
+        [Fact]
+        public async Task DeleteSecondOpinion_ShouldSucceed_WhenItHasResponses()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+            await AddResponse(request.Id, secondOpinion.Id, secondOpinion.Responses.Single().Id);
+
+            var result = await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}");
+            result.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task DeleteSecondOpinion_ShouldFail_WhenRequestIsCompleted()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+            await AddResponse(request.Id, secondOpinion.Id, secondOpinion.Responses.Single().Id);
+
+
+            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var result = await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}");
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task DeleteSecondOpinionResponse_ShouldSucceed()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+            var response = secondOpinion.Responses.Single();
+
+            await AddResponse(request.Id, secondOpinion.Id, response.Id);
+
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}/responses/{response.Id}";
+            var result = await Client.TestClientDeleteAsync(endpoint);
+            result.Should().BeSuccessfull();
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
