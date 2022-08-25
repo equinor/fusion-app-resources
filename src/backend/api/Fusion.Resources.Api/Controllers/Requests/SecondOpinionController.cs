@@ -294,7 +294,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             });
 
             if (authResult.Success)
-                Response.Headers["Allow"] = "PATCH";
+                Response.Headers["Allow"] = "PATCH, DELETE";
 
             return NoContent();
         }
