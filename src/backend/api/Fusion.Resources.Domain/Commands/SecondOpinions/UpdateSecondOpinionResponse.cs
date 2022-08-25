@@ -29,22 +29,25 @@ namespace Fusion.Resources.Domain.Commands
         public class Handler : IRequestHandler<UpdateSecondOpinionResponse, QuerySecondOpinionResponse?>
         {
             private readonly ResourcesDbContext db;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db)
+            public Handler(ResourcesDbContext db, IMediator mediator)
             {
                 this.db = db;
+                this.mediator = mediator;
             }
 
             public async Task<QuerySecondOpinionResponse?> Handle(UpdateSecondOpinionResponse request, CancellationToken cancellationToken)
             {
                 var secondOpinion = await db.SecondOpinions
-                    .Include(x => x.Responses).ThenInclude(x => x.AssignedTo)
+                    .Include(x => x.Responses!).ThenInclude(x => x.AssignedTo)
                     .Include(x => x.CreatedBy)
                     .FirstOrDefaultAsync(x => x.Id == request.secondOpinionId, cancellationToken);
 
-                var response = secondOpinion?.Responses.FirstOrDefault(x => x.Id == request.responseId);
+                var response = secondOpinion?.Responses?.FirstOrDefault(x => x.Id == request.responseId);
                 if (response == null) return null;
 
+                bool wasPublished = false;
                 request.State.IfSet(x =>
                 {
                     var dbState = x switch
@@ -56,17 +59,26 @@ namespace Fusion.Resources.Domain.Commands
                     };
 
                     response.State = dbState;
-                    if(dbState == DbSecondOpinionResponseStates.Published)
-                    {
-                        response.AnsweredAt = DateTimeOffset.Now;
-                    }
+                    wasPublished = dbState == DbSecondOpinionResponseStates.Published;
                 });
+
+
+                if (wasPublished)
+                {
+                    response.AnsweredAt = DateTimeOffset.Now;
+                }
 
                 request.Comment.IfSet(x => response.Comment = x);
 
-                await db.SaveChangesAsync(cancellationToken);
+                var wasSaved = await db.SaveChangesAsync(cancellationToken) > 0;
 
-                return new QuerySecondOpinionResponse(response);
+                var model = new QuerySecondOpinionResponse(response);
+                if (wasPublished && wasSaved)
+                {
+                    await mediator.Publish(new SecondOpinionAnswered(new QuerySecondOpinion(secondOpinion), model), cancellationToken);
+                }
+
+                return model;
             }
         }
     }

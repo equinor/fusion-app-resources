@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Notifications
 {
-    public class SecondOpinionNotificationHandler
-        : INotificationHandler<SecondOpinionRequested>
+    public class SecondOpinionNotificationHandler : 
+        INotificationHandler<SecondOpinionRequested>,
+        INotificationHandler<SecondOpinionAnswered>
     {
         private readonly IFusionNotificationClient notificationClient;
         private readonly INotificationBuilder notificationBuilder;
@@ -37,6 +38,19 @@ namespace Fusion.Resources.Api.Notifications
                 .BuildCardAsync();
 
             await notificationClient.CreateNotificationForUserAsync(notification.Person.AzureUniqueId, arguments, card);
+        }
+
+        public async Task Handle(SecondOpinionAnswered notification, CancellationToken cancellationToken)
+        {
+            var arguments = new NotificationArguments("Your opinion has been requested on a personnel request.") { AppKey = "personnel-allocation" };
+            var card = await notificationBuilder
+                .AddTitle("Your opinion has been requested on a personnel request.")
+                .TryAddProfileCard(notification.Response.AssignedTo.AzureUniqueId)
+                .AddTextBlock(notification.Response.Comment!)
+                .TryAddOpenPortalUrlAction("Check out the answer in the Personnel Allocation App", $"aka/goto-second-opinion/{notification.SecondOpinion.Id}")
+                .BuildCardAsync();
+
+            await notificationClient.CreateNotificationForUserAsync(notification.SecondOpinion.CreatedBy.AzureUniqueId, arguments, card);
         }
     }
 }
