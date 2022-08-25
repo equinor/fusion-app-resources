@@ -541,6 +541,20 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
         }
 
+        [Fact]
+        public async Task DeletingRequest_ShouldSucceed_WhenHasSecondOpinion()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var endpoint = $"/resources/requests/internal/{request.Id}";
+            var result = await Client.TestClientDeleteAsync(endpoint);
+            result.Should().BeSuccessfull();
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
