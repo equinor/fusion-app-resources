@@ -268,9 +268,34 @@ namespace Fusion.Resources.Domain.Queries
                     await AddDepartmentDetails(pagedQuery, request.Expands);
                     await AddActions(pagedQuery, request);
                     await AddActionCount(pagedQuery, request);
+                    await AddSecondOpinionCount(pagedQuery);
                 }
 
                 return pagedQuery;
+            }
+
+            private async Task AddSecondOpinionCount(QueryRangedList<QueryResourceAllocationRequest> pagedQuery)
+            {
+                var requestIds = pagedQuery.Select(x => x.RequestId).ToList();
+                var query = from response in db.SecondOpinionResponses
+                            where requestIds.Contains(response.SecondOpinion.RequestId)
+                            group response by response.SecondOpinion.RequestId into grouped
+                            select new
+                            {
+                                RequestId = grouped.Key,
+                                TotalCount = grouped.Count(),
+                                PublishedCount = grouped.Count(x => x.State == DbSecondOpinionResponseStates.Published)
+                            };
+                var counts = await query.ToDictionaryAsync(k => k.RequestId);
+
+                foreach (var rq in pagedQuery)
+                {
+                    if (counts.ContainsKey(rq.RequestId))
+                    {
+                        var count = counts[rq.RequestId];
+                        rq.SecondOpinionCounts = new QuerySecondOpinionCount(count.TotalCount, count.PublishedCount);
+                    }
+                }
             }
 
             private async Task AddActions(QueryRangedList<QueryResourceAllocationRequest> pagedQuery, GetResourceAllocationRequests request)

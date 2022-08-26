@@ -555,6 +555,46 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
         }
 
+        [Fact]
+        public async Task ShouldCountSecondOpinionResponses()
+        {
+            using var adminScope = fixture.AdminScope();
+            const string department = "TST ABC DEF";
+
+            fixture.EnsureDepartment(department);
+
+            var users = new List<ApiPersonProfileV3> { testUser };
+            for (int i = 0; i < 5; i++)
+            {
+                users.Add(fixture.AddProfile(FusionAccountType.Employee));
+            }
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.AssignDepartmentAsync(request.Id, department);
+
+            var secondOpinion = await CreateSecondOpinion(request, users.ToArray());
+            
+            var response = secondOpinion.Responses.Single(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
+            await AddResponse(request.Id, secondOpinion.Id, response.Id);
+
+            var result = await Client.TestClientGetAsync($"departments/{department}/resources/requests", new
+            {
+                value = new[]
+                {
+                    new
+                    {
+                        id = Guid.NewGuid(),
+                        secondOpinionCounts = new { totalCount = 0, publishedCount = 0 }
+                    }
+                }
+            });
+
+            var counts = result.Value.value.Single(x => x.id == request.Id).secondOpinionCounts;
+            counts.totalCount.Should().Be(6);
+            counts.publishedCount.Should().Be(1);
+        }
+
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)
         {
             var payload = new TestAddSecondOpinion() with
