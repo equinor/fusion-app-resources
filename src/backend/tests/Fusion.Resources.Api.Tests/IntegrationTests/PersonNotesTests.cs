@@ -219,7 +219,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testNoteId = resp.Value.id;
         }
 
-
         private async Task<Guid> CreateNoteAsAdminAsync(HttpClient client, string? title = null, bool isShared = false)
         {
             using var adminScope = fixture.AdminScope();
