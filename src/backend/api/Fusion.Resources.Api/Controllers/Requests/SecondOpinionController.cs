@@ -141,7 +141,8 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithRequest(requestId);
             var result = await DispatchAsync(command);
 
-            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())).ToList());
+
+            return Ok(new ApiSecondOpinionResult(result, User.GetAzureUniqueIdOrThrow()));
         }
 
 
@@ -198,7 +199,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var secondOpinion = (await DispatchAsync(new GetSecondOpinions()
                 .WithRequest(requestId)
                 .WithId(secondOpinionId)
-            )).SingleOrDefault();
+            )).Value.SingleOrDefault();
 
             if (secondOpinion is null)
                 return ApiErrors.NotFound("Could not locate second opinion for request", $"{secondOpinionId}");
@@ -232,7 +233,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var secondOpinion = (await DispatchAsync(new GetSecondOpinions()
                 .WithRequest(requestId)
                 .WithId(secondOpinionId)
-            )).SingleOrDefault();
+            )).Value.SingleOrDefault();
 
             if (secondOpinion is null)
                 return ApiErrors.NotFound("Could not locate second opinion for request", $"{secondOpinionId}");
@@ -279,7 +280,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).SingleOrDefault();
+            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).Value.SingleOrDefault();
             if (secondOpinion == null)
                 return ApiErrors.NotFound("Could not locate second opinion");
 
@@ -307,7 +308,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).SingleOrDefault();
+            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).Value.SingleOrDefault();
             if (secondOpinion == null)
                 return ApiErrors.NotFound("Could not locate second opinion");
 
@@ -356,7 +357,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).SingleOrDefault();
+            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).Value.SingleOrDefault();
             if (secondOpinion == null)
                 return ApiErrors.NotFound("Could not locate second opinion");
 
@@ -378,7 +379,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             #endregion
 
             var command = new DeleteSecondOpinionResponse(secondOpinionId, responseId);
-            
+
             return NoContent();
         }
 
@@ -423,15 +424,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new GetSecondOpinions().WithAssignee(assigneeId).WithQuery(query);
             var result = await DispatchAsync(command);
 
-            var responses = result
-                .Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow(), includeChildren: true));
-
-            return Ok(responses);
+            return Ok(new ApiSecondOpinionResult(result, assigneeId.UniqueId!.Value));
         }
 
         [HttpGet("/persons/{personId}/second-opinions/")]
         public async Task<ActionResult<List<ApiSecondOpinion>>> GetPersonalSecondOpinions(string personId, [FromQuery] ODataQueryParams query)
         {
+            var countEnabled = Request.Query.ContainsKey("$count");
+
             PersonId creatorId = personId switch
             {
                 "me" => User.GetAzureUniqueIdOrThrow(),
@@ -444,10 +444,14 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or => or.CurrentUserIs(creatorId));
             });
 
-            var command = new GetSecondOpinions().WithCreator(creatorId).WithQuery(query);
+            var command = new GetSecondOpinions()
+                .WithCreator(creatorId)
+                .WithQuery(query)
+                .WithCountOnly(countEnabled);
             var result = await DispatchAsync(command);
 
-            return Ok(result.Select(x => new ApiSecondOpinion(x, User.GetAzureUniqueIdOrThrow())).ToList());
+
+            return Ok(new ApiSecondOpinionResult(result, User.GetAzureUniqueIdOrThrow()));
         }
     }
 }
