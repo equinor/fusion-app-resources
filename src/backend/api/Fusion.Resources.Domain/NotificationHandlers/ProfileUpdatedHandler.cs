@@ -36,7 +36,8 @@ namespace Fusion.Resources.Domain.Notifications
                     || profile.Mail != (notification.Profile.Mail ?? notification.Profile.PreferredContactMail)
                     || profile.Name != notification.Profile.Name
                     || profile.Phone != notification.Profile.MobilePhone
-                    || profile.AccountType != $"{notification.Profile.AccountType}";
+                    || profile.AccountType != $"{notification.Profile.AccountType}"
+                    || profile.FullDepartment != notification.Profile.FullDepartment;
 
                 if (hasChanged)
                 {
@@ -45,6 +46,7 @@ namespace Fusion.Resources.Domain.Notifications
                     profile.Name = notification.Profile.Name;
                     profile.Phone = notification.Profile.MobilePhone;
                     profile.AccountType = $"{notification.Profile.AccountType}";
+                    profile.FullDepartment = notification.Profile.FullDepartment;
 
                     await dbContext.SaveChangesAsync();
                     logger.LogInformation("Updated profile for {UPN} ({UniqueId})", notification.Profile.UPN, notification.Profile.AzureUniqueId);

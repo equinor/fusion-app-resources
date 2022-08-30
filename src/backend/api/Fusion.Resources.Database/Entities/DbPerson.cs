@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Fusion.Resources.Database.Entities
 {
@@ -18,6 +19,9 @@ namespace Fusion.Resources.Database.Entities
 
         public string AccountType { get; set; } = null!;
         public string? JobTitle { get; set; }
+
+        [StringLength(256)]
+        public string? FullDepartment { get; set; }
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
