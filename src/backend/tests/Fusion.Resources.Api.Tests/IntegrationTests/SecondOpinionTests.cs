@@ -486,12 +486,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task OptionsOnSecondOpinion_ShouldNot_AllowPost_WhenRequestIsCompleted()
         {
             using var adminScope = fixture.AdminScope();
+            var department = "PDP PRD FE ANE";
+            fixture.EnsureDepartment(department);
+
             var request = await Client.CreateDefaultRequestAsync(testProject);
             await Client.StartProjectRequestAsync(testProject, request.Id);
 
             var secondOpinion = await CreateSecondOpinion(request, testUser);
 
-            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.AssignDepartmentAsync(request.Id, department);
+            await Client.ProposePersonAsync(request.Id, fixture.AddProfile(FusionAccountType.Employee));
+            await Client.ResourceOwnerApproveAsync(department, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
