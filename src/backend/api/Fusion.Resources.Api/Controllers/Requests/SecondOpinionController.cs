@@ -146,7 +146,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
         }
 
 
-        [HttpOptions("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
+        [HttpOptions("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}")]
         public async Task<IActionResult> CheckSecondOpinionAccess(Guid requestId, Guid secondOpinionId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -185,7 +185,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return NoContent();
         }
 
-        [HttpDelete("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
+        [HttpDelete("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}")]
         public async Task<IActionResult> DeleteSecondOpinion(Guid requestId, Guid secondOpinionId)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -222,7 +222,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             return NoContent();
         }
 
-        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}/")]
+        [HttpPatch("/resources/requests/internal/{requestId}/second-opinions/{secondOpinionId}")]
         public async Task<ActionResult<ApiSecondOpinion>> PatchSecondOpinion(Guid requestId, Guid secondOpinionId, [FromBody] PatchSecondOpinionRequest payload)
         {
             var requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
@@ -280,7 +280,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).Value.SingleOrDefault();
+            var result = await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId));
+            
+            var secondOpinion = result.SingleOrDefault();
             if (secondOpinion == null)
                 return ApiErrors.NotFound("Could not locate second opinion");
 
@@ -308,7 +310,9 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
-            var secondOpinion = (await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId))).Value.SingleOrDefault();
+            var result = await DispatchAsync(new GetSecondOpinions().WithRequest(requestId).WithId(secondOpinionId));
+
+            var secondOpinion = result.SingleOrDefault();
             if (secondOpinion == null)
                 return ApiErrors.NotFound("Could not locate second opinion");
 

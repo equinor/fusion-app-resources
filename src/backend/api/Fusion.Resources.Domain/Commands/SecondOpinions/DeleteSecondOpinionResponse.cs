@@ -33,6 +33,8 @@ namespace Fusion.Resources.Domain
             public async Task<bool> Handle(DeleteSecondOpinionResponse request, CancellationToken cancellationToken)
             {
                 var response = db.SecondOpinionResponses.SingleOrDefaultAsync(x => x.Id == request.ResponseId, cancellationToken);
+                if (response is null) return false;
+
                 db.Remove(response);
 
                 return await db.SaveChangesAsync(cancellationToken) > 0;

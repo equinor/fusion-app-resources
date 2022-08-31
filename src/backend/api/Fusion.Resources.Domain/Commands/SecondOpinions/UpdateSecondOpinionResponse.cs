@@ -45,7 +45,7 @@ namespace Fusion.Resources.Domain.Commands
                     .FirstOrDefaultAsync(x => x.Id == request.secondOpinionId, cancellationToken);
 
                 var response = secondOpinion?.Responses?.FirstOrDefault(x => x.Id == request.responseId);
-                if (response == null) return null;
+                if (secondOpinion is null || response is null) return null;
 
                 bool wasPublished = false;
                 request.State.IfSet(x =>

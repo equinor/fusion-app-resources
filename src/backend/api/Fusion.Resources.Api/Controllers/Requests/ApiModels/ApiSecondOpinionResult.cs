@@ -12,10 +12,10 @@ namespace Fusion.Resources.Api.Controllers
             Value = result.Value
                 .Select(x => new ApiSecondOpinion(x, viewerAzureUniqueId, includeChildren))
                 .ToList();
-            Counts = new ApiSecondOpinionCount(result.Counts);
+            Counts = new ApiSecondOpinionCounts(result.Counts);
         }
 
         public List<ApiSecondOpinion> Value { get; }
-        public ApiSecondOpinionCount Counts { get; }
+        public ApiSecondOpinionCounts Counts { get; }
     }
 }

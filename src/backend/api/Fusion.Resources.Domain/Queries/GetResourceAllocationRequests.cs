@@ -293,7 +293,7 @@ namespace Fusion.Resources.Domain.Queries
                     if (counts.ContainsKey(rq.RequestId))
                     {
                         var count = counts[rq.RequestId];
-                        rq.SecondOpinionCounts = new QuerySecondOpinionCount(count.TotalCount, count.PublishedCount);
+                        rq.SecondOpinionCounts = new QuerySecondOpinionCounts(count.TotalCount, count.PublishedCount);
                     }
                 }
             }

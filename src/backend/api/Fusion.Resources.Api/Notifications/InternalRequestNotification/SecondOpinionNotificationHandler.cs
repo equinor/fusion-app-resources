@@ -42,9 +42,9 @@ namespace Fusion.Resources.Api.Notifications
 
         public async Task Handle(SecondOpinionAnswered notification, CancellationToken cancellationToken)
         {
-            var arguments = new NotificationArguments("Your opinion has been requested on a personnel request.") { AppKey = "personnel-allocation" };
+            var arguments = new NotificationArguments("You have received an answer on a second opinion.") { AppKey = "personnel-allocation" };
             var card = await notificationBuilder
-                .AddTitle("Your opinion has been requested on a personnel request.")
+                .AddTitle("You have received an answer on a second opinion.")
                 .TryAddProfileCard(notification.Response.AssignedTo.AzureUniqueId)
                 .AddTextBlock(notification.Response.Comment!)
                 .TryAddOpenPortalUrlAction("Check out the answer in the Personnel Allocation App", $"aka/goto-second-opinion/{notification.SecondOpinion.Id}")

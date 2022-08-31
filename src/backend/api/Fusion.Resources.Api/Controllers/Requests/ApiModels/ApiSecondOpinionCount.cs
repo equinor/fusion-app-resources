@@ -2,9 +2,9 @@
 
 namespace Fusion.Resources.Api.Controllers
 {
-    public class ApiSecondOpinionCount
+    public class ApiSecondOpinionCounts
     {
-        public ApiSecondOpinionCount(QuerySecondOpinionCount secondOpinionCounts)
+        public ApiSecondOpinionCounts(QuerySecondOpinionCounts secondOpinionCounts)
         {
             TotalCount = secondOpinionCounts.TotalCount;
             PublishedCount = secondOpinionCounts.PublishedCount;

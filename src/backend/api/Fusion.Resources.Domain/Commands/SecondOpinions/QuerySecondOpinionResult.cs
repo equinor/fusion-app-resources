@@ -1,27 +1,30 @@
 ﻿using Fusion.Resources.Database.Entities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Fusion.Resources.Domain
 {
     public class QuerySecondOpinionResult
     {
         public IReadOnlyList<QuerySecondOpinion> Value { get; }
-        public QuerySecondOpinionCount Counts { get; }
+        public QuerySecondOpinionCounts Counts { get; }
         public bool IsCountOnly { get; } = false;
 
-        public QuerySecondOpinionResult(QuerySecondOpinionCount counts)
+        public QuerySecondOpinionResult(QuerySecondOpinionCounts counts)
         {
             Value = new List<QuerySecondOpinion>();
             Counts = counts;
             IsCountOnly = true;
         }
 
-        public QuerySecondOpinionResult(List<QuerySecondOpinion> secondOpinions, QuerySecondOpinionCount counts)
+        public QuerySecondOpinionResult(List<QuerySecondOpinion> secondOpinions, QuerySecondOpinionCounts counts)
         {
             Value = secondOpinions;
             Counts = counts; 
         }
+
+        public QuerySecondOpinion SingleOrDefault() => Value.SingleOrDefault();
 
         public static QuerySecondOpinionResult CreateCountOnly(List<DbSecondOpinionPrompt> secondOpinions, Guid? assigneeId)
         {
@@ -35,7 +38,7 @@ namespace Fusion.Resources.Domain
                     total++;
                 }
             }
-            return new QuerySecondOpinionResult(new QuerySecondOpinionCount(total, published));
+            return new QuerySecondOpinionResult(new QuerySecondOpinionCounts(total, published));
         }
 
         public static QuerySecondOpinionResult Create(List<DbSecondOpinionPrompt> secondOpinions, Guid? assigneeId)
@@ -64,7 +67,7 @@ namespace Fusion.Resources.Domain
                 result.Add(new QuerySecondOpinion(secondOpinion));
             
             }
-            return new QuerySecondOpinionResult(result, new QuerySecondOpinionCount(total, published));
+            return new QuerySecondOpinionResult(result, new QuerySecondOpinionCounts(total, published));
         }
     }
 }
