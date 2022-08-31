@@ -203,6 +203,29 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientGetAsync<object>($"/analytics/requests/internal");
             response.Should().BeSuccessfull();
         }
+
+        [Fact]
+        public async Task Get_AnalyticsRequestsInternalV1_ShouldNotHaveReadableTypeNames()
+        {
+            using var adminScope = fixture.AdminScope();
+            var absentee = fixture.AddProfile(FusionAccountType.Employee);
+            var absence = await Client.AddAbsence(absentee, x => x.Type = "OtherTasks");
+            var response = await Client.TestClientGetAsync($"/analytics/absence/internal", new { value = new[] { new { id=Guid.Empty,  type = default(int) } } });
+            response.Should().BeSuccessfull();
+            response.Value.value.Single(x => x.id == absence.Value.Id).type.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task Get_AnalyticsRequestsInternalV2_ShouldHaveReadableTypeNames()
+        {
+            using var adminScope = fixture.AdminScope();
+            var absentee = fixture.AddProfile(FusionAccountType.Employee);
+            var absence = await Client.AddAbsence(absentee, x => x.Type = "OtherTasks");
+            var response = await Client.TestClientGetAsync($"/analytics/absence/internal?api-version=2.0", new { value = new[] { new { id = Guid.Empty, type = default(string) } } });
+            response.Should().BeSuccessfull();
+            response.Value.value.Single(x => x.id == absence.Value.Id).type.Should().Be("OtherTasks");
+        }
+
         [Fact]
         public async Task Get_AnalyticsPersonsAbsenceInternal_ShouldBeSuccessfull_WhenAdmin()
         {
