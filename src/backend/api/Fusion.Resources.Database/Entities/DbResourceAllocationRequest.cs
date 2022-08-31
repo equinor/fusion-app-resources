@@ -59,8 +59,8 @@ namespace Fusion.Resources.Database.Entities
 
         public void ProposePerson(DbPerson person, DbOpProposalParameters? parameters = null)
         {
-            ProposedPerson.AzureUniqueId = person?.AzureUniqueId;
-            ProposedPerson.Mail = person?.Mail;
+            ProposedPerson.AzureUniqueId = person.AzureUniqueId;
+            ProposedPerson.Mail = person.Mail;
             ProposedPerson.HasBeenProposed = true;
             ProposedPerson.ProposedAt = DateTimeOffset.Now;
 
@@ -82,7 +82,7 @@ namespace Fusion.Resources.Database.Entities
         public List<DbConversationMessage>? Conversation { get; set; }
 
         public Guid? CorrelationId { get; set; }
-        public List<DbPerson> Candidates { get; set; }
+        public List<DbPerson> Candidates { get; set; } = new();
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -118,7 +118,7 @@ namespace Fusion.Resources.Database.Entities
 
                 entity
                     .HasMany(x => x.Candidates)
-                    .WithMany(x => x.CandidateFor);
+                    .WithMany(x => x.CandidateForRequests);
             });
         }
 

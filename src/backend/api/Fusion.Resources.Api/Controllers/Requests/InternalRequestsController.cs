@@ -424,7 +424,7 @@ namespace Fusion.Resources.Api.Controllers
                 
                 if (request.Candidates.HasValue)
                 {
-                    updateCommand.Candidates = request.Candidates.Value.Select(x => (PersonId)x).ToList();
+                    updateCommand.Candidates = request.Candidates.Value?.Select(x => (PersonId)x).ToList() ?? new();
                 }
 
                 await using var scope = await BeginTransactionAsync();

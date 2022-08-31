@@ -50,7 +50,7 @@ namespace Fusion.Resources.Domain.Commands
 
             public async Task<QueryResourceAllocationRequest> Handle(UpdateInternalRequest request, CancellationToken cancellationToken)
             {
-                var dbRequest = await db.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId, cancellationToken);
+                var dbRequest = await db.ResourceAllocationRequests.FirstAsync(r => r.Id == request.RequestId);
 
                 bool modified = false;
 
@@ -100,11 +100,10 @@ namespace Fusion.Resources.Domain.Commands
 
                     await db.SaveChangesAsync(cancellationToken);
 
-                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties), cancellationToken);
+                    await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties));
                 }
 
-
-                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId), cancellationToken);
+                var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                 return requestItem!;
             }
         }
