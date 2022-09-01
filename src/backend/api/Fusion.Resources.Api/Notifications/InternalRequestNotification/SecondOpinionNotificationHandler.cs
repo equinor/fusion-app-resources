@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Notifications
 {
-    public class SecondOpinionNotificationHandler : 
+    public class SecondOpinionNotificationHandler :
         INotificationHandler<SecondOpinionRequested>,
         INotificationHandler<SecondOpinionAnswered>
     {
@@ -44,12 +44,12 @@ namespace Fusion.Resources.Api.Notifications
             var arguments = new NotificationArguments("You have received an answer on a second opinion.") { AppKey = "personnel-allocation" };
             var card = await notificationBuilder
                 .AddTitle("You have received an answer on a second opinion.")
-                .TryAddProfileCard(notification.Response.AssignedTo.AzureUniqueId)
-                .AddTextBlock(notification.Response.Comment!)
-                .TryAddOpenPortalUrlAction("Check out the answer in the Personnel Allocation App", $"aka/goto-received-second-opinion/{notification.SecondOpinion.Id}")
+                .AddTextBlockIf(notification.Response.AssignedTo.Name, notification?.Response?.AssignedTo is not null)
+                .AddTextBlockIf(notification?.Response?.Comment ?? string.Empty, notification?.Response?.Comment is not null)
+                .TryAddOpenPortalUrlAction("Check out the answer in the Personnel Allocation App", $"aka/goto-received-second-opinion/{notification?.SecondOpinion.Id}")
                 .BuildCardAsync();
 
-            await notificationClient.CreateNotificationForUserAsync(notification.SecondOpinion.CreatedBy.AzureUniqueId, arguments, card);
+            await notificationClient.CreateNotificationForUserAsync(notification!.SecondOpinion.CreatedBy.AzureUniqueId, arguments, card);
         }
     }
 }
