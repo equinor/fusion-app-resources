@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Fusion.Resources.Api.Controllers.Requests
+namespace Fusion.Resources.Api.Controllers
 {
     public class ApiTbnPositionTimeline
     {

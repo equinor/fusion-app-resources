@@ -12,7 +12,7 @@ using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Fusion.Resources.Domain.Commands
 {
-    public class ReplaceContractPersonnel : TrackableRequest<QueryContractPersonnel>
+    public class ReplaceContractPersonnel : TrackableRequest<QueryContractPersonnel?>
     {
         public ReplaceContractPersonnel(Guid projectId, Guid contractIdentifier, PersonnelId fromPerson, string toUpn, PersonnelId toPerson)
         {
@@ -37,7 +37,7 @@ namespace Fusion.Resources.Domain.Commands
         public bool ForceUpdate { get; private set; }
 
 
-        public class Handler : IRequestHandler<ReplaceContractPersonnel, QueryContractPersonnel>
+        public class Handler : IRequestHandler<ReplaceContractPersonnel, QueryContractPersonnel?>
         {
             private readonly ResourcesDbContext resourcesDb;
             private readonly IMediator mediator;
@@ -52,7 +52,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.telemetryClient = telemetryClient;
             }
 
-            public async Task<QueryContractPersonnel> Handle(ReplaceContractPersonnel request, CancellationToken cancellationToken)
+            public async Task<QueryContractPersonnel?> Handle(ReplaceContractPersonnel request, CancellationToken cancellationToken)
             {
                 var startTime = DateTimeOffset.UtcNow;
 
@@ -62,6 +62,8 @@ namespace Fusion.Resources.Domain.Commands
                     .FirstOrDefaultAsync();
 
                 var newPerson = await ValidateSubjectAndTargetPersonsAsync(request, existingPerson);
+                if (existingPerson is null)
+                    return null;
 
                 var existingPersonPreferredContractMail = existingPerson.Person.PreferredContractMail;
                 var existingPersonUpn = existingPerson.Person.UPN;
@@ -126,7 +128,7 @@ namespace Fusion.Resources.Domain.Commands
             /// <param name="newPerson">Replacing person</param>
             /// <param name="existingPerson">Current expired person</param>
             /// <returns></returns>
-            private static string? ApplyPersonIdReplacement(DbExternalPersonnelPerson newPerson, DbContractPersonnel existingPerson)
+            private static string ApplyPersonIdReplacement(DbExternalPersonnelPerson newPerson, DbContractPersonnel existingPerson)
             {
                 var existingReplacements = newPerson.PersonIdReplacements?.Split(",").ToList() ?? new List<string>();
                 existingReplacements.Add($"{existingPerson.Person.Id}");

@@ -91,7 +91,7 @@ namespace Fusion.Resources.Api
 
             services.AddScoped<IRequestRouter, RequestRouter>();
 
-            services.AddOrgApiClient(Fusion.Integration.Org.OrgConstants.HttpClients.Application, Fusion.Integration.Org.OrgConstants.HttpClients.Delegate);
+            services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
 
             services.AddControllers()
                 .AddFluentValidation(c =>
@@ -123,10 +123,6 @@ namespace Fusion.Resources.Api
             services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) => { module.EnableSqlCommandTextInstrumentation = true; });
 
             services.AddCommonLibHttpClient();
-            services.AddLineOrgHttpClient();
-
-            services.AddLineOrgIntegration();
-
             services.AddMemoryCache();
         }
 

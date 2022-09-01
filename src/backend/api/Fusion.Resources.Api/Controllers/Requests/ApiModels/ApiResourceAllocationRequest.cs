@@ -69,6 +69,7 @@ namespace Fusion.Resources.Api.Controllers
             CorrelationId = query.CorrelationId;
             ActionCount = query.ActionCount is not null ? new ApiActionCount(query.ActionCount) : null;
             Candidates = query.Candidates?.Select(x => new ApiPerson(x)).ToList() ?? new();
+            SecondOpinionCounts = query.SecondOpinionCounts is not null ? new ApiSecondOpinionCounts(query.SecondOpinionCounts) : null;
         }
 
         public Guid Id { get; set; }
@@ -110,6 +111,7 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? CorrelationId { get; }
         public ApiActionCount? ActionCount { get; }
         public List<ApiPerson> Candidates { get; }
+        public ApiSecondOpinionCounts? SecondOpinionCounts { get; }
         public List<ApiRequestAction>? Actions { get; }
         public List<ApiRequestConversationMessage>? Conversation { get; }
 

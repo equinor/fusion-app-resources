@@ -35,7 +35,7 @@ namespace Fusion.Resources.Logic.Queries
                     .Include(wf => wf.TerminatedBy)
                     .FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId);
 
-                return workflow;
+                return workflow!;
             }
         }
     }

@@ -42,7 +42,7 @@ namespace Fusion.Resources.Domain.Commands
             public async Task<QuerySecondOpinion?> Handle(UpdateSecondOpinion request, CancellationToken ct)
             {
                 var entity = await db.SecondOpinions
-                    .Include(x => x.Responses).ThenInclude(x => x.AssignedTo)
+                    .Include(x => x.Responses)!.ThenInclude(x => x.AssignedTo)
                     .Include(x => x.CreatedBy)
                     .FirstOrDefaultAsync(x => x.Id == request.SecondOpinionId, ct);
 

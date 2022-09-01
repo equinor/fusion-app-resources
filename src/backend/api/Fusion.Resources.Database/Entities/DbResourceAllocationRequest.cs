@@ -80,6 +80,7 @@ namespace Fusion.Resources.Database.Entities
         public DbOpProvisionStatus ProvisioningStatus { get; set; } = new DbOpProvisionStatus();
         public List<DbRequestAction>? Actions { get; set; }
         public List<DbConversationMessage>? Conversation { get; set; }
+        public List<DbSecondOpinionPrompt> SecondOpinions { get; set; } = new();
 
         public Guid? CorrelationId { get; set; }
         public List<DbPerson> Candidates { get; set; } = new();

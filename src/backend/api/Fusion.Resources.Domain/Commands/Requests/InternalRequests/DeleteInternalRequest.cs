@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,20 +30,27 @@ namespace Fusion.Resources.Domain.Commands
                 this.mediator = mediator;
             }
 
-            protected override async Task Handle(DeleteInternalRequest request, CancellationToken cancellationToken)
+            protected override async Task Handle(DeleteInternalRequest request, CancellationToken ct)
             {
                 var req = await dbContext.ResourceAllocationRequests
                     .Include(r => r.Project)
-                    .FirstOrDefaultAsync(c => c.Id == request.RequestId);
+                    .Include(r => r.SecondOpinions).ThenInclude(x => x.Responses)
+                    .FirstOrDefaultAsync(c => c.Id == request.RequestId, ct);
+                
+                if (req is null) return;
 
-                var workflow = await dbContext.Workflows.FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId);
+                var workflow = await dbContext.Workflows.FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId, ct);
+
+                dbContext.RemoveRange(req.SecondOpinions.SelectMany(x => x.Responses!));
+                dbContext.RemoveRange(req.SecondOpinions);
 
                 if (req != null)
                     dbContext.ResourceAllocationRequests.Remove(req);
                 if (workflow != null)
                     dbContext.Workflows.Remove(workflow);
 
-                await dbContext.SaveChangesAsync();
+
+                await dbContext.SaveChangesAsync(ct);
 
                 if (req is not null)
                 {

@@ -47,6 +47,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             public string State { get; set; }
         }
 
+        record TestSecondOpinionResult
+        {
+            public List<TestSecondOpinionPrompt> Value { get; set; }
+        }
+
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
         private FusionTestProjectBuilder testProject;
@@ -259,9 +264,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var patchResult = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>(endpoint, payload);
             patchResult.Should().BeSuccessfull();
 
-            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions/");
-            result.Value.First().Title.Should().Be(payload.title);
-            result.Value.First().Description.Should().Be(payload.description);
+            var result = await Client.TestClientGetAsync<TestSecondOpinionResult>($"/resources/requests/internal/{request.Id}/second-opinions/");
+            result.Value.Value.First().Title.Should().Be(payload.title);
+            result.Value.Value.First().Description.Should().Be(payload.description);
         }
 
         [Fact]
@@ -320,9 +325,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             using var userScope = fixture.UserScope(testUser);
-            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>("/persons/me/second-opinions/responses");
+            var userSharedOpinions = await Client.TestClientGetAsync<TestSecondOpinionResult>("/persons/me/second-opinions/responses");
 
-            var allResponses = userSharedOpinions.Value
+            var allResponses = userSharedOpinions.Value.Value
                 .SelectMany(x => x.Responses)
                 .Where(x => x.State != "Published");
             allResponses.Should().OnlyContain(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
@@ -346,9 +351,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }
 
             using var userScope = fixture.UserScope(testUser);
-            var userSharedOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>("/persons/me/second-opinions/responses");
+            var userSharedOpinions = await Client.TestClientGetAsync<TestSecondOpinionResult>("/persons/me/second-opinions/responses");
 
-            var otherResponses = userSharedOpinions.Value
+            var otherResponses = userSharedOpinions.Value.Value
                 .SelectMany(x => x.Responses)
                 .Where(x => x.AssignedTo.AzureUniquePersonId != testUser.AzureUniqueId);
 
@@ -374,10 +379,55 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var result = await Client.TestClientPatchAsync<TestSecondOpinionPrompt>($"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}/responses/{secondOpinion.Responses.First().Id}", payload);
 
             using var adminScope2 = fixture.AdminScope();
-            var secondOpinions = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions");
-            secondOpinions.Value.First().Responses.First().Comment.Should().BeEmpty();
+            var secondOpinions = await Client.TestClientGetAsync<TestSecondOpinionResult>($"/resources/requests/internal/{request.Id}/second-opinions");
+            secondOpinions.Value.Value.First().Responses.First().Comment.Should().BeEmpty();
         }
 
+
+        [Fact]
+        public async Task GetPersonalSecondOpinions_ShouldAllowCountOnly()
+        {
+            const string department = "TST ABC DEF GHI";
+            fixture.EnsureDepartment(department);
+            var resourceOwner = fixture.AddResourceOwner(department);
+
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.AssignDepartmentAsync(request.Id, department);
+
+
+            using var userScope = fixture.UserScope(resourceOwner);
+
+            var users = new List<ApiPersonProfileV3> { testUser };
+            for (int i = 0; i < 5; i++)
+            {
+                users.Add(fixture.AddProfile(FusionAccountType.Employee));
+            }
+
+            var secondOpinion = await CreateSecondOpinion(request, users.ToArray());
+
+            var response = secondOpinion.Responses.Single(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
+            await AddResponse(request.Id, secondOpinion.Id, response.Id);
+
+            var result = await Client.TestClientGetAsync($"/persons/me/second-opinions/?$count=only", new
+            {
+                counts = new { totalCount = 0, publishedCount = 0 },
+                value = new[]
+                {
+                    new
+                    {
+                        id = Guid.NewGuid(),
+                    }
+                }
+            });
+
+            var counts = result.Value.counts;
+            counts.totalCount.Should().Be(6);
+            counts.publishedCount.Should().Be(1);
+            result.Value.value.Should().BeEmpty();
+        }
 
         [Fact]
         public async Task ClosingRequest_ShouldNotHidePublishedSecondOpinions()
@@ -398,8 +448,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
-            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions/");
-            var prompt = result.Value.First();
+            var result = await Client.TestClientGetAsync<TestSecondOpinionResult>($"/resources/requests/internal/{request.Id}/second-opinions/");
+            var prompt = result.Value.Value.First();
 
             prompt.Responses
                 .Should()
@@ -421,8 +471,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
-            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>($"/resources/requests/internal/{request.Id}/second-opinions/");
-            var prompt = result.Value.First();
+            var result = await Client.TestClientGetAsync<TestSecondOpinionResult>($"/resources/requests/internal/{request.Id}/second-opinions/");
+            var prompt = result.Value.Value.First();
 
             prompt.Responses.All(x => x.State == "Closed")
                 .Should().BeTrue();
@@ -440,8 +490,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var endpoint = $"/persons/me/second-opinions";
             var secondOpinion = await CreateSecondOpinion(request, testUser);
 
-            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);
-            result.Value.Should().Contain(x => x.Id == secondOpinion.Id);
+            var result = await Client.TestClientGetAsync<TestSecondOpinionResult>(endpoint);
+            result.Value.Value.Should().Contain(x => x.Id == secondOpinion.Id);
         }
 
         [Fact]
@@ -454,8 +504,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var endpoint = $"/persons/me/second-opinions/?$filter=state eq 'Active'";
             var secondOpinion = await CreateSecondOpinion(request, testUser);
 
-            var result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);
-            result.Value.Should().Contain(x => x.Id == secondOpinion.Id);
+            var result = await Client.TestClientGetAsync<TestSecondOpinionResult>(endpoint);
+            result.Value.Value.Should().Contain(x => x.Id == secondOpinion.Id);
 
             await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
             await Client.ProposePersonAsync(request.Id, fixture.AddProfile(FusionAccountType.Employee));
@@ -463,8 +513,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.TaskOwnerApproveAsync(testProject, request.Id);
             await Client.ProvisionRequestAsync(request.Id);
 
-            result = await Client.TestClientGetAsync<List<TestSecondOpinionPrompt>>(endpoint);
-            result.Value.Should().NotContain(x => x.Id == secondOpinion.Id);
+            result = await Client.TestClientGetAsync<TestSecondOpinionResult>(endpoint);
+            result.Value.Value.Should().NotContain(x => x.Id == secondOpinion.Id);
         }
 
         [Fact]
@@ -503,6 +553,110 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var optionsResult = await Client.TestClientOptionsAsync($"/resources/requests/internal/{request.Id}/second-opinions/");
             var allowed = optionsResult.Response.Content.Headers.Allow;
             allowed.Should().NotContain("POST");
+        }
+
+        [Fact]
+        public async Task DeleteSecondOpinion_ShouldSucceed_WhenItHasResponses()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+            await AddResponse(request.Id, secondOpinion.Id, secondOpinion.Responses.Single().Id);
+
+            var result = await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}");
+            result.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task DeleteSecondOpinion_ShouldFail_WhenRequestIsCompleted()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+            await AddResponse(request.Id, secondOpinion.Id, secondOpinion.Responses.Single().Id);
+
+
+            await Client.ResourceOwnerApproveAsync("PDP PRD FE ANE", request.Id);
+            await Client.TaskOwnerApproveAsync(testProject, request.Id);
+            await Client.ProvisionRequestAsync(request.Id);
+
+            var result = await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}");
+            result.Should().BeBadRequest();
+        }
+
+        [Fact]
+        public async Task DeleteSecondOpinionResponse_ShouldSucceed()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+            var response = secondOpinion.Responses.Single();
+
+            await AddResponse(request.Id, secondOpinion.Id, response.Id);
+
+            var endpoint = $"/resources/requests/internal/{request.Id}/second-opinions/{secondOpinion.Id}/responses/{response.Id}";
+            var result = await Client.TestClientDeleteAsync(endpoint);
+            result.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task DeletingRequest_ShouldSucceed_WhenHasSecondOpinion()
+        {
+            using var adminScope = fixture.AdminScope();
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+
+            var secondOpinion = await CreateSecondOpinion(request, testUser);
+
+            var endpoint = $"/resources/requests/internal/{request.Id}";
+            var result = await Client.TestClientDeleteAsync(endpoint);
+            result.Should().BeSuccessfull();
+        }
+
+        [Fact]
+        public async Task ShouldCountSecondOpinionResponses()
+        {
+            using var adminScope = fixture.AdminScope();
+            const string department = "TST ABC DEF";
+
+            fixture.EnsureDepartment(department);
+
+            var users = new List<ApiPersonProfileV3> { testUser };
+            for (int i = 0; i < 5; i++)
+            {
+                users.Add(fixture.AddProfile(FusionAccountType.Employee));
+            }
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.AssignDepartmentAsync(request.Id, department);
+
+            var secondOpinion = await CreateSecondOpinion(request, users.ToArray());
+            
+            var response = secondOpinion.Responses.Single(x => x.AssignedTo.AzureUniquePersonId == testUser.AzureUniqueId);
+            await AddResponse(request.Id, secondOpinion.Id, response.Id);
+
+            var result = await Client.TestClientGetAsync($"departments/{department}/resources/requests", new
+            {
+                value = new[]
+                {
+                    new
+                    {
+                        id = Guid.NewGuid(),
+                        secondOpinionCounts = new { totalCount = 0, publishedCount = 0 }
+                    }
+                }
+            });
+
+            var counts = result.Value.value.Single(x => x.id == request.Id).secondOpinionCounts;
+            counts.totalCount.Should().Be(6);
+            counts.publishedCount.Should().Be(1);
         }
 
         private async Task<TestSecondOpinionPrompt> CreateSecondOpinion(TestApiInternalRequestModel request, params ApiPersonProfileV3[] assignedTo)

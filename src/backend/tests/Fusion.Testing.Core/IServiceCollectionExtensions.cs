@@ -28,6 +28,8 @@ namespace Fusion.Testing
         public static IServiceCollection TryRemoveTransientEventHandlers(this IServiceCollection services)
         {
 
+            var chk = services.Where(x => x.ServiceType == typeof(IHostedService)).ToList();
+
             var hostedServices = services
                 .Where(sd => sd.ServiceType == typeof(IHostedService) && sd.ImplementationFactory != null)
                 .Where(sd => sd.ImplementationFactory.Method.Name.Contains("AddFusionEventHandler"))

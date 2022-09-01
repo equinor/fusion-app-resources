@@ -151,6 +151,8 @@ namespace Fusion.Resources.Domain
             }
         }
 
+        public QuerySecondOpinionCounts? SecondOpinionCounts { get; set; }
+
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {
             OrgPosition = position;
