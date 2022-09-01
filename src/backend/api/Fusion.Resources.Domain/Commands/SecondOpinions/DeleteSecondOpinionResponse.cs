@@ -2,9 +2,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,7 +29,7 @@ namespace Fusion.Resources.Domain
 
             public async Task<bool> Handle(DeleteSecondOpinionResponse request, CancellationToken cancellationToken)
             {
-                var response = db.SecondOpinionResponses.SingleOrDefaultAsync(x => x.Id == request.ResponseId, cancellationToken);
+                var response = db.SecondOpinionResponses.SingleOrDefaultAsync(x => x.Id == request.ResponseId);
                 if (response is null) return false;
 
                 db.Remove(response);

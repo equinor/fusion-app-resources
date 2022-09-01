@@ -9,7 +9,7 @@ namespace Fusion.Resources.Domain
     {
         public IReadOnlyList<QuerySecondOpinion> Value { get; }
         public QuerySecondOpinionCounts Counts { get; }
-        public bool IsCountOnly { get; } = false;
+        public bool IsCountOnly { get; }
 
         public QuerySecondOpinionResult(QuerySecondOpinionCounts counts)
         {
@@ -18,13 +18,13 @@ namespace Fusion.Resources.Domain
             IsCountOnly = true;
         }
 
-        public QuerySecondOpinionResult(List<QuerySecondOpinion> secondOpinions, QuerySecondOpinionCounts counts)
+        public QuerySecondOpinionResult(IReadOnlyList<QuerySecondOpinion> secondOpinions, QuerySecondOpinionCounts counts)
         {
             Value = secondOpinions;
             Counts = counts; 
         }
 
-        public QuerySecondOpinion SingleOrDefault() => Value.SingleOrDefault();
+        public QuerySecondOpinion? SingleOrDefault() => Value.SingleOrDefault();
 
         public static QuerySecondOpinionResult CreateCountOnly(List<DbSecondOpinionPrompt> secondOpinions, Guid? assigneeId)
         {

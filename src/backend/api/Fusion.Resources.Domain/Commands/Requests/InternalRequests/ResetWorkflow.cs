@@ -30,6 +30,9 @@ namespace Fusion.Resources.Domain.Commands
                 var requestItem = await db.ResourceAllocationRequests
                     .FindAsync(new object[] { request.requestId }, cancellationToken);
 
+                if (requestItem is null)
+                    return false;
+
                 requestItem.State = new DbOpState();
                 requestItem.IsDraft = true;
                 requestItem.AssignedDepartment = null;

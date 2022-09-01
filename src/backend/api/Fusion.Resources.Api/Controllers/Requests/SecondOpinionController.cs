@@ -99,7 +99,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var command = new AddSecondOpinion(requestItem.RequestId, payload.Title, payload.Description, assignedToIds);
             var secondOpinion = await DispatchAsync(command);
 
-            return CreatedAtAction(nameof(GetSecondOpinions), new { requestItem.RequestId }, new ApiSecondOpinion(secondOpinion, User.GetAzureUniqueIdOrThrow()));
+            return CreatedAtAction(nameof(RequestSecondOpinion), new { requestItem.RequestId }, new ApiSecondOpinion(secondOpinion, User.GetAzureUniqueIdOrThrow()));
         }
 
         [HttpGet("/resources/requests/internal/{requestId}/second-opinions")]
