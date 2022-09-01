@@ -30,7 +30,6 @@ namespace Fusion.Testing
 
             var hostedServices = services
                 .Where(sd => sd.ServiceType == typeof(IHostedService) && sd.ImplementationFactory != null)
-                //.Where(sd => sd.ImplementationFactory.Method.Name.Contains("AddFusionEventHandler"))
                 .ToList();
 
             hostedServices.ForEach(s => services.Remove(s));

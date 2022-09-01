@@ -45,7 +45,7 @@ namespace Fusion.Resources.Logic.Commands
                     this.mediator = mediator;
                 }
 
-                private DbContractorRequest dbItem = null!;
+                private DbContractorRequest? dbItem = null!;
                 private ContractorPersonnelWorkflowV1 workflow = null!;
 
                 protected override async Task Handle(SetState request, CancellationToken cancellationToken)
@@ -84,7 +84,7 @@ namespace Fusion.Resources.Logic.Commands
                     dbItem.State = request.State;
                     dbItem.LastActivity = DateTime.UtcNow;
 
-                    // Update the encapsulated dbentity with the new workflow state.
+                    // Update the encapsulated db entity with the new workflow state.
                     workflow.SaveChanges();
 
                     await resourcesDb.SaveChangesAsync();
@@ -99,7 +99,7 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         case DbRequestState.ApprovedByCompany:
                             workflow.CompanyApproved(request.Editor.Person);
-                            await mediator.Send(QueueRequestProvisioning.ContractorPersonnelRequest(request.RequestId, dbItem.Project.OrgProjectId, dbItem.Contract.OrgContractId));
+                            await mediator.Send(QueueRequestProvisioning.ContractorPersonnelRequest(request.RequestId, dbItem!.Project.OrgProjectId, dbItem.Contract.OrgContractId));
                             notifyOnSave = new RequestApprovedByCompany(request.RequestId, request.Editor.Person);
                             break;
 
@@ -112,7 +112,7 @@ namespace Fusion.Resources.Logic.Commands
                             break;
 
                         default:
-                            throw new IllegalStateChangeError(dbItem.State, request.State, DbRequestState.ApprovedByCompany, DbRequestState.RejectedByCompany);
+                            throw new IllegalStateChangeError(dbItem!.State, request.State, DbRequestState.ApprovedByCompany, DbRequestState.RejectedByCompany);
                     }
 
                 }
@@ -134,7 +134,7 @@ namespace Fusion.Resources.Logic.Commands
                             break;
 
                         default:
-                            throw new IllegalStateChangeError(dbItem.State, request.State, DbRequestState.SubmittedToCompany, DbRequestState.RejectedByContractor);
+                            throw new IllegalStateChangeError(dbItem!.State, request.State, DbRequestState.SubmittedToCompany, DbRequestState.RejectedByContractor);
                     }
 
                     return new ValueTask();

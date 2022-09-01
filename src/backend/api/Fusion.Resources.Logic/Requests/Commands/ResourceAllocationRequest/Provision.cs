@@ -9,7 +9,6 @@ using Fusion.Resources.Logic.Workflows;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading;
@@ -42,14 +41,14 @@ namespace Fusion.Resources.Logic.Commands
                     {
                         var request = await db.ResourceAllocationRequests.FirstOrDefaultAsync(y => y.Id == id);
 
-                        if (request.OrgPositionId == null)
+                        if (request?.OrgPositionId == null)
                             return false;
 
                         var position = await projectOrgResolver.ResolvePositionAsync(request.OrgPositionId.Value);
                         var instance = position?.Instances.FirstOrDefault(x => x.Id == request.OrgPositionInstance.Id);
                         return instance != null;
 
-                    }).WithMessage($"Org position instance must exist.");
+                    }).WithMessage("Org position instance must exist.");
 
                     RuleFor(x => x).MustAsync(async (field, req, ctx, cancel) =>
                     {
