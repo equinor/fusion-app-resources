@@ -3,7 +3,6 @@ using Fusion.Integration;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
 using Fusion.Integration.Roles;
-using Fusion.Integration.ServiceDiscovery;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
@@ -105,7 +104,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("OrgEventReceiver");
                 services.TryRemoveImplementationService("ContextEventReceiver");
                 services.TryRemoveImplementationService<ICompanyResolver>();
-                services.TryRemoveImplementationService("InfrastructureInitialization");
 
                 if (IsMemorycacheDisabled)
                 {
@@ -114,7 +112,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 }
 
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
-                services.AddSingleton(new Mock<IFusionServiceDiscovery>(MockBehavior.Loose).Object);
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
                 services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
