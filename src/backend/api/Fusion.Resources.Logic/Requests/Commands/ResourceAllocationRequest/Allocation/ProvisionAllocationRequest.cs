@@ -42,7 +42,7 @@ namespace Fusion.Resources.Logic.Commands
                             .Include(r => r.Project)
                             .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
-                        if (dbRequest.OrgPositionId is null)
+                        if (dbRequest?.OrgPositionId is null)
                             throw new InvalidOperationException("Position id cannot be empty when provisioning request");
 
                         var position = await client.GetPositionV2Async(dbRequest.Project.OrgProjectId, dbRequest.OrgPositionId.Value);

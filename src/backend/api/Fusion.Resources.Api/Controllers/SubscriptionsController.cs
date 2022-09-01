@@ -35,8 +35,8 @@ namespace Fusion.Resources.Api.Controllers
             if (!Enum.TryParse($"{request.Type}", out SubscriptionDetails.SubscriptionType subscriptionType))
                 return FusionApiError.InvalidOperation("InvalidArgument", "The type is not valid.");
 
-            var details = new SubscriptionDetails(subscriptionType, request.Identifier, appId, servicePrincipal!.DisplayName, request.Id);
-            if (request.TypeFilter != null && request.TypeFilter.Length > 0)
+            var details = new SubscriptionDetails(subscriptionType, request.Identifier!, appId, servicePrincipal!.DisplayName, request.Id);
+            if (request.TypeFilter is { Length: > 0 })
                 details.TypeFilter = request.TypeFilter;
 
 
