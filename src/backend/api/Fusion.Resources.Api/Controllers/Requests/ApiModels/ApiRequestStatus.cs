@@ -1,7 +1,7 @@
 ﻿using Fusion.Resources.Domain.Models;
 using System;
 
-namespace Fusion.Resources.Api.Controllers.Requests.ApiModels
+namespace Fusion.Resources.Api.Controllers
 {
     public class ApiRequestStatus
     {

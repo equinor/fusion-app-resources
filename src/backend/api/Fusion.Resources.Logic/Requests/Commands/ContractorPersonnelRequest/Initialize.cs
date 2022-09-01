@@ -2,15 +2,12 @@
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
-using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Notifications;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +39,7 @@ namespace Fusion.Resources.Logic.Commands
                     this.mediator = mediator;
                 }
 
-                private DbContractorRequest dbItem = null!;
+                private DbContractorRequest? dbItem;
                 private ApiProjectContractV2 contract = null!;
 
                 private async Task ValidateAsync(Initialize request)
@@ -52,12 +49,12 @@ namespace Fusion.Resources.Logic.Commands
                         .Include(r => r.Contract)
                         .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
-                    var resolvedContract = await orgResolver.ResolveContractAsync(dbItem.Project.OrgProjectId, dbItem.Contract.OrgContractId);
+                    if (dbItem != null)
+                    {
+                        var resolvedContract = await orgResolver.ResolveContractAsync(dbItem.Project.OrgProjectId, dbItem.Contract.OrgContractId);
 
-                    if (resolvedContract == null)
-                        throw new InvalidOperationException($"Cannot resolve contract for request {request.RequestId}");
-
-                    contract = resolvedContract;
+                        contract = resolvedContract ?? throw new InvalidOperationException($"Cannot resolve contract for request {request.RequestId}");
+                    }
                 }
 
                 protected override async Task Handle(Initialize request, CancellationToken cancellationToken)
@@ -76,9 +73,9 @@ namespace Fusion.Resources.Logic.Commands
                     }
                 }
 
-                private bool IsExternalRep(CommandEditor editor)
+                private bool IsExternalRep(CommandEditor? editor)
                 {
-                    if (editor.Person != null)
+                    if (editor?.Person != null)
                     {
                         // Not checking for expired positions here.
                         if (contract.ExternalContractRep != null && contract.ExternalContractRep.Instances.Any(i => i.AssignedPerson?.AzureUniqueId == editor.AzureUniqueId))

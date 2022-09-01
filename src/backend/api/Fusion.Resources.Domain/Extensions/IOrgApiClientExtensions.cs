@@ -59,9 +59,10 @@ namespace Fusion.Resources
         /// 
         /// The dates are validated on the instance and returns error if it is out of bounds.
         /// </summary>
+        /// <param name="client">Org API Client</param>
         /// <param name="projectId">The project the position exists in</param>
         /// <param name="positionId">The position id</param>
-        /// <param name="date">Optionally provide a date to use for calculating the report path. If left out today is used.</param>
+        /// <param name="instanceId">The instance id</param>
         /// <returns>The return object is a bit different </returns>
         public static async Task<RequestResponse<ApiTaskOwnerV2?>> GetInstanceTaskOwnerAsync(this IOrgApiClient client, Guid projectId, Guid positionId, Guid instanceId)
         {
@@ -219,7 +220,7 @@ namespace Fusion.Resources
 
             if (response.IsSuccessStatusCode)
             {
-                var value = JsonConvert.DeserializeObject<TResponse>(content);
+                var value = JsonConvert.DeserializeObject<TResponse>(content)!;
 
                 return new RequestResponse<TResponse>(response, content, value);
             }

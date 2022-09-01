@@ -1,5 +1,4 @@
 ﻿using Fusion.Integration.Profile;
-using Fusion.Resources.Api.Controllers.Requests.ApiModels;
 using Fusion.Resources.Domain;
 using System;
 using System.Collections.Generic;
