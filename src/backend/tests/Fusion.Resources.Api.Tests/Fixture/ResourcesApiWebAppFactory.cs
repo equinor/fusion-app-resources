@@ -3,6 +3,7 @@ using Fusion.Integration;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
 using Fusion.Integration.Roles;
+using Fusion.Integration.ServiceDiscovery;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using Fusion.Resources.Database;
 using Fusion.Resources.Domain;
@@ -110,7 +111,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     services.TryRemoveImplementationService<IMemoryCache>();
                     services.AddScoped<IMemoryCache, AlwaysEmptyCache>();
                 }
-
+                services.AddSingleton(new Mock<IFusionServiceDiscovery>(MockBehavior.Loose).Object);
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
