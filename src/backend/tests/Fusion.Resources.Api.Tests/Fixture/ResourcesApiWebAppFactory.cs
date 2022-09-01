@@ -1,4 +1,5 @@
 using Fusion.Events;
+using Fusion.Events.Server.HostedService;
 using Fusion.Integration;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
@@ -100,7 +101,9 @@ namespace Fusion.Resources.Api.Tests.Fixture
             {
                 services.AddIntegrationTestingAuthentication();
                 services.TryRemoveTransientEventHandlers();
-
+                services.TryRemoveImplementationService("FusionServiceDiscoveryHostedService");
+                services.TryRemoveImplementationService("InfrastructureInitialization");
+                
                 services.TryRemoveImplementationService("PeopleEventReceiver");
                 services.TryRemoveImplementationService("OrgEventReceiver");
                 services.TryRemoveImplementationService("ContextEventReceiver");
