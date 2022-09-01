@@ -694,8 +694,5 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests/{directRequest.Id}/approve", null);
             resp.Should().BeSuccessfull();
         }
-
-
     }
-
 }
