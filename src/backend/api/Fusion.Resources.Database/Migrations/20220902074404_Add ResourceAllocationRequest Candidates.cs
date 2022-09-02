@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Fusion.Resources.Database.Migrations
+namespace Fusion.Resources.Database.migrations
 {
-    public partial class add_candidates_prop_for_requests : Migration
+    public partial class AddResourceAllocationRequestCandidates : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,12 +13,12 @@ namespace Fusion.Resources.Database.Migrations
                 name: "DbPersonDbResourceAllocationRequest",
                 columns: table => new
                 {
-                    CandidateForId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CandidatesForRequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CandidatesId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DbPersonDbResourceAllocationRequest", x => new { x.CandidateForId, x.CandidatesId });
+                    table.PrimaryKey("PK_DbPersonDbResourceAllocationRequest", x => new { x.CandidatesForRequestId, x.CandidatesId });
                     table.ForeignKey(
                         name: "FK_DbPersonDbResourceAllocationRequest_Persons_CandidatesId",
                         column: x => x.CandidatesId,
@@ -26,8 +26,8 @@ namespace Fusion.Resources.Database.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DbPersonDbResourceAllocationRequest_ResourceAllocationRequests_CandidateForId",
-                        column: x => x.CandidateForId,
+                        name: "FK_DbPersonDbResourceAllocationRequest_ResourceAllocationRequests_CandidatesForRequestId",
+                        column: x => x.CandidatesForRequestId,
                         principalTable: "ResourceAllocationRequests",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);

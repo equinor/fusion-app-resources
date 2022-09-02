@@ -119,7 +119,7 @@ namespace Fusion.Resources.Database.Entities
 
                 entity
                     .HasMany(x => x.Candidates)
-                    .WithMany(x => x.CandidateForRequests);
+                    .WithMany(x => x.CandidatesForRequest);
             });
         }
 

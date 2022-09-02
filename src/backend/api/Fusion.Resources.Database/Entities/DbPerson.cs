@@ -19,7 +19,7 @@ namespace Fusion.Resources.Database.Entities
 
         public string AccountType { get; set; } = null!;
         public string? JobTitle { get; set; }
-        public List<DbResourceAllocationRequest> CandidateForRequests { get; set; } = new();
+        public List<DbResourceAllocationRequest> CandidatesForRequest { get; set; } = new();
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {

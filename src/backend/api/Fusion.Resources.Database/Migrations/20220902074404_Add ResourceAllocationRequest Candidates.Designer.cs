@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Fusion.Resources.Database.Migrations
+namespace Fusion.Resources.Database.migrations
 {
     [DbContext(typeof(ResourcesDbContext))]
-    [Migration("20220810084744_add_candidates_prop_for_requests")]
-    partial class add_candidates_prop_for_requests
+    [Migration("20220902074404_Add ResourceAllocationRequest Candidates")]
+    partial class AddResourceAllocationRequestCandidates
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -26,13 +26,13 @@ namespace Fusion.Resources.Database.Migrations
 
             modelBuilder.Entity("DbPersonDbResourceAllocationRequest", b =>
                 {
-                    b.Property<Guid>("CandidateForId")
+                    b.Property<Guid>("CandidatesForRequestId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CandidatesId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("CandidateForId", "CandidatesId");
+                    b.HasKey("CandidatesForRequestId", "CandidatesId");
 
                     b.HasIndex("CandidatesId");
 
@@ -620,7 +620,8 @@ namespace Fusion.Resources.Database.Migrations
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsRequired")
+                    b.Property<bool?>("IsRequired")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValueSql("(0)");
@@ -1077,7 +1078,7 @@ namespace Fusion.Resources.Database.Migrations
                 {
                     b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", null)
                         .WithMany()
-                        .HasForeignKey("CandidateForId")
+                        .HasForeignKey("CandidatesForRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1685,7 +1686,7 @@ namespace Fusion.Resources.Database.Migrations
                         .IsRequired();
 
                     b.HasOne("Fusion.Resources.Database.Entities.DbResourceAllocationRequest", "Request")
-                        .WithMany()
+                        .WithMany("SecondOpinions")
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1782,6 +1783,8 @@ namespace Fusion.Resources.Database.Migrations
                     b.Navigation("Actions");
 
                     b.Navigation("Conversation");
+
+                    b.Navigation("SecondOpinions");
                 });
 
             modelBuilder.Entity("Fusion.Resources.Database.Entities.DbSecondOpinionPrompt", b =>

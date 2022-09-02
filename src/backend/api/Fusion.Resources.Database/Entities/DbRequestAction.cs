@@ -31,7 +31,7 @@ namespace Fusion.Resources.Database.Entities
         public Guid? AssignedToId { get; set; }
         public DbPerson? AssignedTo { get; set; }
 
-        public bool IsRequired { get; set; } = false;
+        public bool? IsRequired { get; set; } = false;
 
         public DateTime? DueDate { get; set; }
 
