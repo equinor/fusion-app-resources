@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain
 
             IsResolved = dbAction.IsResolved;
             ResolvedAt = dbAction.ResolvedAt;
-            IsRequired = dbAction.IsRequired;
+            IsRequired = dbAction.IsRequired.GetValueOrDefault();
             propertiesJson = dbAction.PropertiesJson;
             DueDate = dbAction.DueDate;
         }

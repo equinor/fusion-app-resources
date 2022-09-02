@@ -33,7 +33,7 @@ namespace Fusion.Resources.Domain.Commands
         // Placeholder, not used currently
         public MonitorableProperty<string?> ProposalChangeType { get; set; } = new();
 
-
+        public MonitorableProperty<List<PersonId>> Candidates { get; set; } = new();
 
         public class Handler : IRequestHandler<UpdateInternalRequest, QueryResourceAllocationRequest>
         {
@@ -62,13 +62,28 @@ namespace Fusion.Resources.Domain.Commands
                     if (personId is not null)
                     {
                         var resolvedPerson = await profileService.EnsurePersonAsync(new PersonId(personId.Value));
-                        dbRequest.ProposedPerson.AzureUniqueId = resolvedPerson?.AzureUniqueId;
-                        dbRequest.ProposedPerson.Mail = resolvedPerson?.Mail;
-                        dbRequest.ProposedPerson.HasBeenProposed = true;
-                        dbRequest.ProposedPerson.ProposedAt = DateTimeOffset.Now;
+                        dbRequest.ProposePerson(resolvedPerson!);
                     }
                     else
+                    {
                         dbRequest.ProposedPerson.Clear();
+                    }
+                });
+                modified |= await request.Candidates.IfSetAsync(async candidates =>
+                {
+                    dbRequest.Candidates.Clear();
+                    foreach (var personId in candidates)
+                    {
+                        var resolvedPerson = await profileService.EnsurePersonAsync(personId);
+                        if (resolvedPerson is null) throw new Exception();
+
+                        dbRequest.Candidates.Add(resolvedPerson);
+                    }
+
+                    if(dbRequest.Candidates.Count == 1 && !dbRequest.ProposedPerson.HasBeenProposed)
+                    {
+                        dbRequest.ProposePerson(dbRequest.Candidates.Single());
+                    }
                 });
                 modified |= request.ProposalChangeFrom.IfSet(dt => dbRequest.ProposalParameters.ChangeFrom = dt);
                 modified |= request.ProposalChangeTo.IfSet(dt => dbRequest.ProposalParameters.ChangeTo = dt);
@@ -83,11 +98,10 @@ namespace Fusion.Resources.Domain.Commands
 
                     var modifiedProperties = db.Entry(dbRequest).Properties.Where(x => x.IsModified).ToList();
 
-                    await db.SaveChangesAsync();
+                    await db.SaveChangesAsync(cancellationToken);
 
                     await mediator.Publish(new InternalRequestUpdated(dbRequest.Id, modifiedProperties));
                 }
-
 
                 var requestItem = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                 return requestItem!;

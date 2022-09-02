@@ -129,7 +129,8 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(r => r.UpdatedBy)
                     .Include(r => r.Project)
                     .Include(r => r.ProposedPerson)
-                    .FirstOrDefaultAsync(c => c.Id == request.RequestId);
+                    .Include(r => r.Candidates)
+                    .FirstOrDefaultAsync(c => c.Id == request.RequestId, cancellationToken);
 
                 if (row is null)
                     return null;
