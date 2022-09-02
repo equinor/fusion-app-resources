@@ -235,7 +235,7 @@ namespace Fusion.Resources.Api.Controllers
             var projectCheck = await IsChangeRequestsDisabledAsync(position.ProjectId);
             if (projectCheck.isDisabled)
             {
-                return projectCheck.response;
+                return projectCheck.response!;
             }
 
             var command = new CreateInternalRequest(InternalRequestOwner.ResourceOwner, request.ResolveType())

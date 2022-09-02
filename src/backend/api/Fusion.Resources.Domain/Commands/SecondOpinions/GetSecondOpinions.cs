@@ -1,23 +1,22 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetSecondOpinions : IRequest<List<QuerySecondOpinion>>
+    public class GetSecondOpinions : IRequest<QuerySecondOpinionResult>
     {
         public PersonId? CreatedById { get; private set; }
         public PersonId? AssigneeId { get; private set; }
         public Guid? RequestId { get; private set; }
         public Guid? Id { get; private set; }
         public ODataQueryParams Query { get; private set; } = new ODataQueryParams();
+        public bool CountOnly { get; private set; }
 
         public GetSecondOpinions WithCreator(PersonId creator)
         {
@@ -51,7 +50,13 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
-        public class Handler : IRequestHandler<GetSecondOpinions, List<QuerySecondOpinion>>
+        public GetSecondOpinions WithCountOnly(bool countEnabled = true)
+        {
+            CountOnly = countEnabled;
+            return this;
+        }
+
+        public class Handler : IRequestHandler<GetSecondOpinions, QuerySecondOpinionResult>
         {
             private readonly ResourcesDbContext db;
             private readonly IProfileService profileService;
@@ -62,7 +67,7 @@ namespace Fusion.Resources.Domain
                 this.profileService = profileService;
             }
 
-            public async Task<List<QuerySecondOpinion>> Handle(GetSecondOpinions request, CancellationToken cancellationToken)
+            public async Task<QuerySecondOpinionResult> Handle(GetSecondOpinions request, CancellationToken cancellationToken)
             {
                 var creatorId = default(Guid?);
                 var assigneeId = default(Guid?);
@@ -80,8 +85,7 @@ namespace Fusion.Resources.Domain
                 }
 
                 var query = db.SecondOpinions
-                    .Include(x => x.Responses!.Where(r => r.AssignedToId == assigneeId || assigneeId == null || r.State == DbSecondOpinionResponseStates.Published))
-                        .ThenInclude(x => x.AssignedTo)
+                    .Include(x => x.Responses!).ThenInclude(x => x.AssignedTo)
                     .Include(x => x.CreatedBy)
                     .Include(x => x.Request).ThenInclude(x => x.Project)
                     .Include(x => x.Request).ThenInclude(x => x.CreatedBy)
@@ -122,7 +126,9 @@ namespace Fusion.Resources.Domain
 
                 var secondOpinions = await query.ToListAsync(cancellationToken);
 
-                return secondOpinions.Select(x => new QuerySecondOpinion(x)).ToList();
+                return request.CountOnly 
+                    ? QuerySecondOpinionResult.CreateCountOnly(secondOpinions, assigneeId)
+                    : QuerySecondOpinionResult.Create(secondOpinions, assigneeId);
             }
         }
     }

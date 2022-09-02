@@ -43,7 +43,8 @@ namespace Fusion.Resources.Logic.Commands
                             .Include(r => r.Project)
                             .FirstOrDefaultAsync(r => r.Id == request.RequestId);
 
-                        await ProvisionAsync(dbRequest);
+                        if (dbRequest != null) 
+                            await ProvisionAsync(dbRequest);
                     }
 
                     private async Task ProvisionAsync(DbResourceAllocationRequest dbRequest)

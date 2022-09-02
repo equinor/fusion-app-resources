@@ -30,7 +30,7 @@ namespace Fusion.Resources.Api.Controllers.Utilities
         }
 
         [HttpPost("/utilities/parse-spreadsheet")]
-        public async Task<ActionResult<ExcelConversion>> ValidateContractorImportSpreadsheet([FromForm]ConvertSpreadsheetRequest request)
+        public async Task<ActionResult<ExcelConversion>> ValidateContractorImportSpreadsheet([FromForm] ConvertSpreadsheetRequest request)
         {
             if (request == null)
                 return FusionApiError.InvalidOperation("MissingBody", "Could not locate any body payload");
@@ -73,11 +73,8 @@ namespace Fusion.Resources.Api.Controllers.Utilities
             await templateFile.CopyToAsync(memoryStream);
 
             var provider = new FileExtensionContentTypeProvider();
-            string contentType;
-            if (!provider.TryGetContentType(fileName, out contentType))
-            {
+            if (!provider.TryGetContentType(fileName, out var contentType))
                 contentType = "application/octet-stream";
-            }
 
             return File(memoryStream.ToArray(), contentType, fileName);
         }
