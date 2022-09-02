@@ -46,6 +46,6 @@ namespace Fusion.Testing.Mocks
 
         public TestApiWorkflow? Workflow { get; set; }
 
-        public List<TestApiPerson> Candidates { get; set; }
+        public List<TestApiPerson>? Candidates { get; set; }
     }
 }
