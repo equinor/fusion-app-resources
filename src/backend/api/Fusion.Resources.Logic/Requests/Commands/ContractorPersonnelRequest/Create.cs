@@ -82,9 +82,9 @@ namespace Fusion.Resources.Logic.Commands
                     this.orgResolver = orgResolver;
                 }
 
-                DbProject project = null!;
-                DbContract contract = null!;
-                DbContractPersonnel contractPersonnel = null!;
+                DbProject? project;
+                DbContract? contract;
+                DbContractPersonnel? contractPersonnel;
 
                 public async Task ValidateAsync(Create request)
                 {
@@ -136,10 +136,10 @@ namespace Fusion.Resources.Logic.Commands
                     var newRequest = new DbContractorRequest()
                     {
                         Id = Guid.NewGuid(),
-                        Contract = contract,
-                        Project = project,
+                        Contract = contract!,
+                        Project = project!,
                         State = DbRequestState.Created,
-                        Person = contractPersonnel,
+                        Person = contractPersonnel!,
                         Category = category,
                         OriginalPositionId = request.OriginalPositionId,
                         Position = GeneratePosition(request.Position, request.PositionTaskOwner),

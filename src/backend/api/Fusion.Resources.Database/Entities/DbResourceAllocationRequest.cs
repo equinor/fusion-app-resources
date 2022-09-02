@@ -13,7 +13,7 @@ namespace Fusion.Resources.Database.Entities
         public Guid Id { get; set; }
 
         [MaxLength(100)]
-        public string? AssignedDepartment { get;set; }
+        public string? AssignedDepartment { get; set; }
         public bool IsDraft { get; set; }
 
         public long RequestNumber { get; set; }
@@ -57,7 +57,16 @@ namespace Fusion.Resources.Database.Entities
         public DbOpProposedPerson ProposedPerson { get; set; } = DbOpProposedPerson.Empty;
         public DbOpProposalParameters ProposalParameters { get; set; } = new DbOpProposalParameters();
 
+        public void ProposePerson(DbPerson person, DbOpProposalParameters? parameters = null)
+        {
+            ProposedPerson.AzureUniqueId = person.AzureUniqueId;
+            ProposedPerson.Mail = person.Mail;
+            ProposedPerson.HasBeenProposed = true;
+            ProposedPerson.ProposedAt = DateTimeOffset.Now;
 
+            if(parameters is not null)
+                ProposalParameters = parameters;
+        }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
@@ -69,10 +78,12 @@ namespace Fusion.Resources.Database.Entities
         public DateTimeOffset LastActivity { get; set; }
 
         public DbOpProvisionStatus ProvisioningStatus { get; set; } = new DbOpProvisionStatus();
-        public List<DbRequestAction>? Actions { get;  set; }
+        public List<DbRequestAction>? Actions { get; set; }
         public List<DbConversationMessage>? Conversation { get; set; }
+        public List<DbSecondOpinionPrompt> SecondOpinions { get; set; } = new();
 
         public Guid? CorrelationId { get; set; }
+        public List<DbPerson> Candidates { get; set; } = new();
 
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -94,7 +105,7 @@ namespace Fusion.Resources.Database.Entities
                 entity.OwnsOne(e => e.OrgPositionInstance);
                 entity.OwnsOne(e => e.ProposedPerson);
                 entity.OwnsOne(e => e.State);
-                entity.OwnsOne(e => e.ProposalParameters, op => 
+                entity.OwnsOne(e => e.ProposalParameters, op =>
                 {
                     op.Property(ps => ps.Scope).HasConversion(new EnumToStringConverter<DbChangeScope>());
                 });
@@ -105,6 +116,10 @@ namespace Fusion.Resources.Database.Entities
                 entity.Property(e => e.RequestNumber)
                     .UseIdentityColumn(1)
                     .ValueGeneratedOnAdd();
+
+                entity
+                    .HasMany(x => x.Candidates)
+                    .WithMany(x => x.CandidatesForRequest);
             });
         }
 
@@ -133,6 +148,7 @@ namespace Fusion.Resources.Database.Entities
             public bool WasNotified { get; set; }
 
             public static DbOpProposedPerson Empty => new DbOpProposedPerson() { HasBeenProposed = false };
+
             public void Clear()
             {
                 HasBeenProposed = false;
@@ -141,9 +157,9 @@ namespace Fusion.Resources.Database.Entities
                 Mail = null;
                 WasNotified = false;
             }
-                
+
         }
-    
+
         public class DbOpState
         {
             [MaxLength(50)]
@@ -156,7 +172,7 @@ namespace Fusion.Resources.Database.Entities
             public DateTime? ChangeFrom { get; set; }
             public DateTime? ChangeTo { get; set; }
             public DbChangeScope Scope { get; set; } = DbChangeScope.Default;
-            
+
             [MaxLength(50)]
             public string? ChangeType { get; set; }
         }

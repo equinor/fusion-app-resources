@@ -71,6 +71,7 @@ namespace Fusion.Resources.Domain
 
             ProvisioningStatus = new QueryProvisioningStatus(entity.ProvisioningStatus);
             CorrelationId = entity.CorrelationId;
+            Candidates = entity.Candidates?.Select(x => new QueryPerson(x)).ToList() ?? new();
         }
 
         public Guid RequestId { get; set; }
@@ -130,6 +131,7 @@ namespace Fusion.Resources.Domain
         public bool IsDraft { get; set; }
         public QueryProvisioningStatus ProvisioningStatus { get; set; }
         public Guid? CorrelationId { get; }
+        public List<QueryPerson> Candidates { get; }
         public QueryTaskOwner? TaskOwner { get; set; }
         public List<QueryRequestAction>? Actions { get; set; }
         public List<QueryConversationMessage>? Conversation { get; set; }
@@ -148,6 +150,8 @@ namespace Fusion.Resources.Domain
                 actionCount = value;
             }
         }
+
+        public QuerySecondOpinionCounts? SecondOpinionCounts { get; set; }
 
         internal QueryResourceAllocationRequest WithResolvedOriginalPosition(ApiPositionV2 position, Guid? positionInstanceId)
         {

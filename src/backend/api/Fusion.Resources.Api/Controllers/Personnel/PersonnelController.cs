@@ -28,7 +28,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpGet("resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonnel([FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiExternalPersonnelPerson>>> GetPersonnel([FromQuery] ODataQueryParams? query)
         {
             #region Authorization
 
@@ -47,11 +47,11 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            if (query is null) query = new ODataQueryParams { Top = 1000 };
+            query ??= new ODataQueryParams { Top = 1000 };
             if (query.Top > 1000) return ApiErrors.InvalidPageSize("Max page size is 1000");
 
-            var externalPersonell = await DispatchAsync(new GetExternalPersonnel(query));
-            var apiModelItems = externalPersonell.Select(ep => new ApiExternalPersonnelPerson(ep));
+            var externalPersonnel = await DispatchAsync(new GetExternalPersonnel(query));
+            var apiModelItems = externalPersonnel.Select(ep => new ApiExternalPersonnelPerson(ep));
 
             return new ApiCollection<ApiExternalPersonnelPerson>(apiModelItems);
         }
@@ -112,7 +112,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var contractPersonnel = await DispatchAsync(new GetContractPersonnelItem(contractIdentifier, personnelId));
 
-            if (contractPersonnel == null)
+            if (contractPersonnel?.AzureUniqueId == null)
             {
                 return FusionApiError.NotFound(personIdentifier, "Could not locate personnel");
             }
@@ -155,7 +155,7 @@ namespace Fusion.Resources.Api.Controllers
             }
             catch (PersonNotFoundError)
             {
-                return ApiErrors.NotFound($"Personnel with given id not found", "resources/personnel/{personIdentifier}");
+                return ApiErrors.NotFound("Personnel with given id not found", "resources/personnel/{personIdentifier}");
             }
 
             async Task<bool> ConsiderRemovedProfileAsync()
@@ -195,15 +195,12 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                using (var scope = await BeginTransactionAsync())
-                {
+                await using var scope = await BeginTransactionAsync();
+                var newPersonnel = await DispatchAsync(createCommand);
+                await scope.CommitAsync();
 
-                    var newPersonnel = await DispatchAsync(createCommand);
-                    await scope.CommitAsync();
-
-                    var item = new ApiContractPersonnel(newPersonnel);
-                    return Created($"/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{item.Mail}", item);
-                }
+                var item = new ApiContractPersonnel(newPersonnel);
+                return Created($"/projects/{projectIdentifier}/contracts/{contractIdentifier}/resources/personnel/{item.Mail}", item);
             }
             catch (InvalidOperationException ex)
             {
@@ -232,8 +229,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var editor = User.GetAzureUniqueIdOrThrow();
-            var itemsToCreate = requests.ToList();
+            User.GetAzureUniqueIdOrThrow();
 
             var results = new List<ApiBatchItemResponse<ApiContractPersonnel>>();
 
@@ -242,19 +238,17 @@ namespace Fusion.Resources.Api.Controllers
                 var createCommand = new CreateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, request.Mail);
                 request.LoadCommand(createCommand);
 
-                using (var scope = await BeginTransactionAsync())
+                await using var scope = await BeginTransactionAsync();
+                try
                 {
-                    try
-                    {
-                        var newPersonnel = await DispatchAsync(createCommand);
-                        await scope.CommitAsync();
-                        results.Add(new ApiBatchItemResponse<ApiContractPersonnel>(new ApiContractPersonnel(newPersonnel), HttpStatusCode.Created));
-                    }
-                    catch (Exception ex)
-                    {
-                        results.Add(new ApiBatchItemResponse<ApiContractPersonnel>(HttpStatusCode.BadRequest, ex.Message));
-                        await scope.RollbackAsync();
-                    }
+                    var newPersonnel = await DispatchAsync(createCommand);
+                    await scope.CommitAsync();
+                    results.Add(new ApiBatchItemResponse<ApiContractPersonnel>(new ApiContractPersonnel(newPersonnel), HttpStatusCode.Created));
+                }
+                catch (Exception ex)
+                {
+                    results.Add(new ApiBatchItemResponse<ApiContractPersonnel>(HttpStatusCode.BadRequest, ex.Message));
+                    await scope.RollbackAsync();
                 }
             }
 
@@ -317,15 +311,13 @@ namespace Fusion.Resources.Api.Controllers
             var updateCommand = new UpdateContractPersonnel(projectIdentifier.ProjectId, contractIdentifier, personIdentifier);
             request.LoadCommand(updateCommand);
 
-            using (var scope = await BeginTransactionAsync())
-            {
-                var updatedPersonnel = await DispatchAsync(updateCommand);
+            await using var scope = await BeginTransactionAsync();
+            var updatedPersonnel = await DispatchAsync(updateCommand);
 
-                await scope.CommitAsync();
+            await scope.CommitAsync();
 
-                var item = new ApiContractPersonnel(updatedPersonnel);
-                return item;
-            }
+            var item = new ApiContractPersonnel(updatedPersonnel);
+            return item;
         }
 
 
@@ -379,7 +371,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            using (var scope = await BeginTransactionAsync())
+            await using (var scope = await BeginTransactionAsync())
             {
                 var mails = request.Personnel.Select(p => (p.PersonnelId, p.PreferredContactMail));
 
@@ -462,7 +454,7 @@ namespace Fusion.Resources.Api.Controllers
                 var updatedPersonnel = await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
 
-                var item = new ApiContractPersonnel(updatedPersonnel);
+                var item = new ApiContractPersonnel(updatedPersonnel!);
                 return item;
             }
             catch (InvalidOperationException ioe)

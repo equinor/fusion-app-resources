@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,7 +36,7 @@ namespace Fusion.Resources.Domain.Services
                 var response = await client.GetAsync("/companies");
                 var content = await response.Content.ReadAsStringAsync();
 
-                companies = JsonConvert.DeserializeObject<List<Fusion.ApiClients.Org.ApiCompanyV2>>(content);
+                companies = JsonConvert.DeserializeObject<List<ApiCompanyV2>>(content)!;
             }
 
             return companies.FirstOrDefault(c => c.Id == companyId);

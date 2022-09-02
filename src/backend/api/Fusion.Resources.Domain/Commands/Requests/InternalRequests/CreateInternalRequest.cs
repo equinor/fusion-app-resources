@@ -139,10 +139,7 @@ namespace Fusion.Resources.Domain.Commands
 
                 if (proposedPerson is not null)
                 {
-                    item.ProposedPerson.AzureUniqueId = proposedPerson.AzureUniqueId;
-                    item.ProposedPerson.Mail = proposedPerson.Mail;
-                    item.ProposedPerson.HasBeenProposed = true;
-                    item.ProposedPerson.ProposedAt = DateTimeOffset.Now;
+                    item.ProposePerson(proposedPerson);
                 }
 
                 dbContext.ResourceAllocationRequests.Add(item);

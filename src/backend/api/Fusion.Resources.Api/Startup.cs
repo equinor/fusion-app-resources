@@ -122,7 +122,6 @@ namespace Fusion.Resources.Api
             services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) => { module.EnableSqlCommandTextInstrumentation = true; });
 
             services.AddCommonLibHttpClient();
-            services.AddLineOrgHttpClient();
             services.AddMemoryCache();
         }
 

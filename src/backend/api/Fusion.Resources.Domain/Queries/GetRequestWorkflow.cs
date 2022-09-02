@@ -32,10 +32,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Include(wf => wf.TerminatedBy)
                     .FirstOrDefaultAsync(wf => wf.RequestId == request.RequestId, cancellationToken);
 
-                if (workflow is null)
-                    return null;
-
-                return new QueryWorkflow(workflow);
+                return workflow is null ? null : new QueryWorkflow(workflow);
             }
         }
     }

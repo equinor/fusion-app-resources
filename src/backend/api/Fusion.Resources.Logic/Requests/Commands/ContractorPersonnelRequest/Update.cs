@@ -76,8 +76,8 @@ namespace Fusion.Resources.Logic.Commands
                     this.mediator = mediator;
                 }
 
-                DbContractorRequest dbRequest = null!;
-                DbContractPersonnel contractPersonnel = null!;
+                DbContractorRequest? dbRequest;
+                DbContractPersonnel? contractPersonnel;
 
                 public async Task ValidateAsync(Update request)
                 {
@@ -107,13 +107,13 @@ namespace Fusion.Resources.Logic.Commands
 
                     bool hasChanges = false;
 
-                    hasChanges |= UpdatePerson(request, dbRequest);
-                    hasChanges |= UpdatePosition(request, dbRequest);
-                    hasChanges |= UpdateRequest(request, dbRequest);
+                    hasChanges |= UpdatePerson(request, dbRequest!);
+                    hasChanges |= UpdatePosition(request, dbRequest!);
+                    hasChanges |= UpdateRequest(request, dbRequest!);
 
                     if (hasChanges)
                     {
-                        dbRequest.Updated = DateTime.Now;
+                        dbRequest!.Updated = DateTime.Now;
                         dbRequest.UpdatedBy = request.Editor.Person;
                         dbRequest.LastActivity = DateTime.Now;
 
@@ -124,21 +124,21 @@ namespace Fusion.Resources.Logic.Commands
                     return personnelRequest;
                 }
 
-                private bool UpdatePerson(Update request, DbContractorRequest dbRequest)
+                private bool UpdatePerson(Update request, DbContractorRequest dbContractorRequest)
                 {
-                    return request.Person.IfSet(p => dbRequest.Person = contractPersonnel);
+                    return request.Person.IfSet(p => dbContractorRequest.Person = contractPersonnel!);
                 }
 
-                private bool UpdateRequest(Update request, DbContractorRequest dbRequest)
+                private bool UpdateRequest(Update request, DbContractorRequest dbContractorRequest)
                 {
                     bool hasChanges = false;
 
-                    hasChanges |= request.Description.IfSet(x => dbRequest.Description = x);
+                    hasChanges |= request.Description.IfSet(x => dbContractorRequest.Description = x);
 
                     return hasChanges;
                 }
 
-                private bool UpdatePosition(Update request, DbContractorRequest dbRequest)
+                private bool UpdatePosition(Update request, DbContractorRequest dbContractorRequest)
                 {
                     bool hasChanges = false;
 
@@ -147,15 +147,15 @@ namespace Fusion.Resources.Logic.Commands
                         hasChanges = true;
                         var position = request.Position.Value;
 
-                        dbRequest.Position.AppliesFrom = position.AppliesFrom;
-                        dbRequest.Position.AppliesTo = position.AppliesTo;
-                        dbRequest.Position.BasePositionId = position.BasePositionId;
-                        dbRequest.Position.Name = position.PositionName;
-                        dbRequest.Position.Workload = position.Workload;
-                        dbRequest.Position.Obs = position.Obs;
+                        dbContractorRequest.Position.AppliesFrom = position.AppliesFrom;
+                        dbContractorRequest.Position.AppliesTo = position.AppliesTo;
+                        dbContractorRequest.Position.BasePositionId = position.BasePositionId;
+                        dbContractorRequest.Position.Name = position.PositionName;
+                        dbContractorRequest.Position.Workload = position.Workload;
+                        dbContractorRequest.Position.Obs = position.Obs;
                     }
 
-                    hasChanges |= request.PositionTaskOwner.IfSet(x => dbRequest.Position.TaskOwner = new DbContractorRequest.PositionTaskOwner { PositionId = x });
+                    hasChanges |= request.PositionTaskOwner.IfSet(x => dbContractorRequest.Position.TaskOwner = new DbContractorRequest.PositionTaskOwner { PositionId = x });
 
                     return hasChanges;
                 }
