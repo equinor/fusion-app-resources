@@ -1,6 +1,7 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Commands.Tasks;
@@ -43,10 +44,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
 
                     or.BeRequestCreator(requestId);
@@ -108,10 +111,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -163,10 +168,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -208,10 +215,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                                 includeParents: false,
                                 includeDescendants: true
                             );
+                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                         }
                         else
                         {
                             or.BeResourceOwner();
+                            or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                         }
                     }
                 });
@@ -279,10 +288,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                                         includeParents: false,
                                         includeDescendants: true
                                     );
+                                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                                 }
                                 else
                                 {
                                     or.BeResourceOwner();
+                                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                                 }
                             }
                         });

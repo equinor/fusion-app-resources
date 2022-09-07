@@ -228,7 +228,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 title = title ?? $"Test note {Guid.NewGuid()}",
                 content = $"New content {Guid.NewGuid()}",
-                isShared = isShared
+                isShared
             }, new { id = Guid.Empty, title = string.Empty, content = string.Empty, isShared = false });
 
             return resp.Value.id;

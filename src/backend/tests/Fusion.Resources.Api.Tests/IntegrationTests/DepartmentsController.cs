@@ -132,7 +132,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task DeleteDepartmentResponsible_ShouldGive404_WhenNotExisting()
+        public async Task DeleteDepartmentResponsible_ShouldBeIdempotent()
         {
             var testDepartment = "TPD LIN ORG TST";
             fixture.EnsureDepartment(testDepartment);
@@ -140,10 +140,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientDeleteAsync<dynamic>(
+
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            {
+                DateFrom = "2021-02-02",
+                DateTo = "2022-02-05",
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+
+            resp = await Client.TestClientDeleteAsync<dynamic>(
                 $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
             );
-            resp.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+            resp = await Client.TestClientDeleteAsync<dynamic>(
+                $"/departments/{testDepartment}/delegated-resource-owner/{fakeResourceOwner.AzureUniqueId}"
+            );
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
         [Fact]

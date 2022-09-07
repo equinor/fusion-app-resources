@@ -86,6 +86,14 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
+        public static IAuthorizationRequirementRule HaveRole(this IAuthorizationRequirementRule builder, string role)
+        {
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireRole(role)
+                .Build();
+            return builder.AddRule((auth, user) => auth.AuthorizeAsync(user,policy));
+        }
+
         public static IAuthorizationRequirementRule BeSiblingResourceOwner(this IAuthorizationRequirementRule builder, DepartmentPath path)
         {
             var policy = new AuthorizationPolicyBuilder()

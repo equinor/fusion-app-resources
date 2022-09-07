@@ -44,21 +44,18 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var actualDept = "TPD PRD TST ABC";
             var currentDelegatedDept = "TPD PRD TST ASD QWE";
-            var futureDelegatedDept = "TPD PRD TST FUT WFD";
-            var previousDelegatedDept = "TPD PRD TST PRV WFD";
+            var expiredDelegatedDept = "TPD PRD TST PRV WFD";
 
             fixture.EnsureDepartment(actualDept);
             fixture.EnsureDepartment(currentDelegatedDept);
-            fixture.EnsureDepartment(futureDelegatedDept);
-            fixture.EnsureDepartment(previousDelegatedDept);
+            fixture.EnsureDepartment(expiredDelegatedDept);
 
 
             using (var adminScope = fixture.AdminScope())
             {
                 var client = fixture.ApiFactory.CreateClient();
                 await client.AddDelegatedDepartmentOwner(testUser, currentDelegatedDept, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
-                await client.AddDelegatedDepartmentOwner(testUser, futureDelegatedDept, DateTime.Now.AddDays(7), DateTime.Now.AddDays(14));
-                await client.AddDelegatedDepartmentOwner(testUser, previousDelegatedDept, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+                await client.AddDelegatedDepartmentOwner(testUser, expiredDelegatedDept, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
             }
 
             using (var userScope = fixture.UserScope(testUser))
@@ -72,8 +69,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
                 resp.Should().BeSuccessfull();
                 resp.Value.responsibilityInDepartments.Should().Contain(currentDelegatedDept);
-                resp.Value.responsibilityInDepartments.Should().NotContain(futureDelegatedDept);
-                resp.Value.responsibilityInDepartments.Should().NotContain(previousDelegatedDept);
+                resp.Value.responsibilityInDepartments.Should().NotContain(expiredDelegatedDept);
             }
         }
 

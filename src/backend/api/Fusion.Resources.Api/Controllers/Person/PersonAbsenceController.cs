@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Fusion.Resources.Domain.Queries;
@@ -38,7 +39,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
                 r.LimitedAccessWhen(x =>
                 {
@@ -53,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
 
-            var returnItems = personAbsence.Select(p => authResult.LimitedAuth 
+            var returnItems = personAbsence.Select(p => authResult.LimitedAuth
                 ? ApiPersonAbsence.CreateWithoutConfidentialTaskInfo(p)
                 : ApiPersonAbsence.CreateWithConfidentialTaskInfo(p)
             );
@@ -84,7 +88,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
                 r.LimitedAccessWhen(x =>
                 {
@@ -128,7 +135,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
             });
 
@@ -176,7 +186,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
             });
 
@@ -218,7 +231,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
             });
 
@@ -242,7 +258,7 @@ namespace Fusion.Resources.Api.Controllers
             var profile = await DispatchAsync(new GetPersonProfile(id));
             if (profile is null)
                 return ApiErrors.NotFound($"Person with id '{personId}' could not be found.");
-            
+
             var getAuthResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen()
@@ -253,7 +269,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
             });
             if (getAuthResult.Success) allowedVerbs.Add("GET");
@@ -266,7 +285,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
             });
 
@@ -296,7 +318,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
             });
             if (getAuthResult.Success) allowedVerbs.Add("GET");
@@ -309,7 +334,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!String.IsNullOrEmpty(profile.FullDepartment))
+                    {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).Parent(), includeParents: false, includeDescendants: true);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+                    }
                 });
             });
 

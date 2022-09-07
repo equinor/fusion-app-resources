@@ -1,6 +1,7 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
 using Microsoft.AspNetCore.Authorization;
@@ -46,6 +47,7 @@ namespace Fusion.Resources.Api.Controllers
         {
             #region Authorization
 
+            var sector = new DepartmentPath(fullDepartmentString).Parent();
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AnyOf(or =>
@@ -54,7 +56,8 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControl();
 
                     or.FullControlInternal();
-                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).Parent(), includeParents: false, includeDescendants: true);
+                    or.BeResourceOwner(sector, includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), AccessRoles.ResourceOwner);
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
                 });
                 r.LimitedAccessWhen(x =>
@@ -130,6 +133,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
                     or.BeResourceOwner(new DepartmentPath(sectorPath).Parent(), includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(sectorPath), AccessRoles.ResourceOwner);
                 });
                 r.LimitedAccessWhen(x =>
                 {
@@ -186,7 +190,7 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult<ApiInternalPersonnelPerson>> GetPersonnelAllocation(string fullDepartmentString, string personIdentifier, [FromQuery] bool includeCurrentAllocations = false)
         {
             #region Authorization
-
+            var sector = new DepartmentPath(fullDepartmentString).Parent();
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AnyOf(or =>
@@ -196,7 +200,8 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
 
-                    or.BeResourceOwner(new DepartmentPath(fullDepartmentString).Parent(), includeParents: false, includeDescendants: true);
+                    or.BeResourceOwner(sector, includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), AccessRoles.ResourceOwner);
                 });
                 r.LimitedAccessWhen(x =>
                 {
@@ -240,6 +245,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControlInternal();
 
                     or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), AccessRoles.ResourceOwner);
                 });
             });
 
@@ -280,6 +286,7 @@ namespace Fusion.Resources.Api.Controllers
                         or.OrgChartReadAccess(projectIdentifier.ProjectId);
 
                     or.BeResourceOwner();
+                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                 });
             });
 

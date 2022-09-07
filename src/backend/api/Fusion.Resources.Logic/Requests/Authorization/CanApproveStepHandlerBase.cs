@@ -1,5 +1,6 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Api.Authorization.Requirements;
 using Fusion.Resources.Authorization.Requirements;
 using Fusion.Resources.Database.Entities;
@@ -55,7 +56,10 @@ namespace Fusion.Resources.Logic.Requests
                             or.BeResourceOwner(path.Parent(), includeDescendants: true);
 
                         if (row.IsResourceOwnerAllowed)
+                        {
                             or.BeResourceOwner(request.AssignedDepartment, includeDescendants: false);
+                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
+                        }
                     }
 
                     if (row.IsCreatorAllowed)

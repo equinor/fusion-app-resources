@@ -40,6 +40,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -119,6 +120,7 @@ namespace Fusion.Resources.Api.Controllers
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
