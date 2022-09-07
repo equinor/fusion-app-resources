@@ -38,10 +38,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                                 && x.ResponsibleAzureObjectId == request.delegatedOwnerAzureUniqueId);
                 db.DepartmentResponsibles.RemoveRange(query);
 
-                var wasDeleted = await db.SaveChangesAsync(cancellationToken) > 0;
-
-                if (!wasDeleted)
-                    return false;
+                await db.SaveChangesAsync(cancellationToken);
 
                 var deleted = await rolesClient.DeleteRolesAsync(
                     new PersonIdentifier(request.delegatedOwnerAzureUniqueId),
