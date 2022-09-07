@@ -44,12 +44,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
-                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
 
                     or.BeRequestCreator(requestId);
@@ -111,12 +111,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), Roles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
-                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -168,12 +168,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), Roles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
-                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -215,12 +215,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                                 includeParents: false,
                                 includeDescendants: true
                             );
-                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), Roles.ResourceOwner);
+                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                         }
                         else
                         {
                             or.BeResourceOwner();
-                            or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                            or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                         }
                     }
                 });
@@ -288,12 +288,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                                         includeParents: false,
                                         includeDescendants: true
                                     );
-                                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), Roles.ResourceOwner);
+                                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                                 }
                                 else
                                 {
                                     or.BeResourceOwner();
-                                    or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                                 }
                             }
                         });

@@ -38,12 +38,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
-                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -84,12 +84,12 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
                         or.BeResourceOwner();
-                        or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -159,10 +159,10 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     or.BeResourceOwner();
-                    or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                 });
             });
 
@@ -227,7 +227,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        and.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
+                        and.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {
@@ -306,7 +306,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                             includeParents: false,
                             includeDescendants: true
                         );
-                        and.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), Roles.ResourceOwner);
+                        and.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requestItem.AssignedDepartment), AccessRoles.ResourceOwner);
                     }
                     else
                     {

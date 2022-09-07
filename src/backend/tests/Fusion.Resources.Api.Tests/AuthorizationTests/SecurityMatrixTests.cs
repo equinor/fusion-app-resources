@@ -840,7 +840,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             RolesClientMock.AddPersonRole(testUser.AzureUniqueId.Value, new Fusion.Integration.Roles.RoleAssignment
             {
                 Identifier = $"{Guid.NewGuid()}",
-                RoleName = Roles.ResourceOwner,
+                RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", scope),
                 ValidTo = DateTime.UtcNow.AddDays(1),
                 Source = "Test project"
@@ -850,7 +850,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             {
                 new ApiPersonRoleV3
                 {
-                    Name = Roles.ResourceOwner,
+                    Name = AccessRoles.ResourceOwner,
                     Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = scope },
                     ActiveToUtc = DateTime.UtcNow.AddDays(1),
                     IsActive = true,

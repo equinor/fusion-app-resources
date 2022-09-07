@@ -58,7 +58,7 @@ namespace Fusion.Resources.Logic.Requests
                         if (row.IsResourceOwnerAllowed)
                         {
                             or.BeResourceOwner(request.AssignedDepartment, includeDescendants: false);
-                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), Roles.ResourceOwner);
+                            or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.AssignedDepartment), AccessRoles.ResourceOwner);
                         }
                     }
 

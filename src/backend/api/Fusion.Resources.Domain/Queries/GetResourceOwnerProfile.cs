@@ -130,7 +130,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)
-                    .WhereRoleName(Roles.ResourceOwner)
+                    .WhereRoleName(AccessRoles.ResourceOwner)
                 );
 
                 departmentsWithResponsibility.AddRange(roleAssignedDepartments

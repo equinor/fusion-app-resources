@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
                     or.BeResourceOwner(sector, includeParents: false, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), AccessRoles.ResourceOwner);
                     // - Fusion.Resources.Department.ReadAll in any department scope upwards in line org.
                 });
                 r.LimitedAccessWhen(x =>
@@ -133,7 +133,7 @@ namespace Fusion.Resources.Api.Controllers
 
                     or.FullControlInternal();
                     or.BeResourceOwner(new DepartmentPath(sectorPath).Parent(), includeParents: false, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(sectorPath), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(sectorPath), AccessRoles.ResourceOwner);
                 });
                 r.LimitedAccessWhen(x =>
                 {
@@ -201,7 +201,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControlInternal();
 
                     or.BeResourceOwner(sector, includeParents: false, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), AccessRoles.ResourceOwner);
                 });
                 r.LimitedAccessWhen(x =>
                 {
@@ -245,7 +245,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.FullControlInternal();
 
                     or.BeResourceOwner(new DepartmentPath(fullDepartmentString).GoToLevel(2), includeParents: false, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(fullDepartmentString), AccessRoles.ResourceOwner);
                 });
             });
 
@@ -286,7 +286,7 @@ namespace Fusion.Resources.Api.Controllers
                         or.OrgChartReadAccess(projectIdentifier.ProjectId);
 
                     or.BeResourceOwner();
-                    or.HaveAnyOrgUnitScopedRole(Roles.ResourceOwner);
+                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                 });
             });
 

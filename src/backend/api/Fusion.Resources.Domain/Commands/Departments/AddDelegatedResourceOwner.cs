@@ -1,4 +1,6 @@
 ﻿using Fusion.Integration.Roles;
+using Fusion.Resources.Database;
+using Fusion.Resources.Database.Entities;
 using MediatR;
 using System;
 using System.Threading;
@@ -20,22 +22,35 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
         public class Handler : IRequestHandler<AddDelegatedResourceOwner>
         {
-            const string ResourceOwnerRole = "Fusion.Resources.ResourceOwner";
+            private readonly ResourcesDbContext db;
             private readonly IFusionRolesClient rolesClient;
 
-            public Handler(IFusionRolesClient rolesClient)
+            public Handler(ResourcesDbContext db, IFusionRolesClient rolesClient)
             {
+                this.db = db;
                 this.rolesClient = rolesClient;
             }
 
             public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
-                var roleAssignment = await rolesClient.AssignRoleAsync(request.ResponsibleAzureUniqueId, new RoleAssignment
+                var delegatedResourceOwner = new DbDepartmentResponsible
+                {
+                    DateCreated = DateTime.UtcNow,
+                    DateFrom = request.DateFrom,
+                    DateTo = request.DateTo,
+                    DepartmentId = request.DepartmentId,
+                    ResponsibleAzureObjectId = request.ResponsibleAzureUniqueId,
+                };
+
+                db.DepartmentResponsibles.Add(delegatedResourceOwner);
+                await db.SaveChangesAsync(cancellationToken);
+
+                await rolesClient.AssignRoleAsync(request.ResponsibleAzureUniqueId, new RoleAssignment
                 {
                     Identifier = Guid.NewGuid().ToString(),
-                    RoleName = Roles.ResourceOwner,
+                    RoleName = AccessRoles.ResourceOwner,
                     Scope = new RoleAssignment.RoleScope("OrgUnit", request.DepartmentId),
-                    Source = "DelegatedResourceOwner",
+                    Source = "Fusion.Resources.DelegatedResourceOwner",
                     ValidTo = request.DateTo
                 });
 

@@ -86,7 +86,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(user.fullDepartment);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
 
                 // Limited access to other resource owners, only return shared notes.
@@ -125,7 +125,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(user.fullDepartment);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
             });
 
@@ -164,7 +164,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(user.fullDepartment);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
             });
 
@@ -198,7 +198,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(user.fullDepartment);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), Roles.ResourceOwner);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(user.fullDepartment), AccessRoles.ResourceOwner);
                 });
             });
 
