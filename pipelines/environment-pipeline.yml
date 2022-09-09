@@ -81,6 +81,26 @@ stages:
               clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
               sqlServer: fusion-test-sqlserver
 
+- stage: DeployTR
+  displayName: TR Azure Infra
+  pool: Private Docker VMSS  
+  dependsOn: DeployCI
+  condition: succeeded()
+  jobs:
+  - deployment: DeployInfra
+    environment: fusion-tr
+    variables:
+      environmentName: tr
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: templates/arm-environments.yml
+            parameters:
+              environment: $(environmentName)
+              clientId: 5a842df8-3238-415d-b168-9f16a6a6031b
+              sqlServer: fusion-test-sqlserver
+
 - stage: DeployPROD
   displayName: PROD Azure Infra
   pool: Private Docker VMSS  
