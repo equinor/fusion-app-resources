@@ -131,6 +131,48 @@ stages:
                   action: publish
                   appKey: resources
 
+  # TR DEPLOYMENT
+  ###################################################################################################################
+  - stage: TR
+    displayName: Deploy Resources TR
+    dependsOn: CI
+    condition: succeeded()
+    
+    jobs:
+      - deployment: DeployApp
+        displayName: 'Deploy resources'
+        pool: Private Docker VMSS
+        environment: fusion-tr
+        variables:
+          portalUrl: 'https://pro-s-portal-tr.azurewebsites.net'
+          tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+        
+        strategy:
+          runOnce:
+            deploy:
+              steps: 
+              - task: FusionApp@2
+                displayName: 'Deploying app bundle for resources'
+                condition: succeeded()
+                inputs:
+                  fusionCredentials: 'Fusion test'
+                  tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                  portalUrl: 'https://pro-s-portal-tr.azurewebsites.net'
+                  action: deploy
+                  appKey: resources
+                  bundlePath: '$(pipeline.workspace)/app-bundle/resources.zip'
+                  ignoreVersionConflict: true
+                  forceReplaceExisting: true
+              - task: FusionApp@2
+                displayName: 'Publish app bundle for resources'
+                condition: succeeded()
+                inputs:
+                  fusionCredentials: 'Fusion test'
+                  tokenResource: '5a842df8-3238-415d-b168-9f16a6a6031b'
+                  portalUrl: 'https://pro-s-portal-tr.azurewebsites.net'
+                  action: publish
+                  appKey: resources
+                  
   # PROD DEPLOYMENT
   ###################################################################################################################
   - stage: PROD
