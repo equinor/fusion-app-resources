@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Fusion.Resources.Api
 {
@@ -23,6 +19,7 @@ namespace Fusion.Resources.Api
                     if (ShouldLoadConfiguration())
                     {
                         configBuilder.AddJsonFile("/app/secrets/appsettings.secrets.yaml", optional: true);
+                        configBuilder.AddJsonFile("/app/config/appsettings.json", optional: true); // to be able to override settings by using a config map in kubernetes
 
                         AddKeyVault(ctx, configBuilder);
 
@@ -59,7 +56,7 @@ namespace Fusion.Resources.Api
         private static bool ShouldLoadConfiguration()
         {
             var integrationTestMarker = Environment.GetEnvironmentVariable("INTEGRATION_TEST_RUN");
-            
+
             if (string.IsNullOrEmpty(integrationTestMarker))
                 return true;
 
