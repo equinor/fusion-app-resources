@@ -123,6 +123,10 @@
               "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('settings').secretIds.serviceBus, ')')]"
             },
             {
+              "name": "Endpoints_lineorg",
+              "value": "[parameters('settings').endpoints.lineorg]"
+            },
+            {
               "name": "Endpoints_org",
               "value": "[parameters('settings').endpoints.org]"
             },

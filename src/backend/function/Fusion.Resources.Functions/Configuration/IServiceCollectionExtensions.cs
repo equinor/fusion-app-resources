@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class IServiceCollectionExtensions
     {
-        public static IServiceCollection AddServiceResolver(this IServiceCollection services)
+        public static IServiceCollection AddConfigServiceResolver(this IServiceCollection services)
         {
             services.AddSingleton<IServiceDiscovery, ConfigServiceResolver>();
 
@@ -46,17 +46,20 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddResourcesClient();
             builder.AddNotificationsClient();
             builder.AddContextClient();
+            builder.AddLineOrgClient();
 
             return services;
         }
 
-        public static IServiceCollection AddNotificationServices(this IServiceCollection services)
+        public static IServiceCollection AddRequiredResourcesFunctionsServices(this IServiceCollection services)
         {
             services.AddSingleton<TableStorageClient>();
             services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
             services.AddScoped<INotificationApiClient, NotificationApiClient>();
             services.AddScoped<ISentNotificationsTableClient, SentNotificationsTableClient>();
             services.AddScoped<IContextApiClient, ContextApiClient>();
+            services.AddScoped<ILineOrgApiClient, LineOrgApiClient>();
+            services.AddScoped<IPeopleApiClient, PeopleApiClient>();
             services.AddScoped<IUrlResolver, UrlResolver>();
             services.AddScoped<RequestNotificationSender>();
 

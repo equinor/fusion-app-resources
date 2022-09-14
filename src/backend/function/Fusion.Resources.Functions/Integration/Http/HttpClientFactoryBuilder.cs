@@ -76,12 +76,25 @@ namespace Fusion.Resources.Functions.Integration.Http
         {
             services.AddTransient<NotificationsHttpHandler>();
             services.AddHttpClient(HttpClientNames.Application.Notifications, client =>
-            {
-                client.BaseAddress = new Uri("https://fusion-notifications");
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            })
-            .AddHttpMessageHandler<NotificationsHttpHandler>()
-            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+                {
+                    client.BaseAddress = new Uri("https://fusion-notifications");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<NotificationsHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+        public HttpClientFactoryBuilder AddLineOrgClient()
+        {
+            services.AddTransient<LineOrgHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.LineOrg, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-notifications");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<LineOrgHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
 
             return this;
         }
