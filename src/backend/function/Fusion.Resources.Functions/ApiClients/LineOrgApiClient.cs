@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -20,7 +21,9 @@ public class LineOrgApiClient : ILineOrgApiClient
         var data =
             await lineOrgClient.GetAsJsonAsync<InternalCollection<DepartmentRef>>($"/org-units?$top={int.MaxValue}");
 
-        return data.Value.Select(x => x.FullDepartment).ToList();
+        return data.Value
+            .Where(x => !string.IsNullOrEmpty(x.FullDepartment))
+            .Select(x => x.FullDepartment!).ToList();
     }
 
     internal class DepartmentRef

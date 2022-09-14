@@ -1,4 +1,5 @@
-﻿using Fusion.ApiClients.Org;
+﻿#nullable enable
+using Fusion.ApiClients.Org;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -43,11 +44,11 @@ namespace Fusion.Resources.Functions.ApiClients
         public class ProjectContract
         {
             public Guid Id { get; set; }
-            public string Name { get; set; }
-            public string ContractNumber { get; set; }
+            public string Name { get; set; } = null!;
+            public string ContractNumber { get; set; } = null!;
 
             public Guid ProjectId { get; set; }
-            public string ProjectName { get; set; }
+            public string ProjectName { get; set; } = null!;
 
             public Guid? ContractResponsiblePositionId { get; set; }
             public Guid? CompanyRepPositionId { get; set; }
@@ -57,47 +58,47 @@ namespace Fusion.Resources.Functions.ApiClients
 
         public class DelegatedRole
         {
-            public string Classification { get; set; }
+            public string Classification { get; set; } = null!;
 
-            public Person Person { get; set; }
+            public Person Person { get; set; } = null!;
         }
 
         public class Person
         {
             public Guid? AzureUniquePersonId { get; set; }
             public string? FullDepartment { get; set; }
-            public string Mail { get; set; }
+            public string? Mail { get; set; }
         }
 
 
         public class PersonnelRequestList
         {
-            public List<PersonnelRequest> Value { get; set; }
+            public List<PersonnelRequest> Value { get; set; } = null!;
         }
 
         public class PersonnelRequest
         {
             public Guid Id { get; set; }
 
-            public string State { get; set; }
+            public string? State { get; set; }
 
             public DateTimeOffset LastActivity { get; set; }
 
-            public RequestPosition Position { get; set; }
+            public RequestPosition? Position { get; set; }
 
-            public RequestPersonnel Person { get; set; }
+            public RequestPersonnel? Person { get; set; }
 
             public class RequestPosition
             {
-                public string Name { get; set; }
-                public DateTime AppliesFrom { get; set; }
-                public DateTime AppliesTo { get; set; }
+                public string? Name { get; set; }
+                public DateTime? AppliesFrom { get; set; }
+                public DateTime? AppliesTo { get; set; }
             }
 
             public class RequestPersonnel
             {
-                public string Name { get; set; }
-                public string Mail { get; set; }
+                public string? Name { get; set; }
+                public string? Mail { get; set; }
             }
         }
         public class ProjectReference
