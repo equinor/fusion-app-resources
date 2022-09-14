@@ -42,24 +42,30 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new HttpClientFactoryBuilder(services);
 
             builder.AddOrgClient();
-            builder.AddPeopleClient();
-            builder.AddResourcesClient();
-            builder.AddNotificationsClient();
-            builder.AddContextClient();
-            builder.AddLineOrgClient();
+            services.AddOrgApiClient(HttpClientNames.Application.Org);
 
+            builder.AddPeopleClient();
+            services.AddScoped<IPeopleApiClient, PeopleApiClient>();
+            
+            builder.AddResourcesClient();
+            services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
+
+            builder.AddNotificationsClient();
+            services.AddScoped<INotificationApiClient, NotificationApiClient>();
+
+            builder.AddContextClient();
+            services.AddScoped<IContextApiClient, ContextApiClient>();
+
+            builder.AddLineOrgClient();
+            services.AddScoped<ILineOrgApiClient, LineOrgApiClient>();
+            
             return services;
         }
 
-        public static IServiceCollection AddRequiredResourcesFunctionsServices(this IServiceCollection services)
+        public static IServiceCollection AddNotificationServices(this IServiceCollection services)
         {
             services.AddSingleton<TableStorageClient>();
-            services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
-            services.AddScoped<INotificationApiClient, NotificationApiClient>();
             services.AddScoped<ISentNotificationsTableClient, SentNotificationsTableClient>();
-            services.AddScoped<IContextApiClient, ContextApiClient>();
-            services.AddScoped<ILineOrgApiClient, LineOrgApiClient>();
-            services.AddScoped<IPeopleApiClient, PeopleApiClient>();
             services.AddScoped<IUrlResolver, UrlResolver>();
             services.AddScoped<RequestNotificationSender>();
 
