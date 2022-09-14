@@ -20,7 +20,6 @@ namespace Fusion.Resources.Functions
             builder.Services.AddNotificationServices();
             builder.Services.AddConfigServiceResolver();
             builder.Services.AddHttpClients();
-            builder.Services.AddOrgApiClient(HttpClientNames.Application.Org);
         }
     }
 }

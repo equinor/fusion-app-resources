@@ -30,17 +30,17 @@ public class InternalRequestsFunctions
     {
         log.LogTrace($"Next occurrences: {timer.FormatNextOccurrences(3)}");
 
-        var projects = await resourcesClient.GetProjectsAsync();
-        var depList = await lineOrgClient.GetOrgUnitDepartmentsAsync();
+        var activeProjects = await resourcesClient.GetProjectsAsync();
+        var activeDepartments = await lineOrgClient.GetOrgUnitDepartmentsAsync();
 
-        foreach (var project in projects)
+        foreach (var project in activeProjects)
         {
             log.LogDebug($"Processing project {project.Id}, fetching requests");
 
             var requestsByProject = await resourcesClient.GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(project);
 
             // Should only process requests not having a valid department
-            foreach (var item in requestsByProject.Where(x => depList.Contains(x.AssignedDepartment) == false))
+            foreach (var item in requestsByProject.Where(x => activeDepartments.Contains(x.AssignedDepartment) == false))
             {
                 if (HasInvalidResourceAllocationRequestReferences(item))
                 {
