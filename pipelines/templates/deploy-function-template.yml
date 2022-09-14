@@ -42,6 +42,7 @@ steps:
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
           }
           endpoints = @{
+              lineorg = "https://pro-s-lineorg-$fusionEnvironment.azurewebsites.net"
               org = "https://pro-s-org-$fusionEnvironment.azurewebsites.net"
               people = "https://pro-s-people-$fusionEnvironment.azurewebsites.net"
               resources = "https://resources-api.$environment.fusion-dev.net/"
