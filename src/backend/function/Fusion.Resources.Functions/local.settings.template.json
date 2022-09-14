@@ -24,6 +24,7 @@
     "AzureWebJobs.profile-sync-event.Disabled": "true",
     "AzureWebJobs.provision-position-request.Disabled": "true",
     "AzureWebJobs.request-summary-notification.Disabled": "true",
-    "AzureWebJobs.sent-notifications-cleanup.Disabled": "true"
+    "AzureWebJobs.sent-notifications-cleanup.Disabled": "true",
+    "AzureWebJobs.internal-requests-reassign-invalid-departments.Disabled": "true" 
   }
 }

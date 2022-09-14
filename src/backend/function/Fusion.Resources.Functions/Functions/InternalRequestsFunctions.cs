@@ -47,7 +47,7 @@ public class InternalRequestsFunctions
                     continue;
                 }
 
-                if (item.ProposedPerson?.Person.AzureUniquePersonId is not null)
+                if (item.HasProposedPerson)
                 {
                     await ReAssignByProposedPersonAsync(item);
                 }
