@@ -939,6 +939,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
             await Client.ProposePersonAsync(normalRequest.Id, testUser);
+            await Client.AssignDepartmentAsync(normalRequest.Id, TestDepartmentId);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
 
             var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
@@ -947,6 +948,64 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             );
             response.Should().BeBadRequest();
         }
+
+        [Fact]
+        public async Task UpdateRequest_ShouldSetCandidates()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { candidates = new[] { new { testUser.Mail } } }
+            );
+            response.Should().BeSuccessfull();
+            response.Value.Candidates.Should().NotBeEmpty();
+            response.Value.Candidates.Should().Contain(x => x.Mail == testUser.Mail);
+        }
+
+        [Fact]
+        public async Task UpdateRequestWithSingleCandidate_ShouldSetProposedPerson()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{normalRequest.Id}",
+                new { candidates = new[] { new { testUser.Mail } } }
+            );
+            response.Should().BeSuccessfull();
+            response.Value.ProposedPerson!.Person.AzureUniquePersonId.Should().Be(testUser.AzureUniqueId!.Value);
+        }
+
+        [Fact]
+        public async Task ProposingRequest_ShouldExplainWhyFail_WhenManyCandidatesAndNotProposedPersonSet()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var request = await Client.CreateDefaultRequestAsync(testProject);
+            request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            request = await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
+
+            var candidate = fixture.AddProfile(FusionAccountType.Employee);
+
+
+            var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
+                $"/resources/requests/internal/{request.Id}",
+                new { candidates = new[] { new { testUser.Mail }, new { candidate.Mail } } }
+            );
+            response.Should().BeSuccessfull();
+
+            var resp = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/departments/{TestDepartmentId}/resources/requests/{normalRequest.Id}/approve", null);
+            resp.Should().BeBadRequest();
+            resp.Content.ToLowerInvariant().Should().Contain("candidate");
+        }
+
+
         #endregion
 
         #region Create request tests
@@ -1042,6 +1101,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = await Client.CreateDefaultRequestAsync(testProject);
             await Client.StartProjectRequestAsync(testProject, request.Id);
+            await Client.AssignDepartmentAsync(request.Id, TestDepartmentId);
             await Client.ProposePersonAsync(request.Id, testUser);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, request.Id);
             await Client.TaskOwnerApproveAsync(testProject, request.Id);

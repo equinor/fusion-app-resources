@@ -39,6 +39,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
 
@@ -83,6 +84,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                 });
             });
@@ -128,6 +130,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                     else
                     {
                         or.BeResourceOwner();
+                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                     }
                     or.HaveBasicRead(requestId);
                 });
@@ -154,23 +157,21 @@ namespace Fusion.Resources.Api.Controllers.Requests
             if (requestItem == null)
                 return ApiErrors.NotFound("Could not locate request", $"{requestId}");
 
+            var secondOpinion = (await DispatchAsync(new GetSecondOpinions()
+                .WithRequest(requestId)
+                .WithId(secondOpinionId)
+            )).Value.SingleOrDefault();
+
+            if (secondOpinion == null)
+                return ApiErrors.NotFound("Could not locate second opinion", $"{secondOpinionId}");
+
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
-                    if (requestItem.AssignedDepartment is not null)
-                    {
-                        or.BeResourceOwner(
-                            new DepartmentPath(requestItem.AssignedDepartment).GoToLevel(2),
-                            includeParents: false,
-                            includeDescendants: true
-                        );
-                    }
-                    else
-                    {
-                        or.BeResourceOwner();
-                    }
+                    or.CurrentUserIs(secondOpinion.CreatedBy.AzureUniqueId);
                 });
             });
 

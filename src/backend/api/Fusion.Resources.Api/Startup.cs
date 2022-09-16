@@ -1,7 +1,6 @@
 using FluentValidation.AspNetCore;
 using Fusion.Events;
 using Fusion.Integration.Authentication;
-using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.Authentication;
 using Fusion.Resources.Api.Middleware;

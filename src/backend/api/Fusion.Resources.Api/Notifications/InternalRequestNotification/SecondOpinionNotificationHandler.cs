@@ -44,8 +44,8 @@ namespace Fusion.Resources.Api.Notifications
             var arguments = new NotificationArguments("You have received an answer on a second opinion.") { AppKey = "personnel-allocation" };
             var card = await notificationBuilder
                 .AddTitle("You have received an answer on a second opinion.")
-                .AddTextBlockIf(notification.Response.AssignedTo.Name, notification?.Response?.AssignedTo is not null)
-                .AddTextBlockIf(notification?.Response?.Comment ?? string.Empty, notification?.Response?.Comment is not null)
+                .AddTextBlockIf("Response assigned to: " + notification.Response.AssignedTo.Name, notification?.Response?.AssignedTo is not null)
+                .AddTextBlockIf("Comment: " + notification?.Response?.Comment ?? string.Empty, notification?.Response?.Comment is not null)
                 .TryAddOpenPortalUrlAction("Check out the answer in the Personnel Allocation App", $"aka/goto-received-second-opinion/{notification?.SecondOpinion.Id}")
                 .BuildCardAsync();
 

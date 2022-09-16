@@ -1,6 +1,7 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +32,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -71,6 +73,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner();
+                    or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
                 });
             });
 
@@ -103,6 +106,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -152,6 +156,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -182,6 +187,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
@@ -212,6 +218,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
                 });
             });
             if (authResult.Unauthorized)
