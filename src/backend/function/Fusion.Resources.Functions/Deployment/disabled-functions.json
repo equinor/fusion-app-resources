@@ -2,7 +2,6 @@
   {
     "environment": "pr",
     "disabledFunctions": [
-      "profile-sync",
       "request-summary-notification",
       "sent-notifications-cleanup"
     ]
