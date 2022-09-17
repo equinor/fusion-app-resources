@@ -2,8 +2,7 @@
   {
     "environment": "pr",
     "disabledFunctions": [
-      "request-summary-notification",
-      "sent-notifications-cleanup"
+      
     ]
   }
 ]
