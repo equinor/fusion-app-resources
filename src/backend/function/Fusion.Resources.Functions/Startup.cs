@@ -16,9 +16,7 @@ namespace Fusion.Resources.Functions
                 opts.Secret = cfg.GetValue<string>("AzureAd_Secret");
                 opts.TenantId = cfg.GetValue<string>("AzureAd_TenantId");
             });
-
-            builder.Services.AddNotificationServices();
-
+            
             builder.Services.AddServiceResolver();
             builder.Services.AddHttpClients();
             builder.Services.AddOrgApiClient(HttpClientNames.Application.Org);
