@@ -123,28 +123,12 @@
               "value": "[concat('@Microsoft.KeyVault(SecretUri=', parameters('settings').secretIds.serviceBus, ')')]"
             },
             {
-              "name": "Endpoints_org",
-              "value": "[parameters('settings').endpoints.org]"
-            },
-            {
-              "name": "Endpoints_people",
-              "value": "[parameters('settings').endpoints.people]"
-            },
-            {
               "name": "Endpoints_resources",
               "value": "[parameters('settings').endpoints.resources]"
             },
             {
-              "name": "Endpoints_notifications",
-              "value": "[parameters('settings').endpoints.notifications]"
-            },
-            {
               "name": "Endpoints_context",
               "value": "[parameters('settings').endpoints.context]"
-            },
-            {
-              "name": "Endpoints_portal",
-              "value": "[parameters('settings').endpoints.portal]"
             },
             {
               "name": "Endpoints_Resources_Fusion",
