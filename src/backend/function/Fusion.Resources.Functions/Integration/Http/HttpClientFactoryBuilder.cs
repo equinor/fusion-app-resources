@@ -30,34 +30,7 @@ namespace Fusion.Resources.Functions.Integration.Http
             this.services = services;
         }
 
-        public HttpClientFactoryBuilder AddPeopleClient()
-        {
-            services.AddTransient<PeopleHttpHandler>();
-            services.AddHttpClient(HttpClientNames.Application.People, client =>
-            {
-                client.BaseAddress = new Uri("https://fusion-people");
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            })
-            .AddHttpMessageHandler<PeopleHttpHandler>()
-            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
-
-            return this;
-        }
-
-        public HttpClientFactoryBuilder AddOrgClient()
-        {
-            services.AddTransient<OrgHttpHandler>();
-            services.AddHttpClient(HttpClientNames.Application.Org, client =>
-            {
-                client.BaseAddress = new Uri("https://fusion-org");
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            })
-            .AddHttpMessageHandler<OrgHttpHandler>()
-            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
-
-            return this;
-        }
-
+  
         public HttpClientFactoryBuilder AddResourcesClient()
         {
             services.AddTransient<ResourcesHttpHandler>();
@@ -72,34 +45,7 @@ namespace Fusion.Resources.Functions.Integration.Http
             return this;
         }
 
-        public HttpClientFactoryBuilder AddNotificationsClient()
-        {
-            services.AddTransient<NotificationsHttpHandler>();
-            services.AddHttpClient(HttpClientNames.Application.Notifications, client =>
-            {
-                client.BaseAddress = new Uri("https://fusion-notifications");
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            })
-            .AddHttpMessageHandler<NotificationsHttpHandler>()
-            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
-
-            return this;
-        }
-
-        public HttpClientFactoryBuilder AddContextClient()
-        {
-            services.AddTransient<ContextHttpHandler>();
-            services.AddHttpClient(HttpClientNames.Application.Context, client =>
-            {
-                client.BaseAddress = new Uri("https://fusion-context");
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            })
-            .AddHttpMessageHandler<ContextHttpHandler>()
-            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
-
-            return this;
-        }
-
+       
         private readonly TimeSpan[] DefaultSleepDurations = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10) };
 
         private Func<PolicyBuilder<HttpResponseMessage>, IAsyncPolicy<HttpResponseMessage>> DefaultRetryPolicy(TimeSpan[] sleepDurations = null) =>
