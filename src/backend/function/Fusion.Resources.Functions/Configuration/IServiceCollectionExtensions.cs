@@ -1,12 +1,10 @@
 ﻿using Fusion.Resources.Functions;
-using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Integration.Authentication;
 using Fusion.Resources.Functions.Integration.Http;
 using Fusion.Resources.Functions.Integration.ServiceDiscovery;
-using Fusion.Resources.Functions.Notifications;
-using Fusion.Resources.Functions.TableStorage;
 using Microsoft.Extensions.Configuration;
 using System;
+using Fusion.Resources.Functions.ApiClients;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -40,34 +38,15 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             var builder = new HttpClientFactoryBuilder(services);
-
-            builder.AddOrgClient();
             services.AddOrgApiClient(HttpClientNames.Application.Org);
 
-            builder.AddPeopleClient();
             services.AddScoped<IPeopleApiClient, PeopleApiClient>();
             
             builder.AddResourcesClient();
             services.AddScoped<IResourcesApiClient, ResourcesApiClient>();
 
-            builder.AddNotificationsClient();
-            services.AddScoped<INotificationApiClient, NotificationApiClient>();
-
-            builder.AddContextClient();
-            services.AddScoped<IContextApiClient, ContextApiClient>();
-
             builder.AddLineOrgClient();
             services.AddScoped<ILineOrgApiClient, LineOrgApiClient>();
-            
-            return services;
-        }
-
-        public static IServiceCollection AddNotificationServices(this IServiceCollection services)
-        {
-            services.AddSingleton<TableStorageClient>();
-            services.AddScoped<ISentNotificationsTableClient, SentNotificationsTableClient>();
-            services.AddScoped<IUrlResolver, UrlResolver>();
-            services.AddScoped<RequestNotificationSender>();
 
             return services;
         }

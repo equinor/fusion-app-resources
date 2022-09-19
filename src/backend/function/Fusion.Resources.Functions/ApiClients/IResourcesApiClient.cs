@@ -11,9 +11,6 @@ namespace Fusion.Resources.Functions.ApiClients
         Task<IEnumerable<ProjectReference>> GetProjectsAsync();
         Task<IEnumerable<ResourceAllocationRequest>> GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(ProjectReference project);
         Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string department);
-        Task<List<ProjectContract>> GetProjectContractsAsync();
-        Task<PersonnelRequestList> GetTodaysContractRequests(ProjectContract projectContract, string state);
-        Task<List<DelegatedRole>> RetrieveDelegatesForContractAsync(ProjectContract projectContract);
 
         #region Models
 
@@ -41,27 +38,7 @@ namespace Fusion.Resources.Functions.ApiClients
             public Person Person { get; set; } = null!;
         }
 
-        public class ProjectContract
-        {
-            public Guid Id { get; set; }
-            public string Name { get; set; } = null!;
-            public string ContractNumber { get; set; } = null!;
-
-            public Guid ProjectId { get; set; }
-            public string ProjectName { get; set; } = null!;
-
-            public Guid? ContractResponsiblePositionId { get; set; }
-            public Guid? CompanyRepPositionId { get; set; }
-            public Guid? ExternalContractResponsiblePositionId { get; set; }
-            public Guid? ExternalCompanyRepPositionId { get; set; }
-        }
-
-        public class DelegatedRole
-        {
-            public string Classification { get; set; } = null!;
-
-            public Person Person { get; set; } = null!;
-        }
+    
 
         public class Person
         {
@@ -70,37 +47,6 @@ namespace Fusion.Resources.Functions.ApiClients
             public string? Mail { get; set; }
         }
 
-
-        public class PersonnelRequestList
-        {
-            public List<PersonnelRequest> Value { get; set; } = null!;
-        }
-
-        public class PersonnelRequest
-        {
-            public Guid Id { get; set; }
-
-            public string? State { get; set; }
-
-            public DateTimeOffset LastActivity { get; set; }
-
-            public RequestPosition? Position { get; set; }
-
-            public RequestPersonnel? Person { get; set; }
-
-            public class RequestPosition
-            {
-                public string? Name { get; set; }
-                public DateTime? AppliesFrom { get; set; }
-                public DateTime? AppliesTo { get; set; }
-            }
-
-            public class RequestPersonnel
-            {
-                public string? Name { get; set; }
-                public string? Mail { get; set; }
-            }
-        }
         public class ProjectReference
         {
             public Guid Id { get; set; }

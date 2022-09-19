@@ -24,8 +24,6 @@ namespace Fusion.Resources.Domain
 
         Task<DbPerson?> EnsureApplicationAsync(Guid azureUniqueId);
 
-        Task<DbExternalPersonnelPerson> EnsureExternalPersonnelAsync(string? upn, PersonId personIdentifier, string firstName, string lastName);
-        Task<DbExternalPersonnelPerson?> ResolveExternalPersonnelAsync(PersonId personId);
         Task<IEnumerable<ResolvedPersonProfile>?> ResolveProfilesAsync(IEnumerable<PersonId> personIds);
         Task<IEnumerable<ResolvedPersonProfile>?> ResolveProfilesAsync(IEnumerable<PersonIdentifier> personIds);
 
@@ -35,14 +33,5 @@ namespace Fusion.Resources.Domain
         /// <param name="person"></param>
         /// <returns></returns>
         Task<FusionPersonProfile?> ResolveProfileAsync(PersonId person);
-
-        /// <summary>
-        /// Refresh external personnel information from People services. 
-        /// Will add it to database if not present.
-        /// </summary>
-        /// <param name="personId">Identifier for person, can be e-mail or azure unique id</param>
-        /// <param name="considerRemovedProfile">Refresh will proceed even if unable to resolve profile from people service. Profile still may exist in external personnel</param>
-        /// <returns>The updated person entity</returns>
-        Task<DbExternalPersonnelPerson> RefreshExternalPersonnelAsync(PersonId personId, bool considerRemovedProfile = false);
     }
 }
