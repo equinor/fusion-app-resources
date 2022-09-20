@@ -35,9 +35,7 @@ namespace Fusion.Testing.Mocks.OrgService.Resolvers
 
         public Task<ApiPositionV2> ResolvePositionAsync(Guid positionId)
         {
-            OrgServiceMock.contractPositions.TryGetValue(positionId, out ApiPositionV2 position);
-            if (position is null)
-                position = OrgServiceMock.positions.FirstOrDefault(x => x.Id == positionId);
+            var position = OrgServiceMock.positions.FirstOrDefault(x => x.Id == positionId);
 
             return Task.FromResult(position);
         }
@@ -45,9 +43,8 @@ namespace Fusion.Testing.Mocks.OrgService.Resolvers
         public Task<IEnumerable<ApiPositionV2>> ResolvePositionsAsync(IEnumerable<Guid> positionIds)
         {
             var positions = OrgServiceMock.positions.ToList();
-            var contractPositions = OrgServiceMock.contractPositions.Values.ToList();
 
-            var allPositions = positions.Union(contractPositions).Where(p => positionIds.Contains(p.Id));
+            var allPositions = positions.Where(p => positionIds.Contains(p.Id));
             return Task.FromResult(allPositions.ToList().AsEnumerable());
         }
 

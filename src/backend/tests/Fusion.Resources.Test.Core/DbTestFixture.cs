@@ -32,7 +32,7 @@ namespace Fusion.Resources.Test.Core
             serviceProvider = services.BuildServiceProvider();
         }
 
-        public virtual void ConfigureServices(ServiceCollection services)
+        protected virtual void ConfigureServices(ServiceCollection services)
         {
             services.AddMediatR(typeof(AddSecondOpinion).Assembly);
             services.AddDbContext<ResourcesDbContext>(opts => opts.UseInMemoryDatabase($"unit-test-db-{Guid.NewGuid()}"));

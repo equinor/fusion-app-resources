@@ -17,43 +17,6 @@ namespace Fusion.Resources.Api.Tests
 {
     internal static class ApiHelpers
     {
-
-        public static async Task DelegateExternalAdminAccessAsync(this HttpClient client, Guid projectId, Guid contractId, Guid peronUniqueId)
-        {
-            var resp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/delegated-roles", new
-            {
-                person = new { AzureUniquePersonId = peronUniqueId },
-                classification = "External",
-                type = "CR"
-            });
-
-            resp.Should().BeSuccessfull();
-        }
-
-        public static async Task DelegateInternalAdminAccessAsync(this HttpClient client, Guid projectId, Guid contractId, Guid peronUniqueId)
-        {
-            var resp = await client.TestClientPostAsync($"/projects/{projectId}/contracts/{contractId}/delegated-roles", new
-            {
-                person = new { AzureUniquePersonId = peronUniqueId },
-                classification = "Internal",
-                type = "CR"
-            });
-
-            resp.Should().BeSuccessfull();
-        }
-
-        public static async Task<TestClientHttpResponse<TestApiPersonnel>> ReplaceContractPersonnelAsync(this HttpClient client, Guid projectId, Guid contractId, Guid fromPersonId, string toUpn, Guid toPersonId, bool force = false)
-        {
-            var resp = await client.TestClientPostAsync<TestApiPersonnel>($"/projects/{projectId}/contracts/{contractId}/resources/personnel/{fromPersonId}/replace?force={force}", new
-            {
-                upn = toUpn,
-                azureUniquePersonId = toPersonId
-            });
-
-            return resp;
-        }
-
-
         public static async Task<TestApiInternalRequestModel> CreateRequestAsync(this HttpClient client, Guid projectId, Action<ApiCreateInternalRequestModel> setup)
         {
             var model = new ApiCreateInternalRequestModel();

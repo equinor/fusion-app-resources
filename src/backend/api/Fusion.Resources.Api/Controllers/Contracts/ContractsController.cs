@@ -1,10 +1,8 @@
 ﻿using Fusion.Integration;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Net.Http;
-using Fusion.Integration.Org;
 using Microsoft.AspNetCore.Http;
 
 namespace Fusion.Resources.Api.Controllers
@@ -13,14 +11,6 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class ContractsController : ResourceControllerBase
     {
-        private readonly IMediator mediator;
-        private readonly IProjectOrgResolver orgResolver;
-
-        public ContractsController(IMediator mediator, IProjectOrgResolver orgResolver)
-        {
-            this.mediator = mediator;
-            this.orgResolver = orgResolver;
-        }
 
         [Obsolete]
         [HttpGet("/projects/{projectIdentifier}/contracts")]

@@ -28,7 +28,6 @@ namespace Fusion.Testing.Mocks.OrgService
         internal static ConcurrentBag<ApiProjectV2> projects = new();
         internal static ConcurrentBag<ApiPositionV2> positions = new();
         internal static ConcurrentDictionary<Guid, List<ApiProjectContractV2>> contracts = new();
-        internal static ConcurrentDictionary<Guid, ApiPositionV2> contractPositions = new();
         internal static ConcurrentBag<ApiCompanyV2> companies = new();
 
         internal static ConcurrentDictionary<Guid, Guid> taskOwnerMapping = new ConcurrentDictionary<Guid, Guid>();
@@ -49,21 +48,6 @@ namespace Fusion.Testing.Mocks.OrgService
         {
             projects.Add(builder.Project);
             foreach (var position in builder.Positions) positions.Add(position);
-
-            foreach ((var contract, var positions) in builder.ContractsWithPositions)
-            {
-                if (!contracts.ContainsKey(builder.Project.ProjectId))
-                    contracts[builder.Project.ProjectId] = new List<ApiProjectContractV2>();
-
-                contracts[builder.Project.ProjectId].Add(contract);
-
-                foreach (var position in positions) contractPositions.TryAdd(position.Id, position);
-
-                if (contract.Company != null && !companies.Any(c => c.Id == contract.Company.Id))
-                {
-                    companies.Add(contract.Company);
-                }
-            }
         }
         public static void AddCompany(Guid id, string name)
         {
@@ -73,11 +57,6 @@ namespace Fusion.Testing.Mocks.OrgService
         public static void SetTaskOwner(Guid position, Guid taskOwnerPosition)
         {
             taskOwnerMapping.TryAdd(position, taskOwnerPosition);
-        }
-
-        public static List<ApiPositionV2> GetContractPositions()
-        {
-            return contractPositions.Select(contractPosition => contractPosition.Value).ToList();
         }
 
         public static ApiPositionV2 GetPosition(Guid id)

@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain.Tests
             }
         }
 
-        public override void ConfigureServices(ServiceCollection services)
+        protected override void ConfigureServices(ServiceCollection services)
         {
             base.ConfigureServices(services);
             services.AddSingleton<INotificationHandler<SecondOpinionRequested>, SecondOpinionNotificationTestHandler>();
