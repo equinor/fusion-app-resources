@@ -38,6 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             var builder = new HttpClientFactoryBuilder(services);
+            builder.AddOrgClient();
             services.AddOrgApiClient(HttpClientNames.Application.Org);
 
             builder.AddPeopleClient();

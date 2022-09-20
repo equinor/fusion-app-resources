@@ -42,6 +42,20 @@ namespace Fusion.Resources.Functions.Integration.Http
 
             return this;
         }
+        public HttpClientFactoryBuilder AddOrgClient()
+        {
+            services.AddTransient<OrgHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Org, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-org");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<OrgHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
+
         public HttpClientFactoryBuilder AddResourcesClient()
         {
             services.AddTransient<ResourcesHttpHandler>();

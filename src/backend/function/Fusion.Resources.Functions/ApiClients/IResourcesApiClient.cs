@@ -10,7 +10,8 @@ namespace Fusion.Resources.Functions.ApiClients
     {
         Task<IEnumerable<ProjectReference>> GetProjectsAsync();
         Task<IEnumerable<ResourceAllocationRequest>> GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(ProjectReference project);
-        Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string department);
+        Task<IEnumerable<string>> GetRequestOptionsAsync(ResourceAllocationRequest item);
+        Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department);
 
         #region Models
 
@@ -29,6 +30,7 @@ namespace Fusion.Resources.Functions.ApiClients
             public string? AssignedDepartment { get; set; }
             public string? Type { get; set; }
             public string? SubType { get; set; }
+            public int? Number { get; set; }
             public ApiPositionV2? OrgPosition { get; set; }
             public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
             public ProposedPerson? ProposedPerson { get; set; }

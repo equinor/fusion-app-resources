@@ -31,7 +31,7 @@ public class InternalRequestsFunctions
         log.LogTrace($"Next occurrences: {timer.FormatNextOccurrences(3)}");
 
         var activeProjects = await resourcesClient.GetProjectsAsync();
-        var activeDepartments = await lineOrgClient.GetOrgUnitDepartmentsAsync();
+        var activeDepartments = (await lineOrgClient.GetOrgUnitDepartmentsAsync()).ToList();
 
         foreach (var project in activeProjects)
         {
@@ -42,7 +42,7 @@ public class InternalRequestsFunctions
             // Should only process requests not having a valid department
             foreach (var item in requestsByProject.Where(x => activeDepartments.Contains(x.AssignedDepartment) == false))
             {
-                if (HasInvalidResourceAllocationRequestReferences(item))
+                if (await HasInvalidResourceAllocationRequestReferencesAsync(item))
                 {
                     continue;
                 }
@@ -53,7 +53,11 @@ public class InternalRequestsFunctions
                 }
                 else
                 {
-                    await resourcesClient.ReassignRequestAsync(item, item.OrgPosition!.BasePosition.Department);
+                    var validBasePositionDepartmentOrNull =
+                        activeDepartments.FirstOrDefault(x => string.Equals(x.ToLower(),
+                            item.OrgPosition!.BasePosition.Department.ToLower(), StringComparison.OrdinalIgnoreCase));
+
+                    await resourcesClient.ReassignRequestAsync(item, validBasePositionDepartmentOrNull);
                 }
             }
         }
@@ -64,7 +68,7 @@ public class InternalRequestsFunctions
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    private bool HasInvalidResourceAllocationRequestReferences(IResourcesApiClient.ResourceAllocationRequest item)
+    private async Task<bool> HasInvalidResourceAllocationRequestReferencesAsync(IResourcesApiClient.ResourceAllocationRequest item)
     {
         if (item.OrgPosition is null)
         {
@@ -87,6 +91,13 @@ public class InternalRequestsFunctions
         if (basePositionDepartment == item.AssignedDepartment)
         {
             log.LogDebug("Request OK. AssignedDepartment matches base position Department");
+            return true;
+        }
+
+        var opts = await resourcesClient.GetRequestOptionsAsync(item);
+        if (opts.Any(x => x.Contains("PATCH", StringComparison.OrdinalIgnoreCase)) == false)
+        {
+            log.LogError("Unable to patch request. Access denied");
             return true;
         }
 

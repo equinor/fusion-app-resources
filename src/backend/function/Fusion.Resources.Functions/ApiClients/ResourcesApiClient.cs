@@ -1,4 +1,6 @@
-﻿using Fusion.Resources.Functions.Integration;
+﻿#nullable enable
+using System;
+using Fusion.Resources.Functions.Integration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -34,12 +36,20 @@ namespace Fusion.Resources.Functions.ApiClients
             return data.Value.Where(x => x.AssignedDepartment is not null);
         }
 
-        public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string department)
+        public async Task<IEnumerable<string>> GetRequestOptionsAsync(ResourceAllocationRequest item)
+        {
+            if (item.OrgPosition == null) return Array.Empty<string>();
+            var result = await resourcesClient.OptionsAsync($"/projects/{item.OrgPosition.ProjectId}/requests/{item.Id}");
+            return result;
+
+        }
+
+        public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department)
         {
             var content = JsonConvert.SerializeObject(new { AssignedDepartment = department });
             var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
 
-            var result = await resourcesClient.PatchAsync($"/resources/requests/internal/{item.Id}", stringContent);
+            var result = await resourcesClient.PatchAsync($"/projects/{item.OrgPosition!.ProjectId}/requests/{item.Id}", stringContent);
 
             if (result.IsSuccessStatusCode)
             {
