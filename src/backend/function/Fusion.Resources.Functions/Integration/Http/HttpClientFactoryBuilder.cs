@@ -29,7 +29,19 @@ namespace Fusion.Resources.Functions.Integration.Http
             this.services = services;
         }
 
-  
+        public HttpClientFactoryBuilder AddPeopleClient()
+        {
+            services.AddTransient<PeopleHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.People, client =>
+                {
+                    client.BaseAddress = new Uri("https://fusion-people");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<PeopleHttpHandler>()
+                .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
         public HttpClientFactoryBuilder AddResourcesClient()
         {
             services.AddTransient<ResourcesHttpHandler>();

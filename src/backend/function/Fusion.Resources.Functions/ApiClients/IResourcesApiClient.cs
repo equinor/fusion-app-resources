@@ -27,6 +27,8 @@ namespace Fusion.Resources.Functions.ApiClients
         {
             public Guid Id { get; set; }
             public string? AssignedDepartment { get; set; }
+            public string? Type { get; set; }
+            public string? SubType { get; set; }
             public ApiPositionV2? OrgPosition { get; set; }
             public ApiPositionInstanceV2? OrgPositionInstance { get; set; }
             public ProposedPerson? ProposedPerson { get; set; }

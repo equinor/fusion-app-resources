@@ -40,6 +40,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new HttpClientFactoryBuilder(services);
             services.AddOrgApiClient(HttpClientNames.Application.Org);
 
+            builder.AddPeopleClient();
             services.AddScoped<IPeopleApiClient, PeopleApiClient>();
             
             builder.AddResourcesClient();
