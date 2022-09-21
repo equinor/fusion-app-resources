@@ -41,7 +41,4 @@
       <_Parameter1>Fusion.Resources.Functions.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Functions\Telemetry\" />
-  </ItemGroup>
 </Project>
