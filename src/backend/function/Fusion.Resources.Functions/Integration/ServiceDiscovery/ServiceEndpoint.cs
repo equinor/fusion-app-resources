@@ -9,5 +9,6 @@
         public static ServiceEndpoint Resources = new ServiceEndpoint { Key = "resources" };
         public static ServiceEndpoint Notifications = new ServiceEndpoint { Key = "notifications" };
         public static ServiceEndpoint Context = new ServiceEndpoint { Key = "context" };
+        public static ServiceEndpoint LineOrg = new ServiceEndpoint { Key = "lineorg" };
     }
 }

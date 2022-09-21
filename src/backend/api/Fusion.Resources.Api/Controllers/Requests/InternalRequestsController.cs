@@ -304,7 +304,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
                     if (item.OrgPositionId.HasValue)
@@ -425,7 +425,7 @@ namespace Fusion.Resources.Api.Controllers
                     updateCommand.ProposalScope = @params.ResolveScope();
                     updateCommand.ProposalChangeType = @params.Type;
                 }
-                
+
                 if (request.Candidates.HasValue)
                 {
                     updateCommand.Candidates = request.Candidates.Value?.Select(x => (PersonId)x).ToList() ?? new();
@@ -473,7 +473,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     if (!query.HasFilter) return;
-                    
+
                     var filter = query.Filter.GetFilterForField("assignedDepartment");
                     if (filter is null || filter.Operation != FilterOperation.Eq) return;
 
@@ -1324,7 +1324,7 @@ namespace Fusion.Resources.Api.Controllers
 
             var patchResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
                     if (item.OrgPositionId.HasValue)

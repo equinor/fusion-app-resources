@@ -12,6 +12,7 @@
     "AzureAd_ClientId": "5a842df8-3238-415d-b168-9f16a6a6031b",
     "AzureAd_Secret": "[REPLACE WITH SECRET]",
 
+    "Endpoints_lineorg": "https://pro-s-lineorg-ci.azurewebsites.net",
     "Endpoints_people": "https://pro-s-people-ci.azurewebsites.net",
     "Endpoints_org": "https://pro-s-org-ci.azurewebsites.net",
     "Endpoints_resources": "https://resources-api.ci.fusion-dev.net/",
@@ -20,5 +21,7 @@
     "AzureWebJobs.profile-sync.Disabled": "true",
     "AzureWebJobs.profile-sync-event.Disabled": "true",
     "AzureWebJobs.provision-position-request.Disabled": "true"
+    "AzureWebJobs.sent-notifications-cleanup.Disabled": "true",
+    "AzureWebJobs.internal-requests-reassign-invalid-departments.Disabled": "true" 
   }
 }
