@@ -48,10 +48,12 @@ public class InternalRequestsFunctions
                 }
                 else
                 {
-                    var validBasePositionDepartmentOrNull =
+                    var department =
                         activeDepartments.FirstOrDefault(x => string.Equals(x, item.OrgPosition!.BasePosition.Department, StringComparison.OrdinalIgnoreCase));
 
-                    await resourcesClient.ReassignRequestAsync(item, validBasePositionDepartmentOrNull);
+                    // If department is not found in existing departments, clear department and make request available for manual pickup in UI.
+                    // This due to possible misconfiguration in base position departments.
+                    await resourcesClient.ReassignRequestAsync(item, department);
                 }
             }
         }
