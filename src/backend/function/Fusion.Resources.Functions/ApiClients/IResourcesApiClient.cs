@@ -10,19 +10,9 @@ namespace Fusion.Resources.Functions.ApiClients
     {
         Task<IEnumerable<ProjectReference>> GetProjectsAsync();
         Task<IEnumerable<ResourceAllocationRequest>> GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(ProjectReference project);
-        Task<IEnumerable<string>> GetRequestOptionsAsync(ResourceAllocationRequest item);
         Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department);
 
         #region Models
-
-        public static class RequestState
-        {
-            public const string Created = "Created";
-            public const string SubmittedToCompany = "SubmittedToCompany";
-            public const string ApprovedByCompany = "ApprovedByCompany";
-        }
-
-
 
         public class ResourceAllocationRequest
         {
@@ -41,8 +31,6 @@ namespace Fusion.Resources.Functions.ApiClients
         {
             public Person Person { get; set; } = null!;
         }
-
-    
 
         public class Person
         {

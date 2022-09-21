@@ -36,14 +36,6 @@ namespace Fusion.Resources.Functions.ApiClients
             return data.Value.Where(x => x.AssignedDepartment is not null);
         }
 
-        public async Task<IEnumerable<string>> GetRequestOptionsAsync(ResourceAllocationRequest item)
-        {
-            if (item.OrgPosition == null) return Array.Empty<string>();
-            var result = await resourcesClient.OptionsAsync($"/projects/{item.OrgPosition.ProjectId}/requests/{item.Id}");
-            return result;
-
-        }
-
         public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department)
         {
             var content = JsonConvert.SerializeObject(new { AssignedDepartment = department });

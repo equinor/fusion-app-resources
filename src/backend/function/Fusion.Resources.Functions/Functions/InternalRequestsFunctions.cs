@@ -40,13 +40,8 @@ public class InternalRequestsFunctions
             var requestsByProject = await resourcesClient.GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(project);
 
             // Should only process requests not having a valid department
-            foreach (var item in requestsByProject.Where(x => activeDepartments.Contains(x.AssignedDepartment) == false))
+            foreach (var item in requestsByProject.Where(x => activeDepartments.Contains(x.AssignedDepartment) == false && IsValidRequest(x)))
             {
-                if (await HasInvalidResourceAllocationRequestReferencesAsync(item))
-                {
-                    continue;
-                }
-
                 if (item.HasProposedPerson)
                 {
                     await ReAssignByProposedPersonAsync(item);
@@ -54,8 +49,7 @@ public class InternalRequestsFunctions
                 else
                 {
                     var validBasePositionDepartmentOrNull =
-                        activeDepartments.FirstOrDefault(x => string.Equals(x.ToLower(),
-                            item.OrgPosition!.BasePosition.Department.ToLower(), StringComparison.OrdinalIgnoreCase));
+                        activeDepartments.FirstOrDefault(x => string.Equals(x, item.OrgPosition!.BasePosition.Department, StringComparison.OrdinalIgnoreCase));
 
                     await resourcesClient.ReassignRequestAsync(item, validBasePositionDepartmentOrNull);
                 }
@@ -68,40 +62,31 @@ public class InternalRequestsFunctions
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    private async Task<bool> HasInvalidResourceAllocationRequestReferencesAsync(IResourcesApiClient.ResourceAllocationRequest item)
+    private bool IsValidRequest(IResourcesApiClient.ResourceAllocationRequest item)
     {
         if (item.OrgPosition is null)
         {
             log.LogError("Unable to resolve position used for request. Most likely deleted");
-            return true;
+            return false;
         }
         if (item.OrgPositionInstance is null)
         {
             log.LogError("Unable to resolve position instance used for request. Most likely deleted");
-            return true;
+            return false;
         }
 
         var basePositionDepartment = item.OrgPosition!.BasePosition.Department;
         if (basePositionDepartment is null)
         {
             log.LogError("Unable to resolve base position used for request. Most likely position is deleted");
-            return true;
+            return false;
         }
 
-        if (basePositionDepartment == item.AssignedDepartment)
-        {
-            log.LogDebug("Request OK. AssignedDepartment matches base position Department");
-            return true;
-        }
+        if (string.Equals(basePositionDepartment, item.AssignedDepartment, StringComparison.OrdinalIgnoreCase))
+            return false;
 
-        var opts = await resourcesClient.GetRequestOptionsAsync(item);
-        if (opts.Any(x => x.Contains("PATCH", StringComparison.OrdinalIgnoreCase)) == false)
-        {
-            log.LogError("Unable to patch request. Access denied");
-            return true;
-        }
-
-        return false;
+        // Request has valid connection to position and instance, but department mismatch compared to base position department.
+        return true;
     }
 
     private async Task ReAssignByProposedPersonAsync(IResourcesApiClient.ResourceAllocationRequest item)
