@@ -15,7 +15,7 @@
     <PackageReference Include="Fusion.AspNetCore" Version="6.0.3" />
     <PackageReference Include="Fusion.Threading" Version="3.1.5" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.7" />
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.5" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.6" />
     <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="6.0.1" />
     <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="6.1.5" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.20.0" />
