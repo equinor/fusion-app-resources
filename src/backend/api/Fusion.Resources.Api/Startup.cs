@@ -73,6 +73,7 @@ namespace Fusion.Resources.Api
                 {
                     opts.ClientId = Configuration["AzureAd:ClientId"];
                     opts.ClientSecret = Configuration["AzureAd:ClientSecret"];
+                    opts.CertificateThumbprint = Configuration["AzureAd:CertThumbprint"];
                 });
 
                 options.ServiceInfo.Environment = Configuration["ENVNAME"];
