@@ -19,7 +19,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Bogus" Version="34.0.2" />
-		<PackageReference Include="Fusion.Integration" Version="6.0.8" />
+		<PackageReference Include="Fusion.Integration" Version="6.0.9" />
 		<PackageReference Include="Fusion.Events.Server" Version="3.0.0" />
 		<PackageReference Include="Fusion.Integration.Authorization" Version="6.0.9" />
 
