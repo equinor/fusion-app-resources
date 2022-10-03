@@ -1,4 +1,5 @@
-﻿using Fusion.Integration.Profile;
+﻿using Fusion.Integration.LineOrg;
+using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
 using MediatR;
@@ -6,6 +7,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Fusion.Resources.Domain.Commands.Departments
 {
@@ -22,24 +24,15 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
         public class Handler : IRequestHandler<DeleteDelegatedResourceOwner, bool>
         {
-            private readonly ResourcesDbContext db;
             private readonly IFusionRolesClient rolesClient;
 
-            public Handler(ResourcesDbContext db, IFusionRolesClient rolesClient)
+            public Handler(IFusionRolesClient rolesClient)
             {
-                this.db = db;
                 this.rolesClient = rolesClient;
             }
 
             public async Task<bool> Handle(DeleteDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
-                var query = db.DepartmentResponsibles
-                    .Where(x => x.DepartmentId == request.departmentId
-                                && x.ResponsibleAzureObjectId == request.delegatedOwnerAzureUniqueId);
-                db.DepartmentResponsibles.RemoveRange(query);
-
-                await db.SaveChangesAsync(cancellationToken);
-
                 var deleted = await rolesClient.DeleteRolesAsync(
                     new PersonIdentifier(request.delegatedOwnerAzureUniqueId),
                     q => q.WhereRoleName(AccessRoles.ResourceOwner).WhereScopeValue(request.departmentId)

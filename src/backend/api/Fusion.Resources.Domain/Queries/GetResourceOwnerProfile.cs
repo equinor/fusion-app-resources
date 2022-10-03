@@ -53,12 +53,12 @@ namespace Fusion.Resources.Domain.Queries
 
                 // Resolve departments with responsibility
                 var departmentsWithResponsibility = await ResolveDepartmentsWithResponsibilityAsync(user);
-                
-                // Determine if the user is a manager in the department he/she belongs to. 
+
+                // Determine if the user is a manager in the department he/she belongs to.
                 var isDepartmentManager = departmentsWithResponsibility.Any(r => r == user.FullDepartment);
 
                 var relevantSectors = await ResolveRelevantSectorsAsync(user.FullDepartment, sector, isDepartmentManager, departmentsWithResponsibility);
-               
+
                 var relevantDepartments = new List<string>();
                 foreach (var relevantSector in relevantSectors)
                 {
@@ -83,7 +83,6 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, IEnumerable<string> departmentsWithResponsibility)
             {
-
                 // Get sectors the user have responsibility in, to find all relevant departments
                 var relevantSectors = new List<string>();
                 foreach (var department in departmentsWithResponsibility)
@@ -95,7 +94,7 @@ namespace Fusion.Resources.Domain.Queries
                     }
                 }
 
-                // If the sector does not exist, the person might be higher up. 
+                // If the sector does not exist, the person might be higher up.
                 if (sector is null && isDepartmentManager)
                 {
                     var downstreamSectors = await ResolveDownstreamSectors(fullDepartment);
@@ -125,8 +124,8 @@ namespace Fusion.Resources.Domain.Queries
                     departmentsWithResponsibility.Add(user.FullDepartment);
 
                 // Add all departments the user has been delegated responsibility for.
-                var delegatedResponsibilities = await mediator.Send(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
-                departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
+                //var delegatedResponsibilities = await mediator.Send(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
+                //departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)

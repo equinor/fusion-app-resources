@@ -30,7 +30,6 @@ namespace Fusion.Resources.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -73,19 +72,20 @@ namespace Fusion.Resources.Api
                 {
                     opts.ClientId = Configuration["AzureAd:ClientId"];
                     opts.ClientSecret = Configuration["AzureAd:ClientSecret"];
+                    opts.CertificateThumbprint = Configuration["Config:CertThumbprint"];
                 });
 
                 options.ServiceInfo.Environment = Configuration["ENVNAME"];
                 options.ApplicationMode = true;
             });
-            services.AddFusionEventHandler(s => {
+            services.AddFusionEventHandler(s =>
+            {
                 s.AddPersistentHandler<OrgProjectHandler>(OrgConstants.HttpClients.Application, "/subscriptions/org-projects", e =>
                 {
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
             });
             // Add custom claims provider, to sort delegated responsibilities
-            services.AddScoped<ILocalClaimsTransformation, DelegatedResourceOwnerClaimsTransformer>();
             services.AddScoped<ILocalClaimsTransformation, SharedRequestClaimsTransformation>();
 
             services.AddScoped<IRequestRouter, RequestRouter>();
@@ -111,7 +111,8 @@ namespace Fusion.Resources.Api
 
             services.AddResourcesAuthorizationHandlers();
             services.AddMediatR(typeof(Startup));   // Add notification handlers in api project
-            #endregion
+
+            #endregion Resource services
 
             services.AddHealthChecks()
                 .AddCheck("liveness", () => HealthCheckResult.Healthy())
@@ -155,7 +156,6 @@ namespace Fusion.Resources.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-
             });
 
             #region Health probes
@@ -169,8 +169,7 @@ namespace Fusion.Resources.Api
                 Predicate = r => r.Tags.Contains("ready")
             });
 
-            #endregion
+            #endregion Health probes
         }
     }
-
 }

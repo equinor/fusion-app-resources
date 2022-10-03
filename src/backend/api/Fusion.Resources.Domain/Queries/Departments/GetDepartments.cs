@@ -1,5 +1,6 @@
 using Fusion.Integration;
 using Fusion.Integration.LineOrg;
+using Fusion.Integration.Roles;
 using Fusion.Resources.Application;
 using Fusion.Resources.Database;
 using Fusion.Services.LineOrg.ApiModels;
@@ -20,6 +21,7 @@ namespace Fusion.Resources.Domain
         private string? departmentIdStartsWith;
         private string? sector;
         private string[]? departmentIds = null;
+
         public GetDepartments StartsWith(string department)
         {
             this.departmentIdStartsWith = department;
@@ -37,7 +39,6 @@ namespace Fusion.Resources.Domain
             this.departmentIds = departmentIds.ToArray();
             return this;
         }
-
 
         public GetDepartments InSector(string sector)
         {
@@ -59,8 +60,9 @@ namespace Fusion.Resources.Domain
 
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
         {
-            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-                : base(db, lineOrgResolver, profileResolver) { }
+            public Handler(IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
+                : base(rolesClient, lineOrgResolver, profileResolver) { }
+
             public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
             {
                 List<QueryDepartment> result;

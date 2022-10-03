@@ -11,7 +11,8 @@ namespace Fusion.Resources.Database
     {
         private readonly ISqlAuthenticationManager authManager;
 
-        public ResourcesDbContext() { }
+        public ResourcesDbContext()
+        { }
 
         public ResourcesDbContext(DbContextOptions<ResourcesDbContext> options) : base(options)
         {
@@ -41,8 +42,6 @@ namespace Fusion.Resources.Database
         public DbSet<DbPersonAbsence> PersonAbsences { get; set; }
         public DbSet<DbPersonNote> PersonNotes { get; set; }
 
-        public DbSet<DbDepartmentResponsible> DepartmentResponsibles { get; set; }
-
         public DbSet<DbRequestAction> RequestActions { get; set; }
         public DbSet<DbConversationMessage> RequestConversations { get; set; }
 
@@ -52,7 +51,6 @@ namespace Fusion.Resources.Database
 
         public DbSet<DbSecondOpinionPrompt> SecondOpinions { get; set; }
         public DbSet<DbSecondOpinionResponse> SecondOpinionResponses { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -68,7 +66,6 @@ namespace Fusion.Resources.Database
             DbPersonNote.OnModelCreating(modelBuilder);
             DbResponsibilityMatrix.OnModelCreating(modelBuilder);
             DbResourceAllocationRequest.OnModelCreating(modelBuilder);
-            DbDepartmentResponsible.OnModelCreating(modelBuilder);
             DbRequestAction.OnModelCreating(modelBuilder);
             DbConversationMessage.OnModelCreating(modelBuilder);
             DbContractPersonnelReplacement.OnModelCreating(modelBuilder);
@@ -89,4 +86,5 @@ namespace Fusion.Resources.Database
         }
     }
 }
+
 #nullable enable

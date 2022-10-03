@@ -25,6 +25,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             {
                 Person = new RolePerson(personAzureUniqueId, "test@mail.com", "John Doe"),
                 Scope = new Fusion.Integration.Roles.RoleScope(role.Scope.Type, role.Scope.Value),
+
                 ValidTo = role.ValidTo
             };
 
@@ -70,11 +71,11 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
             var queryString = HttpUtility.ParseQueryString(query.QueryString);
             var filterString = queryString["$filter"];
-            if(!string.IsNullOrEmpty(filterString))
+            if (!string.IsNullOrEmpty(filterString))
             {
                 var odataFilter = ODataParser.Parse(filterString);
                 var personFilter = odataFilter.GetFilterForField("person.id");
-                if(personFilter != null && personFilter.Operation == FilterOperation.Eq)
+                if (personFilter != null && personFilter.Operation == FilterOperation.Eq)
                 {
                     if (!roleAssignments.TryGetValue(new Guid(personFilter.Value), out var userRoles))
                     {
@@ -90,7 +91,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
         public Task<IEnumerable<FusionPersonRole>> GetUserRolesAsync(PersonIdentifier person)
         {
-            if(!roleAssignments.TryGetValue(person.AzureUniquePersonId, out var userRoles))
+            if (!roleAssignments.TryGetValue(person.AzureUniquePersonId, out var userRoles))
             {
                 userRoles = ImmutableList<FusionRoleAssignment>.Empty;
             }
@@ -119,7 +120,6 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             updateRole(builder);
 
             return Task.FromResult(default(FusionRoleAssignment));
-
         }
     }
 }
