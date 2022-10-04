@@ -1,13 +1,10 @@
-﻿using Fusion.Integration.LineOrg;
-using Fusion.Integration.Profile;
+﻿using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
-using Fusion.Resources.Database;
 using MediatR;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Fusion.Resources.Domain.Commands.Departments
 {

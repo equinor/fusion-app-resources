@@ -1,13 +1,11 @@
 ﻿using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
-using Fusion.Resources.Domain.Errors;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -124,8 +122,6 @@ namespace Fusion.Resources.Domain.Queries
                     departmentsWithResponsibility.Add(user.FullDepartment);
 
                 // Add all departments the user has been delegated responsibility for.
-                //var delegatedResponsibilities = await mediator.Send(new GetDelegatedDepartmentResponsibilty(user.AzureUniqueId));
-                //departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)

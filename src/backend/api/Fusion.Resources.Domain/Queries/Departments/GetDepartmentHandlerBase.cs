@@ -2,13 +2,8 @@
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
-using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,7 +25,9 @@ namespace Fusion.Resources.Domain
         internal async Task ExpandDelegatedResourceOwner(QueryDepartment department, CancellationToken cancellationToken)
         {
             var delegatedResourceOwners = await rolesClient.GetRolesAsync(q => q
-                   .WhereScopeValue(department.DepartmentId))
+                   .WhereScopeValue(department.DepartmentId)
+                   .WhereScopeType("OrgUnit")
+                   .WhereRoleName(AccessRoles.ResourceOwner))
                ;
             await ResolveDelegatedOwners(department, delegatedResourceOwners);
         }
@@ -56,7 +53,7 @@ namespace Fusion.Resources.Domain
             if (delegatedResourceOwners is null) return;
 
             var resolvedProfiles = await profileResolver
-                .ResolvePersonsAsync(delegatedResourceOwners.Select(p => new PersonIdentifier(p.Id)));
+                .ResolvePersonsAsync(delegatedResourceOwners.Select(p => new PersonIdentifier(p.Person!.AzureUniqueId)));
 
             department.DelegatedResourceOwners = resolvedProfiles
                 .Where(res => res.Success)

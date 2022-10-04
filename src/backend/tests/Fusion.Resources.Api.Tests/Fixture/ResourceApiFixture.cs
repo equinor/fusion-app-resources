@@ -88,17 +88,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
             using var scope = ApiFactory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
 
-            if (defactoResponsible is not null)
-            {
-                //db.DepartmentResponsibles.Add(new Database.Entities.DbDepartmentResponsible
-                //{
-                //    DateFrom = DateTime.Today.AddDays(-1),
-                //    DateTo = DateTime.Today.AddDays(1),
-                //    DepartmentId = departmentId,
-                //    ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.Value,
-                //});
-            }
-
             LineOrgServiceMock.AddDepartment(departmentId);
 
             var resourceOwner = this.AddProfile(FusionAccountType.Application);
