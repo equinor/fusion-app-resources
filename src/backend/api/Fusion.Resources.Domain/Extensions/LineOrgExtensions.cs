@@ -44,7 +44,6 @@ namespace Fusion.Resources.Application
             if (missingProfile is not null)
             {
                 return new List<QueryDepartment>();
-             
             }
 
             var profileLookup = profiles.ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
@@ -61,7 +60,6 @@ namespace Fusion.Resources.Application
             if (missingProfile is not null)
             {
                 return new List<QueryDepartment>();
-                
             }
 
             var profileLookup = profiles.ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
