@@ -43,7 +43,8 @@ namespace Fusion.Resources.Application
             var missingProfile = profiles.FirstOrDefault(x => !x.Success);
             if (missingProfile is not null)
             {
-                throw new IntegrationError($"Failed to resolve resource owner.", new PersonNotFoundError(missingProfile.Identifier.ToString()));
+                return new List<QueryDepartment>();
+             
             }
 
             var profileLookup = profiles.ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
@@ -59,7 +60,8 @@ namespace Fusion.Resources.Application
             var missingProfile = profiles.FirstOrDefault(x => !x.Success);
             if (missingProfile is not null)
             {
-                throw new IntegrationError($"Failed to resolve resource owner.", new PersonNotFoundError(missingProfile.Identifier.ToString()));
+                return new List<QueryDepartment>();
+                
             }
 
             var profileLookup = profiles.ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
