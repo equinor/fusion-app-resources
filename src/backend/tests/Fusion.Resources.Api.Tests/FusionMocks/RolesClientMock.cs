@@ -1,10 +1,12 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
+using Fusion.Integration.Roles.Internal;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -74,7 +76,10 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
             if (!string.IsNullOrEmpty(filterString))
             {
                 var odataFilter = ODataParser.Parse(filterString);
+
                 var personFilter = odataFilter.GetFilterForField("person.id");
+                var scopeFilter = odataFilter.GetFilterForField("Scope.Type");
+
                 if (personFilter != null && personFilter.Operation == FilterOperation.Eq)
                 {
                     if (!roleAssignments.TryGetValue(new Guid(personFilter.Value), out var userRoles))
@@ -82,6 +87,11 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
                         userRoles = ImmutableList<FusionRoleAssignment>.Empty;
                     }
                     return Task.FromResult<IEnumerable<FusionRoleAssignment>>(userRoles);
+                }
+                else if (scopeFilter != null)
+                {
+                    var tmp = roleAssignments.Values.SelectMany(x => x).Where(y => y.Scope.Type == scopeFilter.Value);
+                    return Task.FromResult<IEnumerable<FusionRoleAssignment>>(tmp);
                 }
                 throw new NotSupportedException();
             }

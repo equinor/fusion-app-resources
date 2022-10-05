@@ -27,8 +27,8 @@ namespace Fusion.Resources.Domain
             var delegatedResourceOwners = await rolesClient.GetRolesAsync(q => q
                    .WhereScopeValue(department.DepartmentId)
                    .WhereScopeType("OrgUnit")
-                   .WhereRoleName(AccessRoles.ResourceOwner))
-               ;
+                   .WhereRoleName(AccessRoles.ResourceOwner));
+            ;
             await ResolveDelegatedOwners(department, delegatedResourceOwners);
         }
 
