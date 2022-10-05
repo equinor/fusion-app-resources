@@ -1,10 +1,7 @@
 ﻿using Fusion.Integration;
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
-using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
+using Fusion.Integration.Roles;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,48 +11,49 @@ namespace Fusion.Resources.Domain
 {
     public class DepartmentHandlerBase
     {
-        protected readonly ResourcesDbContext db;
+        private readonly IFusionRolesClient rolesClient;
         protected readonly ILineOrgResolver lineOrgResolver;
         protected readonly IFusionProfileResolver profileResolver;
-        public DepartmentHandlerBase(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
+
+        public DepartmentHandlerBase(IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
         {
-            this.db = db;
+            this.rolesClient = rolesClient;
             this.lineOrgResolver = lineOrgResolver;
             this.profileResolver = profileResolver;
         }
 
         internal async Task ExpandDelegatedResourceOwner(QueryDepartment department, CancellationToken cancellationToken)
         {
-            var delegatedResourceOwners = await db.DepartmentResponsibles
-                            .Where(r => r.DepartmentId == department.DepartmentId)
-                            .ToListAsync(cancellationToken);
-
+            var delegatedResourceOwners = await rolesClient.GetRolesAsync(q => q
+                   .WhereScopeValue(department.DepartmentId)
+                   .WhereScopeType("OrgUnit")
+                   .WhereRoleName(AccessRoles.ResourceOwner));
+            ;
             await ResolveDelegatedOwners(department, delegatedResourceOwners);
         }
 
         internal async Task ExpandDelegatedResourceOwner(List<QueryDepartment> departments, CancellationToken cancellationToken)
         {
-            var departmentIds = departments.Select(x => x.DepartmentId).ToArray();
+            var allDelegatedResourceOwners = (await rolesClient.GetRolesAsync(q => q
+             .WhereScopeType("OrgUnit")
+             .WhereRoleName(AccessRoles.ResourceOwner))).ToList();
 
-            var query = await db.DepartmentResponsibles
-                            .Where(r => departmentIds.Contains(r.DepartmentId))
-                            .ToListAsync(cancellationToken);
-
-            var delegatedMap = query.ToLookup(x => x.DepartmentId);
+            if (!allDelegatedResourceOwners.Any())
+                return;
 
             foreach (var department in departments)
             {
-                if (delegatedMap.Contains(department.DepartmentId))
-                    await ResolveDelegatedOwners(department, delegatedMap[department.DepartmentId]);
+                var departmentResourceOwners = allDelegatedResourceOwners.Where(x => x.Scope!.Values.Contains(department.DepartmentId));
+                await ResolveDelegatedOwners(department, departmentResourceOwners);
             }
         }
 
-        private async Task ResolveDelegatedOwners(QueryDepartment department, IEnumerable<DbDepartmentResponsible> delegatedResourceOwners)
+        private async Task ResolveDelegatedOwners(QueryDepartment department, IEnumerable<FusionRoleAssignment> delegatedResourceOwners)
         {
             if (delegatedResourceOwners is null) return;
-         
+
             var resolvedProfiles = await profileResolver
-                .ResolvePersonsAsync(delegatedResourceOwners.Select(p => new PersonIdentifier(p.ResponsibleAzureObjectId)));
+                .ResolvePersonsAsync(delegatedResourceOwners.Select(p => new PersonIdentifier(p.Person!.AzureUniqueId)));
 
             department.DelegatedResourceOwners = resolvedProfiles
                 .Where(res => res.Success)

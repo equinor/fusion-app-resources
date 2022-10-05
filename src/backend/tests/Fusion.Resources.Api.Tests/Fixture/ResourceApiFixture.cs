@@ -9,7 +9,7 @@ using Fusion.Integration.Profile;
 using Fusion.Testing;
 using Fusion.Resources.Api.Tests.FusionMocks;
 using System.Data;
-using System.Linq; 
+using System.Linq;
 using Fusion.Events;
 using Newtonsoft.Json;
 using Fusion.Testing.Mocks.LineOrgService;
@@ -25,7 +25,9 @@ namespace Fusion.Resources.Api.Tests.Fixture
         public ApiPersonProfileV3 ExternalAdminUser { get; }
 
         public TestClientScope ExternalAdminScope() => new TestClientScope(ExternalAdminUser);
+
         public TestClientScope AdminScope() => new TestClientScope(AdminUser);
+
         public TestClientScope UserScope(ApiPersonProfileV3 profile) => new TestClientScope(profile);
 
         internal void DisableMemoryCache() => ApiFactory.IsMemorycacheDisabled = true;
@@ -40,10 +42,10 @@ namespace Fusion.Resources.Api.Tests.Fixture
             ExternalAdminUser = PeopleServiceMock.AddTestProfile()
                 .WithRoles("Fusion.Resources.External.FullControl")
                 .SaveProfile();
-
         }
 
         public ContextResolverMock ContextResolver => ApiFactory.contextResolverMock;
+
         public void Dispose()
         {
             using var scope = ApiFactory.Services.CreateScope();
@@ -54,7 +56,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
         internal ApiPersonProfileV3 AddProfile(FusionAccountType accountType)
         {
             var account = PeopleServiceMock.AddTestProfile().WithAccountType(accountType).SaveProfile();
-            
 
             return account;
         }
@@ -87,24 +88,13 @@ namespace Fusion.Resources.Api.Tests.Fixture
             using var scope = ApiFactory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
 
-            if (defactoResponsible is not null)
-            {
-                db.DepartmentResponsibles.Add(new Database.Entities.DbDepartmentResponsible
-                {
-                    DateFrom = DateTime.Today.AddDays(-1),
-                    DateTo = DateTime.Today.AddDays(1),
-                    DepartmentId = departmentId,
-                    ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.Value,
-                });
-            }
-
             LineOrgServiceMock.AddDepartment(departmentId);
 
-            var resourceOwner = this.AddProfile(FusionAccountType.Application);                
+            var resourceOwner = this.AddProfile(FusionAccountType.Application);
             LineOrgServiceMock.AddTestUser().MergeWithProfile(resourceOwner)
                 .WithFullDepartment(departmentId).SaveProfile();
 
-            try { db.SaveChanges(); } catch (DBConcurrencyException) { }
+            //ADD roleEnttry into roleclient mock,  find out how mock works
         }
 
         public IReadOnlyCollection<CloudEventV1<TPayload>> GetNotificationMessages<TPayload>(string pathFilter)
@@ -119,7 +109,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 }
                 catch (Exception) { return null; }
             }).Where(m => m != null);
-
 
             return notifications.ToList();
         }

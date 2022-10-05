@@ -15,6 +15,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
             DepartmentId = departmentId;
             ResponsibleAzureUniqueId = responsibleAzureUniqueId;
         }
+
         public DateTimeOffset DateFrom { get; set; }
         public DateTimeOffset DateTo { get; set; }
         public string DepartmentId { get; }
@@ -33,18 +34,6 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
             public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
-                var delegatedResourceOwner = new DbDepartmentResponsible
-                {
-                    DateCreated = DateTime.UtcNow,
-                    DateFrom = request.DateFrom,
-                    DateTo = request.DateTo,
-                    DepartmentId = request.DepartmentId,
-                    ResponsibleAzureObjectId = request.ResponsibleAzureUniqueId,
-                };
-
-                db.DepartmentResponsibles.Add(delegatedResourceOwner);
-                await db.SaveChangesAsync(cancellationToken);
-
                 await rolesClient.AssignRoleAsync(request.ResponsibleAzureUniqueId, new RoleAssignment
                 {
                     Identifier = Guid.NewGuid().ToString(),

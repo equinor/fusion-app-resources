@@ -1,14 +1,17 @@
 ﻿using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
-using System.Linq;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Fusion.Testing.Mocks.LineOrgService;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -74,6 +77,43 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.Should().Contain(x => x.Name == department);
         }
 
+        [Fact]
+        public async Task SearchDepartment_Should_GetDelegatedResponsibles_FromRoleService()
+        {
+            //var department = "TPD LIN ORG TST1";
+            var delegatedDepartment = "TPD LIN ORG TST1";
+            var nonDelegatedDepartment = "Non delegated";
+
+            var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = "Test project"
+            });
+
+            await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = "Test project"
+            });
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+        }
 
         [Fact]
         public async Task SearchShouldBeCaseInsensitive()
@@ -108,7 +148,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
         }
 
-
         [Fact]
         public async Task DeleteDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
         {
@@ -139,7 +178,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
             using var adminScope = fixture.AdminScope();
-
 
             var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
             {
@@ -193,7 +231,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<TestApiRelevantDepartments>($"/departments/{department}/related");
             resp.Should().BeNotFound();
         }
-
 
         [Fact]
         public async Task PositionRelevantDepartments_ShouldGetDataFromLineOrg()
@@ -301,7 +338,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             project.AddToMockService();
 
             using var adminScope = fixture.AdminScope();
-            await Client.AddResponsibilityMatrixAsync(project, x => {
+            await Client.AddResponsibilityMatrixAsync(project, x =>
+            {
                 x.BasePositionId = pos.BasePosition.Id;
                 x.Discipline = null;
                 x.LocationId = null;

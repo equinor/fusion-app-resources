@@ -3,6 +3,7 @@ using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
 using Fusion.Services.LineOrg.ApiModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,37 +38,31 @@ namespace Fusion.Resources.Application
         {
             var managerIds = departments
                     .Where(x => x.Manager?.AzureUniqueId != null)
-                    .Select(x => new PersonIdentifier(x.Manager!.AzureUniqueId));
+                    .Select(x => new PersonIdentifier(x.Manager!.AzureUniqueId)).ToList();
+
             var profiles = await profileResolver.ResolvePersonsAsync(managerIds);
-
-            var missingProfile = profiles.FirstOrDefault(x => !x.Success);
-            if (missingProfile is not null)
-            {
-                throw new IntegrationError($"Failed to resolve resource owner.", new PersonNotFoundError(missingProfile.Identifier.ToString()));
-            }
-
-            var profileLookup = profiles.ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
-            return departments.Select(x => new QueryDepartment(x, x.Manager != null ? profileLookup[x.Manager!.AzureUniqueId!] : null)).ToList();
+            // Some profiles may be expired. Only consider existing profiles (resolved will return success).
+            var profileLookup = profiles.Where(x => x.Success)
+                .ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
+            return departments.Select(x => new QueryDepartment(x, TryLookupManager(profileLookup, x.Manager))).ToList();
         }
 
         public static async Task<List<QueryDepartment>> ToQueryDepartment(this IEnumerable<ApiLineOrgUser> users, IFusionProfileResolver profileResolver)
         {
             var managerIds = users.Select(x => new PersonIdentifier(x.AzureUniqueId));
-
             var profiles = await profileResolver.ResolvePersonsAsync(managerIds);
-
-            var missingProfile = profiles.FirstOrDefault(x => !x.Success);
-            if (missingProfile is not null)
-            {
-                throw new IntegrationError($"Failed to resolve resource owner.", new PersonNotFoundError(missingProfile.Identifier.ToString()));
-            }
-
-            var profileLookup = profiles.ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
+            // Some profiles may be expired. Only consider existing profiles.
+            var profileLookup = profiles.Where(x => x.Success).ToDictionary(x => x.Profile!.AzureUniqueId!.Value, x => x.Profile!);
             return users.Select(x => new QueryDepartment(new ApiDepartment
             {
                 Name = x.Department!,
                 FullName = x.FullDepartment!,
-            }, profileLookup[x.AzureUniqueId])).ToList();
+            }, TryLookupManager(profileLookup, x))).ToList();
+        }
+
+        private static FusionPersonProfile? TryLookupManager(IReadOnlyDictionary<Guid, FusionPersonProfile> profileLookup, ApiLineOrgUser? x)
+        {
+            return x != null && profileLookup.TryGetValue(x.AzureUniqueId, out var fusionProfile) ? fusionProfile : null;
         }
     }
 }
