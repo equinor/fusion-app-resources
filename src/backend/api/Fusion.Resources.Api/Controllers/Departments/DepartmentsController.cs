@@ -25,6 +25,7 @@ namespace Fusion.Resources.Api.Controllers
             this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application); ;
             this.requestRouter = requestRouter;
         }
+
         [HttpGet("/departments")]
         public async Task<ActionResult<List<ApiDepartment>>> Search([FromQuery(Name = "$search")] string query)
         {
@@ -40,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/departments/{departmentString}")]
         public async Task<ActionResult<ApiDepartment>> GetDepartments(string departmentString)
         {
-            var department = await DispatchAsync(new GetDepartment(departmentString));
+            var department = await DispatchAsync(new GetDepartment(departmentString).ExpandDelegatedResourceOwners());
             if (department is null) return NotFound();
 
             return Ok(new ApiDepartment(department));
@@ -59,6 +60,7 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
         {
             #region Authorization
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
@@ -66,7 +68,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-            #endregion
+
+            #endregion Authorization
 
             var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
             if (existingDepartment is null) return NotFound();
@@ -79,7 +82,6 @@ namespace Fusion.Resources.Api.Controllers
 
             await DispatchAsync(command);
 
-
             return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
         }
 
@@ -87,6 +89,7 @@ namespace Fusion.Resources.Api.Controllers
         public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
         {
             #region Authorization
+
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
@@ -94,7 +97,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-            #endregion
+
+            #endregion Authorization
 
             var deleted = await DispatchAsync(
                 new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)

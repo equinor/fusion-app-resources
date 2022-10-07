@@ -5,7 +5,7 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiProposedPerson
     {
-        public ApiProposedPerson(QueryResourceAllocationRequest.QueryProposedPerson proposedPerson)
+        public ApiProposedPerson(QueryProposedPerson proposedPerson)
         {
             ProposedAt = proposedPerson.ProposedDate;
             WasNotified = proposedPerson.WasNotified;
@@ -17,14 +17,18 @@ namespace Fusion.Resources.Api.Controllers
             if (proposedPerson.ResourceOwner is not null)
             {
                 ResourceOwner = new ApiPerson(proposedPerson.ResourceOwner);
+                
+            }
+            if (proposedPerson.DelegatedResourceOwner is not null)
+            {
+                DelegatedResourceOwner = new ApiPerson(proposedPerson.DelegatedResourceOwner);
             }
         }
-
 
         public DateTimeOffset ProposedAt { get; set; }
         public ApiPerson Person { get; set; }
         public bool WasNotified { get; set; }
-
         public ApiPerson? ResourceOwner { get; set; }
+        public ApiPerson? DelegatedResourceOwner { get; set; }
     }
 }

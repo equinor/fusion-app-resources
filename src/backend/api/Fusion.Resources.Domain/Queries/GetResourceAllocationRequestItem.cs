@@ -157,6 +157,7 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     await ExpandResourceOwnerAsync(requestItem);
                 }
+
                 if (request.Expands.HasFlag(ExpandProperties.DepartmentDetails))
                 {
                     await ExpandDepartmentDetails(requestItem);
@@ -222,6 +223,7 @@ namespace Fusion.Resources.Domain.Queries
                     if (request.ProposedPerson?.AzureUniqueId is not null)
                     {
                         var manager = await mediator.Send(new GetResourceOwner(request.ProposedPerson.AzureUniqueId));
+
                         request.ProposedPerson.ResourceOwner = manager;
                     }
                 }
@@ -230,6 +232,7 @@ namespace Fusion.Resources.Domain.Queries
                     logger.LogError(ex, "Could not expand resource owner: {Message}", ex.Message);
                 }
             }
+
             private async Task ExpandConversation(QueryResourceAllocationRequest requestItem, QueryMessageRecipient recipient)
             {
                 requestItem.Conversation = await mediator.Send(new GetRequestConversation(requestItem.RequestId, recipient));

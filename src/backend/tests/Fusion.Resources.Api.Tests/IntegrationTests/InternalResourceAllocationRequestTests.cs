@@ -1,28 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Security.Principal;
 using System.Threading.Tasks;
+using Bogus.Bson;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
+using Fusion.Testing.Mocks.OrgService.Api;
 using Fusion.Testing.Mocks.ProfileService;
+using Microsoft.Identity.Client;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
-#nullable enable 
+
+#nullable enable
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
     public class InternalResourceAllocationRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
-        const string TestDepartmentId = "TPD PRD FE MMS MAT1";
+        private const string TestDepartmentId = "TPD PRD FE MMS MAT1";
 
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
@@ -32,9 +41,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         /// </summary>
         private ApiPersonProfileV3 testUser;
 
-
         // Created by the async lifetime
         private TestApiInternalRequestModel normalRequest = null!;
+
         private FusionTestProjectBuilder testProject = null!;
 
         private Guid projectId => testProject.Project.ProjectId;
@@ -94,6 +103,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         #region delete tests
+
         [Fact]
         public async Task Delete_InternalRequest_ShouldBeSuccessful()
         {
@@ -119,7 +129,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Ensure removal of request was successful even if Org Position is missing.
             response.Should().BeSuccessfull();
         }
-
 
         [Fact]
         public async Task Delete_InternalRequest_ShouldUpdateOrgPositionInstanceHasRequest()
@@ -170,6 +179,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{Guid.NewGuid()}");
             response.Should().BeNotFound();
         }
+
         [Fact]
         public async Task Delete_RequestComment_ShouldBeDeleted()
         {
@@ -185,6 +195,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}/comments/{commentId}");
             response.Should().BeSuccessfull();
         }
+
         [Fact]
         public async Task Delete_NonExistingRequestComment_ShouldBeNotFound()
         {
@@ -193,9 +204,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientDeleteAsync($"/resources/requests/internal/{normalRequest.Id}/comments/{Guid.NewGuid()}");
             response.Should().BeNotFound();
         }
-        #endregion
+
+        #endregion delete tests
 
         #region get tests
+
         [Fact]
         public async Task Get_AnalyticsRequestsInternal_ShouldBeSuccessfull_WhenAdmin()
         {
@@ -210,7 +223,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
             var absentee = fixture.AddProfile(FusionAccountType.Employee);
             var absence = await Client.AddAbsence(absentee, x => x.Type = "OtherTasks");
-            var response = await Client.TestClientGetAsync($"/analytics/absence/internal", new { value = new[] { new { id=Guid.Empty,  type = default(int) } } });
+            var response = await Client.TestClientGetAsync($"/analytics/absence/internal", new { value = new[] { new { id = Guid.Empty, type = default(int) } } });
             response.Should().BeSuccessfull();
             response.Value.value.Single(x => x.id == absence.Value.Id).type.Should().Be(2);
         }
@@ -233,7 +246,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var response = await Client.TestClientGetAsync<object>($"/analytics/absence/internal");
             response.Should().BeSuccessfull();
         }
-
 
         [Fact]
         public async Task Get_ProjectRequest_ShouldBeSuccessfull_WhenAdmin()
@@ -291,7 +303,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 }
             });
 
-
             result.Should().BeSuccessfull();
             result.Value.taskOwner.Should().NotBeNull();
             result.Value.taskOwner.positionId.Should().Be(taskOwnerPosition.Id);
@@ -319,7 +330,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     lineOrgResponsible = new { azureUniqueId = Guid.Empty, name = "" }
                 }
             });
-
 
             result.Should().BeSuccessfull();
             result.Value.assignedDepartmentDetails.Should().NotBeNull();
@@ -363,13 +373,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 }
             });
 
-
             result.Should().BeSuccessfull();
             result.Value.taskOwner.Should().NotBeNull();
             result.Value.taskOwner.positionId.Should().Be(taskOwnerPosition.Id);
             result.Value.taskOwner.persons.Should().Contain(p => p.mail == futureTaskOwnerPerson.Mail);
         }
-
 
         [Fact]
         public async Task Get_ProjectRequests_ShouldNotExpandPositionByDefault()
@@ -456,7 +464,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
 
             response.Value.Value.Count().Should().BeGreaterThan(0);
-
         }
 
         [Fact]
@@ -561,9 +568,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     }
                 });
 
-
             result.Should().BeSuccessfull();
-
 
             result.Value.value.First(x => x.id == requestA.Id).actions[0].id.Should().Be(taskA.id);
             result.Value.value.First(x => x.id == requestB.Id).actions[0].id.Should().Be(taskB.id);
@@ -584,10 +589,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 new
                 {
                     value = new[] {
-                        new { 
+                        new {
                             id = Guid.Empty,
                             actionCount = new { total = 0, resolved = 0, unresolved = 0 },
-                            actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, responsible = "", sentBy = new { } } } 
+                            actions = new[] { new { requestId = Guid.Empty,  id = Guid.Empty, responsible = "", sentBy = new { } } }
                         }
                     }
                 });
@@ -595,7 +600,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
 
             var resultingRequest = result.Value.value.First(x => x.id == request.Id);
-            
+
             resultingRequest.actions.Should().OnlyContain(x => x.responsible == "Both" || x.responsible == "TaskOwner");
             resultingRequest.actionCount.total.Should().Be(2);
         }
@@ -611,7 +616,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var taskA1 = await Client.AddRequestActionAsync(requestA.Id);
             var taskA2 = await Client.AddRequestActionAsync(requestA.Id, responsible: "Both");
             var taskA3 = await Client.AddRequestActionAsync(requestA.Id);
-            
+
             var patchResult = await Client.TestClientPatchAsync<object>($"/requests/{requestA.Id}/actions/{taskA3.id}", new { IsResolved = true });
             patchResult.Should().BeSuccessfull();
 
@@ -624,7 +629,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                         new { id = Guid.Empty, actionCount = new { total = 0, resolved = 0, unresolved = 0 } }
                     }
                 });
-
 
             result.Should().BeSuccessfull();
 
@@ -665,7 +669,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             // To ensure we do not get correct order due to coincidence, we will sort both asc and desc to verify test.
 
-
             var requestA = await Client.CreateDefaultRequestAsync(testProject);
             var requestB = await Client.CreateDefaultRequestAsync(testProject);
 
@@ -704,7 +707,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         //    for (int i = 0; i < 10; i++) await Client.CreateRequestAsync(testProject, r => r.WithAssignedDepartment(null));
 
-
         //    var response = await Client.TestClientGetAsync($"/resources/requests/internal/unassigned?$count=only", new { value = Array.Empty<object>(), totalCount = 0 });
         //    response.Should().BeSuccessfull();
 
@@ -725,10 +727,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    response.Value.value.Should().NotContain(r => r.id == newRequestId);
         //}
 
-
-        #endregion
+        #endregion get tests
 
         #region put tests
+
         //[Fact]
         //public async Task Put_ProjectRequest_ShouldBeAuthorized()
         //{
@@ -804,7 +806,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         //    var response = await Client.TestClientPutAsync<ObjectWithId>($"/resources/requests/internal/{normalRequest.Request.Id}/comments/{testCommentId}", new { Content = "Updated normal comment" });
         //    response.Should().BeSuccessfull();
         //}
-        #endregion
+
+        #endregion put tests
 
         #region Update request
 
@@ -840,7 +843,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             JObject payload = new JObject();
             payload.Add(property, JToken.FromObject(value));
-
 
             var response = await Client.TestClientPatchAsync<JObject>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}", payload);
             response.Should().BeSuccessfull();
@@ -917,6 +919,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
             response.Value.ProposedPersonAzureUniqueId.Should().BeNull();
         }
+
         [Fact]
         public async Task UpdateRequest_ProposedPersonShouldBeNullable_WhenCreated()
         {
@@ -956,7 +959,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
 
-
             var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
                 $"/resources/requests/internal/{normalRequest.Id}",
                 new { candidates = new[] { new { testUser.Mail } } }
@@ -972,7 +974,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-
 
             var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
                 $"/resources/requests/internal/{normalRequest.Id}",
@@ -993,7 +994,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var candidate = fixture.AddProfile(FusionAccountType.Employee);
 
-
             var response = await Client.TestClientPatchAsync<TestApiInternalRequestModel>(
                 $"/resources/requests/internal/{request.Id}",
                 new { candidates = new[] { new { testUser.Mail }, new { candidate.Mail } } }
@@ -1005,10 +1005,53 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Content.ToLowerInvariant().Should().Contain("candidate");
         }
 
+        [Fact]
+        public async Task CheckDleegatedREsposibleOnproject()
+        {
+            using var adminScope = fixture.AdminScope();
+            //var department = "TPD LIN ORG TST1";
+            var response = await Client.TestClientGetAsync<object>($"/projects");
+            List<TestApiLocation> data = JsonConvert.DeserializeObject<List<TestApiLocation>>(response.Content);
+            var projectIdentifier = data.First().Id;
 
-        #endregion
+            var delegatedDepartment = data.First().Name; ;
+            var nonDelegatedDepartment = "Non delegated";
+
+            var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = "Test project"
+            });
+
+            await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = "Test project"
+            });
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+
+            //var projectIdentifier = "01302859-f803-42a8-b6fa-4973bce5bc6b";
+            var resp = await Client.TestClientGetAsync<object>($"/projects/{projectIdentifier}/requests");
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            //resp.Value.Should().S(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+        }
+
+        #endregion Update request
 
         #region Create request tests
+
         [Fact]
         public async Task CreateRequest_ShouldBeBadRequest_WhenNormalAndNoPosition()
         {
@@ -1025,7 +1068,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.GetNotificationMessages<Integration.Models.FusionEvents.ResourceAllocationRequestSubscriptionEvent>("resources-sub")
                 .Should().Contain(m => m.Payload.ItemId == normalRequest.Id && m.Payload.Type == Integration.Models.FusionEvents.EventType.RequestCreated);
         }
-
 
         [Fact]
         public async Task CreateRequest_ShouldBeBadRequest_WhenNormalAndNoInstance()
@@ -1090,7 +1132,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.First().CorrelationId.Should().NotBeEmpty();
             response.Value.All(x => x.CorrelationId == response.Value.First().CorrelationId).Should().BeTrue();
         }
-        #endregion
+
+        #endregion Create request tests
 
         #region Provision
 
@@ -1111,7 +1154,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var invocations = OrgServiceMock.Invocations.Where(i => i.Headers.Any(k => k.Key == "x-fusion-change-source"));
             invocations.Should().Contain(e => e.Headers.Any(h => h.Key == "x-fusion-change-source" && h.Value.Contains($"; {request.Number}")));
         }
-        #endregion
+
+        #endregion Provision
     }
 
+    public class TestApiLocation
+    {
+        public Guid Id { get; set; }
+        public Guid InternalId { get; set; }
+        public string Name { get; set; }
+    }
 }
