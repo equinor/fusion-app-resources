@@ -1006,7 +1006,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task CheckDleegatedREsposibleOnproject()
+        public async Task CheckDelegatedResposibleOnproject()
         {
             using var adminScope = fixture.AdminScope();
             //var department = "TPD LIN ORG TST1";
@@ -1017,34 +1017,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.ProposePersonAsync(normalRequest.Id, testUser);
             await Client.AssignDepartmentAsync(normalRequest.Id, TestDepartmentId);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
+            await Client.AddDelegatedDepartmentOwner(testUser, TestDepartmentId, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
 
             var projectIdentifier = testProject.Project.ProjectId;
-            var delegatedDepartment = TestDepartmentId;
 
-            var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-
-            await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = testProject.Project.Name
-            }); ; ;
-
-            await RolesClientMock.AddPersonRole((System.Guid)mainResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = testProject.Project.Name
-            });
-
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
-
-            //var projectIdentifier = "01302859-f803-42a8-b6fa-4973bce5bc6b";
             var resp = await Client.TestClientGetAsync<object>($"/projects/{projectIdentifier}/requests");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
