@@ -88,40 +88,40 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Delegated project"
-            });
+            //await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = "Delegated project"
+            //});
 
-            await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Delegated project"
-            });
+            //await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = "Delegated project"
+            //});
 
-            await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
-            });
+            //await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = "Test project"
+            //});
 
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            //LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Count >= 2);
+            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Count >= 1);
         }
 
         [Fact]
