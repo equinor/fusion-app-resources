@@ -121,7 +121,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Count == 2);
+            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Count >= 2);
         }
 
         [Fact]
