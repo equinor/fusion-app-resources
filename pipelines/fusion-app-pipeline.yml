@@ -16,7 +16,6 @@ stages:
   
     jobs:
     - job: Build
-      pool: Private Docker VMSS
       displayName: 'Build resources bundle'
       
       variables:
@@ -57,7 +56,6 @@ stages:
     jobs:
       - deployment: DeployApp
         displayName: 'Deploy resources'
-        pool: Private Docker VMSS
         environment: fusion-ci
         variables:
           portalUrl: 'https://pro-s-portal-ci.azurewebsites.net'
@@ -99,7 +97,6 @@ stages:
     jobs:
       - deployment: DeployApp
         displayName: 'Deploy resources'
-        pool: Private Docker VMSS
         environment: fusion-fqa
         variables:
           portalUrl: 'https://pro-s-portal-fqa.azurewebsites.net'
@@ -141,7 +138,6 @@ stages:
     jobs:
       - deployment: DeployApp
         displayName: 'Deploy resources'
-        pool: Private Docker VMSS
         environment: fusion-tr
         variables:
           portalUrl: 'https://pro-s-portal-tr.azurewebsites.net'
@@ -183,7 +179,6 @@ stages:
     jobs:
       - deployment: DeployApp
         displayName: 'Deploy resources'
-        pool: Private Docker VMSS
         environment: fusion-prod
         variables:
           portalUrl: 'https://pro-s-portal-fprd.azurewebsites.net'
