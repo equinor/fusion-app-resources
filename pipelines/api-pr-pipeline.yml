@@ -49,9 +49,9 @@ stages:
           cacheFrom: |
             latest
           cacheTo: |
-            $(imageTag)
+            $(prNumber)
           tags: |
-            $(imageTag)
+            $(prNumber)
       - template: templates/docker-buildx.yml@infra
         parameters:
           initBuilderInstance: false
