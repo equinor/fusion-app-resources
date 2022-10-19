@@ -6,11 +6,19 @@ pr:
     - src/backend/api/*
 
 trigger: none
-  
+
+resources:
+  repositories:
+    - repository: infra
+      name: equinor/fusion-infrastructure
+      type: github
+      endpoint: fusion-infrastructure
+
 variables:
     prNumber: $(System.PullRequest.PullRequestNumber)
     fusionAcr: 'fusioncr.azurecr.io'
-    imageName: resources/fusion-resouces-api:$(prNumber)
+    imageRepo: resources/fusion-resouces-api
+    imageName: $(imageRepo):$(prNumber)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-pr-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
@@ -22,30 +30,38 @@ stages:
     jobs:
     - job: BuildImage
       steps:
-      - task: Docker@1
-        displayName: 'Build an image'
+      - task: Docker@2
+        displayName: Login to fusioncr
         inputs:
-          azureSubscriptionEndpoint: $(subscriptionService)
-          azureContainerRegistry: '$(fusionAcr)'
-          dockerFile: 'src/backend/api/Fusion.Resources.Api/Dockerfile'
-          imageName: '$(imageName)'
-          includeSourceTags: true
-          includeLatestTag: false
-          useDefaultContext: false
+          command: login
+          containerRegistry: fusioncr
+      - task: Docker@2
+        displayName: Login to fusioncachecr
+        inputs:
+          command: login
+          containerRegistry: fusioncachecr
+      - template: templates/docker-buildx.yml@infra
+        parameters:
+          repository: $(imageRepo)
           buildContext: ./src/backend
-  
-      - task: Docker@1
-        displayName: 'Push an image'
-        inputs:
-          azureSubscriptionEndpoint: $(subscriptionService)
-          azureContainerRegistry: '$(fusionAcr)'
-          command: 'Push an image'
-          imageName: '$(imageName)'
-  
-      - script: |
-          docker run --rm --entrypoint cat $(fullImageName) /app/migration.sql > $(Build.ArtifactStagingDirectory)/db-migration.sql
-        displayName: "Copy EF migration file from container"
-
+          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+          dockerPush: true
+          cacheFrom: |
+            latest
+          cacheTo: |
+            $(imageTag)
+          tags: |
+            $(imageTag)
+      - template: templates/docker-buildx.yml@infra
+        parameters:
+          initBuilderInstance: false
+          registry: ''
+          cacheRegistry: ''
+          buildContext: ./src/backend
+          dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
+          arguments: |
+            --target=export
+            --output=type=local,dest=$(Build.ArtifactStagingDirectory)
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
