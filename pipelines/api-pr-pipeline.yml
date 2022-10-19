@@ -57,6 +57,7 @@ stages:
           initBuilderInstance: false
           registry: ''
           cacheRegistry: ''
+          repository: ''
           buildContext: ./src/backend
           dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
           arguments: |
