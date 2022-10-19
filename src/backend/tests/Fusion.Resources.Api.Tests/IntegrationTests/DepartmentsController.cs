@@ -6,6 +6,7 @@ using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
+using SixLabors.ImageSharp.ColorSpaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,16 +95,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Delegated project"
-            });
-
-            await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Delegated project"
+                Source = "Test project"
             });
 
             await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
@@ -121,7 +113,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Count >= 1);
+            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
         }
 
         [Fact]
@@ -144,22 +136,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Source = "Test project"
             });
 
-            await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
-            });
+            //await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = "Test project"
+            //});
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments/{delegatedDepartment}");
+            var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{delegatedDepartment}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+            //resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+            //resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Any(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId)));
+
+            resp.Value.Name.Should().Contain(delegatedDepartment);
+            resp.Value.DelegatedResponsibles.Should().HaveCount(1);
+            resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
         }
 
         [Fact]

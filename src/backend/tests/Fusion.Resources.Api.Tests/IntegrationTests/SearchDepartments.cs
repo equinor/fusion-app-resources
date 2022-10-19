@@ -59,7 +59,7 @@ namespace Fusion.Resources.Api.Tests
             LineOrgServiceMock.AddTestUser().MergeWithProfile(fakeDefactoResourceOwner).AsResourceOwner().WithFullDepartment("TPD PRD FE MMS STR2").SaveProfile();
 
             using var authScope = fixture.AdminScope();
-            
+
             var search = fakeResourceOwner.Name.Substring(0, Math.Min(4, fakeResourceOwner.Name.Length));
             var result = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments&$search={search}");
             result.Value.SingleOrDefault()?.LineOrgResponsible.AzureUniquePersonId.Should().Be(fakeResourceOwner.AzureUniqueId.Value);
