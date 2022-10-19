@@ -58,14 +58,13 @@ stages:
       - template: templates/docker-buildx.yml@infra
         parameters:
           initBuilderInstance: false
-          registry: ''
-          cacheRegistry: ''
           repository: ''
           buildContext: ./src/backend
           dockerfile: src/backend/api/Fusion.Resources.Api/Dockerfile
           arguments: |
             --target=export
             --output=type=local,dest=$(Build.ArtifactStagingDirectory)
+            --cache-from=type=registry,ref=fusioncachecr.azurecr.io/$(imageRepo):$(prNumber)
       - task: CopyFiles@2
         displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
         inputs:
@@ -73,7 +72,6 @@ stages:
           Contents: |
             deployment-pr-env.yml
           TargetFolder: '$(Build.ArtifactStagingDirectory)'        
-  
       - publish: $(Build.ArtifactStagingDirectory)
         artifact: 'k8s-deployment'
   
@@ -156,6 +154,7 @@ stages:
             - template: templates/execute-sql-migration.yml
               parameters:
                 artifact: 'k8s-deployment'
+                sqlFile: $(Pipeline.Workspace)/k8s-deployment/migration.sql
                 environment: '$(envName)-$(prNumber)'
   
             - task: KubernetesManifest@0
