@@ -155,7 +155,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Any(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId)));
 
             resp.Value.Name.Should().Contain(delegatedDepartment);
-            resp.Value.DelegatedResponsibles.Should().HaveCount(1);
+            resp.Value.DelegatedResponsibles.Should().HaveCountGreaterOrEqualTo(1);
             resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
         }
 
