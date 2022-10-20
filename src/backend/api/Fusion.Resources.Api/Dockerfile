@@ -30,7 +30,7 @@ WORKDIR "/src/api/Fusion.Resources.Database"
 RUN dotnet ef migrations script --idempotent --output "/migrations/migration.sql" --configuration Release --no-build
 
 FROM scratch as export
-COPY --from=publish /migrations/migration.sql .
+COPY --from=publish /migrations/migration.sql db-migration.sql
 
 FROM base AS final
 WORKDIR /app

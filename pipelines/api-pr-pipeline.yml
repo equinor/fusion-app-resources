@@ -154,7 +154,6 @@ stages:
             - template: templates/execute-sql-migration.yml
               parameters:
                 artifact: 'k8s-deployment'
-                sqlFile: $(Pipeline.Workspace)/k8s-deployment/migration.sql
                 environment: '$(envName)-$(prNumber)'
   
             - task: KubernetesManifest@0
