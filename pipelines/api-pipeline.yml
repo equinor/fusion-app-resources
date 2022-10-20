@@ -10,6 +10,13 @@ trigger:
     include:
     - src/backend/api/*
   
+resources:
+  repositories:
+    - repository: infra
+      name: equinor/fusion-infrastructure
+      type: github
+      endpoint: fusion-infrastructure
+
 variables:
     imageTag: $(Build.BuildNumber)
     fusionAcr: 'fusioncr.azurecr.io'
@@ -45,7 +52,6 @@ stages:
             $(imageTag)
           tags: |
             $(imageTag)
-            latest
       - template: templates/docker-buildx.yml@infra
         parameters:
           initBuilderInstance: false
