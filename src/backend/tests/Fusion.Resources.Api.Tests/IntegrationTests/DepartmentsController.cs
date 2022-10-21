@@ -84,7 +84,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //var department = "TPD LIN ORG TST1";
             var delegatedDepartment = "TPD LIN ORG TST1";
             var nonDelegatedDepartment = "Non delegated";
-
+            var Source = $"Project {Guid.NewGuid()}";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
@@ -95,7 +95,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
+                Source = Source
             });
 
             await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
@@ -104,7 +104,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
+                Source = Source
             });
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
@@ -122,11 +122,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             //var department = "TPD LIN ORG TST1";
             var delegatedDepartment = "TPD LIN ORG TST1";
-            var nonDelegatedDepartment = "Non delegated";
 
+            var Source = $"Project {Guid.NewGuid()}";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
             await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
             {
@@ -134,17 +134,17 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
+                Source = Source
             });
 
-            //await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
-            //{
-            //    Identifier = $"{Guid.NewGuid()}",
-            //    RoleName = AccessRoles.ResourceOwner,
-            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
-            //    ValidTo = DateTime.UtcNow.AddDays(1),
-            //    Source = "Test project"
-            //});
+            await RolesClientMock.AddPersonRole((System.Guid)secondDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = Source
+            });
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
@@ -156,8 +156,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             //resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Any(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId)));
 
             resp.Value.Name.Should().Contain(delegatedDepartment);
-            resp.Value.DelegatedResponsibles.Should().HaveCountGreaterOrEqualTo(1);
+            resp.Value.DelegatedResponsibles.Should().HaveCount(2);
             resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+            resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(secondDelegatedResourceOwner.AzureUniqueId));
         }
 
         [Fact]
