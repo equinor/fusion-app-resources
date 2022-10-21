@@ -122,6 +122,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var Source = $"Project {Guid.NewGuid()}";
             var delegatedDepartment = "FromGet";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            mainResourceOwner.FullDepartment = $"FullDep {Guid.NewGuid()}";
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
