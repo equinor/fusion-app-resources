@@ -110,7 +110,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
-
+            TestLogger.TryLogObject(resp);
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Any(y => y.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId)));
@@ -147,7 +147,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{delegatedDepartment}");
-
+            TestLogger.TryLogObject(resp);
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             resp.Value.Name.Should().Contain(delegatedDepartment);
