@@ -119,13 +119,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetDepartment_Should_GetDelegatedResponsibles_FromGetDepartmentString()
         {
+            
             var Source = $"Project {Guid.NewGuid()}";
             var delegatedDepartment = "FromGet";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             mainResourceOwner.FullDepartment = $"FullDep {Guid.NewGuid()}";
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-
+            
             await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
             {
                 Identifier = $"{Guid.NewGuid()}",
@@ -152,7 +153,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             resp.Value.Name.Should().Contain(delegatedDepartment);
-            resp.Value.DelegatedResponsibles.Should().HaveCount(2);
+            resp.Value.DelegatedResponsibles.Should().HaveCountGreaterOrEqualTo(2);
             resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
             resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(secondDelegatedResourceOwner.AzureUniqueId));
         }

@@ -15,10 +15,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
+
         /// <summary>
         /// Will be generated new for each test
         /// </summary>
         private readonly ApiPersonProfileV3 testUser;
+
         private FusionTestProjectBuilder testProject;
 
         public PersonControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
@@ -39,39 +41,38 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AddContext(testProject.Project);
         }
 
-        //[Fact]
-        //public async Task ShouldIgnoreNonCurrentDepartmentDelegations()
-        //{
-        //    var actualDept = "TPD PRD TST ABC";
-        //    var currentDelegatedDept = "TPD PRD TST ASD QWE";
-        //    var expiredDelegatedDept = "TPD PRD TST PRV WFD";
+        [Fact]
+        public async Task ShouldIgnoreNonCurrentDepartmentDelegations()
+        {
+            var actualDept = "TPD PRD TST ABC";
+            var currentDelegatedDept = "TPD PRD TST ASD QWE";
+            var expiredDelegatedDept = "TPD PRD TST PRV WFD";
 
-        //    fixture.EnsureDepartment(actualDept);
-        //    fixture.EnsureDepartment(currentDelegatedDept);
-        //    fixture.EnsureDepartment(expiredDelegatedDept);
+            fixture.EnsureDepartment(actualDept);
+            fixture.EnsureDepartment(currentDelegatedDept);
+            fixture.EnsureDepartment(expiredDelegatedDept);
 
+            using (var adminScope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                await client.AddDelegatedDepartmentOwner(testUser, currentDelegatedDept, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+                await client.AddDelegatedDepartmentOwner(testUser, expiredDelegatedDept, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
+            }
 
-        //    using (var adminScope = fixture.AdminScope())
-        //    {
-        //        var client = fixture.ApiFactory.CreateClient();
-        //        await client.AddDelegatedDepartmentOwner(testUser, currentDelegatedDept, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
-        //        await client.AddDelegatedDepartmentOwner(testUser, expiredDelegatedDept, DateTime.Now.AddDays(-14), DateTime.Now.AddDays(-7));
-        //    }
+            using (var userScope = fixture.UserScope(testUser))
+            {
+                testUser.FullDepartment = actualDept;
+                var client = fixture.ApiFactory.CreateClient();
+                var resp = await client.TestClientGetAsync(
+                    $"/persons/me/resources/profile",
+                    new { responsibilityInDepartments = Array.Empty<string>() }
+                );
 
-        //    using (var userScope = fixture.UserScope(testUser))
-        //    {
-        //        testUser.FullDepartment = actualDept;
-        //        var client = fixture.ApiFactory.CreateClient();
-        //        var resp = await client.TestClientGetAsync(
-        //            $"/persons/me/resources/profile",
-        //            new { responsibilityInDepartments = Array.Empty<string>() }
-        //        );
-
-        //        resp.Should().BeSuccessfull();
-        //        resp.Value.responsibilityInDepartments.Should().Contain(currentDelegatedDept);
-        //        resp.Value.responsibilityInDepartments.Should().NotContain(expiredDelegatedDept);
-        //    }
-        //}
+                resp.Should().BeSuccessfull();
+                resp.Value.responsibilityInDepartments.Should().Contain(currentDelegatedDept);
+                resp.Value.responsibilityInDepartments.Should().NotContain(expiredDelegatedDept);
+            }
+        }
 
         [Fact]
         public async Task GetProfile_ShouldBeEmpty_WhenUserHasNoDepartment()
@@ -95,7 +96,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 resp.Value.isResourceOwner.Should().BeFalse();
             }
         }
-
 
         [Fact]
         public async Task GetProfile_ShouldBeNotFound_WhenUserDoesNotExist()
@@ -121,7 +121,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testUser = fixture.AddProfile(FusionAccountType.Consultant);
 
             using var userScope = fixture.AdminScope();
-            
+
             var client = fixture.ApiFactory.CreateClient();
             var resp = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/resources/allocation-request-status",
                 new
@@ -152,7 +152,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     {
                         azureUniquePersonId = Guid.Empty
                     }
-
                 }
             );
 
@@ -178,6 +177,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         public Task InitializeAsync() => Task.CompletedTask;
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();
