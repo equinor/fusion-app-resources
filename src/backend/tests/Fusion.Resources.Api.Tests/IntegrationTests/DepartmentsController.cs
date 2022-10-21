@@ -81,7 +81,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task SearchDepartment_Should_GetDelegatedResponsibles_FromRoleService()
         {
-            //var department = "TPD LIN ORG TST1";
             var delegatedDepartment = "TPD LIN ORG TST1";
             var nonDelegatedDepartment = "Non delegated";
             var Source = $"Project {Guid.NewGuid()}";
@@ -113,14 +112,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            //resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+
             resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Any(y => y.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId)));
         }
 
         [Fact]
         public async Task GetDepartment_Should_GetDelegatedResponsibles_FromGetDepartmentString()
         {
-            //var department = "TPD LIN ORG TST1";
             var delegatedDepartment = "TPD LIN ORG TST1";
 
             var Source = $"Project {Guid.NewGuid()}";
@@ -152,8 +150,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{delegatedDepartment}");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            //resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
-            //resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Any(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId)));
 
             resp.Value.Name.Should().Contain(delegatedDepartment);
             resp.Value.DelegatedResponsibles.Should().HaveCount(2);
