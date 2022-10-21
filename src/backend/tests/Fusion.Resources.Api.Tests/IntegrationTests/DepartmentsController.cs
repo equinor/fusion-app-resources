@@ -81,7 +81,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task SearchDepartment_Should_GetDelegatedResponsibles_FromRoleService()
         {
-            var delegatedDepartment = "TPD LIN ORG TST1";
+            var delegatedDepartment = "TPD LIN ORG FromRole";
             var nonDelegatedDepartment = "Non delegated";
             var Source = $"Project {Guid.NewGuid()}";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
@@ -119,9 +119,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task GetDepartment_Should_GetDelegatedResponsibles_FromGetDepartmentString()
         {
-            var delegatedDepartment = "TPD LIN ORG TST1";
-
             var Source = $"Project {Guid.NewGuid()}";
+            var delegatedDepartment = "TPD LIN ORG FromGet";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
