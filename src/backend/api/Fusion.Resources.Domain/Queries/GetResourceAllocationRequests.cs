@@ -101,6 +101,7 @@ namespace Fusion.Resources.Domain.Queries
             Responsible = QueryTaskResponsible.ResourceOwner;
             return this;
         }
+
         public GetResourceAllocationRequests ForTaskOwners()
         {
             Owner = DbInternalRequestOwner.Project;
@@ -143,23 +144,25 @@ namespace Fusion.Resources.Domain.Queries
         /// Use <see cref="ForAll(bool?)"/>
         /// </summary>
         public bool? ShouldIncludeAllRequests { get; private set; }
+
         public bool ExcludeWithoutProposedPerson { get; private set; }
 
         /// <summary>
         /// Use <see cref="WithPositionId(Guid)"/>
         /// </summary>
         public Guid? PositionId { get; private set; }
+
         public PersonId? PersonId { get; private set; }
 
         [Flags]
         private enum ExpandFields
         {
-            None                =      0,
-            OrgPosition         = 1 << 0,
+            None = 0,
+            OrgPosition = 1 << 0,
             OrgPositionInstance = 1 << 1,
-            DepartmentDetails   = 1 << 2,
-            Actions             = 1 << 3,
-            ActionCount         = 1 << 4
+            DepartmentDetails = 1 << 2,
+            Actions = 1 << 3,
+            ActionCount = 1 << 4
         }
 
         public class Validator : AbstractValidator<GetResourceAllocationRequests>
@@ -194,7 +197,6 @@ namespace Fusion.Resources.Domain.Queries
 
             public async Task<QueryRangedList<QueryResourceAllocationRequest>> Handle(GetResourceAllocationRequests request, CancellationToken cancellationToken)
             {
-
                 var query = db.ResourceAllocationRequests
                     .Include(r => r.OrgPositionInstance)
                     .Include(r => r.CreatedBy)
@@ -215,7 +217,7 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     query = query.ApplyODataFilters(request.Query, m =>
                     {
-                        // These fields are provided by the api, so must match the api model fields unfortunately. This is a known limitation, however 
+                        // These fields are provided by the api, so must match the api model fields unfortunately. This is a known limitation, however
                         // it is done instead of having to handle complexities in query expression logic..
                         m.MapField("assignedDepartment", i => i.AssignedDepartment);
                         m.MapField("discipline", i => i.Discipline);
@@ -244,21 +246,18 @@ namespace Fusion.Resources.Domain.Queries
                     query = query.Where(r => r.OrgPositionId == request.PositionId.Value);
                 if (request.PersonId.HasValue)
                 {
-                    if(request.PersonId.Value.Type == Domain.PersonId.IdentifierType.Mail)
+                    if (request.PersonId.Value.Type == Domain.PersonId.IdentifierType.Mail)
                         query = query.Where(r => db.SharedRequests.Any(x => x.RequestId == r.Id && x.SharedWith.Mail == request.PersonId.Value.Mail));
                     else
                         query = query.Where(r => db.SharedRequests.Any(x => x.RequestId == r.Id && x.SharedWith.AzureUniqueId == request.PersonId.Value.UniqueId));
                 }
 
-
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(DefaultPageSize);
-
 
                 var countOnly = request.OnlyCount;
 
                 var pagedQuery = await QueryRangedList.FromQueryAsync(query.Select(x => new QueryResourceAllocationRequest(x, null)), skip, take, countOnly);
-
 
                 if (!countOnly)
                 {
@@ -303,7 +302,7 @@ namespace Fusion.Resources.Domain.Queries
                 if (!request.Expands.HasFlag(ExpandFields.Actions)) return;
 
                 var requestActions = await mediator.Send(new GetActionsForRequests(pagedQuery.Select(x => x.RequestId), request.Responsible));
-                foreach(var rq in pagedQuery)
+                foreach (var rq in pagedQuery)
                 {
                     if (requestActions.Contains(rq.RequestId))
                         rq.Actions = requestActions[rq.RequestId].ToList();
@@ -326,7 +325,7 @@ namespace Fusion.Resources.Domain.Queries
             {
                 if (odataQuery.OrderBy.Any())
                 {
-                    // Limited support, only one lever supported... 
+                    // Limited support, only one lever supported...
 
                     var mainOrder = odataQuery.OrderBy.First();
                     switch (mainOrder.Field)
@@ -429,6 +428,9 @@ namespace Fusion.Resources.Domain.Queries
                     var id = request.ProposedPerson?.AzureUniqueId;
                     if (id is not null && profiles.ContainsKey(id.Value))
                         request.ProposedPerson!.Person = profiles[id.Value];
+                    var manager = await mediator.Send(new GetResourceOwner(id.Value));
+                    var department = await mediator.Send(new GetDepartment(manager.FullDepartment).ExpandDelegatedResourceOwners());
+                    request.ProposedPerson!.DelegatedResourceOwners = department.DelegatedResourceOwners;
                 }
             }
         }

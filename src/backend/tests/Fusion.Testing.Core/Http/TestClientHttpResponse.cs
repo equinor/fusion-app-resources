@@ -29,6 +29,9 @@ namespace Fusion.Testing
 
         public static async Task<TestClientHttpResponse<T>> CreateResponseAsync<T>(HttpResponseMessage response, bool skipDeserialization = false)
         {
+            var jsonSerializerSettings = new JsonSerializerSettings();
+            jsonSerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+
             var respObject = new TestClientHttpResponse<T>(response)
             {
                 Content = await response.Content.ReadAsStringAsync()
@@ -39,7 +42,7 @@ namespace Fusion.Testing
                 if (skipDeserialization && typeof(T) == typeof(string))
                     respObject.Value = (T)(object)respObject.Content;
                 else
-                    respObject.Value = JsonConvert.DeserializeObject<T>(respObject.Content);
+                    respObject.Value = JsonConvert.DeserializeObject<T>(respObject.Content, jsonSerializerSettings);
             }
             catch (Exception ex)
             {
@@ -81,6 +84,7 @@ namespace Fusion.Testing
         {
             CurrentUser.Value = profile;
         }
+
         public TestClientScope(string name, string value)
         {
             AddHeader(name, value);
@@ -91,6 +95,7 @@ namespace Fusion.Testing
             CurrentUser.Value = profile;
             return this;
         }
+
         public TestClientScope SetSigninAppId(Guid? appId)
         {
             CurrentAppId.Value = appId;
@@ -99,7 +104,6 @@ namespace Fusion.Testing
 
         public TestClientScope AddHeader(string name, string value)
         {
-
             if (CurrentHeaders.Value == null)
             {
                 CurrentHeaders.Value = new List<KeyValuePair<string, string>>();
@@ -136,6 +140,7 @@ namespace Fusion.Testing
     public static class TestHttpClientExtensions
     {
         #region GET
+
         public static async Task<TestClientHttpResponse<TResp>> TestClientGetAsync<TResp>(this HttpClient client, string requestUri)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -151,6 +156,7 @@ namespace Fusion.Testing
 
             return respObj;
         }
+
         public static async Task<TestClientHttpResponse<TResp>> TestClientGetAsync<TResp>(this HttpClient client, string requestUri, TResp returnType)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -182,9 +188,11 @@ namespace Fusion.Testing
 
             return respObj;
         }
-        #endregion
+
+        #endregion GET
 
         #region POST
+
         public static async Task<TestClientHttpResponse<T>> TestClientPostAsync<T>(this HttpClient client, string requestUri, object value)
         {
             string content = JsonConvert.SerializeObject(value, new JsonSerializerSettings()
@@ -329,7 +337,6 @@ namespace Fusion.Testing
 
         public static async Task<TestClientHttpResponse<TResponse>> TestClientPostFileAsync<TResponse>(this HttpClient client, string requestUri, Stream documentStream, string contentType, TResponse respType)
         {
-
             using (var streamContent = new StreamContent(documentStream))
             {
                 streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
@@ -353,7 +360,7 @@ namespace Fusion.Testing
             }
         }
 
-        #endregion
+        #endregion POST
 
         #region PATCH
 
@@ -409,7 +416,7 @@ namespace Fusion.Testing
             return respObj;
         }
 
-        #endregion
+        #endregion PATCH
 
         #region PUT
 
@@ -448,7 +455,7 @@ namespace Fusion.Testing
             {
                 Content = stringContent
             };
-            
+
             TestClientScope.AddHeaders(message);
 
             var resp = await client.SendAsync(message);
@@ -465,7 +472,7 @@ namespace Fusion.Testing
             return respObj;
         }
 
-        #endregion
+        #endregion PUT
 
         #region DELETE
 
@@ -526,7 +533,7 @@ namespace Fusion.Testing
             return respObj;
         }
 
-        #endregion
+        #endregion DELETE
 
         #region OPTIONS
 
@@ -549,6 +556,6 @@ namespace Fusion.Testing
             return respObj;
         }
 
-        #endregion
+        #endregion OPTIONS
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Fusion.Integration.Profile;
 using System;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Domain
 {
@@ -13,7 +14,7 @@ namespace Fusion.Resources.Domain
 
         public FusionPersonProfile? ResourceOwner { get; set; }
 
-        public FusionPersonProfile? DelegatedResourceOwner { get; set; }
+        public List<FusionPersonProfile?>? DelegatedResourceOwners { get; set; }
 
         public bool WasNotified { get; set; }
     }

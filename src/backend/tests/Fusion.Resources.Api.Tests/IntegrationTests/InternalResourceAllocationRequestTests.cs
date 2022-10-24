@@ -5,8 +5,10 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using Bogus;
 using Bogus.Bson;
 using FluentAssertions;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
@@ -19,11 +21,15 @@ using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.OrgService.Api;
 using Fusion.Testing.Mocks.ProfileService;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Identity.Client;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using static Fusion.Resources.Domain.Notifications.InternalRequests.InternalRequestNotifications;
 
 #nullable enable
 
@@ -1009,22 +1015,29 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task CheckDelegatedResposibleOnproject()
         {
             using var adminScope = fixture.AdminScope();
-            //var department = "TPD LIN ORG TST1";
-            var response = await Client.TestClientGetAsync<object>($"/projects");
-            List<TestApiLocation> data = JsonConvert.DeserializeObject<List<TestApiLocation>>(response.Content);
+
+            var projectIdentifier = testProject.Project.ProjectId;
+            var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            mainResourceOwner.FullDepartment = $"{TestDepartmentId}";
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            testUser.ManagerAzureUniqueId = mainResourceOwner.AzureUniqueId;
+            testUser.FullDepartment = mainResourceOwner.FullDepartment;
+            testUser.Department = mainResourceOwner.Department;
 
             var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
+            await Client.AddDelegatedDepartmentOwner(delegatedResourceOwner, TestDepartmentId, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+            await Client.AddDelegatedDepartmentOwner(secondDelegatedResourceOwner, TestDepartmentId, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
             await Client.ProposePersonAsync(normalRequest.Id, testUser);
             await Client.AssignDepartmentAsync(normalRequest.Id, TestDepartmentId);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
-            await Client.AddDelegatedDepartmentOwner(testUser, TestDepartmentId, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
 
-            var projectIdentifier = testProject.Project.ProjectId;
-
-            var resp = await Client.TestClientGetAsync<object>($"/projects/{projectIdentifier}/requests");
-
+            var resp = await Client.TestClientGetAsync<JObject>($"/projects/{projectIdentifier}/requests");
+            var tmp = resp.Value["value"];
+            tmp = tmp["proposedPerson"];
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            //resp.Value.Should().S(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+
+            //resp.Value.FirstOrDefault().ProposedPerson.DelegatedResourceOwners.Should().Contain(x => x.AzureUniqueId == delegatedResourceOwner.AzureUniqueId && x.AzureUniqueId == secondDelegatedResourceOwner.AzureUniqueId);
         }
 
         #endregion Update request
@@ -1142,5 +1155,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public Guid Id { get; set; }
         public Guid InternalId { get; set; }
         public string Name { get; set; }
+    }
+
+    public class TestMinProposedPerson
+    {
+        public TestApiProposedPerson? ProposedPerson { get; set; }
     }
 }

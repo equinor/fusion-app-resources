@@ -1,5 +1,7 @@
-﻿using Fusion.Resources.Domain;
+﻿using Fusion.Integration.Profile;
+using Fusion.Resources.Domain;
 using System;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -17,11 +19,11 @@ namespace Fusion.Resources.Api.Controllers
             if (proposedPerson.ResourceOwner is not null)
             {
                 ResourceOwner = new ApiPerson(proposedPerson.ResourceOwner);
-                
             }
-            if (proposedPerson.DelegatedResourceOwner is not null)
+
+            if (proposedPerson.DelegatedResourceOwners is not null)
             {
-                DelegatedResourceOwner = new ApiPerson(proposedPerson.DelegatedResourceOwner);
+                DelegatedResourceOwners = new List<FusionPersonProfile?>(proposedPerson.DelegatedResourceOwners);
             }
         }
 
@@ -29,6 +31,6 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPerson Person { get; set; }
         public bool WasNotified { get; set; }
         public ApiPerson? ResourceOwner { get; set; }
-        public ApiPerson? DelegatedResourceOwner { get; set; }
+        public List<FusionPersonProfile?> DelegatedResourceOwners { get; set; }
     }
 }
