@@ -29,6 +29,9 @@ RUN dotnet publish "Fusion.Resources.Api.csproj" -c Release -o /app/publish
 WORKDIR "/src/api/Fusion.Resources.Database"
 RUN dotnet ef migrations script --idempotent --output "/migrations/migration.sql" --configuration Release --no-build
 
+FROM scratch as export
+COPY --from=publish /migrations/migration.sql db-migration.sql
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
