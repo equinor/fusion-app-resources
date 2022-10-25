@@ -32,7 +32,6 @@ stages:
     
       jobs:
       - deployment: Deploy
-        pool: Private Docker VMSS
     
         displayName: 'Deploy function app'
         environment: fusion-ci
@@ -65,7 +64,6 @@ stages:
     
       jobs:
       - deployment: Deploy
-        pool: Private Docker VMSS
     
         displayName: 'Deploy function app'
         environment: fusion-resources-fqa
@@ -99,7 +97,6 @@ stages:
     
       jobs:
       - deployment: Deploy
-        pool: Private Docker VMSS
     
         displayName: 'Deploy function app'
         environment: fusion-resources-tr
@@ -133,7 +130,6 @@ stages:
     
       jobs:
       - deployment: Deploy
-        pool: Private Docker VMSS
     
         displayName: 'Deploy function app'
         environment: fusion-prod
