@@ -427,10 +427,17 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     var id = request.ProposedPerson?.AzureUniqueId;
                     if (id is not null && profiles.ContainsKey(id.Value))
+                    {
+
+
                         request.ProposedPerson!.Person = profiles[id.Value];
-                    var manager = await mediator.Send(new GetResourceOwner(id.Value));
-                    var department = await mediator.Send(new GetDepartment(manager.FullDepartment).ExpandDelegatedResourceOwners());
-                    request.ProposedPerson!.DelegatedResourceOwners = department.DelegatedResourceOwners;
+                        var manager = await mediator.Send(new GetResourceOwner(id.Value));
+                        if (manager != null)
+                        {
+                            var department = await mediator.Send(new GetDepartment(manager.FullDepartment).ExpandDelegatedResourceOwners());
+                            request.ProposedPerson!.DelegatedResourceOwners = department.DelegatedResourceOwners;
+                        }
+                    }
                 }
             }
         }

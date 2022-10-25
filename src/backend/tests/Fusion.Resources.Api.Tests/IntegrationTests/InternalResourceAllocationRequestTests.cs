@@ -1032,12 +1032,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.AssignDepartmentAsync(normalRequest.Id, TestDepartmentId);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
 
-            var resp = await Client.TestClientGetAsync<JObject>($"/projects/{projectIdentifier}/requests");
-            var tmp = resp.Value["value"];
-            tmp = tmp["proposedPerson"];
+            var resp = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"/projects/{projectIdentifier}/requests");
+
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            //resp.Value.FirstOrDefault().ProposedPerson.DelegatedResourceOwners.Should().Contain(x => x.AzureUniqueId == delegatedResourceOwner.AzureUniqueId && x.AzureUniqueId == secondDelegatedResourceOwner.AzureUniqueId);
+            resp.Value.Value.FirstOrDefault().ProposedPerson.DelegatedResourceOwners.Should().Contain(y => y.AzureUniqueId == delegatedResourceOwner.AzureUniqueId);
         }
 
         #endregion Update request
@@ -1148,17 +1147,5 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         #endregion Provision
-    }
-
-    public class TestApiLocation
-    {
-        public Guid Id { get; set; }
-        public Guid InternalId { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class TestMinProposedPerson
-    {
-        public TestApiProposedPerson? ProposedPerson { get; set; }
     }
 }

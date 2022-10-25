@@ -223,12 +223,16 @@ namespace Fusion.Resources.Domain.Queries
                     if (request.ProposedPerson?.AzureUniqueId is not null)
                     {
                         var manager = await mediator.Send(new GetResourceOwner(request.ProposedPerson.AzureUniqueId));
-                        var department = await mediator.Send(new GetDepartment(manager.FullDepartment).ExpandDelegatedResourceOwners());
 
-                        request.ProposedPerson.ResourceOwner = manager;
-                        if (department != null)
+                        if (manager != null)
                         {
-                            request.ProposedPerson.DelegatedResourceOwners = department.DelegatedResourceOwners;
+                            var department = await mediator.Send(new GetDepartment(manager.FullDepartment).ExpandDelegatedResourceOwners());
+
+                            request.ProposedPerson.ResourceOwner = manager;
+                            if (department != null)
+                            {
+                                request.ProposedPerson.DelegatedResourceOwners = department.DelegatedResourceOwners;
+                            }
                         }
                     }
                 }
