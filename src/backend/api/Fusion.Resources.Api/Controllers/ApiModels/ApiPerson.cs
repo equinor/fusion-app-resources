@@ -8,6 +8,8 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiPerson
     {
+
+
         public ApiPerson(Guid azureId, string mail)
         {
             AzureUniquePersonId = azureId;
@@ -62,7 +64,9 @@ namespace Fusion.Resources.Api.Controllers
             else
                 AccountType = FusionAccountType.External;
         }
-          
+
+
+
         public Guid? AzureUniquePersonId { get; set; }
         public string? Mail { get; set; } = null!;
         public string Name { get; set; } = null!;

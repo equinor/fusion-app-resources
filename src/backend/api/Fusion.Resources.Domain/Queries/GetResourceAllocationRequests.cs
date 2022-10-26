@@ -432,10 +432,10 @@ namespace Fusion.Resources.Domain.Queries
 
                         request.ProposedPerson!.Person = profiles[id.Value];
                         var manager = await mediator.Send(new GetResourceOwner(id.Value));
-                        if (manager != null)
+                        if (manager?.FullDepartment != null)
                         {
                             var department = await mediator.Send(new GetDepartment(manager.FullDepartment).ExpandDelegatedResourceOwners());
-                            request.ProposedPerson!.DelegatedResourceOwners = department.DelegatedResourceOwners;
+                            request.ProposedPerson!.DelegatedResourceOwners = department?.DelegatedResourceOwners;
                         }
                     }
                 }

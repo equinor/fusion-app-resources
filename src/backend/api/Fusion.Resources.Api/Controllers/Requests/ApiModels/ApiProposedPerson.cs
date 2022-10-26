@@ -1,7 +1,9 @@
 ﻿using Fusion.Integration.Profile;
 using Fusion.Resources.Domain;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -23,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (proposedPerson.DelegatedResourceOwners is not null)
             {
-                DelegatedResourceOwners = new List<FusionPersonProfile?>(proposedPerson.DelegatedResourceOwners);
+                DelegatedResourceOwners = proposedPerson.DelegatedResourceOwners.Select(d => new ApiPerson(d));
             }
         }
 
@@ -31,6 +33,6 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPerson Person { get; set; }
         public bool WasNotified { get; set; }
         public ApiPerson? ResourceOwner { get; set; }
-        public List<FusionPersonProfile?> DelegatedResourceOwners { get; set; }
+        public IEnumerable? DelegatedResourceOwners { get; set; }
     }
 }

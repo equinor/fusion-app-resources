@@ -1036,7 +1036,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            resp.Value.Value.FirstOrDefault().ProposedPerson.DelegatedResourceOwners.Should().Contain(y => y.AzureUniqueId == delegatedResourceOwner.AzureUniqueId);
+            resp.Value.Value?.FirstOrDefault()?.ProposedPerson?.DelegatedResourceOwners.Should().Contain(y => y.AzureUniquePersonId == delegatedResourceOwner.AzureUniqueId);
         }
 
         #endregion Update request

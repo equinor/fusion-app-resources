@@ -13,6 +13,6 @@ namespace Fusion.Testing.Mocks
         public TestApiPerson Person { get; set; } = null!;
         public bool WasNotified { get; set; }
 
-        public List<TestApiPerson?>? DelegatedResourceOwners { get; set; }
+        public List<TestApiPerson>? DelegatedResourceOwners { get; set; }
     }
 }
