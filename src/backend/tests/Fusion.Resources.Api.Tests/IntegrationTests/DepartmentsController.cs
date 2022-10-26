@@ -83,7 +83,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var delegatedDepartment = "FromRole";
             var nonDelegatedDepartment = "Non delegated";
-            var Source = $"Project {Guid.NewGuid()}";
+            var Source = $"Soruce ID";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
