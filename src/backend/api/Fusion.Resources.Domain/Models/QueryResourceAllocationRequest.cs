@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Fusion.ApiClients.Org;
+using Fusion.Resources.Database.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using Fusion.ApiClients.Org;
-using Fusion.Integration.Profile;
-using Fusion.Resources.Database.Entities;
 
 namespace Fusion.Resources.Domain
 {
@@ -56,7 +55,6 @@ namespace Fusion.Resources.Domain
                     ProposedDate = entity.ProposedPerson.ProposedAt!.Value
                 };
 
-
             AdditionalNote = entity.AdditionalNote;
 
             ProposedChangesJson = entity.ProposedChanges;
@@ -103,6 +101,7 @@ namespace Fusion.Resources.Domain
         public string? AdditionalNote { get; set; }
 
         public string? ProposedChangesJson { get; set; }
+
         public Dictionary<string, object> ProposedChanges
         {
             get
@@ -120,8 +119,8 @@ namespace Fusion.Resources.Domain
                 }
             }
         }
-        public QueryPropsalParameters ProposalParameters { get; set; }
 
+        public QueryPropsalParameters ProposalParameters { get; set; }
 
         public DateTimeOffset Created { get; set; }
         public DateTimeOffset? Updated { get; set; }
@@ -137,16 +136,17 @@ namespace Fusion.Resources.Domain
         public List<QueryConversationMessage>? Conversation { get; set; }
 
         private QueryActionCounts? actionCount;
-        public QueryActionCounts? ActionCount 
-        { 
-            get 
+
+        public QueryActionCounts? ActionCount
+        {
+            get
             {
                 if (Actions is null) return actionCount;
-                
+
                 return new QueryActionCounts(Actions.Count(x => x.IsResolved), Actions.Count(x => !x.IsResolved));
-            } 
-            set 
-            { 
+            }
+            set
+            {
                 actionCount = value;
             }
         }
@@ -161,19 +161,6 @@ namespace Fusion.Resources.Domain
             return this;
         }
 
-        public class QueryProposedPerson
-        {
-            public DateTimeOffset ProposedDate { get; set; }
-            public Guid AzureUniqueId { get; set; }
-            public string? Mail { get; set; }
-
-            public FusionPersonProfile? Person { get; set; }
-
-            public FusionPersonProfile? ResourceOwner { get; set; }
-
-            public bool WasNotified { get; set; }
-        }
-
         public class QueryPropsalParameters
         {
             public QueryPropsalParameters(DbResourceAllocationRequest.DbOpProposalParameters proposalParameters)
@@ -186,7 +173,7 @@ namespace Fusion.Resources.Domain
 
             public DateTime? ChangeFrom { get; set; }
             public DateTime? ChangeTo { get; set; }
-            public string Scope { get; set; } 
+            public string Scope { get; set; }
 
             public string? ChangeType { get; set; }
         }

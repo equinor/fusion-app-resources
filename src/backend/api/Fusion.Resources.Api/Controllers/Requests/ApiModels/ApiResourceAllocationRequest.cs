@@ -79,10 +79,12 @@ namespace Fusion.Resources.Api.Controllers
         public ApiDepartment? AssignedDepartmentDetails { get; }
         public string? Discipline { get; set; }
         public string? State { get; set; }
+
         /// <summary>Type of request
         /// <para>Check valid values used in request model <see cref="ApiAllocationRequestType"/> for information.</para>
         /// </summary>
         public string Type { get; set; }
+
         public string? SubType { get; set; }
         public ApiWorkflow? Workflow { get; set; }
         public ApiProjectReference Project { get; set; }
@@ -126,6 +128,7 @@ namespace Fusion.Resources.Api.Controllers
                 return isTypeAllocation && isNormalRequest && inCreatedState;
             }
         }
+
         public ApiResourceAllocationRequest HideProposals()
         {
             ProposalParameters = null;

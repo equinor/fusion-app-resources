@@ -15,10 +15,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         private readonly ResourceApiFixture fixture;
         private readonly TestLoggingScope loggingScope;
+
         /// <summary>
         /// Will be generated new for each test
         /// </summary>
         private readonly ApiPersonProfileV3 testUser;
+
         private FusionTestProjectBuilder testProject;
 
         public PersonControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
@@ -49,7 +51,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.EnsureDepartment(actualDept);
             fixture.EnsureDepartment(currentDelegatedDept);
             fixture.EnsureDepartment(expiredDelegatedDept);
-
 
             using (var adminScope = fixture.AdminScope())
             {
@@ -96,7 +97,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             }
         }
 
-
         [Fact]
         public async Task GetProfile_ShouldBeNotFound_WhenUserDoesNotExist()
         {
@@ -121,7 +121,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var testUser = fixture.AddProfile(FusionAccountType.Consultant);
 
             using var userScope = fixture.AdminScope();
-            
+
             var client = fixture.ApiFactory.CreateClient();
             var resp = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/resources/allocation-request-status",
                 new
@@ -152,7 +152,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                     {
                         azureUniquePersonId = Guid.Empty
                     }
-
                 }
             );
 
@@ -178,6 +177,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         public Task InitializeAsync() => Task.CompletedTask;
+
         public Task DisposeAsync()
         {
             loggingScope.Dispose();

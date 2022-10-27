@@ -1,16 +1,22 @@
-﻿using Fusion.Resources.Database.Entities;
+﻿using Fusion.Integration.Profile;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.Domain
 {
-    //public class QueryProposedPerson
-    //{
-    //    public QueryProposedPerson(DbPerson person, bool wasNotified = false)
-    //    {
-    //        Person = new QueryPerson(person);
-    //        WasNotified = wasNotified;
-    //    }
+    public class QueryProposedPerson
+    {
+        public DateTimeOffset ProposedDate { get; set; }
+        public Guid AzureUniqueId { get; set; }
+        public string? Mail { get; set; }
 
-    //    public QueryPerson Person { get; set; }
-    //    public bool WasNotified { get; set; }
-    //}
+        public FusionPersonProfile? Person { get; set; }
+
+        public FusionPersonProfile? ResourceOwner { get; set; }
+
+        public IEnumerable<FusionPersonProfile>? DelegatedResourceOwners { get; set; }
+
+        public bool WasNotified { get; set; }
+    }
 }

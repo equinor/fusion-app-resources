@@ -52,11 +52,10 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
 
-
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             if (request.ResolveType() == InternalRequestType.Allocation)
             {
@@ -108,7 +107,6 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.InvalidOperation(ex);
             }
-
         }
 
         [HttpPost("/projects/{projectIdentifier}/resources/requests/$batch")]
@@ -127,11 +125,10 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
 
-
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             if (request.ResolveType() == InternalRequestType.Allocation)
             {
@@ -210,11 +207,10 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
 
-
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             // Resolve position
             var position = await ResolvePositionAsync(request.OrgPositionId);
@@ -232,7 +228,7 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidInput($"The assigned resource does not belong to the department '{departmentPath}'");
 
             // Check if change requests are disabled.
-            // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims. 
+            // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims.
             // Change requests are only enabled on projects that have pims write sync enabled for now.
             var projectCheck = await IsChangeRequestsDisabledAsync(position.ProjectId);
             if (projectCheck.isDisabled)
@@ -252,7 +248,6 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-
                 using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
@@ -285,7 +280,6 @@ namespace Fusion.Resources.Api.Controllers
             {
                 return ApiErrors.InvalidOperation(ex);
             }
-
         }
 
         [HttpPatch("/projects/{projectIdentifier}/requests/{requestId}")]
@@ -314,7 +308,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-            #endregion
+
+            #endregion Authorization
 
             try
             {
@@ -374,6 +369,7 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation("request-completed", "Cannot change a completed request.");
             if (HasChanged(request.AdditionalNote, item.AdditionalNote))
                 return ApiErrors.InvalidInput("Only task owners can modify additional notes.");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
@@ -400,7 +396,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-            #endregion
+
+            #endregion Authorization
 
             try
             {
@@ -493,12 +490,10 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
-
+            #endregion Authorization
 
             var requestCommand = new GetResourceAllocationRequests(query).ForAll();
             var result = await DispatchAsync(requestCommand);
-
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
@@ -529,7 +524,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             var requestCommand = new GetResourceAllocationRequests(query)
                 .ForTaskOwners()
@@ -575,7 +570,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
 
@@ -589,6 +584,7 @@ namespace Fusion.Resources.Api.Controllers
                 TotalCount = countEnabled ? result.TotalCount : null
             };
         }
+
         [HttpGet("/projects/{projectIdentifier}/requests/{requestId}")]
         [HttpGet("/projects/{projectIdentifier}/resources/requests/{requestId}")]
         public async Task<ActionResult<ApiResourceAllocationRequest>> GetResourceAllocationRequest(Guid requestId, PathProjectIdentifier projectIdentifier, [FromQuery] ODataQueryParams query)
@@ -622,7 +618,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             var apiModel = new ApiResourceAllocationRequest(requestItem);
 
@@ -666,11 +662,10 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             if (!authResult.LimitedAuth)
                 requestItem = await DispatchAsync(new GetResourceAllocationRequestItem(requestId).WithQueryForResourceOwner(query));
-
 
             var apiModel = new ApiResourceAllocationRequest(requestItem!);
 
@@ -680,7 +675,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <summary>
         /// Endpoint for the task owners to get all requests that exists for a position.
         /// The collection can be filtered on multiple properties like state and state.iscomplete ++.
-        /// 
+        ///
         /// Resource owners should use department scoped path, so to not mix task owner and resource owner internal data (like draft requests).
         /// </summary>
         /// <param name="projectIdentifier"></param>
@@ -705,7 +700,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
-            #endregion
+
+            #endregion Authorization
 
             var command = new GetResourceAllocationRequests(query)
                 .WithProjectId(projectIdentifier.ProjectId)
@@ -748,7 +744,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             try
             {
@@ -793,7 +789,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             try
             {
@@ -836,14 +832,12 @@ namespace Fusion.Resources.Api.Controllers
                             or.OrgChartPositionWriteAccess(result.Project.OrgProjectId, result.OrgPositionId.Value);
                     }
                 });
-
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
-
+            #endregion Authorization
 
             await using var transaction = await BeginTransactionAsync();
             await DispatchAsync(new DeleteInternalRequest(requestId));
@@ -873,14 +867,12 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     or.BeTrustedApplication();
                 });
-
             });
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
-
+            #endregion Authorization
 
             try
             {
@@ -901,7 +893,6 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.InvalidOperation(ex);
             }
         }
-
 
         [HttpPost("/projects/{projectIdentifier}/requests/{requestId}/approve")]
         [HttpPost("/projects/{projectIdentifier}/resources/requests/{requestId}/approve")]
@@ -948,7 +939,6 @@ namespace Fusion.Resources.Api.Controllers
 
             if (result.AssignedDepartment != departmentPath)
                 return ApiErrors.InvalidInput($"the request with id '{requestId}' is not assigned to '{departmentPath}'");
-
 
             var actions = await DispatchAsync(new GetRequestActions(requestId, QueryTaskResponsible.ResourceOwner));
             if (actions.Any(x => x.IsRequired && !x.IsResolved) == true)
@@ -1004,12 +994,11 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             await DispatchAsync(new ResetWorkflow(requestId));
             return NoContent();
         }
-
 
         #region Comments
 
@@ -1037,7 +1026,8 @@ namespace Fusion.Resources.Api.Controllers
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requiredDepartment), AccessRoles.ResourceOwner);
                 });
             });
-            #endregion
+
+            #endregion Authorization
 
             var allowedMethods = new List<string> { "OPTIONS" };
 
@@ -1063,6 +1053,7 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.NotFound(commentId, "Comment not found");
 
             #region Authorization
+
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
@@ -1077,7 +1068,8 @@ namespace Fusion.Resources.Api.Controllers
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(requiredDepartment), AccessRoles.ResourceOwner);
                 });
             });
-            #endregion
+
+            #endregion Authorization
 
             var allowedMethods = new List<string> { "OPTIONS" };
 
@@ -1099,6 +1091,7 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.NotFound(requestId, "Request not found");
             if (request.IsCompleted)
                 return FusionApiError.InvalidOperation("CommentsDisabled", "Cannot add comment on closed request");
+
             #region Authorization
 
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
@@ -1119,7 +1112,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             var comment = await DispatchAsync(new AddComment(User.GetRequestOrigin(), requestId, create.Content));
 
@@ -1138,6 +1131,7 @@ namespace Fusion.Resources.Api.Controllers
                 return FusionApiError.InvalidOperation("CommentsDisabled", "Comments are closed on completed requests.");
 
             #region Authorization
+
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
@@ -1156,7 +1150,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             var comments = await DispatchAsync(new GetRequestComments(requestId));
             return comments.Select(x => new ApiRequestComment(x)).ToList();
@@ -1197,7 +1191,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             return new ApiRequestComment(comment);
         }
@@ -1237,7 +1231,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             await DispatchAsync(new UpdateComment(commentId, update.Content));
 
@@ -1277,7 +1271,7 @@ namespace Fusion.Resources.Api.Controllers
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
 
-            #endregion
+            #endregion Authorization
 
             await DispatchAsync(new DeleteComment(commentId));
 
@@ -1378,7 +1372,6 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-
                     if (item.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -1400,10 +1393,9 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-
         /// <summary>
         /// Check if request type is supported to create on the specific allocation.
-        /// 
+        ///
         /// The endpoint will return 'POST' in the 'Allow' header.
         /// </summary>
         /// <param name="projectIdentifier">Project the position exists on</param>
@@ -1414,17 +1406,16 @@ namespace Fusion.Resources.Api.Controllers
         [HttpOptions("/projects/{projectIdentifier}/positions/{positionId}/instances/{instanceId}/resources/requests")]
         public async Task<ActionResult> CheckInstanceRequestTypeAsync([FromRoute] PathProjectIdentifier projectIdentifier, Guid positionId, Guid instanceId, [FromQuery] string? requestType)
         {
-
             switch (requestType?.ToLower())
             {
                 case "resourceownerchange":
                     // Check if change requests are disabled.
-                    // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims. 
+                    // This is mainly relevant when there is a mix of projects synced FROM pims and some TO pims.
                     // Change requests are only enabled on projects that have pims write sync enabled for now.
                     var projectCheck = await IsChangeRequestsDisabledAsync(projectIdentifier.ProjectId);
                     if (projectCheck.isDisabled)
                     {
-                        // Creating custom response payload here, as bad request would be confusing with regards for unsupported request types. 
+                        // Creating custom response payload here, as bad request would be confusing with regards for unsupported request types.
                         // Instead lets return ok response without any allow header, but with an error payload.
                         Response.Headers.Add("Allow", "");
                         return Ok(new { error = new { code = "ChangeRequestsDisabled", message = "The project does not currently support change requests from resource owners..." } });
@@ -1461,7 +1452,6 @@ namespace Fusion.Resources.Api.Controllers
                     if (item.OrgPositionId.HasValue)
                         or.OrgChartPositionReadAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
 
-
                     if (item.AssignedDepartment is not null)
                     {
                         or.BeResourceOwner(
@@ -1493,7 +1483,6 @@ namespace Fusion.Resources.Api.Controllers
                             or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
                     }
                 });
-
             });
             if (deleteAuth.Success) allowedVerbs.Add("DELETE");
 
@@ -1542,14 +1531,12 @@ namespace Fusion.Resources.Api.Controllers
                 {
                     if (departmentPath is not null)
                     {
-
                         or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
                     }
                 });
             });
             if (postAuth.Success) allowedVerbs.Add("POST");
-
 
             var getAuth = await Request.RequireAuthorizationAsync(r =>
             {

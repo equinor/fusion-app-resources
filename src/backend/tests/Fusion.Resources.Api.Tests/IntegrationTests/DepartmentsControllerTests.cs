@@ -17,13 +17,13 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
-    public class DepartmentsController : IClassFixture<ResourceApiFixture>
+    public class DepartmentsControllerTests : IClassFixture<ResourceApiFixture>
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
         private object testUser;
 
-        public DepartmentsController(ResourceApiFixture fixture, ITestOutputHelper output)
+        public DepartmentsControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
             this.fixture = fixture;
 
@@ -80,39 +80,78 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task SearchDepartment_Should_GetDelegatedResponsibles_FromRoleService()
         {
-            //var department = "TPD LIN ORG TST1";
-            var delegatedDepartment = "TPD LIN ORG TST1";
-            var nonDelegatedDepartment = "Non delegated";
-
+            var delegatedDepartment = "AAA BBB CCC";
+            var nonDelegatedDepartment = "DDD EEE FFF";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            await RolesClientMock.AddPersonRole(delegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
             {
                 Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
-            });
+                Source = "Department.Test"
+        });
 
-            await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
+            await RolesClientMock.AddPersonRole(nonDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
             {
                 Identifier = $"{Guid.NewGuid()}",
                 RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = "Test project"
+                Source = "Department.Test"
             });
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
-
+            TestLogger.TryLogObject(resp);
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.First().AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+
+            resp.Value.Should().Contain(x => x.Name == delegatedDepartment && x.DelegatedResponsibles.Any(y => y.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId)));
+        }
+
+        [Fact]
+        public async Task GetDepartment_Should_GetDelegatedResponsibles_FromGetDepartmentString()
+        {
+            var source = $"Department.Test";
+            var delegatedDepartment = "AAA BBB CCC DDD";
+            var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            mainResourceOwner.FullDepartment = $"AAA BBB CCC DDD EE FFF";
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            await RolesClientMock.AddPersonRole(delegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = source
+            });
+
+            await RolesClientMock.AddPersonRole(secondDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            {
+                Identifier = $"{Guid.NewGuid()}",
+                RoleName = AccessRoles.ResourceOwner,
+                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+                ValidTo = DateTime.UtcNow.AddDays(1),
+                Source = source
+            });
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            using var adminScope = fixture.AdminScope();
+
+            var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{delegatedDepartment}");
+            TestLogger.TryLogObject(resp);
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            resp.Value.Name.Should().Contain(delegatedDepartment);
+            resp.Value.DelegatedResponsibles.Should().HaveCountGreaterOrEqualTo(2);
+            resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+            resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(secondDelegatedResourceOwner.AzureUniqueId));
         }
 
         [Fact]
