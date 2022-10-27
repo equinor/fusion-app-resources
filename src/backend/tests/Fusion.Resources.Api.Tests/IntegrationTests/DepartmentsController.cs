@@ -6,7 +6,6 @@ using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
-using SixLabors.ImageSharp.ColorSpaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,7 +82,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var delegatedDepartment = "FromRole";
             var nonDelegatedDepartment = "Non delegated";
-            var Source = $"Soruce ID";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var nonDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
@@ -91,11 +89,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await RolesClientMock.AddPersonRole((System.Guid)delegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
             {
                 Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = Source
-            });
+                Source = $"Soruce ID"
+        });
 
             await RolesClientMock.AddPersonRole((System.Guid)nonDelegatedResourceOwner.AzureUniqueId, new Fusion.Integration.Roles.RoleAssignment
             {
@@ -103,7 +100,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 RoleName = AccessRoles.ResourceOwner,
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", nonDelegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = Source
+                Source =  $"Soruce ID"
             });
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();

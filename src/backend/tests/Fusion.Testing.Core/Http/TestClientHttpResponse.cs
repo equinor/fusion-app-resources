@@ -29,8 +29,6 @@ namespace Fusion.Testing
 
         public static async Task<TestClientHttpResponse<T>> CreateResponseAsync<T>(HttpResponseMessage response, bool skipDeserialization = false)
         {
-            var jsonSerializerSettings = new JsonSerializerSettings();
-            jsonSerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
 
             var respObject = new TestClientHttpResponse<T>(response)
             {
@@ -42,7 +40,7 @@ namespace Fusion.Testing
                 if (skipDeserialization && typeof(T) == typeof(string))
                     respObject.Value = (T)(object)respObject.Content;
                 else
-                    respObject.Value = JsonConvert.DeserializeObject<T>(respObject.Content, jsonSerializerSettings);
+                    respObject.Value = JsonConvert.DeserializeObject<T>(respObject.Content);
             }
             catch (Exception ex)
             {
