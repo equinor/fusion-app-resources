@@ -21,6 +21,7 @@ variables:
     imageTag: $(Build.BuildNumber)
     fusionAcr: 'fusioncr.azurecr.io'
     imageRepo: resources/fusion-resouces-api
+    imageName: $(imageRepo):$(imageTag)
     subscriptionService: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
     deploymentManifest: '$(Pipeline.Workspace)/k8s-deployment/deployment-test-env.yml'
     fullImageName: $(fusionAcr)/$(imageName)
@@ -281,4 +282,3 @@ stages:
                   environment: $(envName)
                   fusionEnvironment: $(fusionEnvironment)
                   clientId: $(clientId)
-                  imageName: $(fullImageName)
