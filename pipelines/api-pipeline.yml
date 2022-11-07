@@ -9,7 +9,10 @@ trigger:
   paths:
     include:
     - src/backend/api/*
-  
+
+pool:
+  vmImage: ubuntu-latest  
+
 resources:
   repositories:
     - repository: infra
