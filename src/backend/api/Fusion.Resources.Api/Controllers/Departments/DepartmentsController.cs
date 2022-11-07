@@ -123,7 +123,7 @@ namespace Fusion.Resources.Api.Controllers
             var routedDepartment = await requestRouter.RouteAsync(position, instanceId, cancellationToken);
             if (string.IsNullOrWhiteSpace(routedDepartment)) return result;
 
-            var department = await DispatchAsync(new GetDepartment(routedDepartment));
+            var department = await DispatchAsync(new GetDepartment(routedDepartment).ExpandDelegatedResourceOwners());
             var related = await DispatchAsync(new GetRelatedDepartments(position.BasePosition.Department));
 
             if (related is not null)
