@@ -5,12 +5,16 @@ using Fusion.Resources.Database;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+using static Fusion.Integration.LineOrg.DepartmentId;
 
 namespace Fusion.Resources.Domain
 {
     public class GetDepartment : IRequest<QueryDepartment?>
     {
+
         private bool shouldExpandDelegatedResourceOwners;
+        private bool shouldIncludeName;
+       
 
         public string DepartmentId { get; }
 
@@ -24,6 +28,12 @@ namespace Fusion.Resources.Domain
             shouldExpandDelegatedResourceOwners = true;
             return this;
         }
+        public GetDepartment IncludeName()
+        {
+            shouldIncludeName = true;
+            return this;
+        }
+      
 
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartment, QueryDepartment?>
         {
@@ -34,11 +44,28 @@ namespace Fusion.Resources.Domain
             {
                 var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(Integration.LineOrg.DepartmentId.FromFullPath(request.DepartmentId));
 
+                if (lineOrgDpt is null)
+                    lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(Integration.LineOrg.DepartmentId.FromSapId(request.DepartmentId));
+                
+           
+
+
                 QueryDepartment? result;
                 if (lineOrgDpt is null) return null;
 
                 var sector = new DepartmentPath(lineOrgDpt.FullName).Parent();
-                result = new QueryDepartment(lineOrgDpt.FullName, sector);
+                if (request.shouldIncludeName)
+                {
+                    result = new QueryDepartment(lineOrgDpt.FullName, sector, lineOrgDpt.Name);
+
+                }
+                else
+                {
+                    result = new QueryDepartment(lineOrgDpt.FullName, sector);
+                }
+
+
+
 
                 if (request.shouldExpandDelegatedResourceOwners)
                     await ExpandDelegatedResourceOwner(result, cancellationToken);

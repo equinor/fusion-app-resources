@@ -1,6 +1,14 @@
-﻿using Fusion.AspNetCore.FluentAuthorization;
+﻿using Azure.Core;
+using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
+using Fusion.Integration;
+using Fusion.Integration.LineOrg;
+using Fusion.Resources.Application;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
+using Fusion.Resources.Domain.Queries;
+using Fusion.Services.LineOrg.ApiModels;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -8,6 +16,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using static System.Net.WebRequestMethods;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -19,11 +29,13 @@ namespace Fusion.Resources.Api.Controllers
     {
         private readonly IOrgApiClient orgApiClient;
         private readonly IRequestRouter requestRouter;
+        private readonly ILineOrgResolver lineOrgResolver;
 
-        public DepartmentsController(IOrgApiClientFactory orgApiClientFactory, IRequestRouter requestRouter)
+        public DepartmentsController(IOrgApiClientFactory orgApiClientFactory, IRequestRouter requestRouter, ILineOrgResolver lineOrgResolver)
         {
             this.orgApiClient = orgApiClientFactory.CreateClient(ApiClientMode.Application); ;
             this.requestRouter = requestRouter;
+            this.lineOrgResolver = lineOrgResolver;
         }
 
         [HttpGet("/departments")]
@@ -143,5 +155,57 @@ namespace Fusion.Resources.Api.Controllers
 
             return result;
         }
+
+
+
+        [HttpGet("/GetUserResposibilityInDepartment/me/")]
+        [HttpGet("/GetUserResposibilityInDepartment/{personId}/")]
+        public async Task<ActionResult<string>> GetUserResposibilityInDepartment(string? personId, [FromQuery(Name = "$search")] string query, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
+                personId = $"{User.GetAzureUniqueId()}";
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.CurrentUserIs(personId);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+            var resourceOwnerProfile = await DispatchAsync(new GetResourceOwnerProfile(personId));
+
+            // this should search against the cache and return fulle depament, sapi, name etc 
+            var department = await DispatchAsync(new GetDepartment(query).IncludeName());
+
+            if (department is null) return NotFound();
+
+
+          
+            if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
+            var resposible = resourceOwnerProfile.DepartmentsWithResponsibility.Where(d => d.Contains(department?.ToString()));
+
+
+
+
+
+            var str = department.Name?.ToString() ;
+            return str;
+        }
+
+
+
     }
+
+
+
 }

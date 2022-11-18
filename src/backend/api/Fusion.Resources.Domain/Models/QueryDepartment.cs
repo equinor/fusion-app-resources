@@ -18,9 +18,16 @@ namespace Fusion.Resources.Domain
             SectorId = sectorId;
         }
 
+        public QueryDepartment(string departmentId, string? sectorId, string? name)
+        {
+            DepartmentId = departmentId;
+            SectorId = sectorId;
+            Name = name;
+        }
+
         public string DepartmentId { get; }
         public string? SectorId { get; }
-
+        public string? Name { get; }
         public FusionPersonProfile? LineOrgResponsible { get; set; }
         public List<FusionPersonProfile>? DelegatedResourceOwners { get; set; }
         public bool IsTracked { get; set; } = false;
