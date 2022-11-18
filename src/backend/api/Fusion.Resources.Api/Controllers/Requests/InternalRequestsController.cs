@@ -1501,6 +1501,7 @@ namespace Fusion.Resources.Api.Controllers
                             includeParents: false,
                             includeDescendants: true
                         );
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
                     }
                     else
                     {
@@ -1551,6 +1552,7 @@ namespace Fusion.Resources.Api.Controllers
                     or.HaveOrgchartPosition(ProjectOrganisationIdentifier.FromOrgChartId(projectIdentifier.ProjectId));
                     if (departmentPath is not null)
                         or.BeResourceOwner(departmentPath, includeParents: false, includeDescendants: true);
+                 
                 });
             });
 
