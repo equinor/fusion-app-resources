@@ -1482,10 +1482,6 @@ namespace Fusion.Resources.Api.Controllers
                         if (item.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
                     }
-                    if (item.AssignedDepartment is not null)
-                    {
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
-                    }
                 });
             });
             if (deleteAuth.Success) allowedVerbs.Add("DELETE");
@@ -1505,8 +1501,6 @@ namespace Fusion.Resources.Api.Controllers
                             includeParents: false,
                             includeDescendants: true
                         );
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(item.AssignedDepartment), AccessRoles.ResourceOwner);
-
                     }
                     else
                     {
