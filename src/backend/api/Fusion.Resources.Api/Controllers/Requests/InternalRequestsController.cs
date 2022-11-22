@@ -1484,7 +1484,7 @@ namespace Fusion.Resources.Api.Controllers
                     }
                     if (item.AssignedDepartment is not null)
                     {
-                        or.HaveAnyOrgUnitScopedRole(AccessRoles.ResourceOwner);
+                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
                     }
                 });
             });
