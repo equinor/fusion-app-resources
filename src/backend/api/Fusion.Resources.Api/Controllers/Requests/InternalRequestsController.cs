@@ -1482,10 +1482,6 @@ namespace Fusion.Resources.Api.Controllers
                         if (item.OrgPositionId.HasValue)
                             or.OrgChartPositionWriteAccess(item.Project.OrgProjectId, item.OrgPositionId.Value);
                     }
-                    if (item.AssignedDepartment is not null)
-                    {
-                        or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentPath), AccessRoles.ResourceOwner);
-                    }
                 });
             });
             if (deleteAuth.Success) allowedVerbs.Add("DELETE");
