@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "importHelpers": true,
+    "sourceMap": true,
+    "module": "es6",
+    "outDir": "lib",
+    "rootDir": "src",
+    "strict": true,
+    "target": "es6",
+    "composite": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*",
+    "./css-modules.d.ts",
+  ],
+}

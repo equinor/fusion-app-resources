@@ -1,0 +1,16 @@
+# Installation
+> `npm install --save @types/listr`
+
+# Summary
+This package contains type definitions for listr (https://github.com/samverschueren/listr#readme).
+
+# Details
+Files were exported from https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/listr.
+
+### Additional Details
+ * Last updated: Tue, 06 Jul 2021 22:02:41 GMT
+ * Dependencies: [@types/rxjs](https://npmjs.com/package/@types/rxjs), [@types/node](https://npmjs.com/package/@types/node)
+ * Global values: none
+
+# Credits
+These definitions were written by [Dusan Radovanovic](https://github.com/durad), [Vladislav Polyakov](https://github.com/polRk), and [Jason Zukewich](https://github.com/jgzuke).

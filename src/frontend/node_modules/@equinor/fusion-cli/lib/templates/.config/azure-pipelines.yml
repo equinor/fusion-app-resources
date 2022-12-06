@@ -1,0 +1,99 @@
+parameters:
+  dockerfile: ./build.Dockerfile
+  dockerContext: .
+  appKey: ${appKey}
+  outputSource: ./app/out
+  outputContents: out/*.zip
+  artifactName: app-bundle
+  tokenResource: $(tokenResource)
+  fusionCredentials: 
+  portalUrl: https://fusion.equinor.com
+  bundlePath:
+  forceReplaceExisting: false
+  ignoreVersionConflict: false
+  environment: 
+  pool:
+
+trigger: 
+  branches:
+    include:
+    - master
+
+stages:
+  # BUILD
+  ###################################################################################################################
+  - stage: Build
+    displayName: Build ${{ parameters.appName }}
+  
+    jobs:
+    - job: Build
+      pool: ${{ parameters.pool }}
+      displayName: 'Build ${{ parameters.appKey }} bundle'
+      
+      variables:
+        image: fusion-app-${{ parameters.appKey }}:$(Build.BuildNumber)
+        container: app-${{ parameters.appKey }}-$(Build.BuildNumber)
+    
+      steps:
+      - script: |
+          docker build -f ${{ parameters.dockerfile }} ${{ parameters.dockerContext }} -t $(image)
+        displayName: 'Build dockerfile ${{ parameters.dockerfile }}'
+    
+      - script: |
+          docker container create --name $(container) $(image) 
+          docker container cp $(container):${{ parameters.outputSource}} $(Agent.TempDirectory)
+          docker container rm -f $(container)
+        displayName: 'Copy docker output to temp folder'
+    
+      - task: CopyFiles@2
+        inputs:
+          sourceFolder: $(Agent.TempDirectory)
+          contents: ${{ parameters.outputContents }}
+          targetFolder: $(Build.ArtifactStagingDirectory)
+          flattenFolders: true
+    
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathToPublish: $(Build.ArtifactStagingDirectory)
+          artifactName: ${{ parameters.artifactName }}  
+
+  - stage: Deploy
+    displayName: Deploy ${{ parameters.appName }} PROD
+    dependsOn: Build
+    condition: succeeded()
+    
+    jobs:
+    - deployment: DeployApp
+      displayName: 'Deploy ${{ parameters.appKey }}'
+      pool: ${{ parameters.pool }}
+      environment: ${{ parameters.environment }}
+      variables:
+        portalUrl: ${{ parameters.portalUrl }}
+        tokenResource: ${{ parameters.tokenResource }}
+      
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - task: FusionApp@2
+              displayName: 'Deploying app bundle for ${{ parameters.appKey }}'
+              condition: succeeded()
+              inputs:
+                fusionCredentials: ${{ parameters.fusionCredentials }}
+                tokenResource: ${{ parameters.tokenResource }}
+                portalUrl: ${{ parameters.portalUrl }}
+                action: deploy
+                appKey: ${{ parameters.appKey }}
+                bundlePath: ${{ parameters.bundlePath }}
+                ignoreVersionConflict: ${{ parameters.ignoreVersionConflict }}
+                forceReplaceExisting: ${{ parameters.forceReplaceExisting }}
+
+            - task: FusionApp@2
+              displayName: 'Publishing app ${{ parameters.appKey }}'
+              condition: succeeded()
+              inputs:
+                fusionCredentials: ${{ parameters.fusionCredentials }}
+                tokenResource: ${{ parameters.tokenResource }}
+                action: publish
+                appKey: ${{ parameters.appKey }}
+                portalUrl: ${{ parameters.portalUrl }}
