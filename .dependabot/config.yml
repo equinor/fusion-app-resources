@@ -1,6 +1,0 @@
-version: 1
-update_configs:
-  - package_manager: "javascript"
-    directory: "/src/frontend/"
-    update_schedule: "live"
-    target_branch: "master"
