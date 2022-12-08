@@ -69,6 +69,42 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
 
+        [HttpGet("/persons/me/resources/relevant-departments")]
+        [HttpGet("/persons/{personId}/resources/relevant-departments")]
+        public async Task<ActionResult<ApiCollection<ApiRelevantDepartmentProfile>>> GetRelevantDepartments(string? personId)
+        {
+
+            if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
+                personId = $"{User.GetAzureUniqueId()}";
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+                
+                r.AnyOf(or =>
+                {
+                    or.CurrentUserIs(personId);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var resourceOwnerProfile = await DispatchAsync(new GetRelevantDeparmentProfile(personId));
+            if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
+
+            var collection = resourceOwnerProfile.Select( x => new ApiRelevantDepartmentProfile(x)).ToList();
+
+            var returnItems = new ApiCollection<ApiRelevantDepartmentProfile>(collection) { TotalCount = collection.Count() };
+
+            return returnItems;
+        }
+
         [HttpGet("/persons/{personId}/resources/notes")]
         public async Task<ActionResult<List<ApiPersonNote>>> GetPersonNotes(string personId)
         {
