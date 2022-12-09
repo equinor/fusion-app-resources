@@ -12,6 +12,13 @@ using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Integration.Profile;
 using Fusion.Integration.LineOrg;
+using Fusion.AspNetCore.OData;
+using Fusion.Services.LineOrg.ApiModels;
+using Microsoft.VisualBasic;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -71,7 +78,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
-        public async Task<ActionResult<ApiCollection<ApiRelevantDepartmentProfile>>> GetRelevantDepartments(string? personId)
+        public async Task<ActionResult<OrgApiPagedCollection<ApiRelevantDepartmentProfile>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
         {
 
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
@@ -95,13 +102,26 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var resourceOwnerProfile = await DispatchAsync(new GetRelevantDeparmentProfile(personId));
+
+            // Remap api model to query model
+            query.MapFilterFields<ApiRelevantDepartmentProfile>(f => f.MapToModel<ApiRelevantDepartmentProfile>()
+                .MapField(a => a.fullDepartment, q => q.fullDepartment)
+                .MapField(a =>a.sapId, q => q.sapId)
+                .MapField(a => a.parentSapId, q => q.parentSapId)
+                .MapField(a => a.department, q => q.department)
+                .MapField(a => a.name, q => q.name)
+                .MapField(a => a.shortName, q => q.shortName)
+             
+            );
+
+            
+            var resourceOwnerProfile = await DispatchAsync(new GetRelevantDeparmentProfile(personId, query));
             if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
 
             var collection = resourceOwnerProfile.Select( x => new ApiRelevantDepartmentProfile(x)).ToList();
 
-            var returnItems = new ApiCollection<ApiRelevantDepartmentProfile>(collection) { TotalCount = collection.Count() };
-
+            //var returnItems = new ApiCollection<ApiRelevantDepartmentProfile>(collection) { TotalCount = collection.Count() };
+            var returnItems = new OrgApiPagedCollection<ApiRelevantDepartmentProfile>(collection, collection.Count()).SetPagingUrls(query, Request); ;
             return returnItems;
         }
 
@@ -338,6 +358,85 @@ namespace Fusion.Resources.Api.Controllers
                 return (Guid.Empty, string.Empty, ApiErrors.InvalidInput("Could not locate any unique id for the user. User must exist in ad."));
 
             return (user.AzureUniqueId.Value, user.FullDepartment ?? string.Empty, null);
+        }
+    }
+
+    public class OrgApiPagedCollection<T>
+    {
+        public OrgApiPagedCollection()
+        {
+            Value = Array.Empty<T>();
+            TotalCount = 0;
+            Count = 0;
+        }
+        public OrgApiPagedCollection(IEnumerable<T> items, int totalCount)
+        {
+            Value = items;
+            TotalCount = totalCount;
+            Count = items.Count();
+        }
+
+        /// <summary>
+        /// Total count without paging applied. This count indicates how many results exists with just using the filters.
+        /// </summary>
+        public int TotalCount { get; set; }
+        public int Count { get; set; }
+
+        /// <summary>
+        /// Always show the nextpage, as that is an indication that there are no more pages.
+        /// </summary>
+        [JsonProperty(PropertyName = "@nextPage", NullValueHandling = NullValueHandling.Include)]
+        public string? NextPage { get; set; }
+
+        /// <summary>
+        /// Convenience only, hide if not applicable.
+        /// </summary>
+        [JsonProperty(PropertyName = "@prevPage", NullValueHandling = NullValueHandling.Ignore)]
+        public string? PrevPage { get; set; }
+
+        [JsonProperty(PropertyName = "value", NullValueHandling = NullValueHandling.Ignore)]
+        public IEnumerable<T> Value { get; set; }
+
+
+        public OrgApiPagedCollection<T> SetPagingUrls(ODataQueryParams queryParams, HttpRequest request)
+        {
+            var currentUrl = $"{request.Path}{request.QueryString}";
+
+            var currentSkip = queryParams.Skip.GetValueOrDefault(0);
+            var pageSize = queryParams.Top.GetValueOrDefault(Count);
+           
+            // Is there a next page?
+            var nextSkip = currentSkip + pageSize;
+            var prevSkip = Math.Max(currentSkip - pageSize, 0);
+
+            currentUrl = EnsureSkip(currentUrl);
+
+            if (nextSkip < TotalCount)
+            {
+                var nextUrl = Regex.Replace(currentUrl, @"\$skip=\d+", $"$skip={nextSkip}");
+                NextPage = nextUrl;
+            }
+
+            if (currentSkip > 0)
+            {
+                var prevUrl = Regex.Replace(currentUrl, @"\$skip=\d+", $"$skip={prevSkip}");
+                PrevPage = prevUrl;
+            }
+
+            return this;
+        }
+
+        private static string EnsureSkip(string currentUrl)
+        {
+            // NextPage/PrevPage is dependant on a skip argument to be able to create urls.
+            if (Regex.IsMatch(currentUrl, @"\$skip=\d+"))
+            {
+                return currentUrl;
+            }
+
+            var arg = currentUrl.Contains("?") ? "&" : "?";
+            currentUrl = currentUrl.TrimEnd('/') + $"{arg}$skip=0";
+            return currentUrl;
         }
     }
 }

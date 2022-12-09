@@ -1,4 +1,5 @@
-﻿using Fusion.Integration;
+﻿using Fusion.AspNetCore.OData;
+using Fusion.Integration;
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
@@ -18,15 +19,17 @@ namespace Fusion.Resources.Domain.Queries
     /// </summary>
     public class GetRelevantDeparmentProfile : IRequest<IEnumerable<QueryRelevantDepartmentProfile>>
     {
-        public GetRelevantDeparmentProfile(string profileId)
+        public GetRelevantDeparmentProfile(string profileId, AspNetCore.OData.ODataQueryParams query)
         {
             ProfileId = profileId;
+            Query = query;
         }
 
         /// <summary>
         /// Mail or azure unique id
         /// </summary>
         public PersonId ProfileId { get; set; }
+        public ODataQueryParams Query { get; }
 
         public class Handler : IRequestHandler<GetRelevantDeparmentProfile, IEnumerable<QueryRelevantDepartmentProfile>>
         {
@@ -63,8 +66,8 @@ namespace Fusion.Resources.Domain.Queries
                     List<string> Reasons = new List<string>();
                     Reasons.Add("Manager");
 
-                    QueryRelevantDepartmentProfile DepartmentProfile = await GetDepartmentInformation(user.FullDepartment, Reasons);
-
+                    QueryRelevantDepartmentProfile DepartmentProfile = await GetDepartmentInformation(user.FullDepartment, Reasons, request.Query);
+                    StoreResult(lstDepartments, DepartmentProfile);
 
                 }
 
@@ -88,24 +91,24 @@ namespace Fusion.Resources.Domain.Queries
                             List<string> parentReason = new List<string>();
                             parentReason.Add("ParentManager");
 
-                            QueryRelevantDepartmentProfile DepDepartmentProfile = await GetDepartmentInformation(item.DepartmentId.Trim('*').TrimEnd(), parentReason);
+                            QueryRelevantDepartmentProfile DepDepartmentProfile = await GetDepartmentInformation(item.DepartmentId.Trim('*').TrimEnd(), parentReason, request.Query);
 
-                            lstDepartments.Add(DepDepartmentProfile);
+                            StoreResult(lstDepartments, DepDepartmentProfile);
 
-                            //var ChildrenDepChildren = await ResolveChildren(item.DepartmentId.Trim('*').TrimEnd());
-                            //if (ChildrenDepChildren?.Children.Count != 0)
-                            //{
-                            //    List<string> ParentParentReason = new List<string>();
-                            //    ParentParentReason.Add("ParentParentManager");
+                            var ChildrenDepChildren = await ResolveChildren(item.DepartmentId.Trim('*').TrimEnd());
+                            if (ChildrenDepChildren?.Children.Count != 0)
+                            {
+                                List<string> ParentParentReason = new List<string>();
+                                ParentParentReason.Add("ParentParentManager");
 
-                            //    foreach (var childchild in ChildrenDepChildren.Children)
-                            //    {
-                            //        QueryRelevantDepartmentProfile ChildDepartmentProfile = await GetDepartmentInformation(childchild.DepartmentId, ParentParentReason);
+                                foreach (var childchild in ChildrenDepChildren.Children)
+                                {
+                                    QueryRelevantDepartmentProfile ChildDepartmentProfile = await GetDepartmentInformation(childchild.DepartmentId, ParentParentReason, request.Query);
 
-                            //        lstDepartments.Add(ChildDepartmentProfile);
-                            //    }
+                                    StoreResult(lstDepartments, DepDepartmentProfile);
+                                }
 
-                            //}
+                            }
                         }
 
                         Reasons.Add("Manager ( Wildcard) ");
@@ -126,22 +129,59 @@ namespace Fusion.Resources.Domain.Queries
 
                     if (Reasons.Count > 0)
                     {
-                        QueryRelevantDepartmentProfile DepartmentProfile = await GetDepartmentInformation(department.Key.Trim('*').TrimEnd(), Reasons);
-
-                        lstDepartments.Add(DepartmentProfile);
+                        QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(department.Key.Trim('*').TrimEnd(), Reasons, request.Query);
+                        StoreResult(lstDepartments, DepartmentProfile);
                     }
+
 
                 }
 
                 return lstDepartments;
             }
 
-            private async Task<QueryRelevantDepartmentProfile> GetDepartmentInformation(string departmentpath, List<string> Reasons)
+            private static void StoreResult(List<QueryRelevantDepartmentProfile> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
+            {
+                if (DepartmentProfile != null)
+                {
+                    lstDepartments.Add(DepartmentProfile);
+                }
+            }
+
+            private async Task<QueryRelevantDepartmentProfile?> GetDepartmentInformation(string departmentpath, List<string> Reasons, ODataQueryParams query)
             {
                 var departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
+                if (departmentInfo != null)
+                {
 
-                var DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
-                return DepartmentProfile;
+                    if (query.Filter.GetFilters().Count() > 0)
+                    {
+                        if (query.Filter.GetFilterForField("fulldepartment") != null)
+                        {
+                            if (departmentInfo.FullDepartment.Contains(query.Filter.GetFilterForField("fulldepartment").Value))
+                            {
+                                var DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
+                                return DepartmentProfile;
+                            }
+                        }
+
+                        if (query.Filter.GetFilterForField("sapId") != null)
+                        {
+                            if (departmentInfo.SapId.Contains(query.Filter.GetFilterForField("sapId").Value))
+                            {
+                                var DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
+                                return DepartmentProfile;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
+                        return DepartmentProfile;
+                    }
+                }
+
+
+                return null;
             }
 
             private async Task<Dictionary<string, string>> ResolveDepartmentsWithAccessAsync(FusionPersonProfile user)
