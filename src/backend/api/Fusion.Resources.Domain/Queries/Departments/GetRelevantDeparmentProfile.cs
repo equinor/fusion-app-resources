@@ -60,6 +60,10 @@ namespace Fusion.Resources.Domain.Queries
 
                 // Resolve departments with responsibility
                 var departmentsWithAccess = await ResolveDepartmentsWithAccessAsync(user);
+
+                //departmentsWithAccess.Where(x => x.Value.Contains(request.Query.Filter.GetFilterForField("fulldepartment").Value));
+             
+
                 List<QueryRelevantDepartmentProfile> lstDepartments = new List<QueryRelevantDepartmentProfile>();
 
                 if (user.IsResourceOwner)
