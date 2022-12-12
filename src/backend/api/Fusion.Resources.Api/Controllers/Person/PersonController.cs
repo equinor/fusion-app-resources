@@ -119,7 +119,9 @@ namespace Fusion.Resources.Api.Controllers
             if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
 
             var collection = resourceOwnerProfile.Select(x => new ApiRelevantDepartmentProfile(x)).ToList();
+            var top = query.Top;
 
+    
             //var returnItems = new ApiCollection<ApiRelevantDepartmentProfile>(collection) { TotalCount = collection.Count() };
             var returnItems = new OrgApiPagedCollection<ApiRelevantDepartmentProfile>(collection, collection.Count()).SetPagingUrls(query, Request); ;
             return returnItems;
