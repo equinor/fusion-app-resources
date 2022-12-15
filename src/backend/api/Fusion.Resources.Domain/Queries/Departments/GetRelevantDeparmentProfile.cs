@@ -64,19 +64,15 @@ namespace Fusion.Resources.Domain.Queries
 
             }
             private CancellationToken _cancellationToken;
-            public async Task<IEnumerable<QueryRelevantDepartmentProfile>> Handle(GetRelevantDeparmentProfile request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryRelevantDepartmentProfile?>> Handle(GetRelevantDeparmentProfile request, CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonBasicProfileAsync(request.ProfileId.OriginalIdentifier);
 
                 if (user is null) return null;
 
-                //var activeDepartments = (await lineOrgClient.GetOrgUnitDepartmentsAsync()).ToList();
-
                 // Resolve departments with responsibility
                 var departmentsWithAccess = await ResolveDepartmentsWithAccessAsync(user);
-
-                //departmentsWithAccess.Where(x => x.Value.Contains(request.Query.Filter.GetFilterForField("fulldepartment").Value));
 
                 if (user.IsResourceOwner)
                 {
@@ -133,7 +129,6 @@ namespace Fusion.Resources.Domain.Queries
                         StoreResult(lstDepartments, DepartmentProfile);
                     }
 
-
                 }
 
                 return lstDepartments;
@@ -189,22 +184,20 @@ namespace Fusion.Resources.Domain.Queries
                     return DepartmentProfile;
                 }
 
-
                 //DepartmentProfile = await memCache.GetAsync(cacheKey, async entry =>
                 //{
                 //    entry.SetAbsoluteExpiration(defaultAbsoluteCacheExpirationHours);
                 //    //entry.AddExpirationToken(new CancellationChangeToken(CommonLibConstants.CommonLibCacheTokenSource.Token));
                 //    var data = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
-                    
+
 
                 //    return data;
                 //});
-              
 
                 if (query.HasFilter)
                 {
 
-                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
+                    departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
 
                     if (departmentInfo != null)
                     {
@@ -236,7 +229,6 @@ namespace Fusion.Resources.Domain.Queries
                             }
                         }
 
-
                         if (name != null)
                         {
                             if (departmentInfo.Name.Contains(name.ToString()))
@@ -250,15 +242,18 @@ namespace Fusion.Resources.Domain.Queries
 
                 }
 
-
                 if (DepartmentProfile == null)
                 {
                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
                     DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
                 }
-                memCache.Set(cacheKey, DepartmentProfile, TimeSpan.FromMinutes(15));
 
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                   .SetSlidingExpiration(TimeSpan.FromMinutes(60))
+                   .SetAbsoluteExpiration(TimeSpan.FromMinutes(60))
+                   .SetPriority(CacheItemPriority.Normal);
 
+                memCache.Set(cacheKey, DepartmentProfile, cacheEntryOptions);
 
                 if (memCache.TryGetValue(cacheKey, out QueryRelevantDepartmentProfile test))
                 {
@@ -281,11 +276,11 @@ namespace Fusion.Resources.Domain.Queries
                 if (isDepartmentManager && user.FullDepartment != null)
                     departmentsWithResponsibility.Add(user.FullDepartment, "Fusion.Resources.ResourceOwner");
 
-                // Add all departments the user has been delegated responsibility for.
+                // Add all departments the user has Access To.
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)
-                //.WhereRoleName(AccessRoles.ResourceOwner)
+
                 );
 
 
@@ -297,11 +292,6 @@ namespace Fusion.Resources.Domain.Queries
                         departmentsWithResponsibility.Add(role.Scope.Values.FirstOrDefault(), role.RoleName);
                     }
                 }
-
-                //departmentsWithResponsibility.Add(roleAssignedDepartments
-                //    .Where(x => x.Scope != null && x.ValidTo >= DateTimeOffset.Now)
-                //    .SelectMany(x => x.Scope!.Values))
-                //);
 
                 return departmentsWithResponsibility;
             }
