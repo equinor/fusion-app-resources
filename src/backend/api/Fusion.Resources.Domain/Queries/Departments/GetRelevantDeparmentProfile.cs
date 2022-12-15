@@ -51,7 +51,7 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ILineOrgResolver lineOrgResolver;
             private readonly IMemoryCache memCache;
             private bool sapIdFound = false;
-            List<QueryRelevantDepartmentProfile> lstDepartments = new List<QueryRelevantDepartmentProfile>();
+            List<QueryRelevantDepartmentProfile?> lstDepartments = new List<QueryRelevantDepartmentProfile>();
 
             public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache)
             {
@@ -77,9 +77,6 @@ namespace Fusion.Resources.Domain.Queries
                 var departmentsWithAccess = await ResolveDepartmentsWithAccessAsync(user);
 
                 //departmentsWithAccess.Where(x => x.Value.Contains(request.Query.Filter.GetFilterForField("fulldepartment").Value));
-
-
-
 
                 if (user.IsResourceOwner)
                 {
@@ -133,7 +130,7 @@ namespace Fusion.Resources.Domain.Queries
                     if (Reasons.Count > 0)
                     {
                         QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(department.Key.Trim('*').TrimEnd(), Reasons, request.Query);
-                        await StoreResult(lstDepartments, DepartmentProfile);
+                        StoreResult(lstDepartments, DepartmentProfile);
                     }
 
 
@@ -159,8 +156,8 @@ namespace Fusion.Resources.Domain.Queries
                         {
                             break;
                         }
-                        QueryRelevantDepartmentProfile ChildDepartmentProfile = await GetDepartmentInformation(child.DepartmentId, reason, query);
-                        await StoreResult(lstDepartments, ChildDepartmentProfile);
+                        QueryRelevantDepartmentProfile? ChildDepartmentProfile = await GetDepartmentInformation(child.DepartmentId, reason, query);
+                        StoreResult(lstDepartments, ChildDepartmentProfile);
 
                         await GetDepartmentChildren(child.DepartmentId, reason, query);
                     }
@@ -168,7 +165,7 @@ namespace Fusion.Resources.Domain.Queries
                 return true;
             }
 
-            private async Task<bool> StoreResult(List<QueryRelevantDepartmentProfile> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
+            private bool StoreResult(List<QueryRelevantDepartmentProfile?> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
             {
                 if (DepartmentProfile != null)
                 {
@@ -184,25 +181,33 @@ namespace Fusion.Resources.Domain.Queries
                 QueryRelevantDepartmentProfile? DepartmentProfile = null;
                 ApiOrgUnit? departmentInfo;
 
-                if (memCache.TryGetValue(cacheKey, out QueryRelevantDepartmentProfile cachedHeaders))
+
+                memCache.TryGetValue(cacheKey, out DepartmentProfile);
+
+                if (DepartmentProfile != null)
                 {
-                    Console.WriteLine("Using cached access info...");
-                    return cachedHeaders;
-                }
-                else
-                {
-                    departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
+                    return DepartmentProfile;
                 }
 
+
+                //DepartmentProfile = await memCache.GetAsync(cacheKey, async entry =>
+                //{
+                //    entry.SetAbsoluteExpiration(defaultAbsoluteCacheExpirationHours);
+                //    //entry.AddExpirationToken(new CancellationChangeToken(CommonLibConstants.CommonLibCacheTokenSource.Token));
+                //    var data = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
+                    
+
+                //    return data;
+                //});
+              
 
                 if (query.HasFilter)
                 {
 
-                    //var departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
+                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
 
                     if (departmentInfo != null)
                     {
-
 
                         var name = query.Filter.GetFilterForField("name")?.Value;
                         var sapIdfilter = query.Filter.GetFilterForField("sapId")?.Value;
@@ -210,7 +215,6 @@ namespace Fusion.Resources.Domain.Queries
                         var department = query.Filter.GetFilterForField("department")?.Value;
                         var parentSapId = query.Filter.GetFilterForField("parentSapId")?.Value;
                         var fulldepartmentfilter = query.Filter.GetFilterForField("fulldepartment")?.Value;
-
 
 
                         if (fulldepartmentfilter != null)
@@ -252,7 +256,7 @@ namespace Fusion.Resources.Domain.Queries
                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
                     DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
                 }
-                memCache.Set(cacheKey, DepartmentProfile, TimeSpan.FromMinutes(5));
+                memCache.Set(cacheKey, DepartmentProfile, TimeSpan.FromMinutes(15));
 
 
 
