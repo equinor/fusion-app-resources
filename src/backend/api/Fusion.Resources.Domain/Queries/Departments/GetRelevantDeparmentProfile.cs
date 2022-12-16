@@ -25,9 +25,9 @@ namespace Fusion.Resources.Domain.Queries
     /// <summary>
     /// Fetch the profile for a resource owner. Will compile a list of departments the person has responsibilities in and which is relevant.
     /// </summary>
-    public class GetRelevantDeparmentProfile : IRequest<IEnumerable<QueryRelevantDepartmentProfile>>
+    public class GetRelevantOrgUnits : IRequest<IEnumerable<QueryRelevantDepartmentProfile?>>
     {
-        public GetRelevantDeparmentProfile(string profileId, AspNetCore.OData.ODataQueryParams query)
+        public GetRelevantOrgUnits(string profileId, AspNetCore.OData.ODataQueryParams query)
         {
             ProfileId = profileId;
             Query = query;
@@ -41,7 +41,7 @@ namespace Fusion.Resources.Domain.Queries
 
 
 
-        public class Handler : IRequestHandler<GetRelevantDeparmentProfile, IEnumerable<QueryRelevantDepartmentProfile>>
+        public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryRelevantDepartmentProfile>>
         {
             private readonly TimeSpan defaultAbsoluteCacheExpirationHours = TimeSpan.FromHours(1);
             private readonly ILogger<Handler> logger;
@@ -64,7 +64,7 @@ namespace Fusion.Resources.Domain.Queries
 
             }
             private CancellationToken _cancellationToken;
-            public async Task<IEnumerable<QueryRelevantDepartmentProfile>> Handle(GetRelevantDeparmentProfile request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryRelevantDepartmentProfile>?> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonBasicProfileAsync(request.ProfileId.OriginalIdentifier);
@@ -106,9 +106,9 @@ namespace Fusion.Resources.Domain.Queries
 
                         List<string> reason = new List<string>();
                         reason.Add("ParentManager");
-                        var DepChildren = await ResolveChildren(department.Key.Trim('*').TrimEnd());
+                        var DepChildren = await GetChildrenAsync(department.Key.Trim('*').TrimEnd());
 
-                        await GetDepartmentChildren(department.Key.Trim('*').TrimEnd(), reason, request.Query);
+                        await GetDepartmentChildrenAsync(department.Key.Trim('*').TrimEnd(), reason, request.Query);
 
 
                         Reasons.Add("Manager ( Wildcard) ");
@@ -139,13 +139,13 @@ namespace Fusion.Resources.Domain.Queries
             }
 
 
-            private async Task<bool> GetDepartmentChildren(string dep, List<string> reason, ODataQueryParams query)
+            private async Task<bool> GetDepartmentChildrenAsync(string dep, List<string> reason, ODataQueryParams query)
             {
                 if (sapIdFound == true)
                 {
                     return true;
                 }
-                var DepChildren = await ResolveChildren(dep);
+                var DepChildren = await GetChildrenAsync(dep);
                 if (DepChildren != null)
                 {
                     // recurse over all children categories and add them to the list
@@ -158,13 +158,13 @@ namespace Fusion.Resources.Domain.Queries
                         QueryRelevantDepartmentProfile? ChildDepartmentProfile = await GetDepartmentInformation(child.DepartmentId, reason, query);
                         await StoreResult(lstDepartments, ChildDepartmentProfile);
 
-                        await GetDepartmentChildren(child.DepartmentId, reason, query);
+                        await GetDepartmentChildrenAsync(child.DepartmentId, reason, query);
                     }
                 }
                 return true;
             }
 
-            private static async Task<bool> StoreResult(List<QueryRelevantDepartmentProfile?> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
+            private static  Task<bool> StoreResult(List<QueryRelevantDepartmentProfile?> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
             {
                 if (DepartmentProfile != null)
                 {
@@ -192,12 +192,9 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
 
-                    var cacheEntryOptions = new MemoryCacheEntryOptions()
-       .SetSlidingExpiration(TimeSpan.FromMinutes(60))
-       .SetAbsoluteExpiration(TimeSpan.FromMinutes(60))
-       .SetPriority(CacheItemPriority.Normal);
+ 
 
-                    var stored = memCache.Set(cacheKey, departmentInfo, cacheEntryOptions);
+                    var stored = memCache.Set(cacheKey, departmentInfo, defaultAbsoluteCacheExpirationHours);
                     if (stored != null)
                     {
                         Console.WriteLine($"======================== STORED CACHED {stored.FullDepartment}  ==========================================");
@@ -232,9 +229,11 @@ namespace Fusion.Resources.Domain.Queries
                         var fulldepartmentfilter = query.Filter.GetFilterForField("fulldepartment")?.Value;
 
 
+
+
                         if (fulldepartmentfilter != null)
                         {
-                            if (departmentInfo.FullDepartment.Contains(fulldepartmentfilter.ToString()) && query.Filter.GetFilterForField("fulldepartment").Operation.Equals("Contains"))
+                            if (departmentInfo.FullDepartment.Contains(fulldepartmentfilter.ToString()) && query.Filter.GetFilterForField("fulldepartment").Operation == FilterOperation.Contains)
                             {
                                 DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
 
@@ -306,7 +305,7 @@ namespace Fusion.Resources.Domain.Queries
             }
 
 
-            private async Task<QueryRelatedDepartments?> ResolveChildren(string? department)
+            private async Task<QueryRelatedDepartments?> GetChildrenAsync(string? department)
             {
                 if (department is null)
                     return null;

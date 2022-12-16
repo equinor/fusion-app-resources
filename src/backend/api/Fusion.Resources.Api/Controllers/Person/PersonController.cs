@@ -115,7 +115,7 @@ namespace Fusion.Resources.Api.Controllers
             );
 
 
-            var resourceOwnerProfile = await DispatchAsync(new GetRelevantDeparmentProfile(personId, query));
+            var resourceOwnerProfile = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
             if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
 
             var collection = resourceOwnerProfile.Select(x => new ApiRelevantDepartmentProfile(x)).ToList();
