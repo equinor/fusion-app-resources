@@ -26,7 +26,7 @@ namespace Fusion.Resources.Domain.Models
         public string? department { get; set; }
         public string? fullDepartment { get; set; }
 
-        public List<string?> reason { get; set; }
+        public List<string>? reason { get; set; }
 
     }
 }

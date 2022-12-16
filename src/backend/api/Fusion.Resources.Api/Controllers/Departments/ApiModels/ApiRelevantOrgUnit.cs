@@ -8,7 +8,7 @@ namespace Fusion.Resources.Api.Controllers.Departments.ApiModels
         public ApiRelevantOrgUnit(QueryRelevantDepartmentProfile? resourceOwnerProfile)
         {
 
-            reason = resourceOwnerProfile?.reason;
+            reason = resourceOwnerProfile.reason;
             name = resourceOwnerProfile?.name;
             sapId = resourceOwnerProfile?.sapId;
             parentSapId = resourceOwnerProfile?.parentSapId;
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Api.Controllers.Departments.ApiModels
         public string? department { get; set; }
         public string? fullDepartment { get; set; }
 
-        public List<string?> reason { get; set; }
+        public List<string>? reason { get; set; }
 
 
     }
