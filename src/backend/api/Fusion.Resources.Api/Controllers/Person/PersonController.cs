@@ -122,8 +122,6 @@ namespace Fusion.Resources.Api.Controllers
             var collection = resourceOwnerProfile.Select(x => new ApiRelevantOrgUnit(x)).ToList();
             var top = query.Top;
 
-
-            //var returnItems = new ApiCollection<ApiRelevantDepartmentProfile>(collection) { TotalCount = collection.Count() };
             var returnItems = new ApiPagedCollection<ApiRelevantOrgUnit>(collection, collection.Count()).SetPagingUrls(query, Request); ;
             return returnItems;
         }

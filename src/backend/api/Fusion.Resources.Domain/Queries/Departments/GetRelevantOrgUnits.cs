@@ -42,9 +42,10 @@ namespace Fusion.Resources.Domain.Queries
         public enum Roles
         {
             DelegatedManager,
+            DelegatedParentManager,
             ParentManager,
             Manager,
-            Winter
+            Write
         }
 
         public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryRelevantDepartmentProfile>>
@@ -57,7 +58,7 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ILineOrgResolver lineOrgResolver;
             private readonly IMemoryCache memCache;
             private bool sapIdFound = false;
-            List<QueryRelevantDepartmentProfile?> lstDepartments = new List<QueryRelevantDepartmentProfile?>();
+            public List<QueryRelevantDepartmentProfile>? lstDepartments = new List<QueryRelevantDepartmentProfile>();
 
             public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache)
             {
@@ -70,7 +71,7 @@ namespace Fusion.Resources.Domain.Queries
 
             }
             private CancellationToken _cancellationToken;
-            public async Task<IEnumerable<QueryRelevantDepartmentProfile>?> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryRelevantDepartmentProfile>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonBasicProfileAsync(request.ProfileId.OriginalIdentifier);
@@ -88,7 +89,7 @@ namespace Fusion.Resources.Domain.Queries
                     if (user.FullDepartment != null)
                     {
                         QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(user.FullDepartment, Reasons, request.Query);
-                        StoreResult(lstDepartments, DepartmentProfile);
+                        StoreResult(DepartmentProfile);
                     }
                 }
 
@@ -105,12 +106,27 @@ namespace Fusion.Resources.Domain.Queries
                         Reasons.Add(Roles.DelegatedManager.ToString());
 
                     }
+                    else if (department.Value.Contains("Resources.ResourceOwner") && department.Key.Contains("*"))
+                    {
+
+                        List<string> reason = new List<string>
+                        {
+                            Roles.DelegatedParentManager.ToString()
+                        };
+
+                        await GetDepartmentChildrenAsync(department.Key.Trim('*').TrimEnd(), reason, request.Query);
+
+
+                        Reasons.Add(Roles.DelegatedManager.ToString());
+
+                    }
                     else if (department.Value.Contains("Resources.FullControl") && department.Key.Contains("*"))
                     {
 
-                        List<string> reason = new List<string>();
-                        reason.Add(Roles.ParentManager.ToString());
-                        var DepChildren = await GetChildrenAsync(department.Key.Trim('*').TrimEnd());
+                        List<string> reason = new List<string>
+                        {
+                            Roles.ParentManager.ToString()
+                        };
 
                         await GetDepartmentChildrenAsync(department.Key.Trim('*').TrimEnd(), reason, request.Query);
 
@@ -125,7 +141,7 @@ namespace Fusion.Resources.Domain.Queries
                     if (Reasons.Count > 0)
                     {
                         QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(department.Key.Trim('*').TrimEnd(), Reasons, request.Query);
-                         StoreResult(lstDepartments, DepartmentProfile);
+                        StoreResult(DepartmentProfile);
                     }
 
                 }
@@ -151,7 +167,7 @@ namespace Fusion.Resources.Domain.Queries
                             break;
                         }
                         QueryRelevantDepartmentProfile? ChildDepartmentProfile = await GetDepartmentInformation(child.DepartmentId, reason, query);
-                         StoreResult(lstDepartments, ChildDepartmentProfile);
+                        StoreResult(ChildDepartmentProfile);
 
                         await GetDepartmentChildrenAsync(child.DepartmentId, reason, query);
                     }
@@ -159,7 +175,7 @@ namespace Fusion.Resources.Domain.Queries
                 return true;
             }
 
-            private  static void StoreResult(List<QueryRelevantDepartmentProfile?> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
+            private  void StoreResult(QueryRelevantDepartmentProfile? DepartmentProfile)
             {
                 if (DepartmentProfile != null)
                 {
@@ -185,9 +201,9 @@ namespace Fusion.Resources.Domain.Queries
                 else
                 {
                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
-                    
 
- 
+
+
 
                     var stored = memCache.Set(cacheKey, departmentInfo, defaultAbsoluteCacheExpirationHours);
                     if (stored != null)
@@ -216,24 +232,21 @@ namespace Fusion.Resources.Domain.Queries
                     if (departmentInfo != null)
                     {
 
-                        var name = query.Filter.GetFilterForField("name")?.Value;
-                        var sapIdfilter = query.Filter.GetFilterForField("sapId")?.Value;
-                        var shortName = query.Filter.GetFilterForField("shortName")?.Value;
-                        var department = query.Filter.GetFilterForField("department")?.Value;
-                        var parentSapId = query.Filter.GetFilterForField("parentSapId")?.Value;
-                        var fulldepartmentfilter = query.Filter.GetFilterForField("fulldepartment")?.Value;
-
-
-
+                        var name = query.Filter.GetFilterForField("name");
+                        var sapIdfilter = query.Filter.GetFilterForField("sapId");
+                        var shortName = query.Filter.GetFilterForField("shortName");
+                        var department = query.Filter.GetFilterForField("department");
+                        var parentSapId = query.Filter.GetFilterForField("parentSapId");
+                        var fulldepartmentfilter = query.Filter.GetFilterForField("fulldepartment");
 
                         if (fulldepartmentfilter != null)
                         {
-                            if (departmentInfo.FullDepartment.Contains(fulldepartmentfilter.ToString()) && query.Filter.GetFilterForField("fulldepartment").Operation == FilterOperation.Contains)
+                            if (departmentInfo.FullDepartment.Contains(fulldepartmentfilter.Value.ToString()) && fulldepartmentfilter.Operation == FilterOperation.Contains)
                             {
                                 DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
 
                             }
-                            else if (departmentInfo.FullDepartment.Equals(fulldepartmentfilter.ToString()) && query.Filter.GetFilterForField("fulldepartment").Operation.Equals("Eq"))
+                            else if (departmentInfo.FullDepartment.Equals(fulldepartmentfilter.Value.ToString()) && fulldepartmentfilter.Operation == FilterOperation.Eq)
                             {
                                 DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
                             }
@@ -241,7 +254,7 @@ namespace Fusion.Resources.Domain.Queries
 
                         if (sapIdfilter != null)
                         {
-                            if (departmentInfo.SapId.Contains(sapIdfilter))
+                            if (departmentInfo.SapId.Contains(sapIdfilter.Value.ToString()) && sapIdfilter.Operation == FilterOperation.Eq)
                             {
                                 DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
                                 sapIdFound = true;
@@ -251,7 +264,7 @@ namespace Fusion.Resources.Domain.Queries
 
                         if (name != null)
                         {
-                            if (departmentInfo.Name.Contains(name.ToString()))
+                            if (departmentInfo.Name.Contains(name.Value.ToString()))
                             {
                                 DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
 
