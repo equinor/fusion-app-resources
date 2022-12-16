@@ -79,7 +79,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
-        public async Task<ActionResult<OrgApiPagedCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiPagedCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
         {
 
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
@@ -122,7 +122,7 @@ namespace Fusion.Resources.Api.Controllers
             var collection = resourceOwnerProfile.Select(x => new ApiRelevantOrgUnit(x)).ToList();
             var top = query.Top;
 
-    
+
             //var returnItems = new ApiCollection<ApiRelevantDepartmentProfile>(collection) { TotalCount = collection.Count() };
             var returnItems = new ApiPagedCollection<ApiRelevantOrgUnit>(collection, collection.Count()).SetPagingUrls(query, Request); ;
             return returnItems;
@@ -363,40 +363,5 @@ namespace Fusion.Resources.Api.Controllers
             return (user.AzureUniqueId.Value, user.FullDepartment ?? string.Empty, null);
         }
     }
-
-    public class OrgApiPagedCollection<T>
-    {
-        public OrgApiPagedCollection()
-        {
-            Value = Array.Empty<T>();
-            TotalCount = 0;
-            Count = 0;
-        }
-        public OrgApiPagedCollection(IEnumerable<T> items, int totalCount)
-        {
-            Value = items;
-            TotalCount = totalCount;
-            Count = items.Count();
-        }
-
-        /// <summary>
-        /// Total count without paging applied. This count indicates how many results exists with just using the filters.
-        /// </summary>
-        public int TotalCount { get; set; }
-        public int Count { get; set; }
-
-        /// <summary>
-        /// Always show the nextpage, as that is an indication that there are no more pages.
-        /// </summary>
-        [JsonProperty(PropertyName = "@nextPage", NullValueHandling = NullValueHandling.Include)]
-        public string? NextPage { get; set; }
-
-        /// <summary>
-        /// Convenience only, hide if not applicable.
-        /// </summary>
-        [JsonProperty(PropertyName = "@prevPage", NullValueHandling = NullValueHandling.Ignore)]
-        public string? PrevPage { get; set; }
-
-        [JsonProperty(PropertyName = "value", NullValueHandling = NullValueHandling.Ignore)]
-        public IEnumerable<T> Value { get; set; }
+}
 
