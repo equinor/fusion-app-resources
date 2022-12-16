@@ -18,6 +18,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using Fusion.Resources.Api.Controllers.Departments;
+using Fusion.Resources.Api.Controllers.Departments.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -78,7 +79,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
-        public async Task<ActionResult<OrgApiPagedCollection<ApiRelevantDepartmentProfile>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<OrgApiPagedCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
         {
 
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
@@ -104,7 +105,7 @@ namespace Fusion.Resources.Api.Controllers
 
 
             // Remap api model to query model
-            query.MapFilterFields<ApiRelevantDepartmentProfile>(f => f.MapToModel<ApiRelevantDepartmentProfile>()
+            query.MapFilterFields<ApiRelevantOrgUnit>(f => f.MapToModel<ApiRelevantOrgUnit>()
                 .MapField(a => a.fullDepartment, q => q.fullDepartment)
                 .MapField(a => a.sapId, q => q.sapId)
                 .MapField(a => a.parentSapId, q => q.parentSapId)
@@ -118,12 +119,12 @@ namespace Fusion.Resources.Api.Controllers
             var resourceOwnerProfile = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
             if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
 
-            var collection = resourceOwnerProfile.Select(x => new ApiRelevantDepartmentProfile(x)).ToList();
+            var collection = resourceOwnerProfile.Select(x => new ApiRelevantOrgUnit(x)).ToList();
             var top = query.Top;
 
     
             //var returnItems = new ApiCollection<ApiRelevantDepartmentProfile>(collection) { TotalCount = collection.Count() };
-            var returnItems = new OrgApiPagedCollection<ApiRelevantDepartmentProfile>(collection, collection.Count()).SetPagingUrls(query, Request); ;
+            var returnItems = new ApiPagedCollection<ApiRelevantOrgUnit>(collection, collection.Count()).SetPagingUrls(query, Request); ;
             return returnItems;
         }
 
@@ -399,46 +400,3 @@ namespace Fusion.Resources.Api.Controllers
         [JsonProperty(PropertyName = "value", NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<T> Value { get; set; }
 
-
-        public OrgApiPagedCollection<T> SetPagingUrls(ODataQueryParams queryParams, HttpRequest request)
-        {
-            var currentUrl = $"{request.Path}{request.QueryString}";
-
-            var currentSkip = queryParams.Skip.GetValueOrDefault(0);
-            var pageSize = queryParams.Top.GetValueOrDefault(Count);
-
-            // Is there a next page?
-            var nextSkip = currentSkip + pageSize;
-            var prevSkip = Math.Max(currentSkip - pageSize, 0);
-
-            currentUrl = EnsureSkip(currentUrl);
-
-            if (nextSkip < TotalCount)
-            {
-                var nextUrl = Regex.Replace(currentUrl, @"\$skip=\d+", $"$skip={nextSkip}");
-                NextPage = nextUrl;
-            }
-
-            if (currentSkip > 0)
-            {
-                var prevUrl = Regex.Replace(currentUrl, @"\$skip=\d+", $"$skip={prevSkip}");
-                PrevPage = prevUrl;
-            }
-
-            return this;
-        }
-
-        private static string EnsureSkip(string currentUrl)
-        {
-            // NextPage/PrevPage is dependant on a skip argument to be able to create urls.
-            if (Regex.IsMatch(currentUrl, @"\$skip=\d+"))
-            {
-                return currentUrl;
-            }
-
-            var arg = currentUrl.Contains("?") ? "&" : "?";
-            currentUrl = currentUrl.TrimEnd('/') + $"{arg}$skip=0";
-            return currentUrl;
-        }
-    }
-}

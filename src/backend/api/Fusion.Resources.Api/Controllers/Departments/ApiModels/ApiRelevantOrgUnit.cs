@@ -1,11 +1,11 @@
 ﻿using Fusion.Resources.Domain.Models;
 using System.Collections.Generic;
 
-namespace Fusion.Resources.Api.Controllers.Departments
+namespace Fusion.Resources.Api.Controllers.Departments.ApiModels
 {
-    public class ApiRelevantDepartmentProfile
+    public class ApiRelevantOrgUnit
     {
-        public ApiRelevantDepartmentProfile(QueryRelevantDepartmentProfile? resourceOwnerProfile)
+        public ApiRelevantOrgUnit(QueryRelevantDepartmentProfile? resourceOwnerProfile)
         {
 
             reason = resourceOwnerProfile?.reason;

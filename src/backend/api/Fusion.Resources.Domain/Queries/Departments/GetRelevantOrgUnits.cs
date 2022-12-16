@@ -39,7 +39,13 @@ namespace Fusion.Resources.Domain.Queries
         public PersonId ProfileId { get; set; }
         public ODataQueryParams Query { get; }
 
-
+        public enum Roles
+        {
+            DelegatedManager,
+            ParentManager,
+            Manager,
+            Winter
+        }
 
         public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryRelevantDepartmentProfile>>
         {
@@ -77,16 +83,14 @@ namespace Fusion.Resources.Domain.Queries
                 if (user.IsResourceOwner)
                 {
                     List<string> Reasons = new List<string>();
-                    Reasons.Add("Manager");
+                    Reasons.Add(Roles.Manager.ToString());
 
                     if (user.FullDepartment != null)
                     {
-
                         QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(user.FullDepartment, Reasons, request.Query);
-                       await StoreResult(lstDepartments, DepartmentProfile);
+                        StoreResult(lstDepartments, DepartmentProfile);
                     }
                 }
-
 
                 foreach (var department in departmentsWithAccess)
                 {
@@ -98,39 +102,30 @@ namespace Fusion.Resources.Domain.Queries
                     if (department.Value.Contains("Resources.ResourceOwner") && !department.Key.Contains("*"))
                     {
 
-                        Reasons.Add("DelegatedManager");
+                        Reasons.Add(Roles.DelegatedManager.ToString());
 
                     }
                     else if (department.Value.Contains("Resources.FullControl") && department.Key.Contains("*"))
                     {
 
                         List<string> reason = new List<string>();
-                        reason.Add("ParentManager");
+                        reason.Add(Roles.ParentManager.ToString());
                         var DepChildren = await GetChildrenAsync(department.Key.Trim('*').TrimEnd());
 
                         await GetDepartmentChildrenAsync(department.Key.Trim('*').TrimEnd(), reason, request.Query);
 
-
-                        Reasons.Add("Manager ( Wildcard) ");
-
+                        Reasons.Add(Roles.Manager.ToString());
 
                     }
                     else if (department.Value.Contains("Resources.FullControl") && !department.Key.Contains("*"))
                     {
                         Reasons.Add("Write Access");
-
-                    }
-                    else
-                    {
-
-                        Reasons.Add("NOT Manager");
-
                     }
 
                     if (Reasons.Count > 0)
                     {
                         QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(department.Key.Trim('*').TrimEnd(), Reasons, request.Query);
-                        await StoreResult(lstDepartments, DepartmentProfile);
+                         StoreResult(lstDepartments, DepartmentProfile);
                     }
 
                 }
@@ -156,7 +151,7 @@ namespace Fusion.Resources.Domain.Queries
                             break;
                         }
                         QueryRelevantDepartmentProfile? ChildDepartmentProfile = await GetDepartmentInformation(child.DepartmentId, reason, query);
-                        await StoreResult(lstDepartments, ChildDepartmentProfile);
+                         StoreResult(lstDepartments, ChildDepartmentProfile);
 
                         await GetDepartmentChildrenAsync(child.DepartmentId, reason, query);
                     }
@@ -164,14 +159,13 @@ namespace Fusion.Resources.Domain.Queries
                 return true;
             }
 
-            private static  Task<bool> StoreResult(List<QueryRelevantDepartmentProfile?> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
+            private  static void StoreResult(List<QueryRelevantDepartmentProfile?> lstDepartments, QueryRelevantDepartmentProfile? DepartmentProfile)
             {
                 if (DepartmentProfile != null)
                 {
                     lstDepartments.Add(DepartmentProfile);
                 }
 
-                return true;
             }
 
             private async Task<QueryRelevantDepartmentProfile?> GetDepartmentInformation(string departmentpath, List<string> Reasons, ODataQueryParams query)
@@ -191,6 +185,7 @@ namespace Fusion.Resources.Domain.Queries
                 else
                 {
                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
+                    
 
  
 
