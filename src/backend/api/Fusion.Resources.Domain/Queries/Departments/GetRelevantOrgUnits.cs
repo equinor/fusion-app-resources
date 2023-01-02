@@ -6,18 +6,13 @@ using Fusion.Integration.Roles;
 using Fusion.Resources.Domain.Models;
 using Fusion.Services.LineOrg.ApiModels;
 using MediatR;
-using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
-using Microsoft.MarkedNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 
 namespace Fusion.Resources.Domain.Queries
@@ -68,6 +63,8 @@ namespace Fusion.Resources.Domain.Queries
                 this.mediator = mediator;
                 this.lineOrgResolver = lineOrgResolver;
                 this.memCache = memCache;
+
+
 
             }
             private CancellationToken _cancellationToken;
@@ -175,7 +172,7 @@ namespace Fusion.Resources.Domain.Queries
                 return true;
             }
 
-            private  void StoreResult(QueryRelevantDepartmentProfile? DepartmentProfile)
+            private void StoreResult(QueryRelevantDepartmentProfile? DepartmentProfile)
             {
                 if (DepartmentProfile != null)
                 {
@@ -203,6 +200,9 @@ namespace Fusion.Resources.Domain.Queries
                     departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
 
 
+                    //var response = await client.GetAsync($"/org-units?$filter={query.Filter}");
+
+                    //var result =  await client.GetAsJsonAsync<IEnumerable<ApiOrgUnit?>>($"/org-units?$top={int.MaxValue}");
 
 
                     var stored = memCache.Set(cacheKey, departmentInfo, defaultAbsoluteCacheExpirationHours);
