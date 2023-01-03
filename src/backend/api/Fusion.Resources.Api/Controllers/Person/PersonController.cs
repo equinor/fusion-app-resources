@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
@@ -28,12 +27,10 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class PersonController : ResourceControllerBase
     {
-        private readonly IHttpClientFactory httpClientFactory;
         private readonly IFusionProfileResolver profileResolver;
 
-        public PersonController(IHttpClientFactory httpClientFactory, IFusionProfileResolver profileResolver)
+        public PersonController(IFusionProfileResolver profileResolver)
         {
-            this.httpClientFactory = httpClientFactory;
             this.profileResolver = profileResolver;
         }
 
@@ -67,6 +64,37 @@ namespace Fusion.Resources.Api.Controllers
             if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
 
             return new ApiResourceOwnerProfile(resourceOwnerProfile);
+        }
+        [HttpGet("/persons/{personId}/resources/relevant-departments")]
+        public async Task<ActionResult> GetResourceProfileRelevantDepartments(string? personId)
+        {
+
+            if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
+            {
+                personId = $"{User.GetAzureUniqueId()}";
+            }
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.CurrentUserIs(personId);
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var relevantDepartmentsQuery = await DispatchAsync(new GetPersonRelevantOrgUnits(personId));
+
+            return Ok(relevantDepartmentsQuery.ToList());
         }
 
         [HttpGet("/persons/{personId}/resources/notes")]

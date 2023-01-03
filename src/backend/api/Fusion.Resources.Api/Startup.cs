@@ -91,6 +91,7 @@ namespace Fusion.Resources.Api
             services.AddScoped<IRequestRouter, RequestRouter>();
 
             services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
+            services.AddLineOrgHttpClient();
 
             services.AddControllers()
                 .AddFluentValidation(c =>
