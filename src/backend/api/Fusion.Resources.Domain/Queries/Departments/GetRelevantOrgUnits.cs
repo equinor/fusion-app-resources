@@ -9,8 +9,10 @@ using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
+
 using System.Collections.Generic;
 using System.Linq;
+
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,7 +22,7 @@ namespace Fusion.Resources.Domain.Queries
     /// <summary>
     /// Fetch the profile for a resource owner. Will compile a list of departments the person has responsibilities in and which is relevant.
     /// </summary>
-    public class GetRelevantOrgUnits : IRequest<IEnumerable<QueryRelevantDepartmentProfile?>>
+    public class GetRelevantOrgUnits : IRequest<IEnumerable<QueryOrgUnit?>>
     {
         public GetRelevantOrgUnits(string profileId, AspNetCore.OData.ODataQueryParams query)
         {
@@ -33,7 +35,7 @@ namespace Fusion.Resources.Domain.Queries
         /// </summary>
         public PersonId ProfileId { get; set; }
         public ODataQueryParams Query { get; }
-
+        public const string CACHEKEY = "Cache.OrgUnits";
         public enum Roles
         {
             DelegatedManager,
@@ -43,7 +45,7 @@ namespace Fusion.Resources.Domain.Queries
             Write
         }
 
-        public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryRelevantDepartmentProfile>>
+        public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryOrgUnit>>
         {
             private readonly TimeSpan defaultAbsoluteCacheExpirationHours = TimeSpan.FromHours(1);
             private readonly ILogger<Handler> logger;
@@ -52,8 +54,9 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IMediator mediator;
             private readonly ILineOrgResolver lineOrgResolver;
             private readonly IMemoryCache memCache;
-            private bool sapIdFound = false;
-            public List<QueryRelevantDepartmentProfile>? lstDepartments = new List<QueryRelevantDepartmentProfile>();
+
+
+      
 
             public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache)
             {
@@ -68,219 +71,187 @@ namespace Fusion.Resources.Domain.Queries
 
             }
             private CancellationToken _cancellationToken;
-            public async Task<IEnumerable<QueryRelevantDepartmentProfile>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
-                var user = await profileResolver.ResolvePersonBasicProfileAsync(request.ProfileId.OriginalIdentifier);
+                var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
-                if (user is null) return null;
+                if (user?.FullDepartment is null) return new List<QueryOrgUnit>();
 
                 // Resolve departments with responsibility
-                var departmentsWithAccess = await ResolveDepartmentsWithAccessAsync(user);
+                var sector = await ResolveSector(user.FullDepartment);
+                var departmentsWithResponsibility = await ResolveDepartmentsWithAccessAsync(user);
+                var isDepartmentManager = departmentsWithResponsibility.Any(r => r.Value == user.FullDepartment);
 
-                if (user.IsResourceOwner)
+                var relevantSectors = await ResolveRelevantSectorsAsync(user.FullDepartment, sector, isDepartmentManager, departmentsWithResponsibility);
+                var relevantDepartments = new List<QueryDepartment>();
+
+                foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
+
+                var lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
+
+                var wildcardDeparmtent = departmentsWithResponsibility.Where(x => x.Key.Contains('*'));
+                var ParentmanagerWithResposibility = new List<QueryDepartment>();
+                foreach (var wildcard in wildcardDeparmtent)
                 {
-                    List<string> Reasons = new List<string>();
-                    Reasons.Add(Roles.Manager.ToString());
+                    //var result = await mediator.Send(new GetRelatedDepartments(wildcard.Key.Replace('*', ' ').TrimEnd()), cancellationToken);
 
-                    if (user.FullDepartment != null)
+                    var orgUnits = await memCache.GetOrCreateAsync(CACHEKEY, async (entry) =>
                     {
-                        QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(user.FullDepartment, Reasons, request.Query);
-                        StoreResult(DepartmentProfile);
-                    }
+                        entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+
+
+
+                        var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(wildcard.Key.Replace('*', ' ').TrimEnd()), cancellationToken);
+                        if (orgUnitResponse is null)
+                            throw new InvalidOperationException("Could not fetch org units from line org");
+
+
+
+                        return orgUnitResponse;
+                    });
+
+
+                    ParentmanagerWithResposibility.AddRange(orgUnits.Children);
                 }
 
-                foreach (var department in departmentsWithAccess)
+               
+
+
+                var adminClaims = user.Roles.Where(x => x.Name.StartsWith("Fusion.Resources.Full")).Select(x => x.Scope?.Value).Where(y => y != null);
+                var readClaims = user.Roles.Where(x => x.Name.StartsWith("Fusion.Resources.Request")).Select(x => x.Scope?.Value);
+
+
+                var retList = new List<QueryOrgUnit>();
+
+
+                if (isDepartmentManager) retList.Add(new QueryOrgUnit
                 {
-                    if (sapIdFound == true)
-                    {
-                        break;
-                    }
-                    List<string> Reasons = new List<string>();
-                    if (department.Value.Contains("Resources.ResourceOwner") && !department.Key.Contains("*"))
-                    {
+                    FullDepartment = user.FullDepartment,
+                    Reason = "ResourceOwner"
+                });
+                retList.AddRange(adminClaims.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep,
+                    Reason = "Write"
+                }));
+                retList.AddRange(readClaims.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep,
+                    Reason = "Read"
+                }));
+                retList.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep.Key,
+                    Reason = "DelegatedManager"
+                }));
+                retList.AddRange(relevantSectors.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep,
+                    Reason = "RelevantSector"
+                }));
+                retList.AddRange(relevantDepartments.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep.DepartmentId,
+                    Reason = "RelevantDepartment"
+                }));
+                retList.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep.DepartmentId,
+                    Reason = "RelevantChild"
+                }) ?? Array.Empty<QueryOrgUnit>());
+                retList.AddRange(lineOrgDepartmentProfile?.Siblings.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep.DepartmentId,
+                    Reason = "RelevantSibling"
+                }) ?? Array.Empty<QueryOrgUnit>());
+                retList.AddRange(ParentmanagerWithResposibility?.Select(dep => new QueryOrgUnit
+                {
+                    FullDepartment = dep.DepartmentId,
+                    Reason = "ParentManager"
+                }) ?? Array.Empty<QueryOrgUnit>());
 
-                        Reasons.Add(Roles.DelegatedManager.ToString());
 
-                    }
-                    else if (department.Value.Contains("Resources.ResourceOwner") && department.Key.Contains("*"))
+
+                foreach (var org in retList)
+                {
+                    if (org?.FullDepartment != null)
                     {
-
-                        List<string> reason = new List<string>
+                        var data = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(org?.FullDepartment));
+                        if (data != null)
                         {
-                            Roles.DelegatedParentManager.ToString()
-                        };
-
-                        await GetDepartmentChildrenAsync(department.Key.Trim('*').TrimEnd(), reason, request.Query);
-
-
-                        Reasons.Add(Roles.DelegatedManager.ToString());
-
-                    }
-                    else if (department.Value.Contains("Resources.FullControl") && department.Key.Contains("*"))
-                    {
-
-                        List<string> reason = new List<string>
-                        {
-                            Roles.ParentManager.ToString()
-                        };
-
-                        await GetDepartmentChildrenAsync(department.Key.Trim('*').TrimEnd(), reason, request.Query);
-
-                        Reasons.Add(Roles.Manager.ToString());
-
-                    }
-                    else if (department.Value.Contains("Resources.FullControl") && !department.Key.Contains("*"))
-                    {
-                        Reasons.Add("Write Access");
+                            org.sapId = data.SapId;
+                            org.name = data.Name;
+                            org.shortName = data.ShortName;
+                            org.parentSapId = data.Parent.SapId;
+                            org.department = data.Department;
+                        }
                     }
 
-                    if (Reasons.Count > 0)
-                    {
-                        QueryRelevantDepartmentProfile? DepartmentProfile = await GetDepartmentInformation(department.Key.Trim('*').TrimEnd(), Reasons, request.Query);
-                        StoreResult(DepartmentProfile);
-                    }
 
                 }
 
-                return lstDepartments;
+
+                return retList;
             }
 
 
-            private async Task<bool> GetDepartmentChildrenAsync(string dep, List<string> reason, ODataQueryParams query)
+            private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, Dictionary<string, string> departmentsWithResponsibility)
             {
-                if (sapIdFound == true)
+                // Get sectors the user have responsibility in, to find all relevant departments
+                var relevantSectors = new List<string>();
+                foreach (var department in departmentsWithResponsibility)
                 {
-                    return true;
-                }
-                var DepChildren = await GetChildrenAsync(dep);
-                if (DepChildren != null)
-                {
-                    // recurse over all children categories and add them to the list
-                    foreach (var child in DepChildren.Children)
-                    {
-                        if (sapIdFound == true)
-                        {
-                            break;
-                        }
-                        QueryRelevantDepartmentProfile? ChildDepartmentProfile = await GetDepartmentInformation(child.DepartmentId, reason, query);
-                        StoreResult(ChildDepartmentProfile);
 
-                        await GetDepartmentChildrenAsync(child.DepartmentId, reason, query);
+                    var resolvedSector = await ResolveSector(department.Key.ToString());
+                    if (resolvedSector != null)
+                    {
+                        relevantSectors.Add(resolvedSector);
                     }
                 }
-                return true;
+                //If the sector does not exist, the person might be higher up.
+                if (sector is null && isDepartmentManager)
+                {
+                   
+                    var downstreamSectors = await ResolveDownstreamSectors(fullDepartment);
+                    foreach (var department in downstreamSectors)
+                    {
+                        var resolvedSector = await ResolveSector(department.DepartmentId);
+                        if (resolvedSector != null)
+                        {
+                            relevantSectors.Add(resolvedSector);
+                        }
+                    }
+                }
+                return relevantSectors.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             }
 
-            private void StoreResult(QueryRelevantDepartmentProfile? DepartmentProfile)
+            private async Task<string?> ResolveSector(string? department)
             {
-                if (DepartmentProfile != null)
-                {
-                    lstDepartments.Add(DepartmentProfile);
-                }
-
+                if (string.IsNullOrEmpty(department))
+                    return null;
+                var request = new GetDepartmentSector(department);
+                return await mediator.Send(request);
             }
 
-            private async Task<QueryRelevantDepartmentProfile?> GetDepartmentInformation(string departmentpath, List<string> Reasons, ODataQueryParams query)
+            private async Task<IEnumerable<QueryDepartment>> ResolveSectorDepartments(string sector)
             {
-                var cacheKey = $"{departmentpath.Replace(" ", "")}";
-                QueryRelevantDepartmentProfile? DepartmentProfile = null;
-                ApiOrgUnit? departmentInfo;
-
-
-                var incache = memCache.TryGetValue(cacheKey, out departmentInfo);
-
-                if (incache == true)
-                {
-                    Console.WriteLine($"======================== FOUND CACHED {departmentInfo?.FullDepartment} ==========================================");
-
-                }
-                else
-                {
-                    departmentInfo = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
-
-
-                    //var response = await client.GetAsync($"/org-units?$filter={query.Filter}");
-
-                    //var result =  await client.GetAsJsonAsync<IEnumerable<ApiOrgUnit?>>($"/org-units?$top={int.MaxValue}");
-
-
-                    var stored = memCache.Set(cacheKey, departmentInfo, defaultAbsoluteCacheExpirationHours);
-                    if (stored != null)
-                    {
-                        Console.WriteLine($"======================== STORED CACHED {stored.FullDepartment}  ==========================================");
-                    }
-                }
-
-                //departmentInfo = await memCache.GetOrCreateAsync(cacheKey, async entry =>
-                //{
-                //    entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(60));
-                //    entry.AddExpirationToken(new CancellationChangeToken(CommonLibConstants.CommonLibCacheTokenSource.Token));
-                //    var data = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(departmentpath));
-
-
-                //    return data;
-                //});
-
-                //Thread.Sleep(TimeSpan.FromSeconds(10));
-
-                if (query.HasFilter)
-                {
-
-
-
-                    if (departmentInfo != null)
-                    {
-
-                        var name = query.Filter.GetFilterForField("name");
-                        var sapIdfilter = query.Filter.GetFilterForField("sapId");
-                        var shortName = query.Filter.GetFilterForField("shortName");
-                        var department = query.Filter.GetFilterForField("department");
-                        var parentSapId = query.Filter.GetFilterForField("parentSapId");
-                        var fulldepartmentfilter = query.Filter.GetFilterForField("fulldepartment");
-
-                        if (fulldepartmentfilter != null)
-                        {
-                            if (departmentInfo.FullDepartment.Contains(fulldepartmentfilter.Value.ToString()) && fulldepartmentfilter.Operation == FilterOperation.Contains)
-                            {
-                                DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
-
-                            }
-                            else if (departmentInfo.FullDepartment.Equals(fulldepartmentfilter.Value.ToString()) && fulldepartmentfilter.Operation == FilterOperation.Eq)
-                            {
-                                DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
-                            }
-                        }
-
-                        if (sapIdfilter != null)
-                        {
-                            if (departmentInfo.SapId.Contains(sapIdfilter.Value.ToString()) && sapIdfilter.Operation == FilterOperation.Eq)
-                            {
-                                DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
-                                sapIdFound = true;
-
-                            }
-                        }
-
-                        if (name != null)
-                        {
-                            if (departmentInfo.Name.Contains(name.Value.ToString()))
-                            {
-                                DepartmentProfile = new QueryRelevantDepartmentProfile(departmentpath, Reasons, departmentInfo?.SapId, "parentSapId", departmentInfo?.ShortName, departmentInfo?.Department, departmentInfo?.Name);
-
-
-                            }
-                        }
-                    }
-
-                }
-
-
-                return DepartmentProfile;
-
-
-
+                var departments = await mediator.Send(new GetDepartments().InSector(sector));
+                return departments.DistinctBy(dpt => dpt.DepartmentId);
             }
+
+            private async Task<IEnumerable<QueryDepartment>> ResolveDownstreamSectors(string? department)
+            {
+                if (department is null)
+                    return Array.Empty<QueryDepartment>();
+
+                var departments = await mediator.Send(new GetDepartments().StartsWith(department));
+                return departments.DistinctBy(x => x.DepartmentId);
+            }
+
+
+
+
 
             private async Task<Dictionary<string, string>> ResolveDepartmentsWithAccessAsync(FusionPersonProfile user)
             {
@@ -313,16 +284,6 @@ namespace Fusion.Resources.Domain.Queries
             }
 
 
-            private async Task<QueryRelatedDepartments?> GetChildrenAsync(string? department)
-            {
-                if (department is null)
-                    return null;
-
-                var departments = await mediator.Send((new GetRelatedDepartments(department)));
-
-                return departments;
-
-            }
 
         }
     }

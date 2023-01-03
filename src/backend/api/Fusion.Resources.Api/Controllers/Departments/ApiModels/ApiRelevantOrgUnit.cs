@@ -5,15 +5,15 @@ namespace Fusion.Resources.Api.Controllers.Departments.ApiModels
 {
     public class ApiRelevantOrgUnit
     {
-        public ApiRelevantOrgUnit(QueryRelevantDepartmentProfile? resourceOwnerProfile)
+        public ApiRelevantOrgUnit(QueryOrgUnit? resourceOwnerProfile)
         {
 
-            reason = resourceOwnerProfile?.reason;
+            reason = resourceOwnerProfile?.Reason;
             name = resourceOwnerProfile?.name;
             sapId = resourceOwnerProfile?.sapId;
             parentSapId = resourceOwnerProfile?.parentSapId;
             shortName = resourceOwnerProfile?.shortName;
-            fullDepartment = resourceOwnerProfile?.fullDepartment;
+            fullDepartment = resourceOwnerProfile?.FullDepartment;
 
         }
 
@@ -24,7 +24,7 @@ namespace Fusion.Resources.Api.Controllers.Departments.ApiModels
         public string? department { get; set; }
         public string? fullDepartment { get; set; }
 
-        public List<string>? reason { get; set; }
+        public string? reason { get; set; }
 
 
     }
