@@ -56,7 +56,7 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IMemoryCache memCache;
 
 
-      
+
 
             public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache)
             {
@@ -88,34 +88,19 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
 
-                var lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
+                //var lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
+                var lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment, "Cache.lineOrgDepartmentProfile", cancellationToken);
 
-                var wildcardDeparmtent = departmentsWithResponsibility.Where(x => x.Key.Contains('*'));
-                var ParentmanagerWithResposibility = new List<QueryDepartment>();
-                foreach (var wildcard in wildcardDeparmtent)
+                var parentDeparmtent = departmentsWithResponsibility.Where(x => x.Key.Contains('*'));
+                var parentmanagerWithResposibility = new List<QueryDepartment>();
+                foreach (var wildcard in parentDeparmtent)
                 {
-                    //var result = await mediator.Send(new GetRelatedDepartments(wildcard.Key.Replace('*', ' ').TrimEnd()), cancellationToken);
+                    var orgUnits = await ResolveCache(wildcard.Key.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
 
-                    var orgUnits = await memCache.GetOrCreateAsync(CACHEKEY, async (entry) =>
-                    {
-                        entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
-
-
-
-                        var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(wildcard.Key.Replace('*', ' ').TrimEnd()), cancellationToken);
-                        if (orgUnitResponse is null)
-                            throw new InvalidOperationException("Could not fetch org units from line org");
-
-
-
-                        return orgUnitResponse;
-                    });
-
-
-                    ParentmanagerWithResposibility.AddRange(orgUnits.Children);
+                    parentmanagerWithResposibility.AddRange(orgUnits.Children);
                 }
 
-               
+
 
 
                 var adminClaims = user.Roles.Where(x => x.Name.StartsWith("Fusion.Resources.Full")).Select(x => x.Scope?.Value).Where(y => y != null);
@@ -165,7 +150,7 @@ namespace Fusion.Resources.Domain.Queries
                     FullDepartment = dep.DepartmentId,
                     Reason = "RelevantSibling"
                 }) ?? Array.Empty<QueryOrgUnit>());
-                retList.AddRange(ParentmanagerWithResposibility?.Select(dep => new QueryOrgUnit
+                retList.AddRange(parentmanagerWithResposibility?.Select(dep => new QueryOrgUnit
                 {
                     FullDepartment = dep.DepartmentId,
                     Reason = "ParentManager"
@@ -195,6 +180,23 @@ namespace Fusion.Resources.Domain.Queries
                 return retList;
             }
 
+            private async Task<QueryRelatedDepartments> ResolveCache(string fullDepartmentName, string cachekey, CancellationToken cancellationToken)
+            {
+                return await memCache.GetOrCreateAsync(cachekey, async (entry) =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+
+
+
+                    var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(fullDepartmentName), cancellationToken);
+                    if (orgUnitResponse is null)
+                        throw new InvalidOperationException("Could not fetch org units from line org");
+
+
+
+                    return orgUnitResponse;
+                });
+            }
 
             private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, Dictionary<string, string> departmentsWithResponsibility)
             {
@@ -212,7 +214,7 @@ namespace Fusion.Resources.Domain.Queries
                 //If the sector does not exist, the person might be higher up.
                 if (sector is null && isDepartmentManager)
                 {
-                   
+
                     var downstreamSectors = await ResolveDownstreamSectors(fullDepartment);
                     foreach (var department in downstreamSectors)
                     {
