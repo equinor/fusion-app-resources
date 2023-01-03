@@ -20,6 +20,15 @@ namespace Fusion.Resources.Domain.Commands.Departments
         public DateTimeOffset DateTo { get; set; }
         public string DepartmentId { get; }
         public Guid ResponsibleAzureUniqueId { get; }
+        public Guid? UpdatedByAzureUniqueId { get; set; }
+
+        public string? Reason { get; set; }
+
+        public AddDelegatedResourceOwner WithReason(string? reason)
+        {
+            Reason = reason;
+            return this;
+        }
 
         public class Handler : IRequestHandler<AddDelegatedResourceOwner>
         {
@@ -43,8 +52,23 @@ namespace Fusion.Resources.Domain.Commands.Departments
                     ValidTo = request.DateTo
                 });
 
+                var delegatedResourceOwner = new DbDelegatedDepartmentResponsible
+                {
+                    DateCreated = DateTime.UtcNow,
+                    DateFrom = request.DateFrom,
+                    DateTo = request.DateTo,
+                    DepartmentId = request.DepartmentId,
+                    ResponsibleAzureObjectId = request.ResponsibleAzureUniqueId,
+                    Reason = request.Reason,
+                    UpdatedBy = request.UpdatedByAzureUniqueId
+                };
+
+                db.DelegatedDepartmentResponsibles.Add(delegatedResourceOwner);
+                await db.SaveChangesAsync(cancellationToken);
+
                 return Unit.Value;
             }
         }
+
     }
 }

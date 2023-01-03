@@ -1,6 +1,5 @@
 using Fusion.Integration;
 using Fusion.Integration.LineOrg;
-using Fusion.Integration.Roles;
 using Fusion.Resources.Application;
 using Fusion.Resources.Database;
 using Fusion.Services.LineOrg.ApiModels;
@@ -60,8 +59,8 @@ namespace Fusion.Resources.Domain
 
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartments, IEnumerable<QueryDepartment>>
         {
-            public Handler(IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-                : base(rolesClient, lineOrgResolver, profileResolver) { }
+            public Handler(ResourcesDbContext db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
+                : base(db, lineOrgResolver, profileResolver) { }
 
             public async Task<IEnumerable<QueryDepartment>> Handle(GetDepartments request, CancellationToken cancellationToken)
             {
