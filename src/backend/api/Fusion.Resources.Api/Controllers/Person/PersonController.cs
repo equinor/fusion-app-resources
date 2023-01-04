@@ -106,12 +106,12 @@ namespace Fusion.Resources.Api.Controllers
 
             // Remap api model to query model
             query.MapFilterFields<ApiRelevantOrgUnit>(f => f.MapToModel<ApiRelevantOrgUnit>()
-                .MapField(a => a.fullDepartment, q => q.fullDepartment)
-                .MapField(a => a.sapId, q => q.sapId)
-                .MapField(a => a.parentSapId, q => q.parentSapId)
-                .MapField(a => a.department, q => q.department)
-                .MapField(a => a.name, q => q.name)
-                .MapField(a => a.shortName, q => q.shortName)
+                .MapField(a => a.FullDepartment, q => q.FullDepartment)
+                .MapField(a => a.SapId, q => q.SapId)
+                .MapField(a => a.ParentSapId, q => q.ParentSapId)
+                .MapField(a => a.Department, q => q.Department)
+                .MapField(a => a.Name, q => q.Name)
+                .MapField(a => a.ShortName, q => q.ShortName)
 
             );
 

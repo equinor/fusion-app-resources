@@ -15,8 +15,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 
 namespace Fusion.Resources.Domain.Queries
@@ -24,7 +26,7 @@ namespace Fusion.Resources.Domain.Queries
     /// <summary>
     /// Fetch the profile for a resource owner. Will compile a list of departments the person has responsibilities in and which is relevant.
     /// </summary>
-    public class GetRelevantOrgUnits : IRequest<IEnumerable<QueryOrgUnit?>>
+    public class GetRelevantOrgUnits : IRequest<IEnumerable<QueryRelevantOrgUnit>>
     {
         public GetRelevantOrgUnits(string profileId, AspNetCore.OData.ODataQueryParams query)
         {
@@ -47,7 +49,7 @@ namespace Fusion.Resources.Domain.Queries
             Write
         }
 
-        public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryOrgUnit>>
+        public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryRelevantOrgUnit>>
         {
             private readonly TimeSpan defaultAbsoluteCacheExpirationHours = TimeSpan.FromHours(1);
             private readonly ILogger<Handler> logger;
@@ -57,11 +59,11 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ILineOrgResolver lineOrgResolver;
             private readonly IMemoryCache memCache;
             private readonly HttpClient lineOrgClient;
-            private ApiPagedCollection<ApiOrgUnit> CachedOrgUnits;
 
 
 
-            public  Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache, IHttpClientFactory httpClientFactory)
+
+            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache, IHttpClientFactory httpClientFactory)
             {
                 this.logger = logger;
                 this.profileResolver = profileResolver;
@@ -71,15 +73,15 @@ namespace Fusion.Resources.Domain.Queries
                 this.memCache = memCache;
                 this.lineOrgClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
 
-              
+
 
 
 
             }
 
-            public async void ResolveAllOrgUnits()
+            public async Task<List<QueryRelevantOrgUnit>> ResolveAllOrgUnits()
             {
-                CachedOrgUnits =  await memCache.GetOrCreateAsync(CACHEKEY, async (entry) =>
+                var orgUnits = await memCache.GetOrCreateAsync(CACHEKEY, async (entry) =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
 
@@ -89,23 +91,36 @@ namespace Fusion.Resources.Domain.Queries
                     if (orgUnitResponse is null)
                         throw new InvalidOperationException("Could not fetch org units from line org");
 
+                    List<QueryRelevantOrgUnit> QueryorgUnits = orgUnitResponse.Value.Select(org => new QueryRelevantOrgUnit
+                    {
+                        FullDepartment = org.FullDepartment ?? "",
+                        Name = org.Name ?? "",
+                        SapId = org.SapId ?? "",
+                        ParentSapId = org.Parent?.SapId ?? "",
+                        ShortName = org.ShortName ?? "",
+                        Department = org.Department ?? "",
 
+                    }).ToList();
 
-                    return orgUnitResponse;
+                    return QueryorgUnits;
 
                 });
+
+            
+
+                return orgUnits;
             }
 
             private CancellationToken _cancellationToken;
-            public async Task<IEnumerable<QueryOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryRelevantOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
 
-                 ResolveAllOrgUnits();
+                var cachedOrgUnits = await ResolveAllOrgUnits();
 
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
-                if (user?.FullDepartment is null) return new List<QueryOrgUnit>();
+                if (user?.FullDepartment is null) return new List<QueryRelevantOrgUnit>();
 
                 // Resolve departments with responsibility
                 var sector = await ResolveSector(user.FullDepartment);
@@ -117,102 +132,240 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
 
-         
-                //var lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
-                var lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment, "Cache.lineOrgDepartmentProfile", cancellationToken);
 
-                var parentDeparmtent = departmentsWithResponsibility.Where(x => x.Key.Contains('*'));
-                var parentmanagerWithResposibility = new List<QueryDepartment>();
-                foreach (var wildcard in parentDeparmtent)
+
+                var lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), "Cache.lineOrgDepartmentProfile", cancellationToken);
+
+
+
+                var delegatedParentDeparmtent = departmentsWithResponsibility.Where(x => x.Key.Contains('*'));
+                var delegatedParentManagerWithResposibility = new List<QueryDepartment>();
+                foreach (var wildcard in delegatedParentDeparmtent)
                 {
-                    var orgUnits = await ResolveCache(wildcard.Key.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
+                    var delegatedChildren = await ResolveCache(wildcard.Key.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
                     //var orgUnits = await mediator.Send(new GetRelatedDepartments(wildcard.Key.Replace('*', ' ').TrimEnd()), cancellationToken);
 
-                    parentmanagerWithResposibility.AddRange(orgUnits.Children);
+                    delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
                 }
 
 
 
 
-                var adminClaims = user.Roles.Where(x => x.Name.StartsWith("Fusion.Resources.Full")).Select(x => x.Scope?.Value).Where(y => y != null);
-                var readClaims = user.Roles.Where(x => x.Name.StartsWith("Fusion.Resources.Request")).Select(x => x.Scope?.Value);
+                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value);
+                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
 
 
-                var retList = new List<QueryOrgUnit>();
+                var retList = new List<QueryOrgUnitReason>();
 
 
-                if (isDepartmentManager) retList.Add(new QueryOrgUnit
+                if (isDepartmentManager) retList.Add(new QueryOrgUnitReason
                 {
                     FullDepartment = user.FullDepartment,
                     Reason = "Manager"
                 });
-                retList.AddRange(adminClaims.Select(dep => new QueryOrgUnit
+                retList.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
                 {
-                    FullDepartment = dep,
+                    FullDepartment = dep ?? "*",
                     Reason = "Write"
                 }));
-                retList.AddRange(readClaims.Select(dep => new QueryOrgUnit
-                {
-                    FullDepartment = dep,
-                    Reason = "Read"
-                }));
-                retList.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnit
+                //retList.AddRange(readClaims.Select(dep => new QueryOrgUnit
+                //{
+                //    FullDepartment = dep,
+                //    Reason = "Read"
+                //}));
+                retList.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep.Key,
                     Reason = "DelegatedManager"
                 }));
-                retList.AddRange(relevantSectors.Select(dep => new QueryOrgUnit
-                {
-                    FullDepartment = dep,
-                    Reason = "RelevantSector"
-                }));
-                retList.AddRange(relevantDepartments.Select(dep => new QueryOrgUnit
-                {
-                    FullDepartment = dep.DepartmentId,
-                    Reason = "RelevantDepartment"
-                }));
-                retList.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnit
-                {
-                    FullDepartment = dep.DepartmentId,
-                    Reason = "RelevantChild"
-                }) ?? Array.Empty<QueryOrgUnit>());
-                retList.AddRange(lineOrgDepartmentProfile?.Siblings.Select(dep => new QueryOrgUnit
-                {
-                    FullDepartment = dep.DepartmentId,
-                    Reason = "RelevantSibling"
-                }) ?? Array.Empty<QueryOrgUnit>());
-                retList.AddRange(parentmanagerWithResposibility?.Select(dep => new QueryOrgUnit
+                //retList.AddRange(relevantSectors.Select(dep => new QueryOrgUnit
+                //{
+                //    FullDepartment = dep,
+                //    Reason = "RelevantSector"
+                //}));
+                //retList.AddRange(relevantDepartments.Select(dep => new QueryOrgUnit
+                //{
+                //    FullDepartment = dep.DepartmentId,
+                //    Reason = "RelevantDepartment"
+                //}));
+                if (isDepartmentManager) retList.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep.DepartmentId,
                     Reason = "ParentManager"
-                }) ?? Array.Empty<QueryOrgUnit>());
+                }) ?? Array.Empty<QueryOrgUnitReason>());
+                //retList.AddRange(lineOrgDepartmentProfile?.Siblings.Select(dep => new QueryOrgUnit
+                //{
+                //    FullDepartment = dep.DepartmentId,
+                //    Reason = "RelevantSibling"
+                //}) ?? Array.Empty<QueryOrgUnit>());
+                retList.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
+                {
+                    FullDepartment = dep.DepartmentId,
+                    Reason = "DelegatedParentManager"
+                }) ?? Array.Empty<QueryOrgUnitReason>());
 
 
-
+                var endResult = new List<QueryRelevantOrgUnit>();
                 foreach (var org in retList)
                 {
                     if (org?.FullDepartment != null)
                     {
-                        //var data = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(org?.FullDepartment));
-                        var data = CachedOrgUnits.Value.Where(x => x.FullDepartment == org?.FullDepartment);
-                        if (data != null)
+                        var alreadyInList = endResult.FirstOrDefault(x => x.FullDepartment == org.FullDepartment);
+
+                        if (alreadyInList is null)
                         {
-                            var element = data.FirstOrDefault();
-                            org.sapId = element?.SapId;
-                            org.name = element?.Name;
-                            org.shortName = element?.ShortName;
-                            org.parentSapId = element?.Parent?.SapId;
-                            org.department = element?.Department;
+                            var data = cachedOrgUnits.Where(x => x.FullDepartment == org?.FullDepartment.Replace('*', ' ').TrimEnd()).FirstOrDefault();
+
+
+
+
+                            if (data != null)
+                            {
+                                data.Reasons.Clear();
+                                data.Reasons.Add(org.Reason);
+                                endResult.Add(data);
+                            }
+
                         }
+                        else
+                        {
+                            if (!alreadyInList.Reasons.Contains(org.Reason))
+                            {
+
+                                alreadyInList.Reasons.Add(org.Reason);
+                            }
+
+                        }
+
+
+
+
                     }
 
 
                 }
 
-
-                return retList;
+                return ApplyOdataFilters(request.Query.Filter, endResult);
             }
 
+            private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataExpression filter, List<QueryRelevantOrgUnit> orgUnits)
+            {
+                var sapIdFilter = filter.GetFilterForField("sapId");
+                if (sapIdFilter != null)
+                {
+                    if (sapIdFilter.Operation != FilterOperation.Eq)
+                        throw new ArgumentException("Only the 'eq' operator is supported for field 'sapId'.");
+
+                    orgUnits = orgUnits.Where(x => x.SapId == sapIdFilter.Value).ToList();
+                }
+
+                var nameFilter = filter.GetFilterForField("name");
+                if (nameFilter != null)
+                {
+                    if (nameFilter.Operation == FilterOperation.Eq)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Name == nameFilter.Value).ToList();
+                    }
+
+                    else if (nameFilter.Operation == FilterOperation.Contains)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Name.Contains(nameFilter.Value)).ToList();
+                    }
+
+                    else if (nameFilter.Operation == FilterOperation.StartsWith)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Name.StartsWith(nameFilter.Value)).ToList();
+                    }
+
+                    else if (nameFilter.Operation == FilterOperation.EndsWith)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Name.EndsWith(nameFilter.Value)).ToList();
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"The '{nameFilter.Operation}' operator is NOT supported for field 'name'.");
+                    }
+                }
+
+                var departmentFilter = filter.GetFilterForField("department");
+                if (departmentFilter != null)
+                {
+                    if (departmentFilter.Operation == FilterOperation.Eq)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Department == departmentFilter.Value).ToList();
+                    }
+
+                    else if (departmentFilter.Operation == FilterOperation.Contains)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Department.Contains(departmentFilter.Value)).ToList();
+                    }
+
+                    else if (departmentFilter.Operation == FilterOperation.StartsWith)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Department.StartsWith(departmentFilter.Value)).ToList();
+                    }
+
+                    else if (departmentFilter.Operation == FilterOperation.EndsWith)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Department.EndsWith(departmentFilter.Value)).ToList();
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"The '{departmentFilter.Operation}' operator is NOT supported for field 'department'.");
+                    }
+                }
+
+                var fullDepartmentFilter = filter.GetFilterForField("fulldepartment");
+                if (fullDepartmentFilter != null)
+                {
+                    if (fullDepartmentFilter.Operation == FilterOperation.Eq)
+                    {
+                        orgUnits = orgUnits.Where(x => x.FullDepartment == fullDepartmentFilter.Value).ToList();
+                    }
+
+                    else if (fullDepartmentFilter.Operation == FilterOperation.Contains)
+                    {
+                        orgUnits = orgUnits.Where(x => x.FullDepartment.Contains(fullDepartmentFilter.Value)).ToList();
+                    }
+
+                    else if (fullDepartmentFilter.Operation == FilterOperation.StartsWith)
+                    {
+                        orgUnits = orgUnits.Where(x => x.FullDepartment.StartsWith(fullDepartmentFilter.Value)).ToList();
+                    }
+
+                    else if (fullDepartmentFilter.Operation == FilterOperation.EndsWith)
+                    {
+                        orgUnits = orgUnits.Where(x => x.FullDepartment.EndsWith(fullDepartmentFilter.Value)).ToList();
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"The '{fullDepartmentFilter.Operation}' operator is NOT supported for field 'fullDepartment'.");
+                    }
+                }
+
+                var reasonFilter = filter.GetFilterForField("reason");
+                if (reasonFilter != null)
+                {
+                    if (reasonFilter.Operation == FilterOperation.Eq)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Reasons.Contains(reasonFilter.Value)).ToList();
+                    }
+
+                    else if (reasonFilter.Operation == FilterOperation.Contains)
+                    {
+                        orgUnits = orgUnits.Where(x => x.Reasons.Contains(reasonFilter.Value)).ToList();
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            $"The '{reasonFilter.Operation}' operator is NOT supported for field 'reason'.");
+                    }
+                }
+
+                return orgUnits;
+            }
             private async Task<QueryRelatedDepartments> ResolveCache(string fullDepartmentName, string cachekey, CancellationToken cancellationToken)
             {
                 return await memCache.GetOrCreateAsync(cachekey, async (entry) =>
