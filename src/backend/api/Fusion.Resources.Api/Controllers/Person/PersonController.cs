@@ -106,7 +106,7 @@ namespace Fusion.Resources.Api.Controllers
             var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
             if (relevantOrgUnits is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
             
-            var collection = new ApiPagedCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x)),  relevantOrgUnits.TotalCount) ;
+            var collection = new ApiPagedCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x)),  relevantOrgUnits.TotalCount).SetPagingUrls(query, Request);
           
             return collection;
         }
