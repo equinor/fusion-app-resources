@@ -26,7 +26,7 @@ namespace Fusion.Resources.Domain.Queries
     /// <summary>
     /// Fetch the profile for a resource owner. Will compile a list of departments the person has responsibilities in and which is relevant.
     /// </summary>
-    public class GetRelevantOrgUnits : IRequest<IEnumerable<QueryRelevantOrgUnit>>
+    public class GetRelevantOrgUnits : IRequest<QueryRangedList<QueryRelevantOrgUnit>>
     {
         public GetRelevantOrgUnits(string profileId, AspNetCore.OData.ODataQueryParams query)
         {
@@ -49,7 +49,7 @@ namespace Fusion.Resources.Domain.Queries
             Write
         }
 
-        public class Handler : IRequestHandler<GetRelevantOrgUnits, IEnumerable<QueryRelevantOrgUnit>>
+        public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>>
         {
             private readonly TimeSpan defaultAbsoluteCacheExpirationHours = TimeSpan.FromHours(1);
             private readonly ILogger<Handler> logger;
@@ -112,7 +112,7 @@ namespace Fusion.Resources.Domain.Queries
             }
 
             private CancellationToken _cancellationToken;
-            public async Task<IEnumerable<QueryRelevantOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
+            public async Task<QueryRangedList<QueryRelevantOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
 
                 var cachedOrgUnits = await ResolveAllOrgUnits();
@@ -120,7 +120,7 @@ namespace Fusion.Resources.Domain.Queries
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
-                if (user?.FullDepartment is null) return new List<QueryRelevantOrgUnit>();
+                
 
                 // Resolve departments with responsibility
                 var sector = await ResolveSector(user.FullDepartment);
@@ -245,7 +245,14 @@ namespace Fusion.Resources.Domain.Queries
 
                 }
 
-                return ApplyOdataFilters(request.Query, endResult);
+                var filteredOrgUnits = ApplyOdataFilters(request.Query, endResult);
+
+                var skip = request.Query.Skip.GetValueOrDefault(0);
+
+                var pagedQuery = QueryRangedList.FromItems(filteredOrgUnits, filteredOrgUnits.Count, skip);
+
+
+                return pagedQuery;
             }
 
             private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataQueryParams filter, List<QueryRelevantOrgUnit> orgUnits)

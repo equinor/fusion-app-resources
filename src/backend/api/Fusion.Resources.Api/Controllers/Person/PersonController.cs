@@ -103,27 +103,12 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-
-            // Remap api model to query model
-            query.MapFilterFields<ApiRelevantOrgUnit>(f => f.MapToModel<ApiRelevantOrgUnit>()
-                .MapField(a => a.FullDepartment, q => q.FullDepartment)
-                .MapField(a => a.SapId, q => q.SapId)
-                .MapField(a => a.ParentSapId, q => q.ParentSapId)
-                .MapField(a => a.Department, q => q.Department)
-                .MapField(a => a.Name, q => q.Name)
-                .MapField(a => a.ShortName, q => q.ShortName)
-
-            );
-
-
-            var resourceOwnerProfile = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
-            if (resourceOwnerProfile is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
-
-            var collection = resourceOwnerProfile.Select(x => new ApiRelevantOrgUnit(x)).ToList();
-            var top = query.Top;
-
-            var returnItems = new ApiPagedCollection<ApiRelevantOrgUnit>(collection, collection.Count()).SetPagingUrls(query, Request); ;
-            return returnItems;
+            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
+            if (relevantOrgUnits is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
+            
+            var collection = new ApiPagedCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x)),  relevantOrgUnits.TotalCount) ;
+          
+            return collection;
         }
 
         [HttpGet("/persons/{personId}/resources/notes")]
