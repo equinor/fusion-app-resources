@@ -64,7 +64,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                 };
 
                 db.DelegatedDepartmentResponsibles.Add(delegatedResourceOwner);
-                await db.SaveChangesAsync(cancellationToken);
+                await db.SaveChangesAsync();
 
                 return Unit.Value;
             }
