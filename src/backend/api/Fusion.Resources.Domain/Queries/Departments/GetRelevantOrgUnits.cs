@@ -1,6 +1,7 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Integration.LineOrg;
+using Fusion.Integration.LineOrg.Cache;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
 using Fusion.Resources.Domain.Models;
@@ -12,7 +13,8 @@ using System;
 
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -54,11 +56,12 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IMediator mediator;
             private readonly ILineOrgResolver lineOrgResolver;
             private readonly IMemoryCache memCache;
+            private readonly HttpClient lineOrgClient;
+            private ApiPagedCollection<ApiOrgUnit> CachedOrgUnits;
 
 
 
-
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache)
+            public  Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache, IHttpClientFactory httpClientFactory)
             {
                 this.logger = logger;
                 this.profileResolver = profileResolver;
@@ -66,13 +69,39 @@ namespace Fusion.Resources.Domain.Queries
                 this.mediator = mediator;
                 this.lineOrgResolver = lineOrgResolver;
                 this.memCache = memCache;
+                this.lineOrgClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
+
+              
 
 
 
             }
+
+            public async void ResolveAllOrgUnits()
+            {
+                CachedOrgUnits =  await memCache.GetOrCreateAsync(CACHEKEY, async (entry) =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+
+
+
+                    var orgUnitResponse = await lineOrgClient.GetFromJsonAsync<ApiPagedCollection<ApiOrgUnit>>("/org-units?$top=10000");
+                    if (orgUnitResponse is null)
+                        throw new InvalidOperationException("Could not fetch org units from line org");
+
+
+
+                    return orgUnitResponse;
+
+                });
+            }
+
             private CancellationToken _cancellationToken;
             public async Task<IEnumerable<QueryOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
+
+                 ResolveAllOrgUnits();
+
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
@@ -88,6 +117,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
 
+         
                 //var lineOrgDepartmentProfile = await mediator.Send(new GetRelatedDepartments(user.FullDepartment), cancellationToken);
                 var lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment, "Cache.lineOrgDepartmentProfile", cancellationToken);
 
@@ -96,6 +126,7 @@ namespace Fusion.Resources.Domain.Queries
                 foreach (var wildcard in parentDeparmtent)
                 {
                     var orgUnits = await ResolveCache(wildcard.Key.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
+                    //var orgUnits = await mediator.Send(new GetRelatedDepartments(wildcard.Key.Replace('*', ' ').TrimEnd()), cancellationToken);
 
                     parentmanagerWithResposibility.AddRange(orgUnits.Children);
                 }
@@ -113,7 +144,7 @@ namespace Fusion.Resources.Domain.Queries
                 if (isDepartmentManager) retList.Add(new QueryOrgUnit
                 {
                     FullDepartment = user.FullDepartment,
-                    Reason = "ResourceOwner"
+                    Reason = "Manager"
                 });
                 retList.AddRange(adminClaims.Select(dep => new QueryOrgUnit
                 {
@@ -162,14 +193,16 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     if (org?.FullDepartment != null)
                     {
-                        var data = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(org?.FullDepartment));
+                        //var data = await lineOrgResolver.ResolveOrgUnitAsync(DepartmentId.FromFullPath(org?.FullDepartment));
+                        var data = CachedOrgUnits.Value.Where(x => x.FullDepartment == org?.FullDepartment);
                         if (data != null)
                         {
-                            org.sapId = data.SapId;
-                            org.name = data.Name;
-                            org.shortName = data.ShortName;
-                            org.parentSapId = data.Parent.SapId;
-                            org.department = data.Department;
+                            var element = data.FirstOrDefault();
+                            org.sapId = element?.SapId;
+                            org.name = element?.Name;
+                            org.shortName = element?.ShortName;
+                            org.parentSapId = element?.Parent?.SapId;
+                            org.department = element?.Department;
                         }
                     }
 
