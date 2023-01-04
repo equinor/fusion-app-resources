@@ -195,7 +195,7 @@ namespace Fusion.Resources.Domain.Queries
             private async Task<List<QueryRelevantOrgUnit>> QueryAllRelevantOrgUnitsForUser(GetPersonRelevantOrgUnits request,
                 CancellationToken cancellationToken, List<QueryRelevantOrgUnit> orgUnits)
             {
-                var cacheKey = $"GetPersonRelevantDepartments_{request.PersonId}";
+                var cacheKey = $"GetPersonRelevantDepartments_{request.PersonId.OriginalIdentifier}";
                 if (memoryCache.TryGetValue(cacheKey, out List<QueryRelevantOrgUnit> relevantOrgUnits)) return relevantOrgUnits;
 
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.PersonId.OriginalIdentifier);
@@ -216,21 +216,17 @@ namespace Fusion.Resources.Domain.Queries
 
                 var adminClaims = user.Roles
                     ?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin"))
-                    .Select(x => x);
+                    .Select(x => x).ToList();
                 var readClaims = user.Roles
                     ?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read"))
-                    .Select(x => x);
+                    .Select(x => x).ToList();
 
                 var retList = new List<QueryFullDepartmentReasonRef>();
                 if (isDepartmentManager)
                     retList.Add(
                         new QueryFullDepartmentReasonRef { FullDepartment = user.FullDepartment!, Reason = "ResourceOwner" });
-                if (adminClaims is not null)
-                    retList.AddRange(adminClaims.Select(dep => new QueryFullDepartmentReasonRef
-                    { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Write" }));
-                if (readClaims is not null)
-                    retList.AddRange(readClaims.Select(dep => new QueryFullDepartmentReasonRef
-                    { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Read" }));
+                if (adminClaims is not null) retList.AddRange(adminClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Write" }));
+                if (readClaims is not null) retList.AddRange(readClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Read" }));
                 retList.AddRange(departmentsWithResponsibility.Select(dep => new QueryFullDepartmentReasonRef
                 { FullDepartment = dep, Reason = "DelegatedManager" }));
                 retList.AddRange(relevantSectors.Select(dep => new QueryFullDepartmentReasonRef
