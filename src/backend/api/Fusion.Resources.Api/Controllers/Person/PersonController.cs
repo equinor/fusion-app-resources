@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Integration.Profile;
@@ -66,7 +67,7 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
-        public async Task<ActionResult> GetResourceProfileRelevantDepartments(string? personId)
+        public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetResourceProfileRelevantDepartments(string? personId, ODataQueryParams query)
         {
 
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
@@ -92,9 +93,10 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var relevantDepartmentsQuery = await DispatchAsync(new GetPersonRelevantOrgUnits(personId));
+            var relevantOrgUnits = await DispatchAsync(new GetPersonRelevantOrgUnits(personId).WithQuery(query));
 
-            return Ok(relevantDepartmentsQuery.ToList());
+            var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x=>new ApiRelevantOrgUnit(x))){TotalCount = relevantOrgUnits.TotalCount };
+            return collection;
         }
 
         [HttpGet("/persons/{personId}/resources/notes")]
