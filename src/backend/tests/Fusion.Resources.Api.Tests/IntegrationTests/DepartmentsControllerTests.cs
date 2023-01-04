@@ -105,6 +105,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            fixture.EnsureDepartment(delegatedDepartment, null, delegatedResourceOwner);
+
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
