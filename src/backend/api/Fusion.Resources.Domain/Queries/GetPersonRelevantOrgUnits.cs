@@ -226,7 +226,7 @@ namespace Fusion.Resources.Domain.Queries
                 if (isDepartmentManager)
                     retList.Add(
                         new QueryFullDepartmentReasonRef { FullDepartment = user.FullDepartment!, Reason = "ResourceOwner" });
-                if (adminClaims is not null) retList.AddRange(adminClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = dep.Name }));
+                if (adminClaims is not null) retList.AddRange(adminClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Write" }));
                 if (readClaims is not null) retList.AddRange(readClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Read" }));
                 retList.AddRange(departmentsWithResponsibility.Select(dep => new QueryFullDepartmentReasonRef
                 { FullDepartment = dep, Reason = "DelegatedManager" }));
