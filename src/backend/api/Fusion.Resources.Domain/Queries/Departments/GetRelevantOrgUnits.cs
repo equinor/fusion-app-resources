@@ -253,7 +253,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var filterGenerator = filter.GenerateFilters<QueryRelevantOrgUnit>(m =>
                 {
-                    
+                    m.SqlQueryMode = false;
                     m.MapField("sapId", e => e.SapId);
                     m.MapField("name", e => e.Name);
                     m.MapField("shortName", e => e.ShortName);
