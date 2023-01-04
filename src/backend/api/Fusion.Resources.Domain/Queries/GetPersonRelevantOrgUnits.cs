@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
@@ -225,7 +226,7 @@ namespace Fusion.Resources.Domain.Queries
                 if (isDepartmentManager)
                     retList.Add(
                         new QueryFullDepartmentReasonRef { FullDepartment = user.FullDepartment!, Reason = "ResourceOwner" });
-                if (adminClaims is not null) retList.AddRange(adminClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Write" }));
+                if (adminClaims is not null) retList.AddRange(adminClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = dep.Name }));
                 if (readClaims is not null) retList.AddRange(readClaims.Select(dep => new QueryFullDepartmentReasonRef { FullDepartment = dep.Scope?.Value ?? "*", Reason = "Read" }));
                 retList.AddRange(departmentsWithResponsibility.Select(dep => new QueryFullDepartmentReasonRef
                 { FullDepartment = dep, Reason = "DelegatedManager" }));
@@ -294,9 +295,13 @@ namespace Fusion.Resources.Domain.Queries
                     if (orgUnitResponse is null)
                         throw new InvalidOperationException("Could not fetch org units from line org");
 
-                    return orgUnitResponse.Value;
+                    return orgUnitResponse.Value.ToList();
                 });
-                return orgUnits.ToList();
+                // Flush reason due to caching option.
+                foreach (var item in orgUnits)
+                    item.Reasons = new List<string>();
+
+                return orgUnits;
             }
 
             private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, IEnumerable<string> departmentsWithResponsibility)
