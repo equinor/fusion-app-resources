@@ -64,10 +64,7 @@ namespace Fusion.Resources.Domain.Queries
                 var relevantOrgUnits = await QueryAllRelevantOrgUnitsForUser(request, cancellationToken, orgUnits);
                 var filteredOrgUnits = ApplyOdataFilters(request.Query, relevantOrgUnits);
 
-                var totalCount = relevantOrgUnits.Count;
-
                 var skip = request.Query.Skip.GetValueOrDefault(0);
-                var take = request.Query.Top.GetValueOrDefault(totalCount);
 
                 var pagedQuery = QueryRangedList.FromItems(filteredOrgUnits, filteredOrgUnits.Count, skip);
 
@@ -187,17 +184,21 @@ namespace Fusion.Resources.Domain.Queries
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
 
                     var orgUnitResponse =
-                        await lineOrgClient.GetFromJsonAsync<ApiPagedCollection<QueryRelevantOrgUnit>>("/org-units?$top=50000");
+                        await lineOrgClient.GetFromJsonAsync<ApiPagedCollection<ApiOrgUnit>>("/org-units?$top=50000");
                     if (orgUnitResponse is null)
                         throw new InvalidOperationException("Could not fetch org units from line org");
 
                     return orgUnitResponse.Value.ToList();
                 });
-                // Flush reason due to caching option.
-                foreach (var item in orgUnits)
-                    item.Reasons = new List<string>();
 
-                return orgUnits;
+                return orgUnits.Select(x => new QueryRelevantOrgUnit
+                {
+                    SapId = x.SapId,
+                    Name = x.Name,
+                    FullDepartment = x.FullDepartment,
+                    Department = x.Department,
+                    ShortName = x.ShortName
+                }).ToList();
             }
 
             private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, IEnumerable<string> departmentsWithResponsibility)
