@@ -27,7 +27,7 @@
 		<PackageReference Include="Fusion.Integration.Roles" Version="6.1.6" />
 		<PackageReference Include="Fusion.Integration.Notification" Version="6.0.2" />
 		<PackageReference Include="Fusion.ApiClients.Org" Version="5.0.7" />
-		<PackageReference Include="Fusion.AspNetCore" Version="6.0.3" />
+		<PackageReference Include="Fusion.AspNetCore" Version="6.0.4" />
 
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6" />

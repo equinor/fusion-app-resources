@@ -245,126 +245,23 @@ namespace Fusion.Resources.Domain.Queries
 
                 }
 
-                return ApplyOdataFilters(request.Query.Filter, endResult);
+                return ApplyOdataFilters(request.Query, endResult);
             }
 
-            private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataExpression filter, List<QueryRelevantOrgUnit> orgUnits)
+            private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataQueryParams filter, List<QueryRelevantOrgUnit> orgUnits)
             {
-                var sapIdFilter = filter.GetFilterForField("sapId");
-                if (sapIdFilter != null)
+
+                var filterGenerator = filter.GenerateFilters<QueryRelevantOrgUnit>(m =>
                 {
-                    if (sapIdFilter.Operation != FilterOperation.Eq)
-                        throw new ArgumentException("Only the 'eq' operator is supported for field 'sapId'.");
-
-                    orgUnits = orgUnits.Where(x => x.SapId == sapIdFilter.Value).ToList();
-                }
-
-                var nameFilter = filter.GetFilterForField("name");
-                if (nameFilter != null)
-                {
-                    if (nameFilter.Operation == FilterOperation.Eq)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Name == nameFilter.Value).ToList();
-                    }
-
-                    else if (nameFilter.Operation == FilterOperation.Contains)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Name.Contains(nameFilter.Value)).ToList();
-                    }
-
-                    else if (nameFilter.Operation == FilterOperation.StartsWith)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Name.StartsWith(nameFilter.Value)).ToList();
-                    }
-
-                    else if (nameFilter.Operation == FilterOperation.EndsWith)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Name.EndsWith(nameFilter.Value)).ToList();
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"The '{nameFilter.Operation}' operator is NOT supported for field 'name'.");
-                    }
-                }
-
-                var departmentFilter = filter.GetFilterForField("department");
-                if (departmentFilter != null)
-                {
-                    if (departmentFilter.Operation == FilterOperation.Eq)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Department == departmentFilter.Value).ToList();
-                    }
-
-                    else if (departmentFilter.Operation == FilterOperation.Contains)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Department.Contains(departmentFilter.Value)).ToList();
-                    }
-
-                    else if (departmentFilter.Operation == FilterOperation.StartsWith)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Department.StartsWith(departmentFilter.Value)).ToList();
-                    }
-
-                    else if (departmentFilter.Operation == FilterOperation.EndsWith)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Department.EndsWith(departmentFilter.Value)).ToList();
-                    }
-                    else
-                    {
-                        throw new ArgumentException(
-                            $"The '{departmentFilter.Operation}' operator is NOT supported for field 'department'.");
-                    }
-                }
-
-                var fullDepartmentFilter = filter.GetFilterForField("fulldepartment");
-                if (fullDepartmentFilter != null)
-                {
-                    if (fullDepartmentFilter.Operation == FilterOperation.Eq)
-                    {
-                        orgUnits = orgUnits.Where(x => x.FullDepartment == fullDepartmentFilter.Value).ToList();
-                    }
-
-                    else if (fullDepartmentFilter.Operation == FilterOperation.Contains)
-                    {
-                        orgUnits = orgUnits.Where(x => x.FullDepartment.Contains(fullDepartmentFilter.Value)).ToList();
-                    }
-
-                    else if (fullDepartmentFilter.Operation == FilterOperation.StartsWith)
-                    {
-                        orgUnits = orgUnits.Where(x => x.FullDepartment.StartsWith(fullDepartmentFilter.Value)).ToList();
-                    }
-
-                    else if (fullDepartmentFilter.Operation == FilterOperation.EndsWith)
-                    {
-                        orgUnits = orgUnits.Where(x => x.FullDepartment.EndsWith(fullDepartmentFilter.Value)).ToList();
-                    }
-                    else
-                    {
-                        throw new ArgumentException(
-                            $"The '{fullDepartmentFilter.Operation}' operator is NOT supported for field 'fullDepartment'.");
-                    }
-                }
-
-                var reasonFilter = filter.GetFilterForField("reason");
-                if (reasonFilter != null)
-                {
-                    if (reasonFilter.Operation == FilterOperation.Eq)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Reasons.Contains(reasonFilter.Value)).ToList();
-                    }
-
-                    else if (reasonFilter.Operation == FilterOperation.Contains)
-                    {
-                        orgUnits = orgUnits.Where(x => x.Reasons.Contains(reasonFilter.Value)).ToList();
-                    }
-                    else
-                    {
-                        throw new ArgumentException(
-                            $"The '{reasonFilter.Operation}' operator is NOT supported for field 'reason'.");
-                    }
-                }
-
-                return orgUnits;
+                    
+                    m.MapField("sapId", e => e.SapId);
+                    m.MapField("name", e => e.Name);
+                    m.MapField("shortName", e => e.ShortName);
+                    m.MapField("department", e => e.Department);
+                    m.MapField("fullDepartment", e => e.FullDepartment);
+                    m.MapField("reason", e => e.Reasons);
+                });
+                return orgUnits.Where(filterGenerator.FilterLambda.Compile()).ToList();
             }
             private async Task<QueryRelatedDepartments> ResolveCache(string fullDepartmentName, string cachekey, CancellationToken cancellationToken)
             {
