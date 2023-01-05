@@ -18,7 +18,7 @@ namespace Fusion.Resources.Domain
         {
             TotalCount = total;
             Skip = skip;
-            AddRange(items);
+            AddRange(items.Skip(skip));
 
             PageSize = Count;
         }

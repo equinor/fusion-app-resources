@@ -59,11 +59,11 @@ namespace Fusion.Resources.Domain.Queries
             private readonly ILineOrgResolver lineOrgResolver;
             private readonly IMemoryCache memCache;
             private readonly HttpClient lineOrgClient;
+            private readonly IOrgUnitCache orgUnitCache;
 
 
 
-
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache, IHttpClientFactory httpClientFactory)
+            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache, IHttpClientFactory httpClientFactory, IOrgUnitCache orgUnitCache)
             {
                 this.logger = logger;
                 this.profileResolver = profileResolver;
@@ -72,46 +72,23 @@ namespace Fusion.Resources.Domain.Queries
                 this.lineOrgResolver = lineOrgResolver;
                 this.memCache = memCache;
                 this.lineOrgClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
-
+                this.orgUnitCache = orgUnitCache;
             }
 
-            public async Task<List<QueryRelevantOrgUnit>> GetAllOrgUnitsAsync()
-            {
-                var orgUnits = await memCache.GetOrCreateAsync(CACHEKEY, async (entry) =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
-
-
-
-                    var orgUnitResponse = await lineOrgClient.GetFromJsonAsync<ApiPagedCollection<ApiOrgUnit>>("/org-units?$top=10000");
-                    if (orgUnitResponse is null)
-                        throw new InvalidOperationException("Could not fetch org units from line org");
-
-                    List<QueryRelevantOrgUnit> QueryorgUnits = orgUnitResponse.Value.Select(org => new QueryRelevantOrgUnit
-                    {
-                        FullDepartment = org.FullDepartment,
-                        Name = org.Name,
-                        SapId = org.SapId,
-                        ParentSapId = org.Parent?.SapId,
-                        ShortName = org.ShortName,
-                        Department = org.Department,
-
-                    }).ToList();
-
-                    return QueryorgUnits;
-
-                });
-
-
-
-                return orgUnits;
-            }
 
             private CancellationToken _cancellationToken;
             public async Task<QueryRangedList<QueryRelevantOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
 
-                var cachedOrgUnits = await GetAllOrgUnitsAsync();
+                var cachedOrgUnits = await orgUnitCache.GetOrgUnitsAsync();
+                var orgUnits = cachedOrgUnits.Select(x => new QueryRelevantOrgUnit
+                {
+                    SapId = x.SapId,
+                    Name = x.Name,
+                    FullDepartment = x.FullDepartment,
+                    Department = x.Department,
+                    ShortName = x.ShortName
+                });
 
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
@@ -187,7 +164,7 @@ namespace Fusion.Resources.Domain.Queries
                     Reason = "DelegatedParentManager"
                 }) ?? Array.Empty<QueryOrgUnitReason>());
 
-                List<QueryRelevantOrgUnit> populatedOrgUnitResult = PopulateOrgUnits(cachedOrgUnits, orgUnitAccessReason);
+                List<QueryRelevantOrgUnit> populatedOrgUnitResult = PopulateOrgUnits(orgUnits, orgUnitAccessReason);
 
                 var filteredOrgUnits = ApplyOdataFilters(request.Query, populatedOrgUnitResult);
 
@@ -198,7 +175,7 @@ namespace Fusion.Resources.Domain.Queries
                 return pagedQuery;
             }
 
-            private static List<QueryRelevantOrgUnit> PopulateOrgUnits(List<QueryRelevantOrgUnit> cachedOrgUnits, List<QueryOrgUnitReason> orgUnitAccessReason)
+            private static List<QueryRelevantOrgUnit> PopulateOrgUnits(IEnumerable<QueryRelevantOrgUnit> cachedOrgUnits, List<QueryOrgUnitReason> orgUnitAccessReason)
             {
                 var endResult = new List<QueryRelevantOrgUnit>();
                 foreach (var org in orgUnitAccessReason)
@@ -213,10 +190,7 @@ namespace Fusion.Resources.Domain.Queries
 
                             if (data != null)
                             {
-                                if (!data.Reasons.Contains(org.Reason))
-                                {
                                     data.Reasons.Add(org.Reason);
-                                }
 
                                 endResult.Add(data);
                             }
