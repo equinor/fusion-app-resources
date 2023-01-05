@@ -107,6 +107,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.TryRemoveImplementationService("PeopleEventReceiver");
                 services.TryRemoveImplementationService("OrgEventReceiver");
                 services.TryRemoveImplementationService("ContextEventReceiver");
+                services.TryRemoveImplementationService("LineOrgOrgUnitChangedEvent");
+                services.TryRemoveImplementationService("OrgUnitCache");
                 services.TryRemoveImplementationService<ICompanyResolver>();
 
                 if (IsMemorycacheDisabled)
@@ -117,7 +119,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 services.AddSingleton(new Mock<IFusionServiceDiscovery>(MockBehavior.Loose).Object);
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection
                 services.AddTransient<ICompanyResolver, PeopleCompanyResolver>();
-                services.AddSingleton<IOrgUnitCache, OrgUnitCache>();
+                services.AddSingleton<IOrgUnitCache, OrgUnitCacheMock>();
                 services.AddSingleton<IProjectOrgResolver>(sp => new OrgResolverMock());
                 services.AddSingleton<IFusionContextResolver>(sp => contextResolverMock);
                 services.AddSingleton<IFusionRolesClient>(Span => roleClientMock);
