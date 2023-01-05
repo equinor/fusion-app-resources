@@ -212,7 +212,7 @@ namespace Fusion.Resources.Domain.Queries
                 return endResult;
             }
 
-            private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataQueryParams filter, List<QueryRelevantOrgUnit> orgUnits)
+            private static List<QueryRelevantOrgUnit?> ApplyOdataFilters(ODataQueryParams filter, List<QueryRelevantOrgUnit> orgUnits)
             {
 
                 var filterGenerator = filter.GenerateFilters<QueryRelevantOrgUnit>(m =>

@@ -2,6 +2,7 @@
 using Fusion.Integration.LineOrg;
 using Fusion.Services.LineOrg.ApiModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fusion.Testing.Mocks.LineOrgService.Api
@@ -11,7 +12,14 @@ namespace Fusion.Testing.Mocks.LineOrgService.Api
     public class OrgUnitController : ControllerBase
     {
 
-        [HttpGet("/org-units/{orgUnitId}")]
+        [HttpGet("/org-units/")]
+        public ActionResult<ApiPagedCollection<ApiOrgUnit>> GetOrgUnits( [FromQuery] ODataQueryParams query)
+        {
+
+            return new ApiPagedCollection<ApiOrgUnit>(LineOrgServiceMock.OrgUnits.ToArray().ToList(), LineOrgServiceMock.OrgUnits.Count());
+        }
+
+            [HttpGet("/org-units/{orgUnitId}")]
         public ActionResult<ApiOrgUnit> GetOrgUnit([FromRoute] string orgUnitId, [FromQuery] ODataQueryParams query)
         {
             var departmentId = DepartmentId.FromFullPath(orgUnitId);

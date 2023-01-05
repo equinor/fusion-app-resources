@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Domain;
+using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Testing.Mocks.LineOrgService
 {
@@ -16,6 +17,8 @@ namespace Fusion.Testing.Mocks.LineOrgService
 
         internal static ConcurrentBag<ApiLineOrgUser> Users = new ConcurrentBag<ApiLineOrgUser>();
         internal static ConcurrentBag<ApiDepartment> Departments = new ConcurrentBag<ApiDepartment>();
+
+        internal static ConcurrentBag<ApiOrgUnit> OrgUnits = new ConcurrentBag<ApiOrgUnit>();
 
         public LineOrgServiceMock()
         {
@@ -49,6 +52,18 @@ namespace Fusion.Testing.Mocks.LineOrgService
                 return;
 
             dep.Manager = manager;
+        }
+
+        public static void AddOrgUnit(string sapId, string name, string department, string fullDepartment)
+        {
+            OrgUnits.Add(new ApiOrgUnit()
+            {
+                SapId = sapId,
+                Name = name,
+                Department = department,
+                FullDepartment = fullDepartment
+
+            });
         }
     }
 
