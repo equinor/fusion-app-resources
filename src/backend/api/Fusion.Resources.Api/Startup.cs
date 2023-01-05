@@ -1,5 +1,6 @@
 using FluentValidation.AspNetCore;
 using Fusion.Events;
+using Fusion.Integration;
 using Fusion.Integration.Authentication;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.Authentication;
@@ -84,6 +85,7 @@ namespace Fusion.Resources.Api
                 {
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
+                s.AddPersistentHandler<LineOrgOrgUnitChangedEvent>(IntegrationConfig.HttpClients.ApplicationLineOrg(), "/subscriptions/lineorg", s => s.OnlyTriggerOn(Events.LineOrgEventTypes.OrgUnit));
             });
             // Add custom claims provider, to sort delegated responsibilities
             services.AddScoped<ILocalClaimsTransformation, SharedRequestClaimsTransformation>();

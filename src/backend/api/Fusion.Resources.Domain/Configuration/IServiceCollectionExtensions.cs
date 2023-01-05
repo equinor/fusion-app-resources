@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Fusion.Resources.Domain;
+﻿using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Behaviours;
 using Fusion.Resources.Domain.Services;
 using MediatR;
@@ -21,6 +18,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IProfileService, ProfileServices>();
 
             services.AddSingleton<ICompanyResolver, PeopleCompanyResolver>();
+
+            services.AddSingleton<IOrgUnitCache, OrgUnitCache>();
 
             return services;
         }

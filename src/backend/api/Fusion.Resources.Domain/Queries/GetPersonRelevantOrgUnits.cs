@@ -5,13 +5,9 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.OData;
-using Fusion.Services.LineOrg.ApiModels;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Fusion.Resources.Domain.Queries
@@ -46,20 +42,28 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IFusionRolesClient rolesClient;
             private readonly IMediator mediator;
             private readonly IMemoryCache memoryCache;
-            private readonly HttpClient lineOrgClient;
+            private readonly IOrgUnitCache orgUnitCache;
 
-            public Handler(IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator, IMemoryCache memoryCache, IHttpClientFactory httpClientFactory)
+            public Handler(IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator, IMemoryCache memoryCache, IOrgUnitCache orgUnitCache)
             {
                 this.profileResolver = profileResolver;
                 this.rolesClient = rolesClient;
                 this.mediator = mediator;
                 this.memoryCache = memoryCache;
-                lineOrgClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
+                this.orgUnitCache = orgUnitCache;
             }
 
             public async Task<QueryRangedList<QueryRelevantOrgUnit>> Handle(GetPersonRelevantOrgUnits request, CancellationToken cancellationToken)
             {
-                var orgUnits = await GetOrgUnitsAsync();
+                var cachedOrgUnits = await orgUnitCache.GetOrgUnitsAsync();
+                var orgUnits = cachedOrgUnits.Select(x => new QueryRelevantOrgUnit
+                {
+                    SapId = x.SapId,
+                    Name = x.Name,
+                    FullDepartment = x.FullDepartment,
+                    Department = x.Department,
+                    ShortName = x.ShortName
+                });
 
                 var relevantOrgUnits = await QueryAllRelevantOrgUnitsForUser(request, cancellationToken, orgUnits);
                 var filteredOrgUnits = ApplyOdataFilters(request.Query, relevantOrgUnits);
@@ -86,8 +90,7 @@ namespace Fusion.Resources.Domain.Queries
                 return orgUnits.Where(filterGenerator.FilterLambda.Compile()).ToList();
             }
 
-            private async Task<List<QueryRelevantOrgUnit>> QueryAllRelevantOrgUnitsForUser(GetPersonRelevantOrgUnits request,
-                CancellationToken cancellationToken, List<QueryRelevantOrgUnit> orgUnits)
+            private async Task<List<QueryRelevantOrgUnit>> QueryAllRelevantOrgUnitsForUser(GetPersonRelevantOrgUnits request, CancellationToken cancellationToken, IEnumerable<QueryRelevantOrgUnit> orgUnits)
             {
                 var cacheKey = $"GetPersonRelevantDepartments_{request.PersonId.OriginalIdentifier}";
                 if (memoryCache.TryGetValue(cacheKey, out List<QueryRelevantOrgUnit> relevantOrgUnits)) return relevantOrgUnits;
@@ -175,32 +178,7 @@ namespace Fusion.Resources.Domain.Queries
                     }
                 }
             }
-
-            private async Task<List<QueryRelevantOrgUnit>> GetOrgUnitsAsync()
-            {
-                const string cacheKey = "Cache.GetOrgUnitsAsync";
-                var orgUnits = await memoryCache.GetOrCreateAsync(cacheKey, async (entry) =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
-
-                    var orgUnitResponse =
-                        await lineOrgClient.GetFromJsonAsync<ApiPagedCollection<ApiOrgUnit>>("/org-units?$top=50000");
-                    if (orgUnitResponse is null)
-                        throw new InvalidOperationException("Could not fetch org units from line org");
-
-                    return orgUnitResponse.Value.ToList();
-                });
-
-                return orgUnits.Select(x => new QueryRelevantOrgUnit
-                {
-                    SapId = x.SapId,
-                    Name = x.Name,
-                    FullDepartment = x.FullDepartment,
-                    Department = x.Department,
-                    ShortName = x.ShortName
-                }).ToList();
-            }
-
+            
             private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, IEnumerable<string> departmentsWithResponsibility)
             {
                 // Get sectors the user have responsibility in, to find all relevant departments
