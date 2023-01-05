@@ -5,6 +5,6 @@
         public string? FullDepartment { get; set; }
         public string? Reason { get; set; }
 
-        public bool IsWildCard => FullDepartment.Contains('*');
+        public bool? IsWildCard => FullDepartment?.Contains('*')  ;
     }
 }

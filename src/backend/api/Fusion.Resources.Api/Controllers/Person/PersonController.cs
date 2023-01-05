@@ -95,6 +95,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.CurrentUserIs(personId);
+                    or.BeTrustedApplication();
                 });
             });
 

@@ -73,13 +73,9 @@ namespace Fusion.Resources.Domain.Queries
                 this.memCache = memCache;
                 this.lineOrgClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
 
-
-
-
-
             }
 
-            public async Task<List<QueryRelevantOrgUnit>> ResolveAllOrgUnits()
+            public async Task<List<QueryRelevantOrgUnit>> GetAllOrgUnitsAsync()
             {
                 var orgUnits = await memCache.GetOrCreateAsync(CACHEKEY, async (entry) =>
                 {
@@ -93,12 +89,12 @@ namespace Fusion.Resources.Domain.Queries
 
                     List<QueryRelevantOrgUnit> QueryorgUnits = orgUnitResponse.Value.Select(org => new QueryRelevantOrgUnit
                     {
-                        FullDepartment = org.FullDepartment ?? "",
-                        Name = org.Name ?? "",
-                        SapId = org.SapId ?? "",
-                        ParentSapId = org.Parent?.SapId ?? "",
-                        ShortName = org.ShortName ?? "",
-                        Department = org.Department ?? "",
+                        FullDepartment = org.FullDepartment,
+                        Name = org.Name,
+                        SapId = org.SapId,
+                        ParentSapId = org.Parent?.SapId,
+                        ShortName = org.ShortName,
+                        Department = org.Department,
 
                     }).ToList();
 
@@ -106,7 +102,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 });
 
-            
+
 
                 return orgUnits;
             }
@@ -115,12 +111,10 @@ namespace Fusion.Resources.Domain.Queries
             public async Task<QueryRangedList<QueryRelevantOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
 
-                var cachedOrgUnits = await ResolveAllOrgUnits();
+                var cachedOrgUnits = await GetAllOrgUnitsAsync();
 
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
-
-                
 
                 // Resolve departments with responsibility
                 var sector = await ResolveSector(user.FullDepartment);
@@ -132,38 +126,27 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
 
-
-
                 var lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), "Cache.lineOrgDepartmentProfile", cancellationToken);
-
-
-
                 var delegatedParentDeparmtent = departmentsWithResponsibility.Where(x => x.Key.Contains('*'));
                 var delegatedParentManagerWithResposibility = new List<QueryDepartment>();
+
                 foreach (var wildcard in delegatedParentDeparmtent)
                 {
                     var delegatedChildren = await ResolveCache(wildcard.Key.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
-                    //var orgUnits = await mediator.Send(new GetRelatedDepartments(wildcard.Key.Replace('*', ' ').TrimEnd()), cancellationToken);
-
                     delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
                 }
-
-
-
 
                 var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value);
                 var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
 
+                var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
-                var retList = new List<QueryOrgUnitReason>();
-
-
-                if (isDepartmentManager) retList.Add(new QueryOrgUnitReason
+                if (isDepartmentManager) orgUnitAccessReason.Add(new QueryOrgUnitReason
                 {
                     FullDepartment = user.FullDepartment,
                     Reason = "Manager"
                 });
-                retList.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
+                orgUnitAccessReason.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep ?? "*",
                     Reason = "Write"
@@ -173,7 +156,7 @@ namespace Fusion.Resources.Domain.Queries
                 //    FullDepartment = dep,
                 //    Reason = "Read"
                 //}));
-                retList.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnitReason
+                orgUnitAccessReason.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep.Key,
                     Reason = "DelegatedManager"
@@ -188,7 +171,7 @@ namespace Fusion.Resources.Domain.Queries
                 //    FullDepartment = dep.DepartmentId,
                 //    Reason = "RelevantDepartment"
                 //}));
-                if (isDepartmentManager) retList.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnitReason
+                if (isDepartmentManager) orgUnitAccessReason.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep.DepartmentId,
                     Reason = "ParentManager"
@@ -198,15 +181,27 @@ namespace Fusion.Resources.Domain.Queries
                 //    FullDepartment = dep.DepartmentId,
                 //    Reason = "RelevantSibling"
                 //}) ?? Array.Empty<QueryOrgUnit>());
-                retList.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
+                orgUnitAccessReason.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep.DepartmentId,
                     Reason = "DelegatedParentManager"
                 }) ?? Array.Empty<QueryOrgUnitReason>());
 
+                List<QueryRelevantOrgUnit> populatedOrgUnitResult = PopulateOrgUnits(cachedOrgUnits, orgUnitAccessReason);
 
+                var filteredOrgUnits = ApplyOdataFilters(request.Query, populatedOrgUnitResult);
+
+                var skip = request.Query.Skip.GetValueOrDefault(0);
+
+                var pagedQuery = QueryRangedList.FromItems(filteredOrgUnits, filteredOrgUnits.Count, skip);
+
+                return pagedQuery;
+            }
+
+            private static List<QueryRelevantOrgUnit> PopulateOrgUnits(List<QueryRelevantOrgUnit> cachedOrgUnits, List<QueryOrgUnitReason> orgUnitAccessReason)
+            {
                 var endResult = new List<QueryRelevantOrgUnit>();
-                foreach (var org in retList)
+                foreach (var org in orgUnitAccessReason)
                 {
                     if (org?.FullDepartment != null)
                     {
@@ -216,16 +211,11 @@ namespace Fusion.Resources.Domain.Queries
                         {
                             var data = cachedOrgUnits.Where(x => x.FullDepartment == org?.FullDepartment.Replace('*', ' ').TrimEnd()).FirstOrDefault();
 
-
-
-
                             if (data != null)
                             {
-                                data.Reasons.Clear();
                                 data.Reasons.Add(org.Reason);
                                 endResult.Add(data);
                             }
-
                         }
                         else
                         {
@@ -234,25 +224,14 @@ namespace Fusion.Resources.Domain.Queries
 
                                 alreadyInList.Reasons.Add(org.Reason);
                             }
-
                         }
-
-
-
 
                     }
 
 
                 }
 
-                var filteredOrgUnits = ApplyOdataFilters(request.Query, endResult);
-
-                var skip = request.Query.Skip.GetValueOrDefault(0);
-
-                var pagedQuery = QueryRangedList.FromItems(filteredOrgUnits, filteredOrgUnits.Count, skip);
-
-
-                return pagedQuery;
+                return endResult;
             }
 
             private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataQueryParams filter, List<QueryRelevantOrgUnit> orgUnits)
@@ -276,13 +255,9 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
 
-
-
                     var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(fullDepartmentName), cancellationToken);
                     if (orgUnitResponse is null)
                         throw new InvalidOperationException("Could not fetch org units from line org");
-
-
 
                     return orgUnitResponse;
                 });
@@ -341,10 +316,6 @@ namespace Fusion.Resources.Domain.Queries
                 return departments.DistinctBy(x => x.DepartmentId);
             }
 
-
-
-
-
             private async Task<Dictionary<string, string>> ResolveDepartmentsWithAccessAsync(FusionPersonProfile user)
             {
                 var isDepartmentManager = user.IsResourceOwner;
@@ -362,7 +333,6 @@ namespace Fusion.Resources.Domain.Queries
 
                 );
 
-
                 foreach (var role in roleAssignedDepartments)
                 {
 
@@ -374,8 +344,6 @@ namespace Fusion.Resources.Domain.Queries
 
                 return departmentsWithResponsibility;
             }
-
-
 
         }
     }
