@@ -7,10 +7,10 @@ namespace Fusion.Resources.Api.Tests;
 
 public class OrgUnitCacheMock : IOrgUnitCache
 {
-    public async Task<IEnumerable<ApiOrgUnit>> GetOrgUnitsAsync()
+    public Task<IEnumerable<ApiOrgUnit>> GetOrgUnitsAsync()
     {
         var orgUnits = new List<ApiOrgUnit>();
-        return orgUnits;
+        return Task.FromResult<IEnumerable<ApiOrgUnit>>(orgUnits);
     }
 
     public Task ClearOrgUnitCacheAsync()
