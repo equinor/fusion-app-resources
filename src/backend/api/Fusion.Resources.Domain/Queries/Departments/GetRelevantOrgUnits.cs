@@ -213,7 +213,11 @@ namespace Fusion.Resources.Domain.Queries
 
                             if (data != null)
                             {
-                                data.Reasons.Add(org.Reason);
+                                if (!data.Reasons.Contains(org.Reason))
+                                {
+                                    data.Reasons.Add(org.Reason);
+                                }
+
                                 endResult.Add(data);
                             }
                         }
