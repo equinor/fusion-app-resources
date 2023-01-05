@@ -90,11 +90,22 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
             LineOrgServiceMock.AddDepartment(departmentId);
 
+            if (defactoResponsible is not null)
+            {
+                db.DelegatedDepartmentResponsibles.Add(new Database.Entities.DbDelegatedDepartmentResponsible()
+                {
+                    DateFrom = DateTime.Today.AddDays(-1),
+                    DateTo = DateTime.Today.AddDays(1),
+                    DepartmentId = departmentId,
+                    ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.GetValueOrDefault(),
+                    Reason = "Just for testing"
+                });
+                try { db.SaveChanges(); } catch (DBConcurrencyException) { }
+            }
+
             var resourceOwner = this.AddProfile(FusionAccountType.Application);
             LineOrgServiceMock.AddTestUser().MergeWithProfile(resourceOwner)
                 .WithFullDepartment(departmentId).SaveProfile();
-
-            //ADD roleEnttry into roleclient mock,  find out how mock works
         }
 
         public IReadOnlyCollection<CloudEventV1<TPayload>> GetNotificationMessages<TPayload>(string pathFilter)

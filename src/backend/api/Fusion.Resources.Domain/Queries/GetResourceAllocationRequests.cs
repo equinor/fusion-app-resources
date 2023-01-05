@@ -406,8 +406,9 @@ namespace Fusion.Resources.Domain.Queries
                     var wf = workFlowList.FirstOrDefault(x => x.RequestId == req.RequestId);
                     if (wf == null)
                     {
-                        // log critical event
-                        log.LogCritical($"Workflow not found for request id: {req.RequestId}");
+                        if (!req.IsDraft)
+                            // log critical event if workflow expected to exist.
+                            log.LogCritical($"Workflow not found for request id: {req.RequestId}");
                         continue;
                     }
                     req.Workflow = wf;

@@ -7,5 +7,6 @@ namespace Fusion.Resources.Api.Controllers
         public Guid ResponsibleAzureUniqueId { get; set; }
         public DateTimeOffset DateTo { get; set; }
         public DateTimeOffset DateFrom { get; set; }
+        public string? Reason { get; set; }
     }
 }

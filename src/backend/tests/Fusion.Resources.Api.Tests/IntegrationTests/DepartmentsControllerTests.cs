@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
@@ -92,7 +93,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
                 Source = "Department.Test"
-        });
+            });
 
             await RolesClientMock.AddPersonRole(nonDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
             {
@@ -104,6 +105,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            fixture.EnsureDepartment(delegatedDepartment, null, delegatedResourceOwner);
+
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
@@ -143,6 +146,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
+
+            fixture.EnsureDepartment(delegatedDepartment, null, delegatedResourceOwner);
+            fixture.EnsureDepartment(delegatedDepartment, null, secondDelegatedResourceOwner);
 
             var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{delegatedDepartment}");
             TestLogger.TryLogObject(resp);
