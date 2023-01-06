@@ -8,6 +8,7 @@ using System.Net.Http;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Domain;
 using Fusion.Services.LineOrg.ApiModels;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Fusion.Testing.Mocks.LineOrgService
 {
@@ -54,16 +55,21 @@ namespace Fusion.Testing.Mocks.LineOrgService
             dep.Manager = manager;
         }
 
-        public static void AddOrgUnit(string sapId, string name, string department, string fullDepartment)
+        public static void AddOrgUnit(string sapId, string name, string department, string fullDepartment, string shortname)
         {
-            OrgUnits.Add(new ApiOrgUnit()
+            if (OrgUnits.FirstOrDefault(x => x.SapId == sapId) == null)
             {
-                SapId = sapId,
-                Name = name,
-                Department = department,
-                FullDepartment = fullDepartment
+                OrgUnits.Add(new ApiOrgUnit()
+                {
+                    SapId = sapId,
+                    Name = name,
+                    Department = department,
+                    FullDepartment = fullDepartment,
+                    ShortName = shortname
 
-            });
+                });
+            }
+
         }
     }
 

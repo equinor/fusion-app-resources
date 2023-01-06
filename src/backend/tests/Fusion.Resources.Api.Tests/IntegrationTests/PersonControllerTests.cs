@@ -189,11 +189,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
         [Theory]
         [InlineData("fulldepartment startswith 'PDP'", 2)]
-        [InlineData("shortName contains 'CC'", 1)]
+        [InlineData("shortName contains 'CC'", 2)]
         [InlineData("department endswith 'CCM7'", 1)]
         [InlineData("sapId eq '52752459'", 1)]
         [InlineData("sapId neq '52752459'", 2)]
-        [InlineData("name eq  'Construction & Commissioning'", 1)]
+        [InlineData("name eq 'Construction %26 Commissioning'", 1)]
         public async Task ShouldReturnCorectCountGetRelevantDepartments_ShouldReturnCorrectCount(string filter, int count)
         {
             var assignedOrgUnit = new
@@ -229,9 +229,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser.IsResourceOwner = true;
 
 
-            LineOrgServiceMock.AddOrgUnit( assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment);
-            LineOrgServiceMock.AddOrgUnit(delegatedOrgUnit.sapId, delegatedOrgUnit.name, delegatedOrgUnit.department, delegatedOrgUnit.fullDepartment);
-            LineOrgServiceMock.AddOrgUnit(seconddelegatedOrgUnit.sapId, seconddelegatedOrgUnit.name, seconddelegatedOrgUnit.department, seconddelegatedOrgUnit.fullDepartment);
+            LineOrgServiceMock.AddOrgUnit( assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);
+            LineOrgServiceMock.AddOrgUnit(delegatedOrgUnit.sapId, delegatedOrgUnit.name, delegatedOrgUnit.department, delegatedOrgUnit.fullDepartment, delegatedOrgUnit.shortName);
+            LineOrgServiceMock.AddOrgUnit(seconddelegatedOrgUnit.sapId, seconddelegatedOrgUnit.name, seconddelegatedOrgUnit.department, seconddelegatedOrgUnit.fullDepartment, seconddelegatedOrgUnit.shortName);
 
 
 
