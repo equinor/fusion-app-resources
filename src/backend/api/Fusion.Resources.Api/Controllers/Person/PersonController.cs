@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using Fusion.Resources.Api.Controllers.Departments;
 using Fusion.Resources.Api.Controllers.Departments.ApiModels;
+using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -79,7 +80,7 @@ namespace Fusion.Resources.Api.Controllers
 
         [HttpGet("/persons/me/resources/relevant-departments")]
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
-        public async Task<ActionResult<ApiPagedCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
+        public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
         {
 
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
@@ -106,10 +107,10 @@ namespace Fusion.Resources.Api.Controllers
 
             var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
             if (relevantOrgUnits is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
-            
-            var collection = new ApiPagedCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x)),  relevantOrgUnits.TotalCount).SetPagingUrls(query, Request);
-          
+
+            var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x))) { TotalCount = relevantOrgUnits.TotalCount };
             return collection;
+
         }
 
         [HttpGet("/persons/{personId}/resources/notes")]

@@ -9,6 +9,7 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.EntityFrameworkCore.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -229,7 +230,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser.IsResourceOwner = true;
 
 
-            LineOrgServiceMock.AddOrgUnit( assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);
+            LineOrgServiceMock.AddOrgUnit(assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);
             LineOrgServiceMock.AddOrgUnit(delegatedOrgUnit.sapId, delegatedOrgUnit.name, delegatedOrgUnit.department, delegatedOrgUnit.fullDepartment, delegatedOrgUnit.shortName);
             LineOrgServiceMock.AddOrgUnit(seconddelegatedOrgUnit.sapId, seconddelegatedOrgUnit.name, seconddelegatedOrgUnit.department, seconddelegatedOrgUnit.fullDepartment, seconddelegatedOrgUnit.shortName);
 
@@ -246,28 +247,27 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 testUser.FullDepartment = assignedOrgUnit.fullDepartment;
                 var client = fixture.ApiFactory.CreateClient();
-                var resp = await client.TestClientGetAsync<ApiPagedCollection<QueryRelevantOrgUnitTestModel>>(
+                var resp = await client.TestClientGetAsync<ApiCollection<ApiRelevantOrgUnitTestModel>>(
                     $"/persons/{testUser.AzureUniqueId}/resources/relevant-departments?$filter={filter}"
 
-                ); 
-                
+                );
+
                 resp.Should().BeSuccessfull();
-                resp.Value.Count.Should().Be(count);
-               
+                resp.Value.Value.Count().Should().Be(count);
 
             }
         }
 
 
-        public class QueryRelevantOrgUnitTestModel
+        public class ApiRelevantOrgUnitTestModel
         {
-            public string? SapId { get; set; }
-            public string? FullDepartment { get; set; }
+            public string SapId { get; set; }
+            public string FullDepartment { get; set; }
             public List<string> Reasons { get; set; } = new();
-            public string? Name { get; set; }
-            public string? ParentSapId { get; set; }
-            public string? ShortName { get; set; }
-            public string? Department { get; set; }
+            public string Name { get; set; }
+            public string ParentSapId { get; set; }
+            public string ShortName { get; set; }
+            public string Department { get; set; }
 
 
         }

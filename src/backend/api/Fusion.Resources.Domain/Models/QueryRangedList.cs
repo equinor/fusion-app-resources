@@ -18,7 +18,7 @@ namespace Fusion.Resources.Domain
         {
             TotalCount = total;
             Skip = skip;
-            AddRange(items.Skip(skip));
+            AddRange(items);
 
             PageSize = Count;
         }
@@ -67,6 +67,21 @@ namespace Fusion.Resources.Domain
         public static QueryRangedList<T> FromItems<T>(IEnumerable<T> items, int totalCount, int skip)
         {
             return new QueryRangedList<T>(items, totalCount, skip);
+        }
+
+        public static  QueryRangedList<T> FromEnumrableItems<T>(IEnumerable<T> source, int skip, int take, bool skipDataLoad = false)
+        {
+            var count =  source.Count();
+
+            if (skipDataLoad == false)
+            {
+                
+                var items =  source.Skip(skip).Take(take);
+                return new QueryRangedList<T>(items, count, skip);
+            }
+
+            var pageCount =  source.Skip(skip).Take(take).Count();
+            return new QueryRangedList<T>(pageCount, count, skip);
         }
     }
 }

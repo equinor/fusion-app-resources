@@ -49,7 +49,7 @@ namespace Fusion.Resources.Domain.Queries
             Write
         }
 
-        public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>>
+        public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>?>
         {
             private readonly TimeSpan defaultAbsoluteCacheExpirationHours = TimeSpan.FromHours(1);
             private readonly ILogger<Handler> logger;
@@ -75,11 +75,9 @@ namespace Fusion.Resources.Domain.Queries
                 this.orgUnitCache = orgUnitCache;
             }
 
-
             private CancellationToken _cancellationToken;
-            public async Task<QueryRangedList<QueryRelevantOrgUnit>> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
+            public async Task<QueryRangedList<QueryRelevantOrgUnit>?> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
-
                 var cachedOrgUnits = await orgUnitCache.GetOrgUnitsAsync();
                 var orgUnits = cachedOrgUnits.Select(x => new QueryRelevantOrgUnit
                 {
@@ -93,41 +91,54 @@ namespace Fusion.Resources.Domain.Queries
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
+                if (user is null)
+                {
+                    return null;
+                }
+
                 // Resolve departments with responsibility
                 var sector = await ResolveSector(user.FullDepartment);
                 var departmentsWithResponsibility = await ResolveDepartmentsWithAccessAsync(user);
-                var isDepartmentManager = departmentsWithResponsibility.Any(r => r.Value == user.FullDepartment);
+                var isDepartmentManager = departmentsWithResponsibility.Any(r => r == user.FullDepartment);
 
                 var relevantSectors = await ResolveRelevantSectorsAsync(user.FullDepartment, sector, isDepartmentManager, departmentsWithResponsibility);
                 var relevantDepartments = new List<QueryDepartment>();
 
                 foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
+                var lineOrgDepartmentProfile = new QueryRelatedDepartments();
+                if (user?.FullDepartment is not null)
+                {
+                    lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), "Cache.lineOrgDepartmentProfile", cancellationToken);
+                }
 
-                var lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), "Cache.lineOrgDepartmentProfile", cancellationToken);
-                var delegatedParentDeparmtent = departmentsWithResponsibility.Where(x => x.Key.Contains('*'));
+                var delegatedParentDeparmtent = departmentsWithResponsibility.Where(x => x.Contains('*'));
                 var delegatedParentManagerWithResposibility = new List<QueryDepartment>();
 
                 foreach (var wildcard in delegatedParentDeparmtent)
                 {
-                    var delegatedChildren = await ResolveCache(wildcard.Key.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
+                    var delegatedChildren = await ResolveCache(wildcard.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
                     delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
                 }
 
-                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value);
-                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
+                var adminClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value);
+                var readClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
                 if (isDepartmentManager) orgUnitAccessReason.Add(new QueryOrgUnitReason
                 {
-                    FullDepartment = user.FullDepartment,
+                    FullDepartment = user?.FullDepartment,
                     Reason = "Manager"
                 });
-                orgUnitAccessReason.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
+                if (adminClaims is not null)
                 {
-                    FullDepartment = dep ?? "*",
-                    Reason = "Write"
-                }));
+                    orgUnitAccessReason.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
+                    {
+                        FullDepartment = dep ?? "*",
+                        Reason = "Write"
+                    }));
+                }
+
                 //retList.AddRange(readClaims.Select(dep => new QueryOrgUnit
                 //{
                 //    FullDepartment = dep,
@@ -135,7 +146,7 @@ namespace Fusion.Resources.Domain.Queries
                 //}));
                 orgUnitAccessReason.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnitReason
                 {
-                    FullDepartment = dep.Key,
+                    FullDepartment = dep,
                     Reason = "DelegatedManager"
                 }));
                 //retList.AddRange(relevantSectors.Select(dep => new QueryOrgUnit
@@ -164,23 +175,26 @@ namespace Fusion.Resources.Domain.Queries
                     Reason = "DelegatedParentManager"
                 }) ?? Array.Empty<QueryOrgUnitReason>());
 
-                List<QueryRelevantOrgUnit> populatedOrgUnitResult = PopulateOrgUnits(orgUnits, orgUnitAccessReason);
+                List<QueryRelevantOrgUnit> populatedOrgUnitResult = GetRelevantOrgUnits(orgUnits, orgUnitAccessReason);
 
-                var filteredOrgUnits = ApplyOdataFilters(request.Query, populatedOrgUnitResult);
+                var filteredOrgUnits = ApplyOdataFilters(request.Query, populatedOrgUnitResult.OrderBy(x => x.SapId));
 
                 var skip = request.Query.Skip.GetValueOrDefault(0);
+                var take = request.Query.Top.GetValueOrDefault(100);
 
-                var pagedQuery = QueryRangedList.FromItems(filteredOrgUnits, filteredOrgUnits.Count, skip);
+                filteredOrgUnits.DistinctBy(x => x.SapId);
+
+                var pagedQuery = QueryRangedList.FromEnumrableItems(filteredOrgUnits, skip, take);
 
                 return pagedQuery;
             }
 
-            private static List<QueryRelevantOrgUnit> PopulateOrgUnits(IEnumerable<QueryRelevantOrgUnit> cachedOrgUnits, List<QueryOrgUnitReason> orgUnitAccessReason)
+            private static List<QueryRelevantOrgUnit> GetRelevantOrgUnits(IEnumerable<QueryRelevantOrgUnit> cachedOrgUnits, List<QueryOrgUnitReason> orgUnitAccessReason)
             {
                 var endResult = new List<QueryRelevantOrgUnit>();
                 foreach (var org in orgUnitAccessReason)
                 {
-                    if (org?.FullDepartment != null)
+                    if (org?.FullDepartment != null && org?.Reason != null)
                     {
                         var alreadyInList = endResult.FirstOrDefault(x => x.FullDepartment == org.FullDepartment);
 
@@ -190,8 +204,7 @@ namespace Fusion.Resources.Domain.Queries
 
                             if (data != null)
                             {
-                                    data.Reasons.Add(org.Reason);
-
+                                data.Reasons.Add(org.Reason);
                                 endResult.Add(data);
                             }
                         }
@@ -199,20 +212,16 @@ namespace Fusion.Resources.Domain.Queries
                         {
                             if (!alreadyInList.Reasons.Contains(org.Reason))
                             {
-
                                 alreadyInList.Reasons.Add(org.Reason);
                             }
                         }
-
                     }
-
-
                 }
 
                 return endResult;
             }
 
-            private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataQueryParams filter, List<QueryRelevantOrgUnit> orgUnits)
+            private static List<QueryRelevantOrgUnit> ApplyOdataFilters(ODataQueryParams filter, IEnumerable<QueryRelevantOrgUnit> orgUnits)
             {
 
                 var filterGenerator = filter.GenerateFilters<QueryRelevantOrgUnit>(m =>
@@ -241,14 +250,14 @@ namespace Fusion.Resources.Domain.Queries
                 });
             }
 
-            private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, Dictionary<string, string> departmentsWithResponsibility)
+            private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, List<string> departmentsWithResponsibility)
             {
                 // Get sectors the user have responsibility in, to find all relevant departments
                 var relevantSectors = new List<string>();
                 foreach (var department in departmentsWithResponsibility)
                 {
 
-                    var resolvedSector = await ResolveSector(department.Key.ToString());
+                    var resolvedSector = await ResolveSector(department.ToString());
                     if (resolvedSector != null)
                     {
                         relevantSectors.Add(resolvedSector);
@@ -294,31 +303,26 @@ namespace Fusion.Resources.Domain.Queries
                 return departments.DistinctBy(x => x.DepartmentId);
             }
 
-            private async Task<Dictionary<string, string>> ResolveDepartmentsWithAccessAsync(FusionPersonProfile user)
+            private async Task<List<string>> ResolveDepartmentsWithAccessAsync(FusionPersonProfile user)
             {
-                var isDepartmentManager = user.IsResourceOwner;
-
-                var departmentsWithResponsibility = new Dictionary<string, string>();
-
-                // Add the current department if the user is resource owner in the department.
-                if (isDepartmentManager && user.FullDepartment != null)
-                    departmentsWithResponsibility.Add(user.FullDepartment, "Fusion.Resources.ResourceOwner");
-
-                // Add all departments the user has Access To.
+               
+                var departmentsWithResponsibility = new List<string>();
+                // Add all departments the user has been delegated responsibility for.
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)
-
+                     .WhereRoleName(AccessRoles.ResourceOwner)
                 );
 
-                foreach (var role in roleAssignedDepartments)
-                {
+                departmentsWithResponsibility.AddRange(roleAssignedDepartments
+                    .Where(x => x.Scope != null && x.ValidTo >= DateTimeOffset.Now)
+                    .SelectMany(x => x.Scope!.Values)
+                );
 
-                    if (role.ValidTo >= DateTimeOffset.Now && role.Scope!.Values != null)
-                    {
-                        departmentsWithResponsibility.Add(role.Scope.Values?.FirstOrDefault(), role.RoleName);
-                    }
-                }
+                var isDepartmentManager = user.IsResourceOwner;
+                // Add the current department if the user is resource owner in the department.
+                if (isDepartmentManager && user.FullDepartment != null)
+                    departmentsWithResponsibility.Add(user.FullDepartment);
 
                 return departmentsWithResponsibility;
             }
