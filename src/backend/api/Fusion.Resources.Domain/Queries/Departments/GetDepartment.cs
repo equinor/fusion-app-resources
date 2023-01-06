@@ -1,6 +1,5 @@
 using Fusion.Integration;
 using Fusion.Integration.LineOrg;
-using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
 using MediatR;
 using System.Threading;
@@ -27,18 +26,17 @@ namespace Fusion.Resources.Domain
 
         public class Handler : DepartmentHandlerBase, IRequestHandler<GetDepartment, QueryDepartment?>
         {
-            public Handler(IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
-                : base(rolesClient, lineOrgResolver, profileResolver) { }
+            public Handler(ResourcesDbContext  db, ILineOrgResolver lineOrgResolver, IFusionProfileResolver profileResolver)
+                : base(db, lineOrgResolver, profileResolver) { }
 
             public async Task<QueryDepartment?> Handle(GetDepartment request, CancellationToken cancellationToken)
             {
                 var lineOrgDpt = await lineOrgResolver.ResolveDepartmentAsync(Integration.LineOrg.DepartmentId.FromFullPath(request.DepartmentId));
 
-                QueryDepartment? result;
                 if (lineOrgDpt is null) return null;
 
                 var sector = new DepartmentPath(lineOrgDpt.FullName).Parent();
-                result = new QueryDepartment(lineOrgDpt.FullName, sector);
+                var result = new QueryDepartment(lineOrgDpt.FullName, sector);
 
                 if (request.shouldExpandDelegatedResourceOwners)
                     await ExpandDelegatedResourceOwner(result, cancellationToken);

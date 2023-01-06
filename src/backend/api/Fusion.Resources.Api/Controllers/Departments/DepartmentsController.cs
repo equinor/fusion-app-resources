@@ -77,8 +77,9 @@ namespace Fusion.Resources.Api.Controllers
             var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
             {
                 DateFrom = request.DateFrom,
-                DateTo = request.DateTo
-            };
+                DateTo = request.DateTo,
+                UpdatedByAzureUniqueId = User.GetAzureUniqueId() ?? User.GetApplicationId()
+            }.WithReason(request.Reason);
 
             await DispatchAsync(command);
 
