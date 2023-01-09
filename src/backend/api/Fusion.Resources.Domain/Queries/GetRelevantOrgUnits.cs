@@ -93,7 +93,10 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     // Needs to have cache here, or else it takses over 10 secodns to load.
                     var delegatedChildren = await ResolveCache(wildcard.Replace('*', ' ').TrimEnd(), cancellationToken);
-                    delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
+                    if (delegatedChildren?.Children is not null)
+                    {
+                        delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
+                    }
                 }
 
                 var adminClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value);
@@ -225,16 +228,15 @@ namespace Fusion.Resources.Domain.Queries
                 return orgUnits.Where(filterGenerator.FilterLambda.Compile()).ToList();
             }
 
-            private async Task<QueryRelatedDepartments> ResolveCache(string fullDepartmentName, CancellationToken cancellationToken)
+            private async Task<QueryRelatedDepartments?> ResolveCache(string fullDepartmentName, CancellationToken cancellationToken)
             {
                 return await memCache.GetOrCreateAsync(fullDepartmentName.Trim(), async (entry) =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
 
                     var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(fullDepartmentName), cancellationToken);
-                    if (orgUnitResponse is null)
-                        throw new InvalidOperationException("Could not fetch org units from line org");
-
+                    //if (orgUnitResponse is null)
+                        //throw new InvalidOperationException("Could not fetch org units from line org");
                     return orgUnitResponse;
                 });
             }
