@@ -1,9 +1,7 @@
-﻿using Bogus.DataSets;
-using Fusion.Resources.Domain.Models;
+﻿using Fusion.Resources.Domain.Models;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 
-namespace Fusion.Resources.Api.Controllers.Departments.ApiModels
+namespace Fusion.Resources.Api.Controllers
 {
     public class ApiRelevantOrgUnit
     {

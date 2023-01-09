@@ -1,5 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.AspNetCore.OData;
+using Fusion.Authorization;
 using Fusion.Integration;
+using Fusion.Integration.LineOrg;
+using Fusion.Integration.Profile;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,18 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Fusion.Authorization;
-using Fusion.Resources.Domain;
-using Fusion.Integration.Profile;
-using Fusion.Integration.LineOrg;
-using Fusion.AspNetCore.OData;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Newtonsoft.Json;
-using System.Text.RegularExpressions;
-using Fusion.Resources.Api.Controllers.Departments;
-using Fusion.Resources.Api.Controllers.Departments.ApiModels;
-using Fusion.Services.LineOrg.ApiModels;
 
 namespace Fusion.Resources.Api.Controllers
 {

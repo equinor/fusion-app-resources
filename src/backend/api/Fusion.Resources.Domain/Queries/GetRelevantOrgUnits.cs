@@ -1,25 +1,15 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration;
-using Fusion.Integration.LineOrg;
-using Fusion.Integration.LineOrg.Cache;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
 using Fusion.Resources.Domain.Models;
-using Fusion.Services.LineOrg.ApiModels;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using System;
-
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -39,43 +29,28 @@ namespace Fusion.Resources.Domain.Queries
         /// </summary>
         public PersonId ProfileId { get; set; }
         public ODataQueryParams Query { get; }
-        public const string CACHEKEY = "Cache.OrgUnits";
-        public enum Roles
-        {
-            DelegatedManager,
-            DelegatedParentManager,
-            ParentManager,
-            Manager,
-            Write
-        }
 
         public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>?>
         {
-            private readonly TimeSpan defaultAbsoluteCacheExpirationHours = TimeSpan.FromHours(1);
-            private readonly ILogger<Handler> logger;
+
             private readonly IFusionProfileResolver profileResolver;
             private readonly IFusionRolesClient rolesClient;
             private readonly IMediator mediator;
-            private readonly ILineOrgResolver lineOrgResolver;
             private readonly IMemoryCache memCache;
-            private readonly HttpClient lineOrgClient;
             private readonly IOrgUnitCache orgUnitCache;
+            private CancellationToken _cancellationToken;
 
 
-
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, ILineOrgResolver lineOrgResolver, IMediator mediator, IMemoryCache memCache, IHttpClientFactory httpClientFactory, IOrgUnitCache orgUnitCache)
+            public Handler(IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator, IMemoryCache memCache, IOrgUnitCache orgUnitCache)
             {
-                this.logger = logger;
                 this.profileResolver = profileResolver;
                 this.rolesClient = rolesClient;
                 this.mediator = mediator;
-                this.lineOrgResolver = lineOrgResolver;
                 this.memCache = memCache;
-                this.lineOrgClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
                 this.orgUnitCache = orgUnitCache;
             }
 
-            private CancellationToken _cancellationToken;
+
             public async Task<QueryRangedList<QueryRelevantOrgUnit>?> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
                 var cachedOrgUnits = await orgUnitCache.GetOrgUnitsAsync();
@@ -91,7 +66,7 @@ namespace Fusion.Resources.Domain.Queries
                 _cancellationToken = cancellationToken;
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
-                if (user is null)
+                if (user?.FullDepartment is null || user is null)
                 {
                     return null;
                 }
@@ -107,8 +82,8 @@ namespace Fusion.Resources.Domain.Queries
                 foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
                 var lineOrgDepartmentProfile = new QueryRelatedDepartments();
                 if (user?.FullDepartment is not null)
-                {
-                    lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), "Cache.lineOrgDepartmentProfile", cancellationToken);
+                { 
+                    lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
                 }
 
                 var delegatedParentDeparmtent = departmentsWithResponsibility.Where(x => x.Contains('*'));
@@ -116,7 +91,8 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var wildcard in delegatedParentDeparmtent)
                 {
-                    var delegatedChildren = await ResolveCache(wildcard.Replace('*', ' ').TrimEnd(), "Cache.wildcardChildren", cancellationToken);
+                    // Needs to have cache here, or else it takses over 10 secodns to load.
+                    var delegatedChildren = await ResolveCache(wildcard.Replace('*', ' ').TrimEnd(), cancellationToken);
                     delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
                 }
 
@@ -127,28 +103,34 @@ namespace Fusion.Resources.Domain.Queries
 
                 if (isDepartmentManager) orgUnitAccessReason.Add(new QueryOrgUnitReason
                 {
-                    FullDepartment = user?.FullDepartment,
-                    Reason = "Manager"
+                    FullDepartment = user.FullDepartment,
+                    Reason = ReasonRoles.Roles.Manager.ToString()
                 });
                 if (adminClaims is not null)
                 {
                     orgUnitAccessReason.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
                     {
                         FullDepartment = dep ?? "*",
-                        Reason = "Write"
-                    }));
+                        Reason = ReasonRoles.Roles.Write.ToString()
+                    })); ;
                 }
-
-                //retList.AddRange(readClaims.Select(dep => new QueryOrgUnit
-                //{
-                //    FullDepartment = dep,
-                //    Reason = "Read"
-                //}));
                 orgUnitAccessReason.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep,
-                    Reason = "DelegatedManager"
-                }));
+                    Reason = ReasonRoles.Roles.DelegatedManager.ToString()
+                })); ;
+                if (isDepartmentManager) orgUnitAccessReason.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnitReason
+                {
+                    FullDepartment = dep.DepartmentId,
+                    Reason = ReasonRoles.Roles.ParentManager.ToString()
+                }) ?? Array.Empty<QueryOrgUnitReason>()); ;
+
+                orgUnitAccessReason.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
+                {
+                    FullDepartment = dep.DepartmentId,
+                    Reason = ReasonRoles.Roles.DelegatedParentManager.ToString()
+                }) ?? Array.Empty<QueryOrgUnitReason>()); ;
+
                 //retList.AddRange(relevantSectors.Select(dep => new QueryOrgUnit
                 //{
                 //    FullDepartment = dep,
@@ -159,21 +141,18 @@ namespace Fusion.Resources.Domain.Queries
                 //    FullDepartment = dep.DepartmentId,
                 //    Reason = "RelevantDepartment"
                 //}));
-                if (isDepartmentManager) orgUnitAccessReason.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnitReason
-                {
-                    FullDepartment = dep.DepartmentId,
-                    Reason = "ParentManager"
-                }) ?? Array.Empty<QueryOrgUnitReason>());
+
                 //retList.AddRange(lineOrgDepartmentProfile?.Siblings.Select(dep => new QueryOrgUnit
                 //{
                 //    FullDepartment = dep.DepartmentId,
                 //    Reason = "RelevantSibling"
                 //}) ?? Array.Empty<QueryOrgUnit>());
-                orgUnitAccessReason.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
-                {
-                    FullDepartment = dep.DepartmentId,
-                    Reason = "DelegatedParentManager"
-                }) ?? Array.Empty<QueryOrgUnitReason>());
+
+                //retList.AddRange(readClaims.Select(dep => new QueryOrgUnit
+                //{
+                //    FullDepartment = dep,
+                //    Reason = "Read"
+                //}));
 
                 List<QueryRelevantOrgUnit> populatedOrgUnitResult = GetRelevantOrgUnits(orgUnits, orgUnitAccessReason);
 
@@ -184,7 +163,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 filteredOrgUnits.DistinctBy(x => x.SapId);
 
-                var pagedQuery = QueryRangedList.FromEnumrableItems(filteredOrgUnits, skip, take);
+                var pagedQuery = QueryRangedList.FromEnumerableItems(filteredOrgUnits, skip, take);
 
                 return pagedQuery;
             }
@@ -194,13 +173,22 @@ namespace Fusion.Resources.Domain.Queries
                 var endResult = new List<QueryRelevantOrgUnit>();
                 foreach (var org in orgUnitAccessReason)
                 {
+
                     if (org?.FullDepartment != null && org?.Reason != null)
                     {
                         var alreadyInList = endResult.FirstOrDefault(x => x.FullDepartment == org.FullDepartment);
 
                         if (alreadyInList is null)
                         {
-                            var data = cachedOrgUnits.Where(x => x.FullDepartment == org?.FullDepartment.Replace('*', ' ').TrimEnd()).FirstOrDefault();
+                            QueryRelevantOrgUnit? data = new QueryRelevantOrgUnit();
+                            if (org.IsWildCard == true)
+                            {
+                                data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment.Replace('*', ' ').TrimEnd());
+                            }
+                            else
+                            {
+                                data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment);
+                            }
 
                             if (data != null)
                             {
@@ -236,9 +224,10 @@ namespace Fusion.Resources.Domain.Queries
                 });
                 return orgUnits.Where(filterGenerator.FilterLambda.Compile()).ToList();
             }
-            private async Task<QueryRelatedDepartments> ResolveCache(string fullDepartmentName, string cachekey, CancellationToken cancellationToken)
+
+            private async Task<QueryRelatedDepartments> ResolveCache(string fullDepartmentName, CancellationToken cancellationToken)
             {
-                return await memCache.GetOrCreateAsync(cachekey, async (entry) =>
+                return await memCache.GetOrCreateAsync(fullDepartmentName.Trim(), async (entry) =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
 
@@ -305,13 +294,12 @@ namespace Fusion.Resources.Domain.Queries
 
             private async Task<List<string>> ResolveDepartmentsWithAccessAsync(FusionPersonProfile user)
             {
-               
+
                 var departmentsWithResponsibility = new List<string>();
                 // Add all departments the user has been delegated responsibility for.
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)
-                     .WhereRoleName(AccessRoles.ResourceOwner)
                 );
 
                 departmentsWithResponsibility.AddRange(roleAssignedDepartments

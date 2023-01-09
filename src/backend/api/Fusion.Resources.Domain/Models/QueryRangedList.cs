@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain
 {
@@ -69,7 +69,7 @@ namespace Fusion.Resources.Domain
             return new QueryRangedList<T>(items, totalCount, skip);
         }
 
-        public static  QueryRangedList<T> FromEnumrableItems<T>(IEnumerable<T> source, int skip, int take, bool skipDataLoad = false)
+        public static  QueryRangedList<T> FromEnumerableItems<T>(IEnumerable<T> source, int skip, int take, bool skipDataLoad = false)
         {
             var count =  source.Count();
 
