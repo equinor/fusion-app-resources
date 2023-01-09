@@ -101,7 +101,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
-                if (isDepartmentManager) orgUnitAccessReason.Add(new QueryOrgUnitReason
+                if (isDepartmentManager && user?.FullDepartment is not null) orgUnitAccessReason.Add(new QueryOrgUnitReason
                 {
                     FullDepartment = user.FullDepartment,
                     Reason = ReasonRoles.Roles.Manager.ToString()
