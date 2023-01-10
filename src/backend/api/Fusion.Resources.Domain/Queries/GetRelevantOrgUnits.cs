@@ -91,7 +91,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 foreach (var wildcard in delegatedParentDeparmtent)
                 {
-                    // Needs to have cache here, or else it takses over 10 secodns to load.
+                    // Needs to have cache here, or else it takes over 10 secodns to load.
                     var delegatedChildren = await ResolveCache(wildcard.Replace('*', ' ').TrimEnd(), cancellationToken);
                     if (delegatedChildren?.Children is not null)
                     {

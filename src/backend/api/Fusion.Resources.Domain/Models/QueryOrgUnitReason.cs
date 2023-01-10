@@ -2,8 +2,8 @@
 {
     internal class QueryOrgUnitReason
     {
-        public string FullDepartment { get; set; } = "";
-        public string Reason { get; set; }  = "";
+        public string FullDepartment { get; set; } = null!;
+        public string Reason { get; set; } = null!;
 
         public bool IsWildCard => FullDepartment.Contains('*')  ;
     }
