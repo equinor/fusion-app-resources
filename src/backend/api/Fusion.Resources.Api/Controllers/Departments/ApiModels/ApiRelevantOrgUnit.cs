@@ -5,16 +5,16 @@ namespace Fusion.Resources.Api.Controllers
 {
     public class ApiRelevantOrgUnit
     {
-        public ApiRelevantOrgUnit(QueryRelevantOrgUnit resourceOwnerProfile)
+        public ApiRelevantOrgUnit(QueryRelevantOrgUnit relevantOrgUnit)
         {
 
-            Reasons = resourceOwnerProfile.Reasons;
-            Name = resourceOwnerProfile.Name;
-            SapId = resourceOwnerProfile.SapId;
-            ParentSapId = resourceOwnerProfile.ParentSapId;
-            ShortName = resourceOwnerProfile.ShortName;
-            FullDepartment = resourceOwnerProfile.FullDepartment;
-            Department = resourceOwnerProfile.Department;
+            Reasons = relevantOrgUnit.Reasons;
+            Name = relevantOrgUnit.Name;
+            SapId = relevantOrgUnit.SapId;
+            ParentSapId = relevantOrgUnit.ParentSapId;
+            ShortName = relevantOrgUnit.ShortName;
+            FullDepartment = relevantOrgUnit.FullDepartment;
+            Department = relevantOrgUnit.Department;
         }
 
         public string? Name { get; set; }

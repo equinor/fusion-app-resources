@@ -73,24 +73,16 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 // Resolve claims with responsibility.
-
+                var isDepartmentManager = user?.IsResourceOwner ?? false;
                 var deleagtedDepartmentManagerClaim = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.Scope?.Value != user.FullDepartment).Select(x => x.Scope?.Value);
                 var adminClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value).Where(x => x != null);
                 var readClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
-                var isDepartmentManager = user?.IsResourceOwner ?? false;
-
-
 
                 var lineOrgDepartmentProfile = new QueryRelatedDepartments();
                 if (user?.FullDepartment is not null)
                 {
                     lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
                 }
-
-                //var sector = await ResolveSector(user.FullDepartment);
-                //var relevantSectors = await ResolveRelevantSectorsAsync(user?.FullDepartment, sector, isDepartmentManager, departmentsWithResponsibility);
-                //var relevantDepartments = new List<QueryDepartment>();
-                //foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
@@ -128,8 +120,6 @@ namespace Fusion.Resources.Domain.Queries
                 {
                     foreach (var wildcard in delegatedParentManagerClaim)
                     {
-
-                        // Needs to have cache here, or else it takes over 10 secodns to load.
                         var delegatedChildren = await ResolveCache(wildcard.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
                         if (delegatedChildren?.Children is not null)
                         {
@@ -154,25 +144,6 @@ namespace Fusion.Resources.Domain.Queries
                         Reason = ReasonRoles.Read
                     }));
                 }
-
-                //retList.AddRange(relevantSectors.Select(dep => new QueryOrgUnit
-                //{
-                //    FullDepartment = dep,
-                //    Reason = "RelevantSector"
-                //}));
-                //retList.AddRange(relevantDepartments.Select(dep => new QueryOrgUnit
-                //{
-                //    FullDepartment = dep.DepartmentId,
-                //    Reason = "RelevantDepartment"
-                //}));
-
-                //retList.AddRange(lineOrgDepartmentProfile?.Siblings.Select(dep => new QueryOrgUnit
-                //{
-                //    FullDepartment = dep.DepartmentId,
-                //    Reason = "RelevantSibling"
-                //}) ?? Array.Empty<QueryOrgUnit>());
-
-
 
                 if (orgUnitAccessReason is null)
                 {
@@ -256,8 +227,6 @@ namespace Fusion.Resources.Domain.Queries
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
 
                     var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(fullDepartmentName), cancellationToken);
-                    //if (orgUnitResponse is null)
-                    //throw new InvalidOperationException("Could not fetch org units from line org");
                     return orgUnitResponse;
                 });
             }
