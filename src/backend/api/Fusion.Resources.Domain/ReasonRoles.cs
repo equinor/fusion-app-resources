@@ -2,6 +2,8 @@
 {
     public static class ReasonRoles
     {
+
+        const string DelegatedManager = "DelegatedManager";
         public enum Roles
         {
             DelegatedManager,

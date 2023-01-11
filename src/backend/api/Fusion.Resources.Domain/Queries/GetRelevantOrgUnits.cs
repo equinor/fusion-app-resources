@@ -1,4 +1,5 @@
-﻿using Fusion.AspNetCore.OData;
+﻿using AdaptiveCards;
+using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
@@ -72,52 +73,44 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 // Resolve departments with responsibility
-                var sector = await ResolveSector(user.FullDepartment);
-                var departmentsWithResponsibility = await ResolveDepartmentsWithAccessAsync(user);
-                var isDepartmentManager = departmentsWithResponsibility.Any(r => r == user.FullDepartment);
 
-                var relevantSectors = await ResolveRelevantSectorsAsync(user.FullDepartment, sector, isDepartmentManager, departmentsWithResponsibility);
-                var relevantDepartments = new List<QueryDepartment>();
+                var managerClaim = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.Scope?.Value == user.FullDepartment).Select(x => x.Scope?.Value);
+                var deleagtedManagerClaim = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.Scope?.Value != user.FullDepartment).Select(x => x.Scope?.Value);
+                var adminClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value).Where(x => x != null);
+                var readClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
+                var isDepartmentManager = managerClaim is not null;
 
-                foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
+
                 var lineOrgDepartmentProfile = new QueryRelatedDepartments();
                 if (user?.FullDepartment is not null)
-                { 
+                {
                     lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
                 }
 
-                var delegatedParentDeparmtent = departmentsWithResponsibility.Where(x => x.Contains('*'));
-                var delegatedParentManagerWithResposibility = new List<QueryDepartment>();
-
-                foreach (var wildcard in delegatedParentDeparmtent)
-                {
-                    // Needs to have cache here, or else it takes over 10 secodns to load.
-                    var delegatedChildren = await ResolveCache(wildcard.Replace('*', ' ').TrimEnd(), cancellationToken);
-                    if (delegatedChildren?.Children is not null)
-                    {
-                        delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
-                    }
-                }
-
-                var adminClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value);
-                var readClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
+                //var sector = await ResolveSector(user.FullDepartment);
+                //var relevantSectors = await ResolveRelevantSectorsAsync(user?.FullDepartment, sector, isDepartmentManager, departmentsWithResponsibility);
+                //var relevantDepartments = new List<QueryDepartment>();
+                //foreach (var relevantSector in relevantSectors) relevantDepartments.AddRange(await ResolveSectorDepartments(relevantSector));
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
-                if (isDepartmentManager && user?.FullDepartment is not null) orgUnitAccessReason.Add(new QueryOrgUnitReason
+                if (managerClaim is not null)
                 {
-                    FullDepartment = user.FullDepartment,
-                    Reason = ReasonRoles.Roles.Manager.ToString()
-                });
+                    orgUnitAccessReason.AddRange(managerClaim.Select(dep => new QueryOrgUnitReason
+                    {
+                        FullDepartment = dep,
+                        Reason = ReasonRoles.Roles.Manager.ToString()
+                    }));
+                }
                 if (adminClaims is not null)
                 {
                     orgUnitAccessReason.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
                     {
                         FullDepartment = dep ?? "*",
                         Reason = ReasonRoles.Roles.Write.ToString()
-                    })); ;
+                    }));
                 }
-                orgUnitAccessReason.AddRange(departmentsWithResponsibility.Select(dep => new QueryOrgUnitReason
+                orgUnitAccessReason.AddRange(deleagtedManagerClaim.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep,
                     Reason = ReasonRoles.Roles.DelegatedManager.ToString()
@@ -127,6 +120,24 @@ namespace Fusion.Resources.Domain.Queries
                     FullDepartment = dep.DepartmentId,
                     Reason = ReasonRoles.Roles.ParentManager.ToString()
                 }) ?? Array.Empty<QueryOrgUnitReason>()); ;
+
+
+                var delegatedParentManagerWithResposibility = new List<QueryDepartment>();
+                var delegatedParentManagerClaim = orgUnitAccessReason?.Where(x => x.IsWildCard == true); ;
+                if (delegatedParentManagerClaim is not null)
+                {
+                    foreach (var wildcard in delegatedParentManagerClaim)
+                    {
+
+                        // Needs to have cache here, or else it takes over 10 secodns to load.
+                        var delegatedChildren = await ResolveCache(wildcard.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
+                        if (delegatedChildren?.Children is not null)
+                        {
+                            delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
+                        }
+                    }
+                }
+
 
                 orgUnitAccessReason.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
                 {
@@ -156,6 +167,12 @@ namespace Fusion.Resources.Domain.Queries
                 //    FullDepartment = dep,
                 //    Reason = "Read"
                 //}));
+
+
+
+               
+
+
 
                 List<QueryRelevantOrgUnit> populatedOrgUnitResult = GetRelevantOrgUnits(orgUnits, orgUnitAccessReason);
 
@@ -236,7 +253,7 @@ namespace Fusion.Resources.Domain.Queries
 
                     var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(fullDepartmentName), cancellationToken);
                     //if (orgUnitResponse is null)
-                        //throw new InvalidOperationException("Could not fetch org units from line org");
+                    //throw new InvalidOperationException("Could not fetch org units from line org");
                     return orgUnitResponse;
                 });
             }
