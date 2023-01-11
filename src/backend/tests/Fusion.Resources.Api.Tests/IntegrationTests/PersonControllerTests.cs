@@ -2,6 +2,7 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
@@ -222,6 +223,26 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             fixture.EnsureDepartment(delegatedOrgUnit.fullDepartment);
             fixture.EnsureDepartment(seconddelegatedOrgUnit.fullDepartment);
             testUser.IsResourceOwner = true;
+
+            testUser.Roles = new List<ApiPersonRoleV3>
+            {
+                new ApiPersonRoleV3
+                {
+                    Name = AccessRoles.ResourceOwner,
+                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = delegatedOrgUnit.fullDepartment },
+                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
+                    IsActive = true,
+                },
+                new ApiPersonRoleV3
+                {
+                    Name = AccessRoles.ResourceOwner,
+                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = seconddelegatedOrgUnit.fullDepartment },
+                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
+                    IsActive = true,
+                },
+            };
+
+
 
 
             LineOrgServiceMock.AddOrgUnit(assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);

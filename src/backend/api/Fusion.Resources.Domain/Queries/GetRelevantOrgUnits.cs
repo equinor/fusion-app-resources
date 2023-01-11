@@ -72,13 +72,13 @@ namespace Fusion.Resources.Domain.Queries
                     return null;
                 }
 
-                // Resolve departments with responsibility
+                // Resolve claims with responsibility.
 
-                var managerClaim = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.Scope?.Value == user.FullDepartment).Select(x => x.Scope?.Value);
-                var deleagtedManagerClaim = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.Scope?.Value != user.FullDepartment).Select(x => x.Scope?.Value);
+                var deleagtedDepartmentManagerClaim = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.Scope?.Value != user.FullDepartment).Select(x => x.Scope?.Value);
                 var adminClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value).Where(x => x != null);
                 var readClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
-                var isDepartmentManager = managerClaim is not null;
+                var isDepartmentManager = user?.IsResourceOwner ?? false;
+
 
 
                 var lineOrgDepartmentProfile = new QueryRelatedDepartments();
@@ -94,31 +94,31 @@ namespace Fusion.Resources.Domain.Queries
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
-                if (managerClaim is not null)
+                if (isDepartmentManager) orgUnitAccessReason.Add(new QueryOrgUnitReason
                 {
-                    orgUnitAccessReason.AddRange(managerClaim.Select(dep => new QueryOrgUnitReason
-                    {
-                        FullDepartment = dep,
-                        Reason = ReasonRoles.Roles.Manager.ToString()
-                    }));
-                }
+                    FullDepartment = user?.FullDepartment ?? "",
+                    Reason = ReasonRoles.Manager
+                });
                 if (adminClaims is not null)
                 {
                     orgUnitAccessReason.AddRange(adminClaims.Select(dep => new QueryOrgUnitReason
                     {
                         FullDepartment = dep ?? "*",
-                        Reason = ReasonRoles.Roles.Write.ToString()
+                        Reason = ReasonRoles.Write
                     }));
                 }
-                orgUnitAccessReason.AddRange(deleagtedManagerClaim.Select(dep => new QueryOrgUnitReason
+                if (deleagtedDepartmentManagerClaim is not null)
                 {
-                    FullDepartment = dep,
-                    Reason = ReasonRoles.Roles.DelegatedManager.ToString()
-                })); ;
+                    orgUnitAccessReason.AddRange(deleagtedDepartmentManagerClaim.Select(dep => new QueryOrgUnitReason
+                    {
+                        FullDepartment = dep ?? "",
+                        Reason = ReasonRoles.DelegatedManager
+                    })); ;
+                }
                 if (isDepartmentManager) orgUnitAccessReason.AddRange(lineOrgDepartmentProfile?.Children.Select(dep => new QueryOrgUnitReason
                 {
                     FullDepartment = dep.DepartmentId,
-                    Reason = ReasonRoles.Roles.ParentManager.ToString()
+                    Reason = ReasonRoles.ParentManager
                 }) ?? Array.Empty<QueryOrgUnitReason>()); ;
 
 
@@ -137,13 +137,23 @@ namespace Fusion.Resources.Domain.Queries
                         }
                     }
                 }
-
-
-                orgUnitAccessReason.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
+                if (delegatedParentManagerWithResposibility is not null)
                 {
-                    FullDepartment = dep.DepartmentId,
-                    Reason = ReasonRoles.Roles.DelegatedParentManager.ToString()
-                }) ?? Array.Empty<QueryOrgUnitReason>()); ;
+                    orgUnitAccessReason?.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
+                    {
+                        FullDepartment = dep.DepartmentId,
+                        Reason = ReasonRoles.DelegatedParentManager
+                    }) ?? Array.Empty<QueryOrgUnitReason>()); ;
+
+                }
+                if (readClaims is not null)
+                {
+                    orgUnitAccessReason?.AddRange(readClaims.Select(dep => new QueryOrgUnitReason
+                    {
+                        FullDepartment = dep ?? "",
+                        Reason = ReasonRoles.Read
+                    }));
+                }
 
                 //retList.AddRange(relevantSectors.Select(dep => new QueryOrgUnit
                 //{
@@ -162,18 +172,12 @@ namespace Fusion.Resources.Domain.Queries
                 //    Reason = "RelevantSibling"
                 //}) ?? Array.Empty<QueryOrgUnit>());
 
-                //retList.AddRange(readClaims.Select(dep => new QueryOrgUnit
-                //{
-                //    FullDepartment = dep,
-                //    Reason = "Read"
-                //}));
 
 
-
-               
-
-
-
+                if (orgUnitAccessReason is null)
+                {
+                    return null;
+                }
                 List<QueryRelevantOrgUnit> populatedOrgUnitResult = GetRelevantOrgUnits(orgUnits, orgUnitAccessReason);
 
                 var filteredOrgUnits = ApplyOdataFilters(request.Query, populatedOrgUnitResult.OrderBy(x => x.SapId));

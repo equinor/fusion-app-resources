@@ -3,14 +3,13 @@
     public static class ReasonRoles
     {
 
-        const string DelegatedManager = "DelegatedManager";
-        public enum Roles
-        {
-            DelegatedManager,
-            DelegatedParentManager,
-            ParentManager,
-            Manager,
-            Write
-        }
+
+        public const string DelegatedManager = "DelegatedManager";
+        public const string DelegatedParentManager = "DelegatedParentManager";
+        public const string ParentManager = "ParentManager";
+        public const string Manager = "Manager";
+        public const string Write = "Write";
+        public const string Read = "Read";
+
     }
 }
