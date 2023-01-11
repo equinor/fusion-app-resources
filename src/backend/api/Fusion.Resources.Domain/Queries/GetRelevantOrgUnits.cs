@@ -39,7 +39,7 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IMediator mediator;
             private readonly IMemoryCache memCache;
             private readonly IOrgUnitCache orgUnitCache;
-            private CancellationToken _cancellationToken;
+
 
 
             public Handler(IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator, IMemoryCache memCache, IOrgUnitCache orgUnitCache)
@@ -62,27 +62,27 @@ namespace Fusion.Resources.Domain.Queries
                     FullDepartment = x.FullDepartment,
                     Department = x.Department,
                     ShortName = x.ShortName
+
                 });
 
-                _cancellationToken = cancellationToken;
+
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);
 
-                if (user?.FullDepartment is null || user is null)
+                if (user?.FullDepartment is null)
                 {
                     return null;
                 }
 
                 // Resolve claims with responsibility.
-                var isDepartmentManager = user?.IsResourceOwner ?? false;
-                var deleagtedDepartmentManagerClaim = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.Scope?.Value != user.FullDepartment).Select(x => x.Scope?.Value);
-                var adminClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin")).Select(x => x.Scope?.Value).Where(x => x != null);
-                var readClaims = user?.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read")).Select(x => x.Scope?.Value);
+                var isDepartmentManager = user.IsResourceOwner;
+                var delegatedDepartmentManager = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Select(x => x.Scope?.Value);
+                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin") && x.IsActive == true).Select(x => x.Scope?.Value);
+                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read" ) && x.IsActive == true).Select(x => x.Scope?.Value);
 
                 var lineOrgDepartmentProfile = new QueryRelatedDepartments();
-                if (user?.FullDepartment is not null)
-                {
-                    lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
-                }
+
+                lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
+            
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
@@ -99,9 +99,9 @@ namespace Fusion.Resources.Domain.Queries
                         Reason = ReasonRoles.Write
                     }));
                 }
-                if (deleagtedDepartmentManagerClaim is not null)
+                if (delegatedDepartmentManager is not null)
                 {
-                    orgUnitAccessReason.AddRange(deleagtedDepartmentManagerClaim.Select(dep => new QueryOrgUnitReason
+                    orgUnitAccessReason.AddRange(delegatedDepartmentManager.Select(dep => new QueryOrgUnitReason
                     {
                         FullDepartment = dep ?? "",
                         Reason = ReasonRoles.DelegatedManager
@@ -114,26 +114,30 @@ namespace Fusion.Resources.Domain.Queries
                 }) ?? Array.Empty<QueryOrgUnitReason>()); ;
 
 
-                var delegatedParentManagerWithResposibility = new List<QueryDepartment>();
+                var delegatedParentManagerWithResposibility = new List<QueryOrgUnitReason>();
                 var delegatedParentManagerClaim = orgUnitAccessReason?.Where(x => x.IsWildCard == true); ;
                 if (delegatedParentManagerClaim is not null)
                 {
                     foreach (var wildcard in delegatedParentManagerClaim)
                     {
-                        var delegatedChildren = await ResolveCache(wildcard.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
-                        if (delegatedChildren?.Children is not null)
+                        var delegatedChildren = orgUnits.Where(x => x.FullDepartment.StartsWith(wildcard.FullDepartment.Replace('*', ' ').TrimEnd()));
+
+
+                        foreach (var child in delegatedChildren)
                         {
-                            delegatedParentManagerWithResposibility.AddRange(delegatedChildren.Children);
+                            delegatedParentManagerWithResposibility?.Add(new QueryOrgUnitReason
+                            {
+                                FullDepartment = child.FullDepartment,
+                                Reason = ReasonRoles.ParentManager
+                            });
                         }
+
+
                     }
                 }
                 if (delegatedParentManagerWithResposibility is not null)
                 {
-                    orgUnitAccessReason?.AddRange(delegatedParentManagerWithResposibility?.Select(dep => new QueryOrgUnitReason
-                    {
-                        FullDepartment = dep.DepartmentId,
-                        Reason = ReasonRoles.DelegatedParentManager
-                    }) ?? Array.Empty<QueryOrgUnitReason>()); ;
+                    orgUnitAccessReason?.AddRange(delegatedParentManagerWithResposibility) ;
 
                 }
                 if (readClaims is not null)
@@ -144,6 +148,8 @@ namespace Fusion.Resources.Domain.Queries
                         Reason = ReasonRoles.Read
                     }));
                 }
+
+
 
                 if (orgUnitAccessReason is null)
                 {
@@ -231,14 +237,14 @@ namespace Fusion.Resources.Domain.Queries
                 });
             }
 
-            private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, List<string> departmentsWithResponsibility)
+            private async Task<List<string>> ResolveRelevantSectorsAsync(string? fullDepartment, string? sector, bool isDepartmentManager, List<QueryOrgUnitReason> departmentsWithResponsibility)
             {
                 // Get sectors the user have responsibility in, to find all relevant departments
                 var relevantSectors = new List<string>();
                 foreach (var department in departmentsWithResponsibility)
                 {
 
-                    var resolvedSector = await ResolveSector(department.ToString());
+                    var resolvedSector = await ResolveSector(department.FullDepartment.ToString());
                     if (resolvedSector != null)
                     {
                         relevantSectors.Add(resolvedSector);
