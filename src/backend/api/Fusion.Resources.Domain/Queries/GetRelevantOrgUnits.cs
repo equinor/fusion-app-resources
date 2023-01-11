@@ -76,14 +76,13 @@ namespace Fusion.Resources.Domain.Queries
                 // Resolve claims with responsibility.
                 var isDepartmentManager = user.IsResourceOwner;
                 var delegatedDepartmentManager = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Select(x => x.Scope?.Value);
-                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") || x.Name.StartsWith("Fusion.Resources.Admin") && x.IsActive == true).Select(x => x.Scope?.Value);
-                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") || x.Name.StartsWith("Fusion.Resources.Read" ) && x.IsActive == true).Select(x => x.Scope?.Value);
+                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Admin") && x.IsActive == true).Select(x => x.Scope?.Value);
+                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Read" ) && x.IsActive == true).Select(x => x.Scope?.Value);
 
                 var lineOrgDepartmentProfile = new QueryRelatedDepartments();
 
                 lineOrgDepartmentProfile = await ResolveCache(user.FullDepartment.Replace('*', ' ').TrimEnd(), cancellationToken);
             
-
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
                 if (isDepartmentManager) orgUnitAccessReason.Add(new QueryOrgUnitReason
@@ -122,7 +121,6 @@ namespace Fusion.Resources.Domain.Queries
                     {
                         var delegatedChildren = orgUnits.Where(x => x.FullDepartment.StartsWith(wildcard.FullDepartment.Replace('*', ' ').TrimEnd()));
 
-
                         foreach (var child in delegatedChildren)
                         {
                             delegatedParentManagerWithResposibility?.Add(new QueryOrgUnitReason
@@ -131,8 +129,6 @@ namespace Fusion.Resources.Domain.Queries
                                 Reason = ReasonRoles.ParentManager
                             });
                         }
-
-
                     }
                 }
                 if (delegatedParentManagerWithResposibility is not null)
@@ -148,8 +144,6 @@ namespace Fusion.Resources.Domain.Queries
                         Reason = ReasonRoles.Read
                     }));
                 }
-
-
 
                 if (orgUnitAccessReason is null)
                 {
