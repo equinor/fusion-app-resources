@@ -70,9 +70,9 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 // Resolve claims with responsibility.
-                var delegatedManagerClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Select(x => x.Scope?.Value);
-                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Admin") && x.IsActive == true).Select(x => x.Scope?.Value);
-                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Read") && x.IsActive == true).Select(x => x.Scope?.Value);
+                var delegatedManagerClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner") && x.IsRoleActive() == true).Select(x => x.Scope?.Value);
+                var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") && x.IsRoleActive() == true || x.Name.StartsWith("Fusion.Resources.Admin") && x.IsRoleActive() == true).Select(x => x.Scope?.Value);
+                var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") && x.IsRoleActive() == true || x.Name.StartsWith("Fusion.Resources.Read") && x.IsRoleActive() == true).Select(x => x.Scope?.Value);
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
