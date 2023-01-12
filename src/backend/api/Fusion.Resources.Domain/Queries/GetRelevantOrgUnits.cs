@@ -1,5 +1,4 @@
-﻿using AdaptiveCards;
-using Fusion.AspNetCore.OData;
+﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Roles;
@@ -35,7 +34,6 @@ namespace Fusion.Resources.Domain.Queries
         {
 
             private readonly IFusionProfileResolver profileResolver;
-            private readonly IFusionRolesClient rolesClient;
             private readonly IMediator mediator;
             private readonly IMemoryCache memCache;
             private readonly IOrgUnitCache orgUnitCache;
@@ -45,7 +43,6 @@ namespace Fusion.Resources.Domain.Queries
             public Handler(IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator, IMemoryCache memCache, IOrgUnitCache orgUnitCache)
             {
                 this.profileResolver = profileResolver;
-                this.rolesClient = rolesClient;
                 this.mediator = mediator;
                 this.memCache = memCache;
                 this.orgUnitCache = orgUnitCache;
