@@ -42,15 +42,15 @@ namespace Fusion.Resources.Domain
 
                 if (department is null)
                     return returnModel;
-                
+
                 var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
                     .Where(r => r.DepartmentId == request.DepartmentId)
                     .ToListAsync(cancellationToken);
-              
+
                 foreach (var m in delegatedResourceOwners)
                 {
                     var personDelegated = await profileResolver.ResolvePersonBasicProfileAsync(m.ResponsibleAzureObjectId);
-                    var item = new QueryDepartmentResponsible(m){DelegatedResponsible = personDelegated};
+                    var item = new QueryDepartmentResponsible(m) { DelegatedResponsible = personDelegated };
 
                     if (m.UpdatedBy.HasValue)
                     {
