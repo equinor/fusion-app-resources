@@ -57,13 +57,14 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(new ApiRelatedDepartments(departments));
         }
 
-        [HttpGet("/departments/{departmentString}/delegated-resource-owner")]
+        [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString)
         {
             var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
             return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
         }
 
+        [HttpPost("/departments/{departmentString}/delegated-resource-owners")]
         [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
         public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
         {
@@ -94,6 +95,7 @@ namespace Fusion.Resources.Api.Controllers
             return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
         }
 
+        [HttpDelete("/departments/{departmentString}/delegated-resource-owners/{azureUniqueId}")]
         [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
         public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
         {
