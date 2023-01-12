@@ -15,12 +15,11 @@ namespace Fusion.Resources.Api.Controllers
 
             DateFrom = responsible.DateFrom;
             DateTo = responsible.DateTo;
-            DateCreated = responsible.DateCreated;
             Reason = responsible.Reason;
 
-            if (responsible.AssignedBy != null)
-                AssignedBy = new ApiPerson(responsible.AssignedBy);
-
+            DateCreated = responsible.DateCreated;
+            if (responsible.CreatedBy != null)
+                CreatedBy = new ApiPerson(responsible.CreatedBy);
         }
 
         public string? Name { get; set; } = null!;
@@ -33,7 +32,7 @@ namespace Fusion.Resources.Api.Controllers
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? DateCreated { get; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ApiPerson? AssignedBy { get; set; }
+        public ApiPerson? CreatedBy { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Reason { get; }
 

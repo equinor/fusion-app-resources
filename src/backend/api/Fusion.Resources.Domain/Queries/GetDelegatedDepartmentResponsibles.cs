@@ -55,7 +55,7 @@ namespace Fusion.Resources.Domain
                     if (m.UpdatedBy.HasValue)
                     {
                         var personAssignedBy = await profileResolver.ResolvePersonBasicProfileAsync(m.UpdatedBy);
-                        item.AssignedBy = personAssignedBy;
+                        item.CreatedBy = personAssignedBy;
                     }
 
                     returnModel.Add(item);
