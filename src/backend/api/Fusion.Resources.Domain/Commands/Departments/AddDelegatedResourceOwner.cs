@@ -1,10 +1,13 @@
-﻿using Fusion.Integration.Roles;
+﻿using Fusion.Integration.Profile;
+using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands.Departments
 {
@@ -34,15 +37,21 @@ namespace Fusion.Resources.Domain.Commands.Departments
         {
             private readonly ResourcesDbContext db;
             private readonly IFusionRolesClient rolesClient;
+            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db, IFusionRolesClient rolesClient)
+            public Handler(ResourcesDbContext db, IFusionRolesClient rolesClient, IMediator mediator)
             {
                 this.db = db;
                 this.rolesClient = rolesClient;
+                this.mediator = mediator;
             }
 
             public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
+                // To prevent duplicates. Remove existing.
+                await mediator.Send(new DeleteDelegatedResourceOwner(request.DepartmentId,
+                    request.ResponsibleAzureUniqueId));
+
                 await rolesClient.AssignRoleAsync(request.ResponsibleAzureUniqueId, new RoleAssignment
                 {
                     Identifier = Guid.NewGuid().ToString(),
@@ -52,7 +61,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                     ValidTo = request.DateTo
                 });
 
-                var delegatedResourceOwner = new DbDelegatedDepartmentResponsible
+                var responsible = new DbDelegatedDepartmentResponsible
                 {
                     DateCreated = DateTime.UtcNow,
                     DateFrom = request.DateFrom,
@@ -63,7 +72,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                     UpdatedBy = request.UpdatedByAzureUniqueId
                 };
 
-                db.DelegatedDepartmentResponsibles.Add(delegatedResourceOwner);
+                db.DelegatedDepartmentResponsibles.Add(responsible);
                 await db.SaveChangesAsync();
 
                 return Unit.Value;

@@ -1,6 +1,7 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
+using Fusion.Resources.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -56,93 +57,101 @@ namespace Fusion.Resources.Api.Controllers
             return Ok(new ApiRelatedDepartments(departments));
         }
 
-        [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
-        public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
+        [HttpGet("/departments/{departmentString}/delegated-resource-owner")]
+        public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetResourceOwnersForDepartment(string departmentString)
         {
-            #region Authorization
+            var departmentResourceOwners = await DispatchAsync(new GetDepartmentResourceOwners(departmentString));
 
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion Authorization
-
-            var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
-            if (existingDepartment is null) return NotFound();
-
-            var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
-            {
-                DateFrom = request.DateFrom,
-                DateTo = request.DateTo,
-                UpdatedByAzureUniqueId = User.GetAzureUniqueId() ?? User.GetApplicationId()
-            }.WithReason(request.Reason);
-
-            await DispatchAsync(command);
-
-            return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
-        }
-
-        [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
-        public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
-        {
-            #region Authorization
-
-            var authResult = await Request.RequireAuthorizationAsync(r =>
-            {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
-            });
-
-            if (authResult.Unauthorized)
-                return authResult.CreateForbiddenResponse();
-
-            #endregion Authorization
-
-            var deleted = await DispatchAsync(
-                new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)
-            );
-
-            if (deleted) return NoContent();
-            else return NotFound();
-        }
-
-        [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
-        public async Task<ActionResult<ApiRelevantDepartments>> GetPositionDepartments(
-            Guid projectId, Guid positionId, Guid instanceId, CancellationToken cancellationToken)
-        {
-            var result = new ApiRelevantDepartments();
-
-            var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
-            if (position is null) return NotFound();
-
-            // Empty string is a valid department in line org (CEO), but we don't want to return that.
-            if (string.IsNullOrWhiteSpace(position.BasePosition.Department)) return result;
-
-            var routedDepartment = await requestRouter.RouteAsync(position, instanceId, cancellationToken);
-            if (string.IsNullOrWhiteSpace(routedDepartment)) return result;
-
-            var department = await DispatchAsync(new GetDepartment(routedDepartment).ExpandDelegatedResourceOwners());
-            var related = await DispatchAsync(new GetRelatedDepartments(position.BasePosition.Department));
-
-            if (related is not null)
-            {
-                result.Relevant.AddRange(
-                    related.Siblings
-                        .Union(related.Children)
-                        .Select(x => new ApiDepartment(x))
-                );
-            }
-
-            if (department is not null)
-            {
-                result.Department = new ApiDepartment(department);
-                result.Relevant.Add(new ApiDepartment(department));
-            }
-
-            return result;
-        }
+            return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
     }
+
+    [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
+    public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
+    {
+        #region Authorization
+
+        var authResult = await Request.RequireAuthorizationAsync(r =>
+        {
+            r.AlwaysAccessWhen().FullControl().FullControlInternal();
+        });
+
+        if (authResult.Unauthorized)
+            return authResult.CreateForbiddenResponse();
+
+        #endregion Authorization
+
+        var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
+        if (existingDepartment is null) return NotFound();
+
+        var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
+        {
+            DateFrom = request.DateFrom,
+            DateTo = request.DateTo,
+            UpdatedByAzureUniqueId = User.GetAzureUniqueId() ?? User.GetApplicationId()
+        }.WithReason(request.Reason);
+
+        await DispatchAsync(command);
+
+        return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
+    }
+
+    [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
+    public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
+    {
+        #region Authorization
+
+        var authResult = await Request.RequireAuthorizationAsync(r =>
+        {
+            r.AlwaysAccessWhen().FullControl().FullControlInternal();
+        });
+
+        if (authResult.Unauthorized)
+            return authResult.CreateForbiddenResponse();
+
+        #endregion Authorization
+
+        var deleted = await DispatchAsync(
+            new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)
+        );
+
+        if (deleted) return NoContent();
+        else return NotFound();
+    }
+
+    [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
+    public async Task<ActionResult<ApiRelevantDepartments>> GetPositionDepartments(
+        Guid projectId, Guid positionId, Guid instanceId, CancellationToken cancellationToken)
+    {
+        var result = new ApiRelevantDepartments();
+
+        var position = await orgApiClient.GetPositionV2Async(projectId, positionId);
+        if (position is null) return NotFound();
+
+        // Empty string is a valid department in line org (CEO), but we don't want to return that.
+        if (string.IsNullOrWhiteSpace(position.BasePosition.Department)) return result;
+
+        var routedDepartment = await requestRouter.RouteAsync(position, instanceId, cancellationToken);
+        if (string.IsNullOrWhiteSpace(routedDepartment)) return result;
+
+        var department = await DispatchAsync(new GetDepartment(routedDepartment).ExpandDelegatedResourceOwners());
+        var related = await DispatchAsync(new GetRelatedDepartments(position.BasePosition.Department));
+
+        if (related is not null)
+        {
+            result.Relevant.AddRange(
+                related.Siblings
+                    .Union(related.Children)
+                    .Select(x => new ApiDepartment(x))
+            );
+        }
+
+        if (department is not null)
+        {
+            result.Department = new ApiDepartment(department);
+            result.Relevant.Add(new ApiDepartment(department));
+        }
+
+        return result;
+    }
+}
 }
