@@ -65,7 +65,6 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpPost("/departments/{departmentString}/delegated-resource-owners")]
-        [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
         public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
         {
             #region Authorization
@@ -96,7 +95,6 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         [HttpDelete("/departments/{departmentString}/delegated-resource-owners/{azureUniqueId}")]
-        [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
         public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
         {
             #region Authorization
