@@ -12,14 +12,14 @@ namespace Fusion.Resources.Api.Controllers
             Name = responsible.DepartmentId;
             if (responsible.DelegatedResponsible != null)
                 DelegatedResponsible = new ApiPerson(responsible.DelegatedResponsible);
-            
+
             DateFrom = responsible.DateFrom;
             DateTo = responsible.DateTo;
             DateCreated = responsible.DateCreated;
             Reason = responsible.Reason;
 
             if (responsible.AssignedBy != null)
-                AssignedBy= new ApiPerson(responsible.AssignedBy);
+                AssignedBy = new ApiPerson(responsible.AssignedBy);
 
         }
 
@@ -28,12 +28,12 @@ namespace Fusion.Resources.Api.Controllers
         public ApiPerson? DelegatedResponsible { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? DateFrom { get; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? DateTo { get; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? DateCreated { get; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ApiPerson? AssignedBy{ get; set; }
+        public ApiPerson? AssignedBy { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Reason { get; }
 
