@@ -37,13 +37,11 @@ namespace Fusion.Resources.Domain.Commands.Departments
         {
             private readonly ResourcesDbContext db;
             private readonly IFusionRolesClient rolesClient;
-            private readonly IMediator mediator;
 
-            public Handler(ResourcesDbContext db, IFusionRolesClient rolesClient, IMediator mediator)
+            public Handler(ResourcesDbContext db, IFusionRolesClient rolesClient)
             {
                 this.db = db;
                 this.rolesClient = rolesClient;
-                this.mediator = mediator;
             }
 
             public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
