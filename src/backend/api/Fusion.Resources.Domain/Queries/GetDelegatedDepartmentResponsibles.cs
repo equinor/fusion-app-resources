@@ -11,9 +11,9 @@ using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain
 {
-    public class GetDepartmentResourceOwners : IRequest<IEnumerable<QueryDepartmentResponsible>>
+    public class GetDelegatedDepartmentResponsibles : IRequest<IEnumerable<QueryDepartmentResponsible>>
     {
-        public GetDepartmentResourceOwners(string departmentId)
+        public GetDelegatedDepartmentResponsibles(string departmentId)
         {
             DepartmentId = departmentId;
         }
@@ -21,7 +21,7 @@ namespace Fusion.Resources.Domain
         private string DepartmentId { get; set; }
 
 
-        public class Handler : IRequestHandler<GetDepartmentResourceOwners, IEnumerable<QueryDepartmentResponsible>>
+        public class Handler : IRequestHandler<GetDelegatedDepartmentResponsibles, IEnumerable<QueryDepartmentResponsible>>
         {
             private readonly ResourcesDbContext db;
             private readonly IFusionProfileResolver profileResolver;
@@ -34,7 +34,7 @@ namespace Fusion.Resources.Domain
                 this.mediator = mediator;
             }
 
-            public async Task<IEnumerable<QueryDepartmentResponsible>> Handle(GetDepartmentResourceOwners request, CancellationToken cancellationToken)
+            public async Task<IEnumerable<QueryDepartmentResponsible>> Handle(GetDelegatedDepartmentResponsibles request, CancellationToken cancellationToken)
             {
                 var returnModel = new List<QueryDepartmentResponsible>();
 
