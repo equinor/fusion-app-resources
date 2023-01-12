@@ -16,7 +16,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 RuleFor(x => x.ResponsibleAzureUniqueId).NotEmpty();
                 RuleFor(x => x.DateFrom).GreaterThanOrEqualTo(DateTimeOffset.UtcNow.AddDays(-1));
-                RuleFor(x => x.DateTo).GreaterThanOrEqualTo(DateTimeOffset.UtcNow.AddYears(3));
+                RuleFor(x => x.DateTo).LessThanOrEqualTo(DateTimeOffset.UtcNow.AddYears(3));
                 RuleFor(x => x.Reason).NotContainScriptTag().MaximumLength(500);
             }
         }
