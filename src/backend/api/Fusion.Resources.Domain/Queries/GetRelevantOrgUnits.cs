@@ -73,7 +73,7 @@ namespace Fusion.Resources.Domain.Queries
                 }
 
                 // Resolve claims with responsibility.
-                var delegatedDepartmentManagerClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Select(x => x.Scope?.Value);
+                var delegatedManagerClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.ResourceOwner")).Select(x => x.Scope?.Value);
                 var adminClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Full") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Admin") && x.IsActive == true).Select(x => x.Scope?.Value);
                 var readClaims = user.Roles?.Where(x => x.Name.StartsWith("Fusion.Resources.Request") && x.IsActive == true || x.Name.StartsWith("Fusion.Resources.Read") && x.IsActive == true).Select(x => x.Scope?.Value);
 
@@ -81,7 +81,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 orgUnitAccessReason.applyManager(user);
                 orgUnitAccessReason.applyRole(adminClaims, ReasonRoles.Write);
-                orgUnitAccessReason.applyRole(delegatedDepartmentManagerClaims, ReasonRoles.DelegatedManager);
+                orgUnitAccessReason.applyRole(delegatedManagerClaims, ReasonRoles.DelegatedManager);
                 orgUnitAccessReason.applyRole(readClaims, ReasonRoles.Read);
                 orgUnitAccessReason.applyParentManager(orgUnits, user);
 
@@ -197,11 +197,11 @@ namespace Fusion.Resources.Domain.Queries
 
         internal static void applyParentManager(this List<QueryOrgUnitReason> reasons, IEnumerable<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
         {
-            var delegatedParentManagerWithResposibility = new List<QueryOrgUnitReason>();
-            var delegatedParentManagerClaim = reasons?.Where(x => x.IsWildCard == true); ;
-            if (delegatedParentManagerClaim is not null)
+            var managerResposibility = new List<QueryOrgUnitReason>();
+            var parentManager = reasons?.Where(x => x.IsWildCard == true); ;
+            if (parentManager is not null)
             {
-                foreach (var wildcard in delegatedParentManagerClaim)
+                foreach (var wildcard in parentManager)
                 {
                     var wildcardDepartment = wildcard.FullDepartment.Replace("*", "").TrimEnd();
                     var delegatedChildren = orgUnits.Distinct().Where(x => x.FullDepartment.StartsWith(wildcardDepartment));
@@ -213,14 +213,14 @@ namespace Fusion.Resources.Domain.Queries
 
                     foreach (var child in delegatedChildren)
                     {
-                        delegatedParentManagerWithResposibility?.Add(new QueryOrgUnitReason
+                        managerResposibility?.Add(new QueryOrgUnitReason
                         {
                             FullDepartment = child.FullDepartment,
                             Reason = reason
                         });
                     }
                 }
-                reasons?.AddRange(delegatedParentManagerWithResposibility);
+                reasons?.AddRange(managerResposibility);
             }
         }
     }
