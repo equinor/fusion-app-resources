@@ -17,7 +17,7 @@ namespace Fusion.Resources.Api.Controllers
             DateTo = responsible.DateTo;
             Reason = responsible.Reason;
 
-            DateCreated = responsible.DateCreated;
+            CreatedDate = responsible.CreatedDate;
             if (responsible.CreatedBy != null)
                 CreatedBy = new ApiPerson(responsible.CreatedBy);
         }
@@ -30,7 +30,7 @@ namespace Fusion.Resources.Api.Controllers
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTimeOffset? DateTo { get; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public DateTimeOffset? DateCreated { get; }
+        public DateTimeOffset? CreatedDate { get; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ApiPerson? CreatedBy { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -14,7 +14,7 @@ namespace Fusion.Resources.Domain.Models
             DateFrom = responsible.DateFrom.DateTime;
             DateTo = responsible.DateTo.DateTime;
             Reason = responsible.Reason;
-            DateCreated = responsible.DateCreated;
+            CreatedDate = responsible.DateCreated;
             CreatedByAzureUniqueId = responsible.UpdatedBy;
         }
 
@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain.Models
         public DateTimeOffset? DateFrom { get; set;}
         public DateTimeOffset? DateTo { get; set;}
         public string? Reason { get; set;}
-        public DateTimeOffset? DateCreated { get; set;}
+        public DateTimeOffset? CreatedDate { get; set;}
         public Guid? CreatedByAzureUniqueId { get; set; }
         public FusionPersonProfile? CreatedBy { get; set; }
 
