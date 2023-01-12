@@ -49,8 +49,15 @@ namespace Fusion.Resources.Domain
               
                 foreach (var m in delegatedResourceOwners)
                 {
-                    var person = await profileResolver.ResolvePersonBasicProfileAsync(m.ResponsibleAzureObjectId);
-                    var item = new QueryDepartmentResponsible(m){DelegatedResponsible = person};
+                    var personDelegated = await profileResolver.ResolvePersonBasicProfileAsync(m.ResponsibleAzureObjectId);
+                    var item = new QueryDepartmentResponsible(m){DelegatedResponsible = personDelegated};
+
+                    if (m.UpdatedBy.HasValue)
+                    {
+                        var personAssignedBy = await profileResolver.ResolvePersonBasicProfileAsync(m.UpdatedBy);
+                        item.AssignedBy = personAssignedBy;
+                    }
+
                     returnModel.Add(item);
                 }
 

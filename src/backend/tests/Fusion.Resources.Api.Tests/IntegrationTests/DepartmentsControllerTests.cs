@@ -189,6 +189,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
             });
 
+            var content = await resp.Response.Content.ReadAsStringAsync();
             resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
         }
 

@@ -17,6 +17,10 @@ namespace Fusion.Resources.Api.Controllers
             DateTo = responsible.DateTo;
             DateCreated = responsible.DateCreated;
             Reason = responsible.Reason;
+
+            if (responsible.AssignedBy != null)
+                AssignedBy= new ApiPerson(responsible.AssignedBy);
+
         }
 
         public string? Name { get; set; } = null!;
@@ -28,6 +32,8 @@ namespace Fusion.Resources.Api.Controllers
         public DateTimeOffset? DateTo { get; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] 
         public DateTimeOffset? DateCreated { get; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ApiPerson? AssignedBy{ get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Reason { get; }
 
