@@ -64,8 +64,9 @@ namespace Fusion.Resources.Api.Controllers
             return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
         }
 
+        [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
         [HttpPost("/departments/{departmentString}/delegated-resource-owners")]
-        public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
+        public async Task<ActionResult<ApiDepartmentResponsible>> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
         {
             #region Authorization
 
@@ -82,18 +83,33 @@ namespace Fusion.Resources.Api.Controllers
             var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
             if (existingDepartment is null) return NotFound();
 
-            var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
+            try
             {
-                DateFrom = request.DateFrom,
-                DateTo = request.DateTo,
-                UpdatedByAzureUniqueId = User.GetAzureUniqueId() ?? User.GetApplicationId()
-            }.WithReason(request.Reason);
+                var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
+                {
+                    DateFrom = request.DateFrom,
+                    DateTo = request.DateTo,
+                    UpdatedByAzureUniqueId = User.GetAzureUniqueId() ?? User.GetApplicationId()
+                }.WithReason(request.Reason);
 
-            await DispatchAsync(command);
+                await DispatchAsync(command);
 
-            return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
+            }
+            catch (RoleDelegationExistsError ex)
+            {
+                return FusionApiError.ResourceExists($"{request.ResponsibleAzureUniqueId}",
+                    $"Person already delegated as resource owner for department '{departmentString}", ex);
+            }
+            var departmentResourceOwners =
+                await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
+            var itemCreated = departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).First(x =>
+                x.DelegatedResponsible!.AzureUniquePersonId == request.ResponsibleAzureUniqueId);
+
+            return CreatedAtAction(nameof(GetDepartments), new { departmentString }, itemCreated);
+
         }
 
+        [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
         [HttpDelete("/departments/{departmentString}/delegated-resource-owners/{azureUniqueId}")]
         public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
         {

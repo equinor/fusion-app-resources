@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
@@ -183,7 +182,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",
@@ -194,6 +193,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task AddDepartmentResponsible_ShouldBeConflict_WhenAlreadyExists()
+        {
+            var testDepartment = "TPD LIN ORG TST2";
+            fixture.EnsureDepartment(testDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+
+            await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
+            {
+                DateFrom = "2021-02-02",
+                DateTo = "2022-02-05",
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
+            {
+                DateFrom = "2021-02-02",
+                DateTo = "2022-02-05",
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        }
+
+
+        [Fact]
         public async Task DeleteDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
         {
             var testDepartment = "TPD LIN ORG TST";
@@ -202,7 +227,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",
@@ -224,7 +249,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",

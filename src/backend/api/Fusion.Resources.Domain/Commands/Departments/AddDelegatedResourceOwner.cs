@@ -48,9 +48,12 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
             public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
-                // To prevent duplicates. Remove existing.
-                await mediator.Send(new DeleteDelegatedResourceOwner(request.DepartmentId,
-                    request.ResponsibleAzureUniqueId));
+                var alreadyDelegated = db.DelegatedDepartmentResponsibles.Any(x =>
+                    x.ResponsibleAzureObjectId == request.ResponsibleAzureUniqueId &&
+                    x.DepartmentId == request.DepartmentId);
+
+                if (alreadyDelegated)
+                    throw new RoleDelegationExistsError();
 
                 await rolesClient.AssignRoleAsync(request.ResponsibleAzureUniqueId, new RoleAssignment
                 {
