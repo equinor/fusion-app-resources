@@ -184,8 +184,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
-                DateFrom = "2021-02-02",
-                DateTo = "2022-02-05",
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
                 ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
             });
 
@@ -204,14 +204,14 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
-                DateFrom = "2021-02-02",
-                DateTo = "2022-02-05",
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
                 ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
             });
             var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
-                DateFrom = "2021-02-02",
-                DateTo = "2022-02-05",
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
                 ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
             });
 
