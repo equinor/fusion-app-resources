@@ -131,7 +131,7 @@ namespace Fusion.Resources.Domain.Queries
                     .Where(r => r.DateFrom < DateTime.Now && r.DateTo > DateTime.Now)
                     .Select(r => new QueryDepartmentResponsible(r));
 
-                departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId));
+                departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId)!);
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)
