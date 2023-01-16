@@ -1,11 +1,8 @@
 ﻿using Fusion.AspNetCore.OData;
 using Fusion.Integration;
 using Fusion.Integration.Profile;
-using Fusion.Integration.Roles;
 using Fusion.Resources.Domain.Models;
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,17 +31,11 @@ namespace Fusion.Resources.Domain.Queries
         {
 
             private readonly IFusionProfileResolver profileResolver;
-            private readonly IMediator mediator;
-            private readonly IMemoryCache memCache;
             private readonly IOrgUnitCache orgUnitCache;
 
-
-
-            public Handler(IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator, IMemoryCache memCache, IOrgUnitCache orgUnitCache)
+            public Handler(IFusionProfileResolver profileResolver, IOrgUnitCache orgUnitCache)
             {
                 this.profileResolver = profileResolver;
-                this.mediator = mediator;
-                this.memCache = memCache;
                 this.orgUnitCache = orgUnitCache;
             }
 
@@ -76,11 +67,11 @@ namespace Fusion.Resources.Domain.Queries
 
                 var orgUnitAccessReason = new List<QueryOrgUnitReason>();
 
-                orgUnitAccessReason.applyManager(user);
-                orgUnitAccessReason.applyRole(adminClaims, ReasonRoles.Write);
-                orgUnitAccessReason.applyRole(delegatedManagerClaims, ReasonRoles.DelegatedManager);
-                orgUnitAccessReason.applyRole(readClaims, ReasonRoles.Read);
-                orgUnitAccessReason.applyParentManager(orgUnits, user);
+                orgUnitAccessReason.ApplyManager(user);
+                orgUnitAccessReason.ApplyRole(adminClaims, ReasonRoles.Write);
+                orgUnitAccessReason.ApplyRole(delegatedManagerClaims, ReasonRoles.DelegatedManager);
+                orgUnitAccessReason.ApplyRole(readClaims, ReasonRoles.Read);
+                orgUnitAccessReason.ApplyParentManager(orgUnits, user);
 
                 if (orgUnitAccessReason is null)
                 {
@@ -155,22 +146,12 @@ namespace Fusion.Resources.Domain.Queries
                 return orgUnits.Where(filterGenerator.FilterLambda.Compile()).ToList();
             }
 
-            private async Task<QueryRelatedDepartments?> ResolveCache(string fullDepartmentName, CancellationToken cancellationToken)
-            {
-                return await memCache.GetOrCreateAsync(fullDepartmentName.Trim(), async (entry) =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
-
-                    var orgUnitResponse = await mediator.Send(new GetRelatedDepartments(fullDepartmentName), cancellationToken);
-                    return orgUnitResponse;
-                });
-            }
         }
     }
 
-    internal static class orgUnitAccessReasons
+    internal static class OrgUnitAccessReasons
     {
-        internal static void applyManager(this List<QueryOrgUnitReason> reasons, FusionFullPersonProfile user)
+        internal static void ApplyManager(this List<QueryOrgUnitReason> reasons, FusionFullPersonProfile user)
         {
             var isDepartmentManager = user.IsResourceOwner;
             if (isDepartmentManager) reasons.Add(new QueryOrgUnitReason
@@ -180,7 +161,7 @@ namespace Fusion.Resources.Domain.Queries
             });
         }
 
-        internal static void applyRole(this List<QueryOrgUnitReason> reasons, IEnumerable<string?>? departments, string role)
+        internal static void ApplyRole(this List<QueryOrgUnitReason> reasons, IEnumerable<string?>? departments, string role)
         {
             if (departments is not null)
             {
@@ -192,7 +173,7 @@ namespace Fusion.Resources.Domain.Queries
             }
         }
 
-        internal static void applyParentManager(this List<QueryOrgUnitReason> reasons, IEnumerable<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
+        internal static void ApplyParentManager(this List<QueryOrgUnitReason> reasons, IEnumerable<QueryRelevantOrgUnit> orgUnits, FusionFullPersonProfile user)
         {
             var managerResposibility = new List<QueryOrgUnitReason>();
             var parentManager = reasons?.Where(x => x.IsWildCard == true); ;
