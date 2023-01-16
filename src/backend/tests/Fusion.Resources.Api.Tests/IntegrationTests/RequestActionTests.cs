@@ -322,7 +322,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             result.Should().BeSuccessfull();
             result.Value.isResolved.Should().BeTrue();
-            result.Value.resolvedAt.Should().BeCloseTo(DateTimeOffset.Now, precision: 2000);
+            result.Value.resolvedAt.Should().BeCloseTo(DateTimeOffset.Now, precision: new TimeSpan(2000));
             result.Value.resolvedBy.AzureUniquePersonId.Should().Be(resourceOwner.AzureUniqueId.Value);
         }
 

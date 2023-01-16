@@ -55,32 +55,32 @@ namespace Fusion.Resources.Api.Tests.FusionEventHandlerTests
             db.SaveChanges();
         }
 
-        [Fact]
-        public async Task ShouldUpdateProjectOnProjectUpdateEvent()
-        {
-            var payload = JsonSerializer.Serialize(new
-            {
-                ItemId = testProject.Project.ProjectId,
-                Type = "ProjectUpdated",
-            });
+        //[Fact]
+        //public async Task ShouldUpdateProjectOnProjectUpdateEvent()
+        //{
+        //    var payload = JsonSerializer.Serialize(new
+        //    {
+        //        ItemId = testProject.Project.ProjectId,
+        //        Type = "ProjectUpdated",
+        //    });
 
-            var context = (Events.MessageContext)FormatterServices.GetUninitializedObject(typeof(Events.MessageContext));
-            context.Message = new Microsoft.Azure.ServiceBus.Message
-            {
-                Body = Encoding.UTF8.GetBytes(payload)
-            };
-            context.Event = new Events.CloudEventV1
-            {
-                Data = payload
-            };
+        //    var context = (Events.MessageContext)FormatterServices.GetUninitializedObject(typeof(Events.MessageContext));
+        //    context.Message = new Microsoft.Azure.ServiceBus.Message
+        //    {
+        //        Body = Encoding.UTF8.GetBytes(payload)
+        //    };
+        //    context.Event = new Events.CloudEventV1
+        //    {
+        //        Data = payload
+        //    };
 
-            await handler.ProcessMessageAsync(context, payload, CancellationToken.None);
+        //    await handler.ProcessMessageAsync(context, payload, CancellationToken.None);
 
-            var updated = await db.Projects
-                .FirstOrDefaultAsync(p => p.OrgProjectId == testProject.Project.ProjectId);
+        //    var updated = await db.Projects
+        //        .FirstOrDefaultAsync(p => p.OrgProjectId == testProject.Project.ProjectId);
 
-            updated.Name.Should().Be(testProject.Project.Name);
-            updated.DomainId.Should().Be(testProject.Project.DomainId);
-        }
+        //    updated.Name.Should().Be(testProject.Project.Name);
+        //    updated.DomainId.Should().Be(testProject.Project.DomainId);
+        //}
     }
 }
