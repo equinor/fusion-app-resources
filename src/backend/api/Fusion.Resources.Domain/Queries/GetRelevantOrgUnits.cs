@@ -39,7 +39,6 @@ namespace Fusion.Resources.Domain.Queries
                 this.orgUnitCache = orgUnitCache;
             }
 
-
             public async Task<QueryRangedList<QueryRelevantOrgUnit>?> Handle(GetRelevantOrgUnits request, CancellationToken cancellationToken)
             {
                 var cachedOrgUnits = await orgUnitCache.GetOrgUnitsAsync();
@@ -84,8 +83,7 @@ namespace Fusion.Resources.Domain.Queries
                 var skip = request.Query.Skip.GetValueOrDefault(0);
                 var take = request.Query.Top.GetValueOrDefault(100);
 
-                filteredOrgUnits.DistinctBy(x => x.SapId);
-                var pagedQuery = QueryRangedList.FromEnumerableItems(filteredOrgUnits, skip, take);
+                var pagedQuery = QueryRangedList.FromEnumerableItems(filteredOrgUnits.DistinctBy(x => x.SapId), skip, take);
 
                 return pagedQuery;
             }
@@ -102,7 +100,7 @@ namespace Fusion.Resources.Domain.Queries
 
                         if (alreadyInList is null)
                         {
-                            QueryRelevantOrgUnit? data = new QueryRelevantOrgUnit();
+                            QueryRelevantOrgUnit? data = new();
                             if (org.IsWildCard == true)
                             {
                                 data = cachedOrgUnits.FirstOrDefault(x => x.FullDepartment == org.FullDepartment.Replace('*', ' ').TrimEnd());
