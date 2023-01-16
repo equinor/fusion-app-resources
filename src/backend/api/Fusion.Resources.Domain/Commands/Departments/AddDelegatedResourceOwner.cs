@@ -1,10 +1,13 @@
-﻿using Fusion.Integration.Roles;
+﻿using Fusion.Integration.Profile;
+using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands.Departments
 {
@@ -43,6 +46,13 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
             public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
+                var alreadyDelegated = db.DelegatedDepartmentResponsibles.Any(x =>
+                    x.ResponsibleAzureObjectId == request.ResponsibleAzureUniqueId &&
+                    x.DepartmentId == request.DepartmentId);
+
+                if (alreadyDelegated)
+                    throw new RoleDelegationExistsError();
+
                 await rolesClient.AssignRoleAsync(request.ResponsibleAzureUniqueId, new RoleAssignment
                 {
                     Identifier = Guid.NewGuid().ToString(),
@@ -52,7 +62,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                     ValidTo = request.DateTo
                 });
 
-                var delegatedResourceOwner = new DbDelegatedDepartmentResponsible
+                var responsible = new DbDelegatedDepartmentResponsible
                 {
                     DateCreated = DateTime.UtcNow,
                     DateFrom = request.DateFrom,
@@ -63,7 +73,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                     UpdatedBy = request.UpdatedByAzureUniqueId
                 };
 
-                db.DelegatedDepartmentResponsibles.Add(delegatedResourceOwner);
+                db.DelegatedDepartmentResponsibles.Add(responsible);
                 await db.SaveChangesAsync();
 
                 return Unit.Value;
