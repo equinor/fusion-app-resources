@@ -97,6 +97,28 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString)
         {
+            var request = await DispatchAsync(new GetDepartment(departmentString));
+
+            if (request == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
+                });
+            });
+
+            #endregion Authorization
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
             var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
             return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
         }
@@ -105,11 +127,22 @@ namespace Fusion.Resources.Api.Controllers
         [HttpPost("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult<ApiDepartmentResponsible>> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
         {
+            var department = await DispatchAsync(new GetDepartment(departmentString));
+
+            if (department == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
+                });
+
             });
 
             if (authResult.Unauthorized)
@@ -150,11 +183,21 @@ namespace Fusion.Resources.Api.Controllers
         [HttpDelete("/departments/{departmentString}/delegated-resource-owners/{azureUniqueId}")]
         public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
         {
+            var department = await DispatchAsync(new GetDepartment(departmentString));
+
+            if (department == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -162,12 +205,9 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion Authorization
 
-            var deleted = await DispatchAsync(
-                new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)
-            );
+            var deleted = await DispatchAsync(new DeleteDelegatedResourceOwner(departmentString, azureUniqueId));
 
-            if (deleted) return NoContent();
-            else return NotFound();
+            return deleted ? NoContent() : NotFound();
         }
 
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
