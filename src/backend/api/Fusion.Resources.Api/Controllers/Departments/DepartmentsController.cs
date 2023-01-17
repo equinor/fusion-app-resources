@@ -1,7 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
 using Fusion.Resources.Domain.Models;
+using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -56,7 +59,41 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok(new ApiRelatedDepartments(departments));
         }
+        
+        [HttpOptions("/departments/{departmentString}/delegated-resource-owners")]
+        public async Task<ActionResult> GetDelegatedResourceOwnersOptions(string departmentString)
+        {
+            var request = await DispatchAsync(new GetDepartment(departmentString));
 
+            if (request == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
+                });
+            });
+
+            #endregion Authorization
+
+            var allowedMethods = new List<string> { "OPTIONS" };
+
+            if (authResult.Success)
+            {
+                allowedMethods.Add("DELETE");
+                allowedMethods.Add("POST");
+                allowedMethods.Add("GET");
+            }
+
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
+            return NoContent();
+        }
         [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString)
         {
