@@ -46,7 +46,7 @@ namespace Fusion.Resources.Api.Notifications
                     relevantProfiles.Add(ro.LineOrgResponsible.AzureUniqueId);
 
                 if (ro?.DelegatedResourceOwners != null)
-                    relevantProfiles.AddRange(ro.DelegatedResourceOwners.Select(x => x.AzureUniqueId));
+                    relevantProfiles.AddRange(ro.DelegatedResourceOwners.Select(x => x.DelegatedResponsible?.AzureUniqueId));
 
                 recipients.AddRange(from azureUniqueId in relevantProfiles.Where(x => x.HasValue).Distinct()
                                     where azureUniqueId.Value != notificationInitiatedByAzureUniqueId

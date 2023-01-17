@@ -1,6 +1,7 @@
 ﻿using Fusion.Resources.Domain;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -11,15 +12,13 @@ namespace Fusion.Resources.Api.Controllers
             Name = department.DepartmentId;
             Sector = department.SectorId;
             LineOrgResponsible = (department.LineOrgResponsible is not null) ? new ApiPerson(department.LineOrgResponsible) : null;
-            DelegatedResponsibles = (department.DelegatedResourceOwners is not null) 
-                ? department.DelegatedResourceOwners.Select(x => new ApiPerson(x)).ToList() 
-                : null;
+            DelegatedResponsibles = department.DelegatedResourceOwners?.Select(x => new ApiPersonDelegatedResponsibility(x)).ToList();
         }
 
         public string Name { get; set; }
         public string? Sector { get; set; }
         public ApiPerson? LineOrgResponsible { get; set; }
-        public List<ApiPerson>? DelegatedResponsibles { get; set; }
+        public List<ApiPersonDelegatedResponsibility>? DelegatedResponsibles { get; set; }
 
     }
 }

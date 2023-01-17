@@ -1,7 +1,6 @@
 ﻿using Fusion.Integration;
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
-using Fusion.Integration.Roles;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,6 +8,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain
 {
@@ -47,21 +47,33 @@ namespace Fusion.Resources.Domain
             foreach (var department in departments)
             {
                 if (delegatedMap.Contains(department.DepartmentId))
-                    await ResolveDelegatedOwners(department, delegatedMap[department.DepartmentId]);
+                    await ResolveDelegatedOwners(department, delegatedMap[department.DepartmentId].ToList());
             }
         }
 
-        private async Task ResolveDelegatedOwners(QueryDepartment department,  IEnumerable<DbDelegatedDepartmentResponsible>? delegatedResourceOwners)
+        private async Task ResolveDelegatedOwners(QueryDepartment department,  IList<DbDelegatedDepartmentResponsible>? delegatedResourceOwners)
         {
             if (delegatedResourceOwners is null) return;
 
-            var resolvedProfiles = await profileResolver
-                .ResolvePersonsAsync(delegatedResourceOwners.Select(p => new PersonIdentifier(p.ResponsibleAzureObjectId)));
+            var profilesToResolve = delegatedResourceOwners
+                .Select(p => new PersonIdentifier(p.ResponsibleAzureObjectId)).ToList()
+                .Union(delegatedResourceOwners.Select(p => new PersonIdentifier(p.UpdatedBy.GetValueOrDefault())));
 
-            department.DelegatedResourceOwners = resolvedProfiles
+            var resolvedProfiles = await profileResolver
+                .ResolvePersonsAsync(profilesToResolve);
+
+            var actualProfiles = resolvedProfiles
                 .Where(res => res.Success)
                 .Select(res => res.Profile!)
                 .ToList();
+
+            department.DelegatedResourceOwners = delegatedResourceOwners?.Select(x => new QueryDepartmentResponsible(x)).ToList() ?? new List<QueryDepartmentResponsible>();
+
+            foreach (var ro in department.DelegatedResourceOwners)
+            {
+                ro.DelegatedResponsible = actualProfiles.FirstOrDefault(x => x.AzureUniqueId == ro.AzureAdObjectId);
+                ro.CreatedBy = actualProfiles.FirstOrDefault(x => x.AzureUniqueId == ro.CreatedByAzureUniqueId);
+            }
         }
     }
 }

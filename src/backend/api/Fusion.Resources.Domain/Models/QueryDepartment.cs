@@ -1,6 +1,7 @@
 using Fusion.Integration.Profile;
 using Fusion.Services.LineOrg.ApiModels;
 using System.Collections.Generic;
+using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain
 {
@@ -22,7 +23,7 @@ namespace Fusion.Resources.Domain
         public string? SectorId { get; }
 
         public FusionPersonProfile? LineOrgResponsible { get; set; }
-        public List<FusionPersonProfile>? DelegatedResourceOwners { get; set; }
+        public List<QueryDepartmentResponsible>? DelegatedResourceOwners { get; set; }
         public bool IsTracked { get; set; } = false;
     }
 }

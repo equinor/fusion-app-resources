@@ -25,7 +25,7 @@ namespace Fusion.Resources.Api.Controllers
 
             if (proposedPerson.DelegatedResourceOwners is not null)
             {
-                DelegatedResourceOwners = proposedPerson.DelegatedResourceOwners.Select(d => new ApiPerson(d));
+                DelegatedResourceOwners = proposedPerson.DelegatedResourceOwners.Select(d => new ApiPersonDelegatedResponsibility(d));
             }
         }
 
