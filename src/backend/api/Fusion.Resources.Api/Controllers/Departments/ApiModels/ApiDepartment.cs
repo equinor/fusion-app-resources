@@ -1,7 +1,6 @@
 ﻿using Fusion.Resources.Domain;
 using System.Collections.Generic;
 using System.Linq;
-using Fusion.ApiClients.Org;
 
 namespace Fusion.Resources.Api.Controllers
 {
