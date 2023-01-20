@@ -1,4 +1,3 @@
-using FluentValidation.AspNetCore;
 using Fusion.Events;
 using Fusion.Integration.Authentication;
 using Fusion.Integration.Org;

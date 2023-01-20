@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation.Results;
-using Fusion.Threading;
 
 namespace Fusion.Resources.Domain.Behaviours
 {

@@ -13,7 +13,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Abstractions" Version="6.0.10" />
     <PackageReference Include="Fusion.Integration.Authorization" Version="6.0.11" />
   </ItemGroup>
   <ItemGroup>
