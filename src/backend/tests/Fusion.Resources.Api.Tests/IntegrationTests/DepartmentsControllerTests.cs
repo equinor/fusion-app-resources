@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Integration.Profile.ApiClient;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +22,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
-        private object testUser;
+        private ApiPersonProfileV3 testUser;
 
         public DepartmentsControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -171,6 +172,71 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
             resp.Value.Should().Contain(x => x.Name == fakeResourceOwner.FullDepartment);
+        }
+
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ShouldBeDisallowed_WhenUser()
+        {
+            var testDepartment = "MY TPD LIN DEP1";
+            fixture.EnsureDepartment(testDepartment);
+
+            using var userScope = fixture.UserScope(testUser);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, !GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
+        {
+            var testDepartment = "MY TPD LIN DEP2";
+            fixture.EnsureDepartment(testDepartment);
+
+            using var adminScope = fixture.AdminScope();
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ShouldBeAllowed_WhenResourceOwner()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP3";
+            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            fixture.EnsureDepartment(testSector, testSector, resourceOwner);
+            fixture.EnsureDepartment(testDepartment);
+
+            using var adminScope = fixture.UserScope(resourceOwner);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testSector}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ChildDepartmentsShouldBeAllowed_WhenResourceOwner()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP4";
+            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            fixture.EnsureDepartment(testSector, testSector, resourceOwner);
+            fixture.EnsureDepartment(testDepartment);
+
+            using var adminScope = fixture.UserScope(resourceOwner);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_SiblingDepartmentsShouldBeDisallowed_WhenResourceOwner()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP5";
+            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            fixture.EnsureDepartment(testSector, testSector);
+            fixture.EnsureDepartment(testDepartment, testSector, resourceOwner);
+
+            using var adminScope = fixture.UserScope(resourceOwner);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, !GET");
         }
 
         [Fact]
