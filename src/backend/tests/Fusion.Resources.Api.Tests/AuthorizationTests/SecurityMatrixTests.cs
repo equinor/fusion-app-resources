@@ -13,9 +13,7 @@ using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -652,7 +650,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 $"/persons/{testUser.AzureUniqueId}/absence"
             );
 
-            CheckAllowHeader(allowed, result);
+            result.CheckAllowHeader(allowed);
         }
 
         [Theory]
@@ -675,7 +673,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 $"/persons/{testUser.AzureUniqueId}/absence/{absence.Id}"
             );
 
-            CheckAllowHeader(allowed, result);
+            result.CheckAllowHeader(allowed);
         }
 
         [Theory]
@@ -728,7 +726,7 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
                 var result = await client.TestClientOptionsAsync(
                     $"/projects/{request.Project.Id}/requests/{request.Id}"
                 );
-                CheckAllowHeader(allowedVerbs, result);
+                result.CheckAllowHeader(allowedVerbs);
             }
         }
 
@@ -758,25 +756,6 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
             else result.Should().BeUnauthorized();
         }
 
-        private static void CheckAllowHeader(string allowed, TestClientHttpResponse<dynamic> result)
-        {
-            var expectedVerbs = allowed
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                            .Select(x =>
-                            {
-                                if (x.StartsWith('!'))
-                                    return new { Key = "disallowed", Method = new HttpMethod(x.Substring(1)) };
-                                else
-                                    return new { Key = "allowed", Method = new HttpMethod(x) };
-                            })
-                            .ToLookup(x => x.Key, x => x.Method);
-
-            if (expectedVerbs["allowed"].Any())
-                result.Should().HaveAllowHeaders(expectedVerbs["allowed"].ToArray());
-
-            if (expectedVerbs["disallowed"].Any())
-                result.Should().NotHaveAllowHeaders(expectedVerbs["disallowed"].ToArray());
-        }
 
         private async Task<TestAbsence> CreateAbsence()
         {

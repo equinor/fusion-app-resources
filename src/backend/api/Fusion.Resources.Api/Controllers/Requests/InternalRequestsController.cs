@@ -1097,7 +1097,7 @@ namespace Fusion.Resources.Api.Controllers
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (string.IsNullOrEmpty(requiredDepartment))
-                return Forbid("Cannot determine required department");
+                return FusionApiError.Forbidden("Cannot determine required department");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -1135,7 +1135,7 @@ namespace Fusion.Resources.Api.Controllers
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
-                return Forbid("Cannot determine required department");
+                return FusionApiError.Forbidden("Cannot determine required department");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -1176,7 +1176,7 @@ namespace Fusion.Resources.Api.Controllers
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
-                return Forbid("Cannot determine required department access");
+                return FusionApiError.Forbidden("Cannot determine required department access");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
@@ -1216,7 +1216,7 @@ namespace Fusion.Resources.Api.Controllers
             var requiredDepartment = request.AssignedDepartment ?? request.OrgPosition?.BasePosition?.Department;
 
             if (requiredDepartment is null)
-                return Forbid("Cannot determine required department");
+                return FusionApiError.Forbidden("Cannot determine required department");
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {

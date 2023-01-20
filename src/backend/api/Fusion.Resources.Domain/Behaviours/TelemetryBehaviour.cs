@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Domain.Behaviours
 {
 
-    public class TelemetryBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+    public class TelemetryBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly TelemetryClient telemetryClient;
 
@@ -18,7 +18,7 @@ namespace Fusion.Resources.Domain.Behaviours
             this.telemetryClient = telemetryClient;
         }
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
 
             var dependency = telemetryClient.StartOperation<DependencyTelemetry>($"{request!.GetType().Name}");

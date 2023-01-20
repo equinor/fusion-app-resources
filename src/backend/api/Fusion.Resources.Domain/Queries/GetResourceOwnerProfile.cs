@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Fusion.Resources.Database;
+using Fusion.Resources.Domain.Models;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -32,13 +34,15 @@ namespace Fusion.Resources.Domain.Queries
             private readonly IFusionProfileResolver profileResolver;
             private readonly IFusionRolesClient rolesClient;
             private readonly IMediator mediator;
+            private readonly ResourcesDbContext db;
 
-            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator)
+            public Handler(ILogger<Handler> logger, IFusionProfileResolver profileResolver, IFusionRolesClient rolesClient, IMediator mediator, ResourcesDbContext db)
             {
                 this.logger = logger;
                 this.profileResolver = profileResolver;
                 this.rolesClient = rolesClient;
                 this.mediator = mediator;
+                this.db = db;
             }
 
             public async Task<QueryResourceOwnerProfile?> Handle(GetResourceOwnerProfile request, CancellationToken cancellationToken)
@@ -122,6 +126,12 @@ namespace Fusion.Resources.Domain.Queries
                     departmentsWithResponsibility.Add(user.FullDepartment);
 
                 // Add all departments the user has been delegated responsibility for.
+                var delegatedResponsibilities = db.DelegatedDepartmentResponsibles
+                    .Where(r => r.ResponsibleAzureObjectId == user.AzureUniqueId)
+                    .Where(r => r.DateFrom < DateTime.Now && r.DateTo > DateTime.Now)
+                    .Select(r => new QueryDepartmentResponsible(r));
+
+                departmentsWithResponsibility.AddRange(delegatedResponsibilities.Select(r => r.DepartmentId)!);
 
                 var roleAssignedDepartments = await rolesClient.GetRolesAsync(q => q
                     .WherePersonAzureId(user.AzureUniqueId!.Value)
@@ -133,7 +143,7 @@ namespace Fusion.Resources.Domain.Queries
                     .SelectMany(x => x.Scope!.Values)
                 );
 
-                return departmentsWithResponsibility;
+                return departmentsWithResponsibility.Distinct().ToList();
             }
 
             private async Task<string?> ResolveSector(string? department)
