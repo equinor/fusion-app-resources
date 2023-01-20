@@ -23,7 +23,7 @@ namespace Fusion.Resources.Api
             this.logger = logger;
         }
 
-        public async Task ProcessMessageAsync(MessageContext ctx, string body, CancellationToken cancellationToken)
+        public async Task ProcessMessageAsync(MessageContext ctx, string? body, CancellationToken cancellationToken)
         {
             var payload = ctx.GetBody<Events.Org.OrgSubscriptionEvent>();
 
