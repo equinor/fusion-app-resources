@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -65,10 +66,8 @@ namespace Fusion.Resources.Api.Tests.FusionEventHandlerTests
             });
 
             var context = (Events.MessageContext)FormatterServices.GetUninitializedObject(typeof(Events.MessageContext));
-            context.Message = new Microsoft.Azure.ServiceBus.Message
-            {
-                Body = Encoding.UTF8.GetBytes(payload)
-            };
+            var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(BinaryData.FromBytes(Encoding.UTF8.GetBytes(payload)));
+            context.Message = serviceBusReceivedMessage;
             context.Event = new Events.CloudEventV1
             {
                 Data = payload

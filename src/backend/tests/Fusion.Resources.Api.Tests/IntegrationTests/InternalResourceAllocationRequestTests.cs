@@ -1026,8 +1026,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             testUser.Department = mainResourceOwner.Department;
 
             var request = await Client.StartProjectRequestAsync(testProject, normalRequest.Id);
-            await Client.AddDelegatedDepartmentOwner(delegatedResourceOwner, TestDepartmentId, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
-            await Client.AddDelegatedDepartmentOwner(secondDelegatedResourceOwner, TestDepartmentId, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+            await Client.AddDelegatedDepartmentOwner(delegatedResourceOwner, TestDepartmentId, DateTime.Today, DateTime.Today.AddDays(7));
+            await Client.AddDelegatedDepartmentOwner(secondDelegatedResourceOwner, TestDepartmentId, DateTime.Today, DateTime.Today.AddDays(7));
             await Client.ProposePersonAsync(normalRequest.Id, testUser);
             await Client.AssignDepartmentAsync(normalRequest.Id, TestDepartmentId);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);

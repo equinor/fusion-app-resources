@@ -5,11 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation.Results;
-using Fusion.Threading;
 
 namespace Fusion.Resources.Domain.Behaviours
 {
-    public class RequestValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+    public class RequestValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly IEnumerable<IValidator<TRequest>> validators;
 
@@ -18,7 +17,7 @@ namespace Fusion.Resources.Domain.Behaviours
             this.validators = validators;
         }
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var context = new ValidationContext<TRequest>(request);
 
@@ -28,7 +27,7 @@ namespace Fusion.Resources.Domain.Behaviours
                 var response = await validator.ValidateAsync(context, cancellationToken);
                 validationResponse.Add(response);
             }
-            
+
             var failures = validationResponse
                 .SelectMany(result => result.Errors)
                 .Where(f => f != null)

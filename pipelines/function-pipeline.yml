@@ -1,5 +1,8 @@
 name: $(date:yyyyMMdd)$(rev:.r)
 
+pool:
+  vmImage: 'ubuntu-latest'
+
 trigger: 
   branches:
     include:

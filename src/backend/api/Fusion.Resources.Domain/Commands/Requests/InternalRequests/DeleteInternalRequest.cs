@@ -35,6 +35,7 @@ namespace Fusion.Resources.Domain.Commands
                 var req = await dbContext.ResourceAllocationRequests
                     .Include(r => r.Project)
                     .Include(r => r.SecondOpinions).ThenInclude(x => x.Responses)
+                    .AsSingleQuery()//https://learn.microsoft.com/nb-no/ef/core/querying/single-split-queries -- Should request for all required data in single query.
                     .FirstOrDefaultAsync(c => c.Id == request.RequestId, ct);
                 
                 if (req is null) return;

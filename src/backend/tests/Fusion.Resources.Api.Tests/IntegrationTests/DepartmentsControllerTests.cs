@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fusion.Integration.Profile.ApiClient;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +22,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
     {
         private ResourceApiFixture fixture;
         private TestLoggingScope loggingScope;
-        private object testUser;
+        private ApiPersonProfileV3 testUser;
 
         public DepartmentsControllerTests(ResourceApiFixture fixture, ITestOutputHelper output)
         {
@@ -92,7 +93,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
                 ValidTo = DateTime.UtcNow.AddDays(1),
                 Source = "Department.Test"
-        });
+            });
 
             await RolesClientMock.AddPersonRole(nonDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
             {
@@ -104,6 +105,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             });
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            fixture.EnsureDepartment(delegatedDepartment, null, delegatedResourceOwner);
+
             using var adminScope = fixture.AdminScope();
 
             var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
@@ -144,6 +147,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
 
+            fixture.EnsureDepartment(delegatedDepartment, null, delegatedResourceOwner);
+            fixture.EnsureDepartment(delegatedDepartment, null, secondDelegatedResourceOwner);
+
             var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{delegatedDepartment}");
             TestLogger.TryLogObject(resp);
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -169,6 +175,71 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
+        public async Task OptionsDepartmentResponsible_ShouldBeDisallowed_WhenUser()
+        {
+            var testDepartment = "MY TPD LIN DEP1";
+            fixture.EnsureDepartment(testDepartment);
+
+            using var userScope = fixture.UserScope(testUser);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, !GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
+        {
+            var testDepartment = "MY TPD LIN DEP2";
+            fixture.EnsureDepartment(testDepartment);
+
+            using var adminScope = fixture.AdminScope();
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ShouldBeAllowed_WhenResourceOwner()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP3";
+            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            fixture.EnsureDepartment(testSector, testSector, resourceOwner);
+            fixture.EnsureDepartment(testDepartment);
+
+            using var adminScope = fixture.UserScope(resourceOwner);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testSector}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ChildDepartmentsShouldBeAllowed_WhenResourceOwner()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP4";
+            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            fixture.EnsureDepartment(testSector, testSector, resourceOwner);
+            fixture.EnsureDepartment(testDepartment);
+
+            using var adminScope = fixture.UserScope(resourceOwner);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_SiblingDepartmentsShouldBeDisallowed_WhenResourceOwner()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP5";
+            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            fixture.EnsureDepartment(testSector, testSector);
+            fixture.EnsureDepartment(testDepartment, testSector, resourceOwner);
+
+            using var adminScope = fixture.UserScope(resourceOwner);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, !GET");
+        }
+
+        [Fact]
         public async Task AddDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
         {
             var testDepartment = "TPD LIN ORG TST";
@@ -177,15 +248,42 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
-                DateFrom = "2021-02-02",
-                DateTo = "2022-02-05",
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
                 ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
             });
 
+            var content = await resp.Response.Content.ReadAsStringAsync();
             resp.Response.StatusCode.Should().Be(HttpStatusCode.Created);
         }
+
+        [Fact]
+        public async Task AddDepartmentResponsible_ShouldBeConflict_WhenAlreadyExists()
+        {
+            var testDepartment = "TPD LIN ORG TST2";
+            fixture.EnsureDepartment(testDepartment);
+            var fakeResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+
+            await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
+            {
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
+            {
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
+                ResponsibleAzureUniqueId = fakeResourceOwner.AzureUniqueId
+            });
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        }
+
 
         [Fact]
         public async Task DeleteDepartmentResponsible_ShouldBeAllowed_WhenAdmin()
@@ -196,7 +294,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",
@@ -218,7 +316,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             using var adminScope = fixture.AdminScope();
 
-            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owner", new
+            var resp = await Client.TestClientPostAsync<dynamic>($"/departments/{testDepartment}/delegated-resource-owners", new
             {
                 DateFrom = "2021-02-02",
                 DateTo = "2022-02-05",

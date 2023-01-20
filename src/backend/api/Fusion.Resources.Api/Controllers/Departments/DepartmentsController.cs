@@ -1,6 +1,10 @@
 ﻿using Fusion.AspNetCore.FluentAuthorization;
+using Fusion.Authorization;
+using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
+using Fusion.Resources.Domain.Models;
+using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -55,15 +59,90 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok(new ApiRelatedDepartments(departments));
         }
-
-        [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
-        public async Task<ActionResult> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
+        
+        [HttpOptions("/departments/{departmentString}/delegated-resource-owners")]
+        public async Task<ActionResult> GetDelegatedResourceOwnersOptions(string departmentString)
         {
+            var request = await DispatchAsync(new GetDepartment(departmentString));
+
+            if (request == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
+                });
+            });
+
+            #endregion Authorization
+
+            var allowedMethods = new List<string> { "OPTIONS" };
+
+            if (authResult.Success)
+            {
+                allowedMethods.Add("DELETE");
+                allowedMethods.Add("POST");
+                allowedMethods.Add("GET");
+            }
+
+            Response.Headers["Allow"] = string.Join(',', allowedMethods);
+            return NoContent();
+        }
+        [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
+        public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString)
+        {
+            var request = await DispatchAsync(new GetDepartment(departmentString));
+
+            if (request == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
+                });
+            });
+
+            #endregion Authorization
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
+            return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
+        }
+
+        [HttpPost("/departments/{departmentString}/delegated-resource-owner")]
+        [HttpPost("/departments/{departmentString}/delegated-resource-owners")]
+        public async Task<ActionResult<ApiDepartmentResponsible>> AddDelegatedResourceOwner(string departmentString, [FromBody] AddDelegatedResourceOwnerRequest request)
+        {
+            var department = await DispatchAsync(new GetDepartment(departmentString));
+
+            if (department == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
+                });
+
             });
 
             if (authResult.Unauthorized)
@@ -74,25 +153,51 @@ namespace Fusion.Resources.Api.Controllers
             var existingDepartment = await DispatchAsync(new GetDepartment(departmentString));
             if (existingDepartment is null) return NotFound();
 
-            var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
+            try
             {
-                DateFrom = request.DateFrom,
-                DateTo = request.DateTo
-            };
+                var command = new AddDelegatedResourceOwner(departmentString, request.ResponsibleAzureUniqueId)
+                {
+                    DateFrom = request.DateFrom,
+                    DateTo = request.DateTo,
+                    UpdatedByAzureUniqueId = User.GetAzureUniqueId() ?? User.GetApplicationId()
+                }.WithReason(request.Reason);
 
-            await DispatchAsync(command);
+                await DispatchAsync(command);
 
-            return CreatedAtAction(nameof(GetDepartments), new { departmentString }, null);
+            }
+            catch (RoleDelegationExistsError ex)
+            {
+                return FusionApiError.ResourceExists($"{request.ResponsibleAzureUniqueId}",
+                    $"Person already delegated as resource owner for department '{departmentString}", ex);
+            }
+            var departmentResourceOwners =
+                await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
+            var itemCreated = departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).First(x =>
+                x.DelegatedResponsible!.AzureUniquePersonId == request.ResponsibleAzureUniqueId);
+
+            return CreatedAtAction(nameof(GetDepartments), new { departmentString }, itemCreated);
+
         }
 
         [HttpDelete("/departments/{departmentString}/delegated-resource-owner/{azureUniqueId}")]
+        [HttpDelete("/departments/{departmentString}/delegated-resource-owners/{azureUniqueId}")]
         public async Task<IActionResult> DeleteDelegatedResourceOwner(string departmentString, Guid azureUniqueId)
         {
+            var department = await DispatchAsync(new GetDepartment(departmentString));
+
+            if (department == null)
+                return FusionApiError.NotFound(departmentString, "Department not found");
+
             #region Authorization
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AnyOf(or =>
+                {
+                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
+                });
             });
 
             if (authResult.Unauthorized)
@@ -100,12 +205,9 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion Authorization
 
-            var deleted = await DispatchAsync(
-                new DeleteDelegatedResourceOwner(departmentString, azureUniqueId)
-            );
+            var deleted = await DispatchAsync(new DeleteDelegatedResourceOwner(departmentString, azureUniqueId));
 
-            if (deleted) return NoContent();
-            else return NotFound();
+            return deleted ? NoContent() : NotFound();
         }
 
         [HttpGet("/projects/{projectId}/positions/{positionId}/instances/{instanceId}/relevant-departments")]
