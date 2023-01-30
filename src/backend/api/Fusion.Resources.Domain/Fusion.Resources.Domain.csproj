@@ -15,8 +15,6 @@
     <PackageReference Include="Fusion.AspNetCore" Version="6.0.4" />
     <PackageReference Include="Fusion.Threading" Version="3.1.5" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
-    <PackageReference Include="Fusion.AspNetCore" Version="6.0.4" />
-
     <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.7" />
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.7" />
     <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="6.0.1" />
