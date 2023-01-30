@@ -4,7 +4,6 @@ using Fusion.Integration;
 using Fusion.Integration.Authentication;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.Authentication;
-using Fusion.Resources.Api.FusionEvents;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
 using MediatR;
@@ -86,7 +85,7 @@ namespace Fusion.Resources.Api
                 {
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
-                s.AddPersistentHandler<LineOrgOrgUnitChangedEvent>(IntegrationConfig.HttpClients.ApplicationLineOrg(), "/subscriptions/lineorg", s => s.OnlyTriggerOn(Events.LineOrgEventTypes.OrgUnit));
+              
             });
             // Add custom claims provider, to sort delegated responsibilities
             services.AddScoped<ILocalClaimsTransformation, SharedRequestClaimsTransformation>();
@@ -94,7 +93,7 @@ namespace Fusion.Resources.Api
             services.AddScoped<IRequestRouter, RequestRouter>();
 
             services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
-            services.AddLineOrgHttpClient();
+          
 
             services.AddControllers()
                 .AddFluentValidation(c =>

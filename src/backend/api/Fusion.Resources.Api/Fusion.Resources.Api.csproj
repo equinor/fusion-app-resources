@@ -14,27 +14,26 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Bogus" Version="34.0.2" />
-		<PackageReference Include="Fusion.Events.Services" Version="0.8.1" />
-		<PackageReference Include="Fusion.Integration" Version="6.0.13" />
+		<PackageReference Include="Fusion.Integration" Version="6.0.8" />
 		<PackageReference Include="Fusion.Events.Server" Version="3.0.0" />
-		<PackageReference Include="Fusion.Integration.Authorization" Version="6.0.11" />
+		<PackageReference Include="Fusion.Integration.Authorization" Version="6.0.9" />
 		<PackageReference Include="Fusion.Integration.Org" Version="6.0.2" />
-		<PackageReference Include="Fusion.Integration.Roles" Version="6.1.7" />
-		<PackageReference Include="Fusion.Integration.Notification" Version="6.0.3" />
+		<PackageReference Include="Fusion.Integration.Roles" Version="6.1.6" />
+		<PackageReference Include="Fusion.Integration.Notification" Version="6.0.2" />
 		<PackageReference Include="Fusion.ApiClients.Org" Version="5.0.7" />
 		<PackageReference Include="Fusion.AspNetCore" Version="6.0.4" />
-		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="6.0.6" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="9.5.1" />
-		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.13" />
+		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6" />
+		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="6.0.6" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.6" />
-		<PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
-		<PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.5.0" />
-		<PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.5.0" />
-		<PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="6.0.13" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.13">
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.16.1" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="7.0.3" />
+		<PackageReference Include="swashbuckle.AspNetCore.Swagger" Version="6.3.1" />
+		<PackageReference Include="swashbuckle.AspNetCore.SwaggerGen" Version="6.3.1" />
+		<PackageReference Include="swashbuckle.AspNetCore.SwaggerUi" Version="6.3.1" />
+		<PackageReference Include=" Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="6.0.6" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.6">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

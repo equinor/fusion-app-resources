@@ -9,14 +9,14 @@
     <PackageReference Include="AdaptiveCards" Version="3.0.0" />
     <PackageReference Include="Fusion.Integration.LineOrg.Abstractions" Version="6.0.5" />
 
-    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR" Version="11.0.0" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.1" />
 	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.8.0" />
     <PackageReference Include="Fusion.AspNetCore" Version="6.0.4" />
     <PackageReference Include="Fusion.Threading" Version="3.1.5" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.7" />
-    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.7" />
+    <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.6" />
     <PackageReference Include="Fusion.Integration.Org.Abstractions" Version="6.0.1" />
     <PackageReference Include="Fusion.Integration.Roles.Abstractions" Version="6.1.5" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
