@@ -27,7 +27,7 @@ namespace Fusion.Resources.Test.Core
         {
             var services = new ServiceCollection();
 
-            ConfigureServices(services);    
+            ConfigureServices(services);
 
             serviceProvider = services.BuildServiceProvider();
         }
@@ -120,9 +120,9 @@ namespace Fusion.Resources.Test.Core
             return new DbPerson { Id = Guid.NewGuid(), AzureUniqueId = Guid.NewGuid(), Name = name, AccountType = "Employee" };
         }
 
-        class TestTrackableRequestBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+        class TestTrackableRequestBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
         {
-            public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+            public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
             {
                 if (request is ITrackableRequest trackableRequest)
                 {

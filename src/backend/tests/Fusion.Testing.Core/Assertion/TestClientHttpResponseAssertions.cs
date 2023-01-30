@@ -12,9 +12,8 @@ namespace Fusion.Testing
 {
     public class TestClientHttpResponseAssertions<T> : ReferenceTypeAssertions<TestClientHttpResponse<T>, TestClientHttpResponseAssertions<T>>
     {
-        public TestClientHttpResponseAssertions(TestClientHttpResponse<T> instance)
+        public TestClientHttpResponseAssertions(TestClientHttpResponse<T> instance) : base(instance)
         {
-            Subject = instance;
         }
 
         protected override string Identifier => "directory";

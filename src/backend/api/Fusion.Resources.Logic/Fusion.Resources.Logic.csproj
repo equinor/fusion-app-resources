@@ -4,10 +4,6 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Authorization" Version="6.0.9" />
-  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\Fusion.Resources.Authorization\Fusion.Resources.Authorization.csproj" />
