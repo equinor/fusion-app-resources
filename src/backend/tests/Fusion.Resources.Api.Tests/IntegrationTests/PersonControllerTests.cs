@@ -2,12 +2,18 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
+using Fusion.Testing.Mocks;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -150,6 +156,110 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             loggingScope.Dispose();
 
             return Task.CompletedTask;
+        }
+
+        [Theory]
+        [InlineData("fulldepartment startswith 'PDP'", 2)]
+        [InlineData("shortName contains 'CC'", 2)]
+        [InlineData("department endswith 'CCM7'", 1)]
+        [InlineData("sapId eq '52752459'", 1)]
+        [InlineData("sapId neq '52752459'", 2)]
+        [InlineData("name eq 'Construction %26 Commissioning'", 1)]
+        public async Task ShouldReturnCorectCountGetRelevantDepartments_ShouldReturnCorrectCount(string filter, int count)
+        {
+            var assignedOrgUnit = new
+            {
+                name = "Const & Commissioning 7",
+                sapId = "52827379",
+                shortName = "CCM7",
+                department = "FE CC CCM7",
+                fullDepartment = "PDP PRD FE CC CCM7"
+
+            };
+            var delegatedOrgUnit = new
+            {
+                name = "Construction & Commissioning",
+                sapId = "52752459",
+                shortName = "CC",
+                department = "PRD FE CC",
+                fullDepartment = "PDP PRD FE CC"
+
+            };
+            var seconddelegatedOrgUnit = new
+            {
+                name = "Project Dev & Plant Main",
+                sapId = "52525936",
+                shortName = "PDP",
+                department = "FOS FOIT PDP",
+                fullDepartment = "TDI OG FOS FOIT PDP"
+            };
+
+            fixture.EnsureDepartment(assignedOrgUnit.fullDepartment);
+            fixture.EnsureDepartment(delegatedOrgUnit.fullDepartment);
+            fixture.EnsureDepartment(seconddelegatedOrgUnit.fullDepartment);
+            testUser.IsResourceOwner = true;
+
+            testUser.Roles = new List<ApiPersonRoleV3>
+            {
+                new ApiPersonRoleV3
+                {
+                    Name = AccessRoles.ResourceOwner,
+                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = delegatedOrgUnit.fullDepartment },
+                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
+                    IsActive = true,
+                },
+                new ApiPersonRoleV3
+                {
+                    Name = AccessRoles.ResourceOwner,
+                    Scope = new ApiPersonRoleScopeV3 { Type = "OrgUnit", Value = seconddelegatedOrgUnit.fullDepartment },
+                    ActiveToUtc = DateTime.UtcNow.AddDays(1),
+                    IsActive = true,
+                },
+            };
+
+
+
+
+            LineOrgServiceMock.AddOrgUnit(assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);
+            LineOrgServiceMock.AddOrgUnit(delegatedOrgUnit.sapId, delegatedOrgUnit.name, delegatedOrgUnit.department, delegatedOrgUnit.fullDepartment, delegatedOrgUnit.shortName);
+            LineOrgServiceMock.AddOrgUnit(seconddelegatedOrgUnit.sapId, seconddelegatedOrgUnit.name, seconddelegatedOrgUnit.department, seconddelegatedOrgUnit.fullDepartment, seconddelegatedOrgUnit.shortName);
+
+
+
+            using (var adminScope = fixture.AdminScope())
+            {
+                var client = fixture.ApiFactory.CreateClient();
+                await client.AddDelegatedDepartmentOwner(testUser, delegatedOrgUnit.fullDepartment, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+                await client.AddDelegatedDepartmentOwner(testUser, seconddelegatedOrgUnit.fullDepartment, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+            }
+
+            using (var userScope = fixture.UserScope(testUser))
+            {
+                testUser.FullDepartment = assignedOrgUnit.fullDepartment;
+                var client = fixture.ApiFactory.CreateClient();
+                var resp = await client.TestClientGetAsync<ApiCollection<ApiRelevantOrgUnitTestModel>>(
+                    $"/persons/{testUser.AzureUniqueId}/resources/relevant-departments?$filter={filter}"
+
+                );
+
+                resp.Should().BeSuccessfull();
+                resp.Value.Value.Count().Should().Be(count);
+
+            }
+        }
+
+
+        public class ApiRelevantOrgUnitTestModel
+        {
+            public string SapId { get; set; }
+            public string FullDepartment { get; set; }
+            public List<string> Reasons { get; set; } = new();
+            public string Name { get; set; }
+            public string ParentSapId { get; set; }
+            public string ShortName { get; set; }
+            public string Department { get; set; }
+
+
         }
     }
 }

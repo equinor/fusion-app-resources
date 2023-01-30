@@ -68,5 +68,20 @@ namespace Fusion.Resources.Domain
         {
             return new QueryRangedList<T>(items, totalCount, skip);
         }
+
+        public static QueryRangedList<T> FromEnumerableItems<T>(IEnumerable<T> source, int skip, int take, bool skipDataLoad = false)
+        {
+            var count = source.Count();
+
+            if (skipDataLoad == false)
+            {
+
+                var items = source.Skip(skip).Take(take);
+                return new QueryRangedList<T>(items, count, skip);
+            }
+
+            var pageCount = source.Skip(skip).Take(take).Count();
+            return new QueryRangedList<T>(pageCount, count, skip);
+        }
     }
 }

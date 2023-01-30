@@ -112,7 +112,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 if (IsMemorycacheDisabled)
                 {
                     services.TryRemoveImplementationService<IMemoryCache>();
-                    services.AddScoped<IMemoryCache, AlwaysEmptyCache>();
+                    services.AddTransient<IMemoryCache, AlwaysEmptyCache>();
                 }
                 services.AddSingleton(new Mock<IFusionServiceDiscovery>(MockBehavior.Loose).Object);
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection

@@ -12,6 +12,9 @@ using Fusion.Authorization;
 using Fusion.Resources.Domain;
 using Fusion.Integration.Profile;
 using Fusion.Integration.LineOrg;
+using Fusion.AspNetCore.OData;
+using Microsoft.VisualBasic;
+using NodaTime.TimeZones;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -68,6 +71,42 @@ namespace Fusion.Resources.Api.Controllers
 
             return new ApiResourceOwnerProfile(resourceOwnerProfile);
         }
+
+        [HttpGet("/persons/me/resources/relevant-departments")]
+        [HttpGet("/persons/{personId}/resources/relevant-departments")]
+        public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
+        {
+
+            if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
+                personId = $"{User.GetAzureUniqueId()}";
+
+            #region Authorization
+
+            var authResult = await Request.RequireAuthorizationAsync(r =>
+            {
+                r.AlwaysAccessWhen().FullControl();
+                r.AlwaysAccessWhen().FullControlInternal();
+
+                r.AnyOf(or =>
+                {
+                    or.CurrentUserIs(personId);
+                    or.BeTrustedApplication();
+                });
+            });
+
+            if (authResult.Unauthorized)
+                return authResult.CreateForbiddenResponse();
+
+            #endregion
+
+            var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
+            if (relevantOrgUnits is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
+
+            var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x))) { TotalCount = relevantOrgUnits.TotalCount };
+            return collection;
+
+        }
+
 
         [HttpGet("/persons/{personId}/resources/notes")]
         public async Task<ActionResult<List<ApiPersonNote>>> GetPersonNotes(string personId)
