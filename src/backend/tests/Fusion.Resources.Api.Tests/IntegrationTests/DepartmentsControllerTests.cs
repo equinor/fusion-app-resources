@@ -150,9 +150,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         public async Task GetDepartments_Should_GetDelegatedResponsibles_FromGetDepartmentsQueryString()
         {
             var source = $"Department.Test";
-            var delegatedDepartment = "AAA BBB CCC DDD";
+            var delegatedDepartment = "BBB CCC DDD EEE";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            mainResourceOwner.FullDepartment = $"AAA BBB CCC DDD EE FFF";
+            mainResourceOwner.FullDepartment = $"BBB CCC DDD EEE FFF GGG";
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var expiredDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
