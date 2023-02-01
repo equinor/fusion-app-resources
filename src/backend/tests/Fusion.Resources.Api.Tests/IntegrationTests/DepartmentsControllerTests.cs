@@ -128,40 +128,40 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var expiredDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var notStartedDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            await RolesClientMock.AddPersonRole(delegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
+            //await RolesClientMock.AddPersonRole(delegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
 
-            await RolesClientMock.AddPersonRole(secondDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
+            //await RolesClientMock.AddPersonRole(secondDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
 
-            await RolesClientMock.AddPersonRole(expiredDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
-            await RolesClientMock.AddPersonRole(notStartedDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
+            //await RolesClientMock.AddPersonRole(expiredDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
+            //await RolesClientMock.AddPersonRole(notStartedDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
@@ -193,40 +193,40 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var expiredDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var notStartedDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
-            await RolesClientMock.AddPersonRole(delegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
+            //await RolesClientMock.AddPersonRole(delegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
 
-            await RolesClientMock.AddPersonRole(secondDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
+            //await RolesClientMock.AddPersonRole(secondDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
 
-            await RolesClientMock.AddPersonRole(expiredDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
-            await RolesClientMock.AddPersonRole(notStartedDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
+            //await RolesClientMock.AddPersonRole(expiredDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
+            //await RolesClientMock.AddPersonRole(notStartedDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+            //{
+            //    Identifier = $"{Guid.NewGuid()}",
+            //    RoleName = AccessRoles.ResourceOwner,
+            //    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
+            //    ValidTo = DateTime.UtcNow.AddDays(1),
+            //    Source = source
+            //});
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();

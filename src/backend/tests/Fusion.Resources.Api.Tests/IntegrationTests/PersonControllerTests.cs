@@ -2,9 +2,13 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.FusionMocks;
+using Fusion.Resources.Domain;
 using Fusion.Testing;
+using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -62,6 +66,54 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 resp.Value.fullDepartment.Should().BeNull();
                 resp.Value.isResourceOwner.Should().BeFalse();
             }
+        }
+
+
+        [Fact]
+        public async Task GetProfile_ShouldReturnValidDelegatedResposibility()
+        {
+            var source = $"Department.Test";
+            var delegatedDepartment = "AAA BBB CCC DDD";
+            var seconddelegateddDepartment = "AAA BBB CCC EEE";
+            var expireddelegateddDepartment = "AAA BBB CCC FFF";
+            var notStarteddelegateddDepartment = "AAA BBB CCC GGG";
+            var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            mainResourceOwner.FullDepartment = $"AAA BBB CCC DDD EE FFF";
+
+
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            using var adminScope = fixture.AdminScope();
+
+            fixture.EnsureDepartment(delegatedDepartment, null, mainResourceOwner);
+            fixture.EnsureDepartment(seconddelegateddDepartment, null, mainResourceOwner);
+            fixture.EnsureDepartment(expireddelegateddDepartment, null, mainResourceOwner, -2, -1);
+            fixture.EnsureDepartment(notStarteddelegateddDepartment, null, mainResourceOwner, +2, +5);
+
+            var manager = fixture.AddProfile(FusionAccountType.Employee);
+            var testUser = fixture.AddProfile(s => s
+                .WithAccountType(FusionAccountType.Employee)
+                .WithManager(manager));
+
+      
+                var client = fixture.ApiFactory.CreateClient();
+                var resp = await client.TestClientGetAsync(
+                    $"/persons/{mainResourceOwner.AzureUniqueId}/resources/profile",
+                    new
+                    {
+                        fullDepartment = default(string),
+                        isResourceOwner = true,
+                        responsibilityInDepartments = Array.Empty<string>()
+                    }
+                );
+
+            resp.Should().BeSuccessfull();
+            resp.Value.responsibilityInDepartments.Count().Should().Be(2);
+            resp.Value.responsibilityInDepartments.Should().Contain(d => d.Equals(delegatedDepartment));
+            resp.Value.responsibilityInDepartments.Should().Contain(d => d.Equals(seconddelegateddDepartment));
+
+
+
         }
 
         [Fact]
