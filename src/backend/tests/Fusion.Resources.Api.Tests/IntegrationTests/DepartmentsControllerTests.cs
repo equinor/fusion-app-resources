@@ -159,6 +159,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var notStartedDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
 
+
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
 
