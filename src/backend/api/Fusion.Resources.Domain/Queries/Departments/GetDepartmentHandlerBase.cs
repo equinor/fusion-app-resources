@@ -41,7 +41,8 @@ namespace Fusion.Resources.Domain
             var departmentIds = departments.Select(x => x.DepartmentId).ToArray();
 
             var query = await db.DelegatedDepartmentResponsibles
-                .Where(r => departmentIds.Contains(r.DepartmentId))
+                .Where(r => departmentIds.Contains(r.DepartmentId) &&
+                r.DateTo >= DateTime.Today && r.DateFrom <= DateTime.Today)
                 .ToListAsync(cancellationToken);
 
             var delegatedMap = query.ToLookup(x => x.DepartmentId);

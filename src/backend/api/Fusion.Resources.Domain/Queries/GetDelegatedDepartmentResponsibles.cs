@@ -44,7 +44,8 @@ namespace Fusion.Resources.Domain
                     return returnModel;
 
                 var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
-                    .Where(r => r.DepartmentId == request.DepartmentId)
+                    .Where(r => r.DepartmentId == request.DepartmentId &&
+                r.DateTo >= DateTime.Today && r.DateFrom <= DateTime.Today)
                     .ToListAsync(cancellationToken);
 
                 foreach (var m in delegatedResourceOwners)
