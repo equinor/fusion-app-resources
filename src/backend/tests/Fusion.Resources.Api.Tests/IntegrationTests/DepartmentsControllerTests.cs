@@ -186,7 +186,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         {
             var source = $"Department.Test";
             var delegatedDepartment = "AAA BBB CCC DDD";
-            var secondDepartment = "AAA BBB CCC EEE";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             mainResourceOwner.FullDepartment = $"AAA BBB CCC DDD EE FFF";
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
