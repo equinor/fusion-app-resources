@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Integration;
 using Fusion.Resources.Domain.Models;
+using Itenso.TimePeriod;
 
 namespace Fusion.Resources.Domain
 {
@@ -39,13 +40,14 @@ namespace Fusion.Resources.Domain
                 var returnModel = new List<QueryDepartmentResponsible>();
 
                 var department = await mediator.Send(new GetDepartment(request.DepartmentId));
-
+                var  today = DateTime.Today.ToUniversalTime();
                 if (department is null)
                     return returnModel;
 
                 var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
                     .Where(r => r.DepartmentId == request.DepartmentId &&
-                r.DateTo >= DateTime.Today && r.DateFrom <= DateTime.Today)
+                    r.DateFrom.Date <= DateTime.Today && r.DateTo.Date >= DateTime.Today)
+          
                     .ToListAsync(cancellationToken);
 
                 foreach (var m in delegatedResourceOwners)

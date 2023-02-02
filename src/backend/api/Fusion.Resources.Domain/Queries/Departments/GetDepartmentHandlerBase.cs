@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain
         {
             var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
                 .Where(r => r.DepartmentId == department.DepartmentId &&
-                r.DateTo >= DateTime.Today && r.DateFrom <= DateTime.Today)
+                  r.DateFrom.Date <= DateTime.Today && r.DateTo.Date >= DateTime.Today)
                 .ToListAsync(cancellationToken);
 
             await ResolveDelegatedOwners(department, delegatedResourceOwners);
@@ -42,7 +42,7 @@ namespace Fusion.Resources.Domain
 
             var query = await db.DelegatedDepartmentResponsibles
                 .Where(r => departmentIds.Contains(r.DepartmentId) &&
-                r.DateTo >= DateTime.Today && r.DateFrom <= DateTime.Today)
+                 r.DateFrom.Date <= DateTime.Today && r.DateTo.Date >= DateTime.Today)
                 .ToListAsync(cancellationToken);
 
             var delegatedMap = query.ToLookup(x => x.DepartmentId);
