@@ -2,6 +2,8 @@ name: pr-cleanup-$(date:yyyyMMdd)$(rev:.r)
 
 trigger: none
 pr: none
+pool:
+  vmImage: ubuntu-latest
 schedules:
   - cron: 0 18 * * *
     always: true
