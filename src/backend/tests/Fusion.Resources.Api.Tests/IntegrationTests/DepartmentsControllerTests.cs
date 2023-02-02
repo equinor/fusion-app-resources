@@ -125,39 +125,61 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             mainResourceOwner.FullDepartment = $"AAA BBB CCC DDD EE FFF";
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-
-            await RolesClientMock.AddPersonRole(delegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
-
-            await RolesClientMock.AddPersonRole(secondDelegatedResourceOwner.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
-            {
-                Identifier = $"{Guid.NewGuid()}",
-                RoleName = AccessRoles.ResourceOwner,
-                Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", delegatedDepartment),
-                ValidTo = DateTime.UtcNow.AddDays(1),
-                Source = source
-            });
+            var expiredDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var notStartedDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
 
             LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
             using var adminScope = fixture.AdminScope();
 
             fixture.EnsureDepartment(delegatedDepartment, null, delegatedResourceOwner);
             fixture.EnsureDepartment(delegatedDepartment, null, secondDelegatedResourceOwner);
+            fixture.EnsureDepartment(delegatedDepartment, null, expiredDelegatedResourceOwner, -2, -1);
+            fixture.EnsureDepartment(delegatedDepartment, null, notStartedDelegatedResourceOwner, +2, +5);
 
             var resp = await Client.TestClientGetAsync<TestDepartment>($"/departments/{delegatedDepartment}");
             TestLogger.TryLogObject(resp);
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             resp.Value.Name.Should().Contain(delegatedDepartment);
-            resp.Value.DelegatedResponsibles.Should().HaveCountGreaterOrEqualTo(2);
+            resp.Value.DelegatedResponsibles.Should().HaveCount(2);
             resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
             resp.Value.DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(secondDelegatedResourceOwner.AzureUniqueId));
+        }
+
+        [Fact]
+        public async Task GetDepartments_Should_GetDelegatedResponsibles_FromGetDepartmentsQueryString()
+        {
+            var source = $"Department.Test";
+            var delegatedDepartment = "BBB CCC DDD EEE";
+            var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            mainResourceOwner.FullDepartment = $"BBB CCC DDD EEE FFF GGG";
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var secondDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var expiredDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var notStartedDelegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+
+
+
+            LineOrgServiceMock.AddTestUser().MergeWithProfile(mainResourceOwner).AsResourceOwner().WithFullDepartment(delegatedDepartment).SaveProfile();
+            using var adminScope = fixture.AdminScope();
+
+            fixture.EnsureDepartment(delegatedDepartment, null, delegatedResourceOwner);
+            fixture.EnsureDepartment(delegatedDepartment, null, secondDelegatedResourceOwner);
+            fixture.EnsureDepartment(delegatedDepartment, null, expiredDelegatedResourceOwner, -2, -1);
+            fixture.EnsureDepartment(delegatedDepartment, null, notStartedDelegatedResourceOwner, +2, +5);
+
+
+            var resp = await Client.TestClientGetAsync<List<TestDepartment>>($"/departments?$search={mainResourceOwner.Name}");
+            TestLogger.TryLogObject(resp);
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+
+            resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
+            resp.Value.FirstOrDefault().DelegatedResponsibles.Count().Should().Be(2);
+            resp.Value.FirstOrDefault().DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(delegatedResourceOwner.AzureUniqueId));
+            resp.Value.FirstOrDefault().DelegatedResponsibles.Should().Contain(d => d.AzureUniquePersonId.Equals(secondDelegatedResourceOwner.AzureUniqueId));
+
+
         }
 
         [Fact]
