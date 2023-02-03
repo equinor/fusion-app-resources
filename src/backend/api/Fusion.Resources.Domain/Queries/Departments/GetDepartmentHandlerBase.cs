@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using Fusion.Resources.Database.Entities;
+using System;
 
 namespace Fusion.Resources.Domain
 {
@@ -28,7 +29,8 @@ namespace Fusion.Resources.Domain
         internal async Task ExpandDelegatedResourceOwner(QueryDepartment department, CancellationToken cancellationToken)
         {
             var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
-                .Where(r => r.DepartmentId == department.DepartmentId)
+                .Where(r => r.DepartmentId == department.DepartmentId &&
+                r.DateTo >= DateTime.Today && r.DateFrom <= DateTime.Today)
                 .ToListAsync(cancellationToken);
 
             await ResolveDelegatedOwners(department, delegatedResourceOwners);
@@ -39,7 +41,8 @@ namespace Fusion.Resources.Domain
             var departmentIds = departments.Select(x => x.DepartmentId).ToArray();
 
             var query = await db.DelegatedDepartmentResponsibles
-                .Where(r => departmentIds.Contains(r.DepartmentId))
+                .Where(r => departmentIds.Contains(r.DepartmentId) &&
+                r.DateTo >= DateTime.Today && r.DateFrom <= DateTime.Today)
                 .ToListAsync(cancellationToken);
 
             var delegatedMap = query.ToLookup(x => x.DepartmentId);
@@ -51,7 +54,7 @@ namespace Fusion.Resources.Domain
             }
         }
 
-        private async Task ResolveDelegatedOwners(QueryDepartment department,  IEnumerable<DbDelegatedDepartmentResponsible>? delegatedResourceOwners)
+        private async Task ResolveDelegatedOwners(QueryDepartment department, IEnumerable<DbDelegatedDepartmentResponsible>? delegatedResourceOwners)
         {
             if (delegatedResourceOwners is null) return;
 

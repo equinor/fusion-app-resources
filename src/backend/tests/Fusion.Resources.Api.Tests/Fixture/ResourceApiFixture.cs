@@ -83,10 +83,12 @@ namespace Fusion.Resources.Api.Tests.Fixture
             return resourceOwner;
         }
 
-        internal void EnsureDepartment(string departmentId, string sectorId = null, ApiPersonProfileV3 defactoResponsible = null)
+        internal void EnsureDepartment(string departmentId, string sectorId = null, ApiPersonProfileV3 defactoResponsible = null, int daysFrom = -1, int daysTo = 1)
         {
             using var scope = ApiFactory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+
+            
 
             LineOrgServiceMock.AddDepartment(departmentId);
 
@@ -94,8 +96,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
             {
                 db.DelegatedDepartmentResponsibles.Add(new Database.Entities.DbDelegatedDepartmentResponsible()
                 {
-                    DateFrom = DateTime.Today.AddDays(-1),
-                    DateTo = DateTime.Today.AddDays(1),
+                    DateFrom = DateTime.Today.AddDays(daysFrom),
+                    DateTo = DateTime.Today.AddDays(daysTo),
                     DepartmentId = departmentId,
                     ResponsibleAzureObjectId = defactoResponsible.AzureUniqueId.GetValueOrDefault(),
                     Reason = "Just for testing"

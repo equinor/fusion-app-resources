@@ -176,58 +176,6 @@ stages:
                   action: deploy
                   manifests: $(deploymentManifest) 
 
-  - stage: DeployTR
-    displayName: 'Deploy to TR'
-    dependsOn: DeployCI
-    condition: succeeded()
-    variables: 
-      envName: 'tr'
-      fusionEnvironment: 'tr'
-      clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
-              
-    jobs:
-      - deployment: DeployTR
-        environment: fusion-resources-tr.fusion-resources-app-tr
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-              - task: AzurePowerShell@4
-                displayName: 'Get secrets'
-                inputs:
-                  azureSubscription: $(subscriptionService)
-                  ScriptType: 'InlineScript'
-                  FailOnStandardError: true
-                  azurePowerShellVersion: 'LatestVersion'
-                  Inline: |
-                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-tr -Name AzureAd--ClientSecret -AsPlainText
-                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
-  
-              - template: templates/get-appinsights-key.yml
-                parameters:
-                  environment: $(envName)
-  
-              # Load the key vault url into variable, so it can be used when replacing tokens.
-              - template: templates/get-keyvault-url.yml
-                parameters:
-                  environment: $(envName)
-                  variableName: envKeyVaultUrl
-  
-              - template: templates/replace-tokens.yml
-                parameters:
-                  targetFiles: '$(deploymentManifest)'
-  
-              - template: templates/execute-sql-migration.yml
-                parameters:
-                  artifact: 'k8s-deployment'
-                  environment: $(envName)
-    
-              - task: KubernetesManifest@0
-                displayName: Deploy to Kubernetes cluster
-                inputs:
-                  action: deploy
-                  manifests: $(deploymentManifest) 
-
   - stage: DeployFPRD
     displayName: 'Deploy to FPRD'
     dependsOn: DeployFQA
@@ -286,3 +234,55 @@ stages:
                   fusionEnvironment: $(fusionEnvironment)
                   clientId: $(clientId)
                   imageName: $(fullImageName)
+
+  - stage: DeployTR
+    displayName: 'Deploy to TR'
+    dependsOn: DeployFPRD
+    condition: succeeded()
+    variables: 
+      envName: 'tr'
+      fusionEnvironment: 'tr'
+      clientId: '5a842df8-3238-415d-b168-9f16a6a6031b'
+              
+    jobs:
+      - deployment: DeployTR
+        environment: fusion-resources-tr.fusion-resources-app-tr
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: AzurePowerShell@4
+                displayName: 'Get secrets'
+                inputs:
+                  azureSubscription: $(subscriptionService)
+                  ScriptType: 'InlineScript'
+                  FailOnStandardError: true
+                  azurePowerShellVersion: 'LatestVersion'
+                  Inline: |
+                    $secretText = Get-AzKeyVaultSecret -VaultName kv-fap-resources-tr -Name AzureAd--ClientSecret -AsPlainText
+                    Write-Output "##vso[task.setvariable variable=clientSecret;issecret=true]$($secretText)"
+  
+              - template: templates/get-appinsights-key.yml
+                parameters:
+                  environment: $(envName)
+  
+              # Load the key vault url into variable, so it can be used when replacing tokens.
+              - template: templates/get-keyvault-url.yml
+                parameters:
+                  environment: $(envName)
+                  variableName: envKeyVaultUrl
+  
+              - template: templates/replace-tokens.yml
+                parameters:
+                  targetFiles: '$(deploymentManifest)'
+  
+              - template: templates/execute-sql-migration.yml
+                parameters:
+                  artifact: 'k8s-deployment'
+                  environment: $(envName)
+    
+              - task: KubernetesManifest@0
+                displayName: Deploy to Kubernetes cluster
+                inputs:
+                  action: deploy
+                  manifests: $(deploymentManifest) 
