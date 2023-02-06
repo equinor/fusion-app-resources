@@ -48,17 +48,14 @@ namespace Fusion.Resources.Domain
                 if (department is null)
                     return returnModel;
 
-
-                var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
-                    .Where(r => r.DepartmentId == request.DepartmentId)
-                    .ToListAsync(cancellationToken);
-
+                var query =  db.DelegatedDepartmentResponsibles.AsNoTracking().Where(x => x.DepartmentId == request.DepartmentId);
                 if (!request.shouldIgnoreDateFilter)
                 {
-                    delegatedResourceOwners = delegatedResourceOwners.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date).ToList();
+                    query = query.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date);
                 }
-
-                foreach (var m in delegatedResourceOwners)
+                var delegatedResourceOwners = query.ToListAsync(cancellationToken);
+               
+                foreach (var m in delegatedResourceOwners.Result)
                 {
                     var personDelegated = await profileResolver.ResolvePersonBasicProfileAsync(m.ResponsibleAzureObjectId);
                     var item = new QueryDepartmentResponsible(m) { DelegatedResponsible = personDelegated };
