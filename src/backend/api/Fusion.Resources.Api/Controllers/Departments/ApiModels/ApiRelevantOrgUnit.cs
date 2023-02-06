@@ -7,7 +7,6 @@ namespace Fusion.Resources.Api.Controllers
     {
         public ApiRelevantOrgUnit(QueryRelevantOrgUnit relevantOrgUnit)
         {
-
             Reasons = relevantOrgUnit.Reasons;
             Name = relevantOrgUnit.Name;
             SapId = relevantOrgUnit.SapId;

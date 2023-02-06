@@ -2,6 +2,7 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
+using Fusion.Resources.Api.Tests.Helpers.Models;
 using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
@@ -286,20 +287,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 resp.Should().BeSuccessfull();
                 resp.Value.Value.Count().Should().Be(count);
             }
-        }
-
-
-        public class ApiRelevantOrgUnitTestModel
-        {
-            public string SapId { get; set; }
-            public string FullDepartment { get; set; }
-            public List<string> Reasons { get; set; } = new();
-            public string Name { get; set; }
-            public string ParentSapId { get; set; }
-            public string ShortName { get; set; }
-            public string Department { get; set; }
-
-
         }
     }
 }
