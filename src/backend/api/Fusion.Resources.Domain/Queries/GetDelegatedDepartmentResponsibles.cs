@@ -56,7 +56,6 @@ namespace Fusion.Resources.Domain
                 if (!request.shouldIgnoreDateFilter)
                 {
                     delegatedResourceOwners = delegatedResourceOwners.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date).ToList();
-
                 }
 
                 foreach (var m in delegatedResourceOwners)
