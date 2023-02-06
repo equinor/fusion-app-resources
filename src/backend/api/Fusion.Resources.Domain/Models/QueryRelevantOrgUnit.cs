@@ -11,7 +11,5 @@ namespace Fusion.Resources.Domain.Models
         public string ParentSapId { get; set; } = null!;
         public string ShortName { get; set; } = null!;
         public string Department { get; set; } = null!;
-
-
     }
 }

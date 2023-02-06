@@ -19,7 +19,6 @@ namespace Fusion.Resources.Domain
             TotalCount = total;
             Skip = skip;
             AddRange(items);
-
             PageSize = Count;
         }
 
@@ -39,7 +38,7 @@ namespace Fusion.Resources.Domain
                 var items = await source.Skip(skip).Take(take).ToListAsync();
                 return new QueryRangedList<TResult>(items, count, skip);
             }
-            
+
             var pageCount = await source.Skip(skip).Take(take).CountAsync();
             return new QueryRangedList<TResult>(pageCount, count, skip);
         }
@@ -75,11 +74,9 @@ namespace Fusion.Resources.Domain
 
             if (skipDataLoad == false)
             {
-
                 var items = source.Skip(skip).Take(take);
                 return new QueryRangedList<T>(items, count, skip);
             }
-
             var pageCount = source.Skip(skip).Take(take).Count();
             return new QueryRangedList<T>(pageCount, count, skip);
         }

@@ -76,7 +76,6 @@ namespace Fusion.Resources.Api.Controllers
         [HttpGet("/persons/{personId}/resources/relevant-departments")]
         public async Task<ActionResult<ApiCollection<ApiRelevantOrgUnit>>> GetRelevantDepartments(string? personId, [FromQuery] ODataQueryParams query)
         {
-
             if (string.IsNullOrEmpty(personId) || string.Equals(personId, "me", StringComparison.OrdinalIgnoreCase))
                 personId = $"{User.GetAzureUniqueId()}";
 
@@ -84,14 +83,12 @@ namespace Fusion.Resources.Api.Controllers
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl();
-                r.AlwaysAccessWhen().FullControlInternal();
-
+                r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
-                {
-                    or.CurrentUserIs(personId);
-                    or.BeTrustedApplication();
-                });
+                                {
+                                    or.CurrentUserIs(personId);
+                                    or.BeTrustedApplication();
+                                });
             });
 
             if (authResult.Unauthorized)
@@ -100,7 +97,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
             var relevantOrgUnits = await DispatchAsync(new GetRelevantOrgUnits(personId, query));
-            if (relevantOrgUnits is null) return ApiErrors.NotFound($"No profile found for user {personId}.");
+            if (relevantOrgUnits is null) return ApiErrors.NotFound($"No relevant OrgUnits found for user {personId}.");
 
             var collection = new ApiCollection<ApiRelevantOrgUnit>(relevantOrgUnits.Select(x => new ApiRelevantOrgUnit(x))) { TotalCount = relevantOrgUnits.TotalCount };
             return collection;

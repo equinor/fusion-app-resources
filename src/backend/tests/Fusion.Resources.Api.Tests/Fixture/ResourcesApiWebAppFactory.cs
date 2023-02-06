@@ -1,5 +1,4 @@
 using Fusion.Events;
-using Fusion.Events.Server.HostedService;
 using Fusion.Integration;
 using Fusion.Integration.Notification;
 using Fusion.Integration.Org;
@@ -79,7 +78,6 @@ namespace Fusion.Resources.Api.Tests.Fixture
             {
                 ResourcesDbContext dbContext = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
                 dbContext.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
-
                 dbContext.Database.EnsureCreated();
             }
         }
@@ -112,7 +110,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                 if (IsMemorycacheDisabled)
                 {
                     services.TryRemoveImplementationService<IMemoryCache>();
-                    services.AddTransient<IMemoryCache, AlwaysEmptyCache>();
+                    services.AddSingleton<IMemoryCache, AlwaysEmptyCache>();
                 }
                 services.AddSingleton(new Mock<IFusionServiceDiscovery>(MockBehavior.Loose).Object);
                 //make it transient in the tests, to make sure that test contracts are added to in-memory collection

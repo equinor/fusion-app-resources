@@ -2,8 +2,6 @@
 {
     public static class ReasonRoles
     {
-
-
         public const string DelegatedManager = "DelegatedManager";
         public const string DelegatedParentManager = "DelegatedParentManager";
         public const string ParentManager = "ParentManager";

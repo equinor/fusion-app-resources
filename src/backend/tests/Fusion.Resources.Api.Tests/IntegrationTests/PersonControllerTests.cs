@@ -2,22 +2,17 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Api.Tests.FusionMocks;
-using Fusion.Resources.Domain;
 using Fusion.Resources.Domain;
 using Fusion.Testing;
-using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
@@ -49,6 +44,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.ContextResolver
                 .AddContext(testProject.Project);
+
+            fixture.DisableMemoryCache();
         }
 
         [Fact]
@@ -117,9 +114,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Value.responsibilityInDepartments.Count().Should().Be(2);
             resp.Value.responsibilityInDepartments.Should().Contain(d => d.Equals(delegatedDepartment));
             resp.Value.responsibilityInDepartments.Should().Contain(d => d.Equals(seconddelegateddDepartment));
-
-
-
         }
 
         [Fact]
@@ -269,14 +263,9 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 },
             };
 
-
-
-
             LineOrgServiceMock.AddOrgUnit(assignedOrgUnit.sapId, assignedOrgUnit.name, assignedOrgUnit.department, assignedOrgUnit.fullDepartment, assignedOrgUnit.shortName);
             LineOrgServiceMock.AddOrgUnit(delegatedOrgUnit.sapId, delegatedOrgUnit.name, delegatedOrgUnit.department, delegatedOrgUnit.fullDepartment, delegatedOrgUnit.shortName);
             LineOrgServiceMock.AddOrgUnit(seconddelegatedOrgUnit.sapId, seconddelegatedOrgUnit.name, seconddelegatedOrgUnit.department, seconddelegatedOrgUnit.fullDepartment, seconddelegatedOrgUnit.shortName);
-
-
 
             using (var adminScope = fixture.AdminScope())
             {
@@ -296,7 +285,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
                 resp.Should().BeSuccessfull();
                 resp.Value.Value.Count().Should().Be(count);
-
             }
         }
 

@@ -21,13 +21,7 @@ namespace Fusion.Resources.Domain.Services
         public OrgUnitCache(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
         {
             this.memoryCache = memoryCache;
-
             this.lineOrgClient = httpClientFactory.CreateClient(IntegrationConfig.HttpClients.ApplicationLineOrg());
-
-
-
-
-
         }
 
         public async Task<IEnumerable<ApiOrgUnit>> GetOrgUnitsAsync()

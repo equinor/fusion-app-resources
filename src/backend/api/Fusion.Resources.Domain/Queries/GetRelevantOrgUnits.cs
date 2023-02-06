@@ -29,7 +29,6 @@ namespace Fusion.Resources.Domain.Queries
 
         public class Handler : IRequestHandler<GetRelevantOrgUnits, QueryRangedList<QueryRelevantOrgUnit>?>
         {
-
             private readonly IFusionProfileResolver profileResolver;
             private readonly IOrgUnitCache orgUnitCache;
 
@@ -49,7 +48,6 @@ namespace Fusion.Resources.Domain.Queries
                     FullDepartment = x.FullDepartment,
                     Department = x.Department,
                     ShortName = x.ShortName
-
                 });
 
                 var user = await profileResolver.ResolvePersonFullProfileAsync(request.ProfileId.OriginalIdentifier);

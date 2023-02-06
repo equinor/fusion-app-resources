@@ -18,7 +18,7 @@ namespace Fusion.Resources.Api
             this.orgUnitCache = orgUnitCache;
         }
 
-        public async Task ProcessMessageAsync(MessageContext ctx, string body, CancellationToken cancellationToken)
+        public async Task ProcessMessageAsync(MessageContext ctx, string? body, CancellationToken cancellationToken)
         {
             await orgUnitCache.ClearOrgUnitCacheAsync();
         }
