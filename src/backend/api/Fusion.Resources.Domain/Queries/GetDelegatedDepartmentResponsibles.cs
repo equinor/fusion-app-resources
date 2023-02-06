@@ -13,6 +13,8 @@ namespace Fusion.Resources.Domain
 {
     public class GetDelegatedDepartmentResponsibles : IRequest<IEnumerable<QueryDepartmentResponsible>>
     {
+
+        private bool shouldIgnoreDateFilter;
         public GetDelegatedDepartmentResponsibles(string departmentId)
         {
             DepartmentId = departmentId;
@@ -20,6 +22,11 @@ namespace Fusion.Resources.Domain
 
         private string DepartmentId { get; set; }
 
+        public GetDelegatedDepartmentResponsibles IgnoreDateFilter(bool ignore = true)
+        {
+            shouldIgnoreDateFilter = ignore;
+            return this;
+        }
 
         public class Handler : IRequestHandler<GetDelegatedDepartmentResponsibles, IEnumerable<QueryDepartmentResponsible>>
         {
@@ -41,10 +48,16 @@ namespace Fusion.Resources.Domain
                 if (department is null)
                     return returnModel;
 
+
                 var delegatedResourceOwners = await db.DelegatedDepartmentResponsibles
-                    .Where(r => r.DepartmentId == request.DepartmentId && 
-                    r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date)
+                    .Where(r => r.DepartmentId == request.DepartmentId)
                     .ToListAsync(cancellationToken);
+
+                if (!request.shouldIgnoreDateFilter)
+                {
+                    delegatedResourceOwners = delegatedResourceOwners.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date).ToList();
+
+                }
 
                 foreach (var m in delegatedResourceOwners)
                 {
