@@ -51,7 +51,7 @@ namespace Fusion.Resources.Domain
                 var query =  db.DelegatedDepartmentResponsibles.AsNoTracking().Where(x => x.DepartmentId == request.DepartmentId);
                 if (!request.shouldIgnoreDateFilter)
                 {
-                    query = query.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date);
+                    query = await query.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date);
                 }
                 var delegatedResourceOwners = query.ToListAsync(cancellationToken);
                
