@@ -1,13 +1,12 @@
-﻿using System;
-using Fusion.Testing.Mocks.LineOrgService.Api;
-using Microsoft.AspNetCore.Mvc.Testing;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using Fusion.Integration.Profile.ApiClient;
+﻿using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Domain;
 using Fusion.Services.LineOrg.ApiModels;
+using Fusion.Testing.Mocks.LineOrgService.Api;
+using Microsoft.AspNetCore.Mvc.Testing;
+using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Net.Http;
 
 namespace Fusion.Testing.Mocks.LineOrgService
 {
@@ -63,10 +62,8 @@ namespace Fusion.Testing.Mocks.LineOrgService
                     Department = department,
                     FullDepartment = fullDepartment,
                     ShortName = shortname
-
                 });
             }
-
         }
     }
 
