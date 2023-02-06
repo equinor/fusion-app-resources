@@ -51,11 +51,11 @@ namespace Fusion.Resources.Domain
                 var query =  db.DelegatedDepartmentResponsibles.AsNoTracking().Where(x => x.DepartmentId == request.DepartmentId);
                 if (!request.shouldIgnoreDateFilter)
                 {
-                    query = await query.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date);
+                    query =  query.Where(r => r.DateFrom.Date <= DateTime.UtcNow.Date && r.DateTo.Date >= DateTime.UtcNow.Date);
                 }
-                var delegatedResourceOwners = query.ToListAsync(cancellationToken);
+                var delegatedResourceOwners = await query.ToListAsync(cancellationToken);
                
-                foreach (var m in delegatedResourceOwners.Result)
+                foreach (var m in delegatedResourceOwners)
                 {
                     var personDelegated = await profileResolver.ResolvePersonBasicProfileAsync(m.ResponsibleAzureObjectId);
                     var item = new QueryDepartmentResponsible(m) { DelegatedResponsible = personDelegated };
