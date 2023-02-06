@@ -8,6 +8,5 @@
         public const string Manager = "Manager";
         public const string Write = "Write";
         public const string Read = "Read";
-
     }
 }

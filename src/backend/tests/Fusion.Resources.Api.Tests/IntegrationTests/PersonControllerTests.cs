@@ -2,7 +2,7 @@
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
-using Fusion.Resources.Api.Tests.Helpers.Models;
+using Fusion.Resources.Api.Tests.Helpers.Models.Responses;
 using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Mocks;
@@ -45,7 +45,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             fixture.ContextResolver
                 .AddContext(testProject.Project);
-
             fixture.DisableMemoryCache();
         }
 
@@ -279,7 +278,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             {
                 testUser.FullDepartment = assignedOrgUnit.fullDepartment;
                 var client = fixture.ApiFactory.CreateClient();
-                var resp = await client.TestClientGetAsync<ApiCollection<ApiRelevantOrgUnitTestModel>>(
+                var resp = await client.TestClientGetAsync<ApiCollection<TestApiRelevantOrgUnitModel>>(
                     $"/persons/{testUser.AzureUniqueId}/resources/relevant-departments?$filter={filter}"
 
                 );

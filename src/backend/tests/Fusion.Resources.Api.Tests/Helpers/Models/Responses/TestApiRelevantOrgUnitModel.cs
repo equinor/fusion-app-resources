@@ -11,7 +11,5 @@ namespace Fusion.Resources.Api.Tests.Helpers.Models.Responses
         public string ParentSapId { get; set; }
         public string ShortName { get; set; }
         public string Department { get; set; }
-
-
     }
 }
