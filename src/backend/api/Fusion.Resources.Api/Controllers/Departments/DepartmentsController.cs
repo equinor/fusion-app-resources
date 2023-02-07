@@ -95,7 +95,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
         [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
-        public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString)
+        public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString, bool shouldIgnoreDateFilter)
         {
             var request = await DispatchAsync(new GetDepartment(departmentString));
 
@@ -118,8 +118,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
+            var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString).IgnoreDateFilter(shouldIgnoreDateFilter));
 
-            var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
             return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
         }
 
@@ -171,7 +171,7 @@ namespace Fusion.Resources.Api.Controllers
                     $"Person already delegated as resource owner for department '{departmentString}", ex);
             }
             var departmentResourceOwners =
-                await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
+                await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString).IgnoreDateFilter());
             var itemCreated = departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).First(x =>
                 x.DelegatedResponsible!.AzureUniquePersonId == request.ResponsibleAzureUniqueId);
 
