@@ -1,11 +1,8 @@
 ﻿using Fusion.Integration.Org;
-using Fusion.Resources.Database;
-using Fusion.Resources.Database.Entities;
+using Fusion.Resources.Domain;
 using Fusion.Resources.Logic.Workflows;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +39,8 @@ namespace Fusion.Resources.Logic.Commands
                     var basePosition = await orgResolver.ResolveBasePositionAsync(position.BasePosition.Id);
                     var bpSettings = basePosition?.GetTypedSettings();
 
-                    if (bpSettings is not null && bpSettings.DirectAssignmentEnabled.GetValueOrDefault(false))
+
+                    if (bpSettings is not null && bpSettings.DirectAssignmentEnabled.GetValueOrDefault(false) )
                         return AllocationDirectWorkflowV1.SUBTYPE;
                     else
                     {
@@ -51,7 +49,13 @@ namespace Fusion.Resources.Logic.Commands
                         else if (string.Equals(position?.Properties?.GetProperty<string>("resourceType", "normal"), "enterprise", StringComparison.OrdinalIgnoreCase))
                             return AllocationEnterpriseWorkflowV1.SUBTYPE;
                         else
+                        {
+                            // Check if the base position requires direct request.
+                            if (basePosition?.RequiresDirectRequest() == true)
+                                return AllocationDirectWorkflowV1.SUBTYPE;
+
                             return AllocationNormalWorkflowV1.SUBTYPE;
+                        }
                     }
                 }
             }
