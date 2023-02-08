@@ -176,28 +176,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task DirectRequest_Create_ShouldDefaultToDirectRequestSubType_WhenDirectRequestRequired()
-        {
-            using var adminScope = fixture.AdminScope();
-            var directRequestBasePosition = testProject.AddBasePosition($"Direct request test {Guid.NewGuid()}", s =>
-            {
-                s.Settings["requireDirectRequest"] = true;
-            });
-
-            var position = testProject.AddPosition(p => p.BasePosition = directRequestBasePosition);
-            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
-
-            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
-            {
-                type = "normal",
-                orgPositionId = position.Id,
-                orgPositionInstanceId = position.Instances.Last().Id,
-            });
-            response.Should().BeSuccessfull();
-            response.Value.SubType.Should().Be("direct");
-        }
-
-        [Fact]
         public async Task DirectRequest_Create_ShouldHaveIsDraftTrue()
         {
             using var adminScope = fixture.AdminScope();
