@@ -49,13 +49,7 @@ namespace Fusion.Resources.Logic.Commands
                         else if (string.Equals(position?.Properties?.GetProperty<string>("resourceType", "normal"), "enterprise", StringComparison.OrdinalIgnoreCase))
                             return AllocationEnterpriseWorkflowV1.SUBTYPE;
                         else
-                        {
-                            // Check if the base position requires direct request.
-                            if (basePosition?.RequiresDirectRequest() == true)
-                                return AllocationDirectWorkflowV1.SUBTYPE;
-
                             return AllocationNormalWorkflowV1.SUBTYPE;
-                        }
                     }
                 }
             }
