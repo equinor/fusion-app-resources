@@ -250,6 +250,32 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Value.ProposedPerson?.Person.Mail.Should().Be(proposedPerson.Mail);
         }
 
+        /// <summary>
+        /// When the base position flags that a direct request is required, it should return bad request when a normal request is created.
+        /// The request type should be direct.
+        /// </summary>
+        [Fact]
+        public async Task NormalRequest_Create_ShouldBeBadRequest_WhenDirectRequestRequired()
+        {
+            using var adminScope = fixture.AdminScope();
+            var directRequestBasePosition = testProject.AddBasePosition("Direct request test", s =>
+            {
+                s.Settings["requireDirectRequest"] = true;
+            });
+
+            var position = testProject.AddPosition(p => p.BasePosition = directRequestBasePosition);
+            var proposedPerson = fixture.AddProfile(FusionAccountType.Employee);
+
+            var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{projectId}/requests", new
+            {
+                type = "normal",
+                orgPositionId = position.Id,
+                orgPositionInstanceId = position.Instances.Last().Id,
+            });
+            response.Should().BeBadRequest();
+        }
+
+
         #endregion
 
         #region Request flow tests

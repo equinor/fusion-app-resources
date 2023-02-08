@@ -96,7 +96,8 @@ namespace Fusion.Testing.Mocks.OrgService
             var bp = new ApiBasePositionV2()
             {
                 Id = Guid.NewGuid(),
-                Name = name
+                Name = name,
+                Settings = new Dictionary<string, object>()
             };
 
             setup?.Invoke(bp);
@@ -105,9 +106,11 @@ namespace Fusion.Testing.Mocks.OrgService
             return bp;
         }
 
-        public ApiPositionV2 AddPosition()
+        public ApiPositionV2 AddPosition(Action<ApiPositionV2> setup = null)
         {
             var position = PositionBuilder.NewPosition();
+
+            setup?.Invoke(position);
 
             position.ProjectId = project.ProjectId;
             position.Project = new ApiProjectReferenceV2

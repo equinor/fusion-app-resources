@@ -19,6 +19,7 @@ namespace Fusion.Testing.Mocks
         /// <para>Check valid values used in request model <see cref="ApiAllocationRequestType"/> for information.</para>
         /// </summary>
         public string Type { get; set; } = null!;
+        public string SubType { get; set; } = null!;
         public TestApiProjectReference Project { get; set; } = null!;
         public ApiPositionV2? OrgPosition { get; set; }
         public Guid? OrgPositionId { get; set; }
