@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Azure.Core;
+using FluentValidation;
 using Fusion.ApiClients.Org;
 using Fusion.Integration.Org;
 using Fusion.Resources.Database;
@@ -40,7 +41,7 @@ namespace Fusion.Resources.Domain.Commands
 
         public class Validator : AbstractValidator<CreateInternalRequest>
         {
-            public Validator(ResourcesDbContext db)
+            public Validator(ResourcesDbContext db, IProjectOrgResolver orgResolver)
             {
 
                 RuleFor(x => x.OrgPositionInstanceId)
@@ -53,6 +54,30 @@ namespace Fusion.Resources.Domain.Commands
                 RuleFor(x => x.OrgProjectId).NotEmpty();
                 RuleFor(x => x.OrgPositionId).NotEmpty();
                 RuleFor(x => x.OrgPositionInstanceId).NotEmpty();
+
+
+                // Check if the base position allows for non direct request
+                RuleFor(x => x).MustAsync(async (req, _, ctx, cancel) =>
+                {
+                    var position = await orgResolver.ResolvePositionAsync(req.OrgPositionId);
+                    
+                    // If position cannot be resolved, this should just let it pass. Another validator will pick this issue up.
+                    if (position is null)
+                        return true;
+
+                    var basePosition = await orgResolver.ResolveBasePositionAsync(position.BasePosition.Id);
+
+                    // Look for property where direct requests are required
+                    if (basePosition?.RequiresDirectRequest() == true)
+                    {
+                        // Check the sub type
+                        if (!string.Equals(req.SubType, "direct", StringComparison.OrdinalIgnoreCase))
+                            return false;
+                    }
+                    return true;
+
+                }).When(x => x.ProposedPersonAzureUniqueId is null)
+                .WithMessage("Direct request must be used. No proposed person was specified.");
             }
         }
 
