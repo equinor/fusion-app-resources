@@ -36,6 +36,7 @@ namespace Fusion.Resources.Database
         public DbSet<DbSecondOpinionPrompt> SecondOpinions { get; set; }
         public DbSet<DbSecondOpinionResponse> SecondOpinionResponses { get; set; }
         public DbSet<DbDelegatedDepartmentResponsible> DelegatedDepartmentResponsibles { get; set; }
+        public DbSet<DbDelegatedDepartmentResponsibleHistory> DelegatedDepartmentResponsiblesHistory { get; set; }
 
 
         #region Moved to Contract Personnel. Only here for historical reasons
@@ -70,6 +71,7 @@ namespace Fusion.Resources.Database
             DbExternalPersonnelPerson.OnModelCreating(modelBuilder);
             DbDelegatedRole.OnModelCreating(modelBuilder);
             DbDelegatedDepartmentResponsible.OnModelCreating(modelBuilder);
+            DbDelegatedDepartmentResponsibleHistory.OnModelCreating(modelBuilder);
             #endregion
         }
 
