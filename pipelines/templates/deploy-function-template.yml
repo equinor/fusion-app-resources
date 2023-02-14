@@ -35,10 +35,9 @@ steps:
       #
       # Generate the app settings      
       #
-
+      # Sett correct resources URI based on environment
       $resourcesFunctionUri =  "https://resources-api.$environment.fusion-dev.net/"
       if ($environment -eq "fprd") { $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"}
-
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
