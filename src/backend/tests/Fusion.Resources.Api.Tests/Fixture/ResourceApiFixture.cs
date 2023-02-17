@@ -88,7 +88,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
             using var scope = ApiFactory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
 
-            
+
 
             LineOrgServiceMock.AddDepartment(departmentId);
 
@@ -103,12 +103,18 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     Reason = "Just for testing"
                 });
                 try { db.SaveChanges(); } catch (DBConcurrencyException) { }
-            }
 
-            var resourceOwner = this.AddProfile(FusionAccountType.Application);
-            LineOrgServiceMock.AddTestUser().MergeWithProfile(resourceOwner)
-                .WithFullDepartment(departmentId).SaveProfile();
+                RolesClientMock.AddPersonRole(defactoResponsible.AzureUniqueId!.Value, new Fusion.Integration.Roles.RoleAssignment
+                {
+                    Identifier = $"{Guid.NewGuid()}",
+                    RoleName = "Fusion.Resources.ResourceOwner",
+                    Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", departmentId),
+                    ValidTo = DateTime.UtcNow.AddDays(1),
+                    Source = "Department.Test"
+                }).GetAwaiter().GetResult();
+            }
         }
+
 
         public IReadOnlyCollection<CloudEventV1<TPayload>> GetNotificationMessages<TPayload>(string pathFilter)
         {

@@ -41,7 +41,7 @@ namespace Fusion.Testing
                     allowedMethods.AddRange(header.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
             }
 
-            containsHeaders = methods.Any(h => allowedMethods.Contains(h.Method, StringComparer.OrdinalIgnoreCase));
+            containsHeaders = methods.All(h => allowedMethods.Contains(h.Method, StringComparer.OrdinalIgnoreCase));
 
             Execute.Assertion
                 .BecauseOf("")
@@ -63,7 +63,7 @@ namespace Fusion.Testing
                     allowedMethods.AddRange(header.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));                
             }
 
-            containsHeaders = methods.Any(h => allowedMethods.Contains(h.Method, StringComparer.OrdinalIgnoreCase));
+            containsHeaders = methods.All(h => allowedMethods.Contains(h.Method, StringComparer.OrdinalIgnoreCase));
 
             Execute.Assertion
                 .BecauseOf("")

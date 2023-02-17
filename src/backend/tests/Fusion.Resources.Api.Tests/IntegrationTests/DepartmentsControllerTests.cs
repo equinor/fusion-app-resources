@@ -221,41 +221,39 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Fact]
         public async Task OptionsDepartmentResponsible_ShouldBeAllowed_WhenResourceOwner()
         {
-            var testSector = "MY TPD LIN";
-            var testDepartment = "MY TPD LIN DEP3";
+            var testDepartment = "MY TPD LIN DEP1";
             var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            fixture.EnsureDepartment(testSector, testSector, resourceOwner);
-            fixture.EnsureDepartment(testDepartment);
-
-            using var adminScope = fixture.UserScope(resourceOwner);
-            var result = await Client.TestClientOptionsAsync($"/departments/{testSector}/delegated-resource-owners");
-            result.Should().BeSuccessfull();
-            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
-        }
-        [Fact]
-        public async Task OptionsDepartmentResponsible_ChildDepartmentsShouldBeAllowed_WhenResourceOwner()
-        {
-            var testSector = "MY TPD LIN";
-            var testDepartment = "MY TPD LIN DEP4";
-            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            fixture.EnsureDepartment(testSector, testSector, resourceOwner);
-            fixture.EnsureDepartment(testDepartment);
-
+            fixture.EnsureDepartment(testDepartment, testDepartment, resourceOwner);
+            
             using var adminScope = fixture.UserScope(resourceOwner);
             var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
             result.Should().BeSuccessfull();
-            result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, GET");
+        }
+        [Fact]
+        public async Task OptionsDepartmentResponsible_ChildDepartmentsShouldBeDisAllowed_WhenDelegatedResourceOwner()
+        {
+            var testSector = "MY TPD LIN";
+            var testDepartment = "MY TPD LIN DEP4";
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            fixture.EnsureDepartment(testSector, testSector, delegatedResourceOwner);
+            fixture.EnsureDepartment(testDepartment);
+
+            using var adminScope = fixture.UserScope(delegatedResourceOwner);
+            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+            result.Should().BeSuccessfull();
+            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, !GET");
         }
         [Fact]
         public async Task OptionsDepartmentResponsible_SiblingDepartmentsShouldBeDisallowed_WhenResourceOwner()
         {
             var testSector = "MY TPD LIN";
             var testDepartment = "MY TPD LIN DEP5";
-            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             fixture.EnsureDepartment(testSector, testSector);
-            fixture.EnsureDepartment(testDepartment, testSector, resourceOwner);
-
-            using var adminScope = fixture.UserScope(resourceOwner);
+            fixture.EnsureDepartment(testDepartment, testSector, delegatedResourceOwner);
+           
+            using var adminScope = fixture.UserScope(delegatedResourceOwner);
             var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
             result.Should().BeSuccessfull();
             result.CheckAllowHeader("OPTIONS, !DELETE, !POST, !GET");
