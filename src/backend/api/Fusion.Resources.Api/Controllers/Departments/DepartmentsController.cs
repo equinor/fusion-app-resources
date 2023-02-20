@@ -3,8 +3,6 @@ using Fusion.Authorization;
 using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
-using Fusion.Resources.Domain.Models;
-using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -59,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok(new ApiRelatedDepartments(departments));
         }
-        
+
         [HttpOptions("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult> GetDelegatedResourceOwnersOptions(string departmentString)
         {
@@ -76,6 +74,10 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+
+                });
+                r.LimitedAccessWhen(or =>
+                {
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
                 });
             });
@@ -86,8 +88,11 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
-                allowedMethods.Add("DELETE");
-                allowedMethods.Add("POST");
+                if (authResult.LimitedAuth == false)
+                {
+                    allowedMethods.Add("DELETE");
+                    allowedMethods.Add("POST");
+                }
                 allowedMethods.Add("GET");
             }
 
@@ -140,7 +145,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
                 });
 
             });
@@ -196,7 +200,6 @@ namespace Fusion.Resources.Api.Controllers
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
                 });
             });
 

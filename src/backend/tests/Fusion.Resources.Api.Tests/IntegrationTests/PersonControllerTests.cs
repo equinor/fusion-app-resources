@@ -73,13 +73,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
         [Fact]
-        public async Task GetProfile_ShouldReturnValidDelegatedResposibility()
+        public async Task GetProfile_ShouldReturnValidDelegatedResponsibility()
         {
             var source = $"Department.Test";
             var delegatedDepartment = "AAA BBB CCC DDD";
-            var seconddelegateddDepartment = "AAA BBB CCC EEE";
-            var expireddelegateddDepartment = "AAA BBB CCC FFF";
-            var notStarteddelegateddDepartment = "AAA BBB CCC GGG";
+            var secondDelegatedDepartment = "AAA BBB CCC EEE";
+            var expiredDelegatedDepartment = "AAA BBB CCC FFF";
             var mainResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             mainResourceOwner.FullDepartment = $"AAA BBB CCC DDD EE FFF";
 
@@ -89,9 +88,8 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             using var adminScope = fixture.AdminScope();
 
             fixture.EnsureDepartment(delegatedDepartment, null, mainResourceOwner);
-            fixture.EnsureDepartment(seconddelegateddDepartment, null, mainResourceOwner);
-            fixture.EnsureDepartment(expireddelegateddDepartment, null, mainResourceOwner, -2, -1);
-            fixture.EnsureDepartment(notStarteddelegateddDepartment, null, mainResourceOwner, +2, +5);
+            fixture.EnsureDepartment(secondDelegatedDepartment, null, mainResourceOwner);
+            fixture.EnsureDepartment(expiredDelegatedDepartment, null, mainResourceOwner, -2, -1);
 
             var manager = fixture.AddProfile(FusionAccountType.Employee);
             var testUser = fixture.AddProfile(s => s
@@ -113,7 +111,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             resp.Should().BeSuccessfull();
             resp.Value.responsibilityInDepartments.Count().Should().Be(2);
             resp.Value.responsibilityInDepartments.Should().Contain(d => d.Equals(delegatedDepartment));
-            resp.Value.responsibilityInDepartments.Should().Contain(d => d.Equals(seconddelegateddDepartment));
+            resp.Value.responsibilityInDepartments.Should().Contain(d => d.Equals(secondDelegatedDepartment));
         }
 
         [Fact]
