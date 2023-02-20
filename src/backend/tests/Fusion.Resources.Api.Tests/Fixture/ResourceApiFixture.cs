@@ -109,7 +109,7 @@ namespace Fusion.Resources.Api.Tests.Fixture
                     Identifier = $"{Guid.NewGuid()}",
                     RoleName = "Fusion.Resources.ResourceOwner",
                     Scope = new Fusion.Integration.Roles.RoleAssignment.RoleScope("OrgUnit", departmentId),
-                    ValidTo = DateTime.UtcNow.AddDays(1),
+                    ValidTo = DateTime.Today.AddDays(daysTo),
                     Source = "Department.Test"
                 }).GetAwaiter().GetResult();
             }
