@@ -18,7 +18,12 @@ namespace Fusion.Resources.Api.Authorization.Handlers
                 return;
             }
 
-            requirement.SetEvaluation($"User is resource owner for {isResponsibleForDepartment}, but do not have access to delegate access for {requirement.Department}");
+            if (isResponsibleForDepartment != null)
+                requirement.SetEvaluation($"User is resource owner for department '{isResponsibleForDepartment}', but do not have access to delegate access for department '{requirement.Department}'");
+            else
+            {
+                requirement.SetEvaluation($"User is not resource owner for any department, and cannot delegate access for department '{requirement.Department}'");
+            }
         }
     }
 }
