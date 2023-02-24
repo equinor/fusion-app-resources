@@ -31,12 +31,12 @@ namespace Fusion.Resources.Api.Authentication
 
             var claims = new List<Claim>();
             await ApplySharedRequestClaimsIfAnyAsync(profile, claims);
-            await ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwner(profile, claims);
+            await ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(profile, claims);
 
             return claims;
         }
 
-        private static Task ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwner(FusionFullPersonProfile profile, List<Claim> claims)
+        private static Task ApplyResourceOwnerForDepartmentClaimIfUserIsResourceOwnerAsync(FusionFullPersonProfile profile, List<Claim> claims)
         {
             if (profile.IsResourceOwner && !string.IsNullOrEmpty(profile.FullDepartment))
             {
