@@ -40,7 +40,7 @@ namespace Fusion.Resources.Api.Authentication
         {
             if (profile.IsResourceOwner && !string.IsNullOrEmpty(profile.FullDepartment))
             {
-                claims.Add(new Claim("Fusion.Resources.ResourceOwnerForDepartment", profile.FullDepartment));
+                claims.Add(new Claim(ResourcesClaimTypes.ResourceOwnerForDepartment, profile.FullDepartment));
             }
 
             return Task.CompletedTask;
