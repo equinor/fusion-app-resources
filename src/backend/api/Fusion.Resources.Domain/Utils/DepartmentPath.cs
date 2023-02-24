@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using static System.Math;
 
 namespace Fusion.Resources.Domain
@@ -27,6 +28,7 @@ namespace Fusion.Resources.Domain
         public DepartmentPath ParentDeparment => new DepartmentPath(this.Parent());
 
         public string Parent(int levelsToJump = 1) => string.Join(" ", path.SkipLast(levelsToJump));
+        private string Current => string.Join(" ", path);
         public string GoToLevel(int level) => string.Join(" ", path.Take(level <= 0 ? 1 : level));
 
         public bool IsRelevant(string? other)
@@ -61,5 +63,15 @@ namespace Fusion.Resources.Domain
         }
 
         public string GetShortName() => string.Join(' ', path.TakeLast(3));
+
+        public override string ToString()
+        {
+            return Current;
+        }
+
+        public static implicit operator string(DepartmentPath departmentPath)
+        {
+            return departmentPath.ToString();
+        }
     }
 }
