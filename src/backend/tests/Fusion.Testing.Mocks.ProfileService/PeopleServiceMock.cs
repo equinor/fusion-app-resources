@@ -58,6 +58,11 @@ namespace Fusion.Testing.Mocks.ProfileService
             return this;
         }
 
+        public FusionTestUserBuilder AsResourceOwner()
+        {
+            profile.IsResourceOwner = true;
+            return this;
+        }
         public FusionTestUserBuilder WithAccountType(FusionAccountType type)
         {
             profile.AccountType = type;

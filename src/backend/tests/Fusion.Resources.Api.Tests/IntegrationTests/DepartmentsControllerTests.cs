@@ -218,18 +218,58 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             result.Should().BeSuccessfull();
             result.CheckAllowHeader("OPTIONS, DELETE, POST, GET");
         }
-        [Fact]
-        public async Task OptionsDepartmentResponsible_ShouldBeAllowed_WhenResourceOwner()
+
+        [Theory]
+        [InlineData("AAA BBB", false)]
+        [InlineData("AAA BBB CCC", false)]
+        [InlineData("AAA BBB CCC DDD", true)] //<- ResourceOwner for this department
+        [InlineData("AAA BBB CCC DDD EEE", true)]
+        [InlineData("AAA BBB CCC DDD EEE FFF", true)]
+        public async Task OptionsDepartmentResponsible_CanDelegateAccessToCurrentAndDownwards_WhenResourceOwner(string fullDepartment, bool expectingAccess)
         {
-            var testDepartment = "MY TPD LIN DEP1";
-            var resourceOwner = fixture.AddProfile(FusionAccountType.Employee);
-            fixture.EnsureDepartment(testDepartment, testDepartment, resourceOwner);
-            
+            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC DDD", "AAA BBB CCC DDD EEE", "AAA BBB CCC DDD EEE FFF" };
+            foreach (var dep in departmentsToTest)
+                fixture.EnsureDepartment(dep);
+
+            var testDepartment = "AAA BBB CCC DDD";
+            var resourceOwner = fixture.AddProfile(x => x.WithAccountType(FusionAccountType.Employee).AsResourceOwner().WithFullDepartment(testDepartment));
             using var adminScope = fixture.UserScope(resourceOwner);
-            var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
+
+            var result = await Client.TestClientOptionsAsync($"/departments/{fullDepartment}/delegated-resource-owners");
             result.Should().BeSuccessfull();
-            result.CheckAllowHeader("OPTIONS, !DELETE, !POST, GET");
+            result.CheckAllowHeader(expectingAccess ? "OPTIONS, DELETE, POST, GET" : "OPTIONS, !DELETE, !POST, !GET");
         }
+        [Theory]
+        [InlineData("AAA BBB", false)]
+        [InlineData("AAA BBB CCC", false)]
+        [InlineData("AAA BBB CCC DDD", true)] //<- ResourceOwner for this department
+        [InlineData("AAA BBB CCC DDD EEE", true)]
+        [InlineData("AAA BBB CCC DDD EEE FFF", true)]
+        public async Task PostDepartmentResponsible_CanDelegateAccessToCurrentAndDownwards_WhenResourceOwner(string fullDepartment, bool expectingAccess)
+        {
+            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC DDD", "AAA BBB CCC DDD EEE", "AAA BBB CCC DDD EEE FFF" };
+            foreach (var dep in departmentsToTest)
+                fixture.EnsureDepartment(dep);
+
+            var testDepartment = "AAA BBB CCC DDD";
+            var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
+            var resourceOwner = fixture.AddProfile(x => x.WithAccountType(FusionAccountType.Employee).AsResourceOwner().WithFullDepartment(testDepartment));
+            using var adminScope = fixture.UserScope(resourceOwner);
+
+            var result = await Client.TestClientPostAsync<dynamic>($"/departments/{fullDepartment}/delegated-resource-owners", new
+            {
+                DateFrom = DateTime.Today.ToString("yyyy-MM-dd"),
+                DateTo = DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd"),
+                ResponsibleAzureUniqueId = delegatedResourceOwner.AzureUniqueId
+            });
+
+            if (expectingAccess)
+                result.Should().BeSuccessfull();
+            else
+                result.Should().BeUnauthorized();
+        }
+
+
         [Fact]
         public async Task OptionsDepartmentResponsible_ChildDepartmentsShouldBeDisAllowed_WhenDelegatedResourceOwner()
         {
@@ -252,7 +292,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             fixture.EnsureDepartment(testSector, testSector);
             fixture.EnsureDepartment(testDepartment, testSector, delegatedResourceOwner);
-           
+
             using var adminScope = fixture.UserScope(delegatedResourceOwner);
             var result = await Client.TestClientOptionsAsync($"/departments/{testDepartment}/delegated-resource-owners");
             result.Should().BeSuccessfull();

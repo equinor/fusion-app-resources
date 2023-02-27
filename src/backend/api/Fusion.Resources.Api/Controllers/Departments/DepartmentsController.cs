@@ -73,7 +73,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.DepartmentId));
 
                 });
                 r.LimitedAccessWhen(or =>
@@ -114,7 +114,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.DepartmentId));
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
                 });
             });
@@ -144,7 +144,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.DepartmentId));
                 });
 
             });
@@ -199,7 +199,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.DepartmentId));
                 });
             });
 

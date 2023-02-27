@@ -87,7 +87,7 @@ namespace Fusion.Resources.Api
                 });
             });
             // Add custom claims provider, to sort delegated responsibilities
-            services.AddScoped<ILocalClaimsTransformation, SharedRequestClaimsTransformation>();
+            services.AddScoped<ILocalClaimsTransformation, ResourcesLocalClaimsTransformation>();
 
             services.AddScoped<IRequestRouter, RequestRouter>();
 
