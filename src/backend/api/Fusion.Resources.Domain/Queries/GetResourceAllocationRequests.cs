@@ -420,7 +420,7 @@ namespace Fusion.Resources.Domain.Queries
                 }
             }
 
-            private async Task AddProposedPersons(List<QueryResourceAllocationRequest> requestItems, ExpandFields expandResourceOwners)
+            private async Task AddProposedPersons(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
             {
                 var ids = requestItems
                     .Where(r => r.ProposedPerson is not null)
@@ -436,7 +436,7 @@ namespace Fusion.Resources.Domain.Queries
                     {
                         request.ProposedPerson!.Person = profiles[id.Value];
                         
-                        if(!expandResourceOwners.HasFlag(ExpandFields.ResourceOwner)) continue;
+                        if(!expands.HasFlag(ExpandFields.ResourceOwner)) continue;
                         var manager = await mediator.Send(new GetResourceOwner(id.Value));
                         if (manager?.FullDepartment != null)
                         {
