@@ -1012,7 +1012,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task CheckDelegatedResposibleOnproject()
+        public async Task GetResourceAllocationRequests_DelegatedResourceOwners_ShouldBeAvailable_WhenAssignedToDepartment()
         {
             using var adminScope = fixture.AdminScope();
 
@@ -1032,7 +1032,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             await Client.AssignDepartmentAsync(normalRequest.Id, TestDepartmentId);
             await Client.ResourceOwnerApproveAsync(TestDepartmentId, normalRequest.Id);
 
-            var resp = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"/projects/{projectIdentifier}/requests");
+            var resp = await Client.TestClientGetAsync<ApiPagedCollection<TestApiInternalRequestModel>>($"/projects/{projectIdentifier}/requests?$expand=proposedPerson.resourceOwner");
 
             resp.Response.StatusCode.Should().Be(HttpStatusCode.OK);
 
