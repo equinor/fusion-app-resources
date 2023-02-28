@@ -22,6 +22,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<ICompanyResolver, PeopleCompanyResolver>();
 
+            services.AddSingleton<IOrgUnitCache, OrgUnitCache>();
+
             return services;
         }
     }

@@ -176,5 +176,11 @@ namespace Fusion.Resources.Api.Controllers
             builder.AddRule(new RequestCreatorRequirement(requestId));
             return builder;
         }
+        public static IAuthorizationRequirementRule CanDelegateAccessToDepartment(this IAuthorizationRequirementRule builder, string department)
+        {
+            builder.AddRule(new CanDelegateAccessToDepartmentRequirement(department));
+            return builder;
+        }
+
     }
 }

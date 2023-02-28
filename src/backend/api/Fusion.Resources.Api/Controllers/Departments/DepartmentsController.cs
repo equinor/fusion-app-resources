@@ -3,8 +3,6 @@ using Fusion.Authorization;
 using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands.Departments;
-using Fusion.Resources.Domain.Models;
-using Fusion.Resources.Domain.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -59,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok(new ApiRelatedDepartments(departments));
         }
-        
+
         [HttpOptions("/departments/{departmentString}/delegated-resource-owners")]
         public async Task<ActionResult> GetDelegatedResourceOwnersOptions(string departmentString)
         {
@@ -75,7 +73,11 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.DepartmentId));
+
+                });
+                r.LimitedAccessWhen(or =>
+                {
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
                 });
             });
@@ -86,8 +88,11 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Success)
             {
-                allowedMethods.Add("DELETE");
-                allowedMethods.Add("POST");
+                if (authResult.LimitedAuth == false)
+                {
+                    allowedMethods.Add("DELETE");
+                    allowedMethods.Add("POST");
+                }
                 allowedMethods.Add("GET");
             }
 
@@ -95,7 +100,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
         [HttpGet("/departments/{departmentString}/delegated-resource-owners")]
-        public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString)
+        public async Task<ActionResult<IEnumerable<ApiDepartmentResponsible>>> GetDelegatedDepartmentResponsiblesForDepartment(string departmentString, bool shouldIgnoreDateFilter)
         {
             var request = await DispatchAsync(new GetDepartment(departmentString));
 
@@ -109,7 +114,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(request.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(request.DepartmentId));
                     or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(request.DepartmentId), AccessRoles.ResourceOwner);
                 });
             });
@@ -118,8 +123,8 @@ namespace Fusion.Resources.Api.Controllers
 
             if (authResult.Unauthorized)
                 return authResult.CreateForbiddenResponse();
+            var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString).IgnoreDateFilter(shouldIgnoreDateFilter));
 
-            var departmentResourceOwners = await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
             return departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).ToList();
         }
 
@@ -139,8 +144,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.DepartmentId));
                 });
 
             });
@@ -171,7 +175,7 @@ namespace Fusion.Resources.Api.Controllers
                     $"Person already delegated as resource owner for department '{departmentString}", ex);
             }
             var departmentResourceOwners =
-                await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString));
+                await DispatchAsync(new GetDelegatedDepartmentResponsibles(departmentString).IgnoreDateFilter());
             var itemCreated = departmentResourceOwners.Select(x => new ApiDepartmentResponsible(x)).First(x =>
                 x.DelegatedResponsible!.AzureUniquePersonId == request.ResponsibleAzureUniqueId);
 
@@ -195,8 +199,7 @@ namespace Fusion.Resources.Api.Controllers
                 r.AlwaysAccessWhen().FullControl().FullControlInternal();
                 r.AnyOf(or =>
                 {
-                    or.BeResourceOwner(new DepartmentPath(department.DepartmentId).Parent(), includeParents: true, includeDescendants: true);
-                    or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(department.DepartmentId), AccessRoles.ResourceOwner);
+                    or.CanDelegateAccessToDepartment(new DepartmentPath(department.DepartmentId));
                 });
             });
 

@@ -35,6 +35,10 @@ steps:
       #
       # Generate the app settings      
       #
+      # Sett correct resources URI based on environment
+      $resourcesFunctionUri =  "https://resources-api.$environment.fusion-dev.net/"
+      if ($environment -eq "fprd") { $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"}
+
       $settings = @{
           clientId = "${{ parameters.clientId }}"
           secretIds = @{
@@ -45,7 +49,7 @@ steps:
               lineorg = "https://pro-s-lineorg-$fusionEnvironment.azurewebsites.net"
               org = "https://pro-s-org-$fusionEnvironment.azurewebsites.net"
               people = "https://pro-s-people-$fusionEnvironment.azurewebsites.net"
-              resources = "https://resources-api.$environment.fusion-dev.net/"
+              resources = "$resourcesFunctionUri"
               notifications = "https://pro-s-notification-$fusionEnvironment.azurewebsites.net"
               context = "https://pro-s-context-$fusionEnvironment.azurewebsites.net"
               portal = "https://pro-s-portal-$fusionEnvironment.azurewebsites.net"

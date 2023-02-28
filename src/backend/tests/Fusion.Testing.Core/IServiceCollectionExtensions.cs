@@ -21,13 +21,11 @@ namespace Fusion.Testing
             var descriptor = services.FirstOrDefault(sd => sd.ImplementationType?.Name == typeName);
             if (descriptor != null)
                 services.Remove(descriptor);
-
             return services;
         }
 
         public static IServiceCollection TryRemoveTransientEventHandlers(this IServiceCollection services)
         {
-
             var chk = services.Where(x => x.ServiceType == typeof(IHostedService)).ToList();
 
             var hostedServices = services

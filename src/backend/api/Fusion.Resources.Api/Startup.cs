@@ -3,6 +3,7 @@ using Fusion.Events;
 using Fusion.Integration.Authentication;
 using Fusion.Integration.Org;
 using Fusion.Resources.Api.Authentication;
+using Fusion.Resources.Api.HostedServices;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
 using MediatR;
@@ -86,7 +87,7 @@ namespace Fusion.Resources.Api
                 });
             });
             // Add custom claims provider, to sort delegated responsibilities
-            services.AddScoped<ILocalClaimsTransformation, SharedRequestClaimsTransformation>();
+            services.AddScoped<ILocalClaimsTransformation, ResourcesLocalClaimsTransformation>();
 
             services.AddScoped<IRequestRouter, RequestRouter>();
 
@@ -111,6 +112,7 @@ namespace Fusion.Resources.Api
 
             services.AddResourcesAuthorizationHandlers();
             services.AddMediatR(typeof(Startup));   // Add notification handlers in api project
+            services.AddHostedService<ExpiredDelegatedRolesHostedService>();
 
             #endregion Resource services
 

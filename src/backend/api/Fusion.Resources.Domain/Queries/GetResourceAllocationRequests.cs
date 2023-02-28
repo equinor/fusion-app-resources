@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using FluentValidation;
 using Fusion.Resources.Domain.Commands.Tasks;
+using static Fusion.Resources.Domain.Queries.GetResourceAllocationRequestItem;
 
 namespace Fusion.Resources.Domain.Queries
 {
@@ -30,7 +31,10 @@ namespace Fusion.Resources.Domain.Queries
                 Expands |= ExpandFields.DepartmentDetails;
             if (Query.ShouldExpand("Actions"))
                 Expands |= ExpandFields.Actions;
+            if (Query.ShouldExpand("proposedPerson.resourceOwner"))
+                Expands |= ExpandFields.ResourceOwner;
         }
+
 
         public GetResourceAllocationRequests WithProjectId(Guid projectId)
         {
@@ -162,7 +166,8 @@ namespace Fusion.Resources.Domain.Queries
             OrgPositionInstance = 1 << 1,
             DepartmentDetails = 1 << 2,
             Actions = 1 << 3,
-            ActionCount = 1 << 4
+            ActionCount = 1 << 4,
+            ResourceOwner = 1 << 5
         }
 
         public class Validator : AbstractValidator<GetResourceAllocationRequests>
@@ -262,7 +267,7 @@ namespace Fusion.Resources.Domain.Queries
                 if (!countOnly)
                 {
                     await AddWorkFlows(pagedQuery);
-                    await AddProposedPersons(pagedQuery);
+                    await AddProposedPersons(pagedQuery, request.Expands);
                     await AddOrgPositions(pagedQuery, request.Expands);
                     await AddDepartmentDetails(pagedQuery, request.Expands);
                     await AddActions(pagedQuery, request);
@@ -415,7 +420,7 @@ namespace Fusion.Resources.Domain.Queries
                 }
             }
 
-            private async Task AddProposedPersons(List<QueryResourceAllocationRequest> requestItems)
+            private async Task AddProposedPersons(List<QueryResourceAllocationRequest> requestItems, ExpandFields expands)
             {
                 var ids = requestItems
                     .Where(r => r.ProposedPerson is not null)
@@ -429,9 +434,9 @@ namespace Fusion.Resources.Domain.Queries
                     var id = request.ProposedPerson?.AzureUniqueId;
                     if (id is not null && profiles.ContainsKey(id.Value))
                     {
-
-
                         request.ProposedPerson!.Person = profiles[id.Value];
+                        
+                        if(!expands.HasFlag(ExpandFields.ResourceOwner)) continue;
                         var manager = await mediator.Send(new GetResourceOwner(id.Value));
                         if (manager?.FullDepartment != null)
                         {
