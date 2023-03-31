@@ -48,16 +48,16 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddLineOrgHttpClient(this IServiceCollection services)
         {
             services.AddFusionIntegrationHttpClient("lineorg", o =>
-            {                
+            {
                 o.EndpointResolver = (sp) =>
                 {
                     var intgConfig = sp.GetRequiredService<IOptions<FusionIntegrationOptions>>();
                     var fusionEnv = intgConfig.Value.ServiceDiscovery?.Environment ?? "ci";
-                    return Task.FromResult($"https://pro-s-lineorg-{fusionEnv}.azurewebsites.net");
+                    return Task.FromResult($"https://fusion-s-lineorg-{fusionEnv}.azurewebsites.net");
                 };
 
                 // Bug, must be specified
-                o.Uri = new Uri("https://pro-s-lineorg-.azurewebsits.net");
+                o.Uri = new Uri("https://fusion-s-lineorg-.azurewebsits.net");
 
                 //o.Resource 
             });

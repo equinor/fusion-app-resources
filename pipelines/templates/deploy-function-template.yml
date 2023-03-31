@@ -46,13 +46,13 @@ steps:
               serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
           }
           endpoints = @{
-              lineorg = "https://pro-s-lineorg-$fusionEnvironment.azurewebsites.net"
-              org = "https://pro-s-org-$fusionEnvironment.azurewebsites.net"
-              people = "https://pro-s-people-$fusionEnvironment.azurewebsites.net"
+              lineorg = "https://fusion-s-lineorg-$fusionEnvironment.azurewebsites.net"
+              org = "https://fusion-s-org-$fusionEnvironment.azurewebsites.net"
+              people = "https://fusion-s-people-$fusionEnvironment.azurewebsites.net"
               resources = "$resourcesFunctionUri"
-              notifications = "https://pro-s-notification-$fusionEnvironment.azurewebsites.net"
-              context = "https://pro-s-context-$fusionEnvironment.azurewebsites.net"
-              portal = "https://pro-s-portal-$fusionEnvironment.azurewebsites.net"
+              notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
+              context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
+              portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
           }
           resources = @{
               fusion = "${{ parameters.fusionResource }}"
