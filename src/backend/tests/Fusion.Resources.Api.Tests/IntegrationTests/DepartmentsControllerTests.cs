@@ -222,16 +222,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("AAA BBB", false)]
         [InlineData("AAA BBB CCC", false)]
-        [InlineData("AAA BBB CCC DDD", true)] //<- ResourceOwner for this department
-        [InlineData("AAA BBB CCC DDD EEE", true)]
-        [InlineData("AAA BBB CCC DDD EEE FFF", true)]
+        [InlineData("AAA BBB CCC XXX", true)] //<- ResourceOwner for this department
+        [InlineData("AAA BBB CCC XXX EEE", true)]
+        [InlineData("AAA BBB CCC XXX EEE FFF", true)]
         public async Task OptionsDepartmentResponsible_CanDelegateAccessToCurrentAndDownwards_WhenResourceOwner(string fullDepartment, bool expectingAccess)
         {
-            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC DDD", "AAA BBB CCC DDD EEE", "AAA BBB CCC DDD EEE FFF" };
+            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC XXX", "AAA BBB CCC XXX EEE", "AAA BBB CCC XXX EEE FFF" };
             foreach (var dep in departmentsToTest)
                 fixture.EnsureDepartment(dep);
 
-            var testDepartment = "AAA BBB CCC DDD";
+            var testDepartment = "AAA BBB CCC XXX";
             var resourceOwner = fixture.AddProfile(x => x.WithAccountType(FusionAccountType.Employee).AsResourceOwner().WithFullDepartment(testDepartment));
             using var adminScope = fixture.UserScope(resourceOwner);
 
@@ -242,16 +242,16 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         [Theory]
         [InlineData("AAA BBB", false)]
         [InlineData("AAA BBB CCC", false)]
-        [InlineData("AAA BBB CCC DDD", true)] //<- ResourceOwner for this department
-        [InlineData("AAA BBB CCC DDD EEE", true)]
-        [InlineData("AAA BBB CCC DDD EEE FFF", true)]
+        [InlineData("AAA BBB CCC XXX", true)] //<- ResourceOwner for this department
+        [InlineData("AAA BBB CCC XXX EEE", true)]
+        [InlineData("AAA BBB CCC XXX EEE FFF", true)]
         public async Task PostDepartmentResponsible_CanDelegateAccessToCurrentAndDownwards_WhenResourceOwner(string fullDepartment, bool expectingAccess)
         {
-            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC DDD", "AAA BBB CCC DDD EEE", "AAA BBB CCC DDD EEE FFF" };
+            var departmentsToTest = new List<string> { "AAA BBB", "AAA BBB CCC", "AAA BBB CCC XXX", "AAA BBB CCC XXX EEE", "AAA BBB CCC XXX EEE FFF" };
             foreach (var dep in departmentsToTest)
                 fixture.EnsureDepartment(dep);
 
-            var testDepartment = "AAA BBB CCC DDD";
+            var testDepartment = "AAA BBB CCC XXX";
             var delegatedResourceOwner = fixture.AddProfile(FusionAccountType.Employee);
             var resourceOwner = fixture.AddProfile(x => x.WithAccountType(FusionAccountType.Employee).AsResourceOwner().WithFullDepartment(testDepartment));
             using var adminScope = fixture.UserScope(resourceOwner);
