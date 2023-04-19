@@ -14,13 +14,13 @@
           "serviceBus": ""
         },
         "endpoints": {
-          "lineorg": "https://pro-s-lineorg-ci.azurewebsites.net",
-          "org": "https://pro-s-org-ci.azurewebsites.net", 
-          "people": "https://pro-s-people-ci.azurewebsites.net",
+          "lineorg": "https://fusion-s-lineorg-ci.azurewebsites.net",
+          "org": "https://fusion-s-org-ci.azurewebsites.net", 
+          "people": "https://fusion-s-people-ci.azurewebsites.net",
           "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
-          "notifications": "https://pro-s-notification-ci.azurewebsites.net",
-          "context": "https://pro-s-context-ci.azurewebsites.net",
-          "portal": "https://pro-s-portal-ci.azurewebsites.net"
+          "notifications": "https://fusion-s-notification-ci.azurewebsites.net",
+          "context": "https://fusion-s-context-ci.azurewebsites.net",
+          "portal": "https://fusion-s-portal-ci.azurewebsites.net"
         },
         "resources": {
           "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
