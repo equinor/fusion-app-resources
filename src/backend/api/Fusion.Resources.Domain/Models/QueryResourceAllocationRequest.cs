@@ -58,6 +58,7 @@ namespace Fusion.Resources.Domain
             AdditionalNote = entity.AdditionalNote;
 
             ProposedChangesJson = entity.ProposedChanges;
+            ProposedPersonTagJson = entity.ProposedPersonTags;
             ProposalParameters = new QueryPropsalParameters(entity.ProposalParameters);
 
             Created = entity.Created;
@@ -66,7 +67,6 @@ namespace Fusion.Resources.Domain
             UpdatedBy = QueryPerson.FromEntityOrDefault(entity.UpdatedBy);
             LastActivity = entity.LastActivity;
             IsDraft = entity.IsDraft;
-
             ProvisioningStatus = new QueryProvisioningStatus(entity.ProvisioningStatus);
             CorrelationId = entity.CorrelationId;
             Candidates = entity.Candidates?.Select(x => new QueryPerson(x)).ToList() ?? new();
@@ -99,6 +99,7 @@ namespace Fusion.Resources.Domain
 
         public QueryProposedPerson? ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
+        public string? ProposedPersonTagJson { get; set; }
 
         public string? ProposedChangesJson { get; set; }
 
@@ -112,6 +113,23 @@ namespace Fusion.Resources.Domain
                 try
                 {
                     return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedChangesJson)!;
+                }
+                catch
+                {
+                    return new Dictionary<string, object>();
+                }
+            }
+        }
+        public Dictionary<string, object> ProposedPersonTags
+        {
+            get
+            {
+                if (ProposedPersonTagJson is null)
+                    return new Dictionary<string, object>();
+
+                try
+                {
+                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedPersonTagJson)!;
                 }
                 catch
                 {

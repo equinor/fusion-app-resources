@@ -43,6 +43,9 @@ namespace Fusion.Resources.Api.Controllers
             if (query.ProposedChanges is not null)
                 ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
+            if (query.ProposedPersonTags is not null)
+                ProposedPersonTags = new ApiPropertiesCollection(query.ProposedPersonTags);
+
             ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
 
             if (query.TaskOwner is not null)
@@ -95,6 +98,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? AdditionalNote { get; set; }
 
         public ApiPropertiesCollection? ProposedChanges { get; set; }
+        public ApiPropertiesCollection? ProposedPersonTags { get; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiProposedPerson? ProposedPerson { get; set; }
         public ApiProposalParameters? ProposalParameters { get; set; }
@@ -113,6 +117,7 @@ namespace Fusion.Resources.Api.Controllers
         public Guid? CorrelationId { get; }
         public ApiActionCount? ActionCount { get; }
         public List<ApiPerson> Candidates { get; }
+
         public ApiSecondOpinionCounts? SecondOpinionCounts { get; }
         public List<ApiRequestAction>? Actions { get; }
         public List<ApiRequestConversationMessage>? Conversation { get; }

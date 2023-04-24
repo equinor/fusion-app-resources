@@ -54,6 +54,7 @@ namespace Fusion.Resources.Database.Entities
         /// Json serialized object with changes.
         /// </summary>
         public string? ProposedChanges { get; set; }
+        public string? ProposedPersonTags { get; set; }
         public DbOpProposedPerson ProposedPerson { get; set; } = DbOpProposedPerson.Empty;
         public DbOpProposalParameters ProposalParameters { get; set; } = new DbOpProposalParameters();
 
