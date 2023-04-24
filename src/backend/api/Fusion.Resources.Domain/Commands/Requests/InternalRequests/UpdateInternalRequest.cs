@@ -24,6 +24,7 @@ namespace Fusion.Resources.Domain.Commands
         public MonitorableProperty<string?> AssignedDepartment { get; set; } = new();
         public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; set; } = new();
         public MonitorableProperty<string?> AdditionalNote { get; set; } = new();
+        public MonitorableProperty<string?> ProposedPersonTag { get; set; } = new();
         public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; set; } = new();
 
         public MonitorableProperty<DateTime?> ProposalChangeFrom { get; set; } = new();

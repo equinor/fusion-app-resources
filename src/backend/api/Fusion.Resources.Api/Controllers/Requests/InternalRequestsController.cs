@@ -406,6 +406,8 @@ namespace Fusion.Resources.Api.Controllers
                 if (request.AdditionalNote.HasValue) updateCommand.AdditionalNote = request.AdditionalNote.Value;
                 if (request.AssignedDepartment.HasValue) updateCommand.AssignedDepartment = request.AssignedDepartment.Value;
                 if (request.ProposedChanges.HasValue) updateCommand.ProposedChanges = request.ProposedChanges.Value;
+                if (request.prop.HasValue) updateCommand.ProposedPersonTag = request.AssignedDepartment.Value;
+
 
                 if (request.ProposedPersonAzureUniqueId.HasValue)
                 {
