@@ -1,0 +1,14 @@
+version: 2
+registries:
+  fusion-public:
+    type: nuget-feed
+    url: https://pkgs.dev.azure.com/statoil-proview/5309109e-a734-4064-a84c-fbce45336913/_packaging/Fusion-Public/nuget/v3/index.json
+  nuget:
+    type: nuget-feed
+    url: https://api.nuget.org/v3/index.json
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    registries: "*"
+    schedule:
+      interval: "weekly"
