@@ -70,7 +70,7 @@ namespace Fusion.Resources.Domain.Commands
                             exsistingProps[property.Key] = property.Value;
                         }
                       
-                        dbRequest.Properties = exsistingProps.ToString();
+                        dbRequest.Properties = exsistingProps.SerializeToStringOrDefault();
                     }
              
 
