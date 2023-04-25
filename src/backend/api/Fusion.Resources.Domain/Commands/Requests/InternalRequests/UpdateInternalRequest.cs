@@ -66,29 +66,29 @@ namespace Fusion.Resources.Domain.Commands
                     if (properties is not null)
                     {
                         var resolvedProperties = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
-                        var exsistingProps = JsonConvert.DeserializeObject<Dictionary<string, object>>(resolvedProperties.PropertiesJson) ?? new Dictionary<string, object>();
+                        var existingProps = JsonConvert.DeserializeObject<Dictionary<string, object>>(resolvedProperties.PropertiesJson) ?? new Dictionary<string, object>();
                       
                         foreach (var property in properties)
                         {
 
                             if (property.Value == null || string.IsNullOrEmpty(property.Value?.ToString()))
                             {
-                                exsistingProps.Remove(property.Key);
+                                existingProps.Remove(property.Key);
                             }
                             else
                             {
-                                if (exsistingProps.ContainsKey(property.Key))
+                                if (existingProps.ContainsKey(property.Key))
                                 {
-                                    exsistingProps[property.Key] = property.Value;
+                                    existingProps[property.Key] = property.Value;
                                 }
                                 else
                                 {
-                                    exsistingProps.Add(property.Key, property.Value);
+                                    existingProps.Add(property.Key, property.Value);
                                 }
                                 
                             }
                         }
-                        dbRequest.Properties = exsistingProps.SerializeToStringOrDefault();
+                        dbRequest.Properties = existingProps.SerializeToStringOrDefault();
                     }
 
 
