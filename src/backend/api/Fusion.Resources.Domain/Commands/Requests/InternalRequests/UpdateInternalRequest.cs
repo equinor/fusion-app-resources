@@ -71,7 +71,7 @@ namespace Fusion.Resources.Domain.Commands
                             NullValueHandling = NullValueHandling.Ignore,
                             MissingMemberHandling = MissingMemberHandling.Ignore
                         };
-                        var existingProps = JsonConvert.DeserializeObject<Dictionary<string, object>>(resolvedProperties.PropertiesJson, settings) ?? new Dictionary<string, object>();
+                        var existingProps = resolvedProperties?.Properties;
 
                         foreach (var property in properties)
                         {
