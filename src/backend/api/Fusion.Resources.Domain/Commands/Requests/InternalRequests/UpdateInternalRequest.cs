@@ -67,15 +67,18 @@ namespace Fusion.Resources.Domain.Commands
                     {
                         var resolvedProperties = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                         var exsistingProps = JsonConvert.DeserializeObject<Dictionary<string, object>>(resolvedProperties.PropertiesJson) ?? new Dictionary<string, object>();
-                        //var exsistingProps = resolvedProperties?.Properties ?? new Dictionary<string, object>();
 
                         foreach (var property in properties)
                         {
-                            exsistingProps[property.Key] = property.Value;
+
 
                             if (property.Value == null && string.IsNullOrEmpty(property.Value?.ToString()))
                             {
                                 exsistingProps.Remove(property.Key);
+                            }
+                            else
+                            {
+                                exsistingProps[property.Key] = property.Value;
                             }
                         }
                         properties = exsistingProps;
