@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
 using Newtonsoft.Json;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -71,14 +72,19 @@ namespace Fusion.Resources.Domain.Commands
                         foreach (var property in properties)
                         {
                             exsistingProps[property.Key] = property.Value;
+
+                            if (property.Value == null && string.IsNullOrEmpty(property.Value?.ToString()))
+                            {
+                                exsistingProps.Remove(property.Key);
+                            }
                         }
                         properties = exsistingProps;
                         dbRequest.Properties = properties.SerializeToStringOrDefault();
                     }
-             
 
 
-                   
+
+
                 });
                 modified |= await request.ProposedPersonAzureUniqueId.IfSetAsync(async personId =>
                     {
