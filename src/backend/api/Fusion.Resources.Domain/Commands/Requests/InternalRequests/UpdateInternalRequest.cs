@@ -71,7 +71,7 @@ namespace Fusion.Resources.Domain.Commands
                         foreach (var property in properties)
                         {
 
-                            if (property.Value == null && string.IsNullOrEmpty(property.Value?.ToString()))
+                            if (property.Value == null || string.IsNullOrEmpty(property.Value?.ToString()))
                             {
                                 exsistingProps.Remove(property.Key);
                             }
