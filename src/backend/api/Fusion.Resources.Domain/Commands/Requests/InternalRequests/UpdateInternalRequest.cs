@@ -66,13 +66,11 @@ namespace Fusion.Resources.Domain.Commands
                     if (properties is not null)
                     {
                         var resolvedProperties = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
-                        var settings = new JsonSerializerSettings
+                        var existingProps = new Dictionary<string, object>();
+                        if (string.IsNullOrEmpty(resolvedProperties?.PropertiesJson) == false)
                         {
-                            NullValueHandling = NullValueHandling.Ignore,
-                            MissingMemberHandling = MissingMemberHandling.Ignore
-                        };
-                        var existingProps = resolvedProperties?.Properties;
-
+                            existingProps = JsonConvert.DeserializeObject<Dictionary<string, object>>(resolvedProperties.PropertiesJson) ?? new Dictionary<string, object>();
+                        }
                         foreach (var property in properties)
                         {
 
