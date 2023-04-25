@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fusion.Resources.Domain.Notifications.InternalRequests;
+using Newtonsoft.Json;
 
 namespace Fusion.Resources.Domain.Commands
 {
@@ -64,7 +65,9 @@ namespace Fusion.Resources.Domain.Commands
                     if (properties is not null)
                     {
                         var resolvedProperties = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
-                        var exsistingProps = resolvedProperties?.Properties ?? new Dictionary<string, object>();
+                        var exsistingProps = JsonConvert.DeserializeObject<Dictionary<string, object>>(resolvedProperties.PropertiesJson) ?? new Dictionary<string, object>();
+                        //var exsistingProps = resolvedProperties?.Properties ?? new Dictionary<string, object>();
+
                         foreach (var property in properties)
                         {
                             exsistingProps[property.Key] = property.Value;
