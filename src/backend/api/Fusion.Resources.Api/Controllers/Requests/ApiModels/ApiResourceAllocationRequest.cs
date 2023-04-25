@@ -43,8 +43,8 @@ namespace Fusion.Resources.Api.Controllers
             if (query.ProposedChanges is not null)
                 ProposedChanges = new ApiPropertiesCollection(query.ProposedChanges);
 
-            if (query.ProposedPersonTags is not null)
-                ProposedPersonTags = new ApiPropertiesCollection(query.ProposedPersonTags);
+            if (query.Properties is not null)
+                Properties = new ApiPropertiesCollection(query.Properties);
 
             ProposalParameters = new ApiProposalParameters(query.ProposalParameters);
 
@@ -98,7 +98,7 @@ namespace Fusion.Resources.Api.Controllers
         public string? AdditionalNote { get; set; }
 
         public ApiPropertiesCollection? ProposedChanges { get; set; }
-        public ApiPropertiesCollection? ProposedPersonTags { get; }
+        public ApiPropertiesCollection? Properties { get; }
         public Guid? ProposedPersonAzureUniqueId { get; set; }
         public ApiProposedPerson? ProposedPerson { get; set; }
         public ApiProposalParameters? ProposalParameters { get; set; }

@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain.Commands
         public MonitorableProperty<string?> AssignedDepartment { get; set; } = new();
         public MonitorableProperty<Guid?> ProposedPersonAzureUniqueId { get; set; } = new();
         public MonitorableProperty<string?> AdditionalNote { get; set; } = new();
-        public MonitorableProperty<Dictionary<string, object>?> ProposedPersonTags { get; set; } = new();
+        public MonitorableProperty<Dictionary<string, object>?> Properties { get; set; } = new();
         public MonitorableProperty<Dictionary<string, object>?> ProposedChanges { get; set; } = new();
 
         public MonitorableProperty<DateTime?> ProposalChangeFrom { get; set; } = new();
@@ -59,19 +59,36 @@ namespace Fusion.Resources.Domain.Commands
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= request.AdditionalNote.IfSet(note => dbRequest.AdditionalNote = note);
                 modified |= request.ProposedChanges.IfSet(changes => dbRequest.ProposedChanges = changes.SerializeToStringOrDefault());
-                modified |= request.ProposedPersonTags.IfSet(tags => dbRequest.ProposedPersonTags = tags.SerializeToStringOrDefault());
-                modified |= await request.ProposedPersonAzureUniqueId.IfSetAsync(async personId =>
+                modified |= await request.Properties.IfSetAsync(async properties =>
                 {
-                    if (personId is not null)
+                    if (properties is not null)
                     {
-                        var resolvedPerson = await profileService.EnsurePersonAsync(new PersonId(personId.Value));
-                        dbRequest.ProposePerson(resolvedPerson!);
+                        var resolvedProperties = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
+                        var exsistingProps = resolvedProperties?.Properties ?? new Dictionary<string, object>();
+                        foreach (var property in properties)
+                        {
+                            exsistingProps[property.Key] = property.Value;
+                        }
+                      
+                        dbRequest.Properties = exsistingProps.SerializeToStringOrDefault();
                     }
-                    else
-                    {
-                        dbRequest.ProposedPerson.Clear();
-                    }
+             
+
+
+                   
                 });
+                modified |= await request.ProposedPersonAzureUniqueId.IfSetAsync(async personId =>
+                    {
+                        if (personId is not null)
+                        {
+                            var resolvedPerson = await profileService.EnsurePersonAsync(new PersonId(personId.Value));
+                            dbRequest.ProposePerson(resolvedPerson!);
+                        }
+                        else
+                        {
+                            dbRequest.ProposedPerson.Clear();
+                        }
+                    });
                 modified |= await request.Candidates.IfSetAsync(async candidates =>
                 {
                     dbRequest.Candidates.Clear();
@@ -83,7 +100,7 @@ namespace Fusion.Resources.Domain.Commands
                         dbRequest.Candidates.Add(resolvedPerson);
                     }
 
-                    if(dbRequest.Candidates.Count == 1 && !dbRequest.ProposedPerson.HasBeenProposed)
+                    if (dbRequest.Candidates.Count == 1 && !dbRequest.ProposedPerson.HasBeenProposed)
                     {
                         dbRequest.ProposePerson(dbRequest.Candidates.Single());
                     }

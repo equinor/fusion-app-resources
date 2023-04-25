@@ -58,7 +58,7 @@ namespace Fusion.Resources.Domain
             AdditionalNote = entity.AdditionalNote;
 
             ProposedChangesJson = entity.ProposedChanges;
-            ProposedPersonTagJson = entity.ProposedPersonTags;
+            PropertiesJson = entity.Properties;
             ProposalParameters = new QueryPropsalParameters(entity.ProposalParameters);
 
             Created = entity.Created;
@@ -99,7 +99,7 @@ namespace Fusion.Resources.Domain
 
         public QueryProposedPerson? ProposedPerson { get; set; }
         public string? AdditionalNote { get; set; }
-        public string? ProposedPersonTagJson { get; set; }
+        public string? PropertiesJson { get; set; }
 
         public string? ProposedChangesJson { get; set; }
 
@@ -120,16 +120,16 @@ namespace Fusion.Resources.Domain
                 }
             }
         }
-        public Dictionary<string, object> ProposedPersonTags
+        public Dictionary<string, object> Properties
         {
             get
             {
-                if (ProposedPersonTagJson is null)
+                if (PropertiesJson is null)
                     return new Dictionary<string, object>();
 
                 try
                 {
-                    return JsonSerializer.Deserialize<Dictionary<string, object>>(ProposedPersonTagJson)!;
+                    return JsonSerializer.Deserialize<Dictionary<string, object>>(PropertiesJson)!;
                 }
                 catch
                 {
