@@ -67,7 +67,7 @@ namespace Fusion.Resources.Domain.Commands
                     {
                         var resolvedProperties = await mediator.Send(new GetResourceAllocationRequestItem(request.RequestId));
                         var exsistingProps = JsonConvert.DeserializeObject<Dictionary<string, object>>(resolvedProperties.PropertiesJson) ?? new Dictionary<string, object>();
-
+                      
                         foreach (var property in properties)
                         {
 
@@ -77,7 +77,15 @@ namespace Fusion.Resources.Domain.Commands
                             }
                             else
                             {
-                                exsistingProps[property.Key] = property.Value;
+                                if (exsistingProps.ContainsKey(property.Key))
+                                {
+                                    exsistingProps[property.Key] = property.Value;
+                                }
+                                else
+                                {
+                                    exsistingProps.Add(property.Key, property.Value);
+                                }
+                                
                             }
                         }
                         dbRequest.Properties = exsistingProps.SerializeToStringOrDefault();
