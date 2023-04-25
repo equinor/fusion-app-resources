@@ -69,8 +69,8 @@ namespace Fusion.Resources.Domain.Commands
                         {
                             exsistingProps[property.Key] = property.Value;
                         }
-                      
-                        dbRequest.Properties = exsistingProps.SerializeToStringOrDefault();
+                        properties = exsistingProps;
+                        dbRequest.Properties = properties.SerializeToStringOrDefault();
                     }
              
 
