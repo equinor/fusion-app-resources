@@ -10,6 +10,7 @@ using Fusion.Resources.Database;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 using System.Diagnostics;
+using Fusion.Resources.Domain.Commands;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -19,6 +20,7 @@ namespace Fusion.Resources.Api.Controllers
         public PatchProperty<string?> AssignedDepartment { get; set; } = new();
         public PatchProperty<Guid?> ProposedPersonAzureUniqueId { get; set; } = new();
         public PatchProperty<ApiPropertiesCollection?> ProposedChanges { get; set; } = new();
+        public PatchProperty<ApiPropertiesCollection?> Properties { get; set; } = new();
 
         public PatchProperty<ProposalParametersRequest> ProposalParameters { get; set; } = new();
         public PatchProperty<List<PersonReference>?> Candidates { get; set; } = new();
