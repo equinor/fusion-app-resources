@@ -33,6 +33,8 @@ namespace Fusion.Resources.Domain
         public DateTime? TimelineStart { get; set; }
         public DateTime? TimelineEnd { get; set; }
 
+        public int? Version { get; set; }
+
 
         public GetDepartmentPersonnel WithTimeline(bool shouldExpandTimeline, DateTime? start, DateTime? end)
         {
@@ -52,6 +54,12 @@ namespace Fusion.Resources.Domain
         public GetDepartmentPersonnel IncludeCurrentAllocations(bool includeCurrentAllocations)
         {
             this.includeCurrentAllocations = includeCurrentAllocations;
+            return this;
+        }
+
+        public GetDepartmentPersonnel WithVersion(int? version)
+        {
+            Version = version;
             return this;
         }
 
@@ -83,7 +91,11 @@ namespace Fusion.Resources.Domain
             {
                 var departmentRequests = await GetPendingRequests(request.Department);
                 var requestsWithStateNullOrCreated = await GetRequestsWithStateNullOrCreatedAsync(request.Department);
-                var departmentPersonnel = await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments, requestsWithStateNullOrCreated);
+                var departmentPersonnel = request.Version switch
+                {
+                    2 => await GetDepartmentFromSearchIndexAsyncV2(request.Department, requestsWithStateNullOrCreated),
+                    _ => await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments, requestsWithStateNullOrCreated)
+                };
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
                 
                 departmentPersonnel.ForEach(p =>
@@ -178,6 +190,37 @@ namespace Fusion.Resources.Domain
                 {
                     personnel = await PeopleSearchUtils.GetDirectReportsTo(peopleClient, department.LineOrgResponsible.AzureUniqueId.Value, requests);
                 }
+
+                return personnel;
+            }
+
+            private async Task<List<QueryInternalPersonnelPerson>> GetDepartmentFromSearchIndexAsyncV2(string fullDepartmentString, List<QueryResourceAllocationRequest> requests)
+            {
+                // Not sure what includeSubDepartments does tbh.. By looking at existing code, it doesn't do much other than what we want to do.. 
+                // I guess the different might be that it lists persons cross departments, when the manger is acting for different org units.
+
+                var orgUnit = await mediator.Send(new ResolveLineOrgUnit(fullDepartmentString));
+
+
+                // Copied from line org for now. Might want to decorate the profiles in the search index with the department property so the query is simple
+                // Will be too many round-trips to ask line org for 
+
+                var managers = orgUnit?.Management?.Persons?
+                    .Where(m => string.Equals(m.FullDepartment, orgUnit.FullDepartment, StringComparison.OrdinalIgnoreCase))
+                    .Select(m => m.AzureUniqueId)
+                    .ToList() ?? new List<Guid>();
+                
+                var removeManagerQuery = string.Join(" and ", managers.Select(m => $"azureUniqueId ne '{m}'"));
+                var queryString = (managers.Any() ? removeManagerQuery + " and " : "") + $"fullDepartment eq '{fullDepartmentString}' and isExpired eq false";
+
+                if (managers.Any())
+                    queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}'"));
+
+
+
+                var peopleClient = httpClientFactory.CreateClient(HttpClientNames.ApplicationPeople);
+
+                var personnel = await PeopleSearchUtils.GetFromSearchIndexAsync(peopleClient, queryString, requests: requests);
 
                 return personnel;
             }
