@@ -25,7 +25,9 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         /// <summary>
-        /// Get personnel for a department
+        /// Get personnel for a department.
+        /// 
+        /// Version 2 only changes the data set returned, by utilizing a different query for employees.
         /// </summary>
         /// <param name="fullDepartmentString">The department to retrieve personnel list from.</param>
         /// <param name="timelineStart">Start date of timeline</param>
@@ -43,7 +45,8 @@ namespace Fusion.Resources.Api.Controllers
             [FromQuery] string? timelineDuration = null,
             [FromQuery] DateTime? timelineEnd = null,
             [FromQuery] bool includeSubdepartments = false,
-            [FromQuery] bool includeCurrentAllocations = false)
+            [FromQuery] bool includeCurrentAllocations = false,
+            int? version = null)
         {
             #region Authorization
 
@@ -102,7 +105,8 @@ namespace Fusion.Resources.Api.Controllers
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
                 .IncludeSubdepartments(includeSubdepartments)
                 .IncludeCurrentAllocations(includeCurrentAllocations)
-                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
+                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd)
+                .WithVersion(version);
 
             var department = await DispatchAsync(command);
 
@@ -115,7 +119,21 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
-        [HttpGet("sectors/{sectorPath}/resources/personnel")]
+        [MapToApiVersion("2.0")]
+        [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnelV2(string fullDepartmentString,
+            [FromQuery] ODataQueryParams query,
+            [FromQuery] DateTime? timelineStart = null,
+            [FromQuery] string? timelineDuration = null,
+            [FromQuery] DateTime? timelineEnd = null,
+            [FromQuery] bool includeSubdepartments = false,
+            [FromQuery] bool includeCurrentAllocations = false)
+        {
+
+            return await GetDepartmentPersonnel(fullDepartmentString, query, timelineStart, timelineDuration, timelineEnd, includeSubdepartments, includeCurrentAllocations, version: 2);
+        }
+
+            [HttpGet("sectors/{sectorPath}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetSectorPersonnel(string sectorPath,
             [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
