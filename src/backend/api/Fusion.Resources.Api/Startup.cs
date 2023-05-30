@@ -113,6 +113,7 @@ namespace Fusion.Resources.Api
             services.AddResourcesAuthorizationHandlers();
             services.AddMediatR(typeof(Startup));   // Add notification handlers in api project
             services.AddHostedService<ExpiredDelegatedRolesHostedService>();
+            services.AddScoped<IUnifiedTransactionScope, UnifiedTransactionScope>();
 
             #endregion Resource services
 

@@ -77,7 +77,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                using var transaction = await BeginTransactionAsync();
+                await using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
 
@@ -143,7 +143,7 @@ namespace Fusion.Resources.Api.Controllers
             var correlationId = Guid.NewGuid();
             try
             {
-                using var transaction = await BeginTransactionAsync();
+                await using var transaction = await BeginTransactionAsync();
                 foreach (var instanceId in request.OrgPositionInstanceIds)
                 {
                     // Create all requests as draft
@@ -248,7 +248,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                using var transaction = await BeginTransactionAsync();
+                await using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
 

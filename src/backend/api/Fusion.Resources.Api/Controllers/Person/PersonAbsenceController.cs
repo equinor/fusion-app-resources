@@ -152,7 +152,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                using (var scope = await BeginTransactionAsync())
+                await using (var scope = await BeginTransactionAsync())
                 {
                     var newAbsence = await DispatchAsync(createCommand);
                     await scope.CommitAsync();
@@ -201,7 +201,7 @@ namespace Fusion.Resources.Api.Controllers
             var updateCommand = new UpdatePersonAbsence(id, absenceId);
             request.LoadCommand(updateCommand);
 
-            using (var scope = await BeginTransactionAsync())
+            await using (var scope = await BeginTransactionAsync())
             {
                 var updatedAbsence = await DispatchAsync(updateCommand);
 
