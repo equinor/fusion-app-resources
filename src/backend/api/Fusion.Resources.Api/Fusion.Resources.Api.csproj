@@ -14,12 +14,12 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Bogus" Version="34.0.2" />
-		<PackageReference Include="Fusion.Integration" Version="6.0.13" />
+		<PackageReference Include="Fusion.Integration" Version="6.10.6" />
 		<PackageReference Include="Fusion.Events.Server" Version="3.0.0" />
-		<PackageReference Include="Fusion.Integration.Authorization" Version="6.0.11" />
-		<PackageReference Include="Fusion.Integration.Org" Version="6.0.2" />
-		<PackageReference Include="Fusion.Integration.Roles" Version="6.1.7" />
-		<PackageReference Include="Fusion.Integration.Notification" Version="6.0.3" />
+		<PackageReference Include="Fusion.Integration.Authorization" Version="6.10.6" />
+		<PackageReference Include="Fusion.Integration.Org" Version="6.10.6" />
+		<PackageReference Include="Fusion.Integration.Roles" Version="6.10.6" />
+		<PackageReference Include="Fusion.Integration.Notification" Version="6.10.7" />
 		<PackageReference Include="Fusion.ApiClients.Org" Version="6.0.2" />
 		<PackageReference Include="Fusion.AspNetCore" Version="6.0.8" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
