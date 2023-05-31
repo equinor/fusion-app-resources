@@ -1,4 +1,5 @@
-﻿using FluentValidation.Validators;
+﻿using FluentValidation;
+using FluentValidation.Validators;
 using System;
 using System.Linq;
 
@@ -9,7 +10,7 @@ namespace Fusion.Resources.Api.Controllers
     /// This is an attempt to weed out most of the private mail addresses to try and force usage of company mails only. 
     /// As we cannot cover all domains this is only a best effort (or maybe just 'an attempt' :p) approach.
     /// </summary>
-    public class EmailDomainValidator : PropertyValidator, IPropertyValidator
+    public class EmailDomainValidator<T> : PropertyValidator<T, string?>
     {
         private static string[] InvalidDomains = new[]
         {
@@ -29,11 +30,11 @@ namespace Fusion.Resources.Api.Controllers
             "yandex.com"
         };
 
-        protected override bool IsValid(PropertyValidatorContext context)
-        {
-            var value = context.PropertyValue as string;
+        public override string Name => "EmailDomainValidator";
 
-            if (!string.IsNullOrEmpty(value) && value.Contains("@")) 
+        public override bool IsValid(ValidationContext<T> context, string? value)
+        {
+            if (!string.IsNullOrEmpty(value) && value.Contains("@"))
             {
                 var domain = value.Split("@").Last();
                 if (InvalidDomains.Contains(domain, StringComparer.OrdinalIgnoreCase))
@@ -42,7 +43,6 @@ namespace Fusion.Resources.Api.Controllers
 
             return true;
         }
-        
     }
 
     
