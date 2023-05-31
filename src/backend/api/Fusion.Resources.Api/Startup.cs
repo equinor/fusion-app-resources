@@ -1,3 +1,4 @@
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using Fusion.Events;
 using Fusion.Integration.Authentication;
@@ -6,6 +7,7 @@ using Fusion.Resources.Api.Authentication;
 using Fusion.Resources.Api.HostedServices;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
+using JSM.FluentValidation.AspNet.AsyncFilter;
 using MediatR;
 using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -94,14 +96,19 @@ namespace Fusion.Resources.Api
             services.AddOrgApiClient(OrgConstants.HttpClients.Application, OrgConstants.HttpClients.Delegate);
 
             services.AddControllers()
-                .AddFluentValidation(c =>
-                {
-                    c.RegisterValidatorsFromAssemblyContaining<Startup>();
-                    // Domain project
-                    c.RegisterValidatorsFromAssemblyContaining<PersonId>();
-                    // Logic project, where ResourceAllocationRequest having validators
-                    c.RegisterValidatorsFromAssemblyContaining<Logic.Commands.ResourceAllocationRequest>();
-                });
+                .AddModelValidationAsyncActionFilter();
+            //.AddFluentValidation(c =>
+            //{
+            //    c.RegisterValidatorsFromAssemblyContaining<Startup>();
+            //    // Domain project
+            //    c.RegisterValidatorsFromAssemblyContaining<PersonId>();
+            //    // Logic project, where ResourceAllocationRequest having validators
+            //    c.RegisterValidatorsFromAssemblyContaining<Logic.Commands.ResourceAllocationRequest>();
+            //});
+
+            services.AddValidatorsFromAssemblyContaining<Startup>(ServiceLifetime.Transient);
+            services.AddValidatorsFromAssemblyContaining<PersonId>(ServiceLifetime.Transient);
+            services.AddValidatorsFromAssemblyContaining<Logic.Commands.ResourceAllocationRequest>(ServiceLifetime.Transient);
 
             #region Resource services
 

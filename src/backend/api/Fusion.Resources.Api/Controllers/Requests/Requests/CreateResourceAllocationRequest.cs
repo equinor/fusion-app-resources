@@ -41,7 +41,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<CreateResourceAllocationRequest>
         {
-            public Validator(IMediator mediator, IFusionProfileResolver profileResolver)
+            public Validator(IMediator mediator, IFusionProfileResolver profileResolver, IServiceProvider service)
             {
                 RuleFor(x => x.Type).NotNull().NotEmpty();
                 RuleFor(x => x.Type).IsEnumName(typeof(ApiAllocationRequestType), false)
@@ -64,8 +64,8 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x)
                     .CustomAsync(async (req, context, ct) =>
                     {
-                        var orgResolver = context.GetServiceProvider().GetRequiredService<IProjectOrgResolver>();
-                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
+                        var orgResolver = service.GetRequiredService<IProjectOrgResolver>();
+                        var logger = service.GetRequiredService<ILogger<Validator>>();
 
                         try
                         {
@@ -92,7 +92,7 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         if (!id.HasValue) return;
 
-                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
+                        var logger = service.GetRequiredService<ILogger<Validator>>();
 
                         try
                         {

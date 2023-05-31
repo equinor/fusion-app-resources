@@ -581,17 +581,34 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsTypeDirect()
                 .WithAssignedDepartment("PDP PRD FE TST XN ASD")
                 .WithProposedPerson(proposedPerson));
-            
+
+
             await Client.StartProjectRequestAsync(testProject, testRequest.Id);
 
+
+            #region assert
             var facts = NotificationClientMock.SentMessages
                 .Select(x => x.Card)
                 .SelectMany(x => x.Body)
                 .OfType<AdaptiveFactSet>()
-                .SelectMany(x => x.Facts)
-                .Select(x => x.Value);
+                .SelectMany(x => x.Facts);
 
-            facts.Should().NotContain(testRequest.Number.ToString());
+            var requestNumberFacts = facts.Where(x => x.Title?.Contains("Request number", StringComparison.OrdinalIgnoreCase) == true);
+            
+            // Verify that if there are any notifications, it actually contains facts that we expect to be present..
+            if (facts.Any())
+            {
+                requestNumberFacts.Should()
+                    .HaveCountGreaterThan(0, "Not sure if we are evaluating based on correct presumptions on how notifications " +
+                    "are generated. Should have a fact entry which displays request number");
+            }
+
+            requestNumberFacts
+                .Select(f => f.Value)
+                .Where(v => v == $"{testRequest.Number}")
+                .Should()
+                .BeEmpty($"Should not be any notifications sent for request number {testRequest.Number}");
+            #endregion
         }
 
         [Fact]
@@ -617,6 +634,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .SelectMany(x => x.Body)
                 .OfType<AdaptiveFactSet>()
                 .SelectMany(x => x.Facts)
+                .Where(x => x.Title?.Contains("Request number", StringComparison.OrdinalIgnoreCase) == true)
                 .Select(x => x.Value);
 
             facts.Should().Contain(testRequest.Number.ToString());

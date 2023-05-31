@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Fusion.Resources.Domain;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +15,7 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<AddSecondOpinionRequest>
         {
-            public Validator()
+            public Validator(IServiceProvider services)
             {
                 RuleFor(x => x.Title).NotEmpty();
                 RuleFor(x => x.Description).NotEmpty();
@@ -23,7 +24,8 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x.AssignedTo)
                     .Must((req, assignedToIds, context) =>
                     {
-                        var profileResolver = context.GetServiceProvider().GetRequiredService<IProfileService>();
+                        
+                        var profileResolver = services.GetRequiredService<IProfileService>();
 
                         // Need to wait here, because aspnet validation pipeline is not async. 
                         // Ref: https://docs.fluentvalidation.net/en/latest/aspnet.html
