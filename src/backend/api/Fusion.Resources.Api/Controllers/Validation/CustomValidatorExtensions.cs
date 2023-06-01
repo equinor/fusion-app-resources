@@ -118,23 +118,6 @@ namespace Fusion.Resources.Api.Controllers
                         "Key cannot exceed 100 characters", k));
                 }
             });
-
-            //return ruleBuilder.SetValidator(
-                
-            //    new CustomValidator<Dictionary<string, object>>(
-            //    (prop, context) =>
-            //    {
-            //        var serialized = JsonConvert.SerializeObject(prop);
-            //        if (serialized.Length > 5000)
-            //            context.AddFailure("Total size of change dictionary cannot be larger than 5000 characters");
-
-            //        foreach (var k in prop.Keys.Where(k => k.Length > 100))
-            //        {
-            //            context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",
-            //                "Key cannot exceed 100 characters", k));
-            //        }
-
-            //    }));
         }
 
         public static IRuleBuilderOptionsConditions<T, ApiPositionInstance?> BeValidPositionInstance<T>(this IRuleBuilder<T, ApiPositionInstance?> ruleBuilder)
@@ -172,7 +155,6 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         public static string JsPropertyName<T>(this ValidationContext<T> context) => context.PropertyName.ToLowerFirstChar();
-        //public static string JsPropertyName(this string propertyName) => propertyName.ToLowerFirstChar();
 
 
         /// <summary>
