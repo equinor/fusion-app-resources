@@ -71,7 +71,7 @@ jobs:
             displayName: Log in to aks namespace
             inputs:
               connectionType: 'Kubernetes Service Connection'
-              kubernetesServiceEndpoint: 'fusion-resources-app-pr'
+              kubernetesServiceEndpoint: 'fusion-aks-01-prep-fusion-resources-app-pr'
               namespace: 'fusion-resources-app-pr'
               command: 'login'
 
