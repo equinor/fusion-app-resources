@@ -167,7 +167,4 @@ namespace Fusion.Resources.Api.Controllers
                 .WithMessage("Mail domain should not be private. Most major private mail domains are rejected (gmail, hotmail, icloud etc.)");
         }
     }
-
-    
-
 }

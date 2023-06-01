@@ -107,10 +107,14 @@
                             "name": "ENVNAME",
                             "value": "[variables('env-name')]"
                         },
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(concat('microsoft.insights/components/', variables('ai-api-name')), '2015-05-01').InstrumentationKey]"
-                        }
+                      {
+                        "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                        "value": "[reference(concat('microsoft.insights/components/', variables('ai-api-name')), '2015-05-01').InstrumentationKey]"
+                      },
+                      {
+                        "name": "Fusion__ServiceDiscovery__Portal",
+                        "value": "https://fusion.equinor.com"
+                      }
                     ],
                     "linuxFxVersion": "[concat('DOCKER|', parameters('docker').image)]",
                     "appCommandLine": "[parameters('docker').startupCommand]",
