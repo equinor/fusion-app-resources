@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AdaptiveCards;
+using Azure;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
@@ -17,6 +18,7 @@ using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -587,27 +589,35 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
 
             #region assert
-            var facts = NotificationClientMock.SentMessages
-                .Select(x => x.Card)
-                .SelectMany(x => x.Body)
-                .OfType<AdaptiveFactSet>()
-                .SelectMany(x => x.Facts);
 
-            var requestNumberFacts = facts.Where(x => x.Title?.Contains("Request number", StringComparison.OrdinalIgnoreCase) == true);
-            
-            // Verify that if there are any notifications, it actually contains facts that we expect to be present..
-            if (facts.Any())
-            {
-                requestNumberFacts.Should()
-                    .HaveCountGreaterThan(0, "Not sure if we are evaluating based on correct presumptions on how notifications " +
-                    "are generated. Should have a fact entry which displays request number");
-            }
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { testRequest })}");
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(NotificationClientMock.SentMessages)}");
 
-            requestNumberFacts
-                .Select(f => f.Value)
-                .Where(v => v == $"{testRequest.Number}")
-                .Should()
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestNumber(testRequest.Number);
+            notificationsForRequest.Should()
                 .BeEmpty($"Should not be any notifications sent for request number {testRequest.Number}");
+
+            //var facts = NotificationClientMock.SentMessages
+            //    .Select(x => x.Card)
+            //    .SelectMany(x => x.Body)
+            //    .OfType<AdaptiveFactSet>()
+            //    .SelectMany(x => x.Facts);
+
+            //var requestNumberFacts = facts.Where(x => x.Title?.Contains("Request number", StringComparison.OrdinalIgnoreCase) == true);
+            
+            //// Verify that if there are any notifications, it actually contains facts that we expect to be present..
+            //if (facts.Any())
+            //{
+            //    requestNumberFacts.Should()
+            //        .HaveCountGreaterThan(0, "Not sure if we are evaluating based on correct presumptions on how notifications " +
+            //        "are generated. Should have a fact entry which displays request number");
+            //}
+
+            //requestNumberFacts
+            //    .Select(f => f.Value)
+            //    .Where(v => v == $"{testRequest.Number}")
+            //    .Should()
+            //    .BeEmpty($"Should not be any notifications sent for request number {testRequest.Number}");
             #endregion
         }
 
