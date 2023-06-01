@@ -8,11 +8,11 @@
   <ItemGroup>
     <PackageReference Include="Bogus" Version="34.0.2" />
     <PackageReference Include="Fusion.Integration.Profile.Abstractions" Version="6.0.7" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="5.0.7" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="6.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.13" />
-    <PackageReference Include="Fusion.AspNetCore" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.16" />
+    <PackageReference Include="Fusion.AspNetCore" Version="6.0.8" />
     <PackageReference Include="Microsoft.Data.OData" Version="5.8.5" />
 
   </ItemGroup>
