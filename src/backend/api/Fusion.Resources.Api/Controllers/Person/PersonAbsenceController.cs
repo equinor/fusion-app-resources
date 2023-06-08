@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.Authorization;
+using Fusion.Events;
 using Fusion.Integration.LineOrg;
 using Fusion.Resources.Domain;
 using Fusion.Resources.Domain.Commands;
@@ -17,6 +18,13 @@ namespace Fusion.Resources.Api.Controllers
     [ApiController]
     public class PersonAbsenceController : ResourceControllerBase
     {
+        private readonly IEventNotificationClient notificationClient;
+
+        public PersonAbsenceController(IEventNotificationClient notificationClient)
+        {
+            this.notificationClient = notificationClient;
+        }
+
         [HttpGet("/persons/{personId}/absence")]
         public async Task<ActionResult<ApiCollection<ApiPersonAbsence>>> GetPersonAbsence(
             [FromRoute] string personId)
@@ -152,10 +160,13 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
+                // Due to implementation details in event transaction, this must be called from the correct async scope. Cannot be called from other async method.
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using (var scope = await BeginTransactionAsync())
                 {
                     var newAbsence = await DispatchAsync(createCommand);
                     await scope.CommitAsync();
+                    await eventTransaction.CommitAsync();
 
                     var item = ApiPersonAbsence.CreateWithConfidentialTaskInfo(newAbsence);
                     return Created($"/persons/{personId}/absence/{item.Id}", item);
@@ -201,11 +212,13 @@ namespace Fusion.Resources.Api.Controllers
             var updateCommand = new UpdatePersonAbsence(id, absenceId);
             request.LoadCommand(updateCommand);
 
+            await using var eventTransaction = await notificationClient.BeginTransactionAsync();
             await using (var scope = await BeginTransactionAsync())
             {
                 var updatedAbsence = await DispatchAsync(updateCommand);
 
                 await scope.CommitAsync();
+                await eventTransaction.CommitAsync();
 
                 var item = ApiPersonAbsence.CreateWithConfidentialTaskInfo(updatedAbsence);
                 return item;
