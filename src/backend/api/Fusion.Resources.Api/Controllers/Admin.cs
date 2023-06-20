@@ -17,23 +17,24 @@ namespace Fusion.Resources.Api.Controllers
     [ApiVersion("1.0")]
     [Authorize]
     [ApiController]
-    public class InternalDepartmentsController : ResourceControllerBase
+    public class AdminController : ResourceControllerBase
     {
 
         private readonly IOrgUnitCache orgUnitCache;
 
-        public InternalDepartmentsController(IOrgApiClientFactory orgApiClientFactory, IRequestRouter requestRouter, IOrgUnitCache orgUnitCache)
+        public AdminController(IOrgUnitCache orgUnitCache)
         {
 
             this.orgUnitCache = orgUnitCache;
         }
 
-        [HttpGet("/ClearLineOrgCache")]
+        [HttpGet("admin/cache/org-units")]
 
-        public async void CleareCache()
+        public async Task<ActionResult> CleareCache()
         {
             await orgUnitCache.ClearOrgUnitCacheAsync();
 
+            return Ok();
         }
 
       

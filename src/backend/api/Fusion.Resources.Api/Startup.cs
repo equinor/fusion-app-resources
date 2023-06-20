@@ -87,7 +87,7 @@ namespace Fusion.Resources.Api
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
 
-                s.AddTransientHandler<LineOrgOrgUnitChangedEvent>(LineOrgConstants.HttpClients.Application, "/subscriptions/lineorg", e =>
+                s.AddTransientHandler<LineOrgOrgUnitHandler>(LineOrgConstants.HttpClients.Application, "/subscriptions/lineorg", e =>
                 {
                    var LineOrgUnit = new FusionEventType("lineorg.org-unit" );
                     e.OnlyTriggerOn(LineOrgUnit);
