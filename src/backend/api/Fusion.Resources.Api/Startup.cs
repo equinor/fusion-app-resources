@@ -85,6 +85,12 @@ namespace Fusion.Resources.Api
                 {
                     e.OnlyTriggerOn(OrgEventTypes.Project);
                 });
+
+                s.AddTransientHandler<LineOrgOrgUnitChangedEvent>(OrgConstants.HttpClients.Application, "/subscriptions/lineorg", e =>
+                {
+                   var LineOrgUnit = new FusionEventType("lineorg.org-unit" );
+                    e.OnlyTriggerOn(LineOrgUnit);
+                });
             });
             // Add custom claims provider, to sort delegated responsibilities
             services.AddScoped<ILocalClaimsTransformation, ResourcesLocalClaimsTransformation>();
