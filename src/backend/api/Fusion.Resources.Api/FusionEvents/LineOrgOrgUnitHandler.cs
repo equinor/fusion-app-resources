@@ -8,12 +8,12 @@ namespace Fusion.Resources.Api
     /// <summary>
     /// Handler listening on Line-Org service changes to org-units.
     /// </summary>
-    public class LineOrgOrgUnitChangedEvent : ISubscriptionHandler
+    public class LineOrgOrgUnitHandler : ISubscriptionHandler
     {
         private readonly IOrgUnitCache orgUnitCache;
 
 
-        public LineOrgOrgUnitChangedEvent(IOrgUnitCache orgUnitCache)
+        public LineOrgOrgUnitHandler(IOrgUnitCache orgUnitCache)
         {
             this.orgUnitCache = orgUnitCache;
         }
