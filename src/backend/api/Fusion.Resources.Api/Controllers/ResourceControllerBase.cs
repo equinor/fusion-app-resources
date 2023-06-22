@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Controllers
@@ -48,6 +46,10 @@ namespace Fusion.Resources.Api.Controllers
                 return dispatcher;
             }
         }
+
+        // This does not work for event transaction atm. 
+        // This is due to async local being used and by having an async function create the scope, causes it to be made in a parallell async tree.
+        // Could have been done by creating a handler instead..
 
         protected Task<IDbContextTransaction> BeginTransactionAsync()
         {

@@ -3,6 +3,7 @@ using Fusion.AspNetCore.Api;
 using Fusion.AspNetCore.FluentAuthorization;
 using Fusion.AspNetCore.OData;
 using Fusion.Authorization;
+using Fusion.Events;
 using Fusion.Integration;
 using Fusion.Integration.LineOrg;
 using Fusion.Integration.Org;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -30,10 +32,12 @@ namespace Fusion.Resources.Api.Controllers
     public class InternalRequestsController : ResourceControllerBase
     {
         private readonly IFusionProfileResolver profileResolver;
+        private readonly IEventNotificationClient notificationClient;
 
-        public InternalRequestsController(IFusionProfileResolver profileResolver)
+        public InternalRequestsController(IFusionProfileResolver profileResolver, IEventNotificationClient notificationClient)
         {
             this.profileResolver = profileResolver;
+            this.notificationClient = notificationClient;
         }
 
         [HttpPost("/projects/{projectIdentifier}/resources/requests")]
@@ -77,7 +81,8 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                using var transaction = await BeginTransactionAsync();
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
+                await using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
 
@@ -91,6 +96,7 @@ namespace Fusion.Resources.Api.Controllers
                 }
 
                 await transaction.CommitAsync();
+                await eventTransaction.CommitAsync();
 
                 var query = new GetResourceAllocationRequestItem(newRequest.RequestId)
                     .ExpandDepartmentDetails()
@@ -143,7 +149,8 @@ namespace Fusion.Resources.Api.Controllers
             var correlationId = Guid.NewGuid();
             try
             {
-                using var transaction = await BeginTransactionAsync();
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
+                await using var transaction = await BeginTransactionAsync();
                 foreach (var instanceId in request.OrgPositionInstanceIds)
                 {
                     // Create all requests as draft
@@ -181,6 +188,7 @@ namespace Fusion.Resources.Api.Controllers
                     requests.Add(newRequest!);
                 }
                 await transaction.CommitAsync();
+                await eventTransaction.CommitAsync();
 
                 // Using the requests for position endpoint as created ref.. This is not completely accurate as it could return more than those created. Best option though.
                 return Created($"/projects/{projectIdentifier}/positions/{request.OrgPositionId}/requests", requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
@@ -248,7 +256,8 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                using var transaction = await BeginTransactionAsync();
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
+                await using var transaction = await BeginTransactionAsync();
 
                 var newRequest = await DispatchAsync(command);
 
@@ -266,6 +275,8 @@ namespace Fusion.Resources.Api.Controllers
                 }
 
                 await transaction.CommitAsync();
+                await eventTransaction.CommitAsync();
+
                 var query = new GetResourceAllocationRequestItem(newRequest.RequestId)
                     .ExpandDepartmentDetails()
                     .ExpandResourceOwner()
@@ -335,9 +346,11 @@ namespace Fusion.Resources.Api.Controllers
                     updateCommand.ProposalChangeType = @params.Type;
                 }
 
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var scope = await BeginTransactionAsync();
                 await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
+                await eventTransaction.CommitAsync();
 
                 var query = new GetResourceAllocationRequestItem(requestId)
                    .ExpandDepartmentDetails()
@@ -430,9 +443,11 @@ namespace Fusion.Resources.Api.Controllers
                     updateCommand.Candidates = request.Candidates.Value?.Select(x => (PersonId)x).ToList() ?? new();
                 }
 
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var scope = await BeginTransactionAsync();
                 await DispatchAsync(updateCommand);
                 await scope.CommitAsync();
+                await eventTransaction.CommitAsync();
 
                 var query = new GetResourceAllocationRequestItem(requestId)
                   .ExpandDepartmentDetails()
@@ -750,9 +765,12 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
+
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var transaction = await BeginTransactionAsync();
                 await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
                 await transaction.CommitAsync();
+                await eventTransaction.CommitAsync();
             }
             catch (InvalidWorkflowError ex)
             {
@@ -795,9 +813,11 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var transaction = await BeginTransactionAsync();
                 await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
                 await transaction.CommitAsync();
+                await eventTransaction.CommitAsync();
             }
             catch (InvalidWorkflowError ex)
             {
@@ -841,10 +861,12 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion Authorization
 
+            await using var eventTransaction = await notificationClient.BeginTransactionAsync();
             await using var transaction = await BeginTransactionAsync();
             await DispatchAsync(new DeleteInternalRequest(requestId));
 
             await transaction.CommitAsync();
+            await eventTransaction.CommitAsync();
 
             return NoContent();
         }
@@ -878,6 +900,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
+                await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var scope = await BeginTransactionAsync();
 
                 await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Provision(requestId)
@@ -886,6 +909,7 @@ namespace Fusion.Resources.Api.Controllers
                 });
 
                 await scope.CommitAsync();
+                await eventTransaction.CommitAsync();
 
                 result = await DispatchAsync(new GetResourceAllocationRequestItem(requestId));
                 return new ApiResourceAllocationRequest(result!);
@@ -909,12 +933,14 @@ namespace Fusion.Resources.Api.Controllers
             if (actions?.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
+            await using var eventTransaction = await notificationClient.BeginTransactionAsync();
             await using var scope = await BeginTransactionAsync();
 
             try
             {
                 await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
                 await scope.CommitAsync();
+                await eventTransaction.CommitAsync();
             }
             catch (UnauthorizedWorkflowException ex)
             {
@@ -946,12 +972,14 @@ namespace Fusion.Resources.Api.Controllers
             if (actions.Any(x => x.IsRequired && !x.IsResolved) == true)
                 return ApiErrors.InvalidOperation("UnresolvedRequiredTask", "Cannot start the request when there are unresolved required tasks.");
 
+            await using var eventTransaction = await notificationClient.BeginTransactionAsync();
             await using var scope = await BeginTransactionAsync();
 
             try
             {
                 await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
                 await scope.CommitAsync();
+                await eventTransaction.CommitAsync();
             }
             catch (UnauthorizedWorkflowException ex)
             {
