@@ -1,13 +1,39 @@
+using Bogus;
 using Fusion.Events;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Api.Tests.FusionMocks
 {
+
+    public class FakeNotificationTransaction : IEventNotificationTransaction
+    {
+        public Task CommitAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task CommitPartialAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        public Task RollbackAsync()
+        {
+            return Task.CompletedTask;
+        }
+    }
+
     public class EventNotificationClientMock : IEventNotificationClient
     {
         private readonly TestMessageBus bus;
@@ -17,11 +43,13 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         {
             this.bus = bus;
             this.entityPath = entityPath;
+
+            
         }
 
         public IEventNotificationTransaction CurrentTransaction => null;
 
-        public Task<IEventNotificationTransaction> BeginTransactionAsync() => Task.FromResult(default(IEventNotificationTransaction));
+        public Task<IEventNotificationTransaction> BeginTransactionAsync() => Task.FromResult<IEventNotificationTransaction>(new FakeNotificationTransaction());
 
         public Task SendNotificationAsync<T>(FusionEventType type, T payload) => SendNotificationAsync(type, payload, $"{Guid.NewGuid()}");
         public Task SendNotificationAsync<T>(FusionEventType type, T payload, string eventId) => DispatchNotification(type, null, payload, null, eventId);
