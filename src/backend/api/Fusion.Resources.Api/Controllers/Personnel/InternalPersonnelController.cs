@@ -13,10 +13,11 @@ using System.Xml;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    [ApiVersion("1.0-preview")]
-    [ApiVersion("1.0")]
+
     [Authorize]
     [ApiController]
+    [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     public partial class InternalPersonnelController : ResourceControllerBase
     {
 
@@ -39,8 +40,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="includeCurrentAllocations">Optional: only include current allocation</param>
         /// <returns></returns>
         /// 
-        [MapToApiVersion("1.0")]
-        [MapToApiVersion("2.0")]
+
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
             [FromQuery] ODataQueryParams query,
@@ -122,8 +122,22 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
+        [MapToApiVersion("2.0")]
+        [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
+        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnelV2(string fullDepartmentString,
+    [FromQuery] ODataQueryParams query,
+    [FromQuery] DateTime? timelineStart = null,
+    [FromQuery] string? timelineDuration = null,
+    [FromQuery] DateTime? timelineEnd = null,
+    [FromQuery] bool includeSubdepartments = false,
+    [FromQuery] bool includeCurrentAllocations = false)
+        {
 
-            [HttpGet("sectors/{sectorPath}/resources/personnel")]
+            return await GetDepartmentPersonnel(fullDepartmentString, query, timelineStart, timelineDuration, timelineEnd, includeSubdepartments, includeCurrentAllocations, version: 2);
+        }
+
+
+        [HttpGet("sectors/{sectorPath}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetSectorPersonnel(string sectorPath,
             [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
