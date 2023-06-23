@@ -106,8 +106,7 @@ namespace Fusion.Resources.Api.Controllers
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
                 .IncludeSubdepartments(includeSubdepartments)
                 .IncludeCurrentAllocations(includeCurrentAllocations)
-                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd)
-                .WithVersion(version);
+                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
 
             var department = await DispatchAsync(command);
 
@@ -131,7 +130,7 @@ namespace Fusion.Resources.Api.Controllers
      [FromQuery] bool includeCurrentAllocations = false)
         {
 
-            return await GetDepartmentPersonnel(fullDepartmentString, query, timelineStart, timelineDuration, timelineEnd, includeSubdepartments, includeCurrentAllocations, version: 2);
+            return await GetDepartmentPersonnel(fullDepartmentString, query, timelineStart, timelineDuration, timelineEnd, includeSubdepartments, includeCurrentAllocations);
         }
 
         [HttpGet("sectors/{sectorPath}/resources/personnel")]
