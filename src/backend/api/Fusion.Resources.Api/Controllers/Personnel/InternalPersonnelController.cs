@@ -40,7 +40,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <returns></returns>
         /// 
         [ApiVersion("1.0")]
-        [ApiVersion("1.0")]
+        [ApiVersion("2.0")]
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
             [FromQuery] ODataQueryParams query,
