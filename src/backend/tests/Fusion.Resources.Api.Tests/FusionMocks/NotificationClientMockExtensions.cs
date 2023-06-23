@@ -33,10 +33,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         {
             return notifications
                 // Look for cards where there is a fact entry which specify the request number
-                .Where(n => n.Card.Actions
-                    .OfType<AdaptiveOpenUrlAction>()
-                    .Where(u => u.Url?.ToString().Contains($"{requestId}") == true)
-                    .Any())
+                .Where(n => n.Card.AdditionalProperties.Any(kv => kv.Key == "requestId" && kv.Value?.ToString() == $"{requestId}"))
                 .ToList();
         }
     }

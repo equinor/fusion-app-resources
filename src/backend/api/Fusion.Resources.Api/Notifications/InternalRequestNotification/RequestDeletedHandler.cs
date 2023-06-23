@@ -67,6 +67,8 @@ namespace Fusion.Resources.Api.Notifications
                         );
 
                     var card = await notificationBuilder.BuildCardAsync();
+                    card.AdditionalProperties.Add("requestId", $"{notification.RequestId}");
+
                     await mediator.Send(new NotifyResourceOwner(notification.AssignedDepartment, card, "Personnel request has been deleted"));
 
                 }
