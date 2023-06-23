@@ -1,8 +1,6 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
-using FluentValidation.Validators;
 using Fusion.Integration.Org;
-using Fusion.Resources.Domain;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,9 +11,9 @@ namespace Fusion.Resources.Api.Controllers
     public static class CustomValidatorExtensions
     {
 
-        public static IRuleBuilderOptions<T, PersonReference> BeValidPerson<T>(this IRuleBuilder<T, PersonReference> ruleBuilder)
+        public static IRuleBuilderOptionsConditions<T, PersonReference> BeValidPerson<T>(this IRuleBuilder<T, PersonReference> ruleBuilder)
         {
-            return ruleBuilder.SetValidator(new CustomValidator<PersonReference>((person, context) =>
+            return ruleBuilder.Custom((person, context) =>
             {
                 if (person != null)
                 {
@@ -28,7 +26,7 @@ namespace Fusion.Resources.Api.Controllers
                     if (person.AzureUniquePersonId is null && string.IsNullOrEmpty(person.Mail))
                         context.AddFailure(new ValidationFailure(context.JsPropertyName(), "Either azureUniqueId or mail must be specified"));
                 }
-            }));
+            });
         }
 
         public static IRuleBuilderOptions<T, BasePositionReference> BeValidBasePosition<T>(this IRuleBuilder<T, BasePositionReference> ruleBuilder, IProjectOrgResolver projectOrgResolver)
@@ -100,28 +98,31 @@ namespace Fusion.Resources.Api.Controllers
             return (IRuleBuilderOptions<T, Guid?>)result;
         }
 
-        public static IRuleBuilderOptions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
+        public static IRuleBuilderOptionsConditions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
         {
-            return ruleBuilder.SetValidator(new CustomValidator<Dictionary<string, object>>(
-                (prop, context) =>
+            return ruleBuilder.Custom((prop, context) =>
+            {
+                if (prop is null)
                 {
-                    var serialized = JsonConvert.SerializeObject(prop);
-                    if (serialized.Length > 5000)
-                        context.AddFailure("Total size of change dictionary cannot be larger than 5000 characters");
+                    context.AddFailure("Value not provided");
+                    return;
+                }
 
-                    foreach (var k in prop.Keys.Where(k => k.Length > 100))
-                    {
-                        context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",
-                            "Key cannot exceed 100 characters", k));
-                    }
-
-                }));
+                var serialized = JsonConvert.SerializeObject(prop);
+                if (serialized.Length > 5000)
+                    context.AddFailure("Total size of change dictionary cannot be larger than 5000 characters");
+                
+                foreach (var k in prop.Keys.Where(k => k.Length > 100))
+                {
+                    context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.key",
+                        "Key cannot exceed 100 characters", k));
+                }
+            });
         }
 
-        public static IRuleBuilderOptions<T, ApiPositionInstance?> BeValidPositionInstance<T>(this IRuleBuilder<T, ApiPositionInstance?> ruleBuilder)
+        public static IRuleBuilderOptionsConditions<T, ApiPositionInstance?> BeValidPositionInstance<T>(this IRuleBuilder<T, ApiPositionInstance?> ruleBuilder)
         {
-            return ruleBuilder.SetValidator(new CustomValidator<ApiPositionInstance>(
-                (position, context) =>
+            return ruleBuilder.Custom((position, context) =>
                 {
                     if (position == null) return;
 
@@ -142,7 +143,7 @@ namespace Fusion.Resources.Api.Controllers
                     if (position.Workload > 100)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.workload",
                             "Workload cannot be more than 100", position.Workload));
-                }));
+                });
         }
    
         public static string ToLowerFirstChar(this string input)
@@ -153,7 +154,7 @@ namespace Fusion.Resources.Api.Controllers
             return newString;
         }
 
-        public static string JsPropertyName(this CustomContext context) => context.PropertyName.ToLowerFirstChar();
+        public static string JsPropertyName<T>(this ValidationContext<T> context) => context.PropertyName.ToLowerFirstChar();
 
 
         /// <summary>
@@ -162,11 +163,8 @@ namespace Fusion.Resources.Api.Controllers
         public static IRuleBuilderOptions<T, string?> NotHaveInvalidMailDomain<T>(this IRuleBuilder<T, string?> ruleBuilder)
         {
             
-            return ruleBuilder.SetValidator(new EmailDomainValidator())
+            return ruleBuilder.SetValidator(new EmailDomainValidator<T>())
                 .WithMessage("Mail domain should not be private. Most major private mail domains are rejected (gmail, hotmail, icloud etc.)");
         }
     }
-
-    
-
 }

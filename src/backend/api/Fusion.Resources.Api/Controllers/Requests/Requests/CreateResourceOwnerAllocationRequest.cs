@@ -39,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
             private enum ApiResourceOwnerRequestType { ResourceOwnerChange }
             private enum ApiResourceOwnerRequestSubType { Adjustment, ChangeResource, RemoveResource }
 
-            public Validator()
+            public Validator(IServiceProvider services)
             {
                 RuleFor(x => x.Type).NotNull().NotEmpty();                
                 RuleFor(x => x.Type).IsEnumName(typeof(ApiResourceOwnerRequestType), false)
@@ -62,8 +62,8 @@ namespace Fusion.Resources.Api.Controllers
                 RuleFor(x => x)
                     .CustomAsync(async (req, context, ct) =>
                     {
-                        var orgResolver = context.GetServiceProvider().GetRequiredService<IProjectOrgResolver>();
-                        var logger = context.GetServiceProvider().GetRequiredService<ILogger<Validator>>();
+                        var orgResolver = services.GetRequiredService<IProjectOrgResolver>();
+                        var logger = services.GetRequiredService<ILogger<Validator>>();
 
                         try
                         {

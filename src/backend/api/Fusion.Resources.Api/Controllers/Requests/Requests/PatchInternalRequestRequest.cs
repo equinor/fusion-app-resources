@@ -29,15 +29,15 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<PatchInternalRequestRequest>
         {
-            public Validator(ResourcesDbContext db, IMediator mediator)
+            public Validator(IServiceProvider services, IMediator mediator)
             {
                 RuleFor(x => x.ProposedPersonAzureUniqueId)
                     .MustAsync(async (req, p, context, cancel) =>
                     {
-
+                        
                         if (p.Value.HasValue)
                         {
-                            var profileResolver = context.GetServiceProvider().GetRequiredService<IProfileService>();
+                            var profileResolver = services.GetRequiredService<IProfileService>();
                             var person = await profileResolver.ResolveProfileAsync(p.Value.Value);
                             return person is not null;
                         }
