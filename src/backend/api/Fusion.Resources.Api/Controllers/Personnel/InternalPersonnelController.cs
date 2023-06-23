@@ -38,6 +38,9 @@ namespace Fusion.Resources.Api.Controllers
         /// include such personnel in the result.</param>
         /// <param name="includeCurrentAllocations">Optional: only include current allocation</param>
         /// <returns></returns>
+        /// 
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("2.0")]
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
             [FromQuery] ODataQueryParams query,
@@ -46,7 +49,7 @@ namespace Fusion.Resources.Api.Controllers
             [FromQuery] DateTime? timelineEnd = null,
             [FromQuery] bool includeSubdepartments = false,
             [FromQuery] bool includeCurrentAllocations = false,
-            int? version = null)
+            int? version = 2)
         {
             #region Authorization
 
@@ -119,19 +122,6 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
-        [MapToApiVersion("2.0")]
-        [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnelV2(string fullDepartmentString,
-            [FromQuery] ODataQueryParams query,
-            [FromQuery] DateTime? timelineStart = null,
-            [FromQuery] string? timelineDuration = null,
-            [FromQuery] DateTime? timelineEnd = null,
-            [FromQuery] bool includeSubdepartments = false,
-            [FromQuery] bool includeCurrentAllocations = false)
-        {
-
-            return await GetDepartmentPersonnel(fullDepartmentString, query, timelineStart, timelineDuration, timelineEnd, includeSubdepartments, includeCurrentAllocations, version: 2);
-        }
 
             [HttpGet("sectors/{sectorPath}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetSectorPersonnel(string sectorPath,
