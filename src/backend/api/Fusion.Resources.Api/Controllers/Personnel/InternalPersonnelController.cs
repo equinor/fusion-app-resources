@@ -39,7 +39,7 @@ namespace Fusion.Resources.Api.Controllers
         /// <param name="includeCurrentAllocations">Optional: only include current allocation</param>
         /// <returns></returns>
         /// 
-        [MapToApiVersion("1.0")]
+        [ApiVersion("1.0")]
         [MapToApiVersion("2.0")]
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
