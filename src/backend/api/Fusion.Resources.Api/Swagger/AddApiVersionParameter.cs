@@ -18,9 +18,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var hasMajorVersion = int.TryParse(swaggerDocName.Split("-")[1].Substring(1), out int majorVersion);
 
 
-            var declaredVersions = context.ApiDescription.GetDeclaredVersions();
+            var declaredVersions = context.ApiDescription.GetSupportedVersions();
 
-            var version = declaredVersions.FirstOrDefault(v => v.MajorVersion == majorVersion);
+            var version = declaredVersions.OrderByDescending(c => c).FirstOrDefault(v => v.MajorVersion == majorVersion);
             if (version is null) { version = declaredVersions.FirstOrDefault() ?? new ApiVersion(1, 0); }
 
 

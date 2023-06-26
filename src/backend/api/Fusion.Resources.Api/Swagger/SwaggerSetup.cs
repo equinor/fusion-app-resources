@@ -133,12 +133,15 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
 
-        public static IEnumerable<ApiVersion> GetDeclaredVersions(this ApiDescription apiDescription)
+        public static IEnumerable<ApiVersion> GetSupportedVersions(this ApiDescription apiDescription)
         {
             var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
             var thisVersionValue = thisVersionProp.Value as ApiVersionModel;
 
-            return thisVersionValue?.DeclaredApiVersions ?? new List<ApiVersion>();
+            if (thisVersionValue is not null && thisVersionValue.DeclaredApiVersions.Any())
+                return thisVersionValue.DeclaredApiVersions;
+
+            return thisVersionValue?.ImplementedApiVersions ?? new List<ApiVersion>();
         }
 
         public static ApiVersion? GetApiVersion(this ApiDescription apiDescription)
@@ -158,7 +161,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
             var thisVersionValue = thisVersionProp.Value as ApiVersionModel;
 
-            if (thisVersionValue != null)
+            if (thisVersionValue != null && thisVersionValue.DeclaredApiVersions.Any())
             {
                 return thisVersionValue.DeclaredApiVersions.Any(v => v.MajorVersion == version && v.Status == null);
             }
