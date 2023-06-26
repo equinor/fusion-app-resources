@@ -102,8 +102,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{request.Id}/start", null);
             await Client.TestClientDeleteAsync($"/resources/requests/internal/{request.Id}");
+
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { request })}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count.Should().BeGreaterOrEqualTo(1);
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(request.Id);
+            notificationsForRequest.Count.Should().BeGreaterOrEqualTo(1);
         }
        
         [Fact]
@@ -124,9 +127,11 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = directRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { creator, taskOwner, response.Value })}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(directRequest.Id);
+            notificationsForRequest.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            notificationsForRequest.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
         }
 
         private static void DumpNotificationsToLog(List<NotificationClientMock.Notification> sentMessages)
@@ -153,9 +158,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = patchPerson.Value.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { creator, taskOwner, response.Value })}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
+
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(jointVentureRequest.Id);
+            notificationsForRequest.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            notificationsForRequest.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
@@ -175,9 +183,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { creator, taskOwner, response.Value})}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
+
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(normalRequest.Id);
+            notificationsForRequest.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            notificationsForRequest.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
@@ -205,9 +216,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = normalRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { creator, taskOwner, response2.Value })}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(1);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
+
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(normalRequest.Id);
+            notificationsForRequest.Count(x => x.PersonIdentifier == creator).Should().Be(1);
+            notificationsForRequest.Count(x => x.PersonIdentifier == taskOwner).Should().BeGreaterOrEqualTo(1);
         }
 
         [Fact]
@@ -216,7 +230,6 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             // Arrange
             using var adminScope = fixture.AdminScope();
             var enterpriseRequest = await Client.CreateRequestAsync(ProjectId, r => r.AsTypeEnterprise().WithPosition(requestPosition).WithProposedPerson(testUser));
-
 
             // Act
             var response = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{ProjectId}/requests/{enterpriseRequest.Id}/start", null);
@@ -227,9 +240,13 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             var creator = response.Value.CreatedBy.AzureUniquePersonId.ToString();
             var taskOwner = enterpriseRequest.TaskOwner!.Persons!.First().AzureUniquePersonId.ToString();
 
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { creator, taskOwner, response.Value })}");
             DumpNotificationsToLog(NotificationClientMock.SentMessages);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == creator).Should().Be(0);
-            NotificationClientMock.SentMessages.Count(x => x.PersonIdentifier == taskOwner && string.Equals(x.Title,
+
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(enterpriseRequest.Id);
+
+            notificationsForRequest.Count(x => x.PersonIdentifier == creator).Should().Be(0);
+            notificationsForRequest.Count(x => x.PersonIdentifier == taskOwner && string.Equals(x.Title,
                 "You have been assigned as resource owner for a personnel request", StringComparison.OrdinalIgnoreCase)).Should().Be(0);
         }
         #endregion

@@ -32,11 +32,17 @@ namespace Fusion.Resources.Domain.Commands.Requests.Sharing
 
             public async Task<QuerySharedRequest?> Handle(RevokeShareRequest request, CancellationToken cancellationToken)
             {
-                var sharedRequest = await db.SharedRequests.FirstOrDefaultAsync(x => 
-                    x.RequestId == request.RequestId
-                    && x.SharedWith.AzureUniqueId == request.Person.UniqueId
-                    && x.Source == request.Source, cancellationToken
-                );
+                var sharedRequest = await db.SharedRequests
+                    .Include(r => r.Request).ThenInclude(r => r.CreatedBy)
+                    .Include(r => r.Request).ThenInclude(r => r.Project)
+                    .Include(r => r.Request).ThenInclude(r => r.UpdatedBy)
+                    .Include(r => r.SharedWith)
+                    .Include(r => r.SharedBy)
+                        .FirstOrDefaultAsync(x => 
+                            x.RequestId == request.RequestId
+                            && x.SharedWith.AzureUniqueId == request.Person.UniqueId
+                            && x.Source == request.Source, cancellationToken
+                        );
                 if (sharedRequest is null) return null;
 
                 sharedRequest.IsRevoked = true;
