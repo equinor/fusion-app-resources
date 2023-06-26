@@ -9,10 +9,9 @@ namespace Fusion.Resources.Logic.Commands
 {
     public static class CustomValidatorExtensions
     {
-        public static IRuleBuilderOptions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
+        public static IRuleBuilderOptionsConditions<T, Dictionary<string, object>?> BeValidProposedChanges<T>(this IRuleBuilder<T, Dictionary<string, object>?> ruleBuilder)
         {
-            return ruleBuilder.SetValidator(new CustomValidator<Dictionary<string, object>>(
-                (prop, context) =>
+            return ruleBuilder.Custom((prop, context) =>
                 {
                     foreach (var k in prop.Keys.Where(k => k.Length > 100))
                     {
@@ -20,12 +19,11 @@ namespace Fusion.Resources.Logic.Commands
                             "Key cannot exceed 100 characters", k));
                     }
 
-                }));
+                });
         }
-        public static IRuleBuilderOptions<T, Domain.ResourceAllocationRequest.QueryPositionInstance?> BeValidPositionInstance<T>(this IRuleBuilder<T, Domain.ResourceAllocationRequest.QueryPositionInstance?> ruleBuilder)
+        public static IRuleBuilderOptionsConditions<T, Domain.ResourceAllocationRequest.QueryPositionInstance?> BeValidPositionInstance<T>(this IRuleBuilder<T, Domain.ResourceAllocationRequest.QueryPositionInstance?> ruleBuilder)
         {
-            return ruleBuilder.SetValidator(new CustomValidator<Domain.ResourceAllocationRequest.QueryPositionInstance>(
-                (position, context) =>
+            return ruleBuilder.Custom((position, context) =>
                 {
                     if (position == null) return;
 
@@ -46,7 +44,7 @@ namespace Fusion.Resources.Logic.Commands
                     if (position.Workload > 100)
                         context.AddFailure(new ValidationFailure($"{context.JsPropertyName()}.workload",
                             "Workload cannot be more than 100", position.Workload));
-                }));
+                });
         }
         private static string ToLowerFirstChar(this string input)
         {
@@ -56,7 +54,7 @@ namespace Fusion.Resources.Logic.Commands
             return newString;
         }
 
-        public static string JsPropertyName(this CustomContext context) => context.PropertyName.ToLowerFirstChar();
+        public static string JsPropertyName<T>(this ValidationContext<T> context) => context.PropertyName.ToLowerFirstChar();
 
     }
 

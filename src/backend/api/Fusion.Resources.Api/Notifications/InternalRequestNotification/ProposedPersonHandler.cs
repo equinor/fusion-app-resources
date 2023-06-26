@@ -63,6 +63,8 @@ namespace Fusion.Resources.Api.Notifications
                     .TryAddOpenPortalUrlAction("Open position in org admin", $"{request.OrgPortalUrl}");
 
                     var card = await notificationBuilder.BuildCardAsync();
+                    card.AdditionalProperties.Add("requestId", $"{notification.RequestId}");
+
                     await mediator.Send(new NotifyTaskOwner(request.AllocationRequest.RequestId, card));
                     await mediator.Send(new NotifyRequestCreator(request.AllocationRequest.RequestId, card));
 

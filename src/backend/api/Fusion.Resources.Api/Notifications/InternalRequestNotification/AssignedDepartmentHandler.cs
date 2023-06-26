@@ -68,6 +68,8 @@ namespace Fusion.Resources.Api.Notifications
                     .TryAddOpenPortalUrlAction("Open position in org chart", $"{request.OrgPortalUrl}");
 
                     var card = await notificationBuilder.BuildCardAsync();
+                    card.AdditionalProperties.Add("requestId", $"{notification.RequestId}");
+
                     await mediator.Send(new NotifyResourceOwner(request.AllocationRequest.AssignedDepartment, card, "You have been assigned as resource owner for a personnel request"));
 
                 }

@@ -2,6 +2,7 @@
 using Fusion.AspNetCore.Api;
 using Fusion.Resources.Domain;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,14 +16,14 @@ namespace Fusion.Resources.Api.Controllers
 
         public class Validator : AbstractValidator<PatchSecondOpinionRequest>
         {
-            public Validator()
+            public Validator(IServiceProvider services)
             {
                 RuleFor(x => x.Title.Value).NotEmpty().When(x => x.Title.HasValue);
                 RuleFor(x => x.Description.Value).NotEmpty().When(x => x.Description.HasValue);
                 RuleFor(x => x.AssignedTo)
                     .MustAsync(async (req, assignedToIds, context, cancel) =>
                     {
-                        var profileResolver = context.GetServiceProvider().GetRequiredService<IProfileService>();
+                        var profileResolver = services.GetRequiredService<IProfileService>();
                         var resolved = await profileResolver.ResolveProfilesAsync(assignedToIds.Value.Select(x => (PersonId)x));
 
                         if (resolved is null) return false;

@@ -1,35 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Principal;
 using System.Threading.Tasks;
-using Bogus;
-using Bogus.Bson;
 using FluentAssertions;
-using Fusion.Integration.LineOrg;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
 using Fusion.Resources.Api.Tests.Fixture;
 using Fusion.Resources.Api.Tests.FusionMocks;
-using Fusion.Resources.Domain;
 using Fusion.Testing;
 using Fusion.Testing.Authentication.User;
 using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
-using Fusion.Testing.Mocks.OrgService.Api;
 using Fusion.Testing.Mocks.ProfileService;
-using Microsoft.Azure.Amqp.Framing;
-using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using static Fusion.Resources.Domain.Notifications.InternalRequests.InternalRequestNotifications;
 
 #nullable enable
 

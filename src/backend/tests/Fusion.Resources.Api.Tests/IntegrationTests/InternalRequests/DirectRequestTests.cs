@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AdaptiveCards;
+using Azure;
 using FluentAssertions;
 using Fusion.Integration.Profile;
 using Fusion.Integration.Profile.ApiClient;
@@ -17,6 +18,7 @@ using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
 using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -581,17 +583,21 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .AsTypeDirect()
                 .WithAssignedDepartment("PDP PRD FE TST XN ASD")
                 .WithProposedPerson(proposedPerson));
-            
+
+
             await Client.StartProjectRequestAsync(testProject, testRequest.Id);
 
-            var facts = NotificationClientMock.SentMessages
-                .Select(x => x.Card)
-                .SelectMany(x => x.Body)
-                .OfType<AdaptiveFactSet>()
-                .SelectMany(x => x.Facts)
-                .Select(x => x.Value);
 
-            facts.Should().NotContain(testRequest.Number.ToString());
+            #region assert
+
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(new { testRequest })}");
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(NotificationClientMock.SentMessages)}");
+
+            var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(testRequest.Id);
+            notificationsForRequest.Should()
+                .BeEmpty($"Should not be any notifications sent for request number {testRequest.Number}");
+
+            #endregion
         }
 
         [Fact]
@@ -611,15 +617,10 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
                 .WithProposedPerson(proposedPerson));
 
             await Client.StartProjectRequestAsync(testProject, testRequest.Id);
-            
-            var facts = NotificationClientMock.SentMessages
-                .Select(x => x.Card)
-                .SelectMany(x => x.Body)
-                .OfType<AdaptiveFactSet>()
-                .SelectMany(x => x.Facts)
-                .Select(x => x.Value);
 
-            facts.Should().Contain(testRequest.Number.ToString());
+            var notification = NotificationClientMock.SentMessages.GetNotificationsForRequestId(testRequest.Id);
+            notification.Should()
+                .HaveCount(1);
         }
 
         #endregion
