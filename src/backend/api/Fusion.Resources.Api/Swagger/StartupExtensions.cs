@@ -18,7 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddApiVersion(1)
 
                 // When promoting endpoints, add new version to update the version dropdown 
-                //.AddApiVersion(2)
+                .AddApiVersion(2)
 
                 .AddApiPreview()
                 .ForceStringConverter<PathProjectIdentifier>()

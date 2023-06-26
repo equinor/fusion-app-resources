@@ -46,16 +46,18 @@ namespace Microsoft.Extensions.DependencyInjection
                 // Only add endpoints that belongs to the version spec
                 c.DocInclusionPredicate((version, desc) =>
                 {
-                    var v = desc.GetApiVersion() ?? new ApiVersion(1, 0);
+                    var latestApiVersion = desc.GetApiVersion() ?? new ApiVersion(1, 0);
 
-                    if (int.TryParse(version.Split("-")[1].Substring(1), out int major))
+                    var hasMajorVersion = int.TryParse(version.Split("-")[1].Substring(1), out int majorVersion);
+
+                    if (hasMajorVersion)
                     {
-                        return v.MajorVersion == major && v.Status == null;
+                        return desc.ImplementsMajorVersion(majorVersion); 
                     }
 
                     if (version == "api-beta")
                     {
-                        return v.Status != null;
+                        return latestApiVersion.Status != null;
                     }
 
                     return true;
@@ -130,6 +132,15 @@ namespace Microsoft.Extensions.DependencyInjection
             return app;
         }
 
+
+        public static IEnumerable<ApiVersion> GetDeclaredVersions(this ApiDescription apiDescription)
+        {
+            var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
+            var thisVersionValue = thisVersionProp.Value as ApiVersionModel;
+
+            return thisVersionValue?.DeclaredApiVersions ?? new List<ApiVersion>();
+        }
+
         public static ApiVersion? GetApiVersion(this ApiDescription apiDescription)
         {
             var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
@@ -140,6 +151,19 @@ namespace Microsoft.Extensions.DependencyInjection
                 return thisDeclaredVersion;
 
             return thisVersionValue?.ImplementedApiVersions.OrderByDescending(p => p).FirstOrDefault();
+        }
+
+        public static bool ImplementsMajorVersion(this ApiDescription apiDescription, int version)
+        {
+            var thisVersionProp = apiDescription.ActionDescriptor.Properties.FirstOrDefault(prop => (Type)prop.Key == typeof(ApiVersionModel));
+            var thisVersionValue = thisVersionProp.Value as ApiVersionModel;
+
+            if (thisVersionValue != null)
+            {
+                return thisVersionValue.DeclaredApiVersions.Any(v => v.MajorVersion == version && v.Status == null);
+            }
+
+            return thisVersionValue?.ImplementedApiVersions.OrderByDescending(p => p).Any(v => v.MajorVersion == version && v.Status == null) == true;
         }
 
 
