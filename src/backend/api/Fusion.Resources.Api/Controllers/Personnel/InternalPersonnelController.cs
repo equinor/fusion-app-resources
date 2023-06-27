@@ -16,7 +16,6 @@ namespace Fusion.Resources.Api.Controllers
 
     [Authorize]
     [ApiController]
-    [ApiVersion("2.0")]
     [ApiVersion("1.0-preview")]
     [ApiVersion("1.0")]
     public partial class InternalPersonnelController : ResourceControllerBase
@@ -123,7 +122,6 @@ namespace Fusion.Resources.Api.Controllers
         }
 
 
-        [MapToApiVersion("1.0")]
         [HttpGet("sectors/{sectorPath}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetSectorPersonnel(string sectorPath,
             [FromQuery] ODataQueryParams query,
@@ -194,7 +192,7 @@ namespace Fusion.Resources.Api.Controllers
 
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
-        [MapToApiVersion("1.0")]
+
         [HttpGet("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}")]
         public async Task<ActionResult<ApiInternalPersonnelPerson>> GetPersonnelAllocation(string fullDepartmentString, string personIdentifier, [FromQuery] bool includeCurrentAllocations = false)
         {
@@ -238,7 +236,6 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok(result);
         }
-        [MapToApiVersion("1.0")]
         [HttpPost("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}/allocations/{instanceId}/allocation-state/reset")]
         public async Task<ActionResult> ResetAllocationState(string fullDepartmentString, string personIdentifier, Guid instanceId)
         {
@@ -279,7 +276,6 @@ namespace Fusion.Resources.Api.Controllers
         }
 
      
-        [MapToApiVersion("1.0")]
         [HttpGet("/departments/resources/persons")]
         [HttpGet("/projects/{projectIdentifier}/resources/persons")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> Search([FromRoute] PathProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)
