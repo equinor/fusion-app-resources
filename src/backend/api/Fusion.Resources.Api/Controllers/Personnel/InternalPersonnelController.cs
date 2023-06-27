@@ -13,10 +13,11 @@ using System.Xml;
 
 namespace Fusion.Resources.Api.Controllers
 {
-    [ApiVersion("1.0-preview")]
-    [ApiVersion("1.0")]
+
     [Authorize]
     [ApiController]
+    [ApiVersion("1.0-preview")]
+    [ApiVersion("1.0")]
     public partial class InternalPersonnelController : ResourceControllerBase
     {
 
@@ -38,6 +39,8 @@ namespace Fusion.Resources.Api.Controllers
         /// include such personnel in the result.</param>
         /// <param name="includeCurrentAllocations">Optional: only include current allocation</param>
         /// <returns></returns>
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("2.0")]
         [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnel(string fullDepartmentString,
             [FromQuery] ODataQueryParams query,
@@ -46,7 +49,7 @@ namespace Fusion.Resources.Api.Controllers
             [FromQuery] DateTime? timelineEnd = null,
             [FromQuery] bool includeSubdepartments = false,
             [FromQuery] bool includeCurrentAllocations = false,
-            int? version = null)
+            int? version = 2)
         {
             #region Authorization
 
@@ -105,8 +108,7 @@ namespace Fusion.Resources.Api.Controllers
             var command = new GetDepartmentPersonnel(fullDepartmentString, query)
                 .IncludeSubdepartments(includeSubdepartments)
                 .IncludeCurrentAllocations(includeCurrentAllocations)
-                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd)
-                .WithVersion(version);
+                .WithTimeline(shouldExpandTimeline, timelineStart, timelineEnd);
 
             var department = await DispatchAsync(command);
 
@@ -119,21 +121,8 @@ namespace Fusion.Resources.Api.Controllers
             return new ApiCollection<ApiInternalPersonnelPerson>(returnModel);
         }
 
-        [MapToApiVersion("2.0")]
-        [HttpGet("departments/{fullDepartmentString}/resources/personnel")]
-        public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetDepartmentPersonnelV2(string fullDepartmentString,
-            [FromQuery] ODataQueryParams query,
-            [FromQuery] DateTime? timelineStart = null,
-            [FromQuery] string? timelineDuration = null,
-            [FromQuery] DateTime? timelineEnd = null,
-            [FromQuery] bool includeSubdepartments = false,
-            [FromQuery] bool includeCurrentAllocations = false)
-        {
 
-            return await GetDepartmentPersonnel(fullDepartmentString, query, timelineStart, timelineDuration, timelineEnd, includeSubdepartments, includeCurrentAllocations, version: 2);
-        }
-
-            [HttpGet("sectors/{sectorPath}/resources/personnel")]
+        [HttpGet("sectors/{sectorPath}/resources/personnel")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> GetSectorPersonnel(string sectorPath,
             [FromQuery] ODataQueryParams query,
             [FromQuery] DateTime? timelineStart = null,
@@ -247,7 +236,6 @@ namespace Fusion.Resources.Api.Controllers
 
             return Ok(result);
         }
-
         [HttpPost("departments/{fullDepartmentString}/resources/personnel/{personIdentifier}/allocations/{instanceId}/allocation-state/reset")]
         public async Task<ActionResult> ResetAllocationState(string fullDepartmentString, string personIdentifier, Guid instanceId)
         {
@@ -287,8 +275,7 @@ namespace Fusion.Resources.Api.Controllers
             return NoContent();
         }
 
-
-        [MapToApiVersion("1.0")]
+     
         [HttpGet("/departments/resources/persons")]
         [HttpGet("/projects/{projectIdentifier}/resources/persons")]
         public async Task<ActionResult<ApiCollection<ApiInternalPersonnelPerson>>> Search([FromRoute] PathProjectIdentifier? projectIdentifier, [FromQuery] ODataQueryParams query)

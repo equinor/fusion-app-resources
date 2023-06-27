@@ -91,11 +91,9 @@ namespace Fusion.Resources.Domain
             {
                 var departmentRequests = await GetPendingRequests(request.Department);
                 var requestsWithStateNullOrCreated = await GetRequestsWithStateNullOrCreatedAsync(request.Department);
-                var departmentPersonnel = request.Version switch
-                {
-                    2 => await GetDepartmentFromSearchIndexAsyncV2(request.Department, requestsWithStateNullOrCreated),
-                    _ => await GetDepartmentFromSearchIndexAsync(request.Department, request.includeSubdepartments, requestsWithStateNullOrCreated)
-                };
+                var departmentPersonnel = await GetDepartmentFromSearchIndexAsyncV2(request.Department, requestsWithStateNullOrCreated);
+                   
+               
                 var departmentAbsence = await GetPersonsAbsenceAsync(departmentPersonnel.Select(p => p.AzureUniqueId));
                 
                 departmentPersonnel.ForEach(p =>
