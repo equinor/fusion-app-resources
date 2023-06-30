@@ -24,16 +24,16 @@ namespace Fusion.Resources.Api.Controllers
             DateTime.SpecifyKind(AppliesFrom, DateTimeKind.Utc);
             if(AppliesTo.HasValue) DateTime.SpecifyKind(AppliesTo.Value, DateTimeKind.Utc);
 
-            command.Comment = Comment;
+            command.Comment = NullIfEmpty(Comment);
             command.AppliesFrom = AppliesFrom;
             command.AppliesTo = AppliesTo;
             command.Type = Enum.Parse<QueryAbsenceType>($"{Type}", true);
             command.AbsencePercentage = AbsencePercentage;
             command.IsPrivate = IsPrivate;
             command.BasePositionId = TaskDetails?.BasePositionId;
-            command.TaskName = TaskDetails?.TaskName;
-            command.RoleName = TaskDetails?.RoleName;
-            command.Location = TaskDetails?.Location;
+            command.TaskName = NullIfEmpty(TaskDetails?.TaskName);
+            command.RoleName = NullIfEmpty(TaskDetails?.RoleName);
+            command.Location = NullIfEmpty(TaskDetails?.Location);
         }
 
 
@@ -64,5 +64,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         #endregion
+    
+        public static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
     }
 }

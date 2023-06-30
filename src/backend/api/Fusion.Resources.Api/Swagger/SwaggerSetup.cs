@@ -10,7 +10,9 @@ using Swashbuckle.AspNetCore.Filters;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -94,6 +96,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 }, new List<string>());
 
                 c.AddSecurityRequirement(securityRequirement);
+
+                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
 
             TypeConverterAttribute typeConverterAttribute = new TypeConverterAttribute(typeof(ToStringTypeConverter));
