@@ -369,6 +369,9 @@ namespace Fusion.Resources.Api.Controllers
                     {
                         or.BeResourceOwner(new DepartmentPath(profile.FullDepartment).GoToLevel(2), includeParents: false, includeDescendants: true);
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(profile.FullDepartment), AccessRoles.ResourceOwner);
+
+                        // Employees have limited read access.
+                        or.BeEmployee();
                     }
                 });
             });
