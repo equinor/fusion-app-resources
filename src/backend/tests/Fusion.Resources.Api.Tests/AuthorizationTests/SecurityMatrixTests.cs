@@ -613,12 +613,16 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SameL2Department, true)]
         [InlineData("resourceOwnerRole", ExactScope, true)]
         [InlineData("resourceOwnerRole", WildcardScope, true)]
-        [InlineData("resourceOwnerRole", UnrelatedScope, false)]
+        [InlineData("resourceOwnerRole", UnrelatedScope, true)] // Switch from false to true, as this grants limited access when employee
+        [InlineData("consultant", UnrelatedScope, false)]
         public async Task CanGetAllAbsenceForPerson(string role, string department, bool shouldBeAllowed)
         {
             var absence = await CreateAbsence();
 
-            var user = GetUser(role, department);
+            var user = role switch {
+                "consultant" => fixture.AddProfile(FusionAccountType.Consultant),
+                _ => GetUser(role, department)
+            };
             using var userScope = fixture.UserScope(user);
 
             var client = fixture.ApiFactory.CreateClient();
@@ -638,10 +642,15 @@ namespace Fusion.Resources.Api.Tests.AuthorizationTests
         [InlineData("resourceOwner", SameL2Department, "GET,!POST")]
         [InlineData("resourceOwnerRole", ExactScope, "GET,POST")]
         [InlineData("resourceOwnerRole", WildcardScope, "GET,POST")]
-        [InlineData("resourceOwnerRole", UnrelatedScope, "!GET,!POST")]
+        [InlineData("resourceOwnerRole", UnrelatedScope, "GET,!POST")]
+        [InlineData("consultant", UnrelatedScope, "!GEET,!POST")]
         public async Task CanGetAbsenceOptionsForPerson(string role, string department, string allowed)
         {
-            var user = GetUser(role, department);
+            var user = role switch
+            {
+                "consultant" => fixture.AddProfile(FusionAccountType.Consultant),
+                _ => GetUser(role, department)
+            };
             using var userScope = fixture.UserScope(user);
 
             var client = fixture.ApiFactory.CreateClient();
