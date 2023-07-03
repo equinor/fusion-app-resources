@@ -21,6 +21,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class InternalResourceAllocationNotificationTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private const string TestDepartmentId = "TPD PRD FE MMS MAT1";

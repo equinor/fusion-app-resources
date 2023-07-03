@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class SecondOpinionTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         const string TestDepartmentId = "PDP PRD FE ANE";

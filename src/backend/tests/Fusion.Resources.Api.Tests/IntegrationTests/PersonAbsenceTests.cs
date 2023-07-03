@@ -16,6 +16,7 @@ using Fusion.Testing.Mocks.OrgService;
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
 
+    [Collection("Integration")]
     public class PersonAbsenceTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;

@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class RequestComments : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         const string testDepartment = "L1 L2 L3 L4";
