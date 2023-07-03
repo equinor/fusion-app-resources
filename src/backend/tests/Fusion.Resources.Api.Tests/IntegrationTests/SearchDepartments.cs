@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests
 {
+    [Collection("Integration")]
     public class SearchDepartments : IClassFixture<ResourceApiFixture>
     {
         private ResourceApiFixture fixture;

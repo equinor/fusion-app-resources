@@ -23,6 +23,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class NormalRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;

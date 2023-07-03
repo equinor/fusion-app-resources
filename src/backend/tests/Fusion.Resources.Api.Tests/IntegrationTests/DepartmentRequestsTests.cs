@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class DepartmentRequestsTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         const string TimelineDepartment = "TPD TST TIL DPT3";

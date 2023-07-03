@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class ResourceOwnerRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private const string SUBTYPE_CHANGE = "changeResource";

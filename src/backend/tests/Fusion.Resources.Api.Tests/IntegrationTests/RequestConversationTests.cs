@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class RequestConversationTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private ResourceApiFixture fixture;

@@ -16,6 +16,7 @@ using Fusion.Testing.Mocks.OrgService;
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
 
+    [Collection("Integration")]
     public class PersonAbsenceTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;
@@ -51,13 +52,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             CheckAllowHeader("GET", result);
         }
         [Fact]
-        public async Task OptionsAbsence_GetNotAllowedForPerson_WhenOtherUser()
+        public async Task OptionsAbsence_GetNotAllowedForPerson_WhenOtherUserAndNotEmployee()
+        {
+            var otherUser = fixture.AddProfile(FusionAccountType.Consultant);
+            using var userScope = fixture.UserScope(otherUser);
+            var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence");
+            result.Should().BeSuccessfull();
+            CheckAllowHeader("!GET", result);
+        }
+        [Fact]
+        public async Task OptionsAbsence_GetAllowedForPerson_WhenOtherUserAndUserIsEmployee()
         {
             var otherUser = fixture.AddProfile(FusionAccountType.Employee);
             using var userScope = fixture.UserScope(otherUser);
             var result = await client.TestClientOptionsAsync($"/persons/{testUser.AzureUniqueId}/absence");
             result.Should().BeSuccessfull();
-            CheckAllowHeader("!GET", result);
+            CheckAllowHeader("GET", result);
         }
 
         [Fact]
@@ -86,13 +96,37 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
         }
 
+        [Theory]
+        [InlineData(FusionAccountType.Consultant)]
+        [InlineData(FusionAccountType.External)]
+        [InlineData(FusionAccountType.Application)]
+        public async Task GetAbsenceForUser_ShouldBeUnauthorized_When(FusionAccountType accountType)
+        {
+            var otherUser = fixture.AddProfile(accountType);
+            using var testScope = fixture.UserScope(otherUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeUnauthorized();
+        }
+
+        [Theory]
+        [InlineData(FusionAccountType.Consultant)]
+        [InlineData(FusionAccountType.External)]
+        [InlineData(FusionAccountType.Application)]
+        public async Task GetAdditionalTasksForUser_ShouldBeUnauthorized_When(FusionAccountType accountType)
+        {
+            var otherUser = fixture.AddProfile(accountType);
+            using var testScope = fixture.UserScope(otherUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/additional-tasks", new { value = new[] { new { id = Guid.Empty } } });
+            response.Should().BeUnauthorized();
+        }
+
         [Fact]
-        public async Task GetAbsenceForUser_ShouldBeUnauthorized_WhenOtherUser()
+        public async Task GetAbsenceForUser_ShouldBeOk_WhenEmployee()
         {
             var otherUser = fixture.AddProfile(FusionAccountType.Employee);
             using var testScope = fixture.UserScope(otherUser);
             var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = new[] { new { id = Guid.Empty } } });
-            response.Should().BeUnauthorized();
+            response.Should().BeSuccessfull();
         }
 
         [Fact]
@@ -121,6 +155,49 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response.Value.value.Count().Should().BeGreaterOrEqualTo(1);
         }
+
+        [Fact]
+        public async Task GetAbsenceForUser_ShouldOnlyReturnPublicTasks_WhenEmployee()
+        {
+            var employeeUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+            var publicTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = false);
+            var privateTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = true);
+            var leave = await client.AddUserAbsence(testUser, a => a.IsPrivate = false);
+
+
+            using var testScope = fixture.UserScope(employeeUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/absence", new { value = Array.Empty<TestAbsence>() });
+
+            response.Should().BeSuccessfull();
+
+            response.Value.value.Should().Contain(t => t.Id == publicTaskResp.Id);
+            response.Value.value.Should().NotContain(t => t.Id == privateTaskResp.Id, "Tasks marked privte should not be returned");
+            response.Value.value.Should().NotContain(t => t.Id == leave.Id, "Leave should not be returned, even if not marked private.");
+        }
+
+        [Fact]
+        public async Task GetAdditionalTasksForUser_ShouldOnlyReturnPublicTasks_WhenEmployee()
+        {
+            var employeeUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+            var publicTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = false);
+            var privateTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = true);
+            var leave = await client.AddUserAbsence(testUser, a => a.IsPrivate = false);
+
+
+            using var testScope = fixture.UserScope(employeeUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/additional-tasks", new { value = Array.Empty<TestAbsence>() });
+
+            response.Should().BeSuccessfull();
+
+            response.Value.value.Should().Contain(t => t.Id == publicTaskResp.Id);
+            response.Value.value.Should().NotContain(t => t.Id == privateTaskResp.Id, "Tasks marked privte should not be returned");
+            response.Value.value.Should().NotContain(t => t.Id == leave.Id, "Leave should not be returned, even if not marked private.");
+        }
+
 
         [Fact]
         public async Task GetAbsence_ShouldBeOk_WhenAdmin()

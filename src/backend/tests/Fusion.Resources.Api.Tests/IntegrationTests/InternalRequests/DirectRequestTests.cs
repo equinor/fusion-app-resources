@@ -26,6 +26,7 @@ using Xunit.Abstractions;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class DirectRequestTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;

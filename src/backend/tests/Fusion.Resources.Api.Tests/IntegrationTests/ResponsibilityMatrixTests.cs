@@ -17,6 +17,7 @@ using System.Collections.Generic;
 
 namespace Fusion.Resources.Api.Tests.IntegrationTests
 {
+    [Collection("Integration")]
     public class ResponsibilityMatrixTests : IClassFixture<ResourceApiFixture>, IAsyncLifetime
     {
         private readonly ResourceApiFixture fixture;
