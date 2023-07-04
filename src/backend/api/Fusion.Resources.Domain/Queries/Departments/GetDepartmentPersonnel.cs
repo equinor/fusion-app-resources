@@ -212,7 +212,7 @@ namespace Fusion.Resources.Domain
                 var queryString = (managers.Any() ? removeManagerQuery + " and " : "") + $"fullDepartment eq '{fullDepartmentString}' and isExpired eq false";
 
                 if (managers.Any())
-                    queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}'"));
+                    queryString += " and " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}'"));
 
 
 
