@@ -211,7 +211,7 @@ namespace Fusion.Resources.Domain
                 var removeManagerQuery = string.Join(" and ", managers.Select(m => $"azureUniqueId ne '{m}'"));
                 var queryString = (managers.Any() ? removeManagerQuery + " and " : "") + $"fullDepartment eq '{fullDepartmentString}' and isExpired eq false";
 
-                // This Code appear to be no longer needed as we do not need to find based on manager, this also creates problems when manager is manager in mulitple departments
+                // This Code appears to be no longer needed as we do not need to find based on manager, this also creates problems when manager is manager in mulitple departments
                 //if (managers.Any())
                 //    queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}'"));
 
