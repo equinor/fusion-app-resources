@@ -211,8 +211,9 @@ namespace Fusion.Resources.Domain
                 var removeManagerQuery = string.Join(" and ", managers.Select(m => $"azureUniqueId ne '{m}'"));
                 var queryString = (managers.Any() ? removeManagerQuery + " and " : "") + $"fullDepartment eq '{fullDepartmentString}' and isExpired eq false";
 
-                if (managers.Any())
-                    queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}'"));
+                //Removed manager filter since this causes problems for managers with multiple departments. This should not cause problems since we are filtering on department
+                //if (managers.Any())
+                //    queryString += " or " + string.Join(" or ", managers.Select(m => $"managerAzureId eq '{m}'"));
 
 
 
