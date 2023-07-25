@@ -71,8 +71,10 @@ namespace Fusion.Resources.Api.Controllers
                 });
             });
 
-            // Check if user should get just the task details.
+            // Check if user should get just the task details, by executing additional auth check
             var isAllowedOtherTasks = await Request.RequireAuthorizationAsync(r => r.AnyOf(o => o.BeEmployee()));
+
+            var limitedAuthMode = authResult.Unauthorized && isAllowedOtherTasks.Success;
 
             if (authResult.Unauthorized && isAllowedOtherTasks.Unauthorized)
             {
@@ -81,13 +83,18 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
+
+            var personAbsence = await DispatchAsync(new GetPersonAbsence(id) {  
+                LimitToPublicAllocations = limitedAuthMode, 
+                FilterPastAllocations = limitedAuthMode
+            });
 
 
             // If the user is only authorized to view other tasks, filter the result and return it.
-            if (authResult.Unauthorized && isAllowedOtherTasks.Success)
+            if (limitedAuthMode)
             {
-                var otherTasks = personAbsence.Where(a => a.Type == QueryAbsenceType.OtherTasks && a.IsPrivate == false)
+                // Tasks are already filtered by query, we can just return the result.
+                var otherTasks = personAbsence
                     .Select(ApiPersonAbsence.CreateAdditionTask)
                     .ToList();
 
@@ -149,9 +156,13 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion
 
-            var personAbsence = await DispatchAsync(new GetPersonAbsence(id));
+            var personAbsence = await DispatchAsync(new GetPersonAbsence(id)
+            {
+                FilterPastAllocations = true,
+                LimitToPublicAllocations = true
+            });
 
-            var otherTasks = personAbsence.Where(a => a.Type == QueryAbsenceType.OtherTasks && a.IsPrivate == false)
+            var otherTasks = personAbsence
                     .Select(t => new ApiPersonAdditionalTask(t))
                     .ToList();
 
