@@ -157,13 +157,15 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetAbsenceForUser_ShouldOnlyReturnPublicTasks_WhenEmployee()
+        public async Task GetAbsenceForUser_ShouldRestrictResults_WhenEmployee()
         {
             var employeeUser = fixture.AddProfile(FusionAccountType.Employee);
 
             using var adminScope = fixture.AdminScope();
-            var publicTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = false);
-            var privateTaskResp = await client.AddUserOtherTask(testUser, a => a.IsPrivate = true);
+            var publicCurrentTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = false; a.AppliesFrom = DateTime.Now.AddDays(-10); a.AppliesTo = DateTime.Now.AddDays(10); });
+            var publicPastTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = false; a.AppliesFrom = DateTime.Now.AddDays(-20); a.AppliesTo = DateTime.Now.AddDays(-10); });
+            var privateCurrentTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = true; a.AppliesFrom = DateTime.Now.AddDays(-10); a.AppliesTo = DateTime.Now.AddDays(10); });
+            var privatePastTaskResp = await client.AddUserOtherTask(testUser, a => { a.IsPrivate = true; a.AppliesFrom = DateTime.Now.AddDays(-20); a.AppliesTo = DateTime.Now.AddDays(-10); });
             var leave = await client.AddUserAbsence(testUser, a => a.IsPrivate = false);
 
 
@@ -172,8 +174,12 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             response.Should().BeSuccessfull();
 
-            response.Value.value.Should().Contain(t => t.Id == publicTaskResp.Id);
-            response.Value.value.Should().NotContain(t => t.Id == privateTaskResp.Id, "Tasks marked privte should not be returned");
+            response.Value.value.Should().Contain(t => t.Id == publicCurrentTaskResp.Id);
+
+            // Past public tasks, private tasks and leave should not be include
+            response.Value.value.Should().NotContain(t => t.Id == publicPastTaskResp.Id, "Past tasks should not be visible when public");
+            response.Value.value.Should().NotContain(t => t.Id == privateCurrentTaskResp.Id, "Tasks marked privte should not be returned");
+            response.Value.value.Should().NotContain(t => t.Id == privatePastTaskResp.Id, "Tasks marked privte should not be returned");
             response.Value.value.Should().NotContain(t => t.Id == leave.Id, "Leave should not be returned, even if not marked private.");
         }
 
@@ -194,8 +200,37 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             response.Should().BeSuccessfull();
 
             response.Value.value.Should().Contain(t => t.Id == publicTaskResp.Id);
-            response.Value.value.Should().NotContain(t => t.Id == privateTaskResp.Id, "Tasks marked privte should not be returned");
+            response.Value.value.Should().NotContain(t => t.Id == privateTaskResp.Id, "Tasks marked private should not be returned");
             response.Value.value.Should().NotContain(t => t.Id == leave.Id, "Leave should not be returned, even if not marked private.");
+        }
+
+        [Fact]
+        public async Task GetAdditionalTasksForUser_ShouldOnlyReturnCurrentTasks_WhenEmployee()
+        {
+            var employeeUser = fixture.AddProfile(FusionAccountType.Employee);
+
+            using var adminScope = fixture.AdminScope();
+            var publicTaskResp = await client.AddUserOtherTask(testUser, a =>
+            {
+                a.IsPrivate = false;
+                a.AppliesFrom = DateTime.Now.AddDays(-100);
+                a.AppliesTo = DateTime.Now.AddDays(100);
+            });
+            var pastTaskResp = await client.AddUserOtherTask(testUser, a =>
+            {
+                a.IsPrivate = false;
+                a.AppliesFrom = DateTime.Now.AddDays(-100);
+                a.AppliesTo = DateTime.Now.AddDays(-10);
+            });
+
+
+            using var testScope = fixture.UserScope(employeeUser);
+            var response = await client.TestClientGetAsync($"/persons/{testUser.AzureUniqueId}/additional-tasks", new { value = Array.Empty<TestAbsence>() });
+
+            response.Should().BeSuccessfull();
+
+            response.Value.value.Should().Contain(t => t.Id == publicTaskResp.Id);
+            response.Value.value.Should().NotContain(t => t.Id == pastTaskResp.Id, "Past allocations should not be returned");
         }
 
 
