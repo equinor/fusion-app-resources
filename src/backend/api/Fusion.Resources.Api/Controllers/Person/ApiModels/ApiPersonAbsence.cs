@@ -26,9 +26,7 @@ namespace Fusion.Resources.Api.Controllers
         }
 
         public Guid Id { get; set; }
-
         public ApiAdditionalTaskTaskDetails? TaskDetails { get; set; }
-
         public DateTimeOffset AppliesFrom { get; set; }
         public DateTimeOffset? AppliesTo { get; set; }
         public double? Workload { get; set; }
