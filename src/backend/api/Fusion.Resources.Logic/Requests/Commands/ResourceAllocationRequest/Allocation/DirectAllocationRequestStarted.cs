@@ -34,7 +34,7 @@ namespace Fusion.Resources.Logic.Commands
                     var request = await dbContext.ResourceAllocationRequests
                         .FirstAsync(r => r.Id == notification.RequestId, cancellationToken);
                     
-                    ValidateWorkflow(request);
+                    await ValidateWorkflowAsync(request);
 
 
                     // Check for auto approval
@@ -57,15 +57,29 @@ namespace Fusion.Resources.Logic.Commands
 
                 }
 
-                private static void ValidateWorkflow(DbResourceAllocationRequest request)
+                private async Task ValidateWorkflowAsync(DbResourceAllocationRequest request)
                 {
-                    if (request.AssignedDepartment is null)
-                        throw InvalidWorkflowError.ValidationError<AllocationDirectWorkflowV1>("Cannot start direct request without assigned department", s =>
-                            s.AddFailure("assignedDepartment", "Must provide assigned department to the request"));
-
                     if (!request.ProposedPerson.HasBeenProposed)
                         throw InvalidWorkflowError.ValidationError<AllocationDirectWorkflowV1>("Cannot start direct request without a person proposed", s =>
                             s.AddFailure("proposedPerson", "Must provide a person to be assigned the position"));
+
+                    // Need to resolve the person which has been proposed, as that determine if department must be assigned.
+                    var profile = await mediator.Send(new Domain.Queries.GetPersonProfile(PersonId.Create(request.ProposedPerson.AzureUniqueId, request.ProposedPerson.Mail)));
+
+                    if (profile is null)
+                        throw InvalidWorkflowError.ValidationError<AllocationDirectWorkflowV1>("Cannot start direct request, the proposed person does not exist", s =>
+                            s.AddFailure("proposedPerson", "Person must exist"));
+
+                    if (profile.IsExpired == true)
+                        throw InvalidWorkflowError.ValidationError<AllocationDirectWorkflowV1>("Cannot start direct request, the proposed person account has expired", s =>
+                            s.AddFailure("proposedPerson", "Proposed person account must be valid."));
+
+                    // Guest accounts do not have a manger or a department, so the request does not need to be assigned anywhere.
+                    if (profile.AccountType != Fusion.Integration.Profile.FusionAccountType.External && request.AssignedDepartment is null)
+                        throw InvalidWorkflowError.ValidationError<AllocationDirectWorkflowV1>("Cannot start direct request without assigned department", s =>
+                            s.AddFailure("assignedDepartment", "Must provide assigned department to the request"));
+
+
                 }
             }
         }
