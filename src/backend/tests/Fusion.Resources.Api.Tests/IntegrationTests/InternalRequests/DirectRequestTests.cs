@@ -17,6 +17,7 @@ using Fusion.Testing.Mocks;
 using Fusion.Testing.Mocks.LineOrgService;
 using Fusion.Testing.Mocks.OrgService;
 using Fusion.Testing.Mocks.ProfileService;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -331,6 +332,22 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
 
             var result = await Client.StartProjectRequestAsync(testProject, request.Id);
             result.AssignedDepartment.Should().Be(proposedPerson.FullDepartment);
+        }
+
+        [Fact]
+        public async Task DirectRequest_Start_WhenUserIsExternal()
+        {
+            using var adminScope = fixture.AdminScope();
+
+            var proposedPerson = fixture.AddProfile(FusionAccountType.External);
+            proposedPerson.FullDepartment = null;
+
+            var request = await Client.CreateDefaultRequestAsync(testProject,
+                r => r.AsTypeDirect().WithProposedPerson(proposedPerson).WithAssignedDepartment(null)
+            );
+
+            var newRequestResponse = await Client.TestClientPostAsync<TestApiInternalRequestModel>($"/projects/{testProject.Project.ProjectId}/requests/{request.Id}/start", null);
+            newRequestResponse.Should().BeSuccessfull();
         }
 
         [Fact]
