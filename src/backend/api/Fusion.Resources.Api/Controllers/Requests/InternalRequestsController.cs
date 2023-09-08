@@ -501,6 +501,7 @@ namespace Fusion.Resources.Api.Controllers
                         );
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
                     }
+                    or.ResourcesRead();
                 });
             });
 

@@ -36,7 +36,7 @@ namespace Fusion.Resources.Api.Controllers
             return builder;
         }
 
-        public static IAuthorizationRequirementRule GlobalRoleAccess(this IAuthorizationRequirementRule builder, params string[] roles)
+       public static IAuthorizationRequirementRule GlobalRoleAccess(this IAuthorizationRequirementRule builder, params string[] roles)
         {
             return builder.AddRule(new GlobalRoleRequirement(roles));
         }
@@ -145,6 +145,17 @@ namespace Fusion.Resources.Api.Controllers
         {
             var policy = new AuthorizationPolicyBuilder()
                 .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.FullControl"))
+                .Build();
+
+            builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
+
+            return builder;
+        }
+
+        public static IAuthorizationRequirementRule ResourcesRead(this IAuthorizationRequirementRule builder)
+        {
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAssertion(c => c.User.IsInRole("Fusion.Resources.Read"))
                 .Build();
 
             builder.AddRule((auth, user) => auth.AuthorizeAsync(user, policy));
