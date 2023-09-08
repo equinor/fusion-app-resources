@@ -40,6 +40,22 @@ namespace Fusion.Resources.Domain
 
         public enum IdentifierType { UniqueId, Mail }
 
+        /// <summary>
+        /// Create a new identifier from either the azure id or the mail. Prefers the azure id if not null.
+        /// If both are null, an exception is thrown.
+        /// </summary>
+        /// <returns>Identifer</returns>
+        /// <exception cref="InvalidOperationException">Thrown if both identifiers are null</exception>
+        public static PersonId Create(Guid? azureId, string? mail)
+        {
+            if (azureId.HasValue)
+                return new PersonId(azureId.Value);
+
+            if (string.IsNullOrEmpty(mail))
+                throw new InvalidOperationException("Either azure id or mail must be specified");
+
+            return new PersonId(mail);
+        }
 
         public static implicit operator PersonId(string identifier)
         {
