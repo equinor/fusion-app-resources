@@ -3,6 +3,7 @@
     public enum EventType
     {
         RequestCreated,
-        RequestRemoved
+        RequestRemoved,
+        RequestUpdated
     }
 }
