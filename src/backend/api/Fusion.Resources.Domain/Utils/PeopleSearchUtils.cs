@@ -157,20 +157,24 @@ namespace Fusion.Resources.Domain
                 IsResourceOwner = i.document.isResourceOwner,
                 FullDepartment = i.document.fullDepartment,
                 ManagerAzureId = i.document.managerAzureId,
-                PositionInstances = i.document.positions.Select(p => new QueryPersonnelPosition
-                {
-                    PositionId = p.id,
-                    InstanceId = p.instanceId,
-                    AppliesFrom = p.appliesFrom!.Value,
-                    AppliesTo = p.appliesTo!.Value,
-                    Name = p.name,
-                    Location = p.locationName,
-                    BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
-                    Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
-                    Workload = p.workload,
-                    AllocationState = p.allocationState,
-                    AllocationUpdated = p.allocationUpdated
-                }).OrderBy(p => p.AppliesFrom).ToList()
+                PositionInstances = i.document.positions
+                    // We want to remove all positions related to PRD-Contracts project type. 
+                    // These are owned by contract personnel.
+                    .Where(p => !string.Equals(p.basePosition.type, "PRD-Contracts", StringComparison.OrdinalIgnoreCase))
+                    .Select(p => new QueryPersonnelPosition
+                        {
+                            PositionId = p.id,
+                            InstanceId = p.instanceId,
+                            AppliesFrom = p.appliesFrom!.Value,
+                            AppliesTo = p.appliesTo!.Value,
+                            Name = p.name,
+                            Location = p.locationName,
+                            BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
+                            Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
+                            Workload = p.workload,
+                            AllocationState = p.allocationState,
+                            AllocationUpdated = p.allocationUpdated
+                        }).OrderBy(p => p.AppliesFrom).ToList()
             }).ToList();
 
             return (resultItems ?? new List<QueryInternalPersonnelPerson>(), items?.count ?? 0);
@@ -234,25 +238,29 @@ namespace Fusion.Resources.Domain
                     IsResourceOwner = isResourceOwner,
                     FullDepartment = fullDepartment,
                     ManagerAzureId = managerAzureId,
-                    PositionInstances = positions.Select(p => {
-                        var changeRequest = requests?.FirstOrDefault(x => x.OrgPositionId == p.id && x.OrgPositionInstance?.AssignedPerson?.AzureUniqueId == azureUniqueId);
+                    PositionInstances = positions
+                        // We want to remove all positions related to PRD-Contracts project type. 
+                        // These are owned by contract personnel.
+                        .Where(p => !string.Equals(p.basePosition.type, "PRD-Contracts", StringComparison.OrdinalIgnoreCase))
+                        .Select(p => {
+                            var changeRequest = requests?.FirstOrDefault(x => x.OrgPositionId == p.id && x.OrgPositionInstance?.AssignedPerson?.AzureUniqueId == azureUniqueId);
                         
-                        return new QueryPersonnelPosition
-                        {
-                            PositionId = p.id,
-                            InstanceId = p.instanceId,
-                            AppliesFrom = p.appliesFrom!.Value,
-                            AppliesTo = p.appliesTo!.Value,
-                            Name = p.name,
-                            Location = p.locationName,
-                            BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
-                            Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
-                            Workload = p.workload,
-                            AllocationState = p.allocationState,
-                            AllocationUpdated = p.allocationUpdated,
-                            HasChangeRequest = changeRequest is not null,
-                            ChangeRequestStatus = changeRequest != null ? new QueryRequestStatus(changeRequest) : null
-                        };
+                            return new QueryPersonnelPosition
+                            {
+                                PositionId = p.id,
+                                InstanceId = p.instanceId,
+                                AppliesFrom = p.appliesFrom!.Value,
+                                AppliesTo = p.appliesTo!.Value,
+                                Name = p.name,
+                                Location = p.locationName,
+                                BasePosition = new QueryBasePosition(p.basePosition.id, p.basePosition.name, p.basePosition.discipline, p.basePosition.type),
+                                Project = new QueryProjectRef(p.project.id, p.project.name, p.project.domainId, p.project.type),
+                                Workload = p.workload,
+                                AllocationState = p.allocationState,
+                                AllocationUpdated = p.allocationUpdated,
+                                HasChangeRequest = changeRequest is not null,
+                                ChangeRequestStatus = changeRequest != null ? new QueryRequestStatus(changeRequest) : null
+                            };
                     }).OrderBy(p => p.AppliesFrom).ToList()
                 };
             }
