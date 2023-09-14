@@ -486,6 +486,8 @@ namespace Fusion.Resources.Api.Controllers
 
                 r.AnyOf(or =>
                 {
+                    or.ResourcesRead();
+
                     if (!query.HasFilter) return;
 
                     var filter = query.Filter.GetFilterForField("assignedDepartment");
@@ -501,7 +503,6 @@ namespace Fusion.Resources.Api.Controllers
                         );
                         or.HaveOrgUnitScopedRole(DepartmentId.FromFullPath(departmentString), AccessRoles.ResourceOwner);
                     }
-                    or.ResourcesRead();
                 });
             });
 
