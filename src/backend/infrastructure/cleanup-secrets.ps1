@@ -29,7 +29,13 @@ foreach ($s in $secretWithVersions) {
             $newTags["deleted"] = (Get-Date).ToString()
             Update-AzKeyVaultSecret $s -Version $s.Version -Tag $newTags
 
-            Remove-AzADAppCredential -ApplicationId $AAD_APP_ID -KeyId $keyId
+            try {
+                Remove-AzADAppCredential -ApplicationId $AAD_APP_ID -KeyId $keyId -ErrorAction Stop
+            }
+            catch {
+                Write-Host "Unable to remove credential with key id: '$keyId' from application '$AAD_APP_ID'. The key has probably already been removed."
+            }
+
         }
     } else {
         Write-Host "Non auto generated key, skipping"
