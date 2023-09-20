@@ -41,7 +41,7 @@ namespace Fusion.Resources.Domain.Queries
 
                 var results = await Task.WhenAll(tasks);
 
-                var profiles = results.Select(X => X).SelectMany(o => o);
+                var profiles = results.Select(p => p).SelectMany(p => p);
 
                 return profiles
                     .Where(p => p.Success && p.Profile?.AzureUniqueId != null)
