@@ -19,7 +19,7 @@ namespace Fusion.Resources.Domain.Queries
                 .ToList();
         }
 
-        public List<PersonIdentifier> Identifiers { get;  }
+        public List<PersonIdentifier> Identifiers { get; }
 
         public class Handler : IRequestHandler<GetPersonProfiles, Dictionary<Guid, FusionPersonProfile>>
         {
@@ -29,9 +29,20 @@ namespace Fusion.Resources.Domain.Queries
             {
                 this.profileResolver = profileResolver;
             }
-            public async Task<Dictionary<Guid,FusionPersonProfile>> Handle(GetPersonProfiles request, CancellationToken cancellationToken)
+            public async Task<Dictionary<Guid, FusionPersonProfile>> Handle(GetPersonProfiles request, CancellationToken cancellationToken)
             {
-                var profiles = await profileResolver.ResolvePersonsAsync(request.Identifiers);
+                var tasks = new List<Task<IEnumerable<ResolvedPersonProfile>>>();
+
+                // Max number of identifiers is 500, so we chunk the requests
+                foreach (var req in request.Identifiers.Chunk(500))
+                {
+                    tasks.Add(profileResolver.ResolvePersonsAsync(request.Identifiers));
+                }
+
+                var results = await Task.WhenAll(tasks);
+
+                var profiles = results.Select(X => X).SelectMany(o => o);
+
                 return profiles
                     .Where(p => p.Success && p.Profile?.AzureUniqueId != null)
                     .ToDictionary(
