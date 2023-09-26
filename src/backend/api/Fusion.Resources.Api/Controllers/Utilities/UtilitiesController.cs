@@ -22,7 +22,8 @@ namespace Fusion.Resources.Api.Controllers.Utilities
         private readonly IFusionTokenProvider tokenProvider;
         private readonly IOptions<FusionIntegrationOptions> fusionOptions;
 
-        public UtilitiesController(IHttpClientFactory httpClientFactory, IFusionTokenProvider tokenProvider, IOptions<FusionIntegrationOptions> fusionOptions)
+        public UtilitiesController(IHttpClientFactory httpClientFactory, IFusionTokenProvider tokenProvider,
+            IOptions<FusionIntegrationOptions> fusionOptions)
         {
             this.httpClientFactory = httpClientFactory;
             this.tokenProvider = tokenProvider;
@@ -30,7 +31,8 @@ namespace Fusion.Resources.Api.Controllers.Utilities
         }
 
         [HttpPost("/utilities/parse-spreadsheet")]
-        public async Task<ActionResult<ExcelConversion>> ValidateContractorImportSpreadsheet([FromForm] ConvertSpreadsheetRequest request)
+        public async Task<ActionResult<ExcelConversion>> ValidateContractorImportSpreadsheet(
+            [FromForm] ConvertSpreadsheetRequest request)
         {
             if (request == null)
                 return FusionApiError.InvalidOperation("MissingBody", "Could not locate any body payload");
@@ -43,7 +45,8 @@ namespace Fusion.Resources.Api.Controllers.Utilities
 
 
             if (string.IsNullOrEmpty(url))
-                throw new InvalidOperationException("Missing configuration for fusion utility function");
+                return ApiErrors.InvalidOperation(
+                    new InvalidOperationException("Missing configuration for fusion utility function"));
 
 
             using var streamContent = new StreamContent(request.File!.OpenReadStream());
@@ -57,14 +60,17 @@ namespace Fusion.Resources.Api.Controllers.Utilities
             if (response.IsSuccessStatusCode)
                 return JsonConvert.DeserializeObject<ExcelConversion>(content)!;
 
-            throw new InvalidOperationException($"Parser function returned non-successfull response ({response.StatusCode}).");
+            return ApiErrors.InvalidOperation(
+                new InvalidOperationException(
+                    $"Parser function returned non-successfull response ({response.StatusCode})."));
         }
 
         [HttpGet("/utilities/templates/import-personnel")]
         public async Task<FileResult> DownloadImportPersonnelTemplate()
         {
             const string fileName = "fusion personnel import.xlsx";
-            using var templateFile = Assembly.GetExecutingAssembly().GetManifestResourceStream("Fusion.Resources.Api.Data.personnel-import-template.xlsx");
+            using var templateFile = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("Fusion.Resources.Api.Data.personnel-import-template.xlsx");
             using var memoryStream = new MemoryStream();
 
             if (templateFile == null)
@@ -117,6 +123,7 @@ namespace Fusion.Resources.Api.Controllers.Utilities
             /// </summary>
             public int ColIndex { get; set; }
         }
+
         public class ExcelDataRow
         {
             /// <summary>
@@ -146,8 +153,12 @@ namespace Fusion.Resources.Api.Controllers.Utilities
             /// </summary>
             public string Cell { get; set; } = null!;
 
-            public enum ExcelParserMessageLevel { Information, Warning, Error }
-
+            public enum ExcelParserMessageLevel
+            {
+                Information,
+                Warning,
+                Error
+            }
         }
 
         #endregion
