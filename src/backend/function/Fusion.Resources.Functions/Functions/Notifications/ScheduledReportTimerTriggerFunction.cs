@@ -32,7 +32,7 @@ public class ScheduledReportTimerTriggerFunction
     {
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' started at: {DateTime.UtcNow}");
-        
+
         var client = new ServiceBusClient(ScheduledReportServiceBusSettings.ServiceBusConnectionString);
         var sender = client.CreateSender(ScheduledReportServiceBusSettings.QueueName);
 
@@ -41,6 +41,7 @@ public class ScheduledReportTimerTriggerFunction
         {
             await SendPositionIdToQue(sender, positionId);
         }
+
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' finished at: {DateTime.UtcNow}");
     }
@@ -50,7 +51,7 @@ public class ScheduledReportTimerTriggerFunction
         if (positionId == Guid.Empty)
         {
             _logger.LogError(
-                $"ServiceBus queue ({ScheduledReportServiceBusSettings.QueueName}), error sending message: positionId is empty");
+                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: positionId is empty");
             return;
         }
 
@@ -67,12 +68,12 @@ public class ScheduledReportTimerTriggerFunction
             await sender.SendMessageAsync(serviceBusMessage);
 
             _logger.LogInformation(
-                $"ServiceBus queue {ScheduledReportServiceBusSettings.QueueName}, message sent to que: {message}");
+                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', message sent to que: {message}");
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                $"ServiceBus queue {ScheduledReportServiceBusSettings.QueueName}, error sending message: {ex.Message}");
+                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: {ex.Message}");
         }
     }
 }

@@ -36,9 +36,10 @@ public class ScheduledReportContentBuilderFunction
         if (!Guid.TryParse(message.Body.ToString(), out var positionId))
         {
             _logger.LogError(
-                $"ServiceBus queue {ScheduledReportServiceBusSettings.QueueName}, error receiving message: positionId is empty");
+                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error receiving message: positionId is empty");
             return;
         }
+
         await BuildContent(positionId);
 
         _logger.LogInformation(
