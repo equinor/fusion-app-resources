@@ -15,27 +15,38 @@ public class ScheduledReportContentBuilderFunction
     private readonly IResourcesApiClient _resourcesClient;
     private readonly IPeopleApiClient _peopleClient;
     private readonly ILineOrgApiClient _lineOrgClient;
-    private readonly ILogger<ScheduledReportTimerFunction> _logger;
-
-    private const string QueueName = "queue-name";
-    private const string ServiceBusConnectionString = "service-bus-connection-string";
+    private readonly ILogger<ScheduledReportContentBuilderFunction> _logger;
 
     public ScheduledReportContentBuilderFunction(IPeopleApiClient peopleClient, IResourcesApiClient resourcesClient,
-        ILineOrgApiClient lineOrgClient, ILogger<ScheduledReportTimerFunction> logger)
+        ILineOrgApiClient lineOrgClient, ILogger<ScheduledReportContentBuilderFunction> logger)
     {
         _resourcesClient = resourcesClient;
         _lineOrgClient = lineOrgClient;
         _peopleClient = peopleClient;
         _logger = logger;
     }
-    
-        [FunctionName("scheduled-report-content-Builder-function")]
-        public async Task RunAsync(
-            [ServiceBusTrigger(QueueName, Connection = "AzureWebJobsServiceBus")] ServiceBusReceivedMessage message,
-            ILogger log,
-            ServiceBusMessageActions messageReceiver,
-            [ServiceBus(QueueName, Connection = "AzureWebJobsServiceBus")] IAsyncCollector<ServiceBusMessage> sender)
+
+    [FunctionName(ScheduledReportFunctionSettings.ContentBuilderFunctionName)]
+    public async Task RunAsync(
+        [ServiceBusTrigger(ScheduledReportServiceBusSettings.QueueName, Connection = "AzureWebJobsServiceBus")]
+        ServiceBusReceivedMessage message)
     {
-        log.LogInformation($"function executed at: {DateTime.UtcNow}");
+        _logger.LogInformation(
+            $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' started with message: {message.Body}");
+        if (!Guid.TryParse(message.Body.ToString(), out var positionId))
+        {
+            _logger.LogError(
+                $"ServiceBus queue {ScheduledReportServiceBusSettings.QueueName}, error receiving message: positionId is empty");
+            return;
+        }
+        await BuildContent(positionId);
+
+        _logger.LogInformation(
+            $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' finished with message: {message.Body}");
+    }
+
+    private async Task BuildContent(Guid positionId)
+    {
+        throw new NotImplementedException();
     }
 }
