@@ -45,8 +45,7 @@ namespace Fusion.Resources.Api.Controllers.Utilities
 
 
             if (string.IsNullOrEmpty(url))
-                return ApiErrors.InvalidOperation(
-                    new InvalidOperationException("Missing configuration for fusion utility function"));
+                throw new InvalidOperationException("Missing configuration for fusion utility function");
 
 
             using var streamContent = new StreamContent(request.File!.OpenReadStream());
@@ -60,9 +59,8 @@ namespace Fusion.Resources.Api.Controllers.Utilities
             if (response.IsSuccessStatusCode)
                 return JsonConvert.DeserializeObject<ExcelConversion>(content)!;
 
-            return ApiErrors.InvalidOperation(
-                new InvalidOperationException(
-                    $"Parser function returned non-successfull response ({response.StatusCode})."));
+            throw new InvalidOperationException(
+                $"Parser function returned non-successfull response ({response.StatusCode}).");
         }
 
         [HttpGet("/utilities/templates/import-personnel")]
