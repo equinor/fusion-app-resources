@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
+using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.Functions.Notifications.API_Models;
+using Fusion.Resources.Functions.Integration;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
@@ -11,17 +16,15 @@ namespace Fusion.Resources.Functions.Functions.Notifications;
 
 public class ScheduledReportTimerTriggerFunction
 {
-    private readonly IResourcesApiClient _resourcesClient;
-    private readonly IPeopleApiClient _peopleClient;
-    private readonly ILineOrgApiClient _lineOrgClient;
+    private readonly HttpClient _resourcesClient;
+    private readonly HttpClient _lineOrgClient;
     private readonly ILogger<ScheduledReportTimerTriggerFunction> _logger;
 
-    public ScheduledReportTimerTriggerFunction(IPeopleApiClient peopleClient, IResourcesApiClient resourcesClient,
-        ILineOrgApiClient lineOrgClient, ILogger<ScheduledReportTimerTriggerFunction> logger)
+    public ScheduledReportTimerTriggerFunction(IHttpClientFactory httpClientFactory,
+        ILogger<ScheduledReportTimerTriggerFunction> logger)
     {
-        _resourcesClient = resourcesClient;
-        _lineOrgClient = lineOrgClient;
-        _peopleClient = peopleClient;
+        _resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
+        _lineOrgClient = httpClientFactory.CreateClient(HttpClientNames.Application.LineOrg);
         _logger = logger;
     }
 
@@ -36,36 +39,41 @@ public class ScheduledReportTimerTriggerFunction
         var client = new ServiceBusClient(ScheduledReportServiceBusSettings.ServiceBusConnectionString);
         var sender = client.CreateSender(ScheduledReportServiceBusSettings.QueueName);
 
-        // Todo: Collect positionIds from API
-        foreach (var positionId in new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() })
+        // TODO: These resource-owners are handpicked to limit the report to scope of the project.
+        var resourceOwners = await _lineOrgClient
+            .GetAsJsonAsync<LineOrgPersons>($"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA')&$isResourceOwner eq true");
+        if (resourceOwners.Value == null || !resourceOwners.Value.Any())
         {
-            await SendPositionIdToQue(sender, positionId);
+            _logger.LogError(
+                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: resourceOwners is empty");
+            return;
+        }
+
+        foreach (var azureId in resourceOwners.Value.Select(r => r.AzureUniqueId))
+        {
+            await SendPositionIdToQue(sender, azureId);
         }
 
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' finished at: {DateTime.UtcNow}");
     }
 
-    private async Task SendPositionIdToQue(ServiceBusSender sender, Guid positionId)
+    private async Task SendPositionIdToQue(ServiceBusSender sender, string azureId)
     {
-        if (positionId == Guid.Empty)
+        if (string.IsNullOrEmpty(azureId))
         {
             _logger.LogError(
-                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: positionId is empty");
+                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: azureId is empty");
             return;
         }
-
-        await SendMessageToQue(sender, positionId.ToString());
+        await SendMessageToQue(sender, azureId);
     }
 
     private async Task SendMessageToQue(ServiceBusSender sender, string message)
     {
         try
         {
-            // Create a message
-            var serviceBusMessage = new ServiceBusMessage(Encoding.UTF8.GetBytes(message));
-            // Send the message to the queue
-            await sender.SendMessageAsync(serviceBusMessage);
+            await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(message)));
 
             _logger.LogInformation(
                 $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', message sent to que: {message}");

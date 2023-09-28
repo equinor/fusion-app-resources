@@ -12,17 +12,10 @@ namespace Fusion.Resources.Functions.Functions.Notifications;
 
 public class ScheduledReportContentBuilderFunction
 {
-    private readonly IResourcesApiClient _resourcesClient;
-    private readonly IPeopleApiClient _peopleClient;
-    private readonly ILineOrgApiClient _lineOrgClient;
     private readonly ILogger<ScheduledReportContentBuilderFunction> _logger;
 
-    public ScheduledReportContentBuilderFunction(IPeopleApiClient peopleClient, IResourcesApiClient resourcesClient,
-        ILineOrgApiClient lineOrgClient, ILogger<ScheduledReportContentBuilderFunction> logger)
+    public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger)
     {
-        _resourcesClient = resourcesClient;
-        _lineOrgClient = lineOrgClient;
-        _peopleClient = peopleClient;
         _logger = logger;
     }
 
@@ -33,20 +26,20 @@ public class ScheduledReportContentBuilderFunction
     {
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' started with message: {message.Body}");
-        if (!Guid.TryParse(message.Body.ToString(), out var positionId))
+        if (!Guid.TryParse(message.Body.ToString(), out var azureId))
         {
             _logger.LogError(
-                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error receiving message: positionId is empty");
+                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error receiving message: azureId not valid");
             return;
         }
 
-        await BuildContent(positionId);
+        await BuildContent(azureId);
 
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' finished with message: {message.Body}");
     }
 
-    private async Task BuildContent(Guid positionId)
+    private async Task BuildContent(Guid azureId)
     {
         throw new NotImplementedException();
     }
