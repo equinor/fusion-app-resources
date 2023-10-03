@@ -11,10 +11,9 @@
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
 
     <PackageReference Include="Fusion.Events.Azure.Functions.Extensions" Version="0.3.2" />
-    <PackageReference Include="Fusion.Events.Services" Version="0.5.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.8.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.15" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\api\Fusion.Resources.Api\Fusion.Resources.Api.csproj" />
@@ -29,6 +28,10 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
     <None Update="local.settings.template.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+    <None Update="local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>

@@ -1,11 +1,5 @@
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
-public static class ScheduledReportServiceBusSettings
-{
-    public const string QueueName = "queue-name";
-    public const string ServiceBusConnectionString = "service-bus-connection-string";
-}
-
 public static class ScheduledReportFunctionSettings
 {
     public const string ContentBuilderFunctionName = "scheduled-report-content-Builder-function";

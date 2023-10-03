@@ -8,9 +8,12 @@ using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications.API_Models;
+using Fusion.Resources.Functions.Functions.Notifications.Models;
 using Fusion.Resources.Functions.Integration;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
@@ -19,69 +22,85 @@ public class ScheduledReportTimerTriggerFunction
     private readonly HttpClient _resourcesClient;
     private readonly HttpClient _lineOrgClient;
     private readonly ILogger<ScheduledReportTimerTriggerFunction> _logger;
+    private readonly string _serviceBusConnectionString;
+    private readonly string _queueName;
 
     public ScheduledReportTimerTriggerFunction(IHttpClientFactory httpClientFactory,
-        ILogger<ScheduledReportTimerTriggerFunction> logger)
+        ILogger<ScheduledReportTimerTriggerFunction> logger, IConfiguration configuration)
     {
         _resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
         _lineOrgClient = httpClientFactory.CreateClient(HttpClientNames.Application.LineOrg);
         _logger = logger;
+        _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
+        _queueName = configuration["scheduled_notification_report_queue"];
     }
 
     [FunctionName(ScheduledReportFunctionSettings.TimerTriggerFunctionName)]
     public async Task RunAsync(
-        [TimerTrigger(ScheduledReportFunctionSettings.TimerTriggerFunctionSchedule)]
+        [TimerTrigger(ScheduledReportFunctionSettings.TimerTriggerFunctionSchedule, RunOnStartup = false)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' started at: {DateTime.UtcNow}");
 
-        var client = new ServiceBusClient(ScheduledReportServiceBusSettings.ServiceBusConnectionString);
-        var sender = client.CreateSender(ScheduledReportServiceBusSettings.QueueName);
+        var client = new ServiceBusClient(_serviceBusConnectionString);
+        var sender = client.CreateSender(_queueName);
 
-        // TODO: These resource-owners are handpicked to limit the report to scope of the project.
-        var resourceOwners = await _lineOrgClient
-            .GetAsJsonAsync<LineOrgPersons>($"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA')&$isResourceOwner eq true");
-        if (resourceOwners.Value == null || !resourceOwners.Value.Any())
-        {
-            _logger.LogError(
-                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: resourceOwners is empty");
-            return;
-        }
-
-        foreach (var azureId in resourceOwners.Value.Select(r => r.AzureUniqueId))
-        {
-            await SendPositionIdToQue(sender, azureId);
-        }
+        await SendResourceOwnersToQueue(sender);
 
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' finished at: {DateTime.UtcNow}");
     }
 
-    private async Task SendPositionIdToQue(ServiceBusSender sender, string azureId)
+    private async Task SendResourceOwnersToQueue(ServiceBusSender sender)
     {
-        if (string.IsNullOrEmpty(azureId))
+        // TODO: These resource-owners are handpicked to limit the report to scope of the project.
+        var resourceOwners = await _lineOrgClient
+            .GetAsJsonAsync<LineOrgPersons>(
+                $"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA') and isResourceOwner eq 'true'");
+        if (resourceOwners.Value == null || !resourceOwners.Value.Any())
         {
             _logger.LogError(
-                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: azureId is empty");
+                $"ServiceBus queue '{_queueName}', error sending message: no resource-owners found");
             return;
         }
-        await SendMessageToQue(sender, azureId);
+
+        foreach (var value in resourceOwners.Value)
+        {
+            if (string.IsNullOrEmpty(value.AzureUniqueId))
+            {
+                _logger.LogError(
+                    $"ServiceBus queue '{_queueName}', error sending message: resource-owner-azureId is empty");
+                continue;
+            }
+
+            await SendDtoToQueue(sender, value.AzureUniqueId, NotificationRoleType.ResourceOwner);
+        }
     }
 
-    private async Task SendMessageToQue(ServiceBusSender sender, string message)
+    private async Task SendDtoToQueue(ServiceBusSender sender, string azureUniqueId, NotificationRoleType role)
+    {
+        var dto = new ScheduledNotificationQueueDto
+        {
+            AzureUniqueId = azureUniqueId,
+            Role =  role
+        };
+        await SendMessageToQueue(sender, JsonConvert.SerializeObject(dto));
+    }
+
+    private async Task SendMessageToQueue(ServiceBusSender sender, string message)
     {
         try
         {
             await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(message)));
 
             _logger.LogInformation(
-                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', message sent to que: {message}");
+                $"ServiceBus queue '{_queueName}', message sent to que: {message}");
         }
         catch (Exception ex)
         {
             _logger.LogError(
-                $"ServiceBus queue '{ScheduledReportServiceBusSettings.QueueName}', error sending message: {ex.Message}");
+                $"ServiceBus queue '{_queueName}', error sending message: {ex.Message}");
         }
     }
 }

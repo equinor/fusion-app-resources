@@ -5,6 +5,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
 
     "provision_position_queue": "provision-position-[REPLACE WITH DEV QUEUE]",
+    "scheduled_notification_report_queue": "schedule-notification-[REPLACE WITH DEV QUEUE]",
 
     "AzureWebJobsServiceBus": "[REPLACE WITH SB CONNECTION STRING]",
 
