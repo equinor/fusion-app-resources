@@ -66,6 +66,7 @@ namespace Fusion.Resources.Functions
 
                     retryMessage.ApplicationProperties["retry-count"] = retryCount;
                     retryMessage.ApplicationProperties["original-SequenceNumber"] = originalSequence;
+                    retryMessage.ScheduledEnqueueTime = scheduledTime;
                     await sender.AddAsync(retryMessage);
                     await receiver.CompleteMessageAsync(message);                    
 
