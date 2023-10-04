@@ -42,39 +42,54 @@ public class ScheduledReportTimerTriggerFunction
     {
         _logger.LogInformation(
             $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' started at: {DateTime.UtcNow}");
+        try
+        {
+            var client = new ServiceBusClient(_serviceBusConnectionString);
+            var sender = client.CreateSender(_queueName);
 
-        var client = new ServiceBusClient(_serviceBusConnectionString);
-        var sender = client.CreateSender(_queueName);
+            await SendResourceOwnersToQueue(sender);
 
-        await SendResourceOwnersToQueue(sender);
-
-        _logger.LogInformation(
-            $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' finished at: {DateTime.UtcNow}");
+            _logger.LogInformation(
+                $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' finished at: {DateTime.UtcNow}");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(
+                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' failed with exception: {e.Message}");
+        }
     }
 
     private async Task SendResourceOwnersToQueue(ServiceBusSender sender)
     {
-        // TODO: These resource-owners are handpicked to limit the report to scope of the project.
-        var resourceOwners = await _lineOrgClient
-            .GetAsJsonAsync<LineOrgPersons>(
-                $"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA') and isResourceOwner eq 'true'");
-        if (resourceOwners.Value == null || !resourceOwners.Value.Any())
+        try
+        {
+            // TODO: These resource-owners are handpicked to limit the report to scope of the project.
+            var resourceOwners = await _lineOrgClient
+                .GetAsJsonAsync<LineOrgPersons>(
+                    $"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA') and isResourceOwner eq 'true'");
+            if (resourceOwners.Value == null || !resourceOwners.Value.Any())
+                throw new Exception("No resource-owners found.");
+
+            foreach (var value in resourceOwners.Value)
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(value.AzureUniqueId))
+                        throw new Exception("Resource-owner azureUniqueId is empty.");
+
+                    await SendDtoToQueue(sender, value.AzureUniqueId, NotificationRoleType.ResourceOwner);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(
+                        $"ServiceBus queue '{_queueName}' item failed with exception when sending message: {e.Message}");
+                }
+            }
+        }
+        catch (Exception e)
         {
             _logger.LogError(
-                $"ServiceBus queue '{_queueName}', error sending message: no resource-owners found");
-            return;
-        }
-
-        foreach (var value in resourceOwners.Value)
-        {
-            if (string.IsNullOrEmpty(value.AzureUniqueId))
-            {
-                _logger.LogError(
-                    $"ServiceBus queue '{_queueName}', error sending message: resource-owner-azureId is empty");
-                continue;
-            }
-
-            await SendDtoToQueue(sender, value.AzureUniqueId, NotificationRoleType.ResourceOwner);
+                $"ServiceBus queue '{_queueName}' failed collecting resource-owners with exception: {e.Message}");
         }
     }
 
@@ -83,24 +98,8 @@ public class ScheduledReportTimerTriggerFunction
         var dto = new ScheduledNotificationQueueDto
         {
             AzureUniqueId = azureUniqueId,
-            Role =  role
+            Role = role
         };
-        await SendMessageToQueue(sender, JsonConvert.SerializeObject(dto));
-    }
-
-    private async Task SendMessageToQueue(ServiceBusSender sender, string message)
-    {
-        try
-        {
-            await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(message)));
-
-            _logger.LogInformation(
-                $"ServiceBus queue '{_queueName}', message sent to que: {message}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                $"ServiceBus queue '{_queueName}', error sending message: {ex.Message}");
-        }
+        await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(dto))));
     }
 }
