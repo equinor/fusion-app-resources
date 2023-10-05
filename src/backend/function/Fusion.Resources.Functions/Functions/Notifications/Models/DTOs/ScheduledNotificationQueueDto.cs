@@ -1,6 +1,4 @@
-using System;
-
-namespace Fusion.Resources.Functions.Functions.Notifications.Models;
+namespace Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 
 public class ScheduledNotificationQueueDto
 {

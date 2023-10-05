@@ -6,9 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Azure.Messaging.ServiceBus;
-using Fusion.Resources.Functions.ApiClients;
-using Fusion.Resources.Functions.Functions.Notifications.Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard_Models;
+using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +36,8 @@ public class ScheduledReportContentBuilderFunction
         ServiceBusReceivedMessage message, ServiceBusMessageActions messageReceiver)
     {
         _logger.LogInformation(
-            $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' started with message: {message.Body}");
+            $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' " +
+            $"started with message: {message.Body}");
         try
         {
             var body = Encoding.UTF8.GetString(message.Body);
@@ -61,12 +61,14 @@ public class ScheduledReportContentBuilderFunction
             await messageReceiver.CompleteMessageAsync(message);
 
             _logger.LogInformation(
-                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' finished with message: {message.Body}");
+                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' " +
+                $"finished with message: {message.Body}");
         }
         catch (Exception e)
         {
             _logger.LogError(
-                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' failed with exception: {e.Message}");
+                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' " +
+                $"failed with exception: {e.Message}");
         }
     }
 
@@ -77,9 +79,23 @@ public class ScheduledReportContentBuilderFunction
 
     private async Task BuildContentForResourceOwner(Guid azureUniqueId)
     {
-        var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData());
-
-        throw new NotImplementedException();
+        // TODO: HardCoded for testing purposes.
+        const string davidAzureUniqueId = "945f666e-fd8a-444c-b7e3-9da61b21e4b5";
+        azureUniqueId = Guid.Parse(davidAzureUniqueId);
+        
+        // TODO: Fill card with actual data.
+        var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
+        {
+            NumberOfOlderRequests = 1,
+            NumberOfOpenRequests = 2,
+            NumberOfNewRequestsWithNoNomination = 3,
+            NumberOfExtContractsEnding = 4,
+            NumberOfPersonnelAllocatedMoreThan100Percent = 5,
+            PercentAllocationOfTotalCapacity = 6,
+            TotalNumberOfRequests = 7,
+            PersonnelPositionsEndingWithNoFutureAllocation = new List<string> { "Pos 1", "Pos 2" },
+        });
+        // var responce = await _notificationsClient.PostAsJsonAsync<object>("", card);
     }
 
     private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData)

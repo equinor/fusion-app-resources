@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Fusion.Resources.Api.Controllers;
-using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications.API_Models;
-using Fusion.Resources.Functions.Functions.Notifications.Models;
+using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Fusion.Resources.Functions.Integration;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +16,6 @@ namespace Fusion.Resources.Functions.Functions.Notifications;
 
 public class ScheduledReportTimerTriggerFunction
 {
-    private readonly HttpClient _resourcesClient;
     private readonly HttpClient _lineOrgClient;
     private readonly ILogger<ScheduledReportTimerTriggerFunction> _logger;
     private readonly string _serviceBusConnectionString;
@@ -28,7 +24,6 @@ public class ScheduledReportTimerTriggerFunction
     public ScheduledReportTimerTriggerFunction(IHttpClientFactory httpClientFactory,
         ILogger<ScheduledReportTimerTriggerFunction> logger, IConfiguration configuration)
     {
-        _resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
         _lineOrgClient = httpClientFactory.CreateClient(HttpClientNames.Application.LineOrg);
         _logger = logger;
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
@@ -41,7 +36,8 @@ public class ScheduledReportTimerTriggerFunction
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
-            $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' started at: {DateTime.UtcNow}");
+            $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' " +
+            $"started at: {DateTime.UtcNow}");
         try
         {
             var client = new ServiceBusClient(_serviceBusConnectionString);
@@ -50,12 +46,14 @@ public class ScheduledReportTimerTriggerFunction
             await SendResourceOwnersToQueue(sender);
 
             _logger.LogInformation(
-                $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' finished at: {DateTime.UtcNow}");
+                $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' " +
+                $"finished at: {DateTime.UtcNow}");
         }
         catch (Exception e)
         {
             _logger.LogError(
-                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' failed with exception: {e.Message}");
+                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' " +
+                $"failed with exception: {e.Message}");
         }
     }
 
@@ -66,7 +64,8 @@ public class ScheduledReportTimerTriggerFunction
             // TODO: These resource-owners are handpicked to limit the report to scope of the project.
             var resourceOwners = await _lineOrgClient
                 .GetAsJsonAsync<LineOrgPersons>(
-                    $"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA') and isResourceOwner eq 'true'");
+                    $"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA') " +
+                    $"and isResourceOwner eq 'true'");
             if (resourceOwners.Value == null || !resourceOwners.Value.Any())
                 throw new Exception("No resource-owners found.");
 
@@ -82,14 +81,16 @@ public class ScheduledReportTimerTriggerFunction
                 catch (Exception e)
                 {
                     _logger.LogError(
-                        $"ServiceBus queue '{_queueName}' item failed with exception when sending message: {e.Message}");
+                        $"ServiceBus queue '{_queueName}' " +
+                        $"item failed with exception when sending message: {e.Message}");
                 }
             }
         }
         catch (Exception e)
         {
             _logger.LogError(
-                $"ServiceBus queue '{_queueName}' failed collecting resource-owners with exception: {e.Message}");
+                $"ServiceBus queue '{_queueName}' " +
+                $"failed collecting resource-owners with exception: {e.Message}");
         }
     }
 
