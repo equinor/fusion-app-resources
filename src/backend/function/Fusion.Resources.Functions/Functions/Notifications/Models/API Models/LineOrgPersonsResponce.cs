@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Fusion.Resources.Functions.Functions.Notifications.API_Models;
+namespace Fusion.Resources.Functions.Functions.Notifications.Models.API_Models;
 
-public class LineOrgPersons
+public class LineOrgPersonsResponce
 {
     [JsonProperty("totalCount")] public int TotalCount { get; set; }
 

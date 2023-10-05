@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AdaptiveCards;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard_Models;
+using Fusion.Resources.Functions.Functions.Notifications.Models.API_Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
@@ -96,6 +97,10 @@ public class ScheduledReportContentBuilderFunction
             PersonnelPositionsEndingWithNoFutureAllocation = new List<string> { "Pos 1", "Pos 2" },
         });
         // var responce = await _notificationsClient.PostAsJsonAsync<object>("", card);
+        // var body = new NotificationsBody()
+        // var response =
+        //     await _notificationsClient.PostAsJsonAsync($"/persons/{azureUniqueId}/notifications?api-version=1.0",
+        //         new NotificationsBody());
     }
 
     private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData)

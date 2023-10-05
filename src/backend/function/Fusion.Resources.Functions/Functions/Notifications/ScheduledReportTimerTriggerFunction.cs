@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Fusion.Resources.Functions.Functions.Notifications.API_Models;
+using Fusion.Resources.Functions.Functions.Notifications.Models.API_Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Fusion.Resources.Functions.Integration;
 using Microsoft.Azure.WebJobs;
@@ -63,7 +63,7 @@ public class ScheduledReportTimerTriggerFunction
         {
             // TODO: These resource-owners are handpicked to limit the report to scope of the project.
             var resourceOwners = await _lineOrgClient
-                .GetAsJsonAsync<LineOrgPersons>(
+                .GetAsJsonAsync<LineOrgPersonsResponce>(
                     $"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA') " +
                     $"and isResourceOwner eq 'true'");
             if (resourceOwners.Value == null || !resourceOwners.Value.Any())
