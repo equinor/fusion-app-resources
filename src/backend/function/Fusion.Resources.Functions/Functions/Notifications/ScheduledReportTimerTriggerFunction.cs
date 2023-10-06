@@ -1,12 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Fusion.Resources.Functions.Functions.Notifications.Models.API_Models;
+using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
-using Fusion.Resources.Functions.Integration;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,15 +15,15 @@ namespace Fusion.Resources.Functions.Functions.Notifications;
 
 public class ScheduledReportTimerTriggerFunction
 {
-    private readonly HttpClient _lineOrgClient;
+    private readonly ILineOrgApiClient _lineOrgClient;
     private readonly ILogger<ScheduledReportTimerTriggerFunction> _logger;
     private readonly string _serviceBusConnectionString;
     private readonly string _queueName;
 
-    public ScheduledReportTimerTriggerFunction(IHttpClientFactory httpClientFactory,
+    public ScheduledReportTimerTriggerFunction(ILineOrgApiClient lineOrgApiClient,
         ILogger<ScheduledReportTimerTriggerFunction> logger, IConfiguration configuration)
     {
-        _lineOrgClient = httpClientFactory.CreateClient(HttpClientNames.Application.LineOrg);
+        _lineOrgClient = lineOrgApiClient;
         _logger = logger;
         _serviceBusConnectionString = configuration["AzureWebJobsServiceBus"];
         _queueName = configuration["scheduled_notification_report_queue"];
@@ -62,21 +61,29 @@ public class ScheduledReportTimerTriggerFunction
         try
         {
             // TODO: These resource-owners are handpicked to limit the report to scope of the project.
-            var resourceOwners = await _lineOrgClient
-                .GetAsJsonAsync<LineOrgPersonsResponce>(
-                    $"/lineorg/persons?$filter=department in ('PDP', 'PRD', 'PMC', 'PCA') " +
-                    $"and isResourceOwner eq 'true'");
-            if (resourceOwners.Value == null || !resourceOwners.Value.Any())
+            var resourceOwners =
+                await _lineOrgClient.GetResourceOwnersFromFullDepartment(
+                    new List<string>
+                    {
+                        "PDP PRD PMC PCA PCA1",
+                        "PDP PRD PMC PCA PCA6"
+                    });
+            if (resourceOwners == null || !resourceOwners.Any())
                 throw new Exception("No resource-owners found.");
 
-            foreach (var value in resourceOwners.Value)
+            foreach (var resourceOwner in resourceOwners)
             {
                 try
                 {
-                    if (string.IsNullOrEmpty(value.AzureUniqueId))
+                    if (string.IsNullOrEmpty(resourceOwner.AzureUniqueId))
                         throw new Exception("Resource-owner azureUniqueId is empty.");
 
-                    await SendDtoToQueue(sender, value.AzureUniqueId, NotificationRoleType.ResourceOwner);
+                    await SendDtoToQueue(sender, new ScheduledNotificationQueueDto()
+                    {
+                        AzureUniqueId = resourceOwner.AzureUniqueId,
+                        FullDepartment = resourceOwner.FullDepartment,
+                        Role = NotificationRoleType.ResourceOwner
+                    });
                 }
                 catch (Exception e)
                 {
@@ -94,13 +101,9 @@ public class ScheduledReportTimerTriggerFunction
         }
     }
 
-    private async Task SendDtoToQueue(ServiceBusSender sender, string azureUniqueId, NotificationRoleType role)
+    private async Task SendDtoToQueue(ServiceBusSender sender, ScheduledNotificationQueueDto dto)
     {
-        var dto = new ScheduledNotificationQueueDto
-        {
-            AzureUniqueId = azureUniqueId,
-            Role = role
-        };
-        await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(dto))));
+        var serializedDto = JsonConvert.SerializeObject(dto);
+        await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(serializedDto)));
     }
 }

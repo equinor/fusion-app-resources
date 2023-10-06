@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Azure.Messaging.ServiceBus;
+using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard_Models;
-using Fusion.Resources.Functions.Functions.Notifications.Models.API_Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
@@ -15,20 +15,21 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
+
 namespace Fusion.Resources.Functions.Functions.Notifications;
 
 public class ScheduledReportContentBuilderFunction
 {
     private readonly ILogger<ScheduledReportContentBuilderFunction> _logger;
     private readonly string _queueName;
-    private readonly HttpClient _notificationsClient;
+    private readonly INotificationApiClient _notificationsClient;
 
     public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
-        IConfiguration configuration, IHttpClientFactory httpClientFactory)
+        IConfiguration configuration, INotificationApiClient notificationsClient)
     {
         _logger = logger;
         _queueName = configuration["scheduled_notification_report_queue"];
-        _notificationsClient = httpClientFactory.CreateClient(HttpClientNames.Application.Notifications);
+        _notificationsClient = notificationsClient;
     }
 
     [FunctionName(ScheduledReportFunctionSettings.ContentBuilderFunctionName)]
@@ -83,7 +84,7 @@ public class ScheduledReportContentBuilderFunction
         // TODO: HardCoded for testing purposes.
         const string davidAzureUniqueId = "945f666e-fd8a-444c-b7e3-9da61b21e4b5";
         azureUniqueId = Guid.Parse(davidAzureUniqueId);
-        
+
         // TODO: Fill card with actual data.
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
         {
@@ -96,11 +97,23 @@ public class ScheduledReportContentBuilderFunction
             TotalNumberOfRequests = 7,
             PersonnelPositionsEndingWithNoFutureAllocation = new List<string> { "Pos 1", "Pos 2" },
         });
-        // var responce = await _notificationsClient.PostAsJsonAsync<object>("", card);
-        // var body = new NotificationsBody()
-        // var response =
-        //     await _notificationsClient.PostAsJsonAsync($"/persons/{azureUniqueId}/notifications?api-version=1.0",
-        //         new NotificationsBody());
+
+        var sendNotification = await _notificationsClient.SendNotification(
+            new SendNotificationsRequest()
+            {
+                Title = "Weekly report",
+                EmailPriority = 1,
+                Card = card,
+                Description = "Weekly report for department."
+            },
+            azureUniqueId);
+
+        // Throwing exception if the response is not successful.
+        if (!sendNotification)
+        {
+            throw new Exception(
+                $"Failed to send notification to resource-owner with AzureUniqueId: '{azureUniqueId}'.");
+        }
     }
 
     private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData)
@@ -124,7 +137,7 @@ public class ScheduledReportContentBuilderFunction
                     cardData.NumberOfNewRequestsWithNoNomination.ToString()),
                 new("Open requests", cardData.NumberOfOpenRequests.ToString()),
                 new("Personnel positions ending withing 3 months(No Future Allocation)",
-                    cardData.PersonnelPositionsEndingWithNoFutureAllocation.Aggregate((a, b) => "a, b")),
+                    cardData.PersonnelPositionsEndingWithNoFutureAllocation.Aggregate((a, b) => $"{a}, {b}")),
                 new("Percent allocation of total capacity", cardData.PercentAllocationOfTotalCapacity.ToString()),
                 new("Personnel allocated more than 100%",
                     cardData.NumberOfPersonnelAllocatedMoreThan100Percent.ToString()),

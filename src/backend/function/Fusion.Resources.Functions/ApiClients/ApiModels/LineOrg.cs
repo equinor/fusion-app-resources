@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Fusion.Resources.Functions.Functions.Notifications.Models.API_Models;
+namespace Fusion.Resources.Functions.ApiClients.ApiModels;
 
-public class LineOrgPersonsResponce
+public class LineOrgPersonsResponse
 {
     [JsonProperty("totalCount")] public int TotalCount { get; set; }
 
@@ -12,7 +12,7 @@ public class LineOrgPersonsResponce
 
     [JsonProperty("@nextPage")] public object NextPage { get; set; }
 
-    [JsonProperty("value")] public List<Value> Value { get; set; }
+    [JsonProperty("value")] public List<LineOrgPerson> Value { get; set; }
 }
 public class Manager
 {
@@ -28,7 +28,7 @@ public class Manager
 
     [JsonProperty("jobTitle")] public string JobTitle { get; set; }
 }
-public class Value
+public class LineOrgPerson
 {
     [JsonProperty("azureUniqueId")] public string AzureUniqueId { get; set; }
 
