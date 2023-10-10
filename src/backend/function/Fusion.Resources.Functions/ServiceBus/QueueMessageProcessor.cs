@@ -61,7 +61,7 @@ namespace Fusion.Resources.Functions
                 {
                     var retryMessage = new ServiceBusMessage(message);
                     retryCount++;
-                    var interval = 60 * retryCount;
+                    var interval = 30 * retryCount;
                     var scheduledTime = DateTimeOffset.Now.AddSeconds(interval);
 
                     retryMessage.ApplicationProperties["retry-count"] = retryCount;
