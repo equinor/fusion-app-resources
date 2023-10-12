@@ -30,14 +30,12 @@ This functions send a weekly report to task- and resource-owners.
 #### Flow
 
 - The time triggered function (`ScheduledReportTimerTriggerFunction.cs`)
-  run once every week (every sunday at 6 AM UTC). The time triggered unction call the Resource API to get all departments. 
-  For each department all recipients from that department is collected via the LineOrg API.
+  run once every week (every sunday at 6 AM UTC). The time triggered unction call the LineOrg API to get all resourceOwners.
 - Individual recipients are sent to a queue on Azure Servicebus.
 - The content builder function (`ScheduledReportContentBuilderFunction.cs`) is triggered by the queue.
-  The content builder function generate email content specific to each
-  recipient and their respective department. The recipient and its respective status is validated before notification
-  send-out.
-- The email content is sent to the Email API which send the email to the recipient.
+  The content builder function generate an adaptive card specific to each
+  recipient and their respective department. 
+- The email content is sent to the Core Notifications API which send the email to the recipient.
 
 ```mermaid
 sequenceDiagram
@@ -45,8 +43,8 @@ sequenceDiagram
   Resource API ->>+ Time triggered function: Departments
   Time triggered function ->>+ LineOrg API: Get recipients for department
   LineOrg API ->>+ Time triggered function: Recipients
-  Time triggered function ->>+ Servicebus queue: RecipientId
-  Servicebus queue ->>+ Content builder function: RecipientId
-  Content builder function ->>+ Email API: Content for recipient
-  Email API ->>+ Content builder function: Result
+  Time triggered function ->>+ Servicebus queue: Recipient
+  Servicebus queue ->>+ Content builder function: Recipient
+  Content builder function ->>+ Core Notifications API: Content for recipient
+  Core Notifications API ->>+ Content builder function: Result
 ```
