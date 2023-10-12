@@ -9,6 +9,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using static Fusion.Resources.Functions.ApiClients.IResourcesApiClient;
+using Fusion.Integration.Notification;
+using Fusion.Integration.LineOrg;
 
 namespace Fusion.Resources.Functions.ApiClients
 {
@@ -34,6 +36,33 @@ namespace Fusion.Resources.Functions.ApiClients
                 $"projects/{project.Id}/resources/requests/?$filter=state.IsComplete eq false and isDraft eq false&$expand=orgPosition,orgPositionInstance&$top={int.MaxValue}");
 
             return data.Value.Where(x => x.AssignedDepartment is not null);
+        }
+
+        public async Task<ApiCollection<ResourceAllocationRequest>> GetAllRequestsForDepartment(string departmentIdentifier)
+        {
+            var response = await resourcesClient.GetAsync($"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance");
+
+            response.EnsureSuccessStatusCode();
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var requestsforDepartment = JsonConvert.DeserializeObject<ApiCollection<ResourceAllocationRequest>>(responseContent);
+
+            return requestsforDepartment;
+        }
+
+        public async Task<ApiCollection<ApiInternalPersonnelPerson>> GetAllPersonnelForDepartment(string departmentIdentifier)
+        {
+            //TEST: PDP PRD PMC PCA
+
+            var response = await resourcesClient.GetAsync($"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
+
+            response.EnsureSuccessStatusCode();
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var personnelForDepartment = JsonConvert.DeserializeObject<ApiCollection<ApiInternalPersonnelPerson>>(responseContent);
+
+            return personnelForDepartment;
+
+
+
         }
 
         public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department)

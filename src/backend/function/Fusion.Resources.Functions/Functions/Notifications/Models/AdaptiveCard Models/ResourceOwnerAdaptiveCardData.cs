@@ -10,6 +10,6 @@ public class ResourceOwnerAdaptiveCardData
     public int NumberOfOpenRequests { get; set; }
     public List<string> PersonnelPositionsEndingWithNoFutureAllocation { get; set; } = new();
     public int PercentAllocationOfTotalCapacity { get; set; }
-    public int NumberOfPersonnelAllocatedMoreThan100Percent { get; set; }
+    public List<string> ListOfPersonnelAllocatedMoreThan100Percent { get; set; }
     public int NumberOfExtContractsEnding { get; set; }
 }

@@ -9,11 +9,15 @@ using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard_Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
+using Itenso.TimePeriod;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using static Microsoft.Azure.Amqp.Serialization.SerializableType;
 
 
 namespace Fusion.Resources.Functions.Functions.Notifications;
@@ -23,12 +27,15 @@ public class ScheduledReportContentBuilderFunction
     private readonly ILogger<ScheduledReportContentBuilderFunction> _logger;
     private readonly string _queueName;
     private readonly INotificationApiClient _notificationsClient;
+    private readonly IResourcesApiClient _resourceClient;
 
-    public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
-        IConfiguration configuration, INotificationApiClient notificationsClient)
+        public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
+        IConfiguration configuration, IResourcesApiClient resourcesApiClient,
+         INotificationApiClient notificationsClient)
     {
         _logger = logger;
         _queueName = configuration["scheduled_notification_report_queue"];
+        _resourceClient = resourcesApiClient;
         _notificationsClient = notificationsClient;
     }
 
@@ -46,11 +53,14 @@ public class ScheduledReportContentBuilderFunction
             var dto = JsonConvert.DeserializeObject<ScheduledNotificationQueueDto>(body);
             if (!Guid.TryParse(dto.AzureUniqueId, out var azureUniqueId))
                 throw new Exception("AzureUniqueId not valid.");
+            if(dto.FullDepartment.IsNullOrEmpty())
+                throw new Exception("FullDepartmentIdentifier not valid.");
+ 
 
             switch (dto.Role)
             {
                 case NotificationRoleType.ResourceOwner:
-                    await BuildContentForResourceOwner(azureUniqueId);
+                    await BuildContentForResourceOwner(azureUniqueId, dto.FullDepartment);
                     break;
                 case NotificationRoleType.TaskOwner:
                     await BuildContentForTaskOwner(azureUniqueId);
@@ -79,32 +89,96 @@ public class ScheduledReportContentBuilderFunction
         throw new NotImplementedException();
     }
 
-    private async Task BuildContentForResourceOwner(Guid azureUniqueId)
+    private async Task BuildContentForResourceOwner(Guid azureUniqueId, string departmentIdentifier)
     {
         // TODO: HardCoded for testing purposes.
-        const string davidAzureUniqueId = "945f666e-fd8a-444c-b7e3-9da61b21e4b5";
-        azureUniqueId = Guid.Parse(davidAzureUniqueId);
+        //const string davidAzureUniqueId = "945f666e-fd8a-444c-b7e3-9da61b21e4b5";
+        //azureUniqueId = Guid.Parse(davidAzureUniqueId);
 
-        // TODO: Fill card with actual data.
+        const string aleksanderAzureUniqueId = "f9158061-e8e3-494a-acbe-afcb6bc9f7ab";
+        azureUniqueId = Guid.Parse(aleksanderAzureUniqueId);
+
+        var threeMonthsFuture = DateTimeOffset.Now.AddMonths(3);
+        var threeMonthsPast = DateTimeOffset.Now.AddMonths(-3);
+
+
+
+
+        // DepartmentIdentifier = PDP PRD PMC PCA;
+        // Get all requests for specific Department regardsless of state
+        var departmentRequestsResponse = await _resourceClient.GetAllRequestsForDepartment(departmentIdentifier);
+        var departmentRequests = departmentRequestsResponse.Value.ToList();
+
+
+        // Count all of the number of requests sent to the department. We may change this to only include a specific timeframe in the future (last 12 months)
+        // 1. Total number of request sent to department
+        var totalNumberOfRequests = departmentRequests.Count();
+
+        // We use the full list of requests and filter to only include the ones which are to have start-date in more than 3 months AND state not completed
+        // 2. Number of request that have more than 3 months to start data(link to system with filtered view)
+        var departmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests.Where(x => x.State != "complete" && x.OrgPositionInstance.AppliesFrom < threeMonthsFuture).Count();
+
+        // 3. Number of requests that are less than 3 month to start data with no nomination.
+        // FIXME: Må justeres på.
+        var departmentRequestsWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests.Where(x => x.State != "complete" && x.OrgPositionInstance.AppliesFrom < threeMonthsPast && !x.HasProposedPerson).Count();
+
+        // Only to include those requests which have state approval (this means that the resource owner needs to process the requests in some way)
+        // 4. Number of open requests.  
+        // FIXME: Needs to be checked
+        var totalNumberOfOpenRequests = departmentRequests.Where(x => x.State == "approval").Count();
+
+
+        // ##Get all the personnel for the specific department
+        var listOfPersonnelForDepartment = await _resourceClient.GetAllPersonnelForDepartment(departmentIdentifier);
+        var personnelForDepartment = listOfPersonnelForDepartment.Value.ToList();
+
+
+
+        // WORK IN PROGRESS
+        // Needs to get the following:
+        // FIXME: Name + Position + Project + The time the position is ending
+        // En liste med personnel med posisjoner som avsluttes innen 3 måneder hvor de ikke har fremtidige allokeringer
+        //5. List with personnel positions ending within 3 months and with no future allocation (link to personnel allocation)
+        var listOfPersonnelPositionsEndingInThreeMonths = personnelForDepartment.Where(x => x.PositionInstances.Where(pos => pos.IsActive && pos.AppliesTo <= threeMonthsFuture).Any());
+        var newListWithPersonnelWithoutFutureAllocations = listOfPersonnelPositionsEndingInThreeMonths.Where(person => person.PositionInstances.All(pos => pos.AppliesTo < threeMonthsFuture));
+        List<string> listOfPersonnelWithoutFutureAllocations = newListWithPersonnelWithoutFutureAllocations.Select(p => p.Name.ToString()).ToList();
+
+
+        // 6. Number of personnel allocated more than 100 %
+        // WORK IN PROGRESS
+        List<string> listOfPersonnelForDepartmentWithMoreThan100Percent = newListWithPersonnelWithoutFutureAllocations.Select(p => p.Name.ToString()).ToList();
+
+
+        //7. % of total allocation vs.capacity
+        //var test = personnelForDepartment.Where(person)
+        // WORK IN PROGRESS
+
+
+        //8.EXT Contracts ending within 3 months ? (data to be imported from SAP or AD) 
+        // ContractPersonnel'et? - Knyttet til projectmaster -> Knyttet til orgkart
+        // WORK IN PROGRESS
+
+
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
         {
-            NumberOfOlderRequests = 1,
-            NumberOfOpenRequests = 2,
-            NumberOfNewRequestsWithNoNomination = 3,
+            NumberOfOlderRequests = departmentRequestWithMoreThanThreeMonthsBeforeStart,
+            NumberOfOpenRequests = totalNumberOfOpenRequests,
+            NumberOfNewRequestsWithNoNomination = departmentRequestsWithLessThanThreeMonthsBeforeStartAndNoNomination,
             NumberOfExtContractsEnding = 4,
-            NumberOfPersonnelAllocatedMoreThan100Percent = 5,
-            PercentAllocationOfTotalCapacity = 6,
-            TotalNumberOfRequests = 7,
-            PersonnelPositionsEndingWithNoFutureAllocation = new List<string> { "Pos 1", "Pos 2" },
-        });
+            ListOfPersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent,
+            PercentAllocationOfTotalCapacity = 85,
+            TotalNumberOfRequests = totalNumberOfRequests,
+            PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
+        },
+        departmentIdentifier);
 
         var sendNotification = await _notificationsClient.SendNotification(
             new SendNotificationsRequest()
             {
-                Title = "Weekly report",
+                Title = $"**Weekly summary - {departmentIdentifier}**",
                 EmailPriority = 1,
                 Card = card,
-                Description = "Weekly report for department."
+                Description = $"**Weekly report for departmenty - {departmentIdentifier}**"
             },
             azureUniqueId);
 
@@ -116,34 +190,38 @@ public class ScheduledReportContentBuilderFunction
         }
     }
 
-    private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData)
+    private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData, string departmentIdentifier)
     {
-        var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 5));
+       var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 5));
 
         card.Body.Add(new AdaptiveTextBlock
         {
-            Text = "Department Statistics",
+            Text = $"**Weekly summary - {departmentIdentifier}**",
             Size = AdaptiveTextSize.Large,
-            Weight = AdaptiveTextWeight.Bolder
+            Weight = AdaptiveTextWeight.Bolder,
+            Wrap = true // Allow text to wrap
         });
 
-        card.Body.Add(new AdaptiveFactSet
+        var facts = new List<string>
         {
-            Facts = new List<AdaptiveFact>
+        "**Total requests**: " + cardData.TotalNumberOfRequests,
+        "**Requests starting after 3 months**: " + cardData.NumberOfOlderRequests,
+        "**Requests starting within 3 months (no nomination)**: " + cardData.NumberOfNewRequestsWithNoNomination,
+        "**Open requests**: " + cardData.NumberOfOpenRequests,
+        "**Personnel positions ending within 3 months (No Future Allocation)**: " + string.Join(", ", cardData.PersonnelPositionsEndingWithNoFutureAllocation),
+        "**Percent allocation of total capacity**: " + cardData.PercentAllocationOfTotalCapacity + "%",
+        "**Personnel allocated more than 100%**: " + string.Join(", ",  cardData.ListOfPersonnelAllocatedMoreThan100Percent),
+        "**EXT contracts ending in 3 months**: " + cardData.NumberOfExtContractsEnding
+        };
+
+        foreach (var fact in facts)
+        {
+            card.Body.Add(new AdaptiveTextBlock
             {
-                new("Total requests", cardData.TotalNumberOfRequests.ToString()),
-                new("Requests starting after 3 months", cardData.NumberOfOlderRequests.ToString()),
-                new("Requests staring within 3 months (no nomination)",
-                    cardData.NumberOfNewRequestsWithNoNomination.ToString()),
-                new("Open requests", cardData.NumberOfOpenRequests.ToString()),
-                new("Personnel positions ending withing 3 months(No Future Allocation)",
-                    cardData.PersonnelPositionsEndingWithNoFutureAllocation.Aggregate((a, b) => $"{a}, {b}")),
-                new("Percent allocation of total capacity", cardData.PercentAllocationOfTotalCapacity.ToString()),
-                new("Personnel allocated more than 100%",
-                    cardData.NumberOfPersonnelAllocatedMoreThan100Percent.ToString()),
-                new("EXT contracts ending in 3 months", cardData.NumberOfExtContractsEnding.ToString())
-            }
-        });
+                Text = fact,
+                Wrap = true // Allow text to wrap
+            });
+        }
         return card;
     }
 }
