@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using static Fusion.Resources.Functions.Functions.Notifications.ScheduledReportContentBuilderFunction;
 
 namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard_Models;
 
@@ -8,8 +9,8 @@ public class ResourceOwnerAdaptiveCardData
     public int NumberOfOlderRequests { get; set; }
     public int NumberOfNewRequestsWithNoNomination { get; set; }
     public int NumberOfOpenRequests { get; set; }
-    public List<string> PersonnelPositionsEndingWithNoFutureAllocation { get; set; } = new();
+    internal IEnumerable<PersonnelContent> PersonnelPositionsEndingWithNoFutureAllocation { get; set; }
     public int PercentAllocationOfTotalCapacity { get; set; }
-    public List<string> ListOfPersonnelAllocatedMoreThan100Percent { get; set; }
+    internal IEnumerable<PersonnelContent> ListOfPersonnelAllocatedMoreThan100Percent { get; set; }
     public int NumberOfExtContractsEnding { get; set; }
 }

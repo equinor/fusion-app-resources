@@ -2,6 +2,7 @@
 using Fusion.ApiClients.Org;
 using Fusion.Resources.Api.Controllers;
 using Fusion.Resources.Domain;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -56,9 +57,6 @@ namespace Fusion.Resources.Functions.ApiClients
             {
                 Value = items;
             }
-
-
-            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public int? TotalCount { get; set; }
 
             public IEnumerable<T> Value { get; set; }
@@ -99,6 +97,14 @@ namespace Fusion.Resources.Functions.ApiClients
 
             public bool IsActive => AppliesFrom <= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
             public double Workload { get; set; }
+            public ApiProjectReference? Project { get; set; }
+        }
+
+        public class ApiProjectReference
+        {
+            public Guid Id { get; set; }
+            public Guid? InternalId { get; set; }
+            public string? Name { get; set; } // Ok - denne kan vi bruke...
         }
         #endregion Models
     }
