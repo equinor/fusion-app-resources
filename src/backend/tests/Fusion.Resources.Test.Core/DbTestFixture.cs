@@ -34,7 +34,7 @@ namespace Fusion.Resources.Test.Core
 
         protected virtual void ConfigureServices(ServiceCollection services)
         {
-            services.AddMediatR(typeof(AddSecondOpinion).Assembly);
+            services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<DomainAssemblyMarkerType>());
             services.AddDbContext<ResourcesDbContext>(opts => opts.UseInMemoryDatabase($"unit-test-db-{Guid.NewGuid()}"));
 
             var profileService = new Mock<IProfileService>();
