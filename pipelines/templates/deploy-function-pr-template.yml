@@ -42,7 +42,7 @@ steps:
       # Generate the app settings      
       #
       # Sett correct resources URI based on environment
-      $resourcesFunctionUri =  "https://resources-api.pr-$pullRequestNumber.fusion-dev.net/"
+      $resourcesFunctionUri =  "https://resources-api-pr-$pullRequestNumber.fusion-dev.net/"
 
       $settings = @{
           clientId = "${{ parameters.clientId }}"
