@@ -23,10 +23,14 @@ steps:
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'
     Inline: |
+      # 
+      # Hardcoded to PR env
+      #
       $environment = "pr"
       $pullRequestNumber = "${{ parameters.pullRequestNumber }}"
       $fusionEnvironment = "ci"
       $functionAppName = "func-fap-resources-$environment"
+      $envVaultName = "kv-fap-resources-$environment"
       $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
 
       if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
@@ -43,8 +47,8 @@ steps:
       $settings = @{
           clientId = "${{ parameters.clientId }}"
           secretIds = @{
-              clientSecret = "https://kv-fap-resources-pr.vault.azure.net:443/secrets/AzureAd--ClientSecret"
-              serviceBus = "https://kv-fap-resources-pr.vault.azure.net:443/secrets/Connectionstrings--ServiceBus"
+              clientSecret = "https://$envVaultName.vault.azure.net:443/secrets/AzureAd--ClientSecret"
+              serviceBus = "https://$envVaultName.vault.azure.net:443/secrets/Connectionstrings--ServiceBus"
           }
           endpoints = @{
               lineorg = "https://fusion-s-lineorg-$fusionEnvironment.azurewebsites.net"
