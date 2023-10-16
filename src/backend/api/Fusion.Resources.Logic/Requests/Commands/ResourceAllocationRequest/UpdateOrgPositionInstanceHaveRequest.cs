@@ -25,7 +25,7 @@ namespace Fusion.Resources.Logic.Commands
         public Guid OrgPositionInstanceId { get; }
         public bool HaveRequest { get; }
 
-        public class Handler : AsyncRequestHandler<UpdateOrgPositionInstanceHaveRequest>
+        public class Handler : IRequestHandler<UpdateOrgPositionInstanceHaveRequest>
         {
             private readonly ILogger<Handler> logger;
             private readonly IOrgApiClient client;
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Logic.Commands
                 this.client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
             }
 
-            protected override async Task Handle(UpdateOrgPositionInstanceHaveRequest request, CancellationToken cancellationToken)
+            public async Task Handle(UpdateOrgPositionInstanceHaveRequest request, CancellationToken cancellationToken)
             {
                 // This command tries to update an existing position instance. If instance is not found, it may have been deleted in ORG service.
                 // If unable to update instance, log error and proceed.

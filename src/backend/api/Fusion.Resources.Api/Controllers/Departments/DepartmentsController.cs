@@ -166,7 +166,7 @@ namespace Fusion.Resources.Api.Controllers
                     UpdatedByAzureUniqueId = User.GetAzureUniqueId() ?? User.GetApplicationId()
                 }.WithReason(request.Reason);
 
-                await DispatchAsync(command);
+                await DispatchCommandAsync(command);
 
             }
             catch (RoleDelegationExistsError ex)

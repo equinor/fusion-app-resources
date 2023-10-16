@@ -16,7 +16,7 @@ namespace Fusion.Resources.Domain.Commands
 
         public Guid CommentId { get; }
 
-        public class Handler : AsyncRequestHandler<DeleteComment>
+        public class Handler : IRequestHandler<DeleteComment>
         {
             private readonly ResourcesDbContext db;
 
@@ -25,7 +25,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.db = db;
             }
 
-            protected override async Task Handle(DeleteComment command, CancellationToken cancellationToken)
+            public async Task Handle(DeleteComment command, CancellationToken cancellationToken)
             {
                 var comment = await db.RequestComments.FirstOrDefaultAsync(c => c.Id == command.CommentId);
 

@@ -20,7 +20,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid NoteId { get; }
         public Guid PersonAzureUniqueId { get; }
 
-        public class Handler : AsyncRequestHandler<DeletePersonNote>
+        public class Handler : IRequestHandler<DeletePersonNote>
         {
             private readonly ResourcesDbContext dbContext;
 
@@ -29,7 +29,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.dbContext = dbContext;
             }
 
-            protected override async Task Handle(DeletePersonNote request, CancellationToken cancellationToken)
+            public async Task Handle(DeletePersonNote request, CancellationToken cancellationToken)
             {
                 var note = await dbContext.PersonNotes.FirstOrDefaultAsync(n => n.Id == request.NoteId && n.AzureUniqueId == request.PersonAzureUniqueId);
                 if (note is null)

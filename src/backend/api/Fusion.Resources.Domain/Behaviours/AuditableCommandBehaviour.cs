@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Domain.Behaviours
-{
+{    
 
-    public class TrackableRequestBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class TrackableRequestBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
         private readonly IHttpContextAccessor httpContext;
         private readonly IProfileService profileServices;

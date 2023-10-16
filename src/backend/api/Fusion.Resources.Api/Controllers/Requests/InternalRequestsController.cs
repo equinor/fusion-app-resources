@@ -109,6 +109,10 @@ namespace Fusion.Resources.Api.Controllers
 
                 return Created($"/projects/{projectIdentifier}/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
+            catch (InvalidOperationException iv)
+            {
+                return ApiErrors.InvalidOperation(iv);
+            }
             catch (ValidationException ex)
             {
                 return ApiErrors.InvalidOperation(ex);
@@ -192,6 +196,10 @@ namespace Fusion.Resources.Api.Controllers
 
                 // Using the requests for position endpoint as created ref.. This is not completely accurate as it could return more than those created. Best option though.
                 return Created($"/projects/{projectIdentifier}/positions/{request.OrgPositionId}/requests", requests.Select(x => new ApiResourceAllocationRequest(x)).ToList());
+            }
+            catch (InvalidOperationException iv)
+            {
+                return ApiErrors.InvalidOperation(iv);
             }
             catch (ValidationException ex)
             {
@@ -287,6 +295,10 @@ namespace Fusion.Resources.Api.Controllers
 
                 return Created($"/departments/{departmentPath}/resources/requests/{newRequest!.RequestId}", new ApiResourceAllocationRequest(newRequest));
             }
+            catch (InvalidOperationException iv)
+            {
+                return ApiErrors.InvalidOperation(iv);
+            }
             catch (ValidationException ex)
             {
                 return ApiErrors.InvalidOperation(ex);
@@ -362,6 +374,10 @@ namespace Fusion.Resources.Api.Controllers
                 var updatedRequest = await DispatchAsync(query);
 
                 return new ApiResourceAllocationRequest(updatedRequest!);
+            }
+            catch (InvalidOperationException iv)
+            {
+                return ApiErrors.InvalidOperation(iv);
             }
             catch (ValidationException ve)
             {
@@ -770,7 +786,7 @@ namespace Fusion.Resources.Api.Controllers
 
                 await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var transaction = await BeginTransactionAsync();
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
                 await transaction.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -817,7 +833,7 @@ namespace Fusion.Resources.Api.Controllers
             {
                 await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var transaction = await BeginTransactionAsync();
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Initialize(requestId));
                 await transaction.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -865,7 +881,7 @@ namespace Fusion.Resources.Api.Controllers
 
             await using var eventTransaction = await notificationClient.BeginTransactionAsync();
             await using var transaction = await BeginTransactionAsync();
-            await DispatchAsync(new DeleteInternalRequest(requestId));
+            await DispatchCommandAsync(new DeleteInternalRequest(requestId));
 
             await transaction.CommitAsync();
             await eventTransaction.CommitAsync();
@@ -905,7 +921,7 @@ namespace Fusion.Resources.Api.Controllers
                 await using var eventTransaction = await notificationClient.BeginTransactionAsync();
                 await using var scope = await BeginTransactionAsync();
 
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Provision(requestId)
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Provision(requestId)
                 {
                     ForceProvision = force
                 });
@@ -940,7 +956,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
                 await scope.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -979,7 +995,7 @@ namespace Fusion.Resources.Api.Controllers
 
             try
             {
-                await DispatchAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
+                await DispatchCommandAsync(new Logic.Commands.ResourceAllocationRequest.Approve(requestId));
                 await scope.CommitAsync();
                 await eventTransaction.CommitAsync();
             }
@@ -1265,7 +1281,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion Authorization
 
-            await DispatchAsync(new UpdateComment(commentId, update.Content));
+            await DispatchCommandAsync(new UpdateComment(commentId, update.Content));
 
             comment = await DispatchAsync(new GetRequestComment(commentId));
             return new ApiRequestComment(comment!);
@@ -1305,7 +1321,7 @@ namespace Fusion.Resources.Api.Controllers
 
             #endregion Authorization
 
-            await DispatchAsync(new DeleteComment(commentId));
+            await DispatchCommandAsync(new DeleteComment(commentId));
 
             return NoContent();
         }

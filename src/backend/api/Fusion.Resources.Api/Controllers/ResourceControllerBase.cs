@@ -57,7 +57,7 @@ namespace Fusion.Resources.Api.Controllers
             return scope.BeginTransactionAsync();
         }
 
-        protected Task DispatchAsync(IRequest command)
+        protected Task DispatchCommandAsync(IRequest command)
         {
             var mediator = HttpContext.RequestServices.GetRequiredService<IMediator>();
             return mediator.Send(command);
