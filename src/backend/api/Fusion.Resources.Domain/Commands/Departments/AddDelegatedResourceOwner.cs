@@ -1,5 +1,4 @@
-﻿using Fusion.Integration.Profile;
-using Fusion.Integration.Roles;
+﻿using Fusion.Integration.Roles;
 using Fusion.Resources.Database;
 using Fusion.Resources.Database.Entities;
 using MediatR;
@@ -7,7 +6,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace Fusion.Resources.Domain.Commands.Departments
 {
@@ -44,7 +42,7 @@ namespace Fusion.Resources.Domain.Commands.Departments
                 this.rolesClient = rolesClient;
             }
 
-            public async Task<Unit> Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
+            public async Task Handle(AddDelegatedResourceOwner request, CancellationToken cancellationToken)
             {
                 var alreadyDelegated = db.DelegatedDepartmentResponsibles.Any(x =>
                     x.ResponsibleAzureObjectId == request.ResponsibleAzureUniqueId &&
@@ -75,8 +73,6 @@ namespace Fusion.Resources.Domain.Commands.Departments
 
                 db.DelegatedDepartmentResponsibles.Add(responsible);
                 await db.SaveChangesAsync();
-
-                return Unit.Value;
             }
         }
 

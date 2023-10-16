@@ -19,7 +19,7 @@ namespace Fusion.Resources.Domain.Commands
         private Guid RequestId { get; }
 
 
-        public class Handler : AsyncRequestHandler<DeleteInternalRequest>
+        public class Handler : IRequestHandler<DeleteInternalRequest>
         {
             private readonly ResourcesDbContext dbContext;
             private readonly IMediator mediator;
@@ -30,7 +30,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.mediator = mediator;
             }
 
-            protected override async Task Handle(DeleteInternalRequest request, CancellationToken ct)
+            public async Task Handle(DeleteInternalRequest request, CancellationToken ct)
             {
                 var req = await dbContext.ResourceAllocationRequests
                     .Include(r => r.Project)

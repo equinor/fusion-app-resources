@@ -21,7 +21,7 @@ namespace Fusion.Resources.Logic.Commands
             public Guid RequestId { get; }
 
 
-            public class Handler : AsyncRequestHandler<Approve>
+            public class Handler : IRequestHandler<Approve>
             {
                 private readonly ResourcesDbContext dbContext;
                 private readonly IMediator mediator;
@@ -32,7 +32,7 @@ namespace Fusion.Resources.Logic.Commands
                     this.mediator = mediator;
                 }
 
-                protected override async Task Handle(Approve request, CancellationToken cancellationToken)
+                public async Task Handle(Approve request, CancellationToken cancellationToken)
                 {
                     var dbRequest = await dbContext.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId, cancellationToken);
                     if (dbRequest is null)

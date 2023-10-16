@@ -352,7 +352,7 @@ namespace Fusion.Resources.Api.Controllers
             #endregion
 
 
-            await DispatchAsync(new DeletePersonAbsence(id, absenceId));
+            await DispatchCommandAsync(new DeletePersonAbsence(id, absenceId));
 
             return NoContent();
         }

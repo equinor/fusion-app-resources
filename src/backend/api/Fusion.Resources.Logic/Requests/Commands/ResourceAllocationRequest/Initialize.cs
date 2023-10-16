@@ -25,7 +25,7 @@ namespace Fusion.Resources.Logic.Commands
 
 
 
-            public class Handler : AsyncRequestHandler<Initialize>
+            public class Handler : IRequestHandler<Initialize>
             {
 
                 private readonly ResourcesDbContext resourcesDb;
@@ -37,7 +37,7 @@ namespace Fusion.Resources.Logic.Commands
                     this.mediator = mediator;
                 }
 
-                protected override async Task Handle(Initialize request, CancellationToken cancellationToken)
+                public async Task Handle(Initialize request, CancellationToken cancellationToken)
                 {
                     var dbRequest = await resourcesDb.ResourceAllocationRequests.FirstOrDefaultAsync(r => r.Id == request.RequestId);
                     if (dbRequest is null)

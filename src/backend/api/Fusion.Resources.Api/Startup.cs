@@ -8,6 +8,8 @@ using Fusion.Resources.Api.Authentication;
 using Fusion.Resources.Api.HostedServices;
 using Fusion.Resources.Api.Middleware;
 using Fusion.Resources.Domain;
+using Fusion.Resources.Domain.Commands;
+using Fusion.Resources.Logic;
 using JSM.FluentValidation.AspNet.AsyncFilter;
 using MediatR;
 using Microsoft.ApplicationInsights.DependencyCollector;
@@ -19,6 +21,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using SixLabors.ImageSharp;
+using System.Reflection;
 
 namespace Fusion.Resources.Api
 {
@@ -127,11 +131,17 @@ namespace Fusion.Resources.Api
 
             services.AddResourceDatabase<Authentication.SqlTokenProvider>(Configuration);
             services.AddResourceDomain();
-            services.AddResourceLogic();
             services.AddResourcesApplicationServices();
 
             services.AddResourcesAuthorizationHandlers();
-            services.AddMediatR(typeof(Startup));   // Add notification handlers in api project
+
+            // Add mediatn from api, domain and logic assembly.
+            services.AddMediatR(c => c                
+                .RegisterServicesFromAssemblyContaining<DomainAssemblyMarkerType>()
+                .RegisterServicesFromAssemblyContaining<LogicAssemblyMarkerType>()
+                .RegisterServicesFromAssemblyContaining<Startup>());
+
+            services.AddMediatRDistributedNotification(setup => setup.ConnectionString = Configuration.GetConnectionString("ServiceBus"));
             services.AddHostedService<ExpiredDelegatedRolesHostedService>();
 
             #endregion Resource services

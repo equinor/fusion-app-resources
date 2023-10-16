@@ -226,7 +226,7 @@ namespace Fusion.Resources.Api.Controllers
             if (responsibilityMatrix == null)
                 return FusionApiError.NotFound(matrixId, "Could not locate responsibility matrix");
 
-            await DispatchAsync(new DeleteResponsibilityMatrix(matrixId));
+            await DispatchCommandAsync(new DeleteResponsibilityMatrix(matrixId));
 
             return NoContent();
         }

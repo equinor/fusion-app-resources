@@ -5,10 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fusion.AspNetCore" Version="6.0.8" />
+    <PackageReference Include="Fusion.AspNetCore" Version="7.0.1" />
     <PackageReference Include="Fusion.Integration.Context" Version="6.0.5" />
     <PackageReference Include="Fusion.Integration.Context.Abstractions" Version="6.0.2" />
-    <PackageReference Include="Fusion.ApiClients.Org" Version="6.0.2" />
+    <PackageReference Include="Fusion.ApiClients.Org" Version="7.0.0" />
 
   </ItemGroup>
 

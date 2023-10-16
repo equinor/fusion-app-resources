@@ -24,7 +24,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid OrgPositionId { get; }
         public Guid OrgInstanceId { get; }
 
-        public class Handler : AsyncRequestHandler<ResetAllocationState>
+        public class Handler : IRequestHandler<ResetAllocationState>
         {
             private readonly ILogger<Handler> logger;
             private readonly ResourcesDbContext dbContext;
@@ -37,7 +37,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.orgApiClientFactory = orgApiClientFactory;
             }
 
-            protected override async Task Handle(ResetAllocationState request, CancellationToken cancellationToken)
+            public async Task Handle(ResetAllocationState request, CancellationToken cancellationToken)
             {
                 var client = orgApiClientFactory.CreateClient(ApiClientMode.Application);
 

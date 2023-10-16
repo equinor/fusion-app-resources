@@ -143,6 +143,8 @@ namespace Fusion.Resources.Api.Tests.Fixture
 
                     return clientFactoryMock.Object;
                 });
+                services.AddSingletonIfFound<Infrastructure.MediatR.Distributed.IDistributedNotificationChannel, FakeDistributedNotificationChannel>();
+                services.AddSingletonIfFound<Infrastructure.MediatR.Distributed.IDistributedNotificationReceiver, FakeDistributedNotificationReceiver>();
             });
         }
     }
