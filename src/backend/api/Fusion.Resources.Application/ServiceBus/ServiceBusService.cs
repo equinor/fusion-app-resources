@@ -41,13 +41,8 @@ namespace Fusion.Resources.ServiceBus
 
                 var jsonMessage = JsonSerializer.Serialize(message);
 
-                var entityPath = Resolve(queue);
-
-                if (string.IsNullOrEmpty(entityPath))
-                    throw new InvalidOperationException($"Could not resolve the serivce bus entity path for queue '{queue}'");
-
+                var entityPath = ResolveQueuePath(queue);
                 var queueSender = client.CreateSender(entityPath);
-
                 
                 var sbMessage = new ServiceBusMessage(jsonMessage) { ContentType = "application/json" };
                 if (delayInSeconds > 0)
@@ -62,13 +57,23 @@ namespace Fusion.Resources.ServiceBus
             }
         }
 
-        private string? Resolve(QueuePath queue)
+        /// <summary>
+        /// Queue path should be configured in config. The config key should be the enum value.
+        /// 
+        /// </summary>
+        /// <param name="queue"></param>
+        /// <returns></returns>
+        private string ResolveQueuePath(QueuePath queue)
         {
-            var entityPath = configuration.GetValue<string>($"ServiceBus:Queues:{queue}", DefaultQueuePath(queue));
+            var entityPath = configuration.GetValue<string>($"ServiceBus:Queues:{queue}");
+
 
             var entityPathOverride = configuration.GetValue<string>($"SERVICEBUS_QUEUES_{queue}");
             if (!string.IsNullOrEmpty(entityPathOverride))
                 entityPath = entityPathOverride;
+
+            if (string.IsNullOrEmpty(entityPath))
+                entityPath = DefaultQueuePath(queue);
 
             logger.LogInformation($"Using service bus queue: {entityPath}");
 
