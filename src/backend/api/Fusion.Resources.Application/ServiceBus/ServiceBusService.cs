@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
+using System.Collections.Generic;
 
 namespace Fusion.Resources.ServiceBus
 {
@@ -11,7 +12,10 @@ namespace Fusion.Resources.ServiceBus
     {
         private readonly IConfiguration configuration;
         private readonly ILogger<ServiceBusQueueSender> logger;
-        private ServiceBusClient? client;
+        private readonly ServiceBusClient? client;
+
+        // Caching the sender is recommended when the application is publishing messages regularly or semi-regularly. The sender is responsible for ensuring efficient network, CPU, and memory use
+        private Dictionary<string, ServiceBusSender> cachedSenders = new Dictionary<string, ServiceBusSender>();
 
         public ServiceBusQueueSender(IConfiguration configuration, ILogger<ServiceBusQueueSender> logger)
         {
@@ -36,13 +40,10 @@ namespace Fusion.Resources.ServiceBus
         {
             if (!IsDisabled)
             {
-                if (client is null)
-                    throw new InvalidOperationException("Service bus has not been configured. Missing connection string.");
-
                 var jsonMessage = JsonSerializer.Serialize(message);
 
                 var entityPath = ResolveQueuePath(queue);
-                var queueSender = client.CreateSender(entityPath);
+                var queueSender = GetQueueSender(entityPath);
                 
                 var sbMessage = new ServiceBusMessage(jsonMessage) { ContentType = "application/json" };
                 if (delayInSeconds > 0)
@@ -55,6 +56,20 @@ namespace Fusion.Resources.ServiceBus
             {
                 logger.LogWarning("Sending queue messages has been disabled by config, ServiceBus:Disabled");
             }
+        }
+
+        private ServiceBusSender GetQueueSender(string queue)
+        {
+            if (client is null)
+                throw new InvalidOperationException("Service bus has not been configured. Missing connection string.");
+
+            if (cachedSenders.ContainsKey(queue))
+            {
+                return cachedSenders[queue];
+            }
+
+            cachedSenders[queue] = client.CreateSender(queue);
+            return cachedSenders[queue];
         }
 
         /// <summary>
