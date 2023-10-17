@@ -1,6 +1,6 @@
+using Azure.Messaging.ServiceBus;
 using Bogus;
 using Fusion.Events;
-using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -82,16 +82,16 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
 
             var messageBody = JsonConvert.SerializeObject(cEvent);
-            var sbMessage = new Message(Encoding.UTF8.GetBytes(messageBody))
+            var sbMessage = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody))
             {
                 MessageId = $"{type.Name}-{cEvent.Id}"
             };
 
-            sbMessage.UserProperties.Add("type", type.Name);
+            sbMessage.ApplicationProperties.Add("type", type.Name);
 
             if (!string.IsNullOrEmpty(appContext))
             {
-                sbMessage.UserProperties.Add("app", appContext);
+                sbMessage.ApplicationProperties.Add("app", appContext);
             }
 
             return bus.PublishMessageAsync(entityPath, sbMessage);

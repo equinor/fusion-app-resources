@@ -1,22 +1,28 @@
 ﻿using System;
-using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 
 namespace Fusion.Resources.ServiceBus
 {
     internal class ServiceBusQueueSender : IQueueSender
     {
-        private readonly string connectionString;
         private readonly IConfiguration configuration;
         private readonly ILogger<ServiceBusQueueSender> logger;
+        private ServiceBusClient? client;
 
         public ServiceBusQueueSender(IConfiguration configuration, ILogger<ServiceBusQueueSender> logger)
         {
-            connectionString = configuration.GetConnectionString("ServiceBus");
+            var connectionString = configuration.GetConnectionString("ServiceBus");
+
+            // Leaving this as nullable so integration tests etc don't fail untill the functionality is required.
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                this.client = new ServiceBusClient(connectionString);
+            }
+
             this.configuration = configuration;
             this.logger = logger;
         }
@@ -30,17 +36,25 @@ namespace Fusion.Resources.ServiceBus
         {
             if (!IsDisabled)
             {
-                var sender = GetClient(queue);
+                if (client is null)
+                    throw new InvalidOperationException("Service bus has not been configured. Missing connection string.");
+
                 var jsonMessage = JsonSerializer.Serialize(message);
-                var queueMessage = new Microsoft.Azure.ServiceBus.Message(Encoding.UTF8.GetBytes(jsonMessage)) { ContentType = "application/json" };
 
+                var entityPath = Resolve(queue);
+
+                if (string.IsNullOrEmpty(entityPath))
+                    throw new InvalidOperationException($"Could not resolve the serivce bus entity path for queue '{queue}'");
+
+                var queueSender = client.CreateSender(entityPath);
+
+                
+                var sbMessage = new ServiceBusMessage(jsonMessage) { ContentType = "application/json" };
                 if (delayInSeconds > 0)
-                {
-                    queueMessage.ScheduledEnqueueTimeUtc = DateTime.UtcNow.AddSeconds(delayInSeconds);
-                }
+                    sbMessage.ScheduledEnqueueTime = DateTime.UtcNow.AddSeconds(delayInSeconds);
 
-                logger.LogInformation($"Posting message to {sender.Path}: {jsonMessage}");
-                await sender.SendAsync(queueMessage);
+                logger.LogInformation($"Posting message to {entityPath}: {jsonMessage}");
+                await queueSender.SendMessageAsync(sbMessage);                
             }
             else
             {
@@ -48,7 +62,7 @@ namespace Fusion.Resources.ServiceBus
             }
         }
 
-        private MessageSender GetClient(QueuePath queue)
+        private string? Resolve(QueuePath queue)
         {
             var entityPath = configuration.GetValue<string>($"ServiceBus:Queues:{queue}", DefaultQueuePath(queue));
 
@@ -58,8 +72,7 @@ namespace Fusion.Resources.ServiceBus
 
             logger.LogInformation($"Using service bus queue: {entityPath}");
 
-            var sender = new MessageSender(connectionString, entityPath);
-            return sender;
+            return entityPath;
         }
 
         private bool IsDisabled => configuration.GetValue<bool>("ServiceBus:Disabled", false);
