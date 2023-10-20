@@ -1,11 +1,12 @@
 ﻿#nullable enable
 using Fusion.ApiClients.Org;
 using Fusion.Resources.Api.Controllers;
+using Fusion.Resources.Database.Entities;
 using Fusion.Resources.Domain;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Fusion.Resources.Functions.ApiClients
@@ -32,6 +33,44 @@ namespace Fusion.Resources.Functions.ApiClients
             public ProposedPerson? ProposedPerson { get; set; }
             public bool HasProposedPerson => ProposedPerson?.Person.AzureUniquePersonId is not null;
             public string? State { get; set; }
+
+            //TODO: Use this for checking the state of the requests
+            //public ApiWorkflow? workflow { get; set; }
+        }
+
+        public class ApiWorkflow
+        {
+            public ApiWorkflow(QueryWorkflow workflow)
+            {
+                if (workflow is null)
+                {
+                    throw new System.ArgumentNullException(nameof(workflow));
+                }
+
+                LogicAppName = workflow.LogicAppName;
+                LogicAppVersion = workflow.LogicAppVersion;
+
+                Steps = workflow.WorkflowSteps.Select(s => new ApiWorkflowStep(s));
+
+                State = workflow.State switch
+                {
+                    DbWorkflowState.Running => ApiWorkflowState.Running,
+                    DbWorkflowState.Canceled => ApiWorkflowState.Canceled,
+                    DbWorkflowState.Error => ApiWorkflowState.Error,
+                    DbWorkflowState.Completed => ApiWorkflowState.Completed,
+                    DbWorkflowState.Terminated => ApiWorkflowState.Terminated,
+                    _ => ApiWorkflowState.Unknown,
+                };
+            }
+
+            public string LogicAppName { get; set; }
+            public string LogicAppVersion { get; set; }
+            public ApiWorkflowState State { get; set; }
+
+            public IEnumerable<ApiWorkflowStep> Steps { get; set; }
+
+            public enum ApiWorkflowState { Running, Canceled, Error, Completed, Terminated, Unknown }
+
         }
 
         public class ProposedPerson
@@ -76,9 +115,6 @@ namespace Fusion.Resources.Functions.ApiClients
             public string? FullDepartment { get; set; }
             public bool IsResourceOwner { get; set; }
             public string? AccountType { get; set; }
-
-            // Maybe used for checking if user have future positions
-            //public List<ApiResourceAllocationRequest>? PendingRequests { get; }
             public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
         }
 
@@ -88,8 +124,6 @@ namespace Fusion.Resources.Functions.ApiClients
             public Guid? InstanceId { get; set; }
             public DateTime? AppliesFrom { get; set; }
             public DateTime? AppliesTo { get; set; }
-
-            //public ApiBasePosition? BasePosition { get; set; } = null!;
             public string? Name { get; set; } = null!;
             public string? Location { get; set; }
             public string? AllocationState { get; set; }
@@ -104,7 +138,7 @@ namespace Fusion.Resources.Functions.ApiClients
         {
             public Guid Id { get; set; }
             public Guid? InternalId { get; set; }
-            public string? Name { get; set; } // Ok - denne kan vi bruke...
+            public string? Name { get; set; }
         }
         #endregion Models
     }

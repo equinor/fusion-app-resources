@@ -26,15 +26,15 @@ public class ScheduledReportContentBuilderFunction
     private readonly INotificationApiClient _notificationsClient;
     private readonly IResourcesApiClient _resourceClient;
 
-        public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
-        IConfiguration configuration, IResourcesApiClient resourcesApiClient,
-         INotificationApiClient notificationsClient)
+    public ScheduledReportContentBuilderFunction(ILogger<ScheduledReportContentBuilderFunction> logger,
+    IConfiguration configuration, IResourcesApiClient resourcesApiClient,
+     INotificationApiClient notificationsClient)
     {
         _logger = logger;
         _queueName = configuration["scheduled_notification_report_queue"];
         _resourceClient = resourcesApiClient;
         _notificationsClient = notificationsClient;
-    }
+            }
 
     [FunctionName(ScheduledReportFunctionSettings.ContentBuilderFunctionName)]
     public async Task RunAsync(
@@ -50,9 +50,9 @@ public class ScheduledReportContentBuilderFunction
             var dto = JsonConvert.DeserializeObject<ScheduledNotificationQueueDto>(body);
             if (!Guid.TryParse(dto.AzureUniqueId, out var azureUniqueId))
                 throw new Exception("AzureUniqueId not valid.");
-            if(dto.FullDepartment.IsNullOrEmpty())
+            if (dto.FullDepartment.IsNullOrEmpty())
                 throw new Exception("FullDepartmentIdentifier not valid.");
- 
+
 
             switch (dto.Role)
             {
@@ -111,17 +111,17 @@ public class ScheduledReportContentBuilderFunction
         // We use the full list of requests and filter to only include the ones which are to have start-date in more than 3 months AND state not completed
         // TODO: Also get a way to show link for this content...
         // 2. Number of request that have more than 3 months to start data(link to system with filtered view)
-        var departmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests.Where(x => x.State != "complete" && x.OrgPositionInstance.AppliesFrom > threeMonthsFuture).Count();
+        var departmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests.Where(x => x.State != "completed" && x.OrgPositionInstance.AppliesFrom > threeMonthsFuture).Count();
 
         // We use the full list of requets and filter to only inlclude the ones which have start-date in less than 3 months and start-date after today and is not complete and has no proposedPerson assigned to them
         // 3. Number of requests that are less than 3 month to start data with no nomination.
         // FIXME: Må justeres på.
-        var departmentRequestsWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests.Where(x => x.State != "complete" && (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture && x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson).Count();
+        var departmentRequestsWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests.Where(x => x.State != "completed" && (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture && x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson).Count();
 
         // Only to include those requests which have state approval (this means that the resource owner needs to process the requests in some way)
         // 4. Number of open requests.  
         // FIXME: Needs to be checked
-        var totalNumberOfOpenRequests = departmentRequests.Where(x => x.State == "approval").Count();
+        var totalNumberOfOpenRequests = departmentRequests.Where(x => x.State != "completed").Count();
 
 
         // ##Get all the personnel for the specific department
@@ -137,7 +137,7 @@ public class ScheduledReportContentBuilderFunction
 
         // 6. Number of personnel allocated more than 100 %
         var listOfPersonnelsWithMoreThan100Percent = personnelForDepartment.Where(p => p.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum() > 100);
-        IEnumerable<PersonnelContent> listOfPersonnelForDepartmentWithMoreThan100Percent = listOfPersonnelsWithMoreThan100Percent.Select(p =>  CreatePersonnelWithTBEContent(p)); //
+        IEnumerable<PersonnelContent> listOfPersonnelForDepartmentWithMoreThan100Percent = listOfPersonnelsWithMoreThan100Percent.Select(p => CreatePersonnelWithTBEContent(p)); //
 
 
         //7. % of total allocation vs.capacity
@@ -157,7 +157,7 @@ public class ScheduledReportContentBuilderFunction
             NumberOfOpenRequests = totalNumberOfOpenRequests,
             NumberOfNewRequestsWithNoNomination = departmentRequestsWithLessThanThreeMonthsBeforeStartAndNoNomination,
             NumberOfExtContractsEnding = 4,
-            ListOfPersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent,
+            PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent,
             PercentAllocationOfTotalCapacity = percentageOfTotalCapacity,
             TotalNumberOfRequests = totalNumberOfRequests,
             PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
@@ -192,13 +192,13 @@ public class ScheduledReportContentBuilderFunction
             totalWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
         }
 
-        double totalPercentage = totalWorkLoad / (listOfInternalPersonnel.Count * 100) *  100;
+        double totalPercentage = totalWorkLoad / (listOfInternalPersonnel.Count * 100) * 100;
 
 
-        return Convert.ToInt32(totalPercentage); 
+        return Convert.ToInt32(totalPercentage);
     }
 
-    public PersonnelContent CreatePersonnelContent (ApiInternalPersonnelPerson person)
+    public PersonnelContent CreatePersonnelContent(ApiInternalPersonnelPerson person)
     {
         if (person == null)
             throw new ArgumentNullException();
@@ -212,12 +212,12 @@ public class ScheduledReportContentBuilderFunction
             PositionName = positionName,
             ProjectName = projectName,
             EndingPosition = position
-            
+
         };
         return personnelContent;
     }
 
-    public PersonnelContent CreatePersonnelWithTBEContent (ApiInternalPersonnelPerson person)
+    public PersonnelContent CreatePersonnelWithTBEContent(ApiInternalPersonnelPerson person)
     {
         var positionInstances = person.PositionInstances.Where(pos => pos.IsActive);
         var sumWorkload = positionInstances.Select(pos => pos.Workload).Sum();
@@ -231,23 +231,23 @@ public class ScheduledReportContentBuilderFunction
         return personnelContent;
     }
 
-    
+
 
     public class PersonnelContent
     {
         public string FullName { get; set; }
         public string? ProjectName { get; set; }
-        public string? PositionName{ get; set; }
-        public double? TotalWorkload {  get; set; }
+        public string? PositionName { get; set; }
+        public double? TotalWorkload { get; set; }
         public int? NumberOfPositionInstances { get; set; }
         public PersonnelPosition? EndingPosition { get; set; }
 
-        public PersonnelContent () { }
+        public PersonnelContent() { }
     }
 
-        private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData, string departmentIdentifier)
+    private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData, string departmentIdentifier)
     {
-       var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 2));
+        var card = new AdaptiveCard(new AdaptiveSchemaVersion(1, 2));
 
         card.Body.Add(new AdaptiveTextBlock
         {
@@ -266,213 +266,164 @@ public class ScheduledReportContentBuilderFunction
     // FIXME: Temporary way to compose a adaptive card. Needs refactoring
     public static AdaptiveCard CreateAdaptiveCardTemp(AdaptiveCard adaptiveCard, ResourceOwnerAdaptiveCardData cardData)
     {
+        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Capacity in use", "%", cardData.PercentAllocationOfTotalCapacity.ToString());
+        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Total requests", "", cardData.TotalNumberOfRequests.ToString());
+        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Open requests", "", cardData.NumberOfOpenRequests.ToString());
+        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Requests with start date less than 3 months", "", cardData.NumberOfNewRequestsWithNoNomination.ToString());
+        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Requests with start date more than 3 months", "", cardData.NumberOfOlderRequests.ToString());
+        adaptiveCard = AddTextToAdaptiveCardWithColumns2(adaptiveCard, "Positions ending soon with no future allocation", "End date: ", cardData);
+        adaptiveCard = AddTextToAdaptiveCardWithColumns3(adaptiveCard, "Personnel with more than 100% FTE:", "% FTE", cardData);
+
+        return adaptiveCard;
+    }
+
+    public static AdaptiveCard AddTextToAdaptiveCardWithColumns1(AdaptiveCard adaptiveCard, string customtext1, string? customtext2, string value)
+    {
 
         // Første container med 2 kolonner
-        var container1 = new AdaptiveContainer();
-        container1.Separator = true;
+        var container = new AdaptiveContainer();
+        container.Separator = true;
         // KolonneSett 1 med 2 kolonner
-        var columnSet11 = new AdaptiveColumnSet();
+        var columnSet1 = new AdaptiveColumnSet();
         // Kolonne 1
-        var column111 = new AdaptiveColumn();
-        column111.Width = AdaptiveColumnWidth.Stretch;
-        column111.Separator = true;
-        column111.Spacing = AdaptiveSpacing.Medium;
+        var column1 = new AdaptiveColumn();
+        column1.Width = AdaptiveColumnWidth.Stretch;
+        column1.Separator = true;
+        column1.Spacing = AdaptiveSpacing.Medium;
 
-        var textBlock1111 = new AdaptiveTextBlock();
-        textBlock1111.Text = "Capacity in use";
-        textBlock1111.Wrap = true;
-        textBlock1111.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
+        var textBlock1 = new AdaptiveTextBlock();
+        textBlock1.Text = customtext1;
+        textBlock1.Wrap = true;
+        textBlock1.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
 
-        var textBlock1112 = new AdaptiveTextBlock();
-        textBlock1112.Text = cardData.PercentAllocationOfTotalCapacity.ToString() + "%";
-        textBlock1112.Wrap = true;
-        textBlock1112.Size = AdaptiveTextSize.ExtraLarge;
-        textBlock1112.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
+        var textBlock2 = new AdaptiveTextBlock()
+        {
+            Wrap = true,
+            Text = value + customtext2,
+            Size = AdaptiveTextSize.ExtraLarge,
+            HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
+        };
 
-        column111.Add(textBlock1112);
-        column111.Add(textBlock1111);
-        columnSet11.Add(column111);
-        container1.Add(columnSet11);
-        adaptiveCard.Body.Add(container1);
-
-
-
-        // Første container med 2 kolonner
-        var container2 = new AdaptiveContainer();
-        container2.Separator = true;
-        // KolonneSett 1 med 2 kolonner
-        var columnSet21 = new AdaptiveColumnSet();
-        // Kolonne 1
-        var column211 = new AdaptiveColumn();
-        column211.Width = AdaptiveColumnWidth.Stretch;
-        column211.Separator = true;
-        column211.Spacing = AdaptiveSpacing.Medium;
-
-        var textBlock2111 = new AdaptiveTextBlock();
-        textBlock2111.Text = "Total requests";
-        textBlock2111.Wrap = true;
-        textBlock2111.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
-
-        var textBlock2112 = new AdaptiveTextBlock();
-        textBlock2112.Text = cardData.TotalNumberOfRequests.ToString();
-        textBlock2112.Wrap = true;
-        textBlock2112.Size = AdaptiveTextSize.ExtraLarge;
-        textBlock2112.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
-
-        column211.Add(textBlock2112);
-        column211.Add(textBlock2111);
-        columnSet21.Add(column211);
-        container2.Add(columnSet21);
-        adaptiveCard.Body.Add(container2);
+        column1.Add(textBlock2);
+        column1.Add(textBlock1);
+        columnSet1.Add(column1);
+        container.Add(columnSet1);
+        adaptiveCard.Body.Add(container);
 
 
+        return adaptiveCard;
+    }
 
-        // Første container med 2 kolonner
-        var container3 = new AdaptiveContainer();
-        container3.Separator = true;
-        // KolonneSett 1 med 2 kolonner
-        var columnSet31 = new AdaptiveColumnSet();
-        // Kolonne 1
-        var column311 = new AdaptiveColumn();
-        column311.Width = AdaptiveColumnWidth.Stretch;
-        column311.Separator = true;
-        column311.Spacing = AdaptiveSpacing.Medium;
+    public static AdaptiveCard AddTextToAdaptiveCardWithColumns2(AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
+    {
+        var container = new AdaptiveContainer()
+        { Separator = true };
 
-        var textBlock3111 = new AdaptiveTextBlock();
-        textBlock3111.Text = "Open requests";
-        textBlock3111.Wrap = true;
-        textBlock3111.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
+        var columnSet1 = new AdaptiveColumnSet();
 
-        var textBlock3112 = new AdaptiveTextBlock();
-        textBlock3112.Text = cardData.NumberOfOpenRequests.ToString();
-        textBlock3112.Wrap = true;
-        textBlock3112.Size = AdaptiveTextSize.ExtraLarge;
-        textBlock3112.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
+        var column1 = new AdaptiveColumn();
+        var textBlock1 = new AdaptiveTextBlock()
+        {
+            Text = customtext1,
+            Wrap = true,
+            Size = AdaptiveTextSize.Default,
+            Weight = AdaptiveTextWeight.Bolder
+        };
+        column1.Add(textBlock1);
 
-        column311.Add(textBlock3112);
-        column311.Add(textBlock3111);
-        columnSet31.Add(column311);
-        container3.Add(columnSet31);
-        adaptiveCard.Body.Add(container3);
+        foreach(var p in carddata.PersonnelPositionsEndingWithNoFutureAllocation)
+        {
+            var columnset2 = new AdaptiveColumnSet();
 
-
-        // Første container med 2 kolonner
-        var container4 = new AdaptiveContainer();
-        container4.Separator = true;
-        // KolonneSett 1 med 2 kolonner
-        var columnSet41 = new AdaptiveColumnSet();
-        // Kolonne 1
-        var column411 = new AdaptiveColumn();
-        column411.Width = AdaptiveColumnWidth.Stretch;
-        column411.Separator = true;
-        column411.Spacing = AdaptiveSpacing.Medium;
-
-        var textBlock4111 = new AdaptiveTextBlock();
-        textBlock4111.Text = "Requests with start date less than 3 months";
-        textBlock4111.Wrap = true;
-        textBlock4111.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
-
-        var textBlock4112 = new AdaptiveTextBlock();
-        textBlock4112.Text = cardData.NumberOfNewRequestsWithNoNomination.ToString();
-        textBlock4112.Wrap = true;
-        textBlock4112.Size = AdaptiveTextSize.ExtraLarge;
-        textBlock4112.HorizontalAlignment = AdaptiveHorizontalAlignment.Center;
-
-        column411.Add(textBlock4112);
-        column411.Add(textBlock4111);
-        columnSet41.Add(column411);
-        container4.Add(columnSet41);
-        adaptiveCard.Body.Add(container4);
+            var column2 = new AdaptiveColumn();
+            var textBlock2 = new AdaptiveTextBlock()
+            {
+                Text = p.FullName,
+                Wrap = true,
+                Size = AdaptiveTextSize.Default,
+                HorizontalAlignment = AdaptiveHorizontalAlignment.Left
+            };
 
 
-        //#######################
+            column2.Add(textBlock2);
+            columnset2.Add(column2);
+
+            var column3 = new AdaptiveColumn();
+            var textBlock3 = new AdaptiveTextBlock()
+            {
+                Text = "End date: " + p.EndingPosition.AppliesTo.Value.Date.ToShortDateString(),
+                Wrap = true,
+                Size = AdaptiveTextSize.Default,
+                HorizontalAlignment = AdaptiveHorizontalAlignment.Right
+            };
+
+            column3.Add(textBlock3);
+            columnset2.Add(column3);
+            column1.Add(columnset2);
+        }
 
 
+        columnSet1.Add(column1);
+        container.Add(columnSet1);
 
-        // Allocations ending soon with no future allocation
-        //Foreach personnel with position
-        var container5 = new AdaptiveContainer();
-        container5.Separator = true;
+        adaptiveCard.Body.Add(container);
 
-        var columnSet3 = new AdaptiveColumnSet();
-        columnSet3.Separator = true;
+        return adaptiveCard;
+    }
 
-        var column31 = new AdaptiveColumn();
-        column31.Separator = true;
-        var textBlock311 = new AdaptiveTextBlock();
-        textBlock311.Text = "Positions ending soon with no future allocation";
-        textBlock311.Wrap = true;
-        textBlock311.Size = AdaptiveTextSize.Default;
-        textBlock311.Weight = AdaptiveTextWeight.Bolder;
-        column31.Add(textBlock311);
-        var columnset31 = new AdaptiveColumnSet();
+    public static AdaptiveCard AddTextToAdaptiveCardWithColumns3(AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
+    {
+        var container = new AdaptiveContainer()
+        { Separator = true };
 
-        var column32 = new AdaptiveColumn();
-        var textBlock321 = new AdaptiveTextBlock();
-        textBlock321.Wrap = true;
-        textBlock321.Size = AdaptiveTextSize.Default;
-        textBlock321.HorizontalAlignment = AdaptiveHorizontalAlignment.Left;
-        textBlock321.Text = cardData.PersonnelPositionsEndingWithNoFutureAllocation.FirstOrDefault().FullName;
-        column32.Add(textBlock321);
-        columnset31.Add(column32);
+        var columnSet1 = new AdaptiveColumnSet();
 
-        var column33 = new AdaptiveColumn();
-        var textBlock331 = new AdaptiveTextBlock();
-        textBlock331.Wrap = true;
-        textBlock331.Size = AdaptiveTextSize.Default;
-        textBlock331.HorizontalAlignment = AdaptiveHorizontalAlignment.Right;
-        textBlock331.Text = "End date: " + cardData.PersonnelPositionsEndingWithNoFutureAllocation.FirstOrDefault().EndingPosition.AppliesTo.Value.Date.ToShortDateString();
-        column33.Add(textBlock331);
-        columnset31.Add(column33);
-        column31.Add(columnset31);
+        var column1 = new AdaptiveColumn();
+        var textBlock1 = new AdaptiveTextBlock()
+        {
+            Text = customtext1,
+            Wrap = true,
+            Size = AdaptiveTextSize.Default,
+            Weight = AdaptiveTextWeight.Bolder
+        };
+        column1.Add(textBlock1);
 
-        columnSet3.Add(column31);
-        container5.Add(columnSet3);
+        foreach (var p in carddata.PersonnelAllocatedMoreThan100Percent)
+        {
+            var columnset2 = new AdaptiveColumnSet();
 
-        adaptiveCard.Body.Add(container5);
-
-        //#######################
+            var column2 = new AdaptiveColumn();
+            var textBlock2 = new AdaptiveTextBlock()
+            {
+                Text = p.FullName,
+                Wrap = true,
+                Size = AdaptiveTextSize.Default,
+                HorizontalAlignment = AdaptiveHorizontalAlignment.Left
+            };
 
 
-        // Allocations ending soon with no future allocation
-        //Foreach personnel with position
-        var container6 = new AdaptiveContainer();
-        container6.Separator = true;
+            column2.Add(textBlock2);
+            columnset2.Add(column2);
 
-        var columnSet4 = new AdaptiveColumnSet();
+            var column3 = new AdaptiveColumn();
+            var textBlock3 = new AdaptiveTextBlock()
+            {
+                Text = p.TotalWorkload + customtext2,
+                Wrap = true,
+                Size = AdaptiveTextSize.Default,
+                HorizontalAlignment = AdaptiveHorizontalAlignment.Right
+            };
 
-        var column41 = new AdaptiveColumn();
-        var textBlock411 = new AdaptiveTextBlock();
-        textBlock411.Text = "Personnel with more than 100% FTE:";
-        textBlock411.Wrap = true;
-        textBlock411.Size = AdaptiveTextSize.Default;
-        textBlock411.Weight = AdaptiveTextWeight.Bolder;
-        column41.Add(textBlock411);
-        var columnset41 = new AdaptiveColumnSet();
+            column3.Add(textBlock3);
+            columnset2.Add(column3);
+            column1.Add(columnset2);
+        }
 
-        var column42 = new AdaptiveColumn();
-        var textBlock421 = new AdaptiveTextBlock();
-        textBlock421.Wrap = true;
-        textBlock421.Size = AdaptiveTextSize.Default;
-        textBlock421.HorizontalAlignment = AdaptiveHorizontalAlignment.Left;
-        textBlock421.Text = cardData.ListOfPersonnelAllocatedMoreThan100Percent.FirstOrDefault().FullName;
-        column42.Add(textBlock421);
-        columnset41.Add(column42);
 
-        var column43 = new AdaptiveColumn();
-        var textBlock431 = new AdaptiveTextBlock();
-        textBlock431.Wrap = true;
-        textBlock431.Size = AdaptiveTextSize.Default;
-        textBlock431.HorizontalAlignment = AdaptiveHorizontalAlignment.Right;
-        textBlock431.Text = cardData.ListOfPersonnelAllocatedMoreThan100Percent.FirstOrDefault().TotalWorkload + "% FTE";
-        column43.Add(textBlock431);
-        columnset41.Add(column43);
-        column41.Add(columnset41);
+        columnSet1.Add(column1);
+        container.Add(columnSet1);
 
-        columnSet4.Add(column41);
-        container6.Add(columnSet4);
-
-        adaptiveCard.Body.Add(container6);
+        adaptiveCard.Body.Add(container);
 
         return adaptiveCard;
     }

@@ -40,7 +40,7 @@ namespace Fusion.Resources.Functions.ApiClients
 
         public async Task<ApiCollection<ResourceAllocationRequest>> GetAllRequestsForDepartment(string departmentIdentifier)
         {
-            var response = await resourcesClient.GetAsync($"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance");
+            var response = await resourcesClient.GetAsync($"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance,actions");
 
             response.EnsureSuccessStatusCode();
             var responseContent = await response.Content.ReadAsStringAsync();

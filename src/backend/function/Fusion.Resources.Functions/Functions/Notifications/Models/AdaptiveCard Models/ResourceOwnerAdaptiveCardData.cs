@@ -11,6 +11,6 @@ public class ResourceOwnerAdaptiveCardData
     public int NumberOfOpenRequests { get; set; }
     internal IEnumerable<PersonnelContent> PersonnelPositionsEndingWithNoFutureAllocation { get; set; }
     public int PercentAllocationOfTotalCapacity { get; set; }
-    internal IEnumerable<PersonnelContent> ListOfPersonnelAllocatedMoreThan100Percent { get; set; }
+    internal IEnumerable<PersonnelContent> PersonnelAllocatedMoreThan100Percent { get; set; }
     public int NumberOfExtContractsEnding { get; set; }
 }
