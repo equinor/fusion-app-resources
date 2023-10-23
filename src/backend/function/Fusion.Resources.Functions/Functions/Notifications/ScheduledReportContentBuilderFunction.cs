@@ -7,6 +7,7 @@ using AdaptiveCards;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.ApiClients;
 using Fusion.Resources.Functions.ApiClients.ApiModels;
+using Fusion.Resources.Functions.Functions.Notifications.Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard_Models;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Microsoft.Azure.WebJobs;
@@ -91,59 +92,54 @@ public class ScheduledReportContentBuilderFunction
         // TODO: HardCoded for testing purposes.
         //const string davidAzureUniqueId = "945f666e-fd8a-444c-b7e3-9da61b21e4b5";
         //azureUniqueId = Guid.Parse(davidAzureUniqueId);
-
         const string aleksanderAzureUniqueId = "f9158061-e8e3-494a-acbe-afcb6bc9f7ab";
         azureUniqueId = Guid.Parse(aleksanderAzureUniqueId);
 
         var threeMonthsFuture = DateTime.UtcNow.AddMonths(3);
         var today = DateTime.UtcNow;
 
-        // DepartmentIdentifier = PDP PRD PMC PCA;
         // Get all requests for specific Department regardsless of state
-        var departmentRequestsResponse = await _resourceClient.GetAllRequestsForDepartment(departmentIdentifier);
-        var departmentRequests = departmentRequestsResponse.Value.ToList();
+        var departmentRequests = await _resourceClient.GetAllRequestsForDepartment(departmentIdentifier);
 
 
         // Count all of the number of requests sent to the department. We may change this to only include a specific timeframe in the future (last 12 months)
-        // 1. Total number of request sent to department -  OK!
+        // 1. Total number of request sent to department
         var totalNumberOfRequests = departmentRequests.Count();
 
-        // We use the full list of requests and filter to only include the ones which are to have start-date in more than 3 months AND state not completed
-        // TODO: Also get a way to show link for this content...
+        // Filter to only include the ones that have start-date in more than 3 months AND state not completed
         // 2. Number of request that have more than 3 months to start data(link to system with filtered view)
-        var departmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests.Where(x => x.State != "completed" && x.OrgPositionInstance.AppliesFrom > threeMonthsFuture).Count();
+        var numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests
+            .Where(x => !x.State.Contains(RequestState.completed.ToString()) && x.OrgPositionInstance.AppliesFrom > threeMonthsFuture)
+            .Count();
 
-        // We use the full list of requets and filter to only inlclude the ones which have start-date in less than 3 months and start-date after today and is not complete and has no proposedPerson assigned to them
+        // Filter to only inlclude the ones that have start-date in less than 3 months and start-date after today and is not complete and has no proposedPerson assigned to them
         // 3. Number of requests that are less than 3 month to start data with no nomination.
-        // FIXME: Må justeres på.
-        var departmentRequestsWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests.Where(x => x.State != "completed" && (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture && x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson).Count();
+        var numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests
+            .Where(x => !x.State.Contains(RequestState.completed.ToString()) && (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture && x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson)
+            .Count();
 
         // Only to include those requests which have state approval (this means that the resource owner needs to process the requests in some way)
         // 4. Number of open requests.  
-        // FIXME: Needs to be checked
-        var totalNumberOfOpenRequests = departmentRequests.Where(x => x.State != "completed").Count();
+        var totalNumberOfOpenRequests = departmentRequests
+            .Where(x => !x.State.Contains(RequestState.completed.ToString()))
+            .Count();
 
 
-        // ##Get all the personnel for the specific department
-        var listOfPersonnelForDepartment = await _resourceClient.GetAllPersonnelForDepartment(departmentIdentifier);
-        var personnelForDepartment = listOfPersonnelForDepartment.Value.ToList();
-
+        // Get all the personnel for the specific department
+        var personnelForDepartment = await _resourceClient.GetAllPersonnelForDepartment(departmentIdentifier);
 
         //5. List with personnel positions ending within 3 months and with no future allocation (link to personnel allocation)
-        var listOfPersonnelPositionsEndingInThreeMonths = personnelForDepartment.Where(x => x.PositionInstances.Where(pos => pos.IsActive && pos.AppliesTo <= threeMonthsFuture).Any()); // Her tar man utgangspunkt i at den nåværende splitten også er satt til IsActive
-        var newListWithPersonnelWithoutFutureAllocations = listOfPersonnelPositionsEndingInThreeMonths.Where(person => person.PositionInstances.All(pos => pos.AppliesTo < threeMonthsFuture));
-        IEnumerable<PersonnelContent> listOfPersonnelWithoutFutureAllocations = newListWithPersonnelWithoutFutureAllocations.Select(p => CreatePersonnelContent(p));
+        var listOfPersonnelWithoutFutureAllocations = FilterPersonnelWithoutFutureAllocations(personnelForDepartment);
 
 
         // 6. Number of personnel allocated more than 100 %
         var listOfPersonnelsWithMoreThan100Percent = personnelForDepartment.Where(p => p.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum() > 100);
-        IEnumerable<PersonnelContent> listOfPersonnelForDepartmentWithMoreThan100Percent = listOfPersonnelsWithMoreThan100Percent.Select(p => CreatePersonnelWithTBEContent(p)); //
+        IEnumerable<PersonnelContent> listOfPersonnelForDepartmentWithMoreThan100Percent = listOfPersonnelsWithMoreThan100Percent.Select(p => CreatePersonnelWithTBEContent(p));
 
 
         //7. % of total allocation vs.capacity
         // Show this as a percentagenumber (in the first draft)
-        int percentageOfTotalCapacity = FindTotalPercentagesAllocatedOfTotal(personnelForDepartment);
-
+        int percentageOfTotalCapacity = FindTotalPercentagesAllocatedOfTotal(personnelForDepartment.ToList());
 
 
         //8.EXT Contracts ending within 3 months ? (data to be imported from SAP or AD) 
@@ -153,10 +149,10 @@ public class ScheduledReportContentBuilderFunction
 
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
         {
-            NumberOfOlderRequests = departmentRequestWithMoreThanThreeMonthsBeforeStart,
+            NumberOfOlderRequests = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
             NumberOfOpenRequests = totalNumberOfOpenRequests,
-            NumberOfNewRequestsWithNoNomination = departmentRequestsWithLessThanThreeMonthsBeforeStartAndNoNomination,
-            NumberOfExtContractsEnding = 4,
+            NumberOfNewRequestsWithNoNomination = numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
+            NumberOfExtContractsEnding = 0, // TODO: Work in progress...
             PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent,
             PercentAllocationOfTotalCapacity = percentageOfTotalCapacity,
             TotalNumberOfRequests = totalNumberOfRequests,
@@ -170,7 +166,7 @@ public class ScheduledReportContentBuilderFunction
                 Title = $"Weekly summary - {departmentIdentifier}",
                 EmailPriority = 1,
                 Card = card,
-                Description = $"Weekly report for departmenty - {departmentIdentifier}"
+                Description = $"Weekly report for department - {departmentIdentifier}"
             },
             azureUniqueId);
 
@@ -182,9 +178,17 @@ public class ScheduledReportContentBuilderFunction
         }
     }
 
+    public IEnumerable<PersonnelContent> FilterPersonnelWithoutFutureAllocations(IEnumerable<InternalPersonnelPerson> personnelForDepartment)
+    {
+        var threeMonthsFuture = DateTime.UtcNow.AddMonths(3);
 
-    // Foreløpig uten å ta med LEAVE i beregningen
-    public int FindTotalPercentagesAllocatedOfTotal(List<ApiInternalPersonnelPerson> listOfInternalPersonnel)
+        var personnelWithPositionsEndingInThreeMonths = personnelForDepartment.Where(x => x.PositionInstances.Where(pos => pos.IsActive && pos.AppliesTo <= threeMonthsFuture).Any());
+        var personnelWithoutFutureAllocations = personnelWithPositionsEndingInThreeMonths.Where(person => person.PositionInstances.All(pos => pos.AppliesTo < threeMonthsFuture));
+        return personnelWithoutFutureAllocations.Select(p => CreatePersonnelContent(p));
+    }
+
+    // Without taking LEAVE into considerations
+    public int FindTotalPercentagesAllocatedOfTotal(List<InternalPersonnelPerson> listOfInternalPersonnel)
     {
         double totalWorkLoad = 0.0;
         foreach (var personnel in listOfInternalPersonnel)
@@ -194,17 +198,16 @@ public class ScheduledReportContentBuilderFunction
 
         double totalPercentage = totalWorkLoad / (listOfInternalPersonnel.Count * 100) * 100;
 
-
         return Convert.ToInt32(totalPercentage);
     }
 
-    public PersonnelContent CreatePersonnelContent(ApiInternalPersonnelPerson person)
+    public PersonnelContent CreatePersonnelContent(InternalPersonnelPerson person)
     {
         if (person == null)
             throw new ArgumentNullException();
 
         var position = person.PositionInstances.Find(instance => instance.IsActive);
-        var positionName = position.Name; // Tar utgangspunkt i at nårværende splitt går ut innen 3 måneder og det ikke er noe flere pga filtreringen som gjøres i forkant
+        var positionName = position.Name;
         var projectName = position.Project.Name;
         var personnelContent = new PersonnelContent()
         {
@@ -217,7 +220,7 @@ public class ScheduledReportContentBuilderFunction
         return personnelContent;
     }
 
-    public PersonnelContent CreatePersonnelWithTBEContent(ApiInternalPersonnelPerson person)
+    public PersonnelContent CreatePersonnelWithTBEContent(InternalPersonnelPerson person)
     {
         var positionInstances = person.PositionInstances.Where(pos => pos.IsActive);
         var sumWorkload = positionInstances.Select(pos => pos.Workload).Sum();
@@ -229,20 +232,6 @@ public class ScheduledReportContentBuilderFunction
             NumberOfPositionInstances = numberOfPositionInstances,
         };
         return personnelContent;
-    }
-
-
-
-    public class PersonnelContent
-    {
-        public string FullName { get; set; }
-        public string? ProjectName { get; set; }
-        public string? PositionName { get; set; }
-        public double? TotalWorkload { get; set; }
-        public int? NumberOfPositionInstances { get; set; }
-        public PersonnelPosition? EndingPosition { get; set; }
-
-        public PersonnelContent() { }
     }
 
     private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData, string departmentIdentifier)
@@ -266,26 +255,23 @@ public class ScheduledReportContentBuilderFunction
     // FIXME: Temporary way to compose a adaptive card. Needs refactoring
     public static AdaptiveCard CreateAdaptiveCardTemp(AdaptiveCard adaptiveCard, ResourceOwnerAdaptiveCardData cardData)
     {
-        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Capacity in use", "%", cardData.PercentAllocationOfTotalCapacity.ToString());
-        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Total requests", "", cardData.TotalNumberOfRequests.ToString());
-        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Open requests", "", cardData.NumberOfOpenRequests.ToString());
-        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Requests with start date less than 3 months", "", cardData.NumberOfNewRequestsWithNoNomination.ToString());
-        adaptiveCard = AddTextToAdaptiveCardWithColumns1(adaptiveCard, "Requests with start date more than 3 months", "", cardData.NumberOfOlderRequests.ToString());
-        adaptiveCard = AddTextToAdaptiveCardWithColumns2(adaptiveCard, "Positions ending soon with no future allocation", "End date: ", cardData);
-        adaptiveCard = AddTextToAdaptiveCardWithColumns3(adaptiveCard, "Personnel with more than 100% FTE:", "% FTE", cardData);
+        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Capacity in use", "%", cardData.PercentAllocationOfTotalCapacity.ToString());
+        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Total requests", "", cardData.TotalNumberOfRequests.ToString());
+        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Open requests", "", cardData.NumberOfOpenRequests.ToString());
+        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Requests with start date less than 3 months", "", cardData.NumberOfNewRequestsWithNoNomination.ToString());
+        adaptiveCard = AddColumnsAndTextToAdaptiveCard(adaptiveCard, "Requests with start date more than 3 months", "", cardData.NumberOfOlderRequests.ToString());
+        adaptiveCard = AddColumnsAndTextToAdaptiveCardForAllocationWithNoFutureAllocations(adaptiveCard, "Positions ending soon with no future allocation", "End date: ", cardData);
+        adaptiveCard = AddColumnsAndTextToAdaptiveCardForPersonnelWithMoreThan100PercentFTE(adaptiveCard, "Personnel with more than 100% FTE:", "% FTE", cardData);
 
         return adaptiveCard;
     }
 
-    public static AdaptiveCard AddTextToAdaptiveCardWithColumns1(AdaptiveCard adaptiveCard, string customtext1, string? customtext2, string value)
+    public static AdaptiveCard AddColumnsAndTextToAdaptiveCard(AdaptiveCard adaptiveCard, string customtext1, string? customtext2, string value)
     {
-
-        // Første container med 2 kolonner
         var container = new AdaptiveContainer();
         container.Separator = true;
-        // KolonneSett 1 med 2 kolonner
         var columnSet1 = new AdaptiveColumnSet();
-        // Kolonne 1
+
         var column1 = new AdaptiveColumn();
         column1.Width = AdaptiveColumnWidth.Stretch;
         column1.Separator = true;
@@ -314,7 +300,7 @@ public class ScheduledReportContentBuilderFunction
         return adaptiveCard;
     }
 
-    public static AdaptiveCard AddTextToAdaptiveCardWithColumns2(AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
+    public static AdaptiveCard AddColumnsAndTextToAdaptiveCardForAllocationWithNoFutureAllocations(AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
     {
         var container = new AdaptiveContainer()
         { Separator = true };
@@ -351,7 +337,7 @@ public class ScheduledReportContentBuilderFunction
             var column3 = new AdaptiveColumn();
             var textBlock3 = new AdaptiveTextBlock()
             {
-                Text = "End date: " + p.EndingPosition.AppliesTo.Value.Date.ToShortDateString(),
+                Text = customtext2 + p.EndingPosition.AppliesTo.Value.Date.ToShortDateString(),
                 Wrap = true,
                 Size = AdaptiveTextSize.Default,
                 HorizontalAlignment = AdaptiveHorizontalAlignment.Right
@@ -371,7 +357,7 @@ public class ScheduledReportContentBuilderFunction
         return adaptiveCard;
     }
 
-    public static AdaptiveCard AddTextToAdaptiveCardWithColumns3(AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
+    public static AdaptiveCard AddColumnsAndTextToAdaptiveCardForPersonnelWithMoreThan100PercentFTE(AdaptiveCard adaptiveCard, string customtext1, string customtext2, ResourceOwnerAdaptiveCardData carddata)
     {
         var container = new AdaptiveContainer()
         { Separator = true };
