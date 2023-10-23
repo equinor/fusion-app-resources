@@ -68,7 +68,6 @@ public class ScheduledReportContentBuilderFunction
                     await BuildContentForTaskOwner(azureUniqueId);
                     break;
                 default:
-                    await messageReceiver.CompleteMessageAsync(message);
                     throw new Exception("Role not valid.");
             }
 
