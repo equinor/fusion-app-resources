@@ -29,13 +29,13 @@ public class ScheduledReportTimerTriggerFunction
         _queueName = configuration["scheduled_notification_report_queue"];
     }
 
-    [FunctionName(ScheduledReportFunctionSettings.TimerTriggerFunctionName)]
+    [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger(ScheduledReportFunctionSettings.TimerTriggerFunctionSchedule, RunOnStartup = false)]
+        [TimerTrigger("0 0 0 * * MON", RunOnStartup = false)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
-            $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' " +
+            $"{nameof(ScheduledReportTimerTriggerFunction)} " +
             $"started at: {DateTime.UtcNow}");
         try
         {
@@ -45,13 +45,13 @@ public class ScheduledReportTimerTriggerFunction
             await SendResourceOwnersToQueue(sender);
 
             _logger.LogInformation(
-                $"Function '{ScheduledReportFunctionSettings.TimerTriggerFunctionName}' " +
+                $"{nameof(ScheduledReportTimerTriggerFunction)} " +
                 $"finished at: {DateTime.UtcNow}");
         }
         catch (Exception e)
         {
             _logger.LogError(
-                $"Function '{ScheduledReportFunctionSettings.ContentBuilderFunctionName}' " +
+                $"{nameof(ScheduledReportTimerTriggerFunction)} " +
                 $"failed with exception: {e.Message}");
         }
     }

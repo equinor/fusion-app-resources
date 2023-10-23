@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using static Fusion.Resources.Functions.Functions.Notifications.ScheduledReportContentBuilderFunction;
 
-namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard_Models;
+namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard;
 
 public class ResourceOwnerAdaptiveCardData
 {
