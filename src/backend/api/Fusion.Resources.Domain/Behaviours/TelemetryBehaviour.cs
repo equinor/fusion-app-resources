@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Fusion.Resources.Domain.Behaviours
 {
 
-    public class TelemetryBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class TelemetryBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
         private readonly TelemetryClient telemetryClient;
 

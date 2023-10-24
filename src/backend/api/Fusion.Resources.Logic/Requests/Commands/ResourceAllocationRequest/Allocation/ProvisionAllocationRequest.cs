@@ -25,7 +25,7 @@ namespace Fusion.Resources.Logic.Commands
                 public Guid RequestId { get; }
 
 
-                public class Handler : AsyncRequestHandler<ProvisionAllocationRequest>
+                public class Handler : IRequestHandler<ProvisionAllocationRequest>
                 {
                     private IOrgApiClient client;
                     private ResourcesDbContext resourcesDb;
@@ -36,7 +36,7 @@ namespace Fusion.Resources.Logic.Commands
                         this.resourcesDb = resourcesDb;
                     }
 
-                    protected override async Task Handle(ProvisionAllocationRequest request, CancellationToken cancellationToken)
+                    public async Task Handle(ProvisionAllocationRequest request, CancellationToken cancellationToken)
                     {
                         var dbRequest = await resourcesDb.ResourceAllocationRequests
                             .Include(r => r.Project)

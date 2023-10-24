@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.ServiceBus;
+﻿using Azure.Messaging.ServiceBus;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,11 +18,11 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         private static List<TestQueueMessage> localMessages = new List<TestQueueMessage>();
 
         private static List<Task> queueExecutionTasks = new List<Task>();
-        private static Dictionary<string, List<Func<Message, Task>>> queueHandlers = new Dictionary<string, List<Func<Message, Task>>>();
+        private static Dictionary<string, List<Func<ServiceBusMessage, Task>>> queueHandlers = new Dictionary<string, List<Func<ServiceBusMessage, Task>>>();
 
         private static object writeLock = new object();
 
-        public Task PublishMessageAsync(string entityPath, Message message)
+        public Task PublishMessageAsync(string entityPath, ServiceBusMessage message)
         {
             if (IsTemporarilyUnavailable)
             {
@@ -53,22 +53,22 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         }
 
 
-        public void RegisterQueueHandler(string queuepath, Func<Message, Task> callback)
+        public void RegisterQueueHandler(string queuepath, Func<ServiceBusMessage, Task> callback)
         {
             lock (writeLock)
             {
-                queueHandlers[queuepath] = new List<Func<Message, Task>>() { callback };
+                queueHandlers[queuepath] = new List<Func<ServiceBusMessage, Task>>() { callback };
             }
         }
 
-        public void RegisterTopicHandler(string queuepath, Func<Message, Task> callback)
+        public void RegisterTopicHandler(string queuepath, Func<ServiceBusMessage, Task> callback)
         {
             lock (writeLock)
             {
                 if (queueHandlers.ContainsKey(queuepath))
                     queueHandlers[queuepath].Add(callback);
                 else
-                    queueHandlers[queuepath] = new List<Func<Message, Task>>() { callback };
+                    queueHandlers[queuepath] = new List<Func<ServiceBusMessage, Task>>() { callback };
             }
         }
 
@@ -77,7 +77,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         public static IReadOnlyCollection<TestQueueMessage> GetAllMessages() => allMessages.AsReadOnly();
         public static List<T> GetAllMessagePayloadsForPerson<T>(Func<TestQueueMessage, bool> predicate, string aadPersonId, T payloadType)
         {
-            var filtered = allMessages.Where(predicate).OrderBy(m => m.Message.ScheduledEnqueueTimeUtc);
+            var filtered = allMessages.Where(predicate).OrderBy(m => m.Message.ScheduledEnqueueTime);
             var result = new List<T>();
 
             foreach (var msg in filtered)
@@ -104,7 +104,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
         }
         public static List<T> GetAllMessages<T>()
         {
-            var filtered = allMessages.OrderBy(m => m.Message.ScheduledEnqueueTimeUtc);
+            var filtered = allMessages.OrderBy(m => m.Message.ScheduledEnqueueTime);
             var result = new List<T>();
 
             foreach (var msg in filtered)
@@ -138,7 +138,7 @@ namespace Fusion.Resources.Api.Tests.FusionMocks
 
         public List<T> GetLocalMessages<T>()
         {
-            var filtered = localMessages.OrderBy(m => m.Message.ScheduledEnqueueTimeUtc);
+            var filtered = localMessages.OrderBy(m => m.Message.ScheduledEnqueueTime);
             var result = new List<T>();
 
             foreach (var msg in filtered)

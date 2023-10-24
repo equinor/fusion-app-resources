@@ -270,7 +270,7 @@ namespace Fusion.Resources.Api.Controllers
                 return ApiErrors.NotFound("Could not locate allocation on person");
 
 
-            await DispatchAsync(new Domain.Commands.ResetAllocationState(allocation.Project.OrgProjectId, allocation.PositionId, instanceId));
+            await DispatchCommandAsync(new Domain.Commands.ResetAllocationState(allocation.Project.OrgProjectId, allocation.PositionId, instanceId));
 
             return NoContent();
         }

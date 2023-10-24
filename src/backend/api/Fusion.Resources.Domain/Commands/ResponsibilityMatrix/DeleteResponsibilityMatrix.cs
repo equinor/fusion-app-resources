@@ -17,7 +17,7 @@ namespace Fusion.Resources.Domain.Commands
         private Guid Id { get; set; }
 
 
-        public class Handler : AsyncRequestHandler<DeleteResponsibilityMatrix>
+        public class Handler : IRequestHandler<DeleteResponsibilityMatrix>
         {
             private readonly ResourcesDbContext resourcesDb;
 
@@ -26,7 +26,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.resourcesDb = resourcesDb;
             }
 
-            protected override async Task Handle(DeleteResponsibilityMatrix request, CancellationToken cancellationToken)
+            public async Task Handle(DeleteResponsibilityMatrix request, CancellationToken cancellationToken)
             {
                 var dbEntity = await resourcesDb.ResponsibilityMatrices
                     .FirstOrDefaultAsync(x=>x.Id==request.Id);

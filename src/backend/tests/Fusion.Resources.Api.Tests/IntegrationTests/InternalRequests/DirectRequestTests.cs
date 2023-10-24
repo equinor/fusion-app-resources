@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -609,7 +610,7 @@ namespace Fusion.Resources.Api.Tests.IntegrationTests
             #region assert
 
             TestLogger.TryLog($"{JsonConvert.SerializeObject(new { testRequest })}");
-            TestLogger.TryLog($"{JsonConvert.SerializeObject(NotificationClientMock.SentMessages)}");
+            TestLogger.TryLog($"{JsonConvert.SerializeObject(NotificationClientMock.SentMessages.ToImmutableList())}");
 
             var notificationsForRequest = NotificationClientMock.SentMessages.GetNotificationsForRequestId(testRequest.Id);
             notificationsForRequest.Should()

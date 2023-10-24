@@ -249,7 +249,7 @@ namespace Fusion.Resources.Api.Controllers
             if (!notes.Any(n => n.Id == noteId))
                 return ApiErrors.NotFound("Could not locate note for user");
 
-            await DispatchAsync(new Domain.Commands.DeletePersonNote(noteId, user.azureId));
+            await DispatchCommandAsync(new Domain.Commands.DeletePersonNote(noteId, user.azureId));
 
             return NoContent();
         }
