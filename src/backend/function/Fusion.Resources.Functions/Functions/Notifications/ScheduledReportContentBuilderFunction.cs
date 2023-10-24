@@ -48,7 +48,7 @@ public class ScheduledReportContentBuilderFunction
             var dto = JsonConvert.DeserializeObject<ScheduledNotificationQueueDto>(body);
             if (!Guid.TryParse(dto.AzureUniqueId, out var azureUniqueId))
                 throw new Exception("AzureUniqueId not valid.");
-            if (dto.FullDepartment.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(dto.FullDepartment))
                 throw new Exception("FullDepartmentIdentifier not valid.");
 
 
