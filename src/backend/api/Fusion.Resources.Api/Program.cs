@@ -1,4 +1,5 @@
 using System;
+using Azure.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -38,6 +39,7 @@ namespace Fusion.Resources.Api
         {
             var tempConfig = configBuilder.Build();
             var clientId = tempConfig["AzureAd:ClientId"];
+            var tenantId = tempConfig["AzureAd:TenantId"];
             var clientSecret = tempConfig["AzureAd:ClientSecret"];
             var keyVaultUrl = tempConfig["KEYVAULT_URL"];
 
@@ -45,7 +47,8 @@ namespace Fusion.Resources.Api
             {
                 Console.WriteLine($"Adding key vault using url: '{keyVaultUrl}', client id '{clientId}' and client secret {(string.IsNullOrEmpty(clientSecret) ? "[empty]" : "*****")}");
 
-                configBuilder.AddAzureKeyVault(keyVaultUrl, clientId, clientSecret);
+                var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+                configBuilder.AddAzureKeyVault(new Uri(keyVaultUrl), credential);
             }
             else
             {
