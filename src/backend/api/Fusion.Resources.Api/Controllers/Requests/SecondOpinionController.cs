@@ -15,7 +15,6 @@ namespace Fusion.Resources.Api.Controllers.Requests
     [ApiController]
     public class SecondOpinionController : ResourceControllerBase
     {
-        // projects/d5c79bb2-5135-47f0-81f2-739ebe46f752/requests/32d3a26c-a13c-473b-889e-beb8d0a97992
         [HttpOptions("/resources/requests/internal/{requestId}/second-opinions")]
         public async Task<IActionResult> CheckSecondOpinionAccess(Guid requestId)
         {
