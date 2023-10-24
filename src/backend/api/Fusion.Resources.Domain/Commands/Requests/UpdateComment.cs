@@ -18,7 +18,7 @@ namespace Fusion.Resources.Domain.Commands
         public Guid CommentId { get; }
         public string Content { get; }
 
-        public class Handler : AsyncRequestHandler<UpdateComment>
+        public class Handler : IRequestHandler<UpdateComment>
         {
             private readonly ResourcesDbContext db;
 
@@ -27,7 +27,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.db = db;
             }
 
-            protected override async Task Handle(UpdateComment request, CancellationToken cancellationToken)
+            public async Task Handle(UpdateComment request, CancellationToken cancellationToken)
             {
                 var comment = await db.RequestComments.FirstOrDefaultAsync(c => c.Id == request.CommentId);
 

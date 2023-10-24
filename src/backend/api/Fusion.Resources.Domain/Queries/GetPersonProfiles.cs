@@ -34,9 +34,9 @@ namespace Fusion.Resources.Domain.Queries
                 var tasks = new List<Task<IEnumerable<ResolvedPersonProfile>>>();
 
                 // Max number of identifiers is 500, so we chunk the requests
-                foreach (var req in request.Identifiers.Chunk(500))
+                foreach (var identifierBatch in request.Identifiers.Chunk(500))
                 {
-                    tasks.Add(profileResolver.ResolvePersonsAsync(request.Identifiers));
+                    tasks.Add(profileResolver.ResolvePersonsAsync(identifierBatch));
                 }
 
                 var results = await Task.WhenAll(tasks);

@@ -67,7 +67,7 @@ namespace Fusion.Resources.Logic.Commands
                 }
             }
 
-            public class Handler : AsyncRequestHandler<Provision>
+            public class Handler : IRequestHandler<Provision>
             {
                 private readonly ILogger<Handler> logger;
                 private readonly ResourcesDbContext resourcesDb;
@@ -80,7 +80,7 @@ namespace Fusion.Resources.Logic.Commands
                     this.mediator = mediator;
                 }
 
-                protected override async Task Handle(Provision request, CancellationToken cancellationToken)
+                public async Task Handle(Provision request, CancellationToken cancellationToken)
                 {
                     var dbRequest = await resourcesDb.ResourceAllocationRequests
                         .Include(r => r.Project)

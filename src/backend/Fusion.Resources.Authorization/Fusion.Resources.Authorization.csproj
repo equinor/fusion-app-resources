@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+	  <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -13,7 +13,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Fusion.Integration.Authorization" Version="6.10.6" />
+    <PackageReference Include="Fusion.Integration.Authorization" Version="7.0.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\api\Fusion.Resources.Database\Fusion.Resources.Database.csproj" />

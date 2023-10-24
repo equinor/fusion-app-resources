@@ -12,7 +12,7 @@ namespace Fusion.Resources.Api.Notifications
 {
     public partial class InternalRequestNotification
     {
-        public class NotifyTaskOwnerHandler : AsyncRequestHandler<NotifyTaskOwner>
+        public class NotifyTaskOwnerHandler : IRequestHandler<NotifyTaskOwner>
         {
             private readonly IFusionNotificationClient notificationClient;
             private readonly IMediator mediator;
@@ -22,7 +22,7 @@ namespace Fusion.Resources.Api.Notifications
                 this.notificationClient = notificationClient;
                 this.mediator = mediator;
             }
-            protected override async Task Handle(NotifyTaskOwner request, CancellationToken cancellationToken)
+            public async Task Handle(NotifyTaskOwner request, CancellationToken cancellationToken)
             {
                 var allocationRequest = await GetInternalRequestAsync(request.RequestId);
 

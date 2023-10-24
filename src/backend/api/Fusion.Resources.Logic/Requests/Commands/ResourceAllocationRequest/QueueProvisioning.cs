@@ -18,7 +18,7 @@ namespace Fusion.Resources.Logic.Commands
 
             public Guid RequestId { get; }
 
-            public class Handler : AsyncRequestHandler<QueueProvisioning>
+            public class Handler : IRequestHandler<QueueProvisioning>
             {
                 private readonly int FixedDelayInSecondsBeforeProvisioning = 5;
                 private readonly ResourcesDbContext dbContext;
@@ -30,7 +30,7 @@ namespace Fusion.Resources.Logic.Commands
                     this.queueSender = queueSender;
                 }
 
-                protected override async Task Handle(QueueProvisioning request, CancellationToken cancellationToken)
+                public async Task Handle(QueueProvisioning request, CancellationToken cancellationToken)
                 {
                     var dbRequest = await dbContext.ResourceAllocationRequests.FindAsync(request.RequestId);
 

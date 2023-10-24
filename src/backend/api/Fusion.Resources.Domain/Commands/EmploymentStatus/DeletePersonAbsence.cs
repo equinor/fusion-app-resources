@@ -19,7 +19,7 @@ namespace Fusion.Resources.Domain.Commands
         private PersonId PersonId { get; set; }
 
 
-        public class Handler : AsyncRequestHandler<DeletePersonAbsence>
+        public class Handler : IRequestHandler<DeletePersonAbsence>
         {
             private readonly ResourcesDbContext resourcesDb;
 
@@ -28,7 +28,7 @@ namespace Fusion.Resources.Domain.Commands
                 this.resourcesDb = resourcesDb;
             }
 
-            protected override async Task Handle(DeletePersonAbsence request, CancellationToken cancellationToken)
+            public async Task Handle(DeletePersonAbsence request, CancellationToken cancellationToken)
             {
                 var dbEntity = await resourcesDb.PersonAbsences
                     .GetById(request.PersonId, request.Id)
