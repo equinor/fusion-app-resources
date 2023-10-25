@@ -55,14 +55,7 @@ public class ScheduledReportContentBuilderFunction
             switch (dto.Role)
             {
                 case NotificationRoleType.ResourceOwner:
-                    // TODO: Only for testing purposes. Remove when done.
-                    var davelsanderIds = new List<Guid>
-                    {
-                        Guid.Parse("945f666e-fd8a-444c-b7e3-9da61b21e4b5"),
-                        Guid.Parse("f9158061-e8e3-494a-acbe-afcb6bc9f7ab"),
-                    };
-                    foreach (var id in davelsanderIds)
-                        await BuildContentForResourceOwner(id, dto.FullDepartment);
+                    await BuildContentForResourceOwner(azureUniqueId, dto.FullDepartment);
                     break;
                 case NotificationRoleType.TaskOwner:
                     await BuildContentForTaskOwner(azureUniqueId);

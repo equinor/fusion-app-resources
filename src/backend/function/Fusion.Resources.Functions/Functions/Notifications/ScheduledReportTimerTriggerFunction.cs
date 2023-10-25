@@ -60,13 +60,18 @@ public class ScheduledReportTimerTriggerFunction
     {
         try
         {
-            // TODO: These resource-owners are handpicked to limit the report to scope of the project.
+            // TODO: These resource-owners are handpicked to limit the scope of the project.
             var resourceOwners =
                 await _lineOrgClient.GetResourceOwnersFromFullDepartment(
                     new List<string>
                     {
                         "PDP PRD PMC PCA PCA1",
-                        "PDP PRD PMC PCA PCA6"
+                        "PDP PRD PMC PCA PCA2",
+                        "PDP PRD PMC PCA PCA3",
+                        "PDP PRD PMC PCA PCA4",
+                        "PDP PRD PMC PCA PCA5",
+                        "PDP PRD PMC PCA PCA6",
+                        "CFO FCOE PO CPC DA SOL"
                     });
             if (resourceOwners == null || !resourceOwners.Any())
                 throw new Exception("No resource-owners found.");
