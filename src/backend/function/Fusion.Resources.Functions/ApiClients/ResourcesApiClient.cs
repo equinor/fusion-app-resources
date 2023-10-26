@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using System;
 using Fusion.Resources.Functions.Integration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -34,6 +33,23 @@ namespace Fusion.Resources.Functions.ApiClients
                 $"projects/{project.Id}/resources/requests/?$filter=state.IsComplete eq false and isDraft eq false&$expand=orgPosition,orgPositionInstance&$top={int.MaxValue}");
 
             return data.Value.Where(x => x.AssignedDepartment is not null);
+        }
+
+        public async Task<IEnumerable<ResourceAllocationRequest>> GetAllRequestsForDepartment(string departmentIdentifier)
+        {
+            var response = await resourcesClient.GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>(
+                $"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance,actions");
+            
+            return response.Value.ToList();
+        }
+
+        public async Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(string departmentIdentifier)
+        {
+            var response = await resourcesClient.GetAsJsonAsync<InternalCollection<InternalPersonnelPerson>>(
+                $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
+
+            return response.Value.ToList();
+
         }
 
         public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department)

@@ -5,6 +5,7 @@
 	  <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AdaptiveCards" Version="3.0.0" />
     <PackageReference Include="Fusion.ApiClients.Org" Version="7.0.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.3" />
