@@ -29,12 +29,17 @@ public class LineOrgApiClient : ILineOrgApiClient
 
     public async Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(List<string> fullDepartments)
     {
+        var list = fullDepartments
+            .Select(l => $"'{l}'")
+            .ToList()
+            .Aggregate((a, b) => $"{a}, {b}");
         var queryString = $"/lineorg/persons?$filter=fullDepartment in " +
-                          $"({fullDepartments.Aggregate((a, b) => $"'{a}', '{b}'")}) " +
+                          $"({list}) " +
                           $"and isResourceOwner eq 'true'";
         var resourceOwners = await lineOrgClient.GetAsJsonAsync<LineOrgPersonsResponse>(queryString);
 
         return resourceOwners.Value;
+
     }
 
     internal class DepartmentRef
