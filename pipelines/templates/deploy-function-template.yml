@@ -7,88 +7,88 @@ parameters:
   disabledFunctionsFile: $(Build.SourcesDirectory)/src/backend/function/Fusion.Resources.Functions/Deployment/disabled-functions.json
 
 steps:
-  - checkout: self
-  - task: AzurePowerShell@4
-    displayName: 'Deploy Function ARM template'
-    inputs:
-      azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
-      ScriptType: 'InlineScript'
-      FailOnStandardError: true
-      azurePowerShellVersion: 'LatestVersion'
-      Inline: |
-        $environment = "${{ parameters.envName }}"
-        $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
-        $functionAppName = "func-fap-resources-$environment"
-        $envVaultName = "kv-fap-resources-$environment"
-        $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
-        
-        if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
-        
-        $resourceGroup = $envResourceGroup.ResourceGroupName
-        Write-Host "Using resource group $resourceGroup"
-        
-        function Get-SecretsId($secret) {
-            $value = (Get-AzKeyVaultSecret -VaultName $envVaultName -Name $secret)
-            if ($value.Id -eq $null) { return "" } else { return $value.Id.replace($value.Version,'') }
-        }
-        
-        #
-        # Generate the app settings      
-        #
-        # Sett correct resources URI based on environment
-        $resourcesFunctionUri =  "https://resources-api.$environment.fusion-dev.net/"
-        if ($environment -eq "fprd") { $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"}
-        
-        $settings = @{
-            clientId = "${{ parameters.clientId }}"
-            secretIds = @{
-                clientSecret = Get-SecretsId -secret AzureAd--ClientSecret
-                serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
-            }
-            endpoints = @{
-                lineorg = "https://fusion-s-lineorg-$fusionEnvironment.azurewebsites.net"
-                org = "https://fusion-s-org-$fusionEnvironment.azurewebsites.net"
-                people = "https://fusion-s-people-$fusionEnvironment.azurewebsites.net"
-                resources = "$resourcesFunctionUri"
-                notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
-                context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
-                portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
-            }
-            resources = @{
-                fusion = "${{ parameters.fusionResource }}"
-            }
-            queues = @{
-                provisionPosition = "provision-position"
-                scheduledNotificationReportQueue = "scheduled-notification"
-            }
-        }
-        
-        if ($fusionEnvironment -eq "fprd") {
-              $settings.endpoints.portal = "https://fusion.equinor.com"
-        }
-        
-        New-AzResourceGroupDeployment -Mode Incremental -Name "resources-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
-            -env-name $environment `
-            -settings $settings
-        
-        $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
-        Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
-        
-        ## Load disabled functions
-        $disabledFunctionConfig = ConvertFrom-Json (Get-Content "${{ parameters.disabledFunctionsFile }}" -Raw)
-        $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
-        
-        Write-Host "Disabled functions"
-        $disabledFunctions
-        
-        $settings = @{}
-        ForEach ($kvp in $functionApp.SiteConfig.AppSettings) {
-            $settings[$kvp.Name] = $kvp.Value
-        }
-        
-        ## Mark functions as disabled
-        $disabledFunctions | ForEach-Object { $settings["AzureWebJobs.$_.Disabled"] = "true" }
-        
-        ## Update web app settings for function app
-        Set-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName -AppSettings $settings
+- checkout: self
+- task: AzurePowerShell@4
+  displayName: 'Deploy Function ARM template'
+  inputs:
+    azureSubscription: 'PROJECT_PORTAL (63b791ae-b2bc-41a1-ac66-806c4e69bffe)'
+    ScriptType: 'InlineScript'
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    Inline: |
+      $environment = "${{ parameters.envName }}"
+      $fusionEnvironment = "${{ parameters.fusionEnvironment }}"
+      $functionAppName = "func-fap-resources-$environment"
+      $envVaultName = "kv-fap-resources-$environment"
+      $envResourceGroup = Get-AzResourceGroup -Tag @{ "fusion-app-component" = "resources-rg-$environment" }
+
+      if ($envResourceGroup -eq $null) { throw "Cannot locate resource group for environment '$environment'" }
+
+      $resourceGroup = $envResourceGroup.ResourceGroupName
+      Write-Host "Using resource group $resourceGroup"
+
+      function Get-SecretsId($secret) {
+          $value = (Get-AzKeyVaultSecret -VaultName $envVaultName -Name $secret)
+          if ($value.Id -eq $null) { return "" } else { return $value.Id.replace($value.Version,'') }
+      }
+
+      #
+      # Generate the app settings      
+      #
+      # Sett correct resources URI based on environment
+      $resourcesFunctionUri =  "https://resources-api.$environment.fusion-dev.net/"
+      if ($environment -eq "fprd") { $resourcesFunctionUri =  "https://fap-resources-api-fprd.azurewebsites.net/"}
+
+      $settings = @{
+          clientId = "${{ parameters.clientId }}"
+          secretIds = @{
+              clientSecret = Get-SecretsId -secret AzureAd--ClientSecret
+              serviceBus = Get-SecretsId -secret Connectionstrings--ServiceBus
+          }
+          endpoints = @{
+              lineorg = "https://fusion-s-lineorg-$fusionEnvironment.azurewebsites.net"
+              org = "https://fusion-s-org-$fusionEnvironment.azurewebsites.net"
+              people = "https://fusion-s-people-$fusionEnvironment.azurewebsites.net"
+              resources = "$resourcesFunctionUri"
+              notifications = "https://fusion-s-notification-$fusionEnvironment.azurewebsites.net"
+              context = "https://fusion-s-context-$fusionEnvironment.azurewebsites.net"
+              portal = "https://fusion-s-portal-$fusionEnvironment.azurewebsites.net"
+          }
+          resources = @{
+              fusion = "${{ parameters.fusionResource }}"
+          }
+          queues = @{
+              provisionPosition = "provision-position"
+              scheduledNotificationReportQueue = "scheduled-notification"
+          }
+      }
+
+      if ($fusionEnvironment -eq "fprd") {
+            $settings.endpoints.portal = "https://fusion.equinor.com"
+      }
+     
+      New-AzResourceGroupDeployment -Mode Incremental -Name "resources-function" -ResourceGroupName $resourceGroup -TemplateFile  "${{ parameters.templateFile }}" `
+          -env-name $environment `
+          -settings $settings
+
+      $functionApp = Get-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName
+      Set-AzKeyVaultAccessPolicy -VaultName $envVaultName -ResourceGroupName $resourceGroup -ObjectId $functionApp.Identity.PrincipalId -PermissionsToSecrets get
+      
+      ## Load disabled functions
+      $disabledFunctionConfig = ConvertFrom-Json (Get-Content "${{ parameters.disabledFunctionsFile }}" -Raw)
+      $disabledFunctions = $disabledFunctionConfig | where -Property environment -eq $environment | Select -expandproperty disabledFunctions
+
+      Write-Host "Disabled functions"
+      $disabledFunctions
+
+      $settings = @{}
+      ForEach ($kvp in $functionApp.SiteConfig.AppSettings) {
+          $settings[$kvp.Name] = $kvp.Value
+      }
+
+      ## Mark functions as disabled
+      $disabledFunctions | ForEach-Object { $settings["AzureWebJobs.$_.Disabled"] = "true" }
+      
+      ## Update web app settings for function app
+      Set-AzWebApp -ResourceGroupName $resourceGroup -Name $functionAppName -AppSettings $settings
 
