@@ -39,7 +39,6 @@ public class LineOrgApiClient : ILineOrgApiClient
         var resourceOwners = await lineOrgClient.GetAsJsonAsync<LineOrgPersonsResponse>(queryString);
 
         return resourceOwners.Value;
-
     }
 
     internal class DepartmentRef
