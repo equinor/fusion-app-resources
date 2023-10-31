@@ -15,7 +15,7 @@
         },
         "endpoints": {
           "lineorg": "https://fusion-s-lineorg-ci.azurewebsites.net",
-          "org": "https://fusion-s-org-ci.azurewebsites.net", 
+          "org": "https://fusion-s-org-ci.azurewebsites.net",
           "people": "https://fusion-s-people-ci.azurewebsites.net",
           "resources": "[concat('https://resources-api-', parameters('env-name'), '.fusion-dev.net')]",
           "notifications": "https://fusion-s-notification-ci.azurewebsites.net",
@@ -26,7 +26,8 @@
           "fusion": "5a842df8-3238-415d-b168-9f16a6a6031b"
         },
         "queues": {
-          "provisionPosition": "provision-position"
+          "provisionPosition": "provision-position",
+          "scheduledNotificationReportQueue": "scheduled-notification"
         }
       }
     },
@@ -155,6 +156,10 @@
             {
               "name": "Endpoints_Resources_Fusion",
               "value": "[parameters('settings').resources.fusion]"
+            },
+            {
+              "name": "scheduled_notification_report_queue",
+              "value": "[parameters('settings').queues.scheduledNotificationReportQueue]"
             },
             {
               "name": "provision_position_queue",
