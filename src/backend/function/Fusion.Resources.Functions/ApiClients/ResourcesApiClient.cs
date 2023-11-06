@@ -19,6 +19,7 @@ namespace Fusion.Resources.Functions.ApiClients
         public ResourcesApiClient(IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory)
         {
             resourcesClient = httpClientFactory.CreateClient(HttpClientNames.Application.Resources);
+            resourcesClient.Timeout = System.TimeSpan.FromMinutes(5);
             log = loggerFactory.CreateLogger<ResourcesApiClient>();
         }
 
@@ -27,7 +28,8 @@ namespace Fusion.Resources.Functions.ApiClients
             return await resourcesClient.GetAsJsonAsync<IEnumerable<ProjectReference>>("projects");
         }
 
-        public async Task<IEnumerable<ResourceAllocationRequest>> GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(ProjectReference project)
+        public async Task<IEnumerable<ResourceAllocationRequest>>
+            GetIncompleteDepartmentAssignedResourceAllocationRequestsForProjectAsync(ProjectReference project)
         {
             var data = await resourcesClient.GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>(
                 $"projects/{project.Id}/resources/requests/?$filter=state.IsComplete eq false and isDraft eq false&$expand=orgPosition,orgPositionInstance&$top={int.MaxValue}");
@@ -35,21 +37,22 @@ namespace Fusion.Resources.Functions.ApiClients
             return data.Value.Where(x => x.AssignedDepartment is not null);
         }
 
-        public async Task<IEnumerable<ResourceAllocationRequest>> GetAllRequestsForDepartment(string departmentIdentifier)
+        public async Task<IEnumerable<ResourceAllocationRequest>> GetAllRequestsForDepartment(
+            string departmentIdentifier)
         {
             var response = await resourcesClient.GetAsJsonAsync<InternalCollection<ResourceAllocationRequest>>(
                 $"departments/{departmentIdentifier}/resources/requests?$expand=orgPosition,orgPositionInstance,actions");
-            
+
             return response.Value.ToList();
         }
 
-        public async Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(string departmentIdentifier)
+        public async Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(
+            string departmentIdentifier)
         {
             var response = await resourcesClient.GetAsJsonAsync<InternalCollection<InternalPersonnelPerson>>(
                 $"departments/{departmentIdentifier}/resources/personnel?api-version=2.0&$includeCurrentAllocations=true");
 
             return response.Value.ToList();
-
         }
 
         public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department)
@@ -57,7 +60,8 @@ namespace Fusion.Resources.Functions.ApiClients
             var content = JsonConvert.SerializeObject(new { AssignedDepartment = department });
             var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
 
-            var result = await resourcesClient.PatchAsync($"/projects/{item.OrgPosition!.ProjectId}/requests/{item.Id}", stringContent);
+            var result = await resourcesClient.PatchAsync($"/projects/{item.OrgPosition!.ProjectId}/requests/{item.Id}",
+                stringContent);
 
             if (result.IsSuccessStatusCode)
             {
@@ -79,6 +83,5 @@ namespace Fusion.Resources.Functions.ApiClients
 
             public IEnumerable<T> Value { get; set; }
         }
-
     }
 }
