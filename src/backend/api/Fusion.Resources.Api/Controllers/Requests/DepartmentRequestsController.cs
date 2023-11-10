@@ -28,7 +28,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
 
             var authResult = await Request.RequireAuthorizationAsync(r =>
             {
-                r.AlwaysAccessWhen().FullControl().FullControlInternal();
+                r.AlwaysAccessWhen().FullControl().FullControlInternal().BeTrustedApplication();
                 r.AnyOf(or =>
                 {
                     or.BeResourceOwner(new DepartmentPath(departmentString).GoToLevel(2), includeDescendants: true);

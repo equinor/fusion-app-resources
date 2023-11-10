@@ -56,6 +56,19 @@ namespace Fusion.Resources.Functions.Integration.Http
             return this;
         }
 
+        public HttpClientFactoryBuilder AddNotificationsClient()
+        {
+            services.AddTransient<NotificationsHttpHandler>();
+            services.AddHttpClient(HttpClientNames.Application.Notifications, client =>
+            {
+                client.BaseAddress = new Uri("https://fusion-app-notifications");
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            })
+            .AddHttpMessageHandler<NotificationsHttpHandler>()
+            .AddTransientHttpErrorPolicy(DefaultRetryPolicy());
+
+            return this;
+        }
         public HttpClientFactoryBuilder AddResourcesClient()
         {
             services.AddTransient<ResourcesHttpHandler>();
