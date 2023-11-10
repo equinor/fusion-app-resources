@@ -5,16 +5,17 @@
         <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Fusion.ApiClients.Org" Version="7.0.0"/>
+        <PackageReference Include="AdaptiveCards" Version="3.1.0" />
+        <PackageReference Include="Fusion.ApiClients.Org" Version="7.0.2" />
         <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8"/>
         <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.2.0"/>
         <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0"/>
 
         <PackageReference Include="Fusion.Events.Azure.Functions.Extensions" Version="0.3.2"/>
         <PackageReference Include="Fusion.Events.Services" Version="7.0.0"/>
-        <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.13.0"/>
+        <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.13.4" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="7.0.12"/>
+        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="7.0.13" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\integration\Fusion.Resources.Integration.Models\Fusion.Resources.Integration.Models.csproj"/>
