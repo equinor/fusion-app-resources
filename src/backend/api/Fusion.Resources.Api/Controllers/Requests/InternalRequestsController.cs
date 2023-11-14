@@ -22,6 +22,7 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using static Fusion.Resources.Logic.Commands.ResourceAllocationRequest;
 
 namespace Fusion.Resources.Api.Controllers
 {
@@ -935,6 +936,10 @@ namespace Fusion.Resources.Api.Controllers
             catch (ValidationException ex)
             {
                 return ApiErrors.InvalidOperation(ex);
+            }
+            catch (ProvisioningError proEx)
+            {
+                return ApiErrors.InvalidOperation(proEx);
             }
         }
 
