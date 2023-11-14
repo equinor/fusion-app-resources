@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -531,7 +530,10 @@ namespace Fusion.Resources.Api.Controllers
             var result = await DispatchAsync(requestCommand);
 
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
-            return new ApiCollection<ApiResourceAllocationRequest>(apiModel);
+            var apiCollection = new ApiCollection<ApiResourceAllocationRequest>(apiModel) { TotalCount = result.TotalCount, Count = apiModel.Count };
+            apiCollection.SetPagingUrls(query, Request);
+
+            return apiCollection;
         }
 
         [HttpGet("/projects/{projectIdentifier}/requests")]
@@ -616,7 +618,7 @@ namespace Fusion.Resources.Api.Controllers
 
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel)
             {
-                TotalCount = countEnabled ? result.TotalCount : null
+                TotalCount = countEnabled ? result.TotalCount : 0
             };
         }
 

@@ -172,7 +172,7 @@ namespace Fusion.Resources.Api.Controllers.Requests
             var apiModel = result.Select(x => new ApiResourceAllocationRequest(x)).ToList();
             return new ApiCollection<ApiResourceAllocationRequest>(apiModel)
             {
-                TotalCount = countEnabled ? result.TotalCount : null
+                TotalCount = countEnabled ? result.TotalCount : 0
             };
         }
 
