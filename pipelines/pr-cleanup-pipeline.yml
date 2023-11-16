@@ -42,7 +42,7 @@ jobs:
               Inline: |                
                 $activePRs = "$(activePrs)".Split(",")
 
-                $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app" = "resources"; "fusion-app-env" = "pr" } -ResourceGroupName Fusion-SQL-Test
+                $prDbs = Get-AzResource -ResourceType "Microsoft.Sql/servers/databases" -Tag @{"fusion-app-env" = "pr" } -ResourceGroupName Fusion-SQL-Test  | Where-Object { $_.Tags["fusion-app"] -eq "resources" }
 
                 foreach ($db in $prDbs) {
                     if ($db.Tags["fusion-app-env"] -ne "pr") {
