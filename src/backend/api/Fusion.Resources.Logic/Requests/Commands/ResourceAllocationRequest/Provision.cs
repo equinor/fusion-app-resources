@@ -149,8 +149,14 @@ namespace Fusion.Resources.Logic.Commands
                         dbRequest.ProvisioningStatus.ErrorMessage = $"Received error from Org service when trying to update the position: '{apiError.Error?.Message}'";
                         dbRequest.ProvisioningStatus.ErrorPayload = apiError.ResponseText;
                         dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
-
                         throw new ProvisioningError($"Error communicating with org chart: {apiError.Message}", apiError);
+                    }
+                    catch (ProvisioningError ex)
+                    {
+                        dbRequest.ProvisioningStatus.ErrorMessage = $"Error when trying to update the position: '{ex?.Message}'";
+                        dbRequest.ProvisioningStatus.ErrorPayload = ex.InnerException.ToString();
+                        dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
+                        throw new ProvisioningError($" {ex.Message}", ex);
                     }
                 }
 
