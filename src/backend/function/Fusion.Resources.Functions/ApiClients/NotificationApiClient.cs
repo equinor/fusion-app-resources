@@ -14,6 +14,7 @@ public class NotificationApiClient : INotificationApiClient
     public NotificationApiClient(IHttpClientFactory httpClientFactory)
     {
         _client = httpClientFactory.CreateClient(HttpClientNames.Application.Notifications);
+        _client.Timeout = TimeSpan.FromMinutes(5);
     }
 
     public async Task<bool> SendNotification(SendNotificationsRequest request, Guid azureUniqueId)

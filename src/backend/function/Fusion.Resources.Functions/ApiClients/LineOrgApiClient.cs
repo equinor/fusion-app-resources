@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -15,6 +16,7 @@ public class LineOrgApiClient : ILineOrgApiClient
     public LineOrgApiClient(IHttpClientFactory httpClientFactory)
     {
         lineOrgClient = httpClientFactory.CreateClient(HttpClientNames.Application.LineOrg);
+        lineOrgClient.Timeout = TimeSpan.FromMinutes(5);
     }
 
     public async Task<IEnumerable<string>> GetOrgUnitDepartmentsAsync()
@@ -39,7 +41,6 @@ public class LineOrgApiClient : ILineOrgApiClient
         var resourceOwners = await lineOrgClient.GetAsJsonAsync<LineOrgPersonsResponse>(queryString);
 
         return resourceOwners.Value;
-
     }
 
     internal class DepartmentRef
