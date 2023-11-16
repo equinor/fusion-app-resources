@@ -91,7 +91,7 @@ namespace Fusion.Resources.Logic.Commands
                         }
                         catch (Exception ex)
                         {
-                            throw new Exception("Invalid data from request", ex);
+                            throw new ProvisioningError("Invalid data from request", ex);
                         }
 
                         var url = $"/projects/{dbRequest.Project.OrgProjectId}/drafts/{draft.Id}/positions/{dbRequest.OrgPositionId}/instances/{dbRequest.OrgPositionInstance.Id}?api-version=2.0";

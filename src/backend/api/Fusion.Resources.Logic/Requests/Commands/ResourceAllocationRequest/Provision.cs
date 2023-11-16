@@ -151,7 +151,7 @@ namespace Fusion.Resources.Logic.Commands
                         dbRequest.ProvisioningStatus.State = DbResourceAllocationRequest.DbProvisionState.Error;
                         throw new ProvisioningError($"Error communicating with org chart: {apiError.Message}", apiError);
                     }
-                    catch (Exception ex) // Specify Exception type?
+                    catch (ProvisioningError ex)
                     {
                         dbRequest.ProvisioningStatus.ErrorMessage = $"Error when trying to update the position: '{ex?.Message}'";
                         dbRequest.ProvisioningStatus.ErrorPayload = ex.InnerException.ToString();
