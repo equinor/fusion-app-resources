@@ -32,7 +32,7 @@ public class LineOrgApiClient : ILineOrgApiClient
     public async Task<List<LineOrgPerson>> GetResourceOwnersFromFullDepartment(List<string> fullDepartments)
     {
         var list = fullDepartments
-            .Select(l => $"'{l}'")
+            .Select(l => $"'{l.Replace("&", "%26")}'")
             .ToList()
             .Aggregate((a, b) => $"{a}, {b}");
         var queryString = $"/lineorg/persons?$filter=fullDepartment in " +

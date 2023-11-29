@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Fusion.Resources.Functions.ApiClients;
+using Fusion.Resources.Functions.ApiClients.ApiModels;
 using Fusion.Resources.Functions.Functions.Notifications.Models.DTOs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +32,7 @@ public class ScheduledReportTimerTriggerFunction
 
     [FunctionName("scheduled-report-timer-trigger-function")]
     public async Task RunAsync(
-        [TimerTrigger("0 0 0 * * MON", RunOnStartup = false)]
+        [TimerTrigger("0 0 8 * * MON", RunOnStartup = false)]
         TimerInfo scheduledReportTimer)
     {
         _logger.LogInformation(
@@ -60,23 +61,18 @@ public class ScheduledReportTimerTriggerFunction
     {
         try
         {
+            var departments = await _lineOrgClient.GetOrgUnitDepartmentsAsync();
+            if (departments == null || !departments.Any())
+                throw new Exception("No departments found.");
+
             // TODO: These resource-owners are handpicked to limit the scope of the project.
-            var resourceOwners =
-                await _lineOrgClient.GetResourceOwnersFromFullDepartment(
-                    new List<string>
-                    {
-                        "PDP PRD PMC PCA PCA1",
-                        "PDP PRD PMC PCA PCA2",
-                        "PDP PRD PMC PCA PCA3",
-                        "PDP PRD PMC PCA PCA4",
-                        "PDP PRD PMC PCA PCA5",
-                        "PDP PRD PMC PCA PCA6",
-                        "CFO FCOE PO CPC DA SOL"
-                    });
+            var selectedDepartments = departments.Where(d => d.Contains("PRD")).Distinct().ToList();
+            var resourceOwners = await GetLineOrgPersonsFromDepartmetnsChunked(selectedDepartments);
+
             if (resourceOwners == null || !resourceOwners.Any())
                 throw new Exception("No resource-owners found.");
 
-            foreach (var resourceOwner in resourceOwners)
+            foreach (var resourceOwner in resourceOwners.DistinctBy(ro => ro.AzureUniqueId))
             {
                 try
                 {
@@ -104,6 +100,21 @@ public class ScheduledReportTimerTriggerFunction
                 $"ServiceBus queue '{_queueName}' " +
                 $"failed collecting resource-owners with exception: {e.Message}");
         }
+    }
+
+    private async Task<List<LineOrgPerson>> GetLineOrgPersonsFromDepartmetnsChunked(List<string> selectedDepartments)
+    {
+        var resourceOwners = new List<LineOrgPerson>();
+        const int chuckSize = 10;
+        for (var i = 0; i < selectedDepartments.Count; i += chuckSize)
+        {
+            var chunk = selectedDepartments.Skip(i).Take(chuckSize).ToList();
+            var chunkedResourceOwners =
+                await _lineOrgClient.GetResourceOwnersFromFullDepartment(chunk);
+            resourceOwners.AddRange(chunkedResourceOwners);
+        }
+
+        return resourceOwners;
     }
 
     private async Task SendDtoToQueue(ServiceBusSender sender, ScheduledNotificationQueueDto dto)
