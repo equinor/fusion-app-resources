@@ -14,6 +14,7 @@ namespace Fusion.Resources.Functions.ApiClients
         Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department);
         Task<IEnumerable<ResourceAllocationRequest>> GetAllRequestsForDepartment(string departmentIdentifier);
         Task<IEnumerable<InternalPersonnelPerson>> GetAllPersonnelForDepartment(string departmentIdentifier);
+        Task<IEnumerable<ApiPersonAbsence>> GetLeaveForPersonnel(string personId);
 
         #region Models
 
@@ -30,6 +31,13 @@ namespace Fusion.Resources.Functions.ApiClients
             public bool HasProposedPerson => ProposedPerson?.Person.AzureUniquePersonId is not null;
             public string? State { get; set; }
             public Workflow? workflow { get; set; }
+            public DateTimeOffset Created { get; set; }
+            public InternalPersonnelPerson? CreatedBy { get; set; }
+
+            public DateTimeOffset? Updated { get; set; }
+            public InternalPersonnelPerson? UpdatedBy { get; set; }
+            public DateTimeOffset? LastActivity { get; set; }
+            public bool IsDraft { get; set; }
         }
 
         public enum RequestState
@@ -42,7 +50,7 @@ namespace Fusion.Resources.Functions.ApiClients
             public string LogicAppName { get; set; }
             public string LogicAppVersion { get; set; }
 
-            [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
+            [JsonConverter(typeof(JsonStringEnumConverter))]
             public ApiWorkflowState State { get; set; }
 
             public IEnumerable<WorkflowStep> Steps { get; set; }
@@ -61,7 +69,7 @@ namespace Fusion.Resources.Functions.ApiClients
             /// <summary>
             /// Pending, Approved, Rejected, Skipped
             /// </summary>
-            [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
+            [JsonConverter(typeof(JsonStringEnumConverter))]
             public ApiWorkflowStepState State { get; set; }
 
             public DateTimeOffset? Started { get; set; }
@@ -79,9 +87,8 @@ namespace Fusion.Resources.Functions.ApiClients
 
         public class ProposedPerson
         {
-            public Person Person { get; set; } = null!;
+            public InternalPersonnelPerson Person { get; set; } = null!;
         }
-
         public class Person
         {
             public Guid? AzureUniquePersonId { get; set; }
@@ -98,7 +105,6 @@ namespace Fusion.Resources.Functions.ApiClients
 
         public class InternalPersonnelPerson
         {
-
             public Guid? AzureUniquePersonId { get; set; }
             public string? Mail { get; set; } = null!;
             public string? Name { get; set; } = null!;
@@ -110,6 +116,7 @@ namespace Fusion.Resources.Functions.ApiClients
             public bool IsResourceOwner { get; set; }
             public string? AccountType { get; set; }
             public List<PersonnelPosition> PositionInstances { get; set; } = new List<PersonnelPosition>();
+            public List<ApiPersonAbsence> ApiPersonAbsences { get; set; } = new List<ApiPersonAbsence>();
         }
 
         public class PersonnelPosition
@@ -127,6 +134,32 @@ namespace Fusion.Resources.Functions.ApiClients
             public double Workload { get; set; }
             public ProjectReference? Project { get; set; }
         }
+
+        public class ApiPersonAbsence
+        {         
+            public Guid Id { get; set; }
+
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public DateTimeOffset? Created { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public InternalPersonnelPerson? CreatedBy { get; set; }
+            public bool IsPrivate { get; set; }
+            public string? Comment { get; set; }
+            //public ApiTaskDetails? TaskDetails { get; set; } // Trengs denne?
+            public DateTimeOffset? AppliesFrom { get; set; }
+            public DateTimeOffset? AppliesTo { get; set; }
+            public ApiAbsenceType? Type { get; set; }
+            public double? AbsencePercentage { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public bool IsActive => AppliesFrom <= DateTime.UtcNow.Date && AppliesTo >= DateTime.UtcNow.Date;
+
+        }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public enum ApiAbsenceType { Absence, Vacation, OtherTasks }
+
+
+
         #endregion Models
     }
 }

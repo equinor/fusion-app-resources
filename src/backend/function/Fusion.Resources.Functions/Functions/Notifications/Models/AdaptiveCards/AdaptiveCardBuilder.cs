@@ -76,6 +76,18 @@ namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard
             return this;
         }
 
+        public AdaptiveCardBuilder AddActionButton(string title, string url)
+        {
+            var actionButton = new AdaptiveOpenUrlAction
+            {
+                                                                                                                                                        
+                Title = title,
+                Url = new Uri(url)
+            };
+
+            _adaptiveCard.Actions.Add(actionButton);
+            return this;
+        }
         public AdaptiveCard Build()
         {
             return _adaptiveCard;
@@ -96,7 +108,7 @@ namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard
             {
                 new AdaptiveTextBlock
                 {
-                    Text = $"{numberText} - {customText ?? ""}",
+                    Text = $"{numberText} {customText ?? ""}",
                     Wrap = true,
                     HorizontalAlignment = AdaptiveHorizontalAlignment.Center,
                     Size = AdaptiveTextSize.ExtraLarge

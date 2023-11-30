@@ -55,6 +55,14 @@ namespace Fusion.Resources.Functions.ApiClients
             return response.Value.ToList();
         }
 
+        public async Task<IEnumerable<ApiPersonAbsence>> GetLeaveForPersonnel(string personId)
+        {
+            var response = await resourcesClient.GetAsJsonAsync<InternalCollection<ApiPersonAbsence>>(
+                $"persons/{personId}/absence");
+
+            return response.Value.ToList();
+        }
+
         public async Task<bool> ReassignRequestAsync(ResourceAllocationRequest item, string? department)
         {
             var content = JsonConvert.SerializeObject(new { AssignedDepartment = department });

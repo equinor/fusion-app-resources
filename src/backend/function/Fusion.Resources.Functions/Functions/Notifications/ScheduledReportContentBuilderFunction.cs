@@ -90,69 +90,104 @@ public class ScheduledReportContentBuilderFunction
     {
         var threeMonthsFuture = DateTime.UtcNow.AddMonths(3);
         var today = DateTime.UtcNow;
+        var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
         // Get all requests for specific Department regardsless of state
         var departmentRequests = await _resourceClient.GetAllRequestsForDepartment(fullDepartment);
 
-
-        // Count all of the number of requests sent to the department. We may change this to only include a specific timeframe in the future (last 12 months)
-        // 1. Total number of request sent to department
-        var totalNumberOfRequests = departmentRequests.Count();
-
-        // Filter to only include the ones that have start-date in more than 3 months AND state not completed
-        // 2. Number of request that have more than 3 months to start data(link to system with filtered view)
-        var numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests
-            .Count(x => !x.State.Contains(RequestState.completed.ToString()) &&
-                        x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
-
-        // Filter to only inlclude the ones that have start-date in less than 3 months and start-date after today and is not complete and has no proposedPerson assigned to them
-        // 3. Number of requests that are less than 3 month to start data with no nomination.
-        var numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests
-            .Count(x => !x.State.Contains(RequestState.completed.ToString()) &&
-                        (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture &&
-                         x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
-
-        // Only to include those requests which have state approval (this means that the resource owner needs to process the requests in some way)
-        // 4. Number of open requests.  
-        var totalNumberOfOpenRequests = departmentRequests
-            .Count(x => !x.State.Contains(RequestState.completed.ToString()));
-
-
         // Get all the personnel for the specific department
         var personnelForDepartment = await _resourceClient.GetAllPersonnelForDepartment(fullDepartment);
+        personnelForDepartment = await GetPersonnelLeave(personnelForDepartment);
+        
 
-        //5. List with personnel positions ending within 3 months and with no future allocation (link to personnel allocation)
+
+        //1.Number of personnel: 
+        //number of personnel in the department(one specific org unit)
+        // Hvordan finne?
+        // Hent ut alle ressursene for en gitt avdeling
+        // OK?
+        var numberOfPersonnel = personnelForDepartment.Count();
+
+        //2.Capacity in use:
+        //capacity in use by %.
+        //Calculated by total current workload for all personnel / (100 % workload x number of personnel - (total % leave)), 
+        //a.e.g. 10 people in department: 800 % current workload / (1000 % -120 % leave) = 91 % capacity in use
+        // OK - Inkluderer nå leave..
+        var percentageOfTotalCapacity = FindTotalCapacityIncludingLeave(personnelForDepartment.ToList());
+
+
+        // 3.New requests last week:
+        // number of requests received last 7 days
+        // Notat: En request kan ha blitt opprettet for 7 dager siden, men ikke oversendt til ressurseiere - Det kan være 
+        // Inkluderer foreløpig alle requestene uavhengig av hvilken state de er
+        var numberOfRequestsLastWeek = departmentRequests.Where(req => req.Created > sevenDaysAgo && !req.IsDraft).Count();
+
+
+
+        //4.Open request:
+        //number of requests with no proposed candidate
+        // Only to include those requests which have state approval (this means that the resource owner needs to process the requests in some way)
+        // OK? - Må sjekkes og finne noen som har approval...
+        var totalNumberOfOpenRequests = departmentRequests.Count(req => !req.HasProposedPerson && !req.State.Contains(RequestState.completed.ToString()));
+
+
+        //5.Requests with start-date < 3 months:
+        //number of requests with start date within less than 3 months
+        // Filter to only inlclude the ones that have start-date in less than 3 months and start-date after today and is not complete and has no proposedPerson assigned to them
+        var numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination = departmentRequests
+            .Count(x => !x.State.Contains(RequestState.completed.ToString()) &&
+                (x.OrgPositionInstance.AppliesFrom < threeMonthsFuture &&
+                 x.OrgPositionInstance.AppliesFrom > today) && !x.HasProposedPerson);
+
+
+        //6.Requests with start-date > 3 months:
+        //number of requests with start date later than next 3 months
+        // Filter to only include the ones that have start-date in more than 3 months AND state not completed
+        var numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart = departmentRequests
+            .Count(x => !x.State.Contains(RequestState.completed.ToString()) &&
+                x.OrgPositionInstance.AppliesFrom > threeMonthsFuture);
+
+        // TODO:
+        //7.Average time to handle request: 
+        //average number of days from request created/ sent to candidate is proposed - last 6 months
+
+        // TODO:
+        //8.Allocation changes awaiting task owner action:
+        //number of allocation changes made by resource owner awaiting task owner action
+        //Må hente ut alle posisjoner som har ressurser for en gitt avdeling og sjekke på om det er gjort endringer her den siste tiden
+
+        // TODO: 
+        //9.Project changes affecting next 3 months: 
+        //number of project changes(changes initiated by project / task) with a change affecting the next 3 months
+
+        //10.Allocations ending soon with no future allocation:  -Skal være ok ?
+        //list of allocations ending within next 3 months where the person allocated does not continue in the position(i.e.no future splits with the same person allocated)
         var listOfPersonnelWithoutFutureAllocations = FilterPersonnelWithoutFutureAllocations(personnelForDepartment);
 
-
-        // 6. Number of personnel allocated more than 100 %
+        //11.Personnel with more than 100 % workload: -OK
+        //(as in current pilot, but remove "FTE") list of persons with total allocation > 100 %, total % workload should be visible after person name
+        // TODO: Fiks formatering og oppdeling av innhold her
         var listOfPersonnelsWithMoreThan100Percent = personnelForDepartment.Where(p =>
             p.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum() > 100);
         var listOfPersonnelForDepartmentWithMoreThan100Percent =
             listOfPersonnelsWithMoreThan100Percent.Select(p => CreatePersonnelWithTBEContent(p));
 
 
-        //7. % of total allocation vs.capacity
-        // Show this as a percentagenumber (in the first draft)
-        var percentageOfTotalCapacity = FindTotalPercentagesAllocatedOfTotal(personnelForDepartment.ToList());
-
-
-        //8.EXT Contracts ending within 3 months ? (data to be imported from SAP or AD) 
-        // ContractPersonnel'et? - Knyttet til projectmaster -> Knyttet til orgkart
-        // Skip this for now...
 
 
         var card = ResourceOwnerAdaptiveCardBuilder(new ResourceOwnerAdaptiveCardData
         {
-            NumberOfOlderRequests = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
+            TotalNumberOfPersonnel = numberOfPersonnel,
+            TotalCapacityInUsePercentage = percentageOfTotalCapacity,
+            NumberOfRequestsLastWeek = numberOfRequestsLastWeek,
             NumberOfOpenRequests = totalNumberOfOpenRequests,
-            NumberOfNewRequestsWithNoNomination =
-                    numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
-            NumberOfExtContractsEnding = 0, // TODO: Work in progress...
-            PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent,
-            PercentAllocationOfTotalCapacity = percentageOfTotalCapacity,
-            TotalNumberOfRequests = totalNumberOfRequests,
+            NumberOfRequestsStartingInMoreThanThreeMonths = numberOfDepartmentRequestWithMoreThanThreeMonthsBeforeStart,
+            NumberOfRequestsStartingInLessThanThreeMonths = numberOfDepartmentRequestWithLessThanThreeMonthsBeforeStartAndNoNomination,
+            AverageTimeToHandleRequests = 0,
+            AllocationChangesAwaitingTaskOwnerAction = 0,
+            ProjectChangesAffectingNextThreeMonths = 0,
             PersonnelPositionsEndingWithNoFutureAllocation = listOfPersonnelWithoutFutureAllocations,
+            PersonnelAllocatedMoreThan100Percent = listOfPersonnelForDepartmentWithMoreThan100Percent
         },
             fullDepartment);
 
@@ -186,18 +221,36 @@ public class ScheduledReportContentBuilderFunction
         return personnelWithoutFutureAllocations.Select(p => CreatePersonnelContent(p));
     }
 
-    // Without taking LEAVE into considerations
-    private int FindTotalPercentagesAllocatedOfTotal(List<InternalPersonnelPerson> listOfInternalPersonnel)
+    private async Task<IEnumerable<InternalPersonnelPerson>> GetPersonnelLeave(IEnumerable<InternalPersonnelPerson> listOfInternalPersonnel)
     {
+        List<InternalPersonnelPerson> newList = listOfInternalPersonnel.ToList();
+        for (int i =0; i < newList.Count(); i++)
+        {
+            var absence = await _resourceClient.GetLeaveForPersonnel(newList[i].AzureUniquePersonId.ToString());
+            newList[i].ApiPersonAbsences = absence.ToList();
+        }
+
+        listOfInternalPersonnel = newList;
+        return listOfInternalPersonnel;
+    }
+
+    private int FindTotalCapacityIncludingLeave(List<InternalPersonnelPerson> listOfInternalPersonnel)
+    {
+        //Calculated by total current workload for all personnel / (100 % workload x number of personnel - (total % leave)), 
+        //a.e.g. 10 people in department: 800 % current workload / (1000 % -120 % leave) = 91 % capacity in use
+
         var totalWorkLoad = 0.0;
+        double? totalLeave = 0.0;
+
         foreach (var personnel in listOfInternalPersonnel)
         {
+            totalLeave += personnel.ApiPersonAbsences.Where(ab => ab.Type == ApiAbsenceType.Absence && ab.IsActive).Select(ab => ab.AbsencePercentage).Sum();
             totalWorkLoad += personnel.PositionInstances.Where(pos => pos.IsActive).Select(pos => pos.Workload).Sum();
         }
 
-        var totalPercentage = totalWorkLoad / (listOfInternalPersonnel.Count * 100) * 100;
+        var totalPercentageInludeLeave = totalWorkLoad / ((listOfInternalPersonnel.Count * 100) - totalLeave) * 100;
 
-        return Convert.ToInt32(totalPercentage);
+        return Convert.ToInt32(totalPercentageInludeLeave);
     }
 
     private PersonnelContent CreatePersonnelContent(InternalPersonnelPerson person)
@@ -235,18 +288,33 @@ public class ScheduledReportContentBuilderFunction
     private static AdaptiveCard ResourceOwnerAdaptiveCardBuilder(ResourceOwnerAdaptiveCardData cardData,
         string departmentIdentifier)
     {
+        // Plasser denne en annen plass
+        var baseUri = "https://fusion-s-portal-ci.azurewebsites.net/apps/personnel-allocation/";
+        var avdelingsId = "52586050";
+
 
         var card = new AdaptiveCardBuilder()
         .AddHeading($"**Weekly summary - {departmentIdentifier}**")
-        .AddColumnSet(new AdaptiveCardColumn(cardData.PercentAllocationOfTotalCapacity.ToString(), "Capacity in use", "%"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfRequests.ToString(), "Total requests"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.TotalNumberOfPersonnel.ToString(), "Number of personnel"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.TotalCapacityInUsePercentage.ToString(), "Capacity in use", "%"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsLastWeek.ToString(), "New requests last week"))
         .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOpenRequests.ToString(), "Open requests"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfNewRequestsWithNoNomination.ToString(), "Requests with start date less than 3 months"))
-        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfOlderRequests.ToString(), "Requests with start date more than 3 months"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInLessThanThreeMonths.ToString(), "Requests with start date < 3 months"))
+        .AddColumnSet(new AdaptiveCardColumn(cardData.NumberOfRequestsStartingInMoreThanThreeMonths.ToString(), "Requests with start date > 3 months"))
+
+        // Not finished
+        .AddColumnSet(new AdaptiveCardColumn(/*(cardData.AverageTimeToHandleRequests.ToString()*/ "NA", "Average time to handle request")) // WIP
+        .AddColumnSet(new AdaptiveCardColumn(/*cardData.AllocationChangesAwaitingTaskOwnerAction.ToString()*/ "NA", "Allocation changes awaiting task owner action")) // WIP
+        .AddColumnSet(new AdaptiveCardColumn(/*cardData.ProjectChangesAffectingNextThreeMonths.ToString()*/ "NA", "Project changes affecting next 3 months")) // WIP
+
         .AddListContainer("Positions ending soon with no future allocation:", cardData.PersonnelPositionsEndingWithNoFutureAllocation, "FullName", "EndingPosition")
-        .AddListContainer("Personnel with more than 100% FTE:", cardData.PersonnelAllocatedMoreThan100Percent, "FullName", "TotalWorkload")
+        .AddListContainer("Personnel with more than 100% workload:", cardData.PersonnelAllocatedMoreThan100Percent, "FullName", "TotalWorkload")
+
+        .AddActionButton("Go to Personnel allocation app", $"{baseUri}{avdelingsId}")
+
         .Build();
 
         return card;
-    }    
+    }
+
 }

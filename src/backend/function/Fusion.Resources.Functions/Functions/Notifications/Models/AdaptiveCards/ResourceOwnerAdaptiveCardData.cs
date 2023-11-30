@@ -4,12 +4,16 @@ namespace Fusion.Resources.Functions.Functions.Notifications.Models.AdaptiveCard
 
 public class ResourceOwnerAdaptiveCardData
 {
-    public int TotalNumberOfRequests { get; set; }
-    public int NumberOfOlderRequests { get; set; }
-    public int NumberOfNewRequestsWithNoNomination { get; set; }
+    public int TotalNumberOfPersonnel { get; set; }
+    public int TotalCapacityInUsePercentage { get; set; }
+    public int NumberOfRequestsLastWeek { get; set; }
     public int NumberOfOpenRequests { get; set; }
+    public int NumberOfRequestsStartingInMoreThanThreeMonths { get; set; }
+    public int NumberOfRequestsStartingInLessThanThreeMonths { get; set; }
+    public int AverageTimeToHandleRequests { get; set; }
+    public int AllocationChangesAwaitingTaskOwnerAction { get; set; }
+    public int ProjectChangesAffectingNextThreeMonths { get; set; }    
     internal IEnumerable<PersonnelContent> PersonnelPositionsEndingWithNoFutureAllocation { get; set; }
-    public int PercentAllocationOfTotalCapacity { get; set; }
+
     internal IEnumerable<PersonnelContent> PersonnelAllocatedMoreThan100Percent { get; set; }
-    public int NumberOfExtContractsEnding { get; set; }
 }
